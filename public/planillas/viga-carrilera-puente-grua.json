@@ -1,0 +1,2774 @@
+{
+ "version": 1,
+ "meta": {
+  "titulo": "Viga carrilera de puente grúa 20 t — sección combinada W610×155 + canal C310×45 (AISC 360-22 Caps. F/G/H/J10 y Apéndice 3, cargas ASCE 7 §4.9, servicio AIST TR13)",
+  "ficha": "struct_pad/src/content/acero/ejemplo-viga-carrilera-puente-grua.mdx",
+  "esperadoFalso": {
+   "v_h1d": "TESIS DEL EJEMPLO: sin el canal la interacción biaxial se pasa de 1,0. Es el punto del post — el canal no está para el LTB, está para el eje débil.",
+   "c_sytop": "FILO DEL REDONDEO, no hallazgo: S_y,top = 12142,4/16,2 = 749,53 cm³, o sea 749,5 justo en la mitad del último dígito. El post trunca a 749 y la planilla redondearía a 750; no hay discrepancia de cálculo."
+  }
+ },
+ "regions": [
+  {
+   "id": "r000",
+   "kind": "text",
+   "x": 40,
+   "y": 32,
+   "src": "VIGA CARRILERA DE PUENTE GRÚA 20 t — sección combinada W610×155 + canal C310×45"
+  },
+  {
+   "id": "r001",
+   "kind": "text",
+   "x": 40,
+   "y": 80,
+   "src": "AISC 360-22 Caps. F, G, H y J10 + Apéndice 3 (fatiga) · cargas ASCE 7 §4.9 · servicio AIST TR13 · LRFD"
+  },
+  {
+   "id": "r002",
+   "kind": "text",
+   "x": 40,
+   "y": 128,
+   "src": "Rd_ = capacidad de diseño (incluye phi) · las comparaciones dan ✓/✗"
+  },
+  {
+   "id": "r003",
+   "kind": "text",
+   "x": 40,
+   "y": 176,
+   "src": "El caso: viga simplemente apoyada de 8 m con dos ruedas separadas 4 m que se pasean"
+  },
+  {
+   "id": "r004",
+   "kind": "text",
+   "x": 40,
+   "y": 224,
+   "src": "sobre ella. Se calculan DOS cadenas enteras desde los datos: la sección COMBINADA"
+  },
+  {
+   "id": "r005",
+   "kind": "text",
+   "x": 40,
+   "y": 272,
+   "src": "(viga + canal) y la sección DESNUDA (sin canal), que es la que sostiene la tesis de"
+  },
+  {
+   "id": "r006",
+   "kind": "text",
+   "x": 40,
+   "y": 320,
+   "src": "por qué va el canal. La desnuda no se obtiene escalando números de la combinada."
+  },
+  {
+   "id": "r007",
+   "kind": "text",
+   "x": 40,
+   "y": 384,
+   "src": "━━ DATOS · ACERO Y FACTORES DE RESISTENCIA ━━"
+  },
+  {
+   "id": "r008",
+   "kind": "text",
+   "x": 40,
+   "y": 432,
+   "src": "ASTM A36. E es el de la norma (Ec. G2-2 y Símbolos del Cap. F): 200 000 MPa."
+  },
+  {
+   "id": "r009",
+   "kind": "math",
+   "x": 40,
+   "y": 480,
+   "src": "F_y := 2530 kgf/cm^2"
+  },
+  {
+   "id": "r010",
+   "kind": "math",
+   "x": 40,
+   "y": 528,
+   "src": "F_u := 4080 kgf/cm^2"
+  },
+  {
+   "id": "r011",
+   "kind": "text",
+   "x": 40,
+   "y": 576,
+   "src": "F_u lo declara el post y ningún estado límite de este ejemplo lo usa: queda de testigo."
+  },
+  {
+   "id": "r012",
+   "kind": "math",
+   "x": 40,
+   "y": 624,
+   "src": "E := 2.04e6 kgf/cm^2"
+  },
+  {
+   "id": "r013",
+   "kind": "text",
+   "x": 40,
+   "y": 672,
+   "src": "F1(a): phi_b = 0,90 para flexión (LRFD)"
+  },
+  {
+   "id": "r014",
+   "kind": "math",
+   "x": 40,
+   "y": 720,
+   "src": "phi_b := 0.90"
+  },
+  {
+   "id": "r015",
+   "kind": "text",
+   "x": 40,
+   "y": 768,
+   "src": "G1(a) remite a G2.1(a) para la excepción del corte; J10.2 y J10.3 traen su propio phi."
+  },
+  {
+   "id": "r016",
+   "kind": "math",
+   "x": 40,
+   "y": 816,
+   "src": "phi_v := 1.00"
+  },
+  {
+   "id": "r017",
+   "kind": "math",
+   "x": 40,
+   "y": 864,
+   "src": "phi_j2 := 1.00"
+  },
+  {
+   "id": "r018",
+   "kind": "math",
+   "x": 40,
+   "y": 912,
+   "src": "phi_j4 := 0.75"
+  },
+  {
+   "id": "r019",
+   "kind": "text",
+   "x": 40,
+   "y": 976,
+   "src": "━━ DATOS · W610×155, LAS CUATRO PLANCHAS ━━"
+  },
+  {
+   "id": "r020",
+   "kind": "text",
+   "x": 40,
+   "y": 1024,
+   "src": "Dimensiones nominales del perfil métrico (catálogo). De ellas se deriva todo lo"
+  },
+  {
+   "id": "r021",
+   "kind": "text",
+   "x": 40,
+   "y": 1072,
+   "src": "que la sección compuesta necesita, y se contrasta contra la fila tabulada."
+  },
+  {
+   "id": "r022",
+   "kind": "math",
+   "x": 40,
+   "y": 1120,
+   "src": "d := 61.1 cm"
+  },
+  {
+   "id": "r023",
+   "kind": "math",
+   "x": 40,
+   "y": 1168,
+   "src": "b_f := 32.4 cm"
+  },
+  {
+   "id": "r024",
+   "kind": "math",
+   "x": 40,
+   "y": 1216,
+   "src": "t_f := 1.905 cm"
+  },
+  {
+   "id": "r025",
+   "kind": "math",
+   "x": 40,
+   "y": 1264,
+   "src": "t_w := 1.27 cm"
+  },
+  {
+   "id": "r026",
+   "kind": "text",
+   "x": 40,
+   "y": 1312,
+   "src": "B4.1 §1b: en perfil laminado h es la luz libre MENOS los redondeos de unión. Sin"
+  },
+  {
+   "id": "r027",
+   "kind": "text",
+   "x": 40,
+   "y": 1360,
+   "src": "el dato del redondeo, d - 2·t_f es la cota SUPERIOR de h — conservadora para G2.1(a)."
+  },
+  {
+   "id": "r028",
+   "kind": "math",
+   "x": 40,
+   "y": 1408,
+   "src": "h_pl := d - 2*t_f = cm"
+  },
+  {
+   "id": "r029",
+   "kind": "math",
+   "x": 40,
+   "y": 1456,
+   "src": "A_pl := 2*b_f*t_f + h_pl*t_w = cm^2"
+  },
+  {
+   "id": "r030",
+   "kind": "math",
+   "x": 40,
+   "y": 1504,
+   "src": "Ix_pl := (b_f*d^3 - (b_f - t_w)*h_pl^3)/12 = cm^4"
+  },
+  {
+   "id": "r031",
+   "kind": "math",
+   "x": 40,
+   "y": 1552,
+   "src": "Sx_pl := Ix_pl/(d/2) = cm^3"
+  },
+  {
+   "id": "r032",
+   "kind": "math",
+   "x": 40,
+   "y": 1600,
+   "src": "Zx_pl := b_f*t_f*(d - t_f) + t_w*h_pl^2/4 = cm^3"
+  },
+  {
+   "id": "r033",
+   "kind": "math",
+   "x": 40,
+   "y": 1648,
+   "src": "Iy_pl := (2*t_f*b_f^3 + h_pl*t_w^3)/12 = cm^4"
+  },
+  {
+   "id": "r034",
+   "kind": "math",
+   "x": 40,
+   "y": 1696,
+   "src": "ry_pl := sqrt(Iy_pl/A_pl) = cm"
+  },
+  {
+   "id": "r035",
+   "kind": "text",
+   "x": 40,
+   "y": 1744,
+   "src": "h_o (distancia entre centroides de alas) sale EXACTA de las planchas, sin redondeos:"
+  },
+  {
+   "id": "r036",
+   "kind": "math",
+   "x": 40,
+   "y": 1792,
+   "src": "h_o := d - t_f = cm"
+  },
+  {
+   "id": "r037",
+   "kind": "text",
+   "x": 40,
+   "y": 1840,
+   "src": "Constante torsional de la viga, por la suma de las tres planchas:"
+  },
+  {
+   "id": "r038",
+   "kind": "math",
+   "x": 40,
+   "y": 1888,
+   "src": "J_W := (2*b_f*t_f^3 + (d - t_f)*t_w^3)/3 = cm^4"
+  },
+  {
+   "id": "r039",
+   "kind": "math",
+   "x": 40,
+   "y": 1936,
+   "src": "bt_ala := b_f/(2*t_f) ="
+  },
+  {
+   "id": "r040",
+   "kind": "math",
+   "x": 40,
+   "y": 1984,
+   "src": "ht_alma := h_pl/t_w ="
+  },
+  {
+   "id": "r041",
+   "kind": "text",
+   "x": 40,
+   "y": 2048,
+   "src": "━━ DATOS · W610×155, LA FILA DE CATÁLOGO — frontera declarada ━━"
+  },
+  {
+   "id": "r042",
+   "kind": "text",
+   "x": 40,
+   "y": 2096,
+   "src": "La Specification no tabula perfiles (eso es el Manual). A_g, I, S, Z y r entran"
+  },
+  {
+   "id": "r043",
+   "kind": "text",
+   "x": 40,
+   "y": 2144,
+   "src": "como dato con su fuente; el post los publica y la planilla los usa tal cual."
+  },
+  {
+   "id": "r044",
+   "kind": "math",
+   "x": 40,
+   "y": 2192,
+   "src": "A_W := 198 cm^2"
+  },
+  {
+   "id": "r045",
+   "kind": "math",
+   "x": 40,
+   "y": 2240,
+   "src": "I_xW := 129000 cm^4"
+  },
+  {
+   "id": "r046",
+   "kind": "math",
+   "x": 40,
+   "y": 2288,
+   "src": "S_xW := 4228 cm^3"
+  },
+  {
+   "id": "r047",
+   "kind": "math",
+   "x": 40,
+   "y": 2336,
+   "src": "Z_xW := 4736 cm^3"
+  },
+  {
+   "id": "r048",
+   "kind": "math",
+   "x": 40,
+   "y": 2384,
+   "src": "I_yW := 10780 cm^4"
+  },
+  {
+   "id": "r049",
+   "kind": "math",
+   "x": 40,
+   "y": 2432,
+   "src": "r_yW := 7.4 cm"
+  },
+  {
+   "id": "r050",
+   "kind": "text",
+   "x": 40,
+   "y": 2480,
+   "src": "Contraste planchas ↔ fila, con TOLERANCIA DECLARADA: las planchas no llevan los"
+  },
+  {
+   "id": "r051",
+   "kind": "text",
+   "x": 40,
+   "y": 2528,
+   "src": "redondeos de unión ala-alma, así que dan menos área y menos módulo."
+  },
+  {
+   "id": "r052",
+   "kind": "math",
+   "x": 40,
+   "y": 2576,
+   "src": "dif_A := A_pl/A_W - 1 ="
+  },
+  {
+   "id": "r053",
+   "kind": "math",
+   "x": 40,
+   "y": 2624,
+   "src": "dif_Ix := Ix_pl/I_xW - 1 ="
+  },
+  {
+   "id": "r054",
+   "kind": "math",
+   "x": 40,
+   "y": 2672,
+   "src": "dif_Zx := Zx_pl/Z_xW - 1 ="
+  },
+  {
+   "id": "v_apl",
+   "kind": "math",
+   "x": 40,
+   "y": 2720,
+   "src": "abs(dif_A) < 0.02 ="
+  },
+  {
+   "id": "v_ixpl",
+   "kind": "math",
+   "x": 40,
+   "y": 2768,
+   "src": "abs(dif_Ix) < 0.02 ="
+  },
+  {
+   "id": "v_zxpl",
+   "kind": "math",
+   "x": 40,
+   "y": 2816,
+   "src": "abs(dif_Zx) < 0.02 ="
+  },
+  {
+   "id": "v_sxpl",
+   "kind": "math",
+   "x": 40,
+   "y": 2864,
+   "src": "abs(Sx_pl/S_xW - 1) < 0.02 ="
+  },
+  {
+   "id": "v_iypl",
+   "kind": "math",
+   "x": 40,
+   "y": 2912,
+   "src": "abs(Iy_pl/I_yW - 1) < 0.01 ="
+  },
+  {
+   "id": "v_rypl",
+   "kind": "math",
+   "x": 40,
+   "y": 2960,
+   "src": "abs(ry_pl/r_yW - 1) < 0.01 ="
+  },
+  {
+   "id": "r055",
+   "kind": "text",
+   "x": 40,
+   "y": 3008,
+   "src": "El ala no tiene redondeos: b_f/2t_f de las planchas es exacto contra el tabulado 8,50."
+  },
+  {
+   "id": "v_btpl",
+   "kind": "math",
+   "x": 40,
+   "y": 3056,
+   "src": "abs(bt_ala/8.504 - 1) < 0.002 ="
+  },
+  {
+   "id": "r056",
+   "kind": "text",
+   "x": 40,
+   "y": 3120,
+   "src": "━━ DATOS · CANAL C310×45, PLANCHAS Y FILA ━━"
+  },
+  {
+   "id": "r057",
+   "kind": "text",
+   "x": 40,
+   "y": 3168,
+   "src": "El canal va apoyado PLANO sobre el ala superior: su alma queda horizontal, así que"
+  },
+  {
+   "id": "r058",
+   "kind": "text",
+   "x": 40,
+   "y": 3216,
+   "src": "lo que aporta al eje débil de la viga es su inercia FUERTE (I_cf), y lo que aporta"
+  },
+  {
+   "id": "r059",
+   "kind": "text",
+   "x": 40,
+   "y": 3264,
+   "src": "al eje fuerte es su inercia DÉBIL (I_cd) más el Steiner de su área."
+  },
+  {
+   "id": "r060",
+   "kind": "math",
+   "x": 40,
+   "y": 3312,
+   "src": "d_c := 30.5 cm"
+  },
+  {
+   "id": "r061",
+   "kind": "math",
+   "x": 40,
+   "y": 3360,
+   "src": "bf_c := 8.05 cm"
+  },
+  {
+   "id": "r062",
+   "kind": "math",
+   "x": 40,
+   "y": 3408,
+   "src": "tw_c := 1.30 cm"
+  },
+  {
+   "id": "r063",
+   "kind": "math",
+   "x": 40,
+   "y": 3456,
+   "src": "tf_c := 1.27 cm"
+  },
+  {
+   "id": "r064",
+   "kind": "math",
+   "x": 40,
+   "y": 3504,
+   "src": "Ac_pl := tw_c*d_c + 2*(bf_c - tw_c)*tf_c = cm^2"
+  },
+  {
+   "id": "r065",
+   "kind": "math",
+   "x": 40,
+   "y": 3552,
+   "src": "Icf_pl := tw_c*d_c^3/12 + 2*((bf_c - tw_c)*tf_c^3/12 + (bf_c - tw_c)*tf_c*((d_c - tf_c)/2)^2) = cm^4"
+  },
+  {
+   "id": "r066",
+   "kind": "text",
+   "x": 40,
+   "y": 3616,
+   "src": "Fila de catálogo del C310×45 (≈ C12×30) — frontera declarada, igual que la del perfil:"
+  },
+  {
+   "id": "r067",
+   "kind": "math",
+   "x": 40,
+   "y": 3664,
+   "src": "A_c := 56.8 cm^2"
+  },
+  {
+   "id": "r068",
+   "kind": "math",
+   "x": 40,
+   "y": 3712,
+   "src": "I_cf := 6743 cm^4"
+  },
+  {
+   "id": "r069",
+   "kind": "math",
+   "x": 40,
+   "y": 3760,
+   "src": "I_cd := 213 cm^4"
+  },
+  {
+   "id": "r070",
+   "kind": "math",
+   "x": 40,
+   "y": 3808,
+   "src": "xb_c := 1.71 cm"
+  },
+  {
+   "id": "r071",
+   "kind": "text",
+   "x": 40,
+   "y": 3856,
+   "src": "Las planchas reproducen el área y la inercia fuerte del canal casi exactas:"
+  },
+  {
+   "id": "v_acpl",
+   "kind": "math",
+   "x": 40,
+   "y": 3904,
+   "src": "abs(Ac_pl/A_c - 1) < 0.01 ="
+  },
+  {
+   "id": "v_icfpl",
+   "kind": "math",
+   "x": 40,
+   "y": 3952,
+   "src": "abs(Icf_pl/I_cf - 1) < 0.01 ="
+  },
+  {
+   "id": "r072",
+   "kind": "text",
+   "x": 40,
+   "y": 4000,
+   "src": "El x̄ del canal NO se deriva de planchas: los redondeos lo corren un 9 % (planchas"
+  },
+  {
+   "id": "r073",
+   "kind": "text",
+   "x": 40,
+   "y": 4048,
+   "src": "dan 1,87 cm contra los 1,71 tabulados) y acá el x̄ posiciona el centroide, así que"
+  },
+  {
+   "id": "r074",
+   "kind": "text",
+   "x": 40,
+   "y": 4096,
+   "src": "manda el tabulado. Es el único dato del canal que la planilla no puede reproducir."
+  },
+  {
+   "id": "r075",
+   "kind": "math",
+   "x": 40,
+   "y": 4144,
+   "src": "J_C := (2*bf_c*tf_c^3 + (d_c - tf_c)*tw_c^3)/3 = cm^4"
+  },
+  {
+   "id": "r076",
+   "kind": "text",
+   "x": 40,
+   "y": 4208,
+   "src": "━━ 1 · COMPOSICIÓN DE LA SECCIÓN (Steiner) ━━"
+  },
+  {
+   "id": "r077",
+   "kind": "text",
+   "x": 40,
+   "y": 4256,
+   "src": "Acá la planilla NO valida contra una fila de tabla: la sección compuesta es"
+  },
+  {
+   "id": "r078",
+   "kind": "text",
+   "x": 40,
+   "y": 4304,
+   "src": "monosimétrica y sus propiedades no están tabuladas en ningún lado. Se componen"
+  },
+  {
+   "id": "r079",
+   "kind": "text",
+   "x": 40,
+   "y": 4352,
+   "src": "desde las dos filas de catálogo. Toda la cadena vertical cuelga de estos números."
+  },
+  {
+   "id": "r080",
+   "kind": "text",
+   "x": 40,
+   "y": 4400,
+   "src": "El post no declara DÓNDE queda el centroide del canal, así que se calculan las dos"
+  },
+  {
+   "id": "r081",
+   "kind": "text",
+   "x": 40,
+   "y": 4448,
+   "src": "hipótesis limpias y se comparan las dos con el par que el post publica."
+  },
+  {
+   "id": "r082",
+   "kind": "text",
+   "x": 40,
+   "y": 4496,
+   "src": "H1 — el canal apoyado sobre su dorso: su centroide queda x̄ POR ENCIMA del ala superior."
+  },
+  {
+   "id": "r083",
+   "kind": "math",
+   "x": 40,
+   "y": 4544,
+   "src": "yc_1 := d + xb_c = cm"
+  },
+  {
+   "id": "r084",
+   "kind": "math",
+   "x": 40,
+   "y": 4592,
+   "src": "y_1 := (A_W*(d/2) + A_c*yc_1)/(A_W + A_c) = cm"
+  },
+  {
+   "id": "r085",
+   "kind": "math",
+   "x": 40,
+   "y": 4640,
+   "src": "Ix_1 := I_xW + A_W*(y_1 - d/2)^2 + I_cd + A_c*(yc_1 - y_1)^2 = cm^4"
+  },
+  {
+   "id": "r086",
+   "kind": "math",
+   "x": 40,
+   "y": 4688,
+   "src": "Sxi_1 := Ix_1/y_1 = cm^3"
+  },
+  {
+   "id": "r087",
+   "kind": "text",
+   "x": 40,
+   "y": 4736,
+   "src": "H2 — el centroide del canal al ras del ala superior (se ignora el x̄):"
+  },
+  {
+   "id": "r088",
+   "kind": "math",
+   "x": 40,
+   "y": 4784,
+   "src": "y_2 := (A_W*(d/2) + A_c*d)/(A_W + A_c) = cm"
+  },
+  {
+   "id": "r089",
+   "kind": "math",
+   "x": 40,
+   "y": 4832,
+   "src": "Ix_2 := I_xW + A_W*(y_2 - d/2)^2 + I_cd + A_c*(d - y_2)^2 = cm^4"
+  },
+  {
+   "id": "r090",
+   "kind": "math",
+   "x": 40,
+   "y": 4880,
+   "src": "Sxi_2 := Ix_2/y_2 = cm^3"
+  },
+  {
+   "id": "r091",
+   "kind": "text",
+   "x": 40,
+   "y": 4928,
+   "src": "SE ADOPTA H1: es la física —el canal descansa sobre su dorso y su centroide queda x̄"
+  },
+  {
+   "id": "r092",
+   "kind": "text",
+   "x": 40,
+   "y": 4976,
+   "src": "por encima del ala—, y de las dos orientaciones planas posibles es la que da el MENOR"
+  },
+  {
+   "id": "r093",
+   "kind": "text",
+   "x": 40,
+   "y": 5024,
+   "src": "I_x, o sea la desfavorable para los dos estados que dependen de él (flecha y fatiga)."
+  },
+  {
+   "id": "r094",
+   "kind": "text",
+   "x": 40,
+   "y": 5072,
+   "src": "Con los talones abajo el centroide subiría a d + (bf_c - x̄) y daría I_x = 189 276 cm⁴."
+  },
+  {
+   "id": "r095",
+   "kind": "math",
+   "x": 40,
+   "y": 5120,
+   "src": "I_x := Ix_1"
+  },
+  {
+   "id": "r096",
+   "kind": "math",
+   "x": 40,
+   "y": 5168,
+   "src": "S_xinf := Sxi_1"
+  },
+  {
+   "id": "r097",
+   "kind": "math",
+   "x": 40,
+   "y": 5216,
+   "src": "y_NA := y_1"
+  },
+  {
+   "id": "r098",
+   "kind": "text",
+   "x": 40,
+   "y": 5264,
+   "src": "Los dos corrimientos del eje neutro respecto del centroide de la viga sola:"
+  },
+  {
+   "id": "r099",
+   "kind": "math",
+   "x": 40,
+   "y": 5312,
+   "src": "corr_1 := y_1 - d/2 = cm"
+  },
+  {
+   "id": "r100",
+   "kind": "math",
+   "x": 40,
+   "y": 5360,
+   "src": "corr_2 := y_2 - d/2 = cm"
+  },
+  {
+   "id": "r101",
+   "kind": "text",
+   "x": 40,
+   "y": 5408,
+   "src": "El par que el post publicaba antes de esta planilla (169 300 / 4540) implicaba un"
+  },
+  {
+   "id": "r102",
+   "kind": "text",
+   "x": 40,
+   "y": 5456,
+   "src": "corrimiento de 6,74 cm, que no sale de ninguna hipótesis limpia: ni 7,19 ni 6,81."
+  },
+  {
+   "id": "r103",
+   "kind": "text",
+   "x": 40,
+   "y": 5504,
+   "src": "Eje débil: el canal está centrado sobre el alma, así que I_y suma DIRECTO, sin Steiner."
+  },
+  {
+   "id": "r104",
+   "kind": "math",
+   "x": 40,
+   "y": 5552,
+   "src": "I_y := I_yW + I_cf = cm^4"
+  },
+  {
+   "id": "r105",
+   "kind": "math",
+   "x": 40,
+   "y": 5600,
+   "src": "A_g := A_W + A_c = cm^2"
+  },
+  {
+   "id": "r106",
+   "kind": "math",
+   "x": 40,
+   "y": 5648,
+   "src": "r_y := sqrt(I_y/A_g) = cm"
+  },
+  {
+   "id": "r107",
+   "kind": "text",
+   "x": 40,
+   "y": 5728,
+   "src": "━━ 2 · EL MODELO LATERAL: ALA SUPERIOR + CANAL ━━"
+  },
+  {
+   "id": "r108",
+   "kind": "text",
+   "x": 40,
+   "y": 5776,
+   "src": "El empuje entra en la cabeza del riel, arriba. Lo resiste el ala superior más el"
+  },
+  {
+   "id": "r109",
+   "kind": "text",
+   "x": 40,
+   "y": 5824,
+   "src": "canal como viga horizontal — no la sección completa: el ala inferior está demasiado"
+  },
+  {
+   "id": "r110",
+   "kind": "text",
+   "x": 40,
+   "y": 5872,
+   "src": "lejos del punto de aplicación. Es la práctica de la DG 7 y el modelo conservador."
+  },
+  {
+   "id": "r111",
+   "kind": "math",
+   "x": 40,
+   "y": 5920,
+   "src": "I_ytop := t_f*b_f^3/12 + I_cf = cm^4"
+  },
+  {
+   "id": "r112",
+   "kind": "math",
+   "x": 40,
+   "y": 5968,
+   "src": "S_ytop := I_ytop/(b_f/2) = cm^3"
+  },
+  {
+   "id": "r113",
+   "kind": "text",
+   "x": 40,
+   "y": 6016,
+   "src": "Y el mismo módulo para el ala SOLA, que es lo que queda si no va el canal:"
+  },
+  {
+   "id": "r114",
+   "kind": "math",
+   "x": 40,
+   "y": 6064,
+   "src": "I_yala := t_f*b_f^3/12 = cm^4"
+  },
+  {
+   "id": "r115",
+   "kind": "math",
+   "x": 40,
+   "y": 6112,
+   "src": "S_yala := I_yala/(b_f/2) = cm^3"
+  },
+  {
+   "id": "r116",
+   "kind": "text",
+   "x": 40,
+   "y": 6192,
+   "src": "━━ DATOS · GRÚA, VÍA Y GEOMETRÍA ━━"
+  },
+  {
+   "id": "r117",
+   "kind": "math",
+   "x": 40,
+   "y": 6240,
+   "src": "P := 13.97 tonf"
+  },
+  {
+   "id": "r118",
+   "kind": "text",
+   "x": 40,
+   "y": 6288,
+   "src": "P es la carga estática máxima por rueda del plano del fabricante: frontera declarada."
+  },
+  {
+   "id": "r119",
+   "kind": "math",
+   "x": 40,
+   "y": 6336,
+   "src": "Q := 20 tonf"
+  },
+  {
+   "id": "r120",
+   "kind": "math",
+   "x": 40,
+   "y": 6384,
+   "src": "W_c := 2.4 tonf"
+  },
+  {
+   "id": "r121",
+   "kind": "math",
+   "x": 40,
+   "y": 6432,
+   "src": "L := 800 cm"
+  },
+  {
+   "id": "r122",
+   "kind": "math",
+   "x": 40,
+   "y": 6480,
+   "src": "a := 400 cm"
+  },
+  {
+   "id": "r123",
+   "kind": "math",
+   "x": 40,
+   "y": 6528,
+   "src": "H_r := 6.5 cm"
+  },
+  {
+   "id": "r124",
+   "kind": "text",
+   "x": 40,
+   "y": 6576,
+   "src": "Peso propio: viga 155 + canal 45 + riel A55 31,8 kg/m, más un 2 % de conexiones. El"
+  },
+  {
+   "id": "r125",
+   "kind": "text",
+   "x": 40,
+   "y": 6624,
+   "src": "riel CARGA aunque no se cuente en la sección resistente (no está soldado a la viga)."
+  },
+  {
+   "id": "r126",
+   "kind": "math",
+   "x": 40,
+   "y": 6672,
+   "src": "w_pp := 1.02*231.8 kgf/m = tonf/m"
+  },
+  {
+   "id": "r127",
+   "kind": "text",
+   "x": 40,
+   "y": 6736,
+   "src": "━━ 3 · LAS CARGAS DE LA GRÚA (ASCE 7 §4.9) — frontera declarada ━━",
+   "pageBreak": true
+  },
+  {
+   "id": "r128",
+   "kind": "text",
+   "x": 40,
+   "y": 6784,
+   "src": "ASCE 7 no está en disco: los tres porcentajes (25 % impacto vertical, 20 % empuje"
+  },
+  {
+   "id": "r129",
+   "kind": "text",
+   "x": 40,
+   "y": 6832,
+   "src": "lateral, 10 % longitudinal) entran citados del post, no leídos del texto normativo."
+  },
+  {
+   "id": "r130",
+   "kind": "text",
+   "x": 40,
+   "y": 6880,
+   "src": "§4.9.3 — impacto vertical, 25 % para grúa operada desde cabina o a distancia:"
+  },
+  {
+   "id": "r131",
+   "kind": "math",
+   "x": 40,
+   "y": 6928,
+   "src": "P_v := 1.25*P = tonf"
+  },
+  {
+   "id": "r132",
+   "kind": "text",
+   "x": 40,
+   "y": 6976,
+   "src": "§4.9.4 — empuje lateral: 20 % de (carga izada + carro), repartido a 2 rieles × 2 ruedas:"
+  },
+  {
+   "id": "r133",
+   "kind": "math",
+   "x": 40,
+   "y": 7024,
+   "src": "H := 0.20*(Q + W_c)/4 = tonf"
+  },
+  {
+   "id": "r134",
+   "kind": "text",
+   "x": 40,
+   "y": 7072,
+   "src": "§4.9.5 — tracción longitudinal, 10 % de la carga de rueda (va a la arriostura, no acá):"
+  },
+  {
+   "id": "r135",
+   "kind": "math",
+   "x": 40,
+   "y": 7120,
+   "src": "F_l := 0.10*P = tonf"
+  },
+  {
+   "id": "r136",
+   "kind": "text",
+   "x": 40,
+   "y": 7184,
+   "src": "━━ 4 · CARGA MÓVIL: LOS COEFICIENTES SE DERIVAN, NO SE CITAN ━━"
+  },
+  {
+   "id": "r137",
+   "kind": "text",
+   "x": 40,
+   "y": 7232,
+   "src": "El momento máximo absoluto NO ocurre con una rueda al centro. Acá el tren de dos"
+  },
+  {
+   "id": "r138",
+   "kind": "text",
+   "x": 40,
+   "y": 7280,
+   "src": "ruedas se pasea y se busca el máximo por barrido, en vez de citar «2,25P y 1,5P»."
+  },
+  {
+   "id": "r139",
+   "kind": "text",
+   "x": 40,
+   "y": 7328,
+   "src": "Todo el barrido va en números puros (cm y múltiplos de P); las unidades se ponen después."
+  },
+  {
+   "id": "r140",
+   "kind": "math",
+   "x": 40,
+   "y": 7376,
+   "src": "L_n := 800"
+  },
+  {
+   "id": "r141",
+   "kind": "math",
+   "x": 40,
+   "y": 7424,
+   "src": "a_n := 400"
+  },
+  {
+   "id": "r142",
+   "kind": "text",
+   "x": 40,
+   "y": 7472,
+   "src": "Para cada posición x0 de la rueda izquierda: reacción izquierda (en múltiplos de P) y"
+  },
+  {
+   "id": "r143",
+   "kind": "text",
+   "x": 40,
+   "y": 7520,
+   "src": "momento bajo cada rueda que esté sobre la viga. Devuelve el máximo, en cm·P."
+  },
+  {
+   "id": "r144",
+   "kind": "program",
+   "x": 40,
+   "y": 7568,
+   "src": "coef_Mcm :=\n  mejor := 0\n  x0 := -a_n\n  while x0 <= L_n\n    p1 := x0\n    p2 := x0 + a_n\n    Rz := 0\n    if p1 >= 0 and p1 <= L_n\n      Rz := Rz + (L_n - p1)/L_n\n    if p2 >= 0 and p2 <= L_n\n      Rz := Rz + (L_n - p2)/L_n\n    if p1 >= 0 and p1 <= L_n\n      M1 := Rz*p1\n      if M1 > mejor\n        mejor := M1\n    if p2 >= 0 and p2 <= L_n\n      M2 := Rz*p2\n      if p1 >= 0\n        M2 := M2 - (p2 - p1)\n      if M2 > mejor\n        mejor := M2\n    x0 := x0 + 0.5\n  return mejor"
+  },
+  {
+   "id": "r145",
+   "kind": "text",
+   "x": 40,
+   "y": 8032,
+   "src": "El mismo barrido para la reacción, que es el cortante máximo (en múltiplos de P):"
+  },
+  {
+   "id": "r146",
+   "kind": "program",
+   "x": 40,
+   "y": 8080,
+   "src": "coef_V :=\n  mejor := 0\n  x0 := -a_n\n  while x0 <= L_n\n    p1 := x0\n    p2 := x0 + a_n\n    Rz := 0\n    if p1 >= 0 and p1 <= L_n\n      Rz := Rz + (L_n - p1)/L_n\n    if p2 >= 0 and p2 <= L_n\n      Rz := Rz + (L_n - p2)/L_n\n    if Rz > mejor\n      mejor := Rz\n    x0 := x0 + 0.5\n  return mejor"
+  },
+  {
+   "id": "r147",
+   "kind": "math",
+   "x": 40,
+   "y": 8384,
+   "src": "coef_M := coef_Mcm/100"
+  },
+  {
+   "id": "r148",
+   "kind": "text",
+   "x": 40,
+   "y": 8432,
+   "src": "Salen 2,25 (m·P) y 1,50 (P) — el teorema de la carga móvil, obtenido por barrido."
+  },
+  {
+   "id": "r149",
+   "kind": "text",
+   "x": 40,
+   "y": 8480,
+   "src": "Y la comparación con la intuición del «carro al medio», que da P·L/4 = 2,00 m·P:"
+  },
+  {
+   "id": "r150",
+   "kind": "math",
+   "x": 40,
+   "y": 8528,
+   "src": "coef_1r := 800/100/4"
+  },
+  {
+   "id": "r151",
+   "kind": "math",
+   "x": 40,
+   "y": 8576,
+   "src": "exceso := coef_M/coef_1r - 1 ="
+  },
+  {
+   "id": "r152",
+   "kind": "text",
+   "x": 40,
+   "y": 8624,
+   "src": "El exceso es 12,5 % exacto (2,25/2,00), no 13 %."
+  },
+  {
+   "id": "r153",
+   "kind": "text",
+   "x": 40,
+   "y": 8688,
+   "src": "━━ 5 · SOLICITACIONES ━━"
+  },
+  {
+   "id": "r154",
+   "kind": "math",
+   "x": 40,
+   "y": 8736,
+   "src": "M_x := coef_M*P_v*1 m = tonf*m"
+  },
+  {
+   "id": "r155",
+   "kind": "math",
+   "x": 40,
+   "y": 8784,
+   "src": "M_y := coef_M*H*1 m = tonf*m"
+  },
+  {
+   "id": "r156",
+   "kind": "math",
+   "x": 40,
+   "y": 8832,
+   "src": "V_x := coef_V*P_v = tonf"
+  },
+  {
+   "id": "r157",
+   "kind": "math",
+   "x": 40,
+   "y": 8880,
+   "src": "M_serv := coef_M*P*1 m = tonf*m"
+  },
+  {
+   "id": "r158",
+   "kind": "text",
+   "x": 40,
+   "y": 8928,
+   "src": "Peso propio: viga simplemente apoyada con carga uniforme."
+  },
+  {
+   "id": "r159",
+   "kind": "math",
+   "x": 40,
+   "y": 8976,
+   "src": "M_pp := w_pp*L^2/8 = tonf*m"
+  },
+  {
+   "id": "r160",
+   "kind": "math",
+   "x": 40,
+   "y": 9024,
+   "src": "V_pp := w_pp*L/2 = tonf"
+  },
+  {
+   "id": "r161",
+   "kind": "text",
+   "x": 40,
+   "y": 9072,
+   "src": "Combinación LRFD 1,2D + 1,6L:"
+  },
+  {
+   "id": "r162",
+   "kind": "math",
+   "x": 40,
+   "y": 9120,
+   "src": "M_u := 1.2*M_pp + 1.6*M_x = tonf*m"
+  },
+  {
+   "id": "r163",
+   "kind": "math",
+   "x": 40,
+   "y": 9168,
+   "src": "V_u := 1.2*V_pp + 1.6*V_x = tonf"
+  },
+  {
+   "id": "r164",
+   "kind": "math",
+   "x": 40,
+   "y": 9216,
+   "src": "M_uy := 1.6*M_y = tonf*m"
+  },
+  {
+   "id": "r165",
+   "kind": "text",
+   "x": 40,
+   "y": 9264,
+   "src": "El empuje lateral NO lleva impacto: M_y sale del P sin factorizar por 1,25."
+  },
+  {
+   "id": "r166",
+   "kind": "text",
+   "x": 40,
+   "y": 9328,
+   "src": "━━ 6 · FLEXIÓN Y PANDEO LATERAL-TORSIONAL (Cap. F) ━━"
+  },
+  {
+   "id": "r167",
+   "kind": "text",
+   "x": 40,
+   "y": 9376,
+   "src": "Ec. F2-1: el momento plástico usa Z_x del perfil DESNUDO — el canal no se cuenta"
+  },
+  {
+   "id": "r168",
+   "kind": "text",
+   "x": 40,
+   "y": 9424,
+   "src": "para la resistencia a flexión vertical, solo para la estabilidad y el eje débil."
+  },
+  {
+   "id": "r169",
+   "kind": "math",
+   "x": 40,
+   "y": 9472,
+   "src": "M_p := F_y*Z_xW = tonf*m"
+  },
+  {
+   "id": "r170",
+   "kind": "math",
+   "x": 40,
+   "y": 9520,
+   "src": "Rd_p := phi_b*M_p = tonf*m"
+  },
+  {
+   "id": "r171",
+   "kind": "math",
+   "x": 40,
+   "y": 9568,
+   "src": "u_p := M_u/Rd_p ="
+  },
+  {
+   "id": "r172",
+   "kind": "text",
+   "x": 40,
+   "y": 9616,
+   "src": "Ec. F2-5, con el r_y de la sección COMBINADA (el canal sube la inercia lateral):"
+  },
+  {
+   "id": "r173",
+   "kind": "math",
+   "x": 40,
+   "y": 9664,
+   "src": "L_p := 1.76*r_y*sqrt(E/F_y) = cm"
+  },
+  {
+   "id": "r174",
+   "kind": "text",
+   "x": 40,
+   "y": 9712,
+   "src": "Ec. F2-6. La sección es monosimétrica y F2 está escrita para doblemente simétricas:"
+  },
+  {
+   "id": "r175",
+   "kind": "text",
+   "x": 40,
+   "y": 9760,
+   "src": "el post declara usar F2 con un r_ts conservador — radio de giro del ala comprimida"
+  },
+  {
+   "id": "r176",
+   "kind": "text",
+   "x": 40,
+   "y": 9808,
+   "src": "más el canal más 1/6 del alma — y c = 1 (Ec. F2-8a). La planilla lo deriva de ahí."
+  },
+  {
+   "id": "r177",
+   "kind": "math",
+   "x": 40,
+   "y": 9856,
+   "src": "A_ts := b_f*t_f + A_c + h_pl*t_w/6 = cm^2"
+  },
+  {
+   "id": "r178",
+   "kind": "math",
+   "x": 40,
+   "y": 9904,
+   "src": "r_ts := sqrt(I_ytop/A_ts) = cm"
+  },
+  {
+   "id": "r179",
+   "kind": "math",
+   "x": 40,
+   "y": 9952,
+   "src": "J := J_W + J_C = cm^4"
+  },
+  {
+   "id": "r180",
+   "kind": "math",
+   "x": 40,
+   "y": 10000,
+   "src": "c := 1"
+  },
+  {
+   "id": "r181",
+   "kind": "math",
+   "x": 40,
+   "y": 10048,
+   "src": "rz := J*c/(S_xW*h_o) ="
+  },
+  {
+   "id": "r182",
+   "kind": "math",
+   "x": 40,
+   "y": 10096,
+   "src": "L_r := 1.95*r_ts*(E/(0.7*F_y))*sqrt(rz + sqrt(rz^2 + 6.76*(0.7*F_y/E)^2)) = cm"
+  },
+  {
+   "id": "r183",
+   "kind": "text",
+   "x": 40,
+   "y": 10160,
+   "src": "L_b es la luz completa: la grúa ocupa el vano, no se puede arriostrar adentro."
+  },
+  {
+   "id": "r184",
+   "kind": "math",
+   "x": 40,
+   "y": 10208,
+   "src": "L_b := 800 cm"
+  },
+  {
+   "id": "v_zona",
+   "kind": "math",
+   "x": 40,
+   "y": 10256,
+   "src": "L_p < L_b and L_b < L_r ="
+  },
+  {
+   "id": "r185",
+   "kind": "text",
+   "x": 40,
+   "y": 10304,
+   "src": "Zona INELÁSTICA de LTB: se interpola entre M_p y 0,7·F_y·S_x (Ec. F2-2, C_b = 1,0)."
+  },
+  {
+   "id": "r186",
+   "kind": "math",
+   "x": 40,
+   "y": 10352,
+   "src": "C_b := 1.0"
+  },
+  {
+   "id": "r187",
+   "kind": "math",
+   "x": 40,
+   "y": 10400,
+   "src": "M_07 := 0.7*F_y*S_xW = tonf*m"
+  },
+  {
+   "id": "r188",
+   "kind": "math",
+   "x": 40,
+   "y": 10448,
+   "src": "M_n := C_b*(M_p - (M_p - M_07)*(L_b - L_p)/(L_r - L_p)) = tonf*m"
+  },
+  {
+   "id": "v_capa",
+   "kind": "math",
+   "x": 40,
+   "y": 10496,
+   "src": "M_n <= M_p ="
+  },
+  {
+   "id": "r189",
+   "kind": "math",
+   "x": 40,
+   "y": 10544,
+   "src": "Rd_Mnx := phi_b*M_n = tonf*m"
+  },
+  {
+   "id": "r190",
+   "kind": "math",
+   "x": 40,
+   "y": 10592,
+   "src": "u_ltb := M_u/Rd_Mnx ="
+  },
+  {
+   "id": "r191",
+   "kind": "text",
+   "x": 40,
+   "y": 10656,
+   "src": "━━ 7 · FLEXIÓN BIAXIAL (Sec. H1) ━━"
+  },
+  {
+   "id": "r192",
+   "kind": "text",
+   "x": 40,
+   "y": 10704,
+   "src": "Con P_r = 0 la Ec. H1-1b se reduce a la suma de los dos usos de flexión."
+  },
+  {
+   "id": "r193",
+   "kind": "math",
+   "x": 40,
+   "y": 10752,
+   "src": "Rd_Mny := phi_b*F_y*S_ytop = tonf*m"
+  },
+  {
+   "id": "r194",
+   "kind": "math",
+   "x": 40,
+   "y": 10800,
+   "src": "u_lat := M_uy/Rd_Mny ="
+  },
+  {
+   "id": "r195",
+   "kind": "math",
+   "x": 40,
+   "y": 10848,
+   "src": "H1 := u_ltb + u_lat ="
+  },
+  {
+   "id": "v_h1",
+   "kind": "math",
+   "x": 40,
+   "y": 10896,
+   "src": "H1 <= 1.0 ="
+  },
+  {
+   "id": "r196",
+   "kind": "text",
+   "x": 40,
+   "y": 10944,
+   "src": "Éste es el estado que gobierna, y por poco."
+  },
+  {
+   "id": "r197",
+   "kind": "text",
+   "x": 40,
+   "y": 11008,
+   "src": "━━ 8 · CORTE (Cap. G) ━━"
+  },
+  {
+   "id": "r198",
+   "kind": "text",
+   "x": 40,
+   "y": 11056,
+   "src": "G2-1: V_n = 0,6·F_y·A_w·C_v1, con A_w = «overall depth times web thickness» = d·t_w."
+  },
+  {
+   "id": "r199",
+   "kind": "text",
+   "x": 40,
+   "y": 11104,
+   "src": "G2.1(a): para almas de perfiles I LAMINADOS con h/t_w ≤ 2,24·sqrt(E/F_y), la norma da"
+  },
+  {
+   "id": "r200",
+   "kind": "text",
+   "x": 40,
+   "y": 11152,
+   "src": "phi_v = 1,00 (no 0,90) y C_v1 = 1,0 por la Ec. G2-2. Hay que demostrar que califica:"
+  },
+  {
+   "id": "r201",
+   "kind": "math",
+   "x": 40,
+   "y": 11200,
+   "src": "lim_G21 := 2.24*sqrt(E/F_y) ="
+  },
+  {
+   "id": "v_g21",
+   "kind": "math",
+   "x": 40,
+   "y": 11248,
+   "src": "ht_alma < lim_G21 ="
+  },
+  {
+   "id": "r202",
+   "kind": "text",
+   "x": 40,
+   "y": 11296,
+   "src": "Califica con la cota superior de h, así que con el h real también. C_v1 = 1,0:"
+  },
+  {
+   "id": "r203",
+   "kind": "math",
+   "x": 40,
+   "y": 11344,
+   "src": "C_v1 := 1.0"
+  },
+  {
+   "id": "r204",
+   "kind": "math",
+   "x": 40,
+   "y": 11392,
+   "src": "A_w := d*t_w = cm^2"
+  },
+  {
+   "id": "r205",
+   "kind": "math",
+   "x": 40,
+   "y": 11440,
+   "src": "Rd_V := phi_v*0.6*F_y*A_w*C_v1 = tonf"
+  },
+  {
+   "id": "r206",
+   "kind": "math",
+   "x": 40,
+   "y": 11488,
+   "src": "u_v := V_u/Rd_V ="
+  },
+  {
+   "id": "r207",
+   "kind": "text",
+   "x": 40,
+   "y": 11552,
+   "src": "━━ 9 · FUERZAS CONCENTRADAS EN EL ALMA (Sec. J10) ━━"
+  },
+  {
+   "id": "r208",
+   "kind": "text",
+   "x": 40,
+   "y": 11600,
+   "src": "La rueda descarga sobre el riel, que reparte la carga en una longitud de apoyo"
+  },
+  {
+   "id": "r209",
+   "kind": "text",
+   "x": 40,
+   "y": 11648,
+   "src": "l_b ≈ 2·H_r. El k de la norma es la distancia de la cara exterior del ala al pie del"
+  },
+  {
+   "id": "r210",
+   "kind": "text",
+   "x": 40,
+   "y": 11696,
+   "src": "redondeo; sin ese dato el post toma 1,5·t_f, que queda POR DEBAJO del k_des tabulado"
+  },
+  {
+   "id": "r211",
+   "kind": "text",
+   "x": 40,
+   "y": 11744,
+   "src": "y por lo tanto es conservador para J10-2 (donde R_n crece con k)."
+  },
+  {
+   "id": "r212",
+   "kind": "math",
+   "x": 40,
+   "y": 11792,
+   "src": "l_b := 2*H_r = cm"
+  },
+  {
+   "id": "r213",
+   "kind": "math",
+   "x": 40,
+   "y": 11840,
+   "src": "k := 1.5*t_f = cm"
+  },
+  {
+   "id": "r214",
+   "kind": "math",
+   "x": 40,
+   "y": 11888,
+   "src": "P_ur := 1.6*P_v = tonf"
+  },
+  {
+   "id": "r215",
+   "kind": "text",
+   "x": 40,
+   "y": 11936,
+   "src": "Ec. J10-2 (fluencia local del alma, phi = 1,00). Aplica porque la rueda se para a más"
+  },
+  {
+   "id": "r216",
+   "kind": "text",
+   "x": 40,
+   "y": 11984,
+   "src": "de d del extremo; en el apoyo mismo regiría J10-3, que el ejemplo no verifica."
+  },
+  {
+   "id": "r217",
+   "kind": "math",
+   "x": 40,
+   "y": 12032,
+   "src": "Rd_j2 := phi_j2*F_y*t_w*(l_b + 5*k) = tonf"
+  },
+  {
+   "id": "r218",
+   "kind": "math",
+   "x": 40,
+   "y": 12080,
+   "src": "u_j2 := P_ur/Rd_j2 ="
+  },
+  {
+   "id": "r219",
+   "kind": "text",
+   "x": 40,
+   "y": 12128,
+   "src": "Ec. J10-4 (aplastamiento del alma, phi = 0,75), con Q_f = 1,0 para perfiles de ala ancha:"
+  },
+  {
+   "id": "r220",
+   "kind": "math",
+   "x": 40,
+   "y": 12176,
+   "src": "Q_f := 1.0"
+  },
+  {
+   "id": "r221",
+   "kind": "math",
+   "x": 40,
+   "y": 12224,
+   "src": "Rd_j4 := phi_j4*0.80*t_w^2*(1 + 3*(l_b/d)*(t_w/t_f)^1.5)*sqrt(E*F_y*t_f/t_w)*Q_f = tonf"
+  },
+  {
+   "id": "r222",
+   "kind": "math",
+   "x": 40,
+   "y": 12288,
+   "src": "u_j4 := P_ur/Rd_j4 ="
+  },
+  {
+   "id": "r223",
+   "kind": "text",
+   "x": 40,
+   "y": 12352,
+   "src": "━━ 10 · SERVICIO: DEFLEXIONES (AIST TR13) — frontera declarada ━━"
+  },
+  {
+   "id": "r224",
+   "kind": "text",
+   "x": 40,
+   "y": 12400,
+   "src": "Los límites L/600 vertical y L/400 lateral son de AIST TR13 / AISC DG 7, NO de la"
+  },
+  {
+   "id": "r225",
+   "kind": "text",
+   "x": 40,
+   "y": 12448,
+   "src": "Specification: entran citados, como los datos de catálogo. Se calculan con la carga"
+  },
+  {
+   "id": "r226",
+   "kind": "text",
+   "x": 40,
+   "y": 12496,
+   "src": "de servicio, SIN impacto, y con las ruedas en la misma posición pésima del paso 4."
+  },
+  {
+   "id": "r227",
+   "kind": "text",
+   "x": 40,
+   "y": 12544,
+   "src": "Flecha al centro por una carga puntual Q a distancia aa del apoyo más cercano:"
+  },
+  {
+   "id": "r228",
+   "kind": "program",
+   "x": 40,
+   "y": 12592,
+   "src": "f_pt(Qq, aa, Ii) := Qq*aa*(3*L^2 - 4*aa^2)/(48*E*Ii)"
+  },
+  {
+   "id": "r229",
+   "kind": "text",
+   "x": 40,
+   "y": 12624,
+   "src": "Las dos ruedas quedan a 300 y 700 cm del apoyo izquierdo, o sea a 300 y 100 del"
+  },
+  {
+   "id": "r230",
+   "kind": "text",
+   "x": 40,
+   "y": 12672,
+   "src": "apoyo más cercano. La vertical suma además el peso propio de la viga:"
+  },
+  {
+   "id": "r231",
+   "kind": "math",
+   "x": 40,
+   "y": 12720,
+   "src": "dv_ruedas := f_pt(P, 300 cm, I_x) + f_pt(P, 100 cm, I_x) = cm"
+  },
+  {
+   "id": "r232",
+   "kind": "math",
+   "x": 40,
+   "y": 12768,
+   "src": "dv_pp := 5*w_pp*L^4/(384*E*I_x) = cm"
+  },
+  {
+   "id": "r233",
+   "kind": "math",
+   "x": 40,
+   "y": 12816,
+   "src": "d_v := dv_ruedas + dv_pp = cm"
+  },
+  {
+   "id": "r234",
+   "kind": "math",
+   "x": 40,
+   "y": 12864,
+   "src": "lim_v := L/600 = cm"
+  },
+  {
+   "id": "r235",
+   "kind": "math",
+   "x": 40,
+   "y": 12912,
+   "src": "u_dv := d_v/lim_v ="
+  },
+  {
+   "id": "v_dv",
+   "kind": "math",
+   "x": 40,
+   "y": 12960,
+   "src": "d_v < lim_v ="
+  },
+  {
+   "id": "r236",
+   "kind": "text",
+   "x": 40,
+   "y": 13008,
+   "src": "La lateral usa el MISMO modelo del paso 2 (ala superior + canal) y la carga H. Ojo:"
+  },
+  {
+   "id": "r237",
+   "kind": "text",
+   "x": 40,
+   "y": 13056,
+   "src": "acá no hay peso propio que sumar — el empuje lateral es horizontal. Por eso esta"
+  },
+  {
+   "id": "r238",
+   "kind": "text",
+   "x": 40,
+   "y": 13104,
+   "src": "flecha se calcula entera desde los datos y no escalando la vertical."
+  },
+  {
+   "id": "r239",
+   "kind": "math",
+   "x": 40,
+   "y": 13152,
+   "src": "d_h := f_pt(H, 300 cm, I_ytop) + f_pt(H, 100 cm, I_ytop) = cm"
+  },
+  {
+   "id": "r240",
+   "kind": "math",
+   "x": 40,
+   "y": 13200,
+   "src": "lim_h := L/400 = cm"
+  },
+  {
+   "id": "r241",
+   "kind": "math",
+   "x": 40,
+   "y": 13248,
+   "src": "u_dh := d_h/lim_h ="
+  },
+  {
+   "id": "v_dh",
+   "kind": "math",
+   "x": 40,
+   "y": 13296,
+   "src": "d_h < lim_h ="
+  },
+  {
+   "id": "r242",
+   "kind": "text",
+   "x": 40,
+   "y": 13344,
+   "src": "Lo que sale de escalar la vertical (incluido su peso propio) por (H/P)·(I_x/I_ytop):"
+  },
+  {
+   "id": "r243",
+   "kind": "math",
+   "x": 40,
+   "y": 13392,
+   "src": "dh_escalada := d_v*(H/P)*(I_x/I_ytop) = cm"
+  },
+  {
+   "id": "r244",
+   "kind": "text",
+   "x": 40,
+   "y": 13456,
+   "src": "━━ 11 · FATIGA (Apéndice 3) ━━"
+  },
+  {
+   "id": "r245",
+   "kind": "text",
+   "x": 40,
+   "y": 13504,
+   "src": "El rango de tensiones se calcula con la carga SIN impacto, en el ala inferior"
+  },
+  {
+   "id": "r246",
+   "kind": "text",
+   "x": 40,
+   "y": 13552,
+   "src": "traccionada (S_x,inf): bajo momento positivo el ala superior está comprimida."
+  },
+  {
+   "id": "r247",
+   "kind": "math",
+   "x": 40,
+   "y": 13600,
+   "src": "D_sigma := M_serv/S_xinf = kgf/cm^2"
+  },
+  {
+   "id": "r248",
+   "kind": "text",
+   "x": 40,
+   "y": 13648,
+   "src": "Tabla A-3.1 de 360-22, en la COLUMNA MÉTRICA. Fila 5.8 — «base metal ... at toe of"
+  },
+  {
+   "id": "r249",
+   "kind": "text",
+   "x": 40,
+   "y": 13696,
+   "src": "transverse fillet welds adjacent to welded transverse stiffeners» — es el detalle que"
+  },
+  {
+   "id": "r250",
+   "kind": "text",
+   "x": 40,
+   "y": 13744,
+   "src": "manda: Categoría C, C_f = 4,4 y F_TH = 10 ksi (69 MPa). Ojo con el C_f: 360-22 tabula"
+  },
+  {
+   "id": "r251",
+   "kind": "text",
+   "x": 40,
+   "y": 13792,
+   "src": "4,4 y pone la constante 6900 (métrica) en la ecuación; el 44×10⁸ es de 360-16."
+  },
+  {
+   "id": "r252",
+   "kind": "math",
+   "x": 40,
+   "y": 13840,
+   "src": "C_f := 4.4"
+  },
+  {
+   "id": "r253",
+   "kind": "math",
+   "x": 40,
+   "y": 13888,
+   "src": "F_TH := 69 MPa"
+  },
+  {
+   "id": "r254",
+   "kind": "text",
+   "x": 40,
+   "y": 13936,
+   "src": "La soldadura longitudinal continua canal-ala es la fila 3.1, Categoría B (C_f = 12,"
+  },
+  {
+   "id": "r255",
+   "kind": "text",
+   "x": 40,
+   "y": 13984,
+   "src": "F_TH = 16 ksi = 110 MPa): más favorable. Usar la C es del lado seguro."
+  },
+  {
+   "id": "r256",
+   "kind": "text",
+   "x": 40,
+   "y": 14032,
+   "src": "Ec. A-3-1M: F_SR = 6900·(C_f/n_SR)^0,333 MPa ≥ F_TH. El exponente es 0,333, no 1/3."
+  },
+  {
+   "id": "r257",
+   "kind": "program",
+   "x": 40,
+   "y": 14080,
+   "src": "F_sr(nn) := max(6900*(C_f/nn)^0.333 * 1 MPa, F_TH)"
+  },
+  {
+   "id": "r258",
+   "kind": "text",
+   "x": 40,
+   "y": 14112,
+   "src": "Clase C (servicio moderado, ≈ 5·10⁵ ciclos):"
+  },
+  {
+   "id": "r259",
+   "kind": "math",
+   "x": 40,
+   "y": 14160,
+   "src": "n_C := 5e5"
+  },
+  {
+   "id": "r260",
+   "kind": "math",
+   "x": 40,
+   "y": 14208,
+   "src": "F_srC := F_sr(n_C) = kgf/cm^2"
+  },
+  {
+   "id": "r261",
+   "kind": "math",
+   "x": 40,
+   "y": 14256,
+   "src": "u_fatC := D_sigma/F_srC ="
+  },
+  {
+   "id": "v_fatC",
+   "kind": "math",
+   "x": 40,
+   "y": 14304,
+   "src": "D_sigma < F_srC ="
+  },
+  {
+   "id": "r262",
+   "kind": "text",
+   "x": 40,
+   "y": 14352,
+   "src": "Clase D (servicio pesado, 2·10⁶ ciclos):"
+  },
+  {
+   "id": "r263",
+   "kind": "math",
+   "x": 40,
+   "y": 14400,
+   "src": "n_D := 2e6"
+  },
+  {
+   "id": "r264",
+   "kind": "math",
+   "x": 40,
+   "y": 14448,
+   "src": "F_srD := F_sr(n_D) = kgf/cm^2"
+  },
+  {
+   "id": "r265",
+   "kind": "math",
+   "x": 40,
+   "y": 14496,
+   "src": "u_fatD := D_sigma/F_srD ="
+  },
+  {
+   "id": "r266",
+   "kind": "text",
+   "x": 40,
+   "y": 14544,
+   "src": "Vida infinita: el admisible se congela en el umbral CAFL."
+  },
+  {
+   "id": "r267",
+   "kind": "math",
+   "x": 40,
+   "y": 14592,
+   "src": "F_srInf := F_TH = kgf/cm^2"
+  },
+  {
+   "id": "r268",
+   "kind": "math",
+   "x": 40,
+   "y": 14640,
+   "src": "u_fatInf := D_sigma/F_srInf ="
+  },
+  {
+   "id": "v_fatInf",
+   "kind": "math",
+   "x": 40,
+   "y": 14688,
+   "src": "D_sigma < F_srInf ="
+  },
+  {
+   "id": "r269",
+   "kind": "text",
+   "x": 40,
+   "y": 14736,
+   "src": "El número de ciclos donde la curva S-N cruza el umbral, con el exponente 0,333:"
+  },
+  {
+   "id": "r270",
+   "kind": "math",
+   "x": 40,
+   "y": 14784,
+   "src": "n_cafl := C_f/((F_TH/(6900 MPa))^(1/0.333)) ="
+  },
+  {
+   "id": "r271",
+   "kind": "text",
+   "x": 40,
+   "y": 14848,
+   "src": "Con el exponente escrito 0,333 el cruce cae en 4,46·10⁶ ciclos; con 1/3 exacto, en 4,4·10⁶."
+  },
+  {
+   "id": "r272",
+   "kind": "text",
+   "x": 40,
+   "y": 14912,
+   "src": "━━ 12 · LA CADENA B: LA MISMA VIGA SIN EL CANAL ━━"
+  },
+  {
+   "id": "r273",
+   "kind": "text",
+   "x": 40,
+   "y": 14960,
+   "src": "Ésta es la que sostiene la tesis. Se calcula ENTERA desde los datos del perfil"
+  },
+  {
+   "id": "r274",
+   "kind": "text",
+   "x": 40,
+   "y": 15008,
+   "src": "desnudo — no escalando nada de la cadena de arriba. El punto es cuál de los dos"
+  },
+  {
+   "id": "r275",
+   "kind": "text",
+   "x": 40,
+   "y": 15056,
+   "src": "estados límite se cae al sacar el canal: el LTB o la flexión lateral."
+  },
+  {
+   "id": "r276",
+   "kind": "text",
+   "x": 40,
+   "y": 15104,
+   "src": "Ec. F2-5 con el r_y del perfil solo (7,4 cm en vez de 8,29):"
+  },
+  {
+   "id": "r277",
+   "kind": "math",
+   "x": 40,
+   "y": 15152,
+   "src": "Lp_d := 1.76*r_yW*sqrt(E/F_y) = cm"
+  },
+  {
+   "id": "r278",
+   "kind": "text",
+   "x": 40,
+   "y": 15200,
+   "src": "Ec. F2-7 con el User Note de F2 (C_w = I_y·h_o²/4 para I doblemente simétrico), que"
+  },
+  {
+   "id": "r279",
+   "kind": "text",
+   "x": 40,
+   "y": 15248,
+   "src": "acá SÍ aplica: sin el canal la sección vuelve a ser doblemente simétrica."
+  },
+  {
+   "id": "r280",
+   "kind": "math",
+   "x": 40,
+   "y": 15296,
+   "src": "rts_d := sqrt(I_yW*h_o/(2*S_xW)) = cm"
+  },
+  {
+   "id": "r281",
+   "kind": "math",
+   "x": 40,
+   "y": 15344,
+   "src": "rz_d := J_W*c/(S_xW*h_o) ="
+  },
+  {
+   "id": "r282",
+   "kind": "math",
+   "x": 40,
+   "y": 15392,
+   "src": "Lr_d := 1.95*rts_d*(E/(0.7*F_y))*sqrt(rz_d + sqrt(rz_d^2 + 6.76*(0.7*F_y/E)^2)) = cm"
+  },
+  {
+   "id": "r283",
+   "kind": "text",
+   "x": 40,
+   "y": 15456,
+   "src": "El L_r del perfil desnudo sigue POR ENCIMA de la luz: la viga desnuda NO se cae por"
+  },
+  {
+   "id": "r284",
+   "kind": "text",
+   "x": 40,
+   "y": 15504,
+   "src": "LTB. Sigue en la zona inelástica, igual que la reforzada."
+  },
+  {
+   "id": "v_zonad",
+   "kind": "math",
+   "x": 40,
+   "y": 15552,
+   "src": "Lp_d < L_b and L_b < Lr_d ="
+  },
+  {
+   "id": "r285",
+   "kind": "math",
+   "x": 40,
+   "y": 15600,
+   "src": "Mn_d := C_b*(M_p - (M_p - M_07)*(L_b - Lp_d)/(Lr_d - Lp_d)) = tonf*m"
+  },
+  {
+   "id": "r286",
+   "kind": "text",
+   "x": 40,
+   "y": 15648,
+   "src": "La demanda del contrafáctico es la suya: sin canal la viga pesa 45 kg/m menos."
+  },
+  {
+   "id": "r287",
+   "kind": "math",
+   "x": 40,
+   "y": 15696,
+   "src": "wpp_d := 1.02*186.8 kgf/m = tonf/m"
+  },
+  {
+   "id": "r288",
+   "kind": "math",
+   "x": 40,
+   "y": 15744,
+   "src": "Mu_d := 1.2*wpp_d*L^2/8 + 1.6*M_x = tonf*m"
+  },
+  {
+   "id": "r289",
+   "kind": "math",
+   "x": 40,
+   "y": 15792,
+   "src": "Rd_Mnxd := phi_b*Mn_d = tonf*m"
+  },
+  {
+   "id": "r290",
+   "kind": "math",
+   "x": 40,
+   "y": 15840,
+   "src": "u_ltbd := Mu_d/Rd_Mnxd ="
+  },
+  {
+   "id": "v_ltbd",
+   "kind": "math",
+   "x": 40,
+   "y": 15888,
+   "src": "u_ltbd < 1.0 ="
+  },
+  {
+   "id": "r291",
+   "kind": "text",
+   "x": 40,
+   "y": 15936,
+   "src": "Pasa el LTB con uso 0,77. Lo que se cae es el eje débil: sin canal, el ala superior"
+  },
+  {
+   "id": "r292",
+   "kind": "text",
+   "x": 40,
+   "y": 15984,
+   "src": "queda sola y su módulo lateral es el 44 % del que tenía."
+  },
+  {
+   "id": "r293",
+   "kind": "math",
+   "x": 40,
+   "y": 16032,
+   "src": "Rd_Mnyd := phi_b*F_y*S_yala = tonf*m"
+  },
+  {
+   "id": "r294",
+   "kind": "math",
+   "x": 40,
+   "y": 16080,
+   "src": "u_latd := M_uy/Rd_Mnyd ="
+  },
+  {
+   "id": "r295",
+   "kind": "math",
+   "x": 40,
+   "y": 16128,
+   "src": "H1_d := u_ltbd + u_latd ="
+  },
+  {
+   "id": "v_h1d",
+   "kind": "math",
+   "x": 40,
+   "y": 16176,
+   "src": "H1_d <= 1.0 ="
+  },
+  {
+   "id": "r296",
+   "kind": "math",
+   "x": 40,
+   "y": 16224,
+   "src": "razon_Sy := S_ytop/S_yala ="
+  },
+  {
+   "id": "r297",
+   "kind": "math",
+   "x": 40,
+   "y": 16272,
+   "src": "razon_Iy := I_y/I_yW ="
+  },
+  {
+   "id": "r298",
+   "kind": "text",
+   "x": 40,
+   "y": 16320,
+   "src": "El canal sube la inercia lateral de la sección un 63 % y CUADRUPLICA el módulo"
+  },
+  {
+   "id": "r299",
+   "kind": "text",
+   "x": 40,
+   "y": 16368,
+   "src": "lateral del ala. Lo segundo es lo que salva el diseño, no lo primero."
+  },
+  {
+   "id": "r300",
+   "kind": "text",
+   "x": 40,
+   "y": 16432,
+   "src": "━━ RESUMEN GRÁFICO ━━"
+  },
+  {
+   "id": "esq",
+   "kind": "image",
+   "x": 40,
+   "y": 16480,
+   "src": "/esquemas/viga-carrilera-puente-grua.svg",
+   "w": 560,
+   "h": 427
+  },
+  {
+   "id": "r301",
+   "kind": "text",
+   "x": 40,
+   "y": 16944,
+   "src": "━━ CONTRASTE CON EL POST ━━"
+  },
+  {
+   "id": "r302",
+   "kind": "text",
+   "x": 40,
+   "y": 16992,
+   "src": "Un booleano por número publicado. Los que dan ✗ están declarados en meta.esperadoFalso"
+  },
+  {
+   "id": "r303",
+   "kind": "text",
+   "x": 40,
+   "y": 17040,
+   "src": "con su razón: son las discrepancias que esta planilla encontró."
+  },
+  {
+   "id": "r304",
+   "kind": "text",
+   "x": 40,
+   "y": 17088,
+   "src": "· Propiedades de sección"
+  },
+  {
+   "id": "c_iyc",
+   "kind": "math",
+   "x": 40,
+   "y": 17136,
+   "src": "abs(I_y - 17520 cm^4) < 5 cm^4 ="
+  },
+  {
+   "id": "c_ryc",
+   "kind": "math",
+   "x": 40,
+   "y": 17184,
+   "src": "abs(r_y - 8.29 cm) < 0.005 cm ="
+  },
+  {
+   "id": "c_iytop",
+   "kind": "math",
+   "x": 40,
+   "y": 17232,
+   "src": "abs(I_ytop - 12142 cm^4) < 0.5 cm^4 ="
+  },
+  {
+   "id": "c_sytop",
+   "kind": "math",
+   "x": 40,
+   "y": 17280,
+   "src": "abs(S_ytop - 749 cm^3) < 0.5 cm^3 ="
+  },
+  {
+   "id": "c_ix1",
+   "kind": "math",
+   "x": 40,
+   "y": 17328,
+   "src": "abs(I_x - 175150 cm^4) < 50 cm^4 ="
+  },
+  {
+   "id": "c_ix2",
+   "kind": "math",
+   "x": 40,
+   "y": 17376,
+   "src": "abs(Ix_2 - 170407 cm^4) < 50 cm^4 ="
+  },
+  {
+   "id": "c_sxi1",
+   "kind": "math",
+   "x": 40,
+   "y": 17424,
+   "src": "abs(S_xinf - 4641 cm^3) < 0.5 cm^3 ="
+  },
+  {
+   "id": "c_sxi2",
+   "kind": "math",
+   "x": 40,
+   "y": 17472,
+   "src": "abs(y_NA - 37.74 cm) < 0.005 cm ="
+  },
+  {
+   "id": "r305",
+   "kind": "text",
+   "x": 40,
+   "y": 17520,
+   "src": "· Cargas y solicitaciones"
+  },
+  {
+   "id": "c_pv",
+   "kind": "math",
+   "x": 40,
+   "y": 17568,
+   "src": "abs(P_v - 17.46 tonf) < 0.005 tonf ="
+  },
+  {
+   "id": "c_h",
+   "kind": "math",
+   "x": 40,
+   "y": 17616,
+   "src": "abs(H - 1.12 tonf) < 0.005 tonf ="
+  },
+  {
+   "id": "c_fl",
+   "kind": "math",
+   "x": 40,
+   "y": 17664,
+   "src": "abs(F_l - 1.40 tonf) < 0.005 tonf ="
+  },
+  {
+   "id": "c_coefm",
+   "kind": "math",
+   "x": 40,
+   "y": 17712,
+   "src": "abs(coef_M - 2.25) < 0.0005 ="
+  },
+  {
+   "id": "c_coefv",
+   "kind": "math",
+   "x": 40,
+   "y": 17760,
+   "src": "abs(coef_V - 1.5) < 0.0005 ="
+  },
+  {
+   "id": "c_exceso",
+   "kind": "math",
+   "x": 40,
+   "y": 17808,
+   "src": "abs(exceso - 0.125) < 0.0005 ="
+  },
+  {
+   "id": "c_mx",
+   "kind": "math",
+   "x": 40,
+   "y": 17856,
+   "src": "abs(M_x - 39.3 tonf*m) < 0.05 tonf*m ="
+  },
+  {
+   "id": "c_mserv",
+   "kind": "math",
+   "x": 40,
+   "y": 17904,
+   "src": "abs(M_serv - 31.4 tonf*m) < 0.05 tonf*m ="
+  },
+  {
+   "id": "c_vx",
+   "kind": "math",
+   "x": 40,
+   "y": 17952,
+   "src": "abs(V_x - 26.2 tonf) < 0.05 tonf ="
+  },
+  {
+   "id": "c_my",
+   "kind": "math",
+   "x": 40,
+   "y": 18000,
+   "src": "abs(M_y - 2.52 tonf*m) < 0.005 tonf*m ="
+  },
+  {
+   "id": "c_mpp",
+   "kind": "math",
+   "x": 40,
+   "y": 18048,
+   "src": "abs(M_pp - 1.89 tonf*m) < 0.005 tonf*m ="
+  },
+  {
+   "id": "c_mu",
+   "kind": "math",
+   "x": 40,
+   "y": 18096,
+   "src": "abs(M_u - 65.1 tonf*m) < 0.05 tonf*m ="
+  },
+  {
+   "id": "c_vu",
+   "kind": "math",
+   "x": 40,
+   "y": 18144,
+   "src": "abs(V_u - 43.0 tonf) < 0.05 tonf ="
+  },
+  {
+   "id": "r306",
+   "kind": "text",
+   "x": 40,
+   "y": 18192,
+   "src": "· Cap. F y Cap. H — sección combinada"
+  },
+  {
+   "id": "c_mp",
+   "kind": "math",
+   "x": 40,
+   "y": 18240,
+   "src": "abs(M_p - 119.8 tonf*m) < 0.05 tonf*m ="
+  },
+  {
+   "id": "c_m07",
+   "kind": "math",
+   "x": 40,
+   "y": 18288,
+   "src": "abs(M_07 - 74.9 tonf*m) < 0.05 tonf*m ="
+  },
+  {
+   "id": "c_lp",
+   "kind": "math",
+   "x": 40,
+   "y": 18336,
+   "src": "abs(L_p - 4.14 m) < 0.005 m ="
+  },
+  {
+   "id": "c_lr",
+   "kind": "math",
+   "x": 40,
+   "y": 18384,
+   "src": "abs(L_r - 12.46 m) < 0.005 m ="
+  },
+  {
+   "id": "c_mn",
+   "kind": "math",
+   "x": 40,
+   "y": 18432,
+   "src": "abs(M_n - 99.0 tonf*m) < 0.05 tonf*m ="
+  },
+  {
+   "id": "c_rdmnx",
+   "kind": "math",
+   "x": 40,
+   "y": 18480,
+   "src": "abs(Rd_Mnx - 89.1 tonf*m) < 0.05 tonf*m ="
+  },
+  {
+   "id": "c_ultb",
+   "kind": "math",
+   "x": 40,
+   "y": 18528,
+   "src": "abs(u_ltb - 0.731) < 0.0005 ="
+  },
+  {
+   "id": "c_up",
+   "kind": "math",
+   "x": 40,
+   "y": 18576,
+   "src": "abs(u_p - 0.60) < 0.005 ="
+  },
+  {
+   "id": "c_rdmny",
+   "kind": "math",
+   "x": 40,
+   "y": 18624,
+   "src": "abs(Rd_Mny - 17.1 tonf*m) < 0.05 tonf*m ="
+  },
+  {
+   "id": "c_ulat",
+   "kind": "math",
+   "x": 40,
+   "y": 18672,
+   "src": "abs(u_lat - 0.236) < 0.0005 ="
+  },
+  {
+   "id": "c_h1",
+   "kind": "math",
+   "x": 40,
+   "y": 18720,
+   "src": "abs(H1 - 0.97) < 0.005 ="
+  },
+  {
+   "id": "r307",
+   "kind": "text",
+   "x": 40,
+   "y": 18768,
+   "src": "· Cap. G y J10"
+  },
+  {
+   "id": "c_htw",
+   "kind": "math",
+   "x": 40,
+   "y": 18816,
+   "src": "abs(ht_alma - 45.1) < 0.05 ="
+  },
+  {
+   "id": "c_limg",
+   "kind": "math",
+   "x": 40,
+   "y": 18864,
+   "src": "abs(lim_G21 - 63.6) < 0.05 ="
+  },
+  {
+   "id": "c_rdv",
+   "kind": "math",
+   "x": 40,
+   "y": 18912,
+   "src": "abs(Rd_V - 117.8 tonf) < 0.05 tonf ="
+  },
+  {
+   "id": "c_uv",
+   "kind": "math",
+   "x": 40,
+   "y": 18960,
+   "src": "abs(u_v - 0.37) < 0.005 ="
+  },
+  {
+   "id": "c_k",
+   "kind": "math",
+   "x": 40,
+   "y": 19008,
+   "src": "abs(k - 2.86 cm) < 0.005 cm ="
+  },
+  {
+   "id": "c_lb",
+   "kind": "math",
+   "x": 40,
+   "y": 19056,
+   "src": "abs(l_b - 13 cm) < 0.05 cm ="
+  },
+  {
+   "id": "c_pur",
+   "kind": "math",
+   "x": 40,
+   "y": 19104,
+   "src": "abs(P_ur - 27.9 tonf) < 0.05 tonf ="
+  },
+  {
+   "id": "c_rdj2",
+   "kind": "math",
+   "x": 40,
+   "y": 19152,
+   "src": "abs(Rd_j2 - 87.7 tonf) < 0.05 tonf ="
+  },
+  {
+   "id": "c_uj2",
+   "kind": "math",
+   "x": 40,
+   "y": 19200,
+   "src": "abs(u_j2 - 0.32) < 0.005 ="
+  },
+  {
+   "id": "c_rdj4",
+   "kind": "math",
+   "x": 40,
+   "y": 19248,
+   "src": "abs(Rd_j4 - 114.7 tonf) < 0.05 tonf ="
+  },
+  {
+   "id": "c_uj4",
+   "kind": "math",
+   "x": 40,
+   "y": 19296,
+   "src": "abs(u_j4 - 0.24) < 0.005 ="
+  },
+  {
+   "id": "r308",
+   "kind": "text",
+   "x": 40,
+   "y": 19344,
+   "src": "· Servicio y fatiga"
+  },
+  {
+   "id": "c_dv",
+   "kind": "math",
+   "x": 40,
+   "y": 19392,
+   "src": "abs(d_v - 0.57 cm) < 0.005 cm ="
+  },
+  {
+   "id": "c_limv",
+   "kind": "math",
+   "x": 40,
+   "y": 19440,
+   "src": "abs(lim_v - 1.33 cm) < 0.005 cm ="
+  },
+  {
+   "id": "c_udv",
+   "kind": "math",
+   "x": 40,
+   "y": 19488,
+   "src": "abs(u_dv - 0.43) < 0.005 ="
+  },
+  {
+   "id": "c_dh",
+   "kind": "math",
+   "x": 40,
+   "y": 19536,
+   "src": "abs(d_h - 0.62 cm) < 0.005 cm ="
+  },
+  {
+   "id": "c_udh",
+   "kind": "math",
+   "x": 40,
+   "y": 19584,
+   "src": "abs(u_dh - 0.31) < 0.005 ="
+  },
+  {
+   "id": "c_sigma",
+   "kind": "math",
+   "x": 40,
+   "y": 19632,
+   "src": "abs(D_sigma - 677 kgf/cm^2) < 0.5 kgf/cm^2 ="
+  },
+  {
+   "id": "c_fsrC",
+   "kind": "math",
+   "x": 40,
+   "y": 19680,
+   "src": "abs(F_srC - 1458 kgf/cm^2) < 0.5 kgf/cm^2 ="
+  },
+  {
+   "id": "c_ufatC",
+   "kind": "math",
+   "x": 40,
+   "y": 19728,
+   "src": "abs(u_fatC - 0.46) < 0.005 ="
+  },
+  {
+   "id": "c_fsrD",
+   "kind": "math",
+   "x": 40,
+   "y": 19776,
+   "src": "abs(F_srD - 919 kgf/cm^2) < 0.5 kgf/cm^2 ="
+  },
+  {
+   "id": "c_ufatD",
+   "kind": "math",
+   "x": 40,
+   "y": 19824,
+   "src": "abs(u_fatD - 0.74) < 0.005 ="
+  },
+  {
+   "id": "c_fsrInf",
+   "kind": "math",
+   "x": 40,
+   "y": 19872,
+   "src": "abs(F_srInf - 704 kgf/cm^2) < 0.5 kgf/cm^2 ="
+  },
+  {
+   "id": "c_ufatInf",
+   "kind": "math",
+   "x": 40,
+   "y": 19920,
+   "src": "abs(u_fatInf - 0.96) < 0.005 ="
+  },
+  {
+   "id": "r309",
+   "kind": "text",
+   "x": 40,
+   "y": 19968,
+   "src": "· Cadena B — la sección desnuda"
+  },
+  {
+   "id": "c_lrd",
+   "kind": "math",
+   "x": 40,
+   "y": 20016,
+   "src": "abs(Lr_d - 10.9 m) < 0.05 m ="
+  },
+  {
+   "id": "c_rdmnxd",
+   "kind": "math",
+   "x": 40,
+   "y": 20064,
+   "src": "abs(Rd_Mnxd - 83.8 tonf*m) < 0.05 tonf*m ="
+  },
+  {
+   "id": "c_ultbd",
+   "kind": "math",
+   "x": 40,
+   "y": 20112,
+   "src": "abs(u_ltbd - 0.77) < 0.005 ="
+  },
+  {
+   "id": "c_rdmnyd",
+   "kind": "math",
+   "x": 40,
+   "y": 20160,
+   "src": "abs(Rd_Mnyd - 7.6 tonf*m) < 0.05 tonf*m ="
+  },
+  {
+   "id": "c_h1d",
+   "kind": "math",
+   "x": 40,
+   "y": 20208,
+   "src": "abs(H1_d - 1.30) < 0.005 ="
+  },
+  {
+   "id": "c_raziy",
+   "kind": "math",
+   "x": 40,
+   "y": 20256,
+   "src": "abs(razon_Iy - 1.63) < 0.005 ="
+  },
+  {
+   "id": "r310",
+   "kind": "text",
+   "x": 40,
+   "y": 20304,
+   "src": "Y la afirmación en prosa del §4: que el canal «casi cuadruplica» el módulo lateral."
+  },
+  {
+   "id": "c_razsy",
+   "kind": "math",
+   "x": 40,
+   "y": 20352,
+   "src": "abs(razon_Sy - 2.25) < 0.005 ="
+  }
+ ]
+}

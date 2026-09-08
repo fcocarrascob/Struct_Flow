@@ -1,0 +1,1120 @@
+{
+ "version": 1,
+ "meta": {
+  "titulo": "Columna de galpón a compresión — la longitud efectiva pesa más que el radio de giro: gobierna el eje fuerte (AISC 360-22 E2/E3/E4, Tabla B4.1a)",
+  "ficha": "struct_pad/src/content/acero/ejemplo-columna-galpon-compresion.mdx",
+  "esperadoFalso": {
+   "c_rdxkgf": "DIVERGENCIA ACEPTADA 2026-08-01: el post exhibe 79 344 kgf, que es 0,90·950·92,8 con el F_n ya redondeado; la cadena a precisión completa da 79 309 kgf. Las dos redondean a 79,3 tonf, así que el número insignia no cambia. Se conserva a propósito: el fix de la auditoría del 2026-07-23 pidió que la ecuación exhibiera el producto literal de sus operandos."
+  }
+ },
+ "regions": [
+  {
+   "id": "r000",
+   "kind": "text",
+   "x": 40,
+   "y": 32,
+   "src": "COLUMNA DE GALPÓN A COMPRESIÓN — gobierna el eje fuerte, y la palanca es L_c/r"
+  },
+  {
+   "id": "r001",
+   "kind": "text",
+   "x": 40,
+   "y": 80,
+   "src": "AISC 360-22 Cap. E (E1, E2, E3-1/-2/-3/-4, E4-2, E7) + Tabla B4.1a casos 1 y 5 · LRFD"
+  },
+  {
+   "id": "r002",
+   "kind": "text",
+   "x": 40,
+   "y": 128,
+   "src": "Rd_ = capacidad de diseño (incluye phi) · las comparaciones dan ✓/✗"
+  },
+  {
+   "id": "r003",
+   "kind": "text",
+   "x": 40,
+   "y": 176,
+   "src": "El caso: columna perimetral de un galpón. En el plano del marco es un cantilever desde la"
+  },
+  {
+   "id": "r004",
+   "kind": "text",
+   "x": 40,
+   "y": 224,
+   "src": "fundación empotrada; fuera del plano las costaneras la arriostran a media altura."
+  },
+  {
+   "id": "r005",
+   "kind": "text",
+   "x": 40,
+   "y": 288,
+   "src": "━━ DATOS · ACERO Y FACTORES ━━"
+  },
+  {
+   "id": "r006",
+   "kind": "text",
+   "x": 40,
+   "y": 336,
+   "src": "ASTM A992. E y G son los de la norma: 200 000 MPa y 77 200 MPa (símbolos, Cap. E)."
+  },
+  {
+   "id": "r007",
+   "kind": "math",
+   "x": 40,
+   "y": 384,
+   "src": "F_y := 3520 kgf/cm^2"
+  },
+  {
+   "id": "r008",
+   "kind": "math",
+   "x": 40,
+   "y": 432,
+   "src": "E := 2.04e6 kgf/cm^2"
+  },
+  {
+   "id": "r009",
+   "kind": "math",
+   "x": 40,
+   "y": 480,
+   "src": "G := 787200 kgf/cm^2"
+  },
+  {
+   "id": "r010",
+   "kind": "text",
+   "x": 40,
+   "y": 528,
+   "src": "E1: phi_c = 0,90 para compresión (LRFD)"
+  },
+  {
+   "id": "r011",
+   "kind": "math",
+   "x": 40,
+   "y": 576,
+   "src": "phi := 0.90"
+  },
+  {
+   "id": "r012",
+   "kind": "text",
+   "x": 40,
+   "y": 640,
+   "src": "━━ DATOS · PERFIL W250×73, LAS CUATRO PLANCHAS ━━"
+  },
+  {
+   "id": "r013",
+   "kind": "text",
+   "x": 40,
+   "y": 688,
+   "src": "Dimensiones nominales del perfil (catálogo). Todo lo demás se deriva de ellas:"
+  },
+  {
+   "id": "r014",
+   "kind": "math",
+   "x": 40,
+   "y": 736,
+   "src": "d := 25.3 cm"
+  },
+  {
+   "id": "r015",
+   "kind": "math",
+   "x": 40,
+   "y": 784,
+   "src": "b_f := 25.4 cm"
+  },
+  {
+   "id": "r016",
+   "kind": "math",
+   "x": 40,
+   "y": 832,
+   "src": "t_f := 1.42 cm"
+  },
+  {
+   "id": "r017",
+   "kind": "math",
+   "x": 40,
+   "y": 880,
+   "src": "t_w := 0.86 cm"
+  },
+  {
+   "id": "r018",
+   "kind": "text",
+   "x": 40,
+   "y": 928,
+   "src": "B4.1 §1b: en perfil laminado h es la luz libre MENOS los redondeos de unión. Sin"
+  },
+  {
+   "id": "r019",
+   "kind": "text",
+   "x": 40,
+   "y": 976,
+   "src": "el dato del redondeo, d - 2·t_f es la cota SUPERIOR de h — conservadora para B4.1a."
+  },
+  {
+   "id": "r020",
+   "kind": "math",
+   "x": 40,
+   "y": 1024,
+   "src": "h_pl := d - 2*t_f = cm"
+  },
+  {
+   "id": "r021",
+   "kind": "math",
+   "x": 40,
+   "y": 1072,
+   "src": "A_pl := 2*b_f*t_f + h_pl*t_w = cm^2"
+  },
+  {
+   "id": "r022",
+   "kind": "math",
+   "x": 40,
+   "y": 1120,
+   "src": "I_x := (b_f*d^3 - (b_f - t_w)*h_pl^3)/12 = cm^4"
+  },
+  {
+   "id": "r023",
+   "kind": "math",
+   "x": 40,
+   "y": 1168,
+   "src": "I_y := (2*t_f*b_f^3 + h_pl*t_w^3)/12 = cm^4"
+  },
+  {
+   "id": "r024",
+   "kind": "math",
+   "x": 40,
+   "y": 1216,
+   "src": "r_xpl := sqrt(I_x/A_pl) = cm"
+  },
+  {
+   "id": "r025",
+   "kind": "math",
+   "x": 40,
+   "y": 1264,
+   "src": "r_ypl := sqrt(I_y/A_pl) = cm"
+  },
+  {
+   "id": "r026",
+   "kind": "math",
+   "x": 40,
+   "y": 1312,
+   "src": "bt_ala := b_f/(2*t_f) ="
+  },
+  {
+   "id": "r027",
+   "kind": "math",
+   "x": 40,
+   "y": 1360,
+   "src": "ht_alma := h_pl/t_w ="
+  },
+  {
+   "id": "r028",
+   "kind": "text",
+   "x": 40,
+   "y": 1408,
+   "src": "Torsión y alabeo, que el post no publica y la Ec. E4-2 necesita:"
+  },
+  {
+   "id": "r029",
+   "kind": "math",
+   "x": 40,
+   "y": 1456,
+   "src": "J := (2*b_f*t_f^3 + (d - t_f)*t_w^3)/3 = cm^4"
+  },
+  {
+   "id": "r030",
+   "kind": "math",
+   "x": 40,
+   "y": 1504,
+   "src": "C_w := I_y*(d - t_f)^2/4 = cm^6"
+  },
+  {
+   "id": "r031",
+   "kind": "text",
+   "x": 40,
+   "y": 1568,
+   "src": "━━ DATOS · PROPIEDADES TABULADAS — frontera declarada ━━"
+  },
+  {
+   "id": "r032",
+   "kind": "text",
+   "x": 40,
+   "y": 1616,
+   "src": "A_g, r_x y r_y son dato de tabla de perfiles, no de la norma: el ejemplo los declara y"
+  },
+  {
+   "id": "r033",
+   "kind": "text",
+   "x": 40,
+   "y": 1664,
+   "src": "la planilla los usa tal cual. Lo que sí verifica es que las planchas los reproduzcan."
+  },
+  {
+   "id": "r034",
+   "kind": "math",
+   "x": 40,
+   "y": 1712,
+   "src": "A_g := 92.8 cm^2"
+  },
+  {
+   "id": "r035",
+   "kind": "math",
+   "x": 40,
+   "y": 1760,
+   "src": "r_x := 11.0 cm"
+  },
+  {
+   "id": "r036",
+   "kind": "math",
+   "x": 40,
+   "y": 1808,
+   "src": "r_y := 6.46 cm"
+  },
+  {
+   "id": "r037",
+   "kind": "text",
+   "x": 40,
+   "y": 1856,
+   "src": "Las planchas dan MENOS área que la tabla: le faltan los redondeos de unión ala-alma."
+  },
+  {
+   "id": "r038",
+   "kind": "math",
+   "x": 40,
+   "y": 1904,
+   "src": "dif_A := A_pl/A_g - 1 ="
+  },
+  {
+   "id": "v_apl",
+   "kind": "math",
+   "x": 40,
+   "y": 1952,
+   "src": "abs(dif_A) < 0.02 ="
+  },
+  {
+   "id": "v_rxpl",
+   "kind": "math",
+   "x": 40,
+   "y": 2000,
+   "src": "abs(r_xpl/r_x - 1) < 0.01 ="
+  },
+  {
+   "id": "v_rypl",
+   "kind": "math",
+   "x": 40,
+   "y": 2048,
+   "src": "abs(r_ypl/r_y - 1) < 0.01 ="
+  },
+  {
+   "id": "r042",
+   "kind": "text",
+   "x": 40,
+   "y": 2096,
+   "src": "Los tres cuadran: las planchas confirman la fila de la tabla dentro de lo que explican"
+  },
+  {
+   "id": "r043",
+   "kind": "text",
+   "x": 40,
+   "y": 2144,
+   "src": "los redondeos de unión (área -1,5%, r_y +0,8%; el ala, que no los tiene, da exacto)."
+  },
+  {
+   "id": "r044",
+   "kind": "text",
+   "x": 40,
+   "y": 2208,
+   "src": "━━ DATOS · GEOMETRÍA Y CARGA ━━"
+  },
+  {
+   "id": "r045",
+   "kind": "math",
+   "x": 40,
+   "y": 2256,
+   "src": "L := 750 cm"
+  },
+  {
+   "id": "r046",
+   "kind": "math",
+   "x": 40,
+   "y": 2304,
+   "src": "K_x := 2.0"
+  },
+  {
+   "id": "r047",
+   "kind": "math",
+   "x": 40,
+   "y": 2352,
+   "src": "L_y := 375 cm"
+  },
+  {
+   "id": "r048",
+   "kind": "math",
+   "x": 40,
+   "y": 2400,
+   "src": "K_y := 1.0"
+  },
+  {
+   "id": "r049",
+   "kind": "math",
+   "x": 40,
+   "y": 2448,
+   "src": "P_u := 65 tonf"
+  },
+  {
+   "id": "r050",
+   "kind": "text",
+   "x": 40,
+   "y": 2512,
+   "src": "━━ 1 · LONGITUD EFECTIVA EN LOS DOS EJES (Sec. E2) ━━"
+  },
+  {
+   "id": "r051",
+   "kind": "text",
+   "x": 40,
+   "y": 2560,
+   "src": "L_c = KL. En el plano, cantilever sobre la altura completa; fuera, el tramo arriostrado."
+  },
+  {
+   "id": "r052",
+   "kind": "math",
+   "x": 40,
+   "y": 2608,
+   "src": "L_cx := K_x*L = cm"
+  },
+  {
+   "id": "r053",
+   "kind": "math",
+   "x": 40,
+   "y": 2656,
+   "src": "L_cy := K_y*L_y = cm"
+  },
+  {
+   "id": "r054",
+   "kind": "text",
+   "x": 40,
+   "y": 2720,
+   "src": "━━ 2 · LA ESBELTEZ QUE GOBIERNA ━━"
+  },
+  {
+   "id": "r055",
+   "kind": "math",
+   "x": 40,
+   "y": 2768,
+   "src": "lam_x := L_cx/r_x ="
+  },
+  {
+   "id": "r056",
+   "kind": "math",
+   "x": 40,
+   "y": 2816,
+   "src": "lam_y := L_cy/r_y ="
+  },
+  {
+   "id": "v_gob",
+   "kind": "math",
+   "x": 40,
+   "y": 2864,
+   "src": "lam_x > lam_y ="
+  },
+  {
+   "id": "r058",
+   "kind": "text",
+   "x": 40,
+   "y": 2912,
+   "src": "Gobierna el eje FUERTE pese a r_x > r_y: la longitud efectiva pesa más que el radio de giro"
+  },
+  {
+   "id": "r059",
+   "kind": "math",
+   "x": 40,
+   "y": 2960,
+   "src": "lam := max(lam_x, lam_y) ="
+  },
+  {
+   "id": "r060",
+   "kind": "text",
+   "x": 40,
+   "y": 3008,
+   "src": "El ≤ 200 de E2 es una User Note («preferably should not exceed»), no un límite obligatorio"
+  },
+  {
+   "id": "v_esb",
+   "kind": "math",
+   "x": 40,
+   "y": 3056,
+   "src": "lam <= 200 ="
+  },
+  {
+   "id": "r062",
+   "kind": "text",
+   "x": 40,
+   "y": 3120,
+   "src": "━━ 3 · PANDEO LOCAL: ¿ELEMENTOS ESBELTOS? (Sec. E7 + Tabla B4.1a) ━━"
+  },
+  {
+   "id": "r063",
+   "kind": "text",
+   "x": 40,
+   "y": 3168,
+   "src": "Caso 1 (ala de perfil I laminado, no rigidizado) y Caso 5 (alma, rigidizado)"
+  },
+  {
+   "id": "r064",
+   "kind": "math",
+   "x": 40,
+   "y": 3216,
+   "src": "lam_rf := 0.56*sqrt(E/F_y) ="
+  },
+  {
+   "id": "r065",
+   "kind": "math",
+   "x": 40,
+   "y": 3264,
+   "src": "lam_rw := 1.49*sqrt(E/F_y) ="
+  },
+  {
+   "id": "v_ala",
+   "kind": "math",
+   "x": 40,
+   "y": 3312,
+   "src": "bt_ala < lam_rf ="
+  },
+  {
+   "id": "r067",
+   "kind": "text",
+   "x": 40,
+   "y": 3360,
+   "src": "El alma se compara contra la cota sin redondeos: si esa pasa, la real (menor) también"
+  },
+  {
+   "id": "v_alma",
+   "kind": "math",
+   "x": 40,
+   "y": 3408,
+   "src": "ht_alma < lam_rw ="
+  },
+  {
+   "id": "r069",
+   "kind": "text",
+   "x": 40,
+   "y": 3456,
+   "src": "Ambos NO esbeltos → no aplica E7 y se trabaja con la sección completa"
+  },
+  {
+   "id": "r070",
+   "kind": "math",
+   "x": 40,
+   "y": 3504,
+   "src": "A_e := A_g = cm^2"
+  },
+  {
+   "id": "r071",
+   "kind": "text",
+   "x": 40,
+   "y": 3568,
+   "src": "━━ 4 · CURVA DE COLUMNA, EJE FUERTE (Sec. E3) ━━"
+  },
+  {
+   "id": "r072",
+   "kind": "math",
+   "x": 40,
+   "y": 3616,
+   "src": "F_ex := pi^2*E/lam_x^2 = kgf/cm^2"
+  },
+  {
+   "id": "r073",
+   "kind": "math",
+   "x": 40,
+   "y": 3664,
+   "src": "lam_lim := 4.71*sqrt(E/F_y) ="
+  },
+  {
+   "id": "r074",
+   "kind": "math",
+   "x": 40,
+   "y": 3712,
+   "src": "q_x := F_y/F_ex ="
+  },
+  {
+   "id": "r075",
+   "kind": "text",
+   "x": 40,
+   "y": 3760,
+   "src": "Las dos puertas de E3 dicen lo mismo (lo señala su User Note): régimen ELÁSTICO"
+  },
+  {
+   "id": "v_regx",
+   "kind": "math",
+   "x": 40,
+   "y": 3808,
+   "src": "lam_x > lam_lim ="
+  },
+  {
+   "id": "v_regx2",
+   "kind": "math",
+   "x": 40,
+   "y": 3856,
+   "src": "q_x > 2.25 ="
+  },
+  {
+   "id": "r078",
+   "kind": "text",
+   "x": 40,
+   "y": 3904,
+   "src": "Ec. E3-3: F_n = 0,877·F_e — y no depende de F_y, que es la tesis del post"
+  },
+  {
+   "id": "r079",
+   "kind": "math",
+   "x": 40,
+   "y": 3952,
+   "src": "F_nx := 0.877*F_ex = kgf/cm^2"
+  },
+  {
+   "id": "r080",
+   "kind": "text",
+   "x": 40,
+   "y": 4000,
+   "src": "Ec. E3-1 con phi_c de E1:"
+  },
+  {
+   "id": "r081",
+   "kind": "math",
+   "x": 40,
+   "y": 4048,
+   "src": "Rd_x := phi*F_nx*A_g = tonf"
+  },
+  {
+   "id": "v_capx",
+   "kind": "math",
+   "x": 40,
+   "y": 4096,
+   "src": "Rd_x >= P_u ="
+  },
+  {
+   "id": "r083",
+   "kind": "math",
+   "x": 40,
+   "y": 4144,
+   "src": "u_x := P_u/Rd_x ="
+  },
+  {
+   "id": "r084",
+   "kind": "text",
+   "x": 40,
+   "y": 4192,
+   "src": "Cuánto del techo del material queda en pie después de la inestabilidad:"
+  },
+  {
+   "id": "r085",
+   "kind": "math",
+   "x": 40,
+   "y": 4240,
+   "src": "ap_x := F_nx/F_y ="
+  },
+  {
+   "id": "r086",
+   "kind": "text",
+   "x": 40,
+   "y": 4304,
+   "src": "━━ 5 · EL MISMO PERFIL EN EL OTRO EJE (Ec. E3-2) ━━"
+  },
+  {
+   "id": "r087",
+   "kind": "math",
+   "x": 40,
+   "y": 4352,
+   "src": "F_ey := pi^2*E/lam_y^2 = kgf/cm^2"
+  },
+  {
+   "id": "r088",
+   "kind": "math",
+   "x": 40,
+   "y": 4400,
+   "src": "q_y := F_y/F_ey ="
+  },
+  {
+   "id": "v_regy",
+   "kind": "math",
+   "x": 40,
+   "y": 4448,
+   "src": "q_y <= 2.25 ="
+  },
+  {
+   "id": "r090",
+   "kind": "text",
+   "x": 40,
+   "y": 4496,
+   "src": "Régimen inelástico: acá F_y sí manda"
+  },
+  {
+   "id": "r091",
+   "kind": "math",
+   "x": 40,
+   "y": 4544,
+   "src": "F_ny := F_y*0.658^q_y = kgf/cm^2"
+  },
+  {
+   "id": "r092",
+   "kind": "math",
+   "x": 40,
+   "y": 4592,
+   "src": "Rd_y := phi*F_ny*A_g = tonf"
+  },
+  {
+   "id": "r093",
+   "kind": "math",
+   "x": 40,
+   "y": 4640,
+   "src": "u_y := P_u/Rd_y ="
+  },
+  {
+   "id": "r094",
+   "kind": "math",
+   "x": 40,
+   "y": 4688,
+   "src": "raz_yx := Rd_y/Rd_x ="
+  },
+  {
+   "id": "r095",
+   "kind": "text",
+   "x": 40,
+   "y": 4752,
+   "src": "━━ 6 · PANDEO TORSIONAL (Sec. E4) ━━"
+  },
+  {
+   "id": "r096",
+   "kind": "text",
+   "x": 40,
+   "y": 4800,
+   "src": "E4 alcanza a la W doblemente simétrica solo «when the torsional unbraced length exceeds"
+  },
+  {
+   "id": "r097",
+   "kind": "text",
+   "x": 40,
+   "y": 4848,
+   "src": "the lateral unbraced length». Acá L_cz = L_cy, así que la puerta ni siquiera abre."
+  },
+  {
+   "id": "r098",
+   "kind": "text",
+   "x": 40,
+   "y": 4896,
+   "src": "Se calcula igual, para poner número al margen que el post describe en palabras:"
+  },
+  {
+   "id": "r099",
+   "kind": "math",
+   "x": 40,
+   "y": 4944,
+   "src": "L_cz := L_cy = cm"
+  },
+  {
+   "id": "r100",
+   "kind": "math",
+   "x": 40,
+   "y": 4992,
+   "src": "I_s := I_x + I_y = cm^4"
+  },
+  {
+   "id": "r101",
+   "kind": "math",
+   "x": 40,
+   "y": 5040,
+   "src": "F_ez := (pi^2*E*C_w/L_cz^2 + G*J)/I_s = kgf/cm^2"
+  },
+  {
+   "id": "v_tor",
+   "kind": "math",
+   "x": 40,
+   "y": 5088,
+   "src": "F_ez > F_ex ="
+  },
+  {
+   "id": "r103",
+   "kind": "math",
+   "x": 40,
+   "y": 5136,
+   "src": "raz_tor := F_ez/F_ex ="
+  },
+  {
+   "id": "r104",
+   "kind": "math",
+   "x": 40,
+   "y": 5184,
+   "src": "q_z := F_y/F_ez ="
+  },
+  {
+   "id": "r105",
+   "kind": "math",
+   "x": 40,
+   "y": 5232,
+   "src": "F_nz := F_y*0.658^q_z = kgf/cm^2"
+  },
+  {
+   "id": "r106",
+   "kind": "math",
+   "x": 40,
+   "y": 5280,
+   "src": "Rd_z := phi*F_nz*A_g = tonf"
+  },
+  {
+   "id": "v_torgob",
+   "kind": "math",
+   "x": 40,
+   "y": 5328,
+   "src": "Rd_z > Rd_x ="
+  },
+  {
+   "id": "r108",
+   "kind": "text",
+   "x": 40,
+   "y": 5376,
+   "src": "El torsional queda 7,5 veces más arriba en tensión y 3 veces en capacidad: no gobierna"
+  },
+  {
+   "id": "r109",
+   "kind": "text",
+   "x": 40,
+   "y": 5440,
+   "src": "━━ 7 · LA PALANCA: ROMPER EL CANTILEVER (K_x = 1) ━━"
+  },
+  {
+   "id": "r110",
+   "kind": "math",
+   "x": 40,
+   "y": 5488,
+   "src": "K_x1 := 1.0"
+  },
+  {
+   "id": "r111",
+   "kind": "math",
+   "x": 40,
+   "y": 5536,
+   "src": "lam_x1 := K_x1*L/r_x ="
+  },
+  {
+   "id": "r112",
+   "kind": "math",
+   "x": 40,
+   "y": 5584,
+   "src": "F_ex1 := pi^2*E/lam_x1^2 = kgf/cm^2"
+  },
+  {
+   "id": "r113",
+   "kind": "math",
+   "x": 40,
+   "y": 5632,
+   "src": "q_x1 := F_y/F_ex1 ="
+  },
+  {
+   "id": "v_regx1",
+   "kind": "math",
+   "x": 40,
+   "y": 5680,
+   "src": "q_x1 <= 2.25 ="
+  },
+  {
+   "id": "r115",
+   "kind": "text",
+   "x": 40,
+   "y": 5728,
+   "src": "Al bajar la esbeltez el eje fuerte CRUZA a inelástico, y ahí F_y vuelve a contar"
+  },
+  {
+   "id": "r116",
+   "kind": "math",
+   "x": 40,
+   "y": 5776,
+   "src": "F_nx1 := F_y*0.658^q_x1 = kgf/cm^2"
+  },
+  {
+   "id": "r117",
+   "kind": "math",
+   "x": 40,
+   "y": 5824,
+   "src": "Rd_x1 := phi*F_nx1*A_g = tonf"
+  },
+  {
+   "id": "r118",
+   "kind": "math",
+   "x": 40,
+   "y": 5872,
+   "src": "raz_pal := Rd_x1/Rd_x ="
+  },
+  {
+   "id": "r119",
+   "kind": "text",
+   "x": 40,
+   "y": 5920,
+   "src": "Subir el grado del acero no movería el caso base (E3-3 no ve F_y); bajar L_c/r sí"
+  },
+  {
+   "id": "r120",
+   "kind": "text",
+   "x": 40,
+   "y": 5984,
+   "src": "━━ 8 · USOS ━━"
+  },
+  {
+   "id": "r121",
+   "kind": "math",
+   "x": 40,
+   "y": 6032,
+   "src": "u_max := max(u_x, u_y) ="
+  },
+  {
+   "id": "v_umax",
+   "kind": "math",
+   "x": 40,
+   "y": 6080,
+   "src": "u_max <= 1 ="
+  },
+  {
+   "id": "esq",
+   "kind": "image",
+   "x": 40,
+   "y": 6128,
+   "src": "/esquemas/columna-galpon-compresion.svg",
+   "w": 560,
+   "h": 340
+  },
+  {
+   "id": "r124",
+   "kind": "text",
+   "x": 40,
+   "y": 6512,
+   "src": "━━ 9 · CONTRASTE CON EL POST — cada número publicado, contra el calculado ━━"
+  },
+  {
+   "id": "r125",
+   "kind": "text",
+   "x": 40,
+   "y": 6560,
+   "src": "Tolerancia: media unidad del último dígito publicado. Comparan contra los números impresos en el post."
+  },
+  {
+   "id": "c_lcx",
+   "kind": "math",
+   "x": 40,
+   "y": 6608,
+   "src": "abs(L_cx - 1500 cm) < 0.5 cm ="
+  },
+  {
+   "id": "c_lcy",
+   "kind": "math",
+   "x": 40,
+   "y": 6656,
+   "src": "abs(L_cy - 375 cm) < 0.5 cm ="
+  },
+  {
+   "id": "c_lamx",
+   "kind": "math",
+   "x": 40,
+   "y": 6704,
+   "src": "abs(lam_x - 136) < 0.5 ="
+  },
+  {
+   "id": "c_lamy",
+   "kind": "math",
+   "x": 40,
+   "y": 6752,
+   "src": "abs(lam_y - 58) < 0.5 ="
+  },
+  {
+   "id": "c_btala",
+   "kind": "math",
+   "x": 40,
+   "y": 6800,
+   "src": "abs(bt_ala - 8.94) < 0.005 ="
+  },
+  {
+   "id": "c_lamrf",
+   "kind": "math",
+   "x": 40,
+   "y": 6848,
+   "src": "abs(lam_rf - 13.5) < 0.05 ="
+  },
+  {
+   "id": "c_lamrw",
+   "kind": "math",
+   "x": 40,
+   "y": 6896,
+   "src": "abs(lam_rw - 35.9) < 0.05 ="
+  },
+  {
+   "id": "c_ae",
+   "kind": "math",
+   "x": 40,
+   "y": 6944,
+   "src": "abs(A_e - 92.8 cm^2) < 0.05 cm^2 ="
+  },
+  {
+   "id": "c_fex",
+   "kind": "math",
+   "x": 40,
+   "y": 6992,
+   "src": "abs(F_ex - 1083 kgf/cm^2) < 0.5 kgf/cm^2 ="
+  },
+  {
+   "id": "c_lamlim",
+   "kind": "math",
+   "x": 40,
+   "y": 7040,
+   "src": "abs(lam_lim - 113) < 0.5 ="
+  },
+  {
+   "id": "c_qx",
+   "kind": "math",
+   "x": 40,
+   "y": 7088,
+   "src": "abs(q_x - 3.25) < 0.005 ="
+  },
+  {
+   "id": "c_fnx",
+   "kind": "math",
+   "x": 40,
+   "y": 7136,
+   "src": "abs(F_nx - 950 kgf/cm^2) < 0.5 kgf/cm^2 ="
+  },
+  {
+   "id": "c_rdx",
+   "kind": "math",
+   "x": 40,
+   "y": 7184,
+   "src": "abs(Rd_x - 79.3 tonf) < 0.05 tonf ="
+  },
+  {
+   "id": "r140",
+   "kind": "text",
+   "x": 40,
+   "y": 7232,
+   "src": "El post exhibe además el producto en kgf de la Ec. E3-1:"
+  },
+  {
+   "id": "c_rdxkgf",
+   "kind": "math",
+   "x": 40,
+   "y": 7280,
+   "src": "abs(Rd_x - 79344 kgf) < 0.5 kgf ="
+  },
+  {
+   "id": "c_ux",
+   "kind": "math",
+   "x": 40,
+   "y": 7328,
+   "src": "abs(u_x - 0.82) < 0.005 ="
+  },
+  {
+   "id": "c_apx",
+   "kind": "math",
+   "x": 40,
+   "y": 7376,
+   "src": "abs(ap_x - 0.27) < 0.005 ="
+  },
+  {
+   "id": "c_fny",
+   "kind": "math",
+   "x": 40,
+   "y": 7424,
+   "src": "abs(F_ny - 2751 kgf/cm^2) < 0.5 kgf/cm^2 ="
+  },
+  {
+   "id": "c_rdy",
+   "kind": "math",
+   "x": 40,
+   "y": 7472,
+   "src": "abs(Rd_y - 229.7 tonf) < 0.05 tonf ="
+  },
+  {
+   "id": "c_uy",
+   "kind": "math",
+   "x": 40,
+   "y": 7520,
+   "src": "abs(u_y - 0.28) < 0.005 ="
+  },
+  {
+   "id": "c_razyx",
+   "kind": "math",
+   "x": 40,
+   "y": 7568,
+   "src": "abs(raz_yx - 2.9) < 0.05 ="
+  },
+  {
+   "id": "c_lamx1",
+   "kind": "math",
+   "x": 40,
+   "y": 7616,
+   "src": "abs(lam_x1 - 68) < 0.5 ="
+  },
+  {
+   "id": "c_rdx1",
+   "kind": "math",
+   "x": 40,
+   "y": 7664,
+   "src": "abs(Rd_x1 - 209 tonf) < 0.5 tonf ="
+  },
+  {
+   "id": "r150",
+   "kind": "text",
+   "x": 40,
+   "y": 7712,
+   "src": "«Arriostrar el plano multiplica por 2,6 la capacidad»: el factor publicado en palabras"
+  },
+  {
+   "id": "c_razpal",
+   "kind": "math",
+   "x": 40,
+   "y": 7760,
+   "src": "abs(raz_pal - 2.6) < 0.05 ="
+  },
+  {
+   "id": "c_j",
+   "kind": "math",
+   "x": 40,
+   "y": 7808,
+   "src": "abs(J - 53.5 cm^4) < 0.05 cm^4 ="
+  },
+  {
+   "id": "c_cw",
+   "kind": "math",
+   "x": 40,
+   "y": 7856,
+   "src": "abs(C_w - 553000 cm^6) < 500 cm^6 ="
+  },
+  {
+   "id": "c_is",
+   "kind": "math",
+   "x": 40,
+   "y": 7904,
+   "src": "abs(I_s - 14990 cm^4) < 5 cm^4 ="
+  },
+  {
+   "id": "c_fez",
+   "kind": "math",
+   "x": 40,
+   "y": 7952,
+   "src": "abs(F_ez - 8100 kgf/cm^2) < 50 kgf/cm^2 ="
+  },
+  {
+   "id": "c_raztor",
+   "kind": "math",
+   "x": 40,
+   "y": 8000,
+   "src": "abs(raz_tor - 7.5) < 0.05 ="
+  },
+  {
+   "id": "c_rdz",
+   "kind": "math",
+   "x": 40,
+   "y": 8048,
+   "src": "abs(Rd_z - 245 tonf) < 0.5 tonf ="
+  },
+  {
+   "id": "c_uz",
+   "kind": "math",
+   "x": 40,
+   "y": 8096,
+   "src": "abs(P_u/Rd_z - 0.27) < 0.005 ="
+  }
+ ]
+}

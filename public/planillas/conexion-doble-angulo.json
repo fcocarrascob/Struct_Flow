@@ -1,0 +1,1702 @@
+{
+  "version": 1,
+  "meta": {
+    "titulo": "Conexión de corte: doble ángulo vs. shear tab — duplicar el plano de corte y el elemento, y qué queda escondido en la excentricidad (AISC 360-22 J3/J4)",
+    "ficha": "struct_pad/src/content/acero/ejemplo-conexion-doble-angulo.mdx",
+    "esperadoFalso": {
+      "v_exct": "La tesis del ejemplo, heredada de la shear tab: con el F_nv de la columna metrica de la Tabla J3.2 el perno extremo de la tab NO alcanza (uso 1,0002). Es el punto del post."
+    }
+  },
+  "regions": [
+    {
+      "id": "h0",
+      "kind": "text",
+      "x": 40,
+      "y": 32,
+      "src": "CONEXIÓN DE CORTE: DOBLE ÁNGULO vs. SHEAR TAB — la misma viga, la misma reacción, dos anatomías"
+    },
+    {
+      "id": "h1",
+      "kind": "text",
+      "x": 40,
+      "y": 80,
+      "src": "AISC 360-22 · J3.4/J3.5/J3.6 (geometría) · J3.7 y C-J3.7 (Ec. J3-1, planos de corte) · J3.11a (Ecs. J3-6a/c) · J4.2/J4.3 · J4.5 · B4.3b · LRFD"
+    },
+    {
+      "id": "h2",
+      "kind": "text",
+      "x": 40,
+      "y": 128,
+      "src": "Sufijos: _t = shear tab (1 plano de corte, 1 elemento) · _a = doble ángulo (2 planos, 2 elementos) · sin sufijo = común a las dos"
+    },
+    {
+      "id": "h3",
+      "kind": "text",
+      "x": 40,
+      "y": 176,
+      "src": "Rd_ = capacidad de diseño (lleva phi) · R_ sin phi = nominal · las comparaciones dan ✓/✗"
+    },
+    {
+      "id": "s_mat",
+      "kind": "text",
+      "x": 40,
+      "y": 240,
+      "src": "━━ DATOS · MATERIALES ━━"
+    },
+    {
+      "id": "t_mat",
+      "kind": "text",
+      "x": 40,
+      "y": 288,
+      "src": "Plancha y ángulos A36 · viga W460×74 A992 · pernos Ø22 ASTM F3125 Gr. A325 = Grupo 120, rosca INCLUIDA en el plano de corte"
+    },
+    {
+      "id": "F_y",
+      "kind": "math",
+      "x": 40,
+      "y": 336,
+      "src": "F_y := 2530 kgf/cm^2"
+    },
+    {
+      "id": "F_u",
+      "kind": "math",
+      "x": 40,
+      "y": 384,
+      "src": "F_u := 4080 kgf/cm^2"
+    },
+    {
+      "id": "F_uv",
+      "kind": "math",
+      "x": 40,
+      "y": 432,
+      "src": "F_uv := 4570 kgf/cm^2"
+    },
+    {
+      "id": "t_j32",
+      "kind": "text",
+      "x": 40,
+      "y": 480,
+      "src": "Tabla J3.2, columna métrica: Grupo 120 (e.g. A325), hilos NO excluidos → F_nv = 54 ksi (370 MPa). NO 372, que es la conversión exacta de las ksi."
+    },
+    {
+      "id": "F_nv",
+      "kind": "math",
+      "x": 40,
+      "y": 528,
+      "src": "F_nv := 370 MPa = kgf/cm^2"
+    },
+    {
+      "id": "s_geo",
+      "kind": "text",
+      "x": 40,
+      "y": 592,
+      "src": "━━ DATOS · GEOMETRÍA COMÚN A LAS DOS CONEXIONES ━━"
+    },
+    {
+      "id": "d_b",
+      "kind": "math",
+      "x": 40,
+      "y": 640,
+      "src": "d_b := 2.2 cm"
+    },
+    {
+      "id": "t_hole",
+      "kind": "text",
+      "x": 40,
+      "y": 688,
+      "src": "d_hf = agujero físico (Tabla J3.3M: M22 estándar, 24 mm) · d_h = el de área neta, 2 mm mayor (B4.3b)"
+    },
+    {
+      "id": "d_hf",
+      "kind": "math",
+      "x": 40,
+      "y": 736,
+      "src": "d_hf := 2.4 cm"
+    },
+    {
+      "id": "d_h",
+      "kind": "math",
+      "x": 40,
+      "y": 784,
+      "src": "d_h := d_hf + 0.2 cm"
+    },
+    {
+      "id": "A_b",
+      "kind": "math",
+      "x": 40,
+      "y": 832,
+      "src": "A_b := pi*d_b^2/4 = cm^2"
+    },
+    {
+      "id": "n_b",
+      "kind": "math",
+      "x": 40,
+      "y": 880,
+      "src": "n_b := 4"
+    },
+    {
+      "id": "s",
+      "kind": "math",
+      "x": 40,
+      "y": 928,
+      "src": "s := 7.0 cm"
+    },
+    {
+      "id": "L_ev",
+      "kind": "math",
+      "x": 40,
+      "y": 976,
+      "src": "L_ev := 3.5 cm"
+    },
+    {
+      "id": "L_eh",
+      "kind": "math",
+      "x": 40,
+      "y": 1024,
+      "src": "L_eh := 4.0 cm"
+    },
+    {
+      "id": "t",
+      "kind": "math",
+      "x": 40,
+      "y": 1072,
+      "src": "t := 1.0 cm"
+    },
+    {
+      "id": "t_w",
+      "kind": "math",
+      "x": 40,
+      "y": 1120,
+      "src": "t_w := 0.9 cm"
+    },
+    {
+      "id": "d_pl",
+      "kind": "math",
+      "x": 40,
+      "y": 1168,
+      "src": "d_pl := 3*s + 2*L_ev = cm"
+    },
+    {
+      "id": "V_u",
+      "kind": "math",
+      "x": 40,
+      "y": 1216,
+      "src": "V_u := 30 tonf"
+    },
+    {
+      "id": "s_ana",
+      "kind": "text",
+      "x": 40,
+      "y": 1280,
+      "src": "━━ DATOS · LO ÚNICO QUE CAMBIA: LA ANATOMÍA ━━"
+    },
+    {
+      "id": "t_ana",
+      "kind": "text",
+      "x": 40,
+      "y": 1328,
+      "src": "Shear tab PL 10×100 soldada al soporte, apernada a UN lado del alma · doble ángulo 2L 100×100×10, 280 mm de largo, abrazando el alma por sus DOS caras"
+    },
+    {
+      "id": "t_planos",
+      "kind": "text",
+      "x": 40,
+      "y": 1376,
+      "src": "C-J3.7: «the area, Ab, is multiplied by the number of shear planes». La shear tab da 1 plano por perno; el doble ángulo, 2."
+    },
+    {
+      "id": "n_st",
+      "kind": "math",
+      "x": 40,
+      "y": 1424,
+      "src": "n_st := 1"
+    },
+    {
+      "id": "n_sa",
+      "kind": "math",
+      "x": 40,
+      "y": 1472,
+      "src": "n_sa := 2"
+    },
+    {
+      "id": "t_elem",
+      "kind": "text",
+      "x": 40,
+      "y": 1520,
+      "src": "Elementos de conexión que repiten cada verificación de J4: una plancha contra dos alas de ángulo del mismo espesor y largo"
+    },
+    {
+      "id": "n_et",
+      "kind": "math",
+      "x": 40,
+      "y": 1568,
+      "src": "n_et := 1"
+    },
+    {
+      "id": "n_ea",
+      "kind": "math",
+      "x": 40,
+      "y": 1616,
+      "src": "n_ea := 2"
+    },
+    {
+      "id": "t_brazo",
+      "kind": "text",
+      "x": 40,
+      "y": 1664,
+      "src": "Brazo en el plano, de la cara del soporte a la línea de pernos: en la tab, ancho 100 − L_eh 40 · en el ángulo, el gramil sobre el ala de 100"
+    },
+    {
+      "id": "a_t",
+      "kind": "math",
+      "x": 40,
+      "y": 1712,
+      "src": "a_t := 6.0 cm"
+    },
+    {
+      "id": "a_a",
+      "kind": "math",
+      "x": 40,
+      "y": 1760,
+      "src": "a_a := 5.5 cm"
+    },
+    {
+      "id": "s1",
+      "kind": "text",
+      "x": 40,
+      "y": 1824,
+      "src": "━━ 1 · LOS PERNOS: EL PLANO DE CORTE QUE SE DUPLICA (Ec. J3-1) ━━"
+    },
+    {
+      "id": "t1",
+      "kind": "text",
+      "x": 40,
+      "y": 1872,
+      "src": "Ec. J3-1: R_n = F_nv·A_b por plano de corte, phi = 0.75. El perno es el mismo; lo que cambia es cuántas veces se lo corta."
+    },
+    {
+      "id": "R_nv1",
+      "kind": "math",
+      "x": 40,
+      "y": 1920,
+      "src": "R_nv1 := F_nv*A_b = kgf"
+    },
+    {
+      "id": "Rd_b1t",
+      "kind": "math",
+      "x": 40,
+      "y": 1968,
+      "src": "Rd_b1t := 0.75*n_st*R_nv1 = kgf"
+    },
+    {
+      "id": "Rd_b1a",
+      "kind": "math",
+      "x": 40,
+      "y": 2016,
+      "src": "Rd_b1a := 0.75*n_sa*R_nv1 = kgf"
+    },
+    {
+      "id": "Rd_pert",
+      "kind": "math",
+      "x": 40,
+      "y": 2064,
+      "src": "Rd_pert := n_b*Rd_b1t = tonf"
+    },
+    {
+      "id": "Rd_pera",
+      "kind": "math",
+      "x": 40,
+      "y": 2112,
+      "src": "Rd_pera := n_b*Rd_b1a = tonf"
+    },
+    {
+      "id": "v_pert",
+      "kind": "math",
+      "x": 40,
+      "y": 2160,
+      "src": "Rd_pert >= V_u ="
+    },
+    {
+      "id": "v_pera",
+      "kind": "math",
+      "x": 40,
+      "y": 2208,
+      "src": "Rd_pera >= V_u ="
+    },
+    {
+      "id": "u_pert",
+      "kind": "math",
+      "x": 40,
+      "y": 2256,
+      "src": "u_pert := V_u/Rd_pert ="
+    },
+    {
+      "id": "u_pera",
+      "kind": "math",
+      "x": 40,
+      "y": 2304,
+      "src": "u_pera := V_u/Rd_pera ="
+    },
+    {
+      "id": "s2",
+      "kind": "text",
+      "x": 40,
+      "y": 2368,
+      "src": "━━ 2 · EL APOYO EN EL ELEMENTO DE CONEXIÓN (J3.11a) ━━"
+    },
+    {
+      "id": "t2a",
+      "kind": "text",
+      "x": 40,
+      "y": 2416,
+      "src": "l_c es la distancia LIBRE, y se mide con el agujero FÍSICO (no con el de área neta). La deformación en servicio SÍ es consideración de diseño → Ecs. J3-6a y J3-6c."
+    },
+    {
+      "id": "lc_b",
+      "kind": "math",
+      "x": 40,
+      "y": 2464,
+      "src": "lc_b := L_ev - d_hf/2 = cm"
+    },
+    {
+      "id": "lc_i",
+      "kind": "math",
+      "x": 40,
+      "y": 2512,
+      "src": "lc_i := s - d_hf = cm"
+    },
+    {
+      "id": "R_apl",
+      "kind": "math",
+      "x": 40,
+      "y": 2560,
+      "src": "R_apl := 2.4*d_b*t*F_u = kgf"
+    },
+    {
+      "id": "R_dgb",
+      "kind": "math",
+      "x": 40,
+      "y": 2608,
+      "src": "R_dgb := 1.2*lc_b*t*F_u = kgf"
+    },
+    {
+      "id": "R_dgi",
+      "kind": "math",
+      "x": 40,
+      "y": 2656,
+      "src": "R_dgi := 1.2*lc_i*t*F_u = kgf"
+    },
+    {
+      "id": "t2b",
+      "kind": "text",
+      "x": 40,
+      "y": 2704,
+      "src": "El perno de borde falla por DESGARRE; los tres interiores, por APLASTAMIENTO"
+    },
+    {
+      "id": "v_bdes",
+      "kind": "math",
+      "x": 40,
+      "y": 2752,
+      "src": "R_dgb < R_apl ="
+    },
+    {
+      "id": "v_iapl",
+      "kind": "math",
+      "x": 40,
+      "y": 2800,
+      "src": "R_dgi > R_apl ="
+    },
+    {
+      "id": "R_nb",
+      "kind": "math",
+      "x": 40,
+      "y": 2848,
+      "src": "R_nb := min(R_apl, R_dgb) = kgf"
+    },
+    {
+      "id": "R_ni",
+      "kind": "math",
+      "x": 40,
+      "y": 2896,
+      "src": "R_ni := min(R_apl, R_dgi) = kgf"
+    },
+    {
+      "id": "Rd_apo1",
+      "kind": "math",
+      "x": 40,
+      "y": 2944,
+      "src": "Rd_apo1 := 0.75*(R_nb + 3*R_ni) = tonf"
+    },
+    {
+      "id": "Rd_apot",
+      "kind": "math",
+      "x": 40,
+      "y": 2992,
+      "src": "Rd_apot := n_et*Rd_apo1 = tonf"
+    },
+    {
+      "id": "Rd_apoa",
+      "kind": "math",
+      "x": 40,
+      "y": 3040,
+      "src": "Rd_apoa := n_ea*Rd_apo1 = tonf"
+    },
+    {
+      "id": "v_apot",
+      "kind": "math",
+      "x": 40,
+      "y": 3088,
+      "src": "Rd_apot >= V_u ="
+    },
+    {
+      "id": "v_apoa",
+      "kind": "math",
+      "x": 40,
+      "y": 3136,
+      "src": "Rd_apoa >= V_u ="
+    },
+    {
+      "id": "u_apot",
+      "kind": "math",
+      "x": 40,
+      "y": 3184,
+      "src": "u_apot := V_u/Rd_apot ="
+    },
+    {
+      "id": "u_apoa",
+      "kind": "math",
+      "x": 40,
+      "y": 3232,
+      "src": "u_apoa := V_u/Rd_apoa ="
+    },
+    {
+      "id": "s3",
+      "kind": "text",
+      "x": 40,
+      "y": 3296,
+      "src": "━━ 3 · EL APOYO EN EL ALMA DE LA VIGA: COMÚN A LAS DOS, Y AHÍ SE MUDA EL CRÍTICO ━━"
+    },
+    {
+      "id": "t3",
+      "kind": "text",
+      "x": 40,
+      "y": 3344,
+      "src": "El alma es continua alrededor de los pernos: no hay borde cercano en la dirección de la fuerza, así que los 4 quedan por aplastamiento (Ec. J3-6a), sin desgarre"
+    },
+    {
+      "id": "R_alm1",
+      "kind": "math",
+      "x": 40,
+      "y": 3392,
+      "src": "R_alm1 := 2.4*d_b*t_w*F_uv = kgf"
+    },
+    {
+      "id": "Rd_alm",
+      "kind": "math",
+      "x": 40,
+      "y": 3440,
+      "src": "Rd_alm := 0.75*n_b*R_alm1 = tonf"
+    },
+    {
+      "id": "v_alm",
+      "kind": "math",
+      "x": 40,
+      "y": 3488,
+      "src": "Rd_alm >= V_u ="
+    },
+    {
+      "id": "u_alm",
+      "kind": "math",
+      "x": 40,
+      "y": 3536,
+      "src": "u_alm := V_u/Rd_alm ="
+    },
+    {
+      "id": "t3b",
+      "kind": "text",
+      "x": 40,
+      "y": 3584,
+      "src": "En la tab el elemento más delgado del paquete es la plancha (10 mm); en el doble ángulo hay 20 mm de ángulo y el crítico pasa a ser el alma de 9.0 mm"
+    },
+    {
+      "id": "v_critt",
+      "kind": "math",
+      "x": 40,
+      "y": 3632,
+      "src": "Rd_apot < Rd_alm ="
+    },
+    {
+      "id": "v_crita",
+      "kind": "math",
+      "x": 40,
+      "y": 3680,
+      "src": "Rd_apoa > Rd_alm ="
+    },
+    {
+      "id": "s4",
+      "kind": "text",
+      "x": 40,
+      "y": 3744,
+      "src": "━━ 4 · LOS ELEMENTOS DE CONEXIÓN EN CORTE: FLUENCIA Y ROTURA (J4.2) ━━"
+    },
+    {
+      "id": "t4a",
+      "kind": "text",
+      "x": 40,
+      "y": 3792,
+      "src": "Todo lo que la plancha hace sola, los ángulos lo hacen de a dos: misma sección, mismo largo, mismo acero, dos veces"
+    },
+    {
+      "id": "A_gv",
+      "kind": "math",
+      "x": 40,
+      "y": 3840,
+      "src": "A_gv := d_pl*t = cm^2"
+    },
+    {
+      "id": "t4b",
+      "kind": "text",
+      "x": 40,
+      "y": 3888,
+      "src": "Área neta con el agujero de B4.3b (26 mm), no con el físico de 24"
+    },
+    {
+      "id": "A_nv",
+      "kind": "math",
+      "x": 40,
+      "y": 3936,
+      "src": "A_nv := (d_pl - n_b*d_h)*t = cm^2"
+    },
+    {
+      "id": "Rd_fl1",
+      "kind": "math",
+      "x": 40,
+      "y": 3984,
+      "src": "Rd_fl1 := 1.00*0.6*F_y*A_gv = tonf"
+    },
+    {
+      "id": "Rd_ro1",
+      "kind": "math",
+      "x": 40,
+      "y": 4032,
+      "src": "Rd_ro1 := 0.75*0.6*F_u*A_nv = tonf"
+    },
+    {
+      "id": "Rd_flt",
+      "kind": "math",
+      "x": 40,
+      "y": 4080,
+      "src": "Rd_flt := n_et*Rd_fl1 = tonf"
+    },
+    {
+      "id": "Rd_fla",
+      "kind": "math",
+      "x": 40,
+      "y": 4128,
+      "src": "Rd_fla := n_ea*Rd_fl1 = tonf"
+    },
+    {
+      "id": "Rd_rot",
+      "kind": "math",
+      "x": 40,
+      "y": 4176,
+      "src": "Rd_rot := n_et*Rd_ro1 = tonf"
+    },
+    {
+      "id": "Rd_roa",
+      "kind": "math",
+      "x": 40,
+      "y": 4224,
+      "src": "Rd_roa := n_ea*Rd_ro1 = tonf"
+    },
+    {
+      "id": "v_flt",
+      "kind": "math",
+      "x": 40,
+      "y": 4272,
+      "src": "Rd_flt >= V_u ="
+    },
+    {
+      "id": "v_fla",
+      "kind": "math",
+      "x": 40,
+      "y": 4320,
+      "src": "Rd_fla >= V_u ="
+    },
+    {
+      "id": "v_rot",
+      "kind": "math",
+      "x": 40,
+      "y": 4368,
+      "src": "Rd_rot >= V_u ="
+    },
+    {
+      "id": "v_roa",
+      "kind": "math",
+      "x": 40,
+      "y": 4416,
+      "src": "Rd_roa >= V_u ="
+    },
+    {
+      "id": "u_flt",
+      "kind": "math",
+      "x": 40,
+      "y": 4464,
+      "src": "u_flt := V_u/Rd_flt ="
+    },
+    {
+      "id": "u_fla",
+      "kind": "math",
+      "x": 40,
+      "y": 4512,
+      "src": "u_fla := V_u/Rd_fla ="
+    },
+    {
+      "id": "u_rot",
+      "kind": "math",
+      "x": 40,
+      "y": 4560,
+      "src": "u_rot := V_u/Rd_rot ="
+    },
+    {
+      "id": "u_roa",
+      "kind": "math",
+      "x": 40,
+      "y": 4608,
+      "src": "u_roa := V_u/Rd_roa ="
+    },
+    {
+      "id": "s5",
+      "kind": "text",
+      "x": 40,
+      "y": 4672,
+      "src": "━━ 5 · ROTURA EN BLOQUE (Ec. J4-5) ━━",
+      "pageBreak": true
+    },
+    {
+      "id": "t5a",
+      "kind": "text",
+      "x": 40,
+      "y": 4720,
+      "src": "El bloque: corte vertical por la línea de pernos, del perno superior al borde inferior, más tracción hacia el borde L_eh"
+    },
+    {
+      "id": "L_bv",
+      "kind": "math",
+      "x": 40,
+      "y": 4768,
+      "src": "L_bv := d_pl - L_ev = cm"
+    },
+    {
+      "id": "A_gvb",
+      "kind": "math",
+      "x": 40,
+      "y": 4816,
+      "src": "A_gvb := L_bv*t = cm^2"
+    },
+    {
+      "id": "A_nvb",
+      "kind": "math",
+      "x": 40,
+      "y": 4864,
+      "src": "A_nvb := (L_bv - 3.5*d_h)*t = cm^2"
+    },
+    {
+      "id": "A_ntb",
+      "kind": "math",
+      "x": 40,
+      "y": 4912,
+      "src": "A_ntb := (L_eh - d_h/2)*t = cm^2"
+    },
+    {
+      "id": "U_bs",
+      "kind": "math",
+      "x": 40,
+      "y": 4960,
+      "src": "U_bs := 1"
+    },
+    {
+      "id": "R_bcr",
+      "kind": "math",
+      "x": 40,
+      "y": 5008,
+      "src": "R_bcr := 0.6*F_u*A_nvb = kgf"
+    },
+    {
+      "id": "R_bcy",
+      "kind": "math",
+      "x": 40,
+      "y": 5056,
+      "src": "R_bcy := 0.6*F_y*A_gvb = kgf"
+    },
+    {
+      "id": "t5b",
+      "kind": "text",
+      "x": 40,
+      "y": 5104,
+      "src": "El tope de la Ec. J4-5: acá el tope de fluencia del área bruta le gana a la rotura de la neta, igual que en la shear tab"
+    },
+    {
+      "id": "v_bctope",
+      "kind": "math",
+      "x": 40,
+      "y": 5152,
+      "src": "R_bcy < R_bcr ="
+    },
+    {
+      "id": "Rd_bc1",
+      "kind": "math",
+      "x": 40,
+      "y": 5200,
+      "src": "Rd_bc1 := 0.75*(min(R_bcr, R_bcy) + U_bs*F_u*A_ntb) = tonf"
+    },
+    {
+      "id": "Rd_bct",
+      "kind": "math",
+      "x": 40,
+      "y": 5248,
+      "src": "Rd_bct := n_et*Rd_bc1 = tonf"
+    },
+    {
+      "id": "Rd_bca",
+      "kind": "math",
+      "x": 40,
+      "y": 5296,
+      "src": "Rd_bca := n_ea*Rd_bc1 = tonf"
+    },
+    {
+      "id": "v_bct",
+      "kind": "math",
+      "x": 40,
+      "y": 5344,
+      "src": "Rd_bct >= V_u ="
+    },
+    {
+      "id": "v_bca",
+      "kind": "math",
+      "x": 40,
+      "y": 5392,
+      "src": "Rd_bca >= V_u ="
+    },
+    {
+      "id": "u_bct",
+      "kind": "math",
+      "x": 40,
+      "y": 5440,
+      "src": "u_bct := V_u/Rd_bct ="
+    },
+    {
+      "id": "u_bca",
+      "kind": "math",
+      "x": 40,
+      "y": 5488,
+      "src": "u_bca := V_u/Rd_bca ="
+    },
+    {
+      "id": "t5c",
+      "kind": "text",
+      "x": 40,
+      "y": 5536,
+      "src": "Decisión declarada: el bloque del ángulo se calcula con L_eh de la plancha (40 mm) y no con el borde libre real del ala de 100 mm. Con 45 mm sería:"
+    },
+    {
+      "id": "A_nt45",
+      "kind": "math",
+      "x": 40,
+      "y": 5584,
+      "src": "A_nt45 := (4.5 cm - d_h/2)*t = cm^2"
+    },
+    {
+      "id": "Rd_bc45",
+      "kind": "math",
+      "x": 40,
+      "y": 5632,
+      "src": "Rd_bc45 := n_ea*0.75*(min(R_bcr, R_bcy) + U_bs*F_u*A_nt45) = tonf"
+    },
+    {
+      "id": "u_bc45",
+      "kind": "math",
+      "x": 40,
+      "y": 5680,
+      "src": "u_bc45 := V_u/Rd_bc45 ="
+    },
+    {
+      "id": "s6",
+      "kind": "text",
+      "x": 40,
+      "y": 5744,
+      "src": "━━ 6 · LA EXCENTRICIDAD: LO QUE LA CADENA DE RESISTENCIA ESCONDE ━━"
+    },
+    {
+      "id": "t6a",
+      "kind": "text",
+      "x": 40,
+      "y": 5792,
+      "src": "Las verificaciones anteriores suponen la carga aplicada SOBRE la línea de pernos. No lo está: recorre el brazo antes de llegar."
+    },
+    {
+      "id": "M_ut",
+      "kind": "math",
+      "x": 40,
+      "y": 5840,
+      "src": "M_ut := V_u*a_t = tonf*m"
+    },
+    {
+      "id": "M_ua",
+      "kind": "math",
+      "x": 40,
+      "y": 5888,
+      "src": "M_ua := V_u*a_a = tonf*m"
+    },
+    {
+      "id": "t6b",
+      "kind": "text",
+      "x": 40,
+      "y": 5936,
+      "src": "Los elementos lo toman en flexión — J4, con M_p = F_y·Z (fluencia) y F_u·Z_neto (rotura, Manual Parte 9)"
+    },
+    {
+      "id": "Z_1",
+      "kind": "math",
+      "x": 40,
+      "y": 5984,
+      "src": "Z_1 := t*d_pl^2/4 = cm^3"
+    },
+    {
+      "id": "dZ",
+      "kind": "math",
+      "x": 40,
+      "y": 6032,
+      "src": "dZ := 2*t*d_h*(s/2 + 3*s/2) = cm^3"
+    },
+    {
+      "id": "Zn_1",
+      "kind": "math",
+      "x": 40,
+      "y": 6080,
+      "src": "Zn_1 := Z_1 - dZ = cm^3"
+    },
+    {
+      "id": "Z_a",
+      "kind": "math",
+      "x": 40,
+      "y": 6128,
+      "src": "Z_a := n_ea*Z_1 = cm^3"
+    },
+    {
+      "id": "Zn_a",
+      "kind": "math",
+      "x": 40,
+      "y": 6176,
+      "src": "Zn_a := n_ea*Zn_1 = cm^3"
+    },
+    {
+      "id": "Rd_mflt",
+      "kind": "math",
+      "x": 40,
+      "y": 6224,
+      "src": "Rd_mflt := 0.90*F_y*n_et*Z_1 = tonf*m"
+    },
+    {
+      "id": "Rd_mrot",
+      "kind": "math",
+      "x": 40,
+      "y": 6272,
+      "src": "Rd_mrot := 0.75*F_u*n_et*Zn_1 = tonf*m"
+    },
+    {
+      "id": "Rd_mfla",
+      "kind": "math",
+      "x": 40,
+      "y": 6320,
+      "src": "Rd_mfla := 0.90*F_y*Z_a = tonf*m"
+    },
+    {
+      "id": "Rd_mroa",
+      "kind": "math",
+      "x": 40,
+      "y": 6368,
+      "src": "Rd_mroa := 0.75*F_u*Zn_a = tonf*m"
+    },
+    {
+      "id": "v_mrot",
+      "kind": "math",
+      "x": 40,
+      "y": 6416,
+      "src": "Rd_mrot >= M_ut ="
+    },
+    {
+      "id": "v_mroa",
+      "kind": "math",
+      "x": 40,
+      "y": 6464,
+      "src": "Rd_mroa >= M_ua ="
+    },
+    {
+      "id": "u_mflt",
+      "kind": "math",
+      "x": 40,
+      "y": 6512,
+      "src": "u_mflt := M_ut/Rd_mflt ="
+    },
+    {
+      "id": "u_mrot",
+      "kind": "math",
+      "x": 40,
+      "y": 6560,
+      "src": "u_mrot := M_ut/Rd_mrot ="
+    },
+    {
+      "id": "u_mroa",
+      "kind": "math",
+      "x": 40,
+      "y": 6608,
+      "src": "u_mroa := M_ua/Rd_mroa ="
+    },
+    {
+      "id": "t6c",
+      "kind": "text",
+      "x": 40,
+      "y": 6656,
+      "src": "Los pernos lo toman como grupo excéntrico — método elástico de vectores, conservador, con e = el brazo completo"
+    },
+    {
+      "id": "y_max",
+      "kind": "math",
+      "x": 40,
+      "y": 6704,
+      "src": "y_max := 3*s/2 = cm"
+    },
+    {
+      "id": "J_b",
+      "kind": "math",
+      "x": 40,
+      "y": 6752,
+      "src": "J_b := 2*((s/2)^2 + y_max^2) = cm^2"
+    },
+    {
+      "id": "r_v",
+      "kind": "math",
+      "x": 40,
+      "y": 6800,
+      "src": "r_v := V_u/n_b = tonf"
+    },
+    {
+      "id": "r_mt",
+      "kind": "math",
+      "x": 40,
+      "y": 6848,
+      "src": "r_mt := M_ut*y_max/J_b = tonf"
+    },
+    {
+      "id": "r_ma",
+      "kind": "math",
+      "x": 40,
+      "y": 6896,
+      "src": "r_ma := M_ua*y_max/J_b = tonf"
+    },
+    {
+      "id": "r_bt",
+      "kind": "math",
+      "x": 40,
+      "y": 6944,
+      "src": "r_bt := sqrt(r_mt^2 + r_v^2) = tonf"
+    },
+    {
+      "id": "r_ba",
+      "kind": "math",
+      "x": 40,
+      "y": 6992,
+      "src": "r_ba := sqrt(r_ma^2 + r_v^2) = tonf"
+    },
+    {
+      "id": "u_exct",
+      "kind": "math",
+      "x": 40,
+      "y": 7040,
+      "src": "u_exct := r_bt/Rd_b1t ="
+    },
+    {
+      "id": "u_exca",
+      "kind": "math",
+      "x": 40,
+      "y": 7088,
+      "src": "u_exca := r_ba/Rd_b1a ="
+    },
+    {
+      "id": "t6d",
+      "kind": "text",
+      "x": 40,
+      "y": 7136,
+      "src": "La tesis del ejemplo: en la shear tab la excentricidad se come íntegra la holgura que los pernos parecían tener (0.70 con carga centrada) y el perno extremo NO alcanza"
+    },
+    {
+      "id": "v_exct",
+      "kind": "math",
+      "x": 40,
+      "y": 7184,
+      "src": "r_bt <= Rd_b1t ="
+    },
+    {
+      "id": "v_exca",
+      "kind": "math",
+      "x": 40,
+      "y": 7232,
+      "src": "r_ba <= Rd_b1a ="
+    },
+    {
+      "id": "s7",
+      "kind": "text",
+      "x": 40,
+      "y": 7296,
+      "src": "━━ 7 · LA CADENA, EL EMPATE Y EL USO MÁXIMO ━━"
+    },
+    {
+      "id": "u_cadt",
+      "kind": "math",
+      "x": 40,
+      "y": 7344,
+      "src": "u_cadt := max(u_pert, u_apot, u_alm, u_flt, u_rot, u_bct) ="
+    },
+    {
+      "id": "u_cada",
+      "kind": "math",
+      "x": 40,
+      "y": 7392,
+      "src": "u_cada := max(u_pera, u_apoa, u_alm, u_fla, u_roa, u_bca) ="
+    },
+    {
+      "id": "t7a",
+      "kind": "text",
+      "x": 40,
+      "y": 7440,
+      "src": "En la tab gobierna la cadena la rotura en corte de la plancha; en el doble ángulo, la rotura en corte de los ángulos — y ahí queda empatada con el apoyo en el alma"
+    },
+    {
+      "id": "v_gobt",
+      "kind": "math",
+      "x": 40,
+      "y": 7488,
+      "src": "u_cadt == u_rot ="
+    },
+    {
+      "id": "v_goba",
+      "kind": "math",
+      "x": 40,
+      "y": 7536,
+      "src": "u_cada == u_roa ="
+    },
+    {
+      "id": "dif_emp",
+      "kind": "math",
+      "x": 40,
+      "y": 7584,
+      "src": "dif_emp := (Rd_alm - Rd_roa)/Rd_roa*100 ="
+    },
+    {
+      "id": "t7b",
+      "kind": "text",
+      "x": 40,
+      "y": 7632,
+      "src": "El uso máximo del ejemplo no está en la cadena: está en el perno extremo con la excentricidad"
+    },
+    {
+      "id": "u_maxt",
+      "kind": "math",
+      "x": 40,
+      "y": 7680,
+      "src": "u_maxt := max(u_cadt, u_mrot, u_exct) ="
+    },
+    {
+      "id": "u_maxa",
+      "kind": "math",
+      "x": 40,
+      "y": 7728,
+      "src": "u_maxa := max(u_cada, u_mroa, u_exca) ="
+    },
+    {
+      "id": "v_maxt",
+      "kind": "math",
+      "x": 40,
+      "y": 7776,
+      "src": "u_maxt == u_exct ="
+    },
+    {
+      "id": "v_maxa",
+      "kind": "math",
+      "x": 40,
+      "y": 7824,
+      "src": "u_maxa == u_exca ="
+    },
+    {
+      "id": "s8",
+      "kind": "text",
+      "x": 40,
+      "y": 7888,
+      "src": "━━ 8 · GEOMETRÍA: SEPARACIONES Y DISTANCIAS AL BORDE (J3.4, J3.5, J3.6) ━━"
+    },
+    {
+      "id": "t8",
+      "kind": "text",
+      "x": 40,
+      "y": 7936,
+      "src": "J3.4: paso mínimo 2⅔d (3d preferido) y distancia libre entre agujeros ≥ d · J3.5: Tabla J3.4M da 28 mm para d = 22 · J3.6: máximo 12t o 150 mm"
+    },
+    {
+      "id": "v_s267",
+      "kind": "math",
+      "x": 40,
+      "y": 7984,
+      "src": "s >= 8/3*d_b ="
+    },
+    {
+      "id": "v_s3",
+      "kind": "math",
+      "x": 40,
+      "y": 8032,
+      "src": "s >= 3*d_b ="
+    },
+    {
+      "id": "v_slib",
+      "kind": "math",
+      "x": 40,
+      "y": 8080,
+      "src": "s - d_hf >= d_b ="
+    },
+    {
+      "id": "v_ev",
+      "kind": "math",
+      "x": 40,
+      "y": 8128,
+      "src": "L_ev >= 2.8 cm ="
+    },
+    {
+      "id": "v_eh",
+      "kind": "math",
+      "x": 40,
+      "y": 8176,
+      "src": "L_eh >= 2.8 cm ="
+    },
+    {
+      "id": "v_emax",
+      "kind": "math",
+      "x": 40,
+      "y": 8224,
+      "src": "max(L_ev, L_eh) <= min(12*t, 15 cm) ="
+    },
+    {
+      "id": "s9",
+      "kind": "text",
+      "x": 40,
+      "y": 8288,
+      "src": "━━ 9 · EL PRECIO: ACERO Y AGUJEROS ━━"
+    },
+    {
+      "id": "t9",
+      "kind": "text",
+      "x": 40,
+      "y": 8336,
+      "src": "Plancha 10×100×280 contra dos ángulos 100×100×10 de 280 mm (sección de esquina viva: A = (2b − t)·t)"
+    },
+    {
+      "id": "rho",
+      "kind": "math",
+      "x": 40,
+      "y": 8384,
+      "src": "rho := 7.85 g/cm^3"
+    },
+    {
+      "id": "b_pl",
+      "kind": "math",
+      "x": 40,
+      "y": 8432,
+      "src": "b_pl := 10.0 cm"
+    },
+    {
+      "id": "m_tab",
+      "kind": "math",
+      "x": 40,
+      "y": 8480,
+      "src": "m_tab := rho*t*b_pl*d_pl = kg"
+    },
+    {
+      "id": "A_ang",
+      "kind": "math",
+      "x": 40,
+      "y": 8528,
+      "src": "A_ang := (2*b_pl - t)*t = cm^2"
+    },
+    {
+      "id": "m_ang",
+      "kind": "math",
+      "x": 40,
+      "y": 8576,
+      "src": "m_ang := n_ea*rho*A_ang*d_pl = kg"
+    },
+    {
+      "id": "razon",
+      "kind": "math",
+      "x": 40,
+      "y": 8624,
+      "src": "razon := m_ang/m_tab ="
+    },
+    {
+      "id": "t9b",
+      "kind": "text",
+      "x": 40,
+      "y": 8672,
+      "src": "Agujeros en terreno: 4 en la tab (solo al alma) · 12 en el doble ángulo (4 al alma + 8 al soporte)"
+    },
+    {
+      "id": "n_agt",
+      "kind": "math",
+      "x": 40,
+      "y": 8720,
+      "src": "n_agt := n_b"
+    },
+    {
+      "id": "n_aga",
+      "kind": "math",
+      "x": 40,
+      "y": 8768,
+      "src": "n_aga := n_b + 2*n_b"
+    },
+    {
+      "id": "esq",
+      "kind": "image",
+      "x": 40,
+      "y": 8816,
+      "src": "/esquemas/conexion-doble-angulo.svg",
+      "w": 640,
+      "h": 488
+    },
+    {
+      "id": "s10",
+      "kind": "text",
+      "x": 40,
+      "y": 9344,
+      "src": "━━ 10 · CONTRASTE CON EL POST — cada número publicado, contra el calculado ━━"
+    },
+    {
+      "id": "t10",
+      "kind": "text",
+      "x": 40,
+      "y": 9392,
+      "src": "Tolerancia: media unidad del último dígito publicado. Si cambias un dato de entrada, estos contrastes dejarán de cumplirse: comparan contra los números impresos en el post."
+    },
+    {
+      "id": "c_ab",
+      "kind": "math",
+      "x": 40,
+      "y": 9440,
+      "src": "abs(A_b - 3.80 cm^2) < 0.005 cm^2 ="
+    },
+    {
+      "id": "c_dh",
+      "kind": "math",
+      "x": 40,
+      "y": 9488,
+      "src": "abs(d_h - 2.6 cm) < 0.005 cm ="
+    },
+    {
+      "id": "c_dpl",
+      "kind": "math",
+      "x": 40,
+      "y": 9536,
+      "src": "abs(d_pl - 28.0 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_fnv",
+      "kind": "math",
+      "x": 40,
+      "y": 9584,
+      "src": "abs(F_nv - 3773 kgf/cm^2) < 0.5 kgf/cm^2 ="
+    },
+    {
+      "id": "c_b1t",
+      "kind": "math",
+      "x": 40,
+      "y": 9632,
+      "src": "abs(Rd_b1t - 10757 kgf) < 0.5 kgf ="
+    },
+    {
+      "id": "c_b1a",
+      "kind": "math",
+      "x": 40,
+      "y": 9680,
+      "src": "abs(Rd_b1a - 21513 kgf) < 0.5 kgf ="
+    },
+    {
+      "id": "c_b1a2",
+      "kind": "math",
+      "x": 40,
+      "y": 9728,
+      "src": "abs(Rd_b1a - 21.5 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_pert",
+      "kind": "math",
+      "x": 40,
+      "y": 9776,
+      "src": "abs(Rd_pert - 43.0 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_pera",
+      "kind": "math",
+      "x": 40,
+      "y": 9824,
+      "src": "abs(Rd_pera - 86.1 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_apot",
+      "kind": "math",
+      "x": 40,
+      "y": 9872,
+      "src": "abs(Rd_apot - 56.9 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_apoa",
+      "kind": "math",
+      "x": 40,
+      "y": 9920,
+      "src": "abs(Rd_apoa - 113.8 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_alm",
+      "kind": "math",
+      "x": 40,
+      "y": 9968,
+      "src": "abs(Rd_alm - 65.1 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_flt",
+      "kind": "math",
+      "x": 40,
+      "y": 10016,
+      "src": "abs(Rd_flt - 42.5 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_fla",
+      "kind": "math",
+      "x": 40,
+      "y": 10064,
+      "src": "abs(Rd_fla - 85.0 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_rot",
+      "kind": "math",
+      "x": 40,
+      "y": 10112,
+      "src": "abs(Rd_rot - 32.3 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_roa",
+      "kind": "math",
+      "x": 40,
+      "y": 10160,
+      "src": "abs(Rd_roa - 64.6 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_bcy",
+      "kind": "math",
+      "x": 40,
+      "y": 10208,
+      "src": "abs(R_bcy - 37191 kgf) < 0.5 kgf ="
+    },
+    {
+      "id": "c_bcr",
+      "kind": "math",
+      "x": 40,
+      "y": 10256,
+      "src": "abs(R_bcr - 37699 kgf) < 0.5 kgf ="
+    },
+    {
+      "id": "c_bct",
+      "kind": "math",
+      "x": 40,
+      "y": 10304,
+      "src": "abs(Rd_bct - 36.2 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_bca",
+      "kind": "math",
+      "x": 40,
+      "y": 10352,
+      "src": "abs(Rd_bca - 72.3 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_bc45",
+      "kind": "math",
+      "x": 40,
+      "y": 10400,
+      "src": "abs(Rd_bc45 - 75.4 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_mut",
+      "kind": "math",
+      "x": 40,
+      "y": 10448,
+      "src": "abs(M_ut - 1.80 tonf*m) < 0.005 tonf*m ="
+    },
+    {
+      "id": "c_mua",
+      "kind": "math",
+      "x": 40,
+      "y": 10496,
+      "src": "abs(M_ua - 1.65 tonf*m) < 0.005 tonf*m ="
+    },
+    {
+      "id": "c_z1",
+      "kind": "math",
+      "x": 40,
+      "y": 10544,
+      "src": "abs(Z_1 - 196 cm^3) < 0.5 cm^3 ="
+    },
+    {
+      "id": "c_zn1",
+      "kind": "math",
+      "x": 40,
+      "y": 10592,
+      "src": "abs(Zn_1 - 123.2 cm^3) < 0.05 cm^3 ="
+    },
+    {
+      "id": "c_za",
+      "kind": "math",
+      "x": 40,
+      "y": 10640,
+      "src": "abs(Z_a - 392 cm^3) < 0.5 cm^3 ="
+    },
+    {
+      "id": "c_zna",
+      "kind": "math",
+      "x": 40,
+      "y": 10688,
+      "src": "abs(Zn_a - 246.4 cm^3) < 0.05 cm^3 ="
+    },
+    {
+      "id": "c_mflt",
+      "kind": "math",
+      "x": 40,
+      "y": 10736,
+      "src": "abs(Rd_mflt - 4.46 tonf*m) < 0.005 tonf*m ="
+    },
+    {
+      "id": "c_mrot",
+      "kind": "math",
+      "x": 40,
+      "y": 10784,
+      "src": "abs(Rd_mrot - 3.77 tonf*m) < 0.005 tonf*m ="
+    },
+    {
+      "id": "c_mfla",
+      "kind": "math",
+      "x": 40,
+      "y": 10832,
+      "src": "abs(Rd_mfla - 8.93 tonf*m) < 0.005 tonf*m ="
+    },
+    {
+      "id": "c_mroa",
+      "kind": "math",
+      "x": 40,
+      "y": 10880,
+      "src": "abs(Rd_mroa - 7.54 tonf*m) < 0.005 tonf*m ="
+    },
+    {
+      "id": "c_j",
+      "kind": "math",
+      "x": 40,
+      "y": 10928,
+      "src": "abs(J_b - 245 cm^2) < 0.5 cm^2 ="
+    },
+    {
+      "id": "c_rv",
+      "kind": "math",
+      "x": 40,
+      "y": 10976,
+      "src": "abs(r_v - 7.50 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_rmt",
+      "kind": "math",
+      "x": 40,
+      "y": 11024,
+      "src": "abs(r_mt - 7.71 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_rbt",
+      "kind": "math",
+      "x": 40,
+      "y": 11072,
+      "src": "abs(r_bt - 10.76 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_rba",
+      "kind": "math",
+      "x": 40,
+      "y": 11120,
+      "src": "abs(r_ba - 10.31 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_mtab",
+      "kind": "math",
+      "x": 40,
+      "y": 11168,
+      "src": "abs(m_tab - 2.2 kg) < 0.05 kg ="
+    },
+    {
+      "id": "c_mang",
+      "kind": "math",
+      "x": 40,
+      "y": 11216,
+      "src": "abs(m_ang - 8.4 kg) < 0.05 kg ="
+    },
+    {
+      "id": "c_razon",
+      "kind": "math",
+      "x": 40,
+      "y": 11264,
+      "src": "abs(razon - 3.8) < 0.05 ="
+    },
+    {
+      "id": "c_dif",
+      "kind": "math",
+      "x": 40,
+      "y": 11312,
+      "src": "abs(dif_emp - 0.8) < 0.05 ="
+    },
+    {
+      "id": "t10b",
+      "kind": "text",
+      "x": 40,
+      "y": 11360,
+      "src": "Y los usos de las tablas del post — la comparación verificación por verificación"
+    },
+    {
+      "id": "c_upert",
+      "kind": "math",
+      "x": 40,
+      "y": 11408,
+      "src": "abs(u_pert - 0.70) < 0.005 ="
+    },
+    {
+      "id": "c_upera",
+      "kind": "math",
+      "x": 40,
+      "y": 11456,
+      "src": "abs(u_pera - 0.35) < 0.005 ="
+    },
+    {
+      "id": "c_uapot",
+      "kind": "math",
+      "x": 40,
+      "y": 11504,
+      "src": "abs(u_apot - 0.53) < 0.005 ="
+    },
+    {
+      "id": "c_uapoa",
+      "kind": "math",
+      "x": 40,
+      "y": 11552,
+      "src": "abs(u_apoa - 0.26) < 0.005 ="
+    },
+    {
+      "id": "c_ualm",
+      "kind": "math",
+      "x": 40,
+      "y": 11600,
+      "src": "abs(u_alm - 0.460) < 0.0005 ="
+    },
+    {
+      "id": "c_uflt",
+      "kind": "math",
+      "x": 40,
+      "y": 11648,
+      "src": "abs(u_flt - 0.71) < 0.005 ="
+    },
+    {
+      "id": "c_ufla",
+      "kind": "math",
+      "x": 40,
+      "y": 11696,
+      "src": "abs(u_fla - 0.35) < 0.005 ="
+    },
+    {
+      "id": "c_urot",
+      "kind": "math",
+      "x": 40,
+      "y": 11744,
+      "src": "abs(u_rot - 0.93) < 0.005 ="
+    },
+    {
+      "id": "c_uroa",
+      "kind": "math",
+      "x": 40,
+      "y": 11792,
+      "src": "abs(u_roa - 0.464) < 0.0005 ="
+    },
+    {
+      "id": "c_ubct",
+      "kind": "math",
+      "x": 40,
+      "y": 11840,
+      "src": "abs(u_bct - 0.83) < 0.005 ="
+    },
+    {
+      "id": "c_ubca",
+      "kind": "math",
+      "x": 40,
+      "y": 11888,
+      "src": "abs(u_bca - 0.41) < 0.005 ="
+    },
+    {
+      "id": "c_ubc45",
+      "kind": "math",
+      "x": 40,
+      "y": 11936,
+      "src": "abs(u_bc45 - 0.40) < 0.005 ="
+    },
+    {
+      "id": "c_umflt",
+      "kind": "math",
+      "x": 40,
+      "y": 11984,
+      "src": "abs(u_mflt - 0.40) < 0.005 ="
+    },
+    {
+      "id": "c_umrot",
+      "kind": "math",
+      "x": 40,
+      "y": 12032,
+      "src": "abs(u_mrot - 0.48) < 0.005 ="
+    },
+    {
+      "id": "c_umroa",
+      "kind": "math",
+      "x": 40,
+      "y": 12080,
+      "src": "abs(u_mroa - 0.22) < 0.005 ="
+    },
+    {
+      "id": "c_uexct",
+      "kind": "math",
+      "x": 40,
+      "y": 12128,
+      "src": "abs(u_exct - 1.00) < 0.005 ="
+    },
+    {
+      "id": "c_uexca",
+      "kind": "math",
+      "x": 40,
+      "y": 12176,
+      "src": "abs(u_exca - 0.48) < 0.005 ="
+    },
+    {
+      "id": "c_umaxa",
+      "kind": "math",
+      "x": 40,
+      "y": 12224,
+      "src": "abs(u_maxa - 0.48) < 0.005 ="
+    }
+  ]
+}

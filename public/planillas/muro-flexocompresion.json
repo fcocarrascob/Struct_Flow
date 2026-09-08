@@ -1,0 +1,4536 @@
+{
+  "version": 1,
+  "meta": {
+    "titulo": "Muro de corte a flexocompresión con elementos de borde — la frontera P–M barrida, el corte amplificado por Ω_v·ω_v y las tres verificaciones de 18.10.6 (ACI 318-25)",
+    "ficha": "struct_pad/src/content/hormigon/ejemplo-muro-flexocompresion.mdx",
+    "esperadoFalso": {}
+  },
+  "regions": [
+    {
+      "id": "r001",
+      "kind": "text",
+      "x": 40,
+      "y": 32,
+      "src": "MURO DE CORTE A FLEXOCOMPRESIÓN — la frontera P–M, el corte amplificado"
+    },
+    {
+      "id": "r002",
+      "kind": "text",
+      "x": 40,
+      "y": 80,
+      "src": "y las tres verificaciones del elemento de borde"
+    },
+    {
+      "id": "r003",
+      "kind": "text",
+      "x": 40,
+      "y": 128,
+      "src": "ACI 318-25 (edición SI) · 18.10 · 21.2.2 · 21.2.4 · 22.2 · 22.4 · 25.4 · NCh2369 4.5"
+    },
+    {
+      "id": "r004",
+      "kind": "text",
+      "x": 40,
+      "y": 176,
+      "src": "Rd_ = capacidad de diseño (incluye φ) · las comparaciones dan ✓/✗"
+    },
+    {
+      "id": "r005",
+      "kind": "text",
+      "x": 40,
+      "y": 224,
+      "src": ""
+    },
+    {
+      "id": "r006",
+      "kind": "text",
+      "x": 40,
+      "y": 240,
+      "src": "El DS 60 queda FUERA: modifica ACI 318S-08 y no es la cadena que esto recorre."
+    },
+    {
+      "id": "r007",
+      "kind": "text",
+      "x": 40,
+      "y": 304,
+      "src": "━━ 1 · DATOS · MATERIALES ━━"
+    },
+    {
+      "id": "r008",
+      "kind": "text",
+      "x": 40,
+      "y": 352,
+      "src": "f'c y f_y son la frontera declarada; todo lo demás se deriva."
+    },
+    {
+      "id": "r009",
+      "kind": "math",
+      "x": 40,
+      "y": 400,
+      "src": "f_c := 300 kgf/cm^2"
+    },
+    {
+      "id": "r010",
+      "kind": "math",
+      "x": 40,
+      "y": 448,
+      "src": "f_y := 4200 kgf/cm^2"
+    },
+    {
+      "id": "r011",
+      "kind": "math",
+      "x": 40,
+      "y": 496,
+      "src": "f_yt := f_y"
+    },
+    {
+      "id": "r012",
+      "kind": "math",
+      "x": 40,
+      "y": 544,
+      "src": "f_cM := f_c = MPa"
+    },
+    {
+      "id": "r013",
+      "kind": "text",
+      "x": 40,
+      "y": 592,
+      "src": "18.10.4.1: el f'c que entra en V_n y en los topes de 18.10.4.4 se acota a 85 MPa."
+    },
+    {
+      "id": "v001",
+      "kind": "math",
+      "x": 40,
+      "y": 640,
+      "src": "f_cM <= 85 MPa ="
+    },
+    {
+      "id": "r014",
+      "kind": "text",
+      "x": 40,
+      "y": 688,
+      "src": "20.2.2.2: se permite tomar E_s = 200 000 MPa para barras no pretensadas."
+    },
+    {
+      "id": "r015",
+      "kind": "math",
+      "x": 40,
+      "y": 736,
+      "src": "E_s := 200000 MPa"
+    },
+    {
+      "id": "r016",
+      "kind": "text",
+      "x": 40,
+      "y": 784,
+      "src": "21.2.2.1: ε_ty = f_y/E_s (para Grado 420 se permite además tomar 0,002)."
+    },
+    {
+      "id": "r017",
+      "kind": "math",
+      "x": 40,
+      "y": 832,
+      "src": "eps_ty := f_y/E_s ="
+    },
+    {
+      "id": "r018",
+      "kind": "text",
+      "x": 40,
+      "y": 880,
+      "src": "22.2.2.1: deformación útil máxima del hormigón en la fibra comprimida."
+    },
+    {
+      "id": "r019",
+      "kind": "math",
+      "x": 40,
+      "y": 928,
+      "src": "eps_cu := 0.003"
+    },
+    {
+      "id": "r020",
+      "kind": "text",
+      "x": 40,
+      "y": 976,
+      "src": "Tabla 22.2.2.4.3: la frontera de las filas se lee en MPa. Con 29,4 MPa el muro"
+    },
+    {
+      "id": "r021",
+      "kind": "text",
+      "x": 40,
+      "y": 1024,
+      "src": "cae en la fila (b), 28 < f'c ≤ 55, no en la (a)."
+    },
+    {
+      "id": "v002",
+      "kind": "math",
+      "x": 40,
+      "y": 1072,
+      "src": "f_cM > 28 MPa and f_cM <= 55 MPa ="
+    },
+    {
+      "id": "r022",
+      "kind": "math",
+      "x": 40,
+      "y": 1120,
+      "src": "beta_1 := 0.85 - 0.05*(f_cM - 28 MPa)/(7 MPa) ="
+    },
+    {
+      "id": "r023",
+      "kind": "text",
+      "x": 40,
+      "y": 1168,
+      "src": "22.2.2.4.1: bloque rectangular equivalente de 0,85f'c sobre a = β1·c."
+    },
+    {
+      "id": "r024",
+      "kind": "math",
+      "x": 40,
+      "y": 1216,
+      "src": "k_bloque := 0.85"
+    },
+    {
+      "id": "r025",
+      "kind": "text",
+      "x": 40,
+      "y": 1264,
+      "src": "19.2.4.1(a): hormigón de peso normal."
+    },
+    {
+      "id": "r026",
+      "kind": "math",
+      "x": 40,
+      "y": 1312,
+      "src": "lambda_h := 1.0"
+    },
+    {
+      "id": "r027",
+      "kind": "text",
+      "x": 40,
+      "y": 1376,
+      "src": "━━ 2 · LOS COEFICIENTES QUE ARRASTRAN UNIDAD: LA COLUMNA MÉTRICA ━━"
+    },
+    {
+      "id": "r028",
+      "kind": "text",
+      "x": 40,
+      "y": 1424,
+      "src": "El PDF en disco es la edición SI. Todo coeficiente que multiplica √f'c cambia de"
+    },
+    {
+      "id": "r029",
+      "kind": "text",
+      "x": 40,
+      "y": 1472,
+      "src": "edición, y el factor exacto entre las dos columnas es √(1 MPa / 1 kgf/cm²)."
+    },
+    {
+      "id": "r030",
+      "kind": "math",
+      "x": 40,
+      "y": 1520,
+      "src": "fconv := sqrt(1 MPa/(1 kgf/cm^2)) ="
+    },
+    {
+      "id": "r031",
+      "kind": "math",
+      "x": 40,
+      "y": 1568,
+      "src": "rfck := sqrt(f_c/(1 kgf/cm^2))*kgf/cm^2 = kgf/cm^2"
+    },
+    {
+      "id": "r032",
+      "kind": "text",
+      "x": 40,
+      "y": 1632,
+      "src": "18.10.4.1: α_c = 0,17 para h_w/ℓ_w ≥ 2,0 (0,25 para ≤ 1,5, interpolable entre)."
+    },
+    {
+      "id": "r033",
+      "kind": "math",
+      "x": 40,
+      "y": 1680,
+      "src": "k_ac := 0.17*fconv ="
+    },
+    {
+      "id": "r034",
+      "kind": "text",
+      "x": 40,
+      "y": 1728,
+      "src": "18.10.4.4: los dos topes del corte, 0,66√f'c·A_cv y 0,83√f'c·A_cw."
+    },
+    {
+      "id": "r035",
+      "kind": "math",
+      "x": 40,
+      "y": 1776,
+      "src": "k_t1 := 0.66*fconv ="
+    },
+    {
+      "id": "r036",
+      "kind": "math",
+      "x": 40,
+      "y": 1824,
+      "src": "k_t2 := 0.83*fconv ="
+    },
+    {
+      "id": "r037",
+      "kind": "text",
+      "x": 40,
+      "y": 1872,
+      "src": "18.10.2.4(a): la cuantía mínima de los extremos, 0,5√f'c/f_y."
+    },
+    {
+      "id": "r038",
+      "kind": "math",
+      "x": 40,
+      "y": 1920,
+      "src": "k_rmin := 0.5*fconv ="
+    },
+    {
+      "id": "r039",
+      "kind": "text",
+      "x": 40,
+      "y": 1968,
+      "src": "Los adimensionales (0,85 · β1 · 0,80 · 0,3 · 0,09) no cambian de edición."
+    },
+    {
+      "id": "r040",
+      "kind": "text",
+      "x": 40,
+      "y": 2032,
+      "src": "━━ 3 · GEOMETRÍA · SECCIÓN Y ARMADURA ━━"
+    },
+    {
+      "id": "r041",
+      "kind": "math",
+      "x": 40,
+      "y": 2080,
+      "src": "l_w := 500 cm"
+    },
+    {
+      "id": "r042",
+      "kind": "math",
+      "x": 40,
+      "y": 2128,
+      "src": "b_w := 30 cm"
+    },
+    {
+      "id": "r043",
+      "kind": "math",
+      "x": 40,
+      "y": 2176,
+      "src": "h_w := 20 m"
+    },
+    {
+      "id": "r044",
+      "kind": "math",
+      "x": 40,
+      "y": 2224,
+      "src": "h_wcs := h_w"
+    },
+    {
+      "id": "r045",
+      "kind": "math",
+      "x": 40,
+      "y": 2272,
+      "src": "h_u := 4 m"
+    },
+    {
+      "id": "r046",
+      "kind": "math",
+      "x": 40,
+      "y": 2320,
+      "src": "A_g := l_w*b_w = cm^2"
+    },
+    {
+      "id": "r047",
+      "kind": "math",
+      "x": 40,
+      "y": 2368,
+      "src": "A_cv := A_g"
+    },
+    {
+      "id": "r048",
+      "kind": "math",
+      "x": 40,
+      "y": 2416,
+      "src": "A_cw := A_cv"
+    },
+    {
+      "id": "r049",
+      "kind": "text",
+      "x": 40,
+      "y": 2464,
+      "src": "HIPÓTESIS: recubrimiento libre de 45 mm, no el mínimo de la Tabla 20.5.1.3.1."
+    },
+    {
+      "id": "r050",
+      "kind": "math",
+      "x": 40,
+      "y": 2512,
+      "src": "rec := 45 mm"
+    },
+    {
+      "id": "r051",
+      "kind": "math",
+      "x": 40,
+      "y": 2560,
+      "src": "d_e := 16 mm"
+    },
+    {
+      "id": "r052",
+      "kind": "math",
+      "x": 40,
+      "y": 2608,
+      "src": "d_b := 28 mm"
+    },
+    {
+      "id": "r053",
+      "kind": "math",
+      "x": 40,
+      "y": 2656,
+      "src": "d_bw := 12 mm"
+    },
+    {
+      "id": "r054",
+      "kind": "math",
+      "x": 40,
+      "y": 2704,
+      "src": "A_b := pi*d_b^2/4 = cm^2"
+    },
+    {
+      "id": "r055",
+      "kind": "math",
+      "x": 40,
+      "y": 2752,
+      "src": "A_bw := pi*d_bw^2/4 = cm^2"
+    },
+    {
+      "id": "r056",
+      "kind": "text",
+      "x": 40,
+      "y": 2800,
+      "src": "Elemento de borde: 16φ28 por borde en dos cortinas, dentro de ℓ_be = 100 cm."
+    },
+    {
+      "id": "r057",
+      "kind": "math",
+      "x": 40,
+      "y": 2848,
+      "src": "l_be := 100 cm"
+    },
+    {
+      "id": "r058",
+      "kind": "math",
+      "x": 40,
+      "y": 2896,
+      "src": "n_cort := 2"
+    },
+    {
+      "id": "r059",
+      "kind": "math",
+      "x": 40,
+      "y": 2944,
+      "src": "n_be := 8"
+    },
+    {
+      "id": "r060",
+      "kind": "math",
+      "x": 40,
+      "y": 2992,
+      "src": "A_cap_be := n_cort*A_b = cm^2"
+    },
+    {
+      "id": "r061",
+      "kind": "text",
+      "x": 40,
+      "y": 3040,
+      "src": "La posición de cada capa se DERIVA del recubrimiento, el estribo y el radio de"
+    },
+    {
+      "id": "r062",
+      "kind": "text",
+      "x": 40,
+      "y": 3088,
+      "src": "la barra: no se declara. De ella cuelgan c, φM_n y todo el Cap. 18.10.6."
+    },
+    {
+      "id": "r063",
+      "kind": "math",
+      "x": 40,
+      "y": 3136,
+      "src": "r_be := rec + d_e + d_b/2 = cm"
+    },
+    {
+      "id": "r064",
+      "kind": "math",
+      "x": 40,
+      "y": 3184,
+      "src": "s_be := (l_be - 2*r_be)/(n_be - 1) = cm"
+    },
+    {
+      "id": "r065",
+      "kind": "text",
+      "x": 40,
+      "y": 3232,
+      "src": "Alma: dos cortinas φ12@200 vertical y φ12@150 horizontal, entre los dos bordes."
+    },
+    {
+      "id": "r066",
+      "kind": "math",
+      "x": 40,
+      "y": 3280,
+      "src": "s_wv := 200 mm"
+    },
+    {
+      "id": "r067",
+      "kind": "math",
+      "x": 40,
+      "y": 3328,
+      "src": "s_wh := 150 mm"
+    },
+    {
+      "id": "r068",
+      "kind": "math",
+      "x": 40,
+      "y": 3376,
+      "src": "n_wa := 15"
+    },
+    {
+      "id": "r069",
+      "kind": "math",
+      "x": 40,
+      "y": 3424,
+      "src": "A_cap_wa := n_cort*A_bw = cm^2"
+    },
+    {
+      "id": "r070",
+      "kind": "text",
+      "x": 40,
+      "y": 3472,
+      "src": "HIPÓTESIS geométrica: las 15 posiciones del alma van simétricas respecto del"
+    },
+    {
+      "id": "r071",
+      "kind": "text",
+      "x": 40,
+      "y": 3520,
+      "src": "centro del muro con paso s_wv. Es la única disposición simétrica con 30 barras."
+    },
+    {
+      "id": "r072",
+      "kind": "math",
+      "x": 40,
+      "y": 3568,
+      "src": "d_wa1 := l_w/2 - (n_wa - 1)/2*s_wv = cm"
+    },
+    {
+      "id": "r073",
+      "kind": "math",
+      "x": 40,
+      "y": 3616,
+      "src": "n_bar := 2*n_be*n_cort + n_wa*n_cort ="
+    },
+    {
+      "id": "r074",
+      "kind": "math",
+      "x": 40,
+      "y": 3664,
+      "src": "A_st := 2*n_be*A_cap_be + n_wa*A_cap_wa = cm^2"
+    },
+    {
+      "id": "r075",
+      "kind": "math",
+      "x": 40,
+      "y": 3712,
+      "src": "rho_g := A_st/A_g ="
+    },
+    {
+      "id": "r076",
+      "kind": "text",
+      "x": 40,
+      "y": 3760,
+      "src": "La tabla de capas: distancia a la fibra comprimida extrema (cm) y área (cm²)."
+    },
+    {
+      "id": "r077",
+      "kind": "program",
+      "x": 40,
+      "y": 3808,
+      "src": "capas :=\n    acc := [[0, 0]]\n    for i in 1:n_be\n        acc := concat(acc, [[(r_be + (i-1)*s_be)/(1 cm), A_cap_be/(1 cm^2)]], 1)\n    for i in 1:n_wa\n        acc := concat(acc, [[(d_wa1 + (i-1)*s_wv)/(1 cm), A_cap_wa/(1 cm^2)]], 1)\n    for i in 1:n_be\n        d_i := l_w - l_be + r_be + (i-1)*s_be\n        acc := concat(acc, [[d_i/(1 cm), A_cap_be/(1 cm^2)]], 1)\n    return acc[2:end, 1:2]"
+    },
+    {
+      "id": "r078",
+      "kind": "math",
+      "x": 40,
+      "y": 4016,
+      "src": "n_capas := size(capas)[1]"
+    },
+    {
+      "id": "r079",
+      "kind": "text",
+      "x": 40,
+      "y": 4064,
+      "src": "El área de la tabla tiene que reproducir A_st: es lo que ata la disposición."
+    },
+    {
+      "id": "v003",
+      "kind": "math",
+      "x": 40,
+      "y": 4112,
+      "src": "abs(sum(capas[1:n_capas, 2])*1 cm^2 - A_st) < 0.005 cm^2 ="
+    },
+    {
+      "id": "r080",
+      "kind": "text",
+      "x": 40,
+      "y": 4160,
+      "src": "La capa extrema traccionada es la altura útil del muro."
+    },
+    {
+      "id": "r081",
+      "kind": "math",
+      "x": 40,
+      "y": 4208,
+      "src": "d_t := capas[n_capas, 1]*1 cm = cm"
+    },
+    {
+      "id": "r082",
+      "kind": "text",
+      "x": 40,
+      "y": 4272,
+      "src": "━━ 4 · CARGAS Y COMBINACIONES (NCh2369 4.5) ━━"
+    },
+    {
+      "id": "r083",
+      "kind": "math",
+      "x": 40,
+      "y": 4320,
+      "src": "P_D := 480 tonf"
+    },
+    {
+      "id": "r084",
+      "kind": "math",
+      "x": 40,
+      "y": 4368,
+      "src": "P_L := 160 tonf"
+    },
+    {
+      "id": "r085",
+      "kind": "text",
+      "x": 40,
+      "y": 4416,
+      "src": "NCh2369 4.5 con la Tabla C-2: a = 0,25 en zonas de uso normal."
+    },
+    {
+      "id": "r086",
+      "kind": "math",
+      "x": 40,
+      "y": 4464,
+      "src": "a_L := 0.25"
+    },
+    {
+      "id": "r087",
+      "kind": "math",
+      "x": 40,
+      "y": 4512,
+      "src": "V_E := 180 tonf"
+    },
+    {
+      "id": "r088",
+      "kind": "math",
+      "x": 40,
+      "y": 4560,
+      "src": "M_E := 2430 tonf*m"
+    },
+    {
+      "id": "r089",
+      "kind": "text",
+      "x": 40,
+      "y": 4608,
+      "src": "Método LRFD: el sísmico E entra con factor 1,0 porque ya viene reducido por R."
+    },
+    {
+      "id": "r090",
+      "kind": "math",
+      "x": 40,
+      "y": 4656,
+      "src": "P_uA := 1.2*P_D + a_L*P_L = tonf"
+    },
+    {
+      "id": "r091",
+      "kind": "math",
+      "x": 40,
+      "y": 4704,
+      "src": "P_uB := 0.9*P_D = tonf"
+    },
+    {
+      "id": "r092",
+      "kind": "math",
+      "x": 40,
+      "y": 4752,
+      "src": "M_u := M_E"
+    },
+    {
+      "id": "r093",
+      "kind": "math",
+      "x": 40,
+      "y": 4800,
+      "src": "V_uEh := V_E"
+    },
+    {
+      "id": "r094",
+      "kind": "math",
+      "x": 40,
+      "y": 4848,
+      "src": "niv_ax := P_uA/(A_g*f_c) ="
+    },
+    {
+      "id": "r095",
+      "kind": "text",
+      "x": 40,
+      "y": 4896,
+      "src": "NCh2369 6.1: desplazamiento de techo del análisis con el espectro elástico de"
+    },
+    {
+      "id": "r096",
+      "kind": "text",
+      "x": 40,
+      "y": 4944,
+      "src": "referencia. Dato declarado, frontera de lo verificado."
+    },
+    {
+      "id": "r097",
+      "kind": "math",
+      "x": 40,
+      "y": 4992,
+      "src": "delta_u := 250 mm"
+    },
+    {
+      "id": "r098",
+      "kind": "math",
+      "x": 40,
+      "y": 5040,
+      "src": "der_u := delta_u/h_wcs ="
+    },
+    {
+      "id": "r099",
+      "kind": "text",
+      "x": 40,
+      "y": 5104,
+      "src": "━━ 5 · CLASIFICACIÓN (Tabla R18.10.1) ━━"
+    },
+    {
+      "id": "r100",
+      "kind": "text",
+      "x": 40,
+      "y": 5152,
+      "src": "Se entra con las dos razones de aspecto: decide muro contra pilar de muro."
+    },
+    {
+      "id": "r101",
+      "kind": "math",
+      "x": 40,
+      "y": 5200,
+      "src": "rel_hl := h_w/l_w ="
+    },
+    {
+      "id": "r102",
+      "kind": "math",
+      "x": 40,
+      "y": 5248,
+      "src": "rel_lb := l_w/b_w ="
+    },
+    {
+      "id": "v004",
+      "kind": "math",
+      "x": 40,
+      "y": 5296,
+      "src": "rel_hl >= 2 and rel_lb > 6 ="
+    },
+    {
+      "id": "r103",
+      "kind": "text",
+      "x": 40,
+      "y": 5344,
+      "src": "Fila inferior, columna derecha: es un MURO. Aplica la Sec. 18.10 completa."
+    },
+    {
+      "id": "r104",
+      "kind": "text",
+      "x": 40,
+      "y": 5392,
+      "src": "NCh2369 9.1.5 abre la puerta del muro ordinario solo con H_w/L_w < 3."
+    },
+    {
+      "id": "v005",
+      "kind": "math",
+      "x": 40,
+      "y": 5440,
+      "src": "rel_hl >= 3 ="
+    },
+    {
+      "id": "r105",
+      "kind": "text",
+      "x": 40,
+      "y": 5504,
+      "src": "━━ 6 · ARMADURA MÍNIMA DEL ALMA (18.10.2) ━━"
+    },
+    {
+      "id": "r106",
+      "kind": "math",
+      "x": 40,
+      "y": 5552,
+      "src": "rho_l := n_cort*A_bw/(b_w*s_wv) ="
+    },
+    {
+      "id": "r107",
+      "kind": "math",
+      "x": 40,
+      "y": 5600,
+      "src": "rho_t := n_cort*A_bw/(b_w*s_wh) ="
+    },
+    {
+      "id": "r108",
+      "kind": "text",
+      "x": 40,
+      "y": 5648,
+      "src": "18.10.2.1: las dos cuantías al menos 0,0025, y espaciamiento máximo 450 mm."
+    },
+    {
+      "id": "v006",
+      "kind": "math",
+      "x": 40,
+      "y": 5696,
+      "src": "rho_l >= 0.0025 ="
+    },
+    {
+      "id": "v007",
+      "kind": "math",
+      "x": 40,
+      "y": 5744,
+      "src": "rho_t >= 0.0025 ="
+    },
+    {
+      "id": "v008",
+      "kind": "math",
+      "x": 40,
+      "y": 5792,
+      "src": "s_wv <= 450 mm and s_wh <= 450 mm ="
+    },
+    {
+      "id": "r109",
+      "kind": "text",
+      "x": 40,
+      "y": 5840,
+      "src": "18.10.4.3 pediría ρ_ℓ ≥ ρ_t, pero solo si h_w/ℓ_w ≤ 2,0. Acá no aplica:"
+    },
+    {
+      "id": "v009",
+      "kind": "math",
+      "x": 40,
+      "y": 5888,
+      "src": "rel_hl > 2 ="
+    },
+    {
+      "id": "r110",
+      "kind": "text",
+      "x": 40,
+      "y": 5936,
+      "src": "18.10.2.2: dos cortinas si V_u > 0,17√f'c·A_cv o h_w/ℓ_w ≥ 2,0. Las dos vías:"
+    },
+    {
+      "id": "r111",
+      "kind": "math",
+      "x": 40,
+      "y": 5984,
+      "src": "V_2cort := k_ac*rfck*A_cv = tonf"
+    },
+    {
+      "id": "v010",
+      "kind": "math",
+      "x": 40,
+      "y": 6032,
+      "src": "V_uEh > V_2cort ="
+    },
+    {
+      "id": "v011",
+      "kind": "math",
+      "x": 40,
+      "y": 6080,
+      "src": "rel_hl >= 2 ="
+    },
+    {
+      "id": "r112",
+      "kind": "text",
+      "x": 40,
+      "y": 6128,
+      "src": "18.10.2.4(a): ρ ≥ 0,5√f'c/f_y dentro de 0,15ℓ_w del extremo, sobre el espesor."
+    },
+    {
+      "id": "r113",
+      "kind": "math",
+      "x": 40,
+      "y": 6176,
+      "src": "l_015 := 0.15*l_w = cm"
+    },
+    {
+      "id": "r114",
+      "kind": "math",
+      "x": 40,
+      "y": 6224,
+      "src": "rho_min_ext := k_rmin*rfck/f_y ="
+    },
+    {
+      "id": "r115",
+      "kind": "math",
+      "x": 40,
+      "y": 6272,
+      "src": "As_min_ext := rho_min_ext*l_015*b_w = cm^2"
+    },
+    {
+      "id": "r116",
+      "kind": "text",
+      "x": 40,
+      "y": 6320,
+      "src": "Las barras de borde que caen dentro de esa franja salen de la tabla de capas:"
+    },
+    {
+      "id": "r117",
+      "kind": "program",
+      "x": 40,
+      "y": 6368,
+      "src": "As_franja :=\n    acc := 0 cm^2\n    for i in 1:n_capas\n        if capas[i,1]*1 cm <= l_015\n            acc := acc + capas[i,2]*1 cm^2\n    return acc"
+    },
+    {
+      "id": "r118",
+      "kind": "math",
+      "x": 40,
+      "y": 6496,
+      "src": "As_franja = cm^2"
+    },
+    {
+      "id": "v012",
+      "kind": "math",
+      "x": 40,
+      "y": 6544,
+      "src": "As_franja >= As_min_ext ="
+    },
+    {
+      "id": "r119",
+      "kind": "text",
+      "x": 40,
+      "y": 6592,
+      "src": "18.10.2.4(b): esa armadura se extiende max(ℓ_w, M_u/3V_u) arriba y abajo de la"
+    },
+    {
+      "id": "r120",
+      "kind": "text",
+      "x": 40,
+      "y": 6640,
+      "src": "sección crítica, y 18.10.2.4(c) no deja cortar más del 50 % en una sección."
+    },
+    {
+      "id": "r121",
+      "kind": "math",
+      "x": 40,
+      "y": 6688,
+      "src": "h_ext_1024 := max(l_w, M_u/(3*V_uEh)) = m"
+    },
+    {
+      "id": "r122",
+      "kind": "text",
+      "x": 40,
+      "y": 6768,
+      "src": "━━ 7 · LA SECCIÓN, FIJADO EL EJE NEUTRO (22.2) ━━"
+    },
+    {
+      "id": "r123",
+      "kind": "text",
+      "x": 40,
+      "y": 6816,
+      "src": "22.2.1.2: la deformación es proporcional a la distancia al eje neutro. Signo:"
+    },
+    {
+      "id": "r124",
+      "kind": "text",
+      "x": 40,
+      "y": 6864,
+      "src": "compresión positiva. Una capa a d_i con el eje neutro en c deforma:"
+    },
+    {
+      "id": "r125",
+      "kind": "program",
+      "x": 40,
+      "y": 6912,
+      "src": "eps_s(c, d_i) := eps_cu*(c - d_i)/c"
+    },
+    {
+      "id": "r126",
+      "kind": "text",
+      "x": 40,
+      "y": 6944,
+      "src": "22.2.3.2 con 20.2.2.1: acero elastoplástico, acotado a ±f_y."
+    },
+    {
+      "id": "r127",
+      "kind": "program",
+      "x": 40,
+      "y": 6992,
+      "src": "f_s(c, d_i) := min(max(E_s*eps_s(c, d_i), -f_y), f_y)"
+    },
+    {
+      "id": "r128",
+      "kind": "text",
+      "x": 40,
+      "y": 7024,
+      "src": "22.2.2.4.1: bloque de compresión del hormigón, acotado al largo de la sección."
+    },
+    {
+      "id": "r129",
+      "kind": "program",
+      "x": 40,
+      "y": 7072,
+      "src": "C_c(c, b) :=\n    a := min(beta_1*c, l_w)\n    return k_bloque*f_c*a*b"
+    },
+    {
+      "id": "r130",
+      "kind": "text",
+      "x": 40,
+      "y": 7152,
+      "src": "22.2.1.1 · equilibrio de fuerzas. La capa dentro del bloque comprimido descuenta"
+    },
+    {
+      "id": "r131",
+      "kind": "text",
+      "x": 40,
+      "y": 7200,
+      "src": "el hormigón desplazado: es lo que hace que con c → ∞ la suma dé la Ec. (22.4.2.2)."
+    },
+    {
+      "id": "r132",
+      "kind": "program",
+      "x": 40,
+      "y": 7248,
+      "src": "P_n(c, b) :=\n    a := min(beta_1*c, l_w)\n    Pt := C_c(c, b)\n    for i in 1:n_capas\n        d_i := capas[i,1]*1 cm\n        A_i := capas[i,2]*1 cm^2\n        f_si := f_s(c, d_i)\n        if d_i <= a\n            f_si := f_si - k_bloque*f_c\n        Pt := Pt + A_i*f_si\n    return Pt"
+    },
+    {
+      "id": "r133",
+      "kind": "text",
+      "x": 40,
+      "y": 7472,
+      "src": "Equilibrio de momentos respecto del centro geométrico del muro (ℓ_w/2)."
+    },
+    {
+      "id": "r134",
+      "kind": "program",
+      "x": 40,
+      "y": 7520,
+      "src": "M_n(c, b) :=\n    a := min(beta_1*c, l_w)\n    Mt := C_c(c, b)*(l_w/2 - a/2)\n    for i in 1:n_capas\n        d_i := capas[i,1]*1 cm\n        A_i := capas[i,2]*1 cm^2\n        f_si := f_s(c, d_i)\n        if d_i <= a\n            f_si := f_si - k_bloque*f_c\n        Mt := Mt + A_i*f_si*(l_w/2 - d_i)\n    return Mt"
+    },
+    {
+      "id": "r135",
+      "kind": "text",
+      "x": 40,
+      "y": 7744,
+      "src": "Fig. R21.2.2a: ε_t es la deformación NETA DE TRACCIÓN de la capa extrema."
+    },
+    {
+      "id": "r136",
+      "kind": "program",
+      "x": 40,
+      "y": 7792,
+      "src": "eps_t(c) := eps_cu*(d_t - c)/c"
+    },
+    {
+      "id": "r137",
+      "kind": "text",
+      "x": 40,
+      "y": 7856,
+      "src": "━━ 8 · COMPRESIÓN PURA Y SU TOPE (22.4.2) ━━"
+    },
+    {
+      "id": "r138",
+      "kind": "text",
+      "x": 40,
+      "y": 7904,
+      "src": "Ec. (22.4.2.2): P_o = 0,85f'c(A_g − A_st) + f_y·A_st, paramétrica en el espesor."
+    },
+    {
+      "id": "r139",
+      "kind": "program",
+      "x": 40,
+      "y": 7952,
+      "src": "P_o_f(b) := k_bloque*f_c*(l_w*b - A_st) + f_y*A_st"
+    },
+    {
+      "id": "r140",
+      "kind": "math",
+      "x": 40,
+      "y": 7984,
+      "src": "P_o := P_o_f(b_w) = tonf"
+    },
+    {
+      "id": "r141",
+      "kind": "text",
+      "x": 40,
+      "y": 8032,
+      "src": "22.4.2.1: el f_y que entra en P_o está limitado a 550 MPa."
+    },
+    {
+      "id": "v013",
+      "kind": "math",
+      "x": 40,
+      "y": 8080,
+      "src": "f_y < 550 MPa ="
+    },
+    {
+      "id": "r142",
+      "kind": "text",
+      "x": 40,
+      "y": 8128,
+      "src": "Con c muy grande el barrido tiene que reproducir la Ec. (22.4.2.2):"
+    },
+    {
+      "id": "v014",
+      "kind": "math",
+      "x": 40,
+      "y": 8176,
+      "src": "abs(P_n(4*l_w, b_w) - P_o) < 0.05 tonf ="
+    },
+    {
+      "id": "r143",
+      "kind": "text",
+      "x": 40,
+      "y": 8224,
+      "src": "Tabla 22.4.2.1(a): con estribos conformes a 22.4.2.4, P_n,máx = 0,80P_o; acá los"
+    },
+    {
+      "id": "r144",
+      "kind": "text",
+      "x": 40,
+      "y": 8272,
+      "src": "del elemento de borde son los de 18.10.6.4, más exigentes."
+    },
+    {
+      "id": "r145",
+      "kind": "math",
+      "x": 40,
+      "y": 8320,
+      "src": "k_tope := 0.80"
+    },
+    {
+      "id": "r146",
+      "kind": "math",
+      "x": 40,
+      "y": 8368,
+      "src": "P_nmax := k_tope*P_o = tonf"
+    },
+    {
+      "id": "r147",
+      "kind": "text",
+      "x": 40,
+      "y": 8416,
+      "src": "Tabla 21.2.2(b): φ = 0,65 en compresión pura, con estribos (no espiral)."
+    },
+    {
+      "id": "r148",
+      "kind": "math",
+      "x": 40,
+      "y": 8464,
+      "src": "phi_cc := 0.65"
+    },
+    {
+      "id": "r149",
+      "kind": "math",
+      "x": 40,
+      "y": 8512,
+      "src": "Rd_P := phi_cc*P_nmax = tonf"
+    },
+    {
+      "id": "r150",
+      "kind": "text",
+      "x": 40,
+      "y": 8576,
+      "src": "━━ 9 · φ A LO LARGO DE LA CURVA (Tabla 21.2.2 y 21.2.2.3) ━━"
+    },
+    {
+      "id": "r151",
+      "kind": "text",
+      "x": 40,
+      "y": 8624,
+      "src": "Tabla 21.2.2, columna «Other»: 0,65 hasta ε_ty, transición lineal hasta"
+    },
+    {
+      "id": "r152",
+      "kind": "text",
+      "x": 40,
+      "y": 8672,
+      "src": "ε_ty + 0,003, y 0,90 de ahí en adelante."
+    },
+    {
+      "id": "r153",
+      "kind": "math",
+      "x": 40,
+      "y": 8720,
+      "src": "eps_tc := eps_ty + 0.003 ="
+    },
+    {
+      "id": "r154",
+      "kind": "program",
+      "x": 40,
+      "y": 8768,
+      "src": "phi_tab(c) :=\n    e_t := eps_t(c)\n    if e_t <= eps_ty\n        return 0.65\n    else if e_t >= eps_tc\n        return 0.90\n    else\n        return 0.65 + 0.25*(e_t - eps_ty)/0.003"
+    },
+    {
+      "id": "r155",
+      "kind": "text",
+      "x": 40,
+      "y": 8944,
+      "src": "La tabla no termina en la tabla: 21.2.2.3 acota ese φ por interpolación lineal"
+    },
+    {
+      "id": "r156",
+      "kind": "text",
+      "x": 40,
+      "y": 8992,
+      "src": "en P_n entre 0,90 en 0,1f'c·A_g y φ_cc en P_n,bal. Solo puede BAJARLO."
+    },
+    {
+      "id": "r157",
+      "kind": "text",
+      "x": 40,
+      "y": 9040,
+      "src": "El balanceado: hormigón en ε_cu y capa extrema en ε_ty a la vez."
+    },
+    {
+      "id": "r158",
+      "kind": "math",
+      "x": 40,
+      "y": 9088,
+      "src": "c_bal := eps_cu/(eps_cu + eps_ty)*d_t = cm"
+    },
+    {
+      "id": "r159",
+      "kind": "program",
+      "x": 40,
+      "y": 9136,
+      "src": "P_nb_f(b) := P_n(c_bal, b)"
+    },
+    {
+      "id": "r160",
+      "kind": "program",
+      "x": 40,
+      "y": 9168,
+      "src": "P_lo_f(b) := 0.1*f_c*l_w*b"
+    },
+    {
+      "id": "r161",
+      "kind": "program",
+      "x": 40,
+      "y": 9200,
+      "src": "phi_lim(Pn, b) :=\n    P_lo := P_lo_f(b)\n    P_nb := P_nb_f(b)\n    if Pn < P_lo\n        return 0.90\n    else if Pn > P_nb\n        return phi_cc\n    else\n        return 0.90 + (phi_cc - 0.90)*(Pn - P_lo)/(P_nb - P_lo)"
+    },
+    {
+      "id": "r162",
+      "kind": "program",
+      "x": 40,
+      "y": 9392,
+      "src": "phi_c(c, b) := min(phi_tab(c), phi_lim(P_n(c, b), b))"
+    },
+    {
+      "id": "r163",
+      "kind": "math",
+      "x": 40,
+      "y": 9424,
+      "src": "P_lo := P_lo_f(b_w) = tonf"
+    },
+    {
+      "id": "r164",
+      "kind": "math",
+      "x": 40,
+      "y": 9472,
+      "src": "P_nb := P_nb_f(b_w) = tonf"
+    },
+    {
+      "id": "r165",
+      "kind": "math",
+      "x": 40,
+      "y": 9520,
+      "src": "M_nb := M_n(c_bal, b_w) = tonf*m"
+    },
+    {
+      "id": "r166",
+      "kind": "math",
+      "x": 40,
+      "y": 9568,
+      "src": "Rd_Pb := phi_cc*P_nb = tonf"
+    },
+    {
+      "id": "r167",
+      "kind": "math",
+      "x": 40,
+      "y": 9616,
+      "src": "Rd_Mb := phi_cc*M_nb = tonf*m"
+    },
+    {
+      "id": "r168",
+      "kind": "text",
+      "x": 40,
+      "y": 9664,
+      "src": "R21.2.2: si P_n,bal < 0,1f'c·A_g, 21.2.2.3 no aplica. Acá sí existe el tramo:"
+    },
+    {
+      "id": "v015",
+      "kind": "math",
+      "x": 40,
+      "y": 9712,
+      "src": "P_nb > P_lo ="
+    },
+    {
+      "id": "r169",
+      "kind": "text",
+      "x": 40,
+      "y": 9776,
+      "src": "━━ 10 · ANCLA · FLEXIÓN PURA (P_n = 0) ━━"
+    },
+    {
+      "id": "r170",
+      "kind": "text",
+      "x": 40,
+      "y": 9824,
+      "src": "No hay fórmula cerrada: se busca por bisección el c que anula P_n. P_n crece"
+    },
+    {
+      "id": "r171",
+      "kind": "text",
+      "x": 40,
+      "y": 9872,
+      "src": "con c, así que el intervalo [1 cm; d_t] encierra la raíz."
+    },
+    {
+      "id": "r172",
+      "kind": "program",
+      "x": 40,
+      "y": 9920,
+      "src": "c_0 :=\n    lo := 1 cm\n    hi := d_t\n    for i in 1:60\n        mid := (lo + hi)/2\n        if P_n(mid, b_w) > 0 tonf\n            hi := mid\n        else\n            lo := mid\n    return (lo + hi)/2"
+    },
+    {
+      "id": "r173",
+      "kind": "math",
+      "x": 40,
+      "y": 10128,
+      "src": "c_0 = cm"
+    },
+    {
+      "id": "v016",
+      "kind": "math",
+      "x": 40,
+      "y": 10176,
+      "src": "abs(P_n(c_0, b_w)) < 0.01 tonf ="
+    },
+    {
+      "id": "r174",
+      "kind": "math",
+      "x": 40,
+      "y": 10224,
+      "src": "M_0 := M_n(c_0, b_w) = tonf*m"
+    },
+    {
+      "id": "r175",
+      "kind": "math",
+      "x": 40,
+      "y": 10272,
+      "src": "phi_0 := phi_c(c_0, b_w) ="
+    },
+    {
+      "id": "r176",
+      "kind": "text",
+      "x": 40,
+      "y": 10320,
+      "src": "Con P_n = 0 < 0,1f'c·A_g el tope de 21.2.2.3 no muerde y ε_t supera ε_ty+0,003."
+    },
+    {
+      "id": "v017",
+      "kind": "math",
+      "x": 40,
+      "y": 10368,
+      "src": "phi_0 == 0.90 ="
+    },
+    {
+      "id": "r177",
+      "kind": "math",
+      "x": 40,
+      "y": 10416,
+      "src": "Rd_M0 := phi_0*M_0 = tonf*m"
+    },
+    {
+      "id": "r178",
+      "kind": "text",
+      "x": 40,
+      "y": 10480,
+      "src": "━━ 11 · LAS DOS COMBINACIONES CONTRA LA FRONTERA (18.10.5.1) ━━"
+    },
+    {
+      "id": "r179",
+      "kind": "text",
+      "x": 40,
+      "y": 10528,
+      "src": "HIPÓTESIS de lectura, la misma que pide 18.10.6.2(a): la sección se evalúa en"
+    },
+    {
+      "id": "r180",
+      "kind": "text",
+      "x": 40,
+      "y": 10576,
+      "src": "el c donde la resistencia NOMINAL a axial iguala el axial mayorado, y el"
+    },
+    {
+      "id": "r181",
+      "kind": "text",
+      "x": 40,
+      "y": 10624,
+      "src": "momento disponible es φ·M_n de ese mismo c. Más abajo se contrasta contra la"
+    },
+    {
+      "id": "r182",
+      "kind": "text",
+      "x": 40,
+      "y": 10672,
+      "src": "otra lectura posible (entrar a la curva de DISEÑO con φP_n = P_u)."
+    },
+    {
+      "id": "r183",
+      "kind": "program",
+      "x": 40,
+      "y": 10720,
+      "src": "c_de_Pn(P_obj, b) :=\n    lo := 1 cm\n    hi := 2*l_w\n    for i in 1:60\n        mid := (lo + hi)/2\n        if P_n(mid, b) > P_obj\n            hi := mid\n        else\n            lo := mid\n    return (lo + hi)/2"
+    },
+    {
+      "id": "r184",
+      "kind": "math",
+      "x": 40,
+      "y": 10928,
+      "src": "c_A := c_de_Pn(P_uA, b_w) = cm"
+    },
+    {
+      "id": "r185",
+      "kind": "math",
+      "x": 40,
+      "y": 10976,
+      "src": "eps_tA := eps_t(c_A) ="
+    },
+    {
+      "id": "r186",
+      "kind": "math",
+      "x": 40,
+      "y": 11024,
+      "src": "M_nA := M_n(c_A, b_w) = tonf*m"
+    },
+    {
+      "id": "r187",
+      "kind": "math",
+      "x": 40,
+      "y": 11072,
+      "src": "phi_tA := phi_tab(c_A) ="
+    },
+    {
+      "id": "r188",
+      "kind": "math",
+      "x": 40,
+      "y": 11120,
+      "src": "phi_lA := phi_lim(P_uA, b_w) ="
+    },
+    {
+      "id": "r189",
+      "kind": "math",
+      "x": 40,
+      "y": 11168,
+      "src": "phi_A := min(phi_tA, phi_lA) ="
+    },
+    {
+      "id": "r190",
+      "kind": "math",
+      "x": 40,
+      "y": 11216,
+      "src": "Rd_MA := phi_A*M_nA = tonf*m"
+    },
+    {
+      "id": "r191",
+      "kind": "math",
+      "x": 40,
+      "y": 11264,
+      "src": "u_A := M_u/Rd_MA ="
+    },
+    {
+      "id": "r192",
+      "kind": "math",
+      "x": 40,
+      "y": 11312,
+      "src": "c_B := c_de_Pn(P_uB, b_w) = cm"
+    },
+    {
+      "id": "r193",
+      "kind": "math",
+      "x": 40,
+      "y": 11360,
+      "src": "eps_tB := eps_t(c_B) ="
+    },
+    {
+      "id": "r194",
+      "kind": "math",
+      "x": 40,
+      "y": 11408,
+      "src": "M_nB := M_n(c_B, b_w) = tonf*m"
+    },
+    {
+      "id": "r195",
+      "kind": "math",
+      "x": 40,
+      "y": 11456,
+      "src": "phi_tB := phi_tab(c_B) ="
+    },
+    {
+      "id": "r196",
+      "kind": "math",
+      "x": 40,
+      "y": 11504,
+      "src": "phi_lB := phi_lim(P_uB, b_w) ="
+    },
+    {
+      "id": "r197",
+      "kind": "math",
+      "x": 40,
+      "y": 11552,
+      "src": "phi_B := min(phi_tB, phi_lB) ="
+    },
+    {
+      "id": "r198",
+      "kind": "math",
+      "x": 40,
+      "y": 11600,
+      "src": "Rd_MB := phi_B*M_nB = tonf*m"
+    },
+    {
+      "id": "r199",
+      "kind": "math",
+      "x": 40,
+      "y": 11648,
+      "src": "u_B := M_u/Rd_MB ="
+    },
+    {
+      "id": "r200",
+      "kind": "text",
+      "x": 40,
+      "y": 11696,
+      "src": "Las dos secciones son controladas por tracción: ε_t ≥ ε_ty + 0,003."
+    },
+    {
+      "id": "v018",
+      "kind": "math",
+      "x": 40,
+      "y": 11744,
+      "src": "eps_tA >= eps_tc and eps_tB >= eps_tc ="
+    },
+    {
+      "id": "r201",
+      "kind": "text",
+      "x": 40,
+      "y": 11792,
+      "src": "21.2.2.3 muerde donde P_n cae sobre 0,1f'c·A_g. En A sí; en B no llega:"
+    },
+    {
+      "id": "v019",
+      "kind": "math",
+      "x": 40,
+      "y": 11840,
+      "src": "P_uA > P_lo ="
+    },
+    {
+      "id": "v020",
+      "kind": "math",
+      "x": 40,
+      "y": 11888,
+      "src": "P_uB < P_lo ="
+    },
+    {
+      "id": "r202",
+      "kind": "math",
+      "x": 40,
+      "y": 11936,
+      "src": "recorte_A := 1 - phi_lA/phi_tA ="
+    },
+    {
+      "id": "r203",
+      "kind": "text",
+      "x": 40,
+      "y": 11984,
+      "src": "La otra lectura: entrar a la curva de DISEÑO con φP_n = P_u. Da un c mayor y"
+    },
+    {
+      "id": "r204",
+      "kind": "text",
+      "x": 40,
+      "y": 12032,
+      "src": "un φM_n mayor, o sea que la lectura adoptada es la conservadora de las dos."
+    },
+    {
+      "id": "r205",
+      "kind": "program",
+      "x": 40,
+      "y": 12080,
+      "src": "c_de_Rd(P_obj, b) :=\n    lo := 1 cm\n    hi := 2*l_w\n    for i in 1:60\n        mid := (lo + hi)/2\n        if phi_c(mid, b)*P_n(mid, b) > P_obj\n            hi := mid\n        else\n            lo := mid\n    return (lo + hi)/2"
+    },
+    {
+      "id": "r206",
+      "kind": "math",
+      "x": 40,
+      "y": 12288,
+      "src": "c_Balt := c_de_Rd(P_uB, b_w) = cm"
+    },
+    {
+      "id": "r207",
+      "kind": "math",
+      "x": 40,
+      "y": 12336,
+      "src": "Rd_MBalt := phi_c(c_Balt, b_w)*M_n(c_Balt, b_w) = tonf*m"
+    },
+    {
+      "id": "r208",
+      "kind": "math",
+      "x": 40,
+      "y": 12384,
+      "src": "u_Balt := M_u/Rd_MBalt ="
+    },
+    {
+      "id": "v021",
+      "kind": "math",
+      "x": 40,
+      "y": 12432,
+      "src": "u_B > u_Balt ="
+    },
+    {
+      "id": "r209",
+      "kind": "text",
+      "x": 40,
+      "y": 12480,
+      "src": "18.10.6.2(a) pide la MAYOR profundidad de eje neutro de las combinaciones, que"
+    },
+    {
+      "id": "r210",
+      "kind": "text",
+      "x": 40,
+      "y": 12528,
+      "src": "la da el axial máximo — no la que gobierna la resistencia."
+    },
+    {
+      "id": "r211",
+      "kind": "math",
+      "x": 40,
+      "y": 12576,
+      "src": "c_be := max(c_A, c_B) = cm"
+    },
+    {
+      "id": "v022",
+      "kind": "math",
+      "x": 40,
+      "y": 12624,
+      "src": "c_be == c_A ="
+    },
+    {
+      "id": "v023",
+      "kind": "math",
+      "x": 40,
+      "y": 12672,
+      "src": "c_A > c_B ="
+    },
+    {
+      "id": "r212",
+      "kind": "text",
+      "x": 40,
+      "y": 12736,
+      "src": "━━ 12 · EL CORTE DE DISEÑO (18.10.3.3) ━━"
+    },
+    {
+      "id": "r213",
+      "kind": "text",
+      "x": 40,
+      "y": 12784,
+      "src": "18.10.3.3.2: con V_uEh de análisis lineal, V_e = Ω_v·ω_v·V_uEh."
+    },
+    {
+      "id": "r214",
+      "kind": "math",
+      "x": 40,
+      "y": 12832,
+      "src": "rel_hcs := h_wcs/l_w ="
+    },
+    {
+      "id": "r215",
+      "kind": "text",
+      "x": 40,
+      "y": 12880,
+      "src": "Tabla 18.10.3.3.3, fila h_wcs/ℓ_w ≥ 2,0: Ω_v = 1,5 y ω_v = 0,8 + 0,09·h_n^(1/3)."
+    },
+    {
+      "id": "v024",
+      "kind": "math",
+      "x": 40,
+      "y": 12928,
+      "src": "rel_hcs >= 2 ="
+    },
+    {
+      "id": "r216",
+      "kind": "math",
+      "x": 40,
+      "y": 12976,
+      "src": "Omega_v := 1.5"
+    },
+    {
+      "id": "r217",
+      "kind": "text",
+      "x": 40,
+      "y": 13024,
+      "src": "Cap. 2: h_n es la altura estructural del edificio EN PIES, también en la SI."
+    },
+    {
+      "id": "r218",
+      "kind": "math",
+      "x": 40,
+      "y": 13072,
+      "src": "h_n := h_w = ft"
+    },
+    {
+      "id": "r219",
+      "kind": "math",
+      "x": 40,
+      "y": 13120,
+      "src": "omega_v := 0.8 + 0.09*(h_n/(1 ft))^(1/3) ="
+    },
+    {
+      "id": "v025",
+      "kind": "math",
+      "x": 40,
+      "y": 13168,
+      "src": "omega_v >= 1.0 ="
+    },
+    {
+      "id": "r220",
+      "kind": "math",
+      "x": 40,
+      "y": 13216,
+      "src": "V_e := Omega_v*omega_v*V_uEh = tonf"
+    },
+    {
+      "id": "r221",
+      "kind": "math",
+      "x": 40,
+      "y": 13264,
+      "src": "f_ampl := V_e/V_uEh ="
+    },
+    {
+      "id": "r222",
+      "kind": "text",
+      "x": 40,
+      "y": 13312,
+      "src": "Metiendo los metros en vez de los pies saldría, y es un 11 % de corte regalado:"
+    },
+    {
+      "id": "r223",
+      "kind": "math",
+      "x": 40,
+      "y": 13360,
+      "src": "omega_v_m := 0.8 + 0.09*(h_w/(1 m))^(1/3) ="
+    },
+    {
+      "id": "r224",
+      "kind": "math",
+      "x": 40,
+      "y": 13408,
+      "src": "brecha_wv := omega_v/omega_v_m - 1 ="
+    },
+    {
+      "id": "r225",
+      "kind": "text",
+      "x": 40,
+      "y": 13456,
+      "src": "R18.10.3.3.3: ω_v viene del factor análogo de la NZS 3101 y es una de las"
+    },
+    {
+      "id": "r226",
+      "kind": "text",
+      "x": 40,
+      "y": 13504,
+      "src": "disposiciones que cambiaron en 318-25 — en 318-19 dependía del número de pisos."
+    },
+    {
+      "id": "r227",
+      "kind": "text",
+      "x": 40,
+      "y": 13568,
+      "src": "━━ 13 · RESISTENCIA AL CORTE EN EL PLANO (18.10.4) ━━"
+    },
+    {
+      "id": "r228",
+      "kind": "text",
+      "x": 40,
+      "y": 13616,
+      "src": "Ec. (18.10.4.1): V_n = (α_c·λ√f'c + ρ_t·f_yt)·A_cv, con α_c = 0,17 en MPa."
+    },
+    {
+      "id": "r229",
+      "kind": "math",
+      "x": 40,
+      "y": 13664,
+      "src": "V_n := (k_ac*lambda_h*rfck + rho_t*f_yt)*A_cv = tonf"
+    },
+    {
+      "id": "r230",
+      "kind": "text",
+      "x": 40,
+      "y": 13712,
+      "src": "18.10.4.4: α_sh = 1,0 se permite siempre, y acá es exacto (muro sin ala)."
+    },
+    {
+      "id": "r231",
+      "kind": "math",
+      "x": 40,
+      "y": 13760,
+      "src": "alpha_sh := 1.0"
+    },
+    {
+      "id": "r232",
+      "kind": "math",
+      "x": 40,
+      "y": 13808,
+      "src": "V_tope1 := alpha_sh*k_t1*rfck*A_cv = tonf"
+    },
+    {
+      "id": "r233",
+      "kind": "math",
+      "x": 40,
+      "y": 13856,
+      "src": "V_tope2 := alpha_sh*k_t2*rfck*A_cw = tonf"
+    },
+    {
+      "id": "v026",
+      "kind": "math",
+      "x": 40,
+      "y": 13904,
+      "src": "V_n <= V_tope1 ="
+    },
+    {
+      "id": "v027",
+      "kind": "math",
+      "x": 40,
+      "y": 13952,
+      "src": "V_n <= V_tope2 ="
+    },
+    {
+      "id": "r234",
+      "kind": "math",
+      "x": 40,
+      "y": 14000,
+      "src": "V_nef := min(V_n, V_tope1, V_tope2) = tonf"
+    },
+    {
+      "id": "r235",
+      "kind": "text",
+      "x": 40,
+      "y": 14048,
+      "src": "21.2.4.1: φ = 0,60 si V_n < el corte que desarrolla M_n, salvo Ω_v ≥ 1,5."
+    },
+    {
+      "id": "r236",
+      "kind": "math",
+      "x": 40,
+      "y": 14096,
+      "src": "h_efM := M_u/V_uEh = m"
+    },
+    {
+      "id": "r237",
+      "kind": "math",
+      "x": 40,
+      "y": 14144,
+      "src": "V_deM := M_nA/h_efM = tonf"
+    },
+    {
+      "id": "v028",
+      "kind": "math",
+      "x": 40,
+      "y": 14192,
+      "src": "V_nef > V_deM ="
+    },
+    {
+      "id": "v029",
+      "kind": "math",
+      "x": 40,
+      "y": 14240,
+      "src": "Omega_v >= 1.5 ="
+    },
+    {
+      "id": "r238",
+      "kind": "math",
+      "x": 40,
+      "y": 14288,
+      "src": "phi_v := 0.75"
+    },
+    {
+      "id": "r239",
+      "kind": "math",
+      "x": 40,
+      "y": 14336,
+      "src": "Rd_V := phi_v*V_nef = tonf"
+    },
+    {
+      "id": "r240",
+      "kind": "math",
+      "x": 40,
+      "y": 14384,
+      "src": "u_V := V_e/Rd_V ="
+    },
+    {
+      "id": "r241",
+      "kind": "math",
+      "x": 40,
+      "y": 14432,
+      "src": "u_tope := V_e/V_tope1 ="
+    },
+    {
+      "id": "r242",
+      "kind": "text",
+      "x": 40,
+      "y": 14496,
+      "src": "━━ 14 · ¿HACEN FALTA ELEMENTOS DE BORDE? LAS DOS RUTAS ━━"
+    },
+    {
+      "id": "r243",
+      "kind": "text",
+      "x": 40,
+      "y": 14544,
+      "src": "18.10.6.1 ofrece dos rutas: 18.10.6.2 por desplazamientos y 18.10.6.3 por"
+    },
+    {
+      "id": "r244",
+      "kind": "text",
+      "x": 40,
+      "y": 14592,
+      "src": "tensiones. Se calculan las dos."
+    },
+    {
+      "id": "r245",
+      "kind": "text",
+      "x": 40,
+      "y": 14640,
+      "src": "RUTA 1 — 18.10.6.2(a). Pide muro continuo con una sola sección crítica y"
+    },
+    {
+      "id": "r246",
+      "kind": "text",
+      "x": 40,
+      "y": 14688,
+      "src": "h_wcs/ℓ_w ≥ 2,0, y δ_u/h_wcs no se toma menor que 0,005."
+    },
+    {
+      "id": "r247",
+      "kind": "math",
+      "x": 40,
+      "y": 14736,
+      "src": "der_ef := max(der_u, 0.005) ="
+    },
+    {
+      "id": "v030",
+      "kind": "math",
+      "x": 40,
+      "y": 14784,
+      "src": "der_u > 0.005 ="
+    },
+    {
+      "id": "r248",
+      "kind": "math",
+      "x": 40,
+      "y": 14832,
+      "src": "c_umbral := l_w/(600*1.5*der_ef) = cm"
+    },
+    {
+      "id": "v031",
+      "kind": "math",
+      "x": 40,
+      "y": 14880,
+      "src": "c_be >= c_umbral ="
+    },
+    {
+      "id": "r249",
+      "kind": "math",
+      "x": 40,
+      "y": 14928,
+      "src": "c_umbral_piso := l_w/(600*1.5*0.005) = cm"
+    },
+    {
+      "id": "r250",
+      "kind": "text",
+      "x": 40,
+      "y": 14976,
+      "src": "RUTA 2 — 18.10.6.3: tensión de fibra extrema con sección BRUTA y modelo"
+    },
+    {
+      "id": "r251",
+      "kind": "text",
+      "x": 40,
+      "y": 15024,
+      "src": "linealmente elástico, contra el índice de 0,2f'c."
+    },
+    {
+      "id": "r252",
+      "kind": "math",
+      "x": 40,
+      "y": 15072,
+      "src": "I_g := b_w*l_w^3/12 = cm^4"
+    },
+    {
+      "id": "r253",
+      "kind": "math",
+      "x": 40,
+      "y": 15120,
+      "src": "S_g := I_g/(l_w/2) = cm^3"
+    },
+    {
+      "id": "r254",
+      "kind": "math",
+      "x": 40,
+      "y": 15168,
+      "src": "sigma_ext := P_uA/A_g + M_u/S_g = kgf/cm^2"
+    },
+    {
+      "id": "r255",
+      "kind": "math",
+      "x": 40,
+      "y": 15216,
+      "src": "sigma_lim := 0.2*f_c = kgf/cm^2"
+    },
+    {
+      "id": "v032",
+      "kind": "math",
+      "x": 40,
+      "y": 15264,
+      "src": "sigma_ext > sigma_lim ="
+    },
+    {
+      "id": "r256",
+      "kind": "text",
+      "x": 40,
+      "y": 15312,
+      "src": "Las dos rutas coinciden: el elemento de borde es requerido por cualquiera de"
+    },
+    {
+      "id": "r257",
+      "kind": "text",
+      "x": 40,
+      "y": 15360,
+      "src": "ellas, así que 18.10.6.5 —que rige donde NO se requieren— no aplica acá."
+    },
+    {
+      "id": "v033",
+      "kind": "math",
+      "x": 40,
+      "y": 15408,
+      "src": "c_be >= c_umbral and sigma_ext > sigma_lim ="
+    },
+    {
+      "id": "r258",
+      "kind": "text",
+      "x": 40,
+      "y": 15472,
+      "src": "━━ 15 · LAS DOS RAMAS DE LA PARTE (b) (18.10.6.2b) ━━"
+    },
+    {
+      "id": "r259",
+      "kind": "text",
+      "x": 40,
+      "y": 15520,
+      "src": "Requeridos los bordes, 18.10.6.2(b) pide (i) y además (ii) o (iii)."
+    },
+    {
+      "id": "r260",
+      "kind": "text",
+      "x": 40,
+      "y": 15568,
+      "src": "(i) Extensión vertical del refuerzo transversal, arriba y abajo:"
+    },
+    {
+      "id": "r261",
+      "kind": "math",
+      "x": 40,
+      "y": 15616,
+      "src": "h_ext_i := max(l_w, M_u/(4*V_uEh)) = m"
+    },
+    {
+      "id": "r262",
+      "kind": "text",
+      "x": 40,
+      "y": 15664,
+      "src": "(ii) R18.10.6.2: el atajo sale de la Ec. (18.10.6.2b) evaluada con nivel de corte"
+    },
+    {
+      "id": "r263",
+      "kind": "text",
+      "x": 40,
+      "y": 15712,
+      "src": "1,0 y deriva 0,015. Es el peor caso, no una regla independiente."
+    },
+    {
+      "id": "r264",
+      "kind": "math",
+      "x": 40,
+      "y": 15760,
+      "src": "b_ii := sqrt(c_be*l_w/40) = cm"
+    },
+    {
+      "id": "r265",
+      "kind": "math",
+      "x": 40,
+      "y": 15808,
+      "src": "u_ii := b_ii/b_w ="
+    },
+    {
+      "id": "v034",
+      "kind": "math",
+      "x": 40,
+      "y": 15856,
+      "src": "b_w < b_ii ="
+    },
+    {
+      "id": "r266",
+      "kind": "text",
+      "x": 40,
+      "y": 15904,
+      "src": "(iii) La ecuación completa: 4 % de partida, castigo por esbeltez y por corte."
+    },
+    {
+      "id": "r267",
+      "kind": "math",
+      "x": 40,
+      "y": 15952,
+      "src": "term_esb := (l_w/b_w)*(c_be/b_w)/50 ="
+    },
+    {
+      "id": "r268",
+      "kind": "math",
+      "x": 40,
+      "y": 16000,
+      "src": "niv_corte := V_e/(alpha_sh*k_t1*rfck*A_cv) ="
+    },
+    {
+      "id": "r269",
+      "kind": "math",
+      "x": 40,
+      "y": 16048,
+      "src": "der_c_bruto := (4 - term_esb - niv_corte)/100 ="
+    },
+    {
+      "id": "r270",
+      "kind": "text",
+      "x": 40,
+      "y": 16096,
+      "src": "El valor de δ_c/h_wcs no se toma menor que 0,015. Acá el piso no muerde:"
+    },
+    {
+      "id": "v035",
+      "kind": "math",
+      "x": 40,
+      "y": 16144,
+      "src": "der_c_bruto > 0.015 ="
+    },
+    {
+      "id": "r271",
+      "kind": "math",
+      "x": 40,
+      "y": 16192,
+      "src": "der_c := max(der_c_bruto, 0.015) ="
+    },
+    {
+      "id": "r272",
+      "kind": "math",
+      "x": 40,
+      "y": 16240,
+      "src": "der_dem := 1.5*der_u ="
+    },
+    {
+      "id": "r273",
+      "kind": "math",
+      "x": 40,
+      "y": 16288,
+      "src": "u_der := der_dem/der_c ="
+    },
+    {
+      "id": "v036",
+      "kind": "math",
+      "x": 40,
+      "y": 16336,
+      "src": "u_der <= 1 ="
+    },
+    {
+      "id": "r274",
+      "kind": "text",
+      "x": 40,
+      "y": 16384,
+      "src": "R18.10.6.4: la inestabilidad lateral fuera del plano se vuelve probable cuando"
+    },
+    {
+      "id": "r275",
+      "kind": "text",
+      "x": 40,
+      "y": 16432,
+      "src": "el producto (ℓ_w/b)(c/b) supera aproximadamente 40."
+    },
+    {
+      "id": "r276",
+      "kind": "math",
+      "x": 40,
+      "y": 16480,
+      "src": "prod_esb := (l_w/b_w)*(c_be/b_w) ="
+    },
+    {
+      "id": "v037",
+      "kind": "math",
+      "x": 40,
+      "y": 16528,
+      "src": "prod_esb > 40 ="
+    },
+    {
+      "id": "r277",
+      "kind": "text",
+      "x": 40,
+      "y": 16592,
+      "src": "━━ 16 · DETALLAMIENTO DEL ELEMENTO DE BORDE (18.10.6.4) ━━"
+    },
+    {
+      "id": "r278",
+      "kind": "text",
+      "x": 40,
+      "y": 16640,
+      "src": "(a) El borde se extiende al menos max(c − 0,1ℓ_w; c/2) desde la fibra extrema."
+    },
+    {
+      "id": "r279",
+      "kind": "math",
+      "x": 40,
+      "y": 16688,
+      "src": "l_be_req := max(c_be - 0.1*l_w, c_be/2) = cm"
+    },
+    {
+      "id": "v038",
+      "kind": "math",
+      "x": 40,
+      "y": 16736,
+      "src": "l_be >= l_be_req ="
+    },
+    {
+      "id": "r280",
+      "kind": "text",
+      "x": 40,
+      "y": 16784,
+      "src": "(b) El ancho de la zona comprimida sobre esa longitud, al menos h_u/16."
+    },
+    {
+      "id": "r281",
+      "kind": "math",
+      "x": 40,
+      "y": 16832,
+      "src": "b_req_b := h_u/16 = cm"
+    },
+    {
+      "id": "v039",
+      "kind": "math",
+      "x": 40,
+      "y": 16880,
+      "src": "b_w >= b_req_b ="
+    },
+    {
+      "id": "r282",
+      "kind": "text",
+      "x": 40,
+      "y": 16928,
+      "src": "(c) Los 300 mm de espesor solo si c/ℓ_w ≥ 3/8. Acá no llega:"
+    },
+    {
+      "id": "r283",
+      "kind": "math",
+      "x": 40,
+      "y": 16976,
+      "src": "rel_cl := c_be/l_w ="
+    },
+    {
+      "id": "v040",
+      "kind": "math",
+      "x": 40,
+      "y": 17024,
+      "src": "rel_cl < 3/8 ="
+    },
+    {
+      "id": "r284",
+      "kind": "text",
+      "x": 40,
+      "y": 17072,
+      "src": "(f) h_x es la separación entre barras con soporte lateral. La manda el cruce"
+    },
+    {
+      "id": "r285",
+      "kind": "text",
+      "x": 40,
+      "y": 17120,
+      "src": "del espesor —las dos cortinas—, no la separación a lo largo del borde."
+    },
+    {
+      "id": "r286",
+      "kind": "math",
+      "x": 40,
+      "y": 17168,
+      "src": "h_x := b_w - 2*(rec + d_e + d_b/2) = mm"
+    },
+    {
+      "id": "r287",
+      "kind": "math",
+      "x": 40,
+      "y": 17216,
+      "src": "h_x_lim := min(350 mm, 2/3*b_w) = mm"
+    },
+    {
+      "id": "v041",
+      "kind": "math",
+      "x": 40,
+      "y": 17264,
+      "src": "h_x <= h_x_lim ="
+    },
+    {
+      "id": "v042",
+      "kind": "math",
+      "x": 40,
+      "y": 17312,
+      "src": "s_be <= h_x_lim ="
+    },
+    {
+      "id": "r288",
+      "kind": "text",
+      "x": 40,
+      "y": 17360,
+      "src": "(g) El núcleo confinado se mide a los BORDES EXTERIORES del refuerzo"
+    },
+    {
+      "id": "r289",
+      "kind": "text",
+      "x": 40,
+      "y": 17408,
+      "src": "transversal, como lo define el Cap. 2, y A_g del borde es ℓ_be·b."
+    },
+    {
+      "id": "r290",
+      "kind": "math",
+      "x": 40,
+      "y": 17456,
+      "src": "b_c1 := l_be - 2*rec = cm"
+    },
+    {
+      "id": "r291",
+      "kind": "math",
+      "x": 40,
+      "y": 17504,
+      "src": "b_c2 := b_w - 2*rec = cm"
+    },
+    {
+      "id": "r292",
+      "kind": "math",
+      "x": 40,
+      "y": 17552,
+      "src": "A_ch := b_c1*b_c2 = cm^2"
+    },
+    {
+      "id": "r293",
+      "kind": "math",
+      "x": 40,
+      "y": 17600,
+      "src": "A_g_be := l_be*b_w = cm^2"
+    },
+    {
+      "id": "r294",
+      "kind": "math",
+      "x": 40,
+      "y": 17648,
+      "src": "rel_Ach := A_g_be/A_ch ="
+    },
+    {
+      "id": "r295",
+      "kind": "text",
+      "x": 40,
+      "y": 17696,
+      "src": "Tabla 18.10.6.4(g), estribo rectilíneo: la mayor de las dos expresiones."
+    },
+    {
+      "id": "r296",
+      "kind": "math",
+      "x": 40,
+      "y": 17744,
+      "src": "k_sh_a := 0.3*(rel_Ach - 1)*f_c/f_yt ="
+    },
+    {
+      "id": "r297",
+      "kind": "math",
+      "x": 40,
+      "y": 17792,
+      "src": "k_sh_b := 0.09*f_c/f_yt ="
+    },
+    {
+      "id": "r298",
+      "kind": "math",
+      "x": 40,
+      "y": 17840,
+      "src": "k_sh := max(k_sh_a, k_sh_b) ="
+    },
+    {
+      "id": "r299",
+      "kind": "text",
+      "x": 40,
+      "y": 17888,
+      "src": "R18.10.6.4: la (a) se reinstauró en 2014 porque en muros delgados la (b) sola no"
+    },
+    {
+      "id": "r300",
+      "kind": "text",
+      "x": 40,
+      "y": 17936,
+      "src": "confina lo suficiente. Acá gobierna:"
+    },
+    {
+      "id": "v043",
+      "kind": "math",
+      "x": 40,
+      "y": 17984,
+      "src": "k_sh_a > k_sh_b ="
+    },
+    {
+      "id": "r301",
+      "kind": "math",
+      "x": 40,
+      "y": 18032,
+      "src": "exceso_a := k_sh_a/k_sh_b - 1 ="
+    },
+    {
+      "id": "r302",
+      "kind": "text",
+      "x": 40,
+      "y": 18080,
+      "src": "(e) El espaciamiento vertical es el menor de cuatro orígenes. 18.10.6.4(e)"
+    },
+    {
+      "id": "r303",
+      "kind": "text",
+      "x": 40,
+      "y": 18128,
+      "src": "cambia el 18.7.5.3(a) de un cuarto de la dimensión de columna a un tercio de"
+    },
+    {
+      "id": "r304",
+      "kind": "text",
+      "x": 40,
+      "y": 18176,
+      "src": "la menor dimensión del elemento de borde."
+    },
+    {
+      "id": "r305",
+      "kind": "math",
+      "x": 40,
+      "y": 18224,
+      "src": "s_e_a := min(l_be, b_w)/3 = mm"
+    },
+    {
+      "id": "r306",
+      "kind": "math",
+      "x": 40,
+      "y": 18272,
+      "src": "s_e_b := 6*d_b = mm"
+    },
+    {
+      "id": "r307",
+      "kind": "text",
+      "x": 40,
+      "y": 18320,
+      "src": "18.7.5.3(d): s_o = 100 + (350 − h_x)/3, acotado a 150 mm y no menor que 100."
+    },
+    {
+      "id": "r308",
+      "kind": "math",
+      "x": 40,
+      "y": 18368,
+      "src": "s_o := 100 mm + (350 mm - h_x)/3 = mm"
+    },
+    {
+      "id": "r309",
+      "kind": "math",
+      "x": 40,
+      "y": 18416,
+      "src": "s_e_d := min(max(s_o, 100 mm), 150 mm) = mm"
+    },
+    {
+      "id": "r310",
+      "kind": "text",
+      "x": 40,
+      "y": 18464,
+      "src": "Tabla 18.10.6.5(b), Grado 420, dentro de max(ℓ_w, M_u/4V_u): min(6d_b; 150 mm)."
+    },
+    {
+      "id": "r311",
+      "kind": "math",
+      "x": 40,
+      "y": 18512,
+      "src": "s_e_t := min(6*d_b, 150 mm) = mm"
+    },
+    {
+      "id": "r312",
+      "kind": "math",
+      "x": 40,
+      "y": 18560,
+      "src": "s_max := min(s_e_a, s_e_b, s_e_d, s_e_t) = mm"
+    },
+    {
+      "id": "r313",
+      "kind": "math",
+      "x": 40,
+      "y": 18608,
+      "src": "s_v := 100 mm"
+    },
+    {
+      "id": "v044",
+      "kind": "math",
+      "x": 40,
+      "y": 18656,
+      "src": "s_v <= s_max ="
+    },
+    {
+      "id": "r314",
+      "kind": "math",
+      "x": 40,
+      "y": 18704,
+      "src": "A_sh1 := k_sh*s_v*b_c1 = cm^2"
+    },
+    {
+      "id": "r315",
+      "kind": "math",
+      "x": 40,
+      "y": 18752,
+      "src": "A_sh2 := k_sh*s_v*b_c2 = cm^2"
+    },
+    {
+      "id": "r316",
+      "kind": "text",
+      "x": 40,
+      "y": 18800,
+      "src": "(f) segunda mitad: la rama del estribo no puede exceder 2b_c, y los estribos"
+    },
+    {
+      "id": "r317",
+      "kind": "text",
+      "x": 40,
+      "y": 18848,
+      "src": "adyacentes tienen que traslaparse, salvo que se cumpla (i) o (ii)."
+    },
+    {
+      "id": "r318",
+      "kind": "math",
+      "x": 40,
+      "y": 18896,
+      "src": "rama_max := 2*b_c2 = cm"
+    },
+    {
+      "id": "r319",
+      "kind": "text",
+      "x": 40,
+      "y": 18944,
+      "src": "(i) pide b ≥ √(c·ℓ_w/40) Y δ_u/h_wcs < 0,012. Falla por los dos lados:"
+    },
+    {
+      "id": "v045",
+      "kind": "math",
+      "x": 40,
+      "y": 18992,
+      "src": "b_w < b_ii ="
+    },
+    {
+      "id": "v046",
+      "kind": "math",
+      "x": 40,
+      "y": 19040,
+      "src": "der_u >= 0.012 ="
+    },
+    {
+      "id": "r320",
+      "kind": "text",
+      "x": 40,
+      "y": 19088,
+      "src": "(ii) pide un ala dentro de c con ancho ≥ 2b_w: muro rectangular, no aplica."
+    },
+    {
+      "id": "r321",
+      "kind": "math",
+      "x": 40,
+      "y": 19136,
+      "src": "tras_min := min(150 mm, 2/3*b_w) = mm"
+    },
+    {
+      "id": "r322",
+      "kind": "math",
+      "x": 40,
+      "y": 19184,
+      "src": "n_est := 3"
+    },
+    {
+      "id": "r323",
+      "kind": "math",
+      "x": 40,
+      "y": 19232,
+      "src": "rama_est := (b_c1 + (n_est - 1)*tras_min)/n_est = cm"
+    },
+    {
+      "id": "v047",
+      "kind": "math",
+      "x": 40,
+      "y": 19280,
+      "src": "rama_est <= rama_max ="
+    },
+    {
+      "id": "r324",
+      "kind": "text",
+      "x": 40,
+      "y": 19328,
+      "src": "Un estribo perimetral único tendría una rama de b_c1, muy por encima del tope:"
+    },
+    {
+      "id": "v048",
+      "kind": "math",
+      "x": 40,
+      "y": 19376,
+      "src": "b_c1 > rama_max ="
+    },
+    {
+      "id": "r325",
+      "kind": "text",
+      "x": 40,
+      "y": 19424,
+      "src": "Los tres estribos dan 6 ramas; 2 barras llevan traba y el total sube a 8."
+    },
+    {
+      "id": "r326",
+      "kind": "math",
+      "x": 40,
+      "y": 19472,
+      "src": "A_e := pi*d_e^2/4 = cm^2"
+    },
+    {
+      "id": "r327",
+      "kind": "math",
+      "x": 40,
+      "y": 19520,
+      "src": "n_ramas := 8"
+    },
+    {
+      "id": "r328",
+      "kind": "math",
+      "x": 40,
+      "y": 19568,
+      "src": "A_sh1_prov := n_ramas*A_e = cm^2"
+    },
+    {
+      "id": "r329",
+      "kind": "math",
+      "x": 40,
+      "y": 19616,
+      "src": "A_sh2_prov := 2*A_e = cm^2"
+    },
+    {
+      "id": "v049",
+      "kind": "math",
+      "x": 40,
+      "y": 19664,
+      "src": "A_sh1_prov >= A_sh1 ="
+    },
+    {
+      "id": "v050",
+      "kind": "math",
+      "x": 40,
+      "y": 19712,
+      "src": "A_sh2_prov >= A_sh2 ="
+    },
+    {
+      "id": "r330",
+      "kind": "math",
+      "x": 40,
+      "y": 19760,
+      "src": "u_Ash := A_sh1/A_sh1_prov ="
+    },
+    {
+      "id": "r331",
+      "kind": "text",
+      "x": 40,
+      "y": 19840,
+      "src": "━━ 17 · ANCLAJE EN LA FUNDACIÓN (18.10.2.3b · Tabla 25.4.2.3) ━━"
+    },
+    {
+      "id": "r332",
+      "kind": "text",
+      "x": 40,
+      "y": 19888,
+      "src": "18.10.2.3(b): donde se espera fluencia, la barra desarrolla 1,25f_y en el Cap. 25."
+    },
+    {
+      "id": "r333",
+      "kind": "math",
+      "x": 40,
+      "y": 19936,
+      "src": "k_125 := 1.25"
+    },
+    {
+      "id": "r334",
+      "kind": "text",
+      "x": 40,
+      "y": 19984,
+      "src": "Tabla 25.4.2.3: la fila holgada pide sep. libre ≥ 2d_b y recubrimiento ≥ d_b."
+    },
+    {
+      "id": "r335",
+      "kind": "math",
+      "x": 40,
+      "y": 20032,
+      "src": "sep_libre := s_be - d_b = mm"
+    },
+    {
+      "id": "v051",
+      "kind": "math",
+      "x": 40,
+      "y": 20080,
+      "src": "sep_libre >= 2*d_b ="
+    },
+    {
+      "id": "v052",
+      "kind": "math",
+      "x": 40,
+      "y": 20128,
+      "src": "rec >= d_b ="
+    },
+    {
+      "id": "r336",
+      "kind": "text",
+      "x": 40,
+      "y": 20176,
+      "src": "Columna «No. 22 y mayores»: el denominador es 1,7, no el 2,1. Una φ28 es No. 29."
+    },
+    {
+      "id": "r337",
+      "kind": "math",
+      "x": 40,
+      "y": 20224,
+      "src": "psi_t := 1.0"
+    },
+    {
+      "id": "r338",
+      "kind": "math",
+      "x": 40,
+      "y": 20272,
+      "src": "psi_e := 1.0"
+    },
+    {
+      "id": "r339",
+      "kind": "math",
+      "x": 40,
+      "y": 20320,
+      "src": "psi_g := 1.0"
+    },
+    {
+      "id": "r340",
+      "kind": "math",
+      "x": 40,
+      "y": 20368,
+      "src": "rfcM := sqrt(f_cM/(1 MPa))*MPa = MPa"
+    },
+    {
+      "id": "r341",
+      "kind": "math",
+      "x": 40,
+      "y": 20416,
+      "src": "f_yMPa := f_y = MPa"
+    },
+    {
+      "id": "r342",
+      "kind": "math",
+      "x": 40,
+      "y": 20464,
+      "src": "l_d := f_yMPa*psi_t*psi_e*psi_g/(1.7*lambda_h*rfcM)*d_b = cm"
+    },
+    {
+      "id": "r343",
+      "kind": "math",
+      "x": 40,
+      "y": 20512,
+      "src": "l_d125 := k_125*l_d = cm"
+    },
+    {
+      "id": "r344",
+      "kind": "text",
+      "x": 40,
+      "y": 20560,
+      "src": "Con el coeficiente equivocado (2,1) saldría, y es un 19 % de anclaje de menos:"
+    },
+    {
+      "id": "r345",
+      "kind": "math",
+      "x": 40,
+      "y": 20608,
+      "src": "l_d125_mal := l_d125*1.7/2.1 = cm"
+    },
+    {
+      "id": "r346",
+      "kind": "text",
+      "x": 40,
+      "y": 20672,
+      "src": "━━ 18 · EL ESPESOR COMO VARIABLE (b = 25 … 45 cm) ━━",
+      "pageBreak": true
+    },
+    {
+      "id": "r347",
+      "kind": "text",
+      "x": 40,
+      "y": 20720,
+      "src": "Todo se recalcula para cinco espesores con la MISMA armadura: cambian A_cv, ρ_t,"
+    },
+    {
+      "id": "r348",
+      "kind": "text",
+      "x": 40,
+      "y": 20768,
+      "src": "c, φM_n, φV_n y la capacidad de deriva."
+    },
+    {
+      "id": "r349",
+      "kind": "text",
+      "x": 40,
+      "y": 20816,
+      "src": "Columnas: b(cm) · c(cm) · φM_n de la comb. B · φV_n · δ_c/h_wcs bruto."
+    },
+    {
+      "id": "r350",
+      "kind": "program",
+      "x": 40,
+      "y": 20864,
+      "src": "tabla_b :=\n    acc := [[0, 0, 0, 0, 0]]\n    for j in 1:5\n        b := (20 + 5*j)*1 cm\n        cA := c_de_Pn(P_uA, b)\n        cB := c_de_Pn(P_uB, b)\n        MdB := min(phi_tab(cB), phi_lim(P_uB, b))*M_n(cB, b)\n        rt := n_cort*A_bw/(b*s_wh)\n        RdV := phi_v*(k_ac*lambda_h*rfck + rt*f_yt)*(l_w*b)\n        dcb := (4 - (l_w/b)*(cA/b)/50 - V_e/(alpha_sh*k_t1*rfck*l_w*b))/100\n        fila := [[b/(1 cm), cA/(1 cm), MdB/(1 tonf*m), RdV/(1 tonf), dcb]]\n        acc := concat(acc, fila, 1)\n    return acc[2:end, 1:5]"
+    },
+    {
+      "id": "r351",
+      "kind": "text",
+      "x": 40,
+      "y": 21136,
+      "src": "La fila 2 de la tabla tiene que reproducir el muro adoptado de 30 cm:"
+    },
+    {
+      "id": "v053",
+      "kind": "math",
+      "x": 40,
+      "y": 21184,
+      "src": "abs(tabla_b[2,2]*1 cm - c_be) < 0.01 cm ="
+    },
+    {
+      "id": "v054",
+      "kind": "math",
+      "x": 40,
+      "y": 21232,
+      "src": "abs(tabla_b[2,3]*1 tonf*m - Rd_MB) < 0.01 tonf*m ="
+    },
+    {
+      "id": "v055",
+      "kind": "math",
+      "x": 40,
+      "y": 21280,
+      "src": "abs(tabla_b[2,5] - der_c_bruto) < 0.000001 ="
+    },
+    {
+      "id": "r352",
+      "kind": "text",
+      "x": 40,
+      "y": 21328,
+      "src": "El muro de 25 cm, que es el que hace hablar al ejemplo:"
+    },
+    {
+      "id": "r353",
+      "kind": "math",
+      "x": 40,
+      "y": 21376,
+      "src": "c_25 := tabla_b[1,2]*1 cm = cm"
+    },
+    {
+      "id": "r354",
+      "kind": "math",
+      "x": 40,
+      "y": 21424,
+      "src": "Rd_MB25 := tabla_b[1,3]*1 tonf*m = tonf*m"
+    },
+    {
+      "id": "r355",
+      "kind": "math",
+      "x": 40,
+      "y": 21472,
+      "src": "u_flex25 := M_u/Rd_MB25 ="
+    },
+    {
+      "id": "r356",
+      "kind": "math",
+      "x": 40,
+      "y": 21520,
+      "src": "Rd_V25 := tabla_b[1,4]*1 tonf = tonf"
+    },
+    {
+      "id": "r357",
+      "kind": "math",
+      "x": 40,
+      "y": 21568,
+      "src": "u_V25 := V_e/Rd_V25 ="
+    },
+    {
+      "id": "r358",
+      "kind": "math",
+      "x": 40,
+      "y": 21616,
+      "src": "der_c25_bruto := tabla_b[1,5] ="
+    },
+    {
+      "id": "r359",
+      "kind": "math",
+      "x": 40,
+      "y": 21664,
+      "src": "der_c25 := max(der_c25_bruto, 0.015) ="
+    },
+    {
+      "id": "r360",
+      "kind": "math",
+      "x": 40,
+      "y": 21712,
+      "src": "u_der25 := der_dem/der_c25 ="
+    },
+    {
+      "id": "r361",
+      "kind": "text",
+      "x": 40,
+      "y": 21760,
+      "src": "Las dos resistencias pasan con 25 cm, y el muro igual se rechaza:"
+    },
+    {
+      "id": "v056",
+      "kind": "math",
+      "x": 40,
+      "y": 21808,
+      "src": "u_flex25 <= 1 and u_V25 <= 1 ="
+    },
+    {
+      "id": "v057",
+      "kind": "math",
+      "x": 40,
+      "y": 21856,
+      "src": "u_der25 > 1 ="
+    },
+    {
+      "id": "r362",
+      "kind": "text",
+      "x": 40,
+      "y": 21904,
+      "src": "Y no lo salva ningún mínimo de ACI: 18.10.6.4(b) se cumple justo y el (c) no aplica."
+    },
+    {
+      "id": "v058",
+      "kind": "math",
+      "x": 40,
+      "y": 21952,
+      "src": "25 cm >= b_req_b ="
+    },
+    {
+      "id": "r363",
+      "kind": "math",
+      "x": 40,
+      "y": 22000,
+      "src": "rel_cl25 := c_25/l_w ="
+    },
+    {
+      "id": "v059",
+      "kind": "math",
+      "x": 40,
+      "y": 22048,
+      "src": "rel_cl25 < 3/8 ="
+    },
+    {
+      "id": "r364",
+      "kind": "text",
+      "x": 40,
+      "y": 22096,
+      "src": "Sin el piso de 0,015 el uso sería:"
+    },
+    {
+      "id": "r365",
+      "kind": "math",
+      "x": 40,
+      "y": 22144,
+      "src": "u_der25_bruto := der_dem/der_c25_bruto ="
+    },
+    {
+      "id": "r366",
+      "kind": "text",
+      "x": 40,
+      "y": 22192,
+      "src": "La aritmética de los 5 cm: lo que compra el espesor no es resistencia."
+    },
+    {
+      "id": "r367",
+      "kind": "math",
+      "x": 40,
+      "y": 22240,
+      "src": "salto_M := Rd_MB/Rd_MB25 - 1 ="
+    },
+    {
+      "id": "r368",
+      "kind": "math",
+      "x": 40,
+      "y": 22288,
+      "src": "salto_der := der_c_bruto/der_c25_bruto - 1 ="
+    },
+    {
+      "id": "v060",
+      "kind": "math",
+      "x": 40,
+      "y": 22336,
+      "src": "salto_der > 10*salto_M ="
+    },
+    {
+      "id": "r369",
+      "kind": "text",
+      "x": 40,
+      "y": 22384,
+      "src": "Y la parte del salto que NO es brazo de palanca: al engrosar, el axial relativo"
+    },
+    {
+      "id": "r370",
+      "kind": "text",
+      "x": 40,
+      "y": 22432,
+      "src": "baja bajo 0,1f'c·A_g y 21.2.2.3 deja de morder, así que φ también se recupera."
+    },
+    {
+      "id": "r371",
+      "kind": "program",
+      "x": 40,
+      "y": 22480,
+      "src": "M_nB_f(b) := M_n(c_de_Pn(P_uB, b), b)"
+    },
+    {
+      "id": "r372",
+      "kind": "math",
+      "x": 40,
+      "y": 22512,
+      "src": "M_nB25 := M_nB_f(25 cm) = tonf*m"
+    },
+    {
+      "id": "r373",
+      "kind": "math",
+      "x": 40,
+      "y": 22560,
+      "src": "salto_Mn := M_nB/M_nB25 - 1 ="
+    },
+    {
+      "id": "v061",
+      "kind": "math",
+      "x": 40,
+      "y": 22608,
+      "src": "salto_M > salto_Mn ="
+    },
+    {
+      "id": "r374",
+      "kind": "text",
+      "x": 40,
+      "y": 22656,
+      "src": "Las otras tres filas de la tabla:"
+    },
+    {
+      "id": "r375",
+      "kind": "math",
+      "x": 40,
+      "y": 22704,
+      "src": "c_35 := tabla_b[3,2]*1 cm = cm"
+    },
+    {
+      "id": "r376",
+      "kind": "math",
+      "x": 40,
+      "y": 22752,
+      "src": "Rd_MB35 := tabla_b[3,3]*1 tonf*m = tonf*m"
+    },
+    {
+      "id": "r377",
+      "kind": "math",
+      "x": 40,
+      "y": 22800,
+      "src": "Rd_V35 := tabla_b[3,4]*1 tonf = tonf"
+    },
+    {
+      "id": "r378",
+      "kind": "math",
+      "x": 40,
+      "y": 22848,
+      "src": "der_c35 := tabla_b[3,5] ="
+    },
+    {
+      "id": "r379",
+      "kind": "math",
+      "x": 40,
+      "y": 22896,
+      "src": "c_40 := tabla_b[4,2]*1 cm = cm"
+    },
+    {
+      "id": "r380",
+      "kind": "math",
+      "x": 40,
+      "y": 22944,
+      "src": "Rd_MB40 := tabla_b[4,3]*1 tonf*m = tonf*m"
+    },
+    {
+      "id": "r381",
+      "kind": "math",
+      "x": 40,
+      "y": 22992,
+      "src": "Rd_V40 := tabla_b[4,4]*1 tonf = tonf"
+    },
+    {
+      "id": "r382",
+      "kind": "math",
+      "x": 40,
+      "y": 23040,
+      "src": "der_c40 := tabla_b[4,5] ="
+    },
+    {
+      "id": "r383",
+      "kind": "math",
+      "x": 40,
+      "y": 23088,
+      "src": "c_45 := tabla_b[5,2]*1 cm = cm"
+    },
+    {
+      "id": "r384",
+      "kind": "math",
+      "x": 40,
+      "y": 23136,
+      "src": "Rd_MB45 := tabla_b[5,3]*1 tonf*m = tonf*m"
+    },
+    {
+      "id": "r385",
+      "kind": "math",
+      "x": 40,
+      "y": 23184,
+      "src": "Rd_V45 := tabla_b[5,4]*1 tonf = tonf"
+    },
+    {
+      "id": "r386",
+      "kind": "math",
+      "x": 40,
+      "y": 23232,
+      "src": "der_c45 := tabla_b[5,5] ="
+    },
+    {
+      "id": "r387",
+      "kind": "text",
+      "x": 40,
+      "y": 23296,
+      "src": "━━ 19 · LAS OTRAS DOS PALANCAS: DERIVA Y AXIAL ━━"
+    },
+    {
+      "id": "r388",
+      "kind": "text",
+      "x": 40,
+      "y": 23344,
+      "src": "Muro de 30 cm. La deriva mueve el umbral de (a) y la demanda, pero no c."
+    },
+    {
+      "id": "r389",
+      "kind": "program",
+      "x": 40,
+      "y": 23392,
+      "src": "umbral_de_der(der) := l_w/(600*1.5*der)"
+    },
+    {
+      "id": "r390",
+      "kind": "program",
+      "x": 40,
+      "y": 23424,
+      "src": "u_der_de(der) := 1.5*der/der_c"
+    },
+    {
+      "id": "r391",
+      "kind": "math",
+      "x": 40,
+      "y": 23456,
+      "src": "umb_005 := umbral_de_der(0.005) = cm"
+    },
+    {
+      "id": "r392",
+      "kind": "math",
+      "x": 40,
+      "y": 23504,
+      "src": "u_der_005 := u_der_de(0.005) ="
+    },
+    {
+      "id": "r393",
+      "kind": "math",
+      "x": 40,
+      "y": 23552,
+      "src": "umb_008 := umbral_de_der(0.008) = cm"
+    },
+    {
+      "id": "r394",
+      "kind": "math",
+      "x": 40,
+      "y": 23600,
+      "src": "u_der_008 := u_der_de(0.008) ="
+    },
+    {
+      "id": "r395",
+      "kind": "math",
+      "x": 40,
+      "y": 23648,
+      "src": "umb_015 := umbral_de_der(0.015) = cm"
+    },
+    {
+      "id": "r396",
+      "kind": "math",
+      "x": 40,
+      "y": 23696,
+      "src": "u_der_015 := u_der_de(0.015) ="
+    },
+    {
+      "id": "r397",
+      "kind": "text",
+      "x": 40,
+      "y": 23744,
+      "src": "NCh2369 6.3 admite hasta 0,015h: en el límite de la norma este muro no cumple."
+    },
+    {
+      "id": "v062",
+      "kind": "math",
+      "x": 40,
+      "y": 23792,
+      "src": "u_der_015 > 1 ="
+    },
+    {
+      "id": "r398",
+      "kind": "text",
+      "x": 40,
+      "y": 23840,
+      "src": "El axial sí mueve c. Cuatro niveles, del 50 % al 125 % del de la comb. A:"
+    },
+    {
+      "id": "r399",
+      "kind": "program",
+      "x": 40,
+      "y": 23888,
+      "src": "tabla_P :=\n    acc := [[0, 0, 0]]\n    for j in 1:4\n        Pu := (0.25 + 0.25*j)*P_uA\n        cj := c_de_Pn(Pu, b_w)\n        dcj := (4 - (l_w/b_w)*(cj/b_w)/50 - niv_corte)/100\n        acc := concat(acc, [[Pu/(A_g*f_c), cj/(1 cm), der_dem/max(dcj, 0.015)]], 1)\n    return acc[2:end, 1:3]"
+    },
+    {
+      "id": "r400",
+      "kind": "math",
+      "x": 40,
+      "y": 24064,
+      "src": "niv_050 := tabla_P[1,1] ="
+    },
+    {
+      "id": "r401",
+      "kind": "math",
+      "x": 40,
+      "y": 24112,
+      "src": "c_050 := tabla_P[1,2]*1 cm = cm"
+    },
+    {
+      "id": "r402",
+      "kind": "math",
+      "x": 40,
+      "y": 24160,
+      "src": "u_der_050 := tabla_P[1,3] ="
+    },
+    {
+      "id": "r403",
+      "kind": "math",
+      "x": 40,
+      "y": 24208,
+      "src": "niv_075 := tabla_P[2,1] ="
+    },
+    {
+      "id": "r404",
+      "kind": "math",
+      "x": 40,
+      "y": 24256,
+      "src": "c_075 := tabla_P[2,2]*1 cm = cm"
+    },
+    {
+      "id": "r405",
+      "kind": "math",
+      "x": 40,
+      "y": 24304,
+      "src": "u_der_075 := tabla_P[2,3] ="
+    },
+    {
+      "id": "r406",
+      "kind": "math",
+      "x": 40,
+      "y": 24352,
+      "src": "niv_125 := tabla_P[4,1] ="
+    },
+    {
+      "id": "r407",
+      "kind": "math",
+      "x": 40,
+      "y": 24400,
+      "src": "c_125 := tabla_P[4,2]*1 cm = cm"
+    },
+    {
+      "id": "r408",
+      "kind": "math",
+      "x": 40,
+      "y": 24448,
+      "src": "u_der_125 := tabla_P[4,3] ="
+    },
+    {
+      "id": "r409",
+      "kind": "text",
+      "x": 40,
+      "y": 24496,
+      "src": "La fila 3 tiene que reproducir la combinación A del muro adoptado:"
+    },
+    {
+      "id": "v063",
+      "kind": "math",
+      "x": 40,
+      "y": 24544,
+      "src": "abs(tabla_P[3,2]*1 cm - c_be) < 0.01 cm ="
+    },
+    {
+      "id": "r410",
+      "kind": "text",
+      "x": 40,
+      "y": 24592,
+      "src": "Un 25 % más de carga gravitacional y el muro de 30 cm tampoco cumple:"
+    },
+    {
+      "id": "v064",
+      "kind": "math",
+      "x": 40,
+      "y": 24640,
+      "src": "u_der_125 > 1 ="
+    },
+    {
+      "id": "r411",
+      "kind": "text",
+      "x": 40,
+      "y": 24704,
+      "src": "━━ 20 · QUÉ GOBIERNA ━━"
+    },
+    {
+      "id": "r412",
+      "kind": "math",
+      "x": 40,
+      "y": 24752,
+      "src": "u_max := max(u_A, u_B, u_V, u_der, u_Ash) ="
+    },
+    {
+      "id": "r413",
+      "kind": "program",
+      "x": 40,
+      "y": 24800,
+      "src": "gobierna :=\n    if u_max == u_B\n        return \"flexocompresión comb. B (0,9D+E), axial mínimo\"\n    else if u_max == u_der\n        return \"capacidad de deriva, Ec. (18.10.6.2b)\"\n    else if u_max == u_V\n        return \"corte en el plano, 18.10.4.1\"\n    else if u_max == u_A\n        return \"flexocompresión comb. A (1,2D+aL+E), axial máximo\"\n    else\n        return \"confinamiento del borde, Tabla 18.10.6.4(g)\""
+    },
+    {
+      "id": "v065",
+      "kind": "math",
+      "x": 40,
+      "y": 25024,
+      "src": "u_max <= 1 ="
+    },
+    {
+      "id": "r414",
+      "kind": "text",
+      "x": 40,
+      "y": 25072,
+      "src": "Pero el que dimensiona el ESPESOR es otro: al bajar a 25 cm sólo falla la deriva."
+    },
+    {
+      "id": "v066",
+      "kind": "math",
+      "x": 40,
+      "y": 25120,
+      "src": "u_der25 > max(u_flex25, u_V25) ="
+    },
+    {
+      "id": "r415",
+      "kind": "text",
+      "x": 40,
+      "y": 25184,
+      "src": "━━ 21 · EL DIAGRAMA ━━"
+    },
+    {
+      "id": "r416",
+      "kind": "text",
+      "x": 40,
+      "y": 25232,
+      "src": "El mapeo a píxeles lo hace la hoja, no el motor: así la escala y el sentido de"
+    },
+    {
+      "id": "r417",
+      "kind": "text",
+      "x": 40,
+      "y": 25280,
+      "src": "los ejes quedan a la vista. Origen en (x_0, y_0), el eje P hacia arriba."
+    },
+    {
+      "id": "r418",
+      "kind": "math",
+      "x": 40,
+      "y": 25328,
+      "src": "n_pasos := 110"
+    },
+    {
+      "id": "r419",
+      "kind": "math",
+      "x": 40,
+      "y": 25376,
+      "src": "c_fin := 1.2*l_w"
+    },
+    {
+      "id": "r420",
+      "kind": "program",
+      "x": 40,
+      "y": 25424,
+      "src": "curva :=\n    acc := [[0, 0]]\n    for i in 0:n_pasos\n        c := c_0 + (c_fin - c_0)*i/n_pasos\n        ph := phi_c(c, b_w)\n        Pd := ph*P_n(c, b_w)\n        Md := ph*M_n(c, b_w)\n        if Pd > Rd_P\n            break\n        acc := concat(acc, [[Md/(1 tonf*m), Pd/(1 tonf)]], 1)\n    acc := concat(acc, [[0, Rd_P/(1 tonf)]], 1)\n    return acc[2:end, 1:2]"
+    },
+    {
+      "id": "r421",
+      "kind": "math",
+      "x": 40,
+      "y": 25680,
+      "src": "n_curva := size(curva)[1]"
+    },
+    {
+      "id": "r422",
+      "kind": "text",
+      "x": 40,
+      "y": 25728,
+      "src": "Los dos extremos se contrastan contra las anclas calculadas aparte: si no"
+    },
+    {
+      "id": "r423",
+      "kind": "text",
+      "x": 40,
+      "y": 25776,
+      "src": "coinciden, el barrido corre al revés o la escala está mal."
+    },
+    {
+      "id": "v067",
+      "kind": "math",
+      "x": 40,
+      "y": 25824,
+      "src": "abs(curva[1,1]*1 tonf*m - Rd_M0) < 0.01 tonf*m ="
+    },
+    {
+      "id": "v068",
+      "kind": "math",
+      "x": 40,
+      "y": 25872,
+      "src": "abs(curva[1,2]) < 0.01 ="
+    },
+    {
+      "id": "v069",
+      "kind": "math",
+      "x": 40,
+      "y": 25920,
+      "src": "abs(curva[n_curva,2]*1 tonf - Rd_P) < 0.01 tonf ="
+    },
+    {
+      "id": "r424",
+      "kind": "text",
+      "x": 40,
+      "y": 25968,
+      "src": "Y φP_n tiene que subir monótono: es lo que autoriza la bisección."
+    },
+    {
+      "id": "r425",
+      "kind": "program",
+      "x": 40,
+      "y": 26016,
+      "src": "sube :=\n    ok := 1\n    for i in 2:(n_curva - 1)\n        if curva[i,2] < curva[i-1,2]\n            ok := 0\n    return ok"
+    },
+    {
+      "id": "v070",
+      "kind": "math",
+      "x": 40,
+      "y": 26144,
+      "src": "sube == 1 ="
+    },
+    {
+      "id": "r426",
+      "kind": "math",
+      "x": 40,
+      "y": 26192,
+      "src": "x_0 := 78"
+    },
+    {
+      "id": "r427",
+      "kind": "math",
+      "x": 40,
+      "y": 26240,
+      "src": "y_0 := 352"
+    },
+    {
+      "id": "r428",
+      "kind": "math",
+      "x": 40,
+      "y": 26288,
+      "src": "M_esc := 4000 tonf*m"
+    },
+    {
+      "id": "r429",
+      "kind": "math",
+      "x": 40,
+      "y": 26336,
+      "src": "P_esc := 2600 tonf"
+    },
+    {
+      "id": "r430",
+      "kind": "math",
+      "x": 40,
+      "y": 26384,
+      "src": "w_dib := 372"
+    },
+    {
+      "id": "r431",
+      "kind": "math",
+      "x": 40,
+      "y": 26432,
+      "src": "h_dib := 286"
+    },
+    {
+      "id": "r432",
+      "kind": "math",
+      "x": 40,
+      "y": 26480,
+      "src": "s_M := w_dib/(M_esc/(1 tonf*m))"
+    },
+    {
+      "id": "r433",
+      "kind": "math",
+      "x": 40,
+      "y": 26528,
+      "src": "s_P := h_dib/(P_esc/(1 tonf))"
+    },
+    {
+      "id": "r434",
+      "kind": "program",
+      "x": 40,
+      "y": 26576,
+      "src": "x_px(Md) := x_0 + Md/(1 tonf*m)*s_M"
+    },
+    {
+      "id": "r435",
+      "kind": "program",
+      "x": 40,
+      "y": 26608,
+      "src": "y_px(Pd) := y_0 - Pd/(1 tonf)*s_P"
+    },
+    {
+      "id": "r436",
+      "kind": "program",
+      "x": 40,
+      "y": 26640,
+      "src": "curva_px :=\n    acc := [[0, 0]]\n    for i in 1:n_curva\n        acc := concat(acc, [[x_0 + curva[i,1]*s_M, y_0 - curva[i,2]*s_P]], 1)\n    return acc[2:end, 1:2]"
+    },
+    {
+      "id": "r437",
+      "kind": "text",
+      "x": 40,
+      "y": 26752,
+      "src": "Las anclas y las dos combinaciones, en píxeles."
+    },
+    {
+      "id": "r438",
+      "kind": "math",
+      "x": 40,
+      "y": 26800,
+      "src": "xa_1 := x_px(0 tonf*m)"
+    },
+    {
+      "id": "r439",
+      "kind": "math",
+      "x": 40,
+      "y": 26848,
+      "src": "ya_1 := y_px(Rd_P)"
+    },
+    {
+      "id": "r440",
+      "kind": "math",
+      "x": 40,
+      "y": 26896,
+      "src": "xa_3 := x_px(Rd_M0)"
+    },
+    {
+      "id": "r441",
+      "kind": "math",
+      "x": 40,
+      "y": 26944,
+      "src": "ya_3 := y_px(0 tonf)"
+    },
+    {
+      "id": "r442",
+      "kind": "math",
+      "x": 40,
+      "y": 26992,
+      "src": "xc_A := x_px(M_u)"
+    },
+    {
+      "id": "r443",
+      "kind": "math",
+      "x": 40,
+      "y": 27040,
+      "src": "yc_A := y_px(P_uA)"
+    },
+    {
+      "id": "r444",
+      "kind": "math",
+      "x": 40,
+      "y": 27088,
+      "src": "xc_B := x_px(M_u)"
+    },
+    {
+      "id": "r445",
+      "kind": "math",
+      "x": 40,
+      "y": 27136,
+      "src": "yc_B := y_px(P_uB)"
+    },
+    {
+      "id": "r446",
+      "kind": "text",
+      "x": 40,
+      "y": 27184,
+      "src": "Y los dos segmentos que miden la distancia de cada combinación a la frontera."
+    },
+    {
+      "id": "r447",
+      "kind": "math",
+      "x": 40,
+      "y": 27232,
+      "src": "xf_A := x_px(Rd_MA)"
+    },
+    {
+      "id": "r448",
+      "kind": "math",
+      "x": 40,
+      "y": 27280,
+      "src": "xf_B := x_px(Rd_MB)"
+    },
+    {
+      "id": "r449",
+      "kind": "math",
+      "x": 40,
+      "y": 27328,
+      "src": "y_lo := y_px(P_lo)"
+    },
+    {
+      "id": "r450",
+      "kind": "math",
+      "x": 40,
+      "y": 27376,
+      "src": "xa_2 := x_px(Rd_Mb)"
+    },
+    {
+      "id": "r451",
+      "kind": "math",
+      "x": 40,
+      "y": 27424,
+      "src": "ya_2 := y_px(Rd_Pb)"
+    },
+    {
+      "id": "r452",
+      "kind": "text",
+      "x": 40,
+      "y": 27472,
+      "src": "Y las dos plantas de la sección, con la zona comprimida a escala del muro."
+    },
+    {
+      "id": "r453",
+      "kind": "math",
+      "x": 40,
+      "y": 27520,
+      "src": "x_sec := 474"
+    },
+    {
+      "id": "r454",
+      "kind": "math",
+      "x": 40,
+      "y": 27568,
+      "src": "w_sec := 196"
+    },
+    {
+      "id": "r455",
+      "kind": "math",
+      "x": 40,
+      "y": 27616,
+      "src": "wc_A := c_A/l_w*w_sec"
+    },
+    {
+      "id": "r456",
+      "kind": "math",
+      "x": 40,
+      "y": 27664,
+      "src": "wc_B := c_B/l_w*w_sec"
+    },
+    {
+      "id": "r457",
+      "kind": "math",
+      "x": 40,
+      "y": 27712,
+      "src": "w_be := l_be/l_w*w_sec"
+    },
+    {
+      "id": "r458",
+      "kind": "image",
+      "x": 40,
+      "y": 27760,
+      "src": "/esquemas/muro-flexocompresion.svg",
+      "w": 640,
+      "h": 436
+    },
+    {
+      "id": "r459",
+      "kind": "text",
+      "x": 40,
+      "y": 28240,
+      "src": "━━ CONTRASTE CON EL POST ━━",
+      "pageBreak": true
+    },
+    {
+      "id": "r460",
+      "kind": "text",
+      "x": 40,
+      "y": 28288,
+      "src": "Tolerancia: media unidad del último dígito publicado."
+    },
+    {
+      "id": "c_rhol",
+      "kind": "math",
+      "x": 40,
+      "y": 28336,
+      "src": "abs(rho_l - 0.00377) < 0.000005 ="
+    },
+    {
+      "id": "c_rhot",
+      "kind": "math",
+      "x": 40,
+      "y": 28384,
+      "src": "abs(rho_t - 0.00503) < 0.000005 ="
+    },
+    {
+      "id": "c_V2c",
+      "kind": "math",
+      "x": 40,
+      "y": 28432,
+      "src": "abs(V_2cort - 141 tonf) < 0.5 tonf ="
+    },
+    {
+      "id": "c_rhomin",
+      "kind": "math",
+      "x": 40,
+      "y": 28480,
+      "src": "abs(rho_min_ext - 0.00658) < 0.000005 ="
+    },
+    {
+      "id": "c_Asmin",
+      "kind": "math",
+      "x": 40,
+      "y": 28528,
+      "src": "abs(As_min_ext - 14.8 cm^2) < 0.05 cm^2 ="
+    },
+    {
+      "id": "c_Asfr",
+      "kind": "math",
+      "x": 40,
+      "y": 28576,
+      "src": "abs(As_franja - 73.9 cm^2) < 0.05 cm^2 ="
+    },
+    {
+      "id": "c_hext3",
+      "kind": "math",
+      "x": 40,
+      "y": 28624,
+      "src": "abs(h_ext_1024 - 5.00 m) < 0.005 m ="
+    },
+    {
+      "id": "c_relhl",
+      "kind": "math",
+      "x": 40,
+      "y": 28672,
+      "src": "abs(rel_hl - 4.00) < 0.005 ="
+    },
+    {
+      "id": "c_rellb",
+      "kind": "math",
+      "x": 40,
+      "y": 28720,
+      "src": "abs(rel_lb - 16.67) < 0.005 ="
+    },
+    {
+      "id": "c_beta1",
+      "kind": "math",
+      "x": 40,
+      "y": 28768,
+      "src": "abs(beta_1 - 0.840) < 0.0005 ="
+    },
+    {
+      "id": "c_nivax",
+      "kind": "math",
+      "x": 40,
+      "y": 28816,
+      "src": "abs(niv_ax - 0.137) < 0.0005 ="
+    },
+    {
+      "id": "c_PuA",
+      "kind": "math",
+      "x": 40,
+      "y": 28864,
+      "src": "abs(P_uA - 616.0 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_PuB",
+      "kind": "math",
+      "x": 40,
+      "y": 28912,
+      "src": "abs(P_uB - 432.0 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_cA",
+      "kind": "math",
+      "x": 40,
+      "y": 28960,
+      "src": "abs(c_A - 128.9 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_epstA",
+      "kind": "math",
+      "x": 40,
+      "y": 29008,
+      "src": "abs(eps_tA - 0.0085) < 0.00005 ="
+    },
+    {
+      "id": "c_phiA",
+      "kind": "math",
+      "x": 40,
+      "y": 29056,
+      "src": "abs(phi_A - 0.873) < 0.0005 ="
+    },
+    {
+      "id": "c_RdMA",
+      "kind": "math",
+      "x": 40,
+      "y": 29104,
+      "src": "abs(Rd_MA - 2730 tonf*m) < 0.5 tonf*m ="
+    },
+    {
+      "id": "c_uA",
+      "kind": "math",
+      "x": 40,
+      "y": 29152,
+      "src": "abs(u_A - 0.89) < 0.005 ="
+    },
+    {
+      "id": "c_cB",
+      "kind": "math",
+      "x": 40,
+      "y": 29200,
+      "src": "abs(c_B - 108.1 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_epstB",
+      "kind": "math",
+      "x": 40,
+      "y": 29248,
+      "src": "abs(eps_tB - 0.0107) < 0.00005 ="
+    },
+    {
+      "id": "c_RdMB",
+      "kind": "math",
+      "x": 40,
+      "y": 29296,
+      "src": "abs(Rd_MB - 2565 tonf*m) < 0.5 tonf*m ="
+    },
+    {
+      "id": "c_uB",
+      "kind": "math",
+      "x": 40,
+      "y": 29344,
+      "src": "abs(u_B - 0.95) < 0.005 ="
+    },
+    {
+      "id": "c_MnA",
+      "kind": "math",
+      "x": 40,
+      "y": 29392,
+      "src": "abs(M_nA - 3128 tonf*m) < 0.5 tonf*m ="
+    },
+    {
+      "id": "c_hn",
+      "kind": "math",
+      "x": 40,
+      "y": 29440,
+      "src": "abs(h_n - 65.62 ft) < 0.005 ft ="
+    },
+    {
+      "id": "c_wv",
+      "kind": "math",
+      "x": 40,
+      "y": 29488,
+      "src": "abs(omega_v - 1.163) < 0.0005 ="
+    },
+    {
+      "id": "c_Ve",
+      "kind": "math",
+      "x": 40,
+      "y": 29536,
+      "src": "abs(V_e - 314.0 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_fampl",
+      "kind": "math",
+      "x": 40,
+      "y": 29584,
+      "src": "abs(f_ampl - 1.745) < 0.0005 ="
+    },
+    {
+      "id": "c_wvm",
+      "kind": "math",
+      "x": 40,
+      "y": 29632,
+      "src": "abs(omega_v_m - 1.04) < 0.005 ="
+    },
+    {
+      "id": "c_Vn",
+      "kind": "math",
+      "x": 40,
+      "y": 29680,
+      "src": "abs(V_n - 457.7 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_Vt1",
+      "kind": "math",
+      "x": 40,
+      "y": 29728,
+      "src": "abs(V_tope1 - 548 tonf) < 0.5 tonf ="
+    },
+    {
+      "id": "c_Vt2",
+      "kind": "math",
+      "x": 40,
+      "y": 29776,
+      "src": "abs(V_tope2 - 689 tonf) < 0.5 tonf ="
+    },
+    {
+      "id": "c_hefM",
+      "kind": "math",
+      "x": 40,
+      "y": 29824,
+      "src": "abs(h_efM - 13.50 m) < 0.005 m ="
+    },
+    {
+      "id": "c_VdeM",
+      "kind": "math",
+      "x": 40,
+      "y": 29872,
+      "src": "abs(V_deM - 232 tonf) < 0.5 tonf ="
+    },
+    {
+      "id": "c_RdV",
+      "kind": "math",
+      "x": 40,
+      "y": 29920,
+      "src": "abs(Rd_V - 343.3 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_uV",
+      "kind": "math",
+      "x": 40,
+      "y": 29968,
+      "src": "abs(u_V - 0.91) < 0.005 ="
+    },
+    {
+      "id": "c_utope",
+      "kind": "math",
+      "x": 40,
+      "y": 30016,
+      "src": "abs(u_tope - 0.57) < 0.005 ="
+    },
+    {
+      "id": "c_deru",
+      "kind": "math",
+      "x": 40,
+      "y": 30064,
+      "src": "abs(der_u - 0.0125) < 0.00005 ="
+    },
+    {
+      "id": "c_cumb",
+      "kind": "math",
+      "x": 40,
+      "y": 30112,
+      "src": "abs(c_umbral - 44.4 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_cumbp",
+      "kind": "math",
+      "x": 40,
+      "y": 30160,
+      "src": "abs(c_umbral_piso - 111 cm) < 0.5 cm ="
+    },
+    {
+      "id": "c_hexti",
+      "kind": "math",
+      "x": 40,
+      "y": 30208,
+      "src": "abs(h_ext_i - 5.00 m) < 0.005 m ="
+    },
+    {
+      "id": "c_bii",
+      "kind": "math",
+      "x": 40,
+      "y": 30256,
+      "src": "abs(b_ii - 40.1 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_uii",
+      "kind": "math",
+      "x": 40,
+      "y": 30304,
+      "src": "abs(u_ii - 1.34) < 0.005 ="
+    },
+    {
+      "id": "c_termesb",
+      "kind": "math",
+      "x": 40,
+      "y": 30352,
+      "src": "abs(term_esb - 1.432) < 0.0005 ="
+    },
+    {
+      "id": "c_nivcorte",
+      "kind": "math",
+      "x": 40,
+      "y": 30400,
+      "src": "abs(niv_corte - 0.5735) < 0.00005 ="
+    },
+    {
+      "id": "c_derc",
+      "kind": "math",
+      "x": 40,
+      "y": 30448,
+      "src": "abs(der_c - 0.01995) < 0.000005 ="
+    },
+    {
+      "id": "c_derdem",
+      "kind": "math",
+      "x": 40,
+      "y": 30496,
+      "src": "abs(der_dem - 0.01875) < 0.000005 ="
+    },
+    {
+      "id": "c_uder",
+      "kind": "math",
+      "x": 40,
+      "y": 30544,
+      "src": "abs(u_der - 0.94) < 0.005 ="
+    },
+    {
+      "id": "c_prodesb",
+      "kind": "math",
+      "x": 40,
+      "y": 30592,
+      "src": "abs(prod_esb - 71.6) < 0.05 ="
+    },
+    {
+      "id": "c_lbereq",
+      "kind": "math",
+      "x": 40,
+      "y": 30640,
+      "src": "abs(l_be_req - 78.9 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_breqb",
+      "kind": "math",
+      "x": 40,
+      "y": 30688,
+      "src": "abs(b_req_b - 25.0 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_relcl",
+      "kind": "math",
+      "x": 40,
+      "y": 30736,
+      "src": "abs(rel_cl - 0.258) < 0.0005 ="
+    },
+    {
+      "id": "c_hx",
+      "kind": "math",
+      "x": 40,
+      "y": 30784,
+      "src": "abs(h_x - 150 mm) < 0.5 mm ="
+    },
+    {
+      "id": "c_bc1",
+      "kind": "math",
+      "x": 40,
+      "y": 30832,
+      "src": "abs(b_c1 - 91.0 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_bc2",
+      "kind": "math",
+      "x": 40,
+      "y": 30880,
+      "src": "abs(b_c2 - 21.0 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_Ach",
+      "kind": "math",
+      "x": 40,
+      "y": 30928,
+      "src": "abs(A_ch - 1911 cm^2) < 0.5 cm^2 ="
+    },
+    {
+      "id": "c_relAch",
+      "kind": "math",
+      "x": 40,
+      "y": 30976,
+      "src": "abs(rel_Ach - 1.570) < 0.0005 ="
+    },
+    {
+      "id": "c_ksha",
+      "kind": "math",
+      "x": 40,
+      "y": 31024,
+      "src": "abs(k_sh_a - 0.01221) < 0.000005 ="
+    },
+    {
+      "id": "c_kshb",
+      "kind": "math",
+      "x": 40,
+      "y": 31072,
+      "src": "abs(k_sh_b - 0.00643) < 0.000005 ="
+    },
+    {
+      "id": "c_excesoa",
+      "kind": "math",
+      "x": 40,
+      "y": 31120,
+      "src": "abs(exceso_a - 0.90) < 0.005 ="
+    },
+    {
+      "id": "c_sea",
+      "kind": "math",
+      "x": 40,
+      "y": 31168,
+      "src": "abs(s_e_a - 100 mm) < 0.5 mm ="
+    },
+    {
+      "id": "c_seb",
+      "kind": "math",
+      "x": 40,
+      "y": 31216,
+      "src": "abs(s_e_b - 168 mm) < 0.5 mm ="
+    },
+    {
+      "id": "c_so",
+      "kind": "math",
+      "x": 40,
+      "y": 31264,
+      "src": "abs(s_o - 167 mm) < 0.5 mm ="
+    },
+    {
+      "id": "c_sed",
+      "kind": "math",
+      "x": 40,
+      "y": 31312,
+      "src": "abs(s_e_d - 150 mm) < 0.5 mm ="
+    },
+    {
+      "id": "c_set",
+      "kind": "math",
+      "x": 40,
+      "y": 31360,
+      "src": "abs(s_e_t - 150 mm) < 0.5 mm ="
+    },
+    {
+      "id": "c_Ash1",
+      "kind": "math",
+      "x": 40,
+      "y": 31408,
+      "src": "abs(A_sh1 - 11.11 cm^2) < 0.005 cm^2 ="
+    },
+    {
+      "id": "c_Ash2",
+      "kind": "math",
+      "x": 40,
+      "y": 31456,
+      "src": "abs(A_sh2 - 2.56 cm^2) < 0.005 cm^2 ="
+    },
+    {
+      "id": "c_ramamax",
+      "kind": "math",
+      "x": 40,
+      "y": 31504,
+      "src": "abs(rama_max - 42 cm) < 0.5 cm ="
+    },
+    {
+      "id": "c_trasmin",
+      "kind": "math",
+      "x": 40,
+      "y": 31552,
+      "src": "abs(tras_min - 150 mm) < 0.5 mm ="
+    },
+    {
+      "id": "c_ramaest",
+      "kind": "math",
+      "x": 40,
+      "y": 31600,
+      "src": "abs(rama_est - 40.3 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_Ash1p",
+      "kind": "math",
+      "x": 40,
+      "y": 31648,
+      "src": "abs(A_sh1_prov - 16.1 cm^2) < 0.05 cm^2 ="
+    },
+    {
+      "id": "c_Ash2p",
+      "kind": "math",
+      "x": 40,
+      "y": 31696,
+      "src": "abs(A_sh2_prov - 4.02 cm^2) < 0.005 cm^2 ="
+    },
+    {
+      "id": "c_uAsh",
+      "kind": "math",
+      "x": 40,
+      "y": 31744,
+      "src": "abs(u_Ash - 0.69) < 0.005 ="
+    },
+    {
+      "id": "c_ld",
+      "kind": "math",
+      "x": 40,
+      "y": 31792,
+      "src": "abs(l_d - 125 cm) < 0.5 cm ="
+    },
+    {
+      "id": "c_ld125",
+      "kind": "math",
+      "x": 40,
+      "y": 31840,
+      "src": "abs(l_d125 - 156 cm) < 0.5 cm ="
+    },
+    {
+      "id": "c_c25",
+      "kind": "math",
+      "x": 40,
+      "y": 31888,
+      "src": "abs(c_25 - 147.5 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_RdMB25",
+      "kind": "math",
+      "x": 40,
+      "y": 31936,
+      "src": "abs(Rd_MB25 - 2481 tonf*m) < 0.5 tonf*m ="
+    },
+    {
+      "id": "c_uflex25",
+      "kind": "math",
+      "x": 40,
+      "y": 31984,
+      "src": "abs(u_flex25 - 0.98) < 0.005 ="
+    },
+    {
+      "id": "c_RdV25",
+      "kind": "math",
+      "x": 40,
+      "y": 32032,
+      "src": "abs(Rd_V25 - 326 tonf) < 0.5 tonf ="
+    },
+    {
+      "id": "c_uV25",
+      "kind": "math",
+      "x": 40,
+      "y": 32080,
+      "src": "abs(u_V25 - 0.96) < 0.005 ="
+    },
+    {
+      "id": "c_derc25",
+      "kind": "math",
+      "x": 40,
+      "y": 32128,
+      "src": "abs(der_c25 - 0.01500) < 0.000005 ="
+    },
+    {
+      "id": "c_uder25",
+      "kind": "math",
+      "x": 40,
+      "y": 32176,
+      "src": "abs(u_der25 - 1.25) < 0.005 ="
+    },
+    {
+      "id": "c_derc25b",
+      "kind": "math",
+      "x": 40,
+      "y": 32224,
+      "src": "abs(der_c25_bruto - 0.00952) < 0.000005 ="
+    },
+    {
+      "id": "c_uder25b",
+      "kind": "math",
+      "x": 40,
+      "y": 32272,
+      "src": "abs(u_der25_bruto - 1.97) < 0.005 ="
+    },
+    {
+      "id": "c_relcl25",
+      "kind": "math",
+      "x": 40,
+      "y": 32320,
+      "src": "abs(rel_cl25 - 0.295) < 0.0005 ="
+    },
+    {
+      "id": "c_MnB25",
+      "kind": "math",
+      "x": 40,
+      "y": 32368,
+      "src": "abs(M_nB25 - 2791 tonf*m) < 0.5 tonf*m ="
+    },
+    {
+      "id": "c_saltoMn",
+      "kind": "math",
+      "x": 40,
+      "y": 32416,
+      "src": "abs(salto_Mn - 0.021) < 0.0005 ="
+    },
+    {
+      "id": "c_saltoM",
+      "kind": "math",
+      "x": 40,
+      "y": 32464,
+      "src": "abs(salto_M - 0.034) < 0.0005 ="
+    },
+    {
+      "id": "c_saltoder",
+      "kind": "math",
+      "x": 40,
+      "y": 32512,
+      "src": "abs(salto_der - 1.10) < 0.005 ="
+    },
+    {
+      "id": "c_c35",
+      "kind": "math",
+      "x": 40,
+      "y": 32560,
+      "src": "abs(c_35 - 115.1 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_RdMB35",
+      "kind": "math",
+      "x": 40,
+      "y": 32608,
+      "src": "abs(Rd_MB35 - 2607 tonf*m) < 0.5 tonf*m ="
+    },
+    {
+      "id": "c_RdV35",
+      "kind": "math",
+      "x": 40,
+      "y": 32656,
+      "src": "abs(Rd_V35 - 361 tonf) < 0.5 tonf ="
+    },
+    {
+      "id": "c_derc35",
+      "kind": "math",
+      "x": 40,
+      "y": 32704,
+      "src": "abs(der_c35 - 0.02569) < 0.000005 ="
+    },
+    {
+      "id": "c_c40",
+      "kind": "math",
+      "x": 40,
+      "y": 32752,
+      "src": "abs(c_40 - 104.0 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_RdMB40",
+      "kind": "math",
+      "x": 40,
+      "y": 32800,
+      "src": "abs(Rd_MB40 - 2642 tonf*m) < 0.5 tonf*m ="
+    },
+    {
+      "id": "c_RdV40",
+      "kind": "math",
+      "x": 40,
+      "y": 32848,
+      "src": "abs(Rd_V40 - 379 tonf) < 0.5 tonf ="
+    },
+    {
+      "id": "c_derc40",
+      "kind": "math",
+      "x": 40,
+      "y": 32896,
+      "src": "abs(der_c40 - 0.02920) < 0.000005 ="
+    },
+    {
+      "id": "c_c45",
+      "kind": "math",
+      "x": 40,
+      "y": 32944,
+      "src": "abs(c_45 - 95.2 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_RdMB45",
+      "kind": "math",
+      "x": 40,
+      "y": 32992,
+      "src": "abs(Rd_MB45 - 2673 tonf*m) < 0.5 tonf*m ="
+    },
+    {
+      "id": "c_RdV45",
+      "kind": "math",
+      "x": 40,
+      "y": 33040,
+      "src": "abs(Rd_V45 - 396 tonf) < 0.5 tonf ="
+    },
+    {
+      "id": "c_derc45",
+      "kind": "math",
+      "x": 40,
+      "y": 33088,
+      "src": "abs(der_c45 - 0.03148) < 0.000005 ="
+    },
+    {
+      "id": "c_umb005",
+      "kind": "math",
+      "x": 40,
+      "y": 33136,
+      "src": "abs(umb_005 - 111 cm) < 0.5 cm ="
+    },
+    {
+      "id": "c_uder005",
+      "kind": "math",
+      "x": 40,
+      "y": 33184,
+      "src": "abs(u_der_005 - 0.38) < 0.005 ="
+    },
+    {
+      "id": "c_umb008",
+      "kind": "math",
+      "x": 40,
+      "y": 33232,
+      "src": "abs(umb_008 - 69 cm) < 0.5 cm ="
+    },
+    {
+      "id": "c_uder008",
+      "kind": "math",
+      "x": 40,
+      "y": 33280,
+      "src": "abs(u_der_008 - 0.60) < 0.005 ="
+    },
+    {
+      "id": "c_umb015",
+      "kind": "math",
+      "x": 40,
+      "y": 33328,
+      "src": "abs(umb_015 - 37 cm) < 0.5 cm ="
+    },
+    {
+      "id": "c_uder015",
+      "kind": "math",
+      "x": 40,
+      "y": 33376,
+      "src": "abs(u_der_015 - 1.13) < 0.005 ="
+    },
+    {
+      "id": "c_niv050",
+      "kind": "math",
+      "x": 40,
+      "y": 33424,
+      "src": "abs(niv_050 - 0.068) < 0.0005 ="
+    },
+    {
+      "id": "c_c050",
+      "kind": "math",
+      "x": 40,
+      "y": 33472,
+      "src": "abs(c_050 - 95.0 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_uder050",
+      "kind": "math",
+      "x": 40,
+      "y": 33520,
+      "src": "abs(u_der_050 - 0.79) < 0.005 ="
+    },
+    {
+      "id": "c_niv075",
+      "kind": "math",
+      "x": 40,
+      "y": 33568,
+      "src": "abs(niv_075 - 0.103) < 0.0005 ="
+    },
+    {
+      "id": "c_c075",
+      "kind": "math",
+      "x": 40,
+      "y": 33616,
+      "src": "abs(c_075 - 111.7 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_uder075",
+      "kind": "math",
+      "x": 40,
+      "y": 33664,
+      "src": "abs(u_der_075 - 0.86) < 0.005 ="
+    },
+    {
+      "id": "c_niv125",
+      "kind": "math",
+      "x": 40,
+      "y": 33712,
+      "src": "abs(niv_125 - 0.171) < 0.0005 ="
+    },
+    {
+      "id": "c_c125",
+      "kind": "math",
+      "x": 40,
+      "y": 33760,
+      "src": "abs(c_125 - 147.0 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_uder125",
+      "kind": "math",
+      "x": 40,
+      "y": 33808,
+      "src": "abs(u_der_125 - 1.05) < 0.005 ="
+    },
+    {
+      "id": "c_gobierna",
+      "kind": "math",
+      "x": 40,
+      "y": 33856,
+      "src": "u_B > u_der ="
+    }
+  ]
+}

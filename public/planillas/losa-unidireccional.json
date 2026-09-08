@@ -1,0 +1,4219 @@
+{
+  "version": 1,
+  "meta": {
+    "titulo": "Losa unidireccional continua — el marco elástico resuelto en la hoja y el espesor que lo fija el servicio (ACI 318-25)",
+    "ficha": "struct_pad/src/content/hormigon/ejemplo-losa-unidireccional.mdx",
+    "esperadoFalso": {}
+  },
+  "regions": [
+    {
+      "id": "r000",
+      "kind": "text",
+      "src": "LOSA UNIDIRECCIONAL CONTINUA — qué fija el espesor en ACI 318-25",
+      "x": 40,
+      "y": 32
+    },
+    {
+      "id": "r001",
+      "kind": "text",
+      "src": "ACI 318-25 (edición SI) · Cap. 7 · 6.5 (método simplificado) · 22.5.5 · Cap. 24",
+      "x": 40,
+      "y": 80
+    },
+    {
+      "id": "r002",
+      "kind": "text",
+      "src": "Todo en SI (mm · kN · MPa), que es como están escritas las expresiones del código.",
+      "x": 40,
+      "y": 128
+    },
+    {
+      "id": "r003",
+      "kind": "text",
+      "src": "Rd_ = capacidad de diseño (incluye φ) · las comparaciones dan ✓/✗",
+      "x": 40,
+      "y": 176
+    },
+    {
+      "id": "r004",
+      "kind": "text",
+      "src": "",
+      "x": 40,
+      "y": 224
+    },
+    {
+      "id": "r005",
+      "kind": "text",
+      "src": "━━ 0 · DATOS · MATERIALES ━━",
+      "x": 40,
+      "y": 272
+    },
+    {
+      "id": "r006",
+      "kind": "text",
+      "src": "f'c y f_y son frontera declarada; todo lo demás se deriva.",
+      "x": 40,
+      "y": 320
+    },
+    {
+      "id": "r007",
+      "kind": "math",
+      "src": "f_c := 25 MPa",
+      "x": 40,
+      "y": 368
+    },
+    {
+      "id": "r008",
+      "kind": "math",
+      "src": "f_y := 420 MPa",
+      "x": 40,
+      "y": 416
+    },
+    {
+      "id": "r009",
+      "kind": "text",
+      "src": "20.2.2.2: se permite tomar E_s = 200 000 MPa para barras no pretensadas.",
+      "x": 40,
+      "y": 464
+    },
+    {
+      "id": "r010",
+      "kind": "math",
+      "src": "E_s := 200000 MPa",
+      "x": 40,
+      "y": 512
+    },
+    {
+      "id": "r011",
+      "kind": "text",
+      "src": "19.2.4.2: hormigón de densidad normal → λ = 1.",
+      "x": 40,
+      "y": 560
+    },
+    {
+      "id": "r012",
+      "kind": "math",
+      "src": "lambda := 1",
+      "x": 40,
+      "y": 608
+    },
+    {
+      "id": "r013",
+      "kind": "math",
+      "src": "rfc := sqrt(f_c/(1 MPa))*MPa = MPa",
+      "x": 40,
+      "y": 656
+    },
+    {
+      "id": "r014",
+      "kind": "text",
+      "src": "19.2.2.1(b): E_c = 4700√f'c para hormigón de densidad normal.",
+      "x": 40,
+      "y": 704
+    },
+    {
+      "id": "r015",
+      "kind": "math",
+      "src": "E_c := 4700*rfc = MPa",
+      "x": 40,
+      "y": 752
+    },
+    {
+      "id": "r016",
+      "kind": "math",
+      "src": "n_h := E_s/E_c =",
+      "x": 40,
+      "y": 800
+    },
+    {
+      "id": "r017",
+      "kind": "text",
+      "src": "22.2.2.1 y Tabla 22.2.2.4.3(a): ε_cu = 0,003 y β1 = 0,85 para 17 ≤ f'c ≤ 28 MPa.",
+      "x": 40,
+      "y": 848
+    },
+    {
+      "id": "r018",
+      "kind": "math",
+      "src": "eps_cu := 0.003",
+      "x": 40,
+      "y": 896
+    },
+    {
+      "id": "r019",
+      "kind": "math",
+      "src": "beta_1 := 0.85",
+      "x": 40,
+      "y": 944
+    },
+    {
+      "id": "r020",
+      "kind": "text",
+      "src": "19.2.3.1 se IMPRIME f_r = 0,062λ√f'c en la edición SI: para un G25 daría 0,31 MPa,",
+      "x": 40,
+      "y": 992
+    },
+    {
+      "id": "r021",
+      "kind": "text",
+      "src": "diez veces menos que el módulo de rotura real. R13.4.4.1.1 usa 0,62; se adopta ése.",
+      "x": 40,
+      "y": 1040
+    },
+    {
+      "id": "r022",
+      "kind": "math",
+      "src": "k_fr := 0.62",
+      "x": 40,
+      "y": 1088
+    },
+    {
+      "id": "r023",
+      "kind": "math",
+      "src": "f_r := k_fr*lambda*rfc = MPa",
+      "x": 40,
+      "y": 1136
+    },
+    {
+      "id": "r024",
+      "kind": "math",
+      "src": "k_fr_imp := 0.062",
+      "x": 40,
+      "y": 1184
+    },
+    {
+      "id": "r025",
+      "kind": "math",
+      "src": "f_r_imp := k_fr_imp*lambda*rfc = MPa",
+      "x": 40,
+      "y": 1232
+    },
+    {
+      "id": "r026",
+      "kind": "text",
+      "src": "━━ 0 · DATOS · FACTORES φ ━━",
+      "x": 40,
+      "y": 1296
+    },
+    {
+      "id": "r027",
+      "kind": "text",
+      "src": "Tabla 21.2.1(a): φ entre 0,65 y 0,90 según 21.2.2; acá sale 0,90 (se verifica en §3).",
+      "x": 40,
+      "y": 1344
+    },
+    {
+      "id": "r028",
+      "kind": "math",
+      "src": "phi_f := 0.90",
+      "x": 40,
+      "y": 1392
+    },
+    {
+      "id": "r029",
+      "kind": "text",
+      "src": "Tabla 21.2.1(b): φ = 0,75 para cortante.",
+      "x": 40,
+      "y": 1440
+    },
+    {
+      "id": "r030",
+      "kind": "math",
+      "src": "phi_v := 0.75",
+      "x": 40,
+      "y": 1488
+    },
+    {
+      "id": "r031",
+      "kind": "text",
+      "src": "21.2.2.1: ε_ty = f_y/E_s, y para Grado 420 se PERMITE tomar ε_ty = 0,002.",
+      "x": 40,
+      "y": 1536
+    },
+    {
+      "id": "r032",
+      "kind": "math",
+      "src": "eps_ty_ex := f_y/E_s =",
+      "x": 40,
+      "y": 1584
+    },
+    {
+      "id": "r033",
+      "kind": "math",
+      "src": "eps_ty := 0.002",
+      "x": 40,
+      "y": 1632
+    },
+    {
+      "id": "r034",
+      "kind": "text",
+      "src": "Tabla 21.2.2(f): controlada por tracción si ε_t ≥ ε_ty + 0,003. De ahí sale el 0,005",
+      "x": 40,
+      "y": 1680
+    },
+    {
+      "id": "r035",
+      "kind": "text",
+      "src": "—no es el límite pre-2019, que R21.2.2 dice que también era 0,005: es el permiso.",
+      "x": 40,
+      "y": 1728
+    },
+    {
+      "id": "r036",
+      "kind": "math",
+      "src": "eps_lim := eps_ty + 0.003 =",
+      "x": 40,
+      "y": 1776
+    },
+    {
+      "id": "r037",
+      "kind": "math",
+      "src": "eps_lim_ex := eps_ty_ex + 0.003 =",
+      "x": 40,
+      "y": 1824
+    },
+    {
+      "id": "r038",
+      "kind": "text",
+      "src": "━━ 0 · DATOS · LOS COEFICIENTES QUE ARRASTRAN UNIDAD ━━",
+      "x": 40,
+      "y": 1888
+    },
+    {
+      "id": "r039",
+      "kind": "text",
+      "src": "El cálculo corre en MPa, así que los coeficientes son los de la edición SI. El",
+      "x": 40,
+      "y": 1936
+    },
+    {
+      "id": "r040",
+      "kind": "text",
+      "src": "contraste permanente es contra su gemelo inch-pound: f_ip = √(1 MPa / 1 psi).",
+      "x": 40,
+      "y": 1984
+    },
+    {
+      "id": "r041",
+      "kind": "math",
+      "src": "f_ip := sqrt(1 MPa/(1 psi)) =",
+      "x": 40,
+      "y": 2032
+    },
+    {
+      "id": "r042",
+      "kind": "text",
+      "src": "Tabla 22.5.5.1(c): 0,66 en MPa ↔ 8√f'c en psi.",
+      "x": 40,
+      "y": 2080
+    },
+    {
+      "id": "r043",
+      "kind": "math",
+      "src": "k_1d := 0.66",
+      "x": 40,
+      "y": 2128
+    },
+    {
+      "id": "r044",
+      "kind": "math",
+      "src": "k_1d_ip := 8/f_ip =",
+      "x": 40,
+      "y": 2176
+    },
+    {
+      "id": "r_k1d",
+      "kind": "math",
+      "src": "abs(k_1d - k_1d_ip) < 0.005 =",
+      "x": 40,
+      "y": 2224
+    },
+    {
+      "id": "r046",
+      "kind": "text",
+      "src": "22.5.5.1.1: piso 0,083 ↔ 1√f'c(psi) y techo 0,42 ↔ 5√f'c(psi).",
+      "x": 40,
+      "y": 2272
+    },
+    {
+      "id": "r047",
+      "kind": "math",
+      "src": "k_piso := 0.083",
+      "x": 40,
+      "y": 2320
+    },
+    {
+      "id": "r048",
+      "kind": "math",
+      "src": "k_piso_ip := 1/f_ip =",
+      "x": 40,
+      "y": 2368
+    },
+    {
+      "id": "r_kpiso",
+      "kind": "math",
+      "src": "abs(k_piso - k_piso_ip) < 0.0005 =",
+      "x": 40,
+      "y": 2416
+    },
+    {
+      "id": "r050",
+      "kind": "math",
+      "src": "k_tope := 0.42",
+      "x": 40,
+      "y": 2464
+    },
+    {
+      "id": "r051",
+      "kind": "math",
+      "src": "k_tope_ip := 5/f_ip =",
+      "x": 40,
+      "y": 2512
+    },
+    {
+      "id": "r_ktope",
+      "kind": "math",
+      "src": "abs(k_tope - k_tope_ip) < 0.005 =",
+      "x": 40,
+      "y": 2560
+    },
+    {
+      "id": "r053",
+      "kind": "text",
+      "src": "Tabla 22.5.5.1(a), la expresión anterior a 318-19: 0,17 ↔ 2√f'c(psi).",
+      "x": 40,
+      "y": 2608
+    },
+    {
+      "id": "r054",
+      "kind": "math",
+      "src": "k_clas := 0.17",
+      "x": 40,
+      "y": 2656
+    },
+    {
+      "id": "r055",
+      "kind": "math",
+      "src": "k_clas_ip := 2/f_ip =",
+      "x": 40,
+      "y": 2704
+    },
+    {
+      "id": "r_kclas",
+      "kind": "math",
+      "src": "abs(k_clas - k_clas_ip) < 0.005 =",
+      "x": 40,
+      "y": 2752
+    },
+    {
+      "id": "r057",
+      "kind": "text",
+      "src": "19.2.3.1: 0,62 ↔ 7,5√f'c(psi).   19.2.2.1(b): 4700 ↔ 57 000√f'c(psi).",
+      "x": 40,
+      "y": 2800
+    },
+    {
+      "id": "r058",
+      "kind": "math",
+      "src": "k_fr_ip := 7.5/f_ip =",
+      "x": 40,
+      "y": 2848
+    },
+    {
+      "id": "r_kfr",
+      "kind": "math",
+      "src": "abs(k_fr - k_fr_ip) < 0.005 =",
+      "x": 40,
+      "y": 2896
+    },
+    {
+      "id": "r060",
+      "kind": "math",
+      "src": "k_Ec_ip := 57000/f_ip =",
+      "x": 40,
+      "y": 2944
+    },
+    {
+      "id": "r_kEc",
+      "kind": "math",
+      "src": "abs(4700 - k_Ec_ip) < 50 =",
+      "x": 40,
+      "y": 2992
+    },
+    {
+      "id": "r062",
+      "kind": "text",
+      "src": "━━ 0 · DATOS · GEOMETRÍA, CARGAS Y ARMADURA ━━",
+      "x": 40,
+      "y": 3056
+    },
+    {
+      "id": "r063",
+      "kind": "text",
+      "src": "Se calcula una franja de 1 m de ancho: los kN·m/m y mm²/m del post son por franja.",
+      "x": 40,
+      "y": 3104
+    },
+    {
+      "id": "r064",
+      "kind": "math",
+      "src": "b := 1 m",
+      "x": 40,
+      "y": 3152
+    },
+    {
+      "id": "r065",
+      "kind": "math",
+      "src": "l_n := 4.5 m",
+      "x": 40,
+      "y": 3200
+    },
+    {
+      "id": "r066",
+      "kind": "math",
+      "src": "b_viga := 300 mm",
+      "x": 40,
+      "y": 3248
+    },
+    {
+      "id": "r067",
+      "kind": "math",
+      "src": "l_ejes := l_n + b_viga = m",
+      "x": 40,
+      "y": 3296
+    },
+    {
+      "id": "r068",
+      "kind": "math",
+      "src": "n_tramos := 3",
+      "x": 40,
+      "y": 3344
+    },
+    {
+      "id": "r069",
+      "kind": "text",
+      "src": "Tabla 20.5.1.3.1: losas no expuestas y barras ≤ N.º 36 → recubrimiento libre 19 mm.",
+      "x": 40,
+      "y": 3392
+    },
+    {
+      "id": "r070",
+      "kind": "math",
+      "src": "rec_min := 19 mm",
+      "x": 40,
+      "y": 3440
+    },
+    {
+      "id": "r071",
+      "kind": "math",
+      "src": "rec := 20 mm",
+      "x": 40,
+      "y": 3488
+    },
+    {
+      "id": "r_rec",
+      "kind": "math",
+      "src": "rec >= rec_min =",
+      "x": 40,
+      "y": 3536
+    },
+    {
+      "id": "r073",
+      "kind": "math",
+      "src": "d_b := 10 mm",
+      "x": 40,
+      "y": 3584
+    },
+    {
+      "id": "r074",
+      "kind": "math",
+      "src": "A_b := pi*d_b^2/4 = mm^2",
+      "x": 40,
+      "y": 3632
+    },
+    {
+      "id": "r075",
+      "kind": "text",
+      "src": "Cargas de proyecto. La sobrecarga de oficinas es de NCh1537, no de ACI 318.",
+      "x": 40,
+      "y": 3680
+    },
+    {
+      "id": "r076",
+      "kind": "math",
+      "src": "g_HA := 25 kN/m^3",
+      "x": 40,
+      "y": 3728
+    },
+    {
+      "id": "r077",
+      "kind": "math",
+      "src": "q_term := 1.0 kN/m^2",
+      "x": 40,
+      "y": 3776
+    },
+    {
+      "id": "r078",
+      "kind": "math",
+      "src": "q_tab := 1.0 kN/m^2",
+      "x": 40,
+      "y": 3824
+    },
+    {
+      "id": "r079",
+      "kind": "math",
+      "src": "q_L := 2.5 kN/m^2",
+      "x": 40,
+      "y": 3872
+    },
+    {
+      "id": "r080",
+      "kind": "text",
+      "src": "Fracción sostenida de la sobrecarga: criterio del proyectista, ACI 318 no la fija.",
+      "x": 40,
+      "y": 3920
+    },
+    {
+      "id": "r081",
+      "kind": "math",
+      "src": "f_sost := 0.25",
+      "x": 40,
+      "y": 3968
+    },
+    {
+      "id": "r082",
+      "kind": "text",
+      "src": "━━ 1 · EL MARCO ELÁSTICO — se resuelve en la hoja, no se cita ━━",
+      "x": 40,
+      "y": 4032
+    },
+    {
+      "id": "r083",
+      "kind": "text",
+      "src": "6.5.2 entrega una envolvente mayorada, que no es un estado de carga en equilibrio.",
+      "x": 40,
+      "y": 4080
+    },
+    {
+      "id": "r084",
+      "kind": "text",
+      "src": "Para servicio hace falta la viga continua real: 3 tramos iguales, carga uniforme.",
+      "x": 40,
+      "y": 4128
+    },
+    {
+      "id": "r085",
+      "kind": "text",
+      "src": "Rigidez directa sobre los 4 giros, con M_ij = 4kθ_i + 2kθ_j ∓ wL²/12 y un resorte",
+      "x": 40,
+      "y": 4176
+    },
+    {
+      "id": "r086",
+      "kind": "text",
+      "src": "rotacional K en los dos apoyos exteriores (K = 0 rotulado, K → ∞ empotrado).",
+      "x": 40,
+      "y": 4224
+    },
+    {
+      "id": "r087",
+      "kind": "text",
+      "src": "La flecha sale integrando M/EI dos veces y barriendo x; todo con EI = w = L = 1.",
+      "x": 40,
+      "y": 4272
+    },
+    {
+      "id": "marco",
+      "kind": "program",
+      "src": "marco(K) :=\n    e := 1/12\n    f1 := [[4 + K, 2, 0, 0]]\n    f2 := [[2, 8, 2, 0]]\n    f3 := [[0, 2, 8, 2]]\n    f4 := [[0, 0, 2, 4 + K]]\n    A := concat(f1, f2, f3, f4, 1)\n    bv := [[e], [0], [0], [-e]]\n    th := lusolve(A, bv)\n    MA := -abs(4*th[1,1] + 2*th[2,1] - e)\n    MB := -abs(4*th[2,1] + 2*th[1,1] + e)\n    xm := MB - MA + 0.5\n    Mp := MA*(1 - xm) + MB*xm + xm*(1 - xm)/2\n    C1 := -(MA/3 + MB/6 + 1/24)\n    ymax := 0\n    xmax := 0\n    for i in 1:2000\n        x := i/2000\n        y := abs(MA*x^2/2 + (MB - MA)*x^3/6 + x^3/12 - x^4/24 + C1*x)\n        if y > ymax\n            ymax := y\n            xmax := x\n    return [[-MA, Mp, -MB, ymax, xmax]]",
+      "x": 40,
+      "y": 4320
+    },
+    {
+      "id": "r089",
+      "kind": "text",
+      "src": "Con el apoyo exterior rotulado (K = 0), que es el modelo de servicio adoptado:",
+      "x": 40,
+      "y": 4784
+    },
+    {
+      "id": "r090",
+      "kind": "math",
+      "src": "cf_ext := marco(0)[1,1] =",
+      "x": 40,
+      "y": 4832
+    },
+    {
+      "id": "r091",
+      "kind": "math",
+      "src": "cf_pos := marco(0)[1,2] =",
+      "x": 40,
+      "y": 4880
+    },
+    {
+      "id": "r092",
+      "kind": "math",
+      "src": "cf_neg := marco(0)[1,3] =",
+      "x": 40,
+      "y": 4928
+    },
+    {
+      "id": "r093",
+      "kind": "math",
+      "src": "cf_def := marco(0)[1,4] =",
+      "x": 40,
+      "y": 4976
+    },
+    {
+      "id": "r094",
+      "kind": "math",
+      "src": "x_def := marco(0)[1,5] =",
+      "x": 40,
+      "y": 5024
+    },
+    {
+      "id": "r095",
+      "kind": "text",
+      "src": "Contraste interno contra la solución cerrada: M⁻ = wℓ²/10 y M⁺ = wℓ²/12,5.",
+      "x": 40,
+      "y": 5072
+    },
+    {
+      "id": "r_cfneg",
+      "kind": "math",
+      "src": "abs(cf_neg - 1/10) < 0.000001 =",
+      "x": 40,
+      "y": 5120
+    },
+    {
+      "id": "r_cfpos",
+      "kind": "math",
+      "src": "abs(cf_pos - 0.08) < 0.000001 =",
+      "x": 40,
+      "y": 5168
+    },
+    {
+      "id": "r098",
+      "kind": "text",
+      "src": "Y contra el otro límite cerrado: empotrado en los dos extremos da wℓ²/24 y wℓ⁴/384.",
+      "x": 40,
+      "y": 5216
+    },
+    {
+      "id": "r099",
+      "kind": "math",
+      "src": "cf_pos_emp := marco(100000)[1,2] =",
+      "x": 40,
+      "y": 5264
+    },
+    {
+      "id": "r100",
+      "kind": "math",
+      "src": "cf_def_emp := marco(100000)[1,4] =",
+      "x": 40,
+      "y": 5312
+    },
+    {
+      "id": "r_cfemp",
+      "kind": "math",
+      "src": "abs(cf_pos_emp - 1/24) < 0.00001 =",
+      "x": 40,
+      "y": 5360
+    },
+    {
+      "id": "r_cfdefemp",
+      "kind": "math",
+      "src": "abs(cf_def_emp - 1/384) < 0.000002 =",
+      "x": 40,
+      "y": 5408
+    },
+    {
+      "id": "r103",
+      "kind": "text",
+      "src": "SENSIBILIDAD AL APOYO EXTERIOR. Para servicio se adopta el extremo ROTULADO, que",
+      "x": 40,
+      "y": 5456
+    },
+    {
+      "id": "r104",
+      "kind": "text",
+      "src": "es el conservador; pero para resistencia la Tabla 6.5.2 usa la fila «extremo",
+      "x": 40,
+      "y": 5504
+    },
+    {
+      "id": "r105",
+      "kind": "text",
+      "src": "discontinuo integral con el apoyo» (w·ℓn²/14) y arma la cara interior del apoyo",
+      "x": 40,
+      "y": 5552
+    },
+    {
+      "id": "r106",
+      "kind": "text",
+      "src": "exterior por w·ℓn²/24. Ese M⁺ = 1/14 corresponde a un resorte de K ≈ 0,847 EI/L.",
+      "x": 40,
+      "y": 5600
+    },
+    {
+      "id": "r107",
+      "kind": "math",
+      "src": "K_14 := 0.847",
+      "x": 40,
+      "y": 5648
+    },
+    {
+      "id": "r108",
+      "kind": "math",
+      "src": "cf_pos_K := marco(K_14)[1,2] =",
+      "x": 40,
+      "y": 5696
+    },
+    {
+      "id": "r109",
+      "kind": "math",
+      "src": "cf_def_K := marco(K_14)[1,4] =",
+      "x": 40,
+      "y": 5744
+    },
+    {
+      "id": "r_cfK",
+      "kind": "math",
+      "src": "abs(cf_pos_K - 1/14) < 0.0005 =",
+      "x": 40,
+      "y": 5792
+    },
+    {
+      "id": "r111",
+      "kind": "math",
+      "src": "caida_K := 1 - cf_def_K/cf_def =",
+      "x": 40,
+      "y": 5840
+    },
+    {
+      "id": "r112",
+      "kind": "text",
+      "src": "━━ 2 · LAS FUNCIONES DE LA CADENA ━━",
+      "x": 40,
+      "y": 5904
+    },
+    {
+      "id": "r113",
+      "kind": "text",
+      "src": "Bloque rectangular de 22.2.2.4.1 invertido: el A_s que hace falta para un M_u dado.",
+      "x": 40,
+      "y": 5952
+    },
+    {
+      "id": "fAs",
+      "kind": "program",
+      "src": "A_sreq(Mu, d) :=\n    Rq := phi_f*0.85*f_c*b\n    return 0.85*f_c*b*(d - sqrt(d^2 - 2*Mu/Rq))/f_y",
+      "x": 40,
+      "y": 6000
+    },
+    {
+      "id": "r115",
+      "kind": "text",
+      "src": "Sección fisurada transformada: b·kd²/2 = n·A_s(d − kd), y de ahí I_cr.",
+      "x": 40,
+      "y": 6080
+    },
+    {
+      "id": "fkd",
+      "kind": "program",
+      "src": "kd_de(As, d) :=\n    return (sqrt((n_h*As)^2 + 2*b*n_h*As*d) - n_h*As)/b",
+      "x": 40,
+      "y": 6128
+    },
+    {
+      "id": "fIcr",
+      "kind": "program",
+      "src": "I_cr_de(As, d) :=\n    kd := kd_de(As, d)\n    return b*kd^3/3 + n_h*As*(d - kd)^2",
+      "x": 40,
+      "y": 6192
+    },
+    {
+      "id": "r118",
+      "kind": "text",
+      "src": "Tabla 24.2.3.5: rama (a) si M_a ≤ ⅔M_cr, y si no la (b), la de Bischoff.",
+      "x": 40,
+      "y": 6272
+    },
+    {
+      "id": "fIe",
+      "kind": "program",
+      "src": "I_e_de(Ma, Mcr, Icr, Ig) :=\n    if Ma <= 2*Mcr/3\n        return Ig\n    else\n        return Icr/(1 - (2*Mcr/(3*Ma))^2*(1 - Icr/Ig))",
+      "x": 40,
+      "y": 6320
+    },
+    {
+      "id": "r120",
+      "kind": "text",
+      "src": "Deformación del acero en la fibra extrema, con a = β1·c del bloque rectangular.",
+      "x": 40,
+      "y": 6432
+    },
+    {
+      "id": "feps",
+      "kind": "program",
+      "src": "eps_t_de(As, d) :=\n    c := As*f_y/(0.85*f_c*b*beta_1)\n    return eps_cu*(d - c)/c",
+      "x": 40,
+      "y": 6480
+    },
+    {
+      "id": "r122",
+      "kind": "text",
+      "src": "Tabla 22.5.5.1(c) con el piso y el techo que le pone 22.5.5.1.1, y λ_s de 22.5.5.1.3.",
+      "x": 40,
+      "y": 6560
+    },
+    {
+      "id": "fvc",
+      "kind": "program",
+      "src": "v_c_de(As, d) :=\n    rho := As/(b*d)\n    ls := min(1, sqrt(2/(1 + (d/(1 mm))/250)))\n    vb := k_1d*ls*lambda*rho^(1/3)*rfc\n    return min(max(vb, k_piso*lambda*rfc), k_tope*lambda*rfc)",
+      "x": 40,
+      "y": 6608
+    },
+    {
+      "id": "r124",
+      "kind": "text",
+      "src": "La malla φ10: el mayor múltiplo de 25 mm que da al menos el A_s pedido.",
+      "x": 40,
+      "y": 6720
+    },
+    {
+      "id": "fmalla",
+      "kind": "program",
+      "src": "malla_de(As) :=\n    s := 300 mm\n    for i in 0:9\n        sc := (300 - 25*i)*(1 mm)\n        if b*A_b/sc >= As\n            s := sc\n            break\n    return s",
+      "x": 40,
+      "y": 6768
+    },
+    {
+      "id": "r126",
+      "kind": "text",
+      "src": "━━ 3 · TANTEO h = 170 mm · CARGAS Y LAS CINCO CONDICIONES DE 6.5.1 ━━",
+      "x": 40,
+      "y": 6960
+    },
+    {
+      "id": "r127",
+      "kind": "math",
+      "src": "h_1 := 170 mm",
+      "x": 40,
+      "y": 7008
+    },
+    {
+      "id": "r128",
+      "kind": "text",
+      "src": "Sec. 5.3.1(b): U = 1,2D + 1,6L. D incluye el peso propio de la losa.",
+      "x": 40,
+      "y": 7056
+    },
+    {
+      "id": "r129",
+      "kind": "math",
+      "src": "D_1 := g_HA*h_1 + q_term + q_tab = kN/m^2",
+      "x": 40,
+      "y": 7104
+    },
+    {
+      "id": "r130",
+      "kind": "math",
+      "src": "q_u1 := 1.2*D_1 + 1.6*q_L = kN/m^2",
+      "x": 40,
+      "y": 7152
+    },
+    {
+      "id": "r131",
+      "kind": "math",
+      "src": "w_u1 := q_u1*b = kN/m",
+      "x": 40,
+      "y": 7200
+    },
+    {
+      "id": "r132",
+      "kind": "text",
+      "src": "Servicio: total D+L, sostenida D + 0,25L, y la fracción de L que llega después.",
+      "x": 40,
+      "y": 7248
+    },
+    {
+      "id": "r133",
+      "kind": "math",
+      "src": "q_s1 := D_1 + q_L = kN/m^2",
+      "x": 40,
+      "y": 7296
+    },
+    {
+      "id": "r134",
+      "kind": "math",
+      "src": "q_so1 := D_1 + f_sost*q_L = kN/m^2",
+      "x": 40,
+      "y": 7344
+    },
+    {
+      "id": "r135",
+      "kind": "math",
+      "src": "q_ad1 := (1 - f_sost)*q_L = kN/m^2",
+      "x": 40,
+      "y": 7392
+    },
+    {
+      "id": "r136",
+      "kind": "text",
+      "src": "6.5.1(a)-(e): las cinco condiciones, no sólo la que uno recuerda.",
+      "x": 40,
+      "y": 7440
+    },
+    {
+      "id": "r137",
+      "kind": "math",
+      "src": "h_tramo_min := 170 mm",
+      "x": 40,
+      "y": 7488
+    },
+    {
+      "id": "r138",
+      "kind": "math",
+      "src": "h_tramo_max := 170 mm",
+      "x": 40,
+      "y": 7536
+    },
+    {
+      "id": "v_65a",
+      "kind": "math",
+      "src": "h_tramo_max == h_tramo_min =",
+      "x": 40,
+      "y": 7584
+    },
+    {
+      "id": "r140",
+      "kind": "math",
+      "src": "n_puntuales := 0",
+      "x": 40,
+      "y": 7632
+    },
+    {
+      "id": "v_65b",
+      "kind": "math",
+      "src": "n_puntuales == 0 =",
+      "x": 40,
+      "y": 7680
+    },
+    {
+      "id": "v_65c",
+      "kind": "math",
+      "src": "q_L <= 3*D_1 =",
+      "x": 40,
+      "y": 7728
+    },
+    {
+      "id": "v_65d",
+      "kind": "math",
+      "src": "n_tramos >= 2 =",
+      "x": 40,
+      "y": 7776
+    },
+    {
+      "id": "r144",
+      "kind": "math",
+      "src": "l_tramo_min := l_n",
+      "x": 40,
+      "y": 7824
+    },
+    {
+      "id": "r145",
+      "kind": "math",
+      "src": "l_tramo_max := l_n",
+      "x": 40,
+      "y": 7872
+    },
+    {
+      "id": "v_65e",
+      "kind": "math",
+      "src": "l_tramo_max <= 1.2*l_tramo_min =",
+      "x": 40,
+      "y": 7920
+    },
+    {
+      "id": "r147",
+      "kind": "math",
+      "src": "razon_LD := q_L/(3*D_1) =",
+      "x": 40,
+      "y": 7968
+    },
+    {
+      "id": "r148",
+      "kind": "text",
+      "src": "━━ 3 · TANTEO h = 170 mm · CANTO ÚTIL Y FLEXIÓN ━━",
+      "x": 40,
+      "y": 8032
+    },
+    {
+      "id": "r149",
+      "kind": "text",
+      "src": "Tabla 7.3.1.1: ℓ/24 para un extremo continuo, ℓ/28 para el tramo interior.",
+      "x": 40,
+      "y": 8080
+    },
+    {
+      "id": "r150",
+      "kind": "text",
+      "src": "7.3.1.1.1: para f_y distinto de 420 se multiplica por (0,4 + f_y/700).",
+      "x": 40,
+      "y": 8128
+    },
+    {
+      "id": "r151",
+      "kind": "math",
+      "src": "k_fy := 0.4 + (f_y/(1 MPa))/700 =",
+      "x": 40,
+      "y": 8176
+    },
+    {
+      "id": "r152",
+      "kind": "math",
+      "src": "h_tab := k_fy*l_n/24 = mm",
+      "x": 40,
+      "y": 8224
+    },
+    {
+      "id": "r153",
+      "kind": "math",
+      "src": "h_tab_int := k_fy*l_n/28 = mm",
+      "x": 40,
+      "y": 8272
+    },
+    {
+      "id": "r154",
+      "kind": "math",
+      "src": "h_tab_ejes := k_fy*l_ejes/24 = mm",
+      "x": 40,
+      "y": 8320
+    },
+    {
+      "id": "r155",
+      "kind": "text",
+      "src": "Pero 7.3.1.1 sólo exime a losas que NO soportan elementos dañables. Ésta lleva",
+      "x": 40,
+      "y": 8368
+    },
+    {
+      "id": "r156",
+      "kind": "text",
+      "src": "tabiquería, así que 7.3.2.1 obliga a calcular la deflexión de 24.2 igual.",
+      "x": 40,
+      "y": 8416
+    },
+    {
+      "id": "r157",
+      "kind": "text",
+      "src": "El canto útil se DERIVA de las capas; no se declara.",
+      "x": 40,
+      "y": 8464
+    },
+    {
+      "id": "r158",
+      "kind": "math",
+      "src": "d_1 := h_1 - rec - d_b/2 = mm",
+      "x": 40,
+      "y": 8512
+    },
+    {
+      "id": "r159",
+      "kind": "text",
+      "src": "7.6.1.1: A_s,mín = 0,0018·A_g, con el espesor TOTAL y no con el canto útil.",
+      "x": 40,
+      "y": 8560
+    },
+    {
+      "id": "r160",
+      "kind": "math",
+      "src": "A_smin1 := 0.0018*b*h_1 = mm^2",
+      "x": 40,
+      "y": 8608
+    },
+    {
+      "id": "r161",
+      "kind": "text",
+      "src": "Tabla 6.5.2: las cinco secciones críticas de la losa continua de tres tramos.",
+      "x": 40,
+      "y": 8656
+    },
+    {
+      "id": "r162",
+      "kind": "math",
+      "src": "M_pos1 := w_u1*l_n^2/14 = kN*m",
+      "x": 40,
+      "y": 8704
+    },
+    {
+      "id": "r163",
+      "kind": "math",
+      "src": "M_ext1 := w_u1*l_n^2/24 = kN*m",
+      "x": 40,
+      "y": 8752
+    },
+    {
+      "id": "r164",
+      "kind": "math",
+      "src": "M_int1 := w_u1*l_n^2/10 = kN*m",
+      "x": 40,
+      "y": 8800
+    },
+    {
+      "id": "r165",
+      "kind": "math",
+      "src": "M_posi1 := w_u1*l_n^2/16 = kN*m",
+      "x": 40,
+      "y": 8848
+    },
+    {
+      "id": "r166",
+      "kind": "math",
+      "src": "M_otr1 := w_u1*l_n^2/11 = kN*m",
+      "x": 40,
+      "y": 8896
+    },
+    {
+      "id": "r167",
+      "kind": "math",
+      "src": "As_pos1 := A_sreq(M_pos1, d_1) = mm^2",
+      "x": 40,
+      "y": 8944
+    },
+    {
+      "id": "r168",
+      "kind": "math",
+      "src": "As_ext1 := A_sreq(M_ext1, d_1) = mm^2",
+      "x": 40,
+      "y": 8992
+    },
+    {
+      "id": "r169",
+      "kind": "math",
+      "src": "As_int1 := A_sreq(M_int1, d_1) = mm^2",
+      "x": 40,
+      "y": 9040
+    },
+    {
+      "id": "r170",
+      "kind": "math",
+      "src": "As_posi1 := A_sreq(M_posi1, d_1) = mm^2",
+      "x": 40,
+      "y": 9088
+    },
+    {
+      "id": "r171",
+      "kind": "math",
+      "src": "As_otr1 := A_sreq(M_otr1, d_1) = mm^2",
+      "x": 40,
+      "y": 9136
+    },
+    {
+      "id": "r172",
+      "kind": "text",
+      "src": "Con 17 cm la flexión todavía manda en tres de las cinco, aunque por poco:",
+      "x": 40,
+      "y": 9184
+    },
+    {
+      "id": "r173",
+      "kind": "math",
+      "src": "exceso1 := As_int1/A_smin1 - 1 =",
+      "x": 40,
+      "y": 9232
+    },
+    {
+      "id": "r174",
+      "kind": "text",
+      "src": "━━ 3 · TANTEO h = 170 mm · ESPACIAMIENTO Y DUCTILIDAD ━━",
+      "x": 40,
+      "y": 9296
+    },
+    {
+      "id": "r175",
+      "kind": "text",
+      "src": "7.7.2.2 remite el espaciamiento del acero de flexión a 24.3 (control de fisuración).",
+      "x": 40,
+      "y": 9344
+    },
+    {
+      "id": "r176",
+      "kind": "text",
+      "src": "El 3h de 7.7.2.3 no aplica: ésa es para losas con tendones NO adheridos.",
+      "x": 40,
+      "y": 9392
+    },
+    {
+      "id": "r177",
+      "kind": "text",
+      "src": "24.3.2.1: se permite tomar f_s = ⅔f_y.",
+      "x": 40,
+      "y": 9440
+    },
+    {
+      "id": "r178",
+      "kind": "math",
+      "src": "f_s := 2*f_y/3 = MPa",
+      "x": 40,
+      "y": 9488
+    },
+    {
+      "id": "r179",
+      "kind": "math",
+      "src": "s_a := (380 - 2.5*rec/(1 mm))*(280/(f_s/(1 MPa)))*(1 mm) = mm",
+      "x": 40,
+      "y": 9536
+    },
+    {
+      "id": "r180",
+      "kind": "math",
+      "src": "s_b := 300*(280/(f_s/(1 MPa)))*(1 mm) = mm",
+      "x": 40,
+      "y": 9584
+    },
+    {
+      "id": "r181",
+      "kind": "math",
+      "src": "s_fis := min(s_a, s_b) = mm",
+      "x": 40,
+      "y": 9632
+    },
+    {
+      "id": "r182",
+      "kind": "text",
+      "src": "Pero la cuantía mínima pide una malla más apretada que la fisuración:",
+      "x": 40,
+      "y": 9680
+    },
+    {
+      "id": "r183",
+      "kind": "math",
+      "src": "s_min1 := b*A_b/A_smin1 = mm",
+      "x": 40,
+      "y": 9728
+    },
+    {
+      "id": "r184",
+      "kind": "math",
+      "src": "s_pos1 := malla_de(max(A_smin1, As_pos1)) = mm",
+      "x": 40,
+      "y": 9776
+    },
+    {
+      "id": "r185",
+      "kind": "math",
+      "src": "s_neg1 := malla_de(max(A_smin1, As_int1)) = mm",
+      "x": 40,
+      "y": 9824
+    },
+    {
+      "id": "r186",
+      "kind": "math",
+      "src": "Asc_pos1 := b*A_b/s_pos1 = mm^2",
+      "x": 40,
+      "y": 9872
+    },
+    {
+      "id": "r187",
+      "kind": "math",
+      "src": "Asc_neg1 := b*A_b/s_neg1 = mm^2",
+      "x": 40,
+      "y": 9920
+    },
+    {
+      "id": "v_sfis",
+      "kind": "math",
+      "src": "s_pos1 <= s_fis =",
+      "x": 40,
+      "y": 9968
+    },
+    {
+      "id": "r189",
+      "kind": "text",
+      "src": "7.3.3.1 vía la Tabla 21.2.2: en losas la norma OBLIGA a que la falla sea dúctil.",
+      "x": 40,
+      "y": 10016
+    },
+    {
+      "id": "r190",
+      "kind": "text",
+      "src": "Se mide donde la sección está más armada, el primer apoyo interior.",
+      "x": 40,
+      "y": 10064
+    },
+    {
+      "id": "r191",
+      "kind": "math",
+      "src": "eps_t1 := eps_t_de(Asc_neg1, d_1) =",
+      "x": 40,
+      "y": 10112
+    },
+    {
+      "id": "v_epst1",
+      "kind": "math",
+      "src": "eps_t1 >= eps_lim =",
+      "x": 40,
+      "y": 10160
+    },
+    {
+      "id": "r193",
+      "kind": "text",
+      "src": "21.2.2.3 acotaría φ interpolando en P_n, pero sólo con 0,1f'c·A_g ≤ P_n. Acá P_n = 0.",
+      "x": 40,
+      "y": 10208
+    },
+    {
+      "id": "r194",
+      "kind": "math",
+      "src": "P_n := 0 kN",
+      "x": 40,
+      "y": 10256
+    },
+    {
+      "id": "v_2123",
+      "kind": "math",
+      "src": "P_n < 0.1*f_c*b*h_1 =",
+      "x": 40,
+      "y": 10304
+    },
+    {
+      "id": "r196",
+      "kind": "text",
+      "src": "━━ 3 · TANTEO h = 170 mm · CORTE ━━",
+      "x": 40,
+      "y": 10368
+    },
+    {
+      "id": "r197",
+      "kind": "text",
+      "src": "7.4.3.2: la sección crítica está a d de la cara. Tabla 6.5.4: 1,15w·ℓn/2 en el",
+      "x": 40,
+      "y": 10416
+    },
+    {
+      "id": "r198",
+      "kind": "text",
+      "src": "primer apoyo interior. Una losa no lleva estribos → A_v < A_v,mín → fila (c).",
+      "x": 40,
+      "y": 10464
+    },
+    {
+      "id": "r199",
+      "kind": "math",
+      "src": "V_cara1 := 1.15*w_u1*l_n/2 = kN",
+      "x": 40,
+      "y": 10512
+    },
+    {
+      "id": "r200",
+      "kind": "math",
+      "src": "V_u1 := V_cara1 - w_u1*d_1 = kN",
+      "x": 40,
+      "y": 10560
+    },
+    {
+      "id": "r201",
+      "kind": "math",
+      "src": "rho_w1 := Asc_neg1/(b*d_1) =",
+      "x": 40,
+      "y": 10608
+    },
+    {
+      "id": "r202",
+      "kind": "math",
+      "src": "lam_s1 := min(1, sqrt(2/(1 + (d_1/(1 mm))/250))) =",
+      "x": 40,
+      "y": 10656
+    },
+    {
+      "id": "r203",
+      "kind": "math",
+      "src": "v_bruto1 := k_1d*lam_s1*lambda*rho_w1^(1/3)*rfc = MPa",
+      "x": 40,
+      "y": 10720
+    },
+    {
+      "id": "r204",
+      "kind": "math",
+      "src": "v_piso := k_piso*lambda*rfc = MPa",
+      "x": 40,
+      "y": 10768
+    },
+    {
+      "id": "r205",
+      "kind": "math",
+      "src": "v_tope := k_tope*lambda*rfc = MPa",
+      "x": 40,
+      "y": 10816
+    },
+    {
+      "id": "r206",
+      "kind": "math",
+      "src": "v_c1 := v_c_de(Asc_neg1, d_1) = MPa",
+      "x": 40,
+      "y": 10864
+    },
+    {
+      "id": "r_piso1",
+      "kind": "math",
+      "src": "v_c1 > v_piso =",
+      "x": 40,
+      "y": 10912
+    },
+    {
+      "id": "r_tope1",
+      "kind": "math",
+      "src": "v_c1 < v_tope =",
+      "x": 40,
+      "y": 10960
+    },
+    {
+      "id": "r209",
+      "kind": "math",
+      "src": "Rd_V1 := phi_v*v_c1*b*d_1 = kN",
+      "x": 40,
+      "y": 11008
+    },
+    {
+      "id": "r210",
+      "kind": "math",
+      "src": "u_V1 := V_u1/Rd_V1 =",
+      "x": 40,
+      "y": 11056
+    },
+    {
+      "id": "v_V1",
+      "kind": "math",
+      "src": "Rd_V1 >= V_u1 =",
+      "x": 40,
+      "y": 11104
+    },
+    {
+      "id": "r212",
+      "kind": "text",
+      "src": "La misma losa con la expresión anterior a 318-19, la fila (a) sin efecto de tamaño:",
+      "x": 40,
+      "y": 11152
+    },
+    {
+      "id": "r213",
+      "kind": "math",
+      "src": "Rd_clas1 := phi_v*k_clas*lambda*rfc*b*d_1 = kN",
+      "x": 40,
+      "y": 11200
+    },
+    {
+      "id": "r214",
+      "kind": "math",
+      "src": "razon_v1 := Rd_V1/Rd_clas1 =",
+      "x": 40,
+      "y": 11248
+    },
+    {
+      "id": "r215",
+      "kind": "text",
+      "src": "━━ 4 · TANTEO h = 170 mm · LA DEFLEXIÓN, QUE ES LA QUE DECIDE ━━",
+      "x": 40,
+      "y": 11312
+    },
+    {
+      "id": "r216",
+      "kind": "math",
+      "src": "I_g1 := b*h_1^3/12 = mm^4",
+      "x": 40,
+      "y": 11360
+    },
+    {
+      "id": "r217",
+      "kind": "math",
+      "src": "y_t1 := h_1/2 = mm",
+      "x": 40,
+      "y": 11408
+    },
+    {
+      "id": "r218",
+      "kind": "text",
+      "src": "Ec. (24.2.3.5): M_cr = f_r·I_g/y_t, y la Tabla 24.2.3.5 lo compara contra ⅔M_cr.",
+      "x": 40,
+      "y": 11456
+    },
+    {
+      "id": "r219",
+      "kind": "math",
+      "src": "M_cr1 := f_r*I_g1/y_t1 = kN*m",
+      "x": 40,
+      "y": 11504
+    },
+    {
+      "id": "r220",
+      "kind": "math",
+      "src": "M_cr23_1 := 2*M_cr1/3 = kN*m",
+      "x": 40,
+      "y": 11552
+    },
+    {
+      "id": "r221",
+      "kind": "text",
+      "src": "Momentos de SERVICIO, del marco elástico de §1 (no de la envolvente de 6.5.2).",
+      "x": 40,
+      "y": 11600
+    },
+    {
+      "id": "r222",
+      "kind": "math",
+      "src": "M_a1 := cf_pos*q_s1*b*l_n^2 = kN*m",
+      "x": 40,
+      "y": 11648
+    },
+    {
+      "id": "r223",
+      "kind": "math",
+      "src": "M_an1 := cf_neg*q_s1*b*l_n^2 = kN*m",
+      "x": 40,
+      "y": 11696
+    },
+    {
+      "id": "v_fisura1",
+      "kind": "math",
+      "src": "M_a1 > M_cr23_1 =",
+      "x": 40,
+      "y": 11744
+    },
+    {
+      "id": "r225",
+      "kind": "math",
+      "src": "kd_1 := kd_de(Asc_pos1, d_1) = mm",
+      "x": 40,
+      "y": 11792
+    },
+    {
+      "id": "r226",
+      "kind": "math",
+      "src": "I_cr1 := I_cr_de(Asc_pos1, d_1) = mm^4",
+      "x": 40,
+      "y": 11840
+    },
+    {
+      "id": "r227",
+      "kind": "math",
+      "src": "r_Icr1 := I_cr1/I_g1 =",
+      "x": 40,
+      "y": 11888
+    },
+    {
+      "id": "r228",
+      "kind": "math",
+      "src": "I_crn1 := I_cr_de(Asc_neg1, d_1) = mm^4",
+      "x": 40,
+      "y": 11936
+    },
+    {
+      "id": "r229",
+      "kind": "text",
+      "src": "24.2.3.7: para elementos prismáticos se permite el I_e del centro del tramo.",
+      "x": 40,
+      "y": 11984
+    },
+    {
+      "id": "r230",
+      "kind": "math",
+      "src": "I_e1 := I_e_de(M_a1, M_cr1, I_cr1, I_g1) = mm^4",
+      "x": 40,
+      "y": 12032
+    },
+    {
+      "id": "r231",
+      "kind": "math",
+      "src": "r_Ie1 := I_e1/I_g1 =",
+      "x": 40,
+      "y": 12080
+    },
+    {
+      "id": "r232",
+      "kind": "text",
+      "src": "24.2.3.6: la otra ruta permitida es promediar el de la sección positiva con el de",
+      "x": 40,
+      "y": 12128
+    },
+    {
+      "id": "r233",
+      "kind": "text",
+      "src": "la negativa, que está más fisurada porque su momento de servicio es mayor.",
+      "x": 40,
+      "y": 12176
+    },
+    {
+      "id": "r234",
+      "kind": "math",
+      "src": "I_en1 := I_e_de(M_an1, M_cr1, I_crn1, I_g1) = mm^4",
+      "x": 40,
+      "y": 12224
+    },
+    {
+      "id": "r235",
+      "kind": "math",
+      "src": "I_ep1 := (I_e1 + I_en1)/2 = mm^4",
+      "x": 40,
+      "y": 12272
+    },
+    {
+      "id": "r236",
+      "kind": "text",
+      "src": "Ec. (24.2.4.1.1) con ξ = 2,0 de la Tabla 24.2.4.1.3 (60 meses o más). Sin acero",
+      "x": 40,
+      "y": 12320
+    },
+    {
+      "id": "r237",
+      "kind": "text",
+      "src": "comprimido, que es lo normal en una losa, el factor se va al tope.",
+      "x": 40,
+      "y": 12368
+    },
+    {
+      "id": "r238",
+      "kind": "math",
+      "src": "rho_p := 0",
+      "x": 40,
+      "y": 12416
+    },
+    {
+      "id": "r239",
+      "kind": "math",
+      "src": "lam_D := 2.0/(1 + 50*rho_p) =",
+      "x": 40,
+      "y": 12464
+    },
+    {
+      "id": "r240",
+      "kind": "math",
+      "src": "fl_serv1 := cf_def*q_s1*b*l_n^4/(E_c*I_e1) = mm",
+      "x": 40,
+      "y": 12512
+    },
+    {
+      "id": "r241",
+      "kind": "math",
+      "src": "fl_sost1 := cf_def*q_so1*b*l_n^4/(E_c*I_e1) = mm",
+      "x": 40,
+      "y": 12560
+    },
+    {
+      "id": "r242",
+      "kind": "math",
+      "src": "fl_dif1 := lam_D*fl_sost1 = mm",
+      "x": 40,
+      "y": 12608
+    },
+    {
+      "id": "r243",
+      "kind": "math",
+      "src": "fl_ad1 := cf_def*q_ad1*b*l_n^4/(E_c*I_e1) = mm",
+      "x": 40,
+      "y": 12656
+    },
+    {
+      "id": "r244",
+      "kind": "math",
+      "src": "fl_tot1 := fl_dif1 + fl_ad1 = mm",
+      "x": 40,
+      "y": 12704
+    },
+    {
+      "id": "r245",
+      "kind": "math",
+      "src": "fl_L1 := cf_def*q_L*b*l_n^4/(E_c*I_e1) = mm",
+      "x": 40,
+      "y": 12752
+    },
+    {
+      "id": "r246",
+      "kind": "math",
+      "src": "fl_pp1 := lam_D*cf_def*g_HA*h_1*b*l_n^4/(E_c*I_e1) = mm",
+      "x": 40,
+      "y": 12800
+    },
+    {
+      "id": "r247",
+      "kind": "math",
+      "src": "part_dif1 := fl_dif1/fl_tot1 =",
+      "x": 40,
+      "y": 12848
+    },
+    {
+      "id": "r248",
+      "kind": "text",
+      "src": "Tabla 24.2.2, fila «soporta elementos susceptibles de dañarse»: la flecha a mirar",
+      "x": 40,
+      "y": 12896
+    },
+    {
+      "id": "r249",
+      "kind": "text",
+      "src": "es la diferida de TODA la carga sostenida más la inmediata de la L adicional.",
+      "x": 40,
+      "y": 12944
+    },
+    {
+      "id": "r250",
+      "kind": "text",
+      "src": "Su nota [3] permite descontar la ocurrida antes de montar la tabiquería: no se toma.",
+      "x": 40,
+      "y": 12992
+    },
+    {
+      "id": "r251",
+      "kind": "math",
+      "src": "lim_480 := l_n/480 = mm",
+      "x": 40,
+      "y": 13040
+    },
+    {
+      "id": "r252",
+      "kind": "math",
+      "src": "lim_240 := l_n/240 = mm",
+      "x": 40,
+      "y": 13088
+    },
+    {
+      "id": "r253",
+      "kind": "math",
+      "src": "lim_360 := l_n/360 = mm",
+      "x": 40,
+      "y": 13136
+    },
+    {
+      "id": "r254",
+      "kind": "math",
+      "src": "u_fl1 := fl_tot1/lim_480 =",
+      "x": 40,
+      "y": 13184
+    },
+    {
+      "id": "r255",
+      "kind": "math",
+      "src": "u_fl1_240 := fl_tot1/lim_240 =",
+      "x": 40,
+      "y": 13232
+    },
+    {
+      "id": "r256",
+      "kind": "math",
+      "src": "u_L1 := fl_L1/lim_360 =",
+      "x": 40,
+      "y": 13280
+    },
+    {
+      "id": "r257",
+      "kind": "math",
+      "src": "fl_tot1_6 := fl_tot1*I_e1/I_ep1 = mm",
+      "x": 40,
+      "y": 13328
+    },
+    {
+      "id": "r258",
+      "kind": "math",
+      "src": "u_fl1_6 := fl_tot1_6/lim_480 =",
+      "x": 40,
+      "y": 13376
+    },
+    {
+      "id": "r259",
+      "kind": "text",
+      "src": "Y lo que da la simplificación de calcular con la sección bruta, que es lo que hace",
+      "x": 40,
+      "y": 13424
+    },
+    {
+      "id": "r260",
+      "kind": "text",
+      "src": "cualquier planilla que no implemente 24.2.3.5:",
+      "x": 40,
+      "y": 13472
+    },
+    {
+      "id": "r261",
+      "kind": "math",
+      "src": "fl_tot1_g := fl_tot1*I_e1/I_g1 = mm",
+      "x": 40,
+      "y": 13520
+    },
+    {
+      "id": "r262",
+      "kind": "math",
+      "src": "u_fl1_g := fl_tot1_g/lim_480 =",
+      "x": 40,
+      "y": 13568
+    },
+    {
+      "id": "r263",
+      "kind": "math",
+      "src": "factor_g := I_g1/I_e1 =",
+      "x": 40,
+      "y": 13616
+    },
+    {
+      "id": "r264",
+      "kind": "text",
+      "src": "Y lo que daría con el f_r = 0,062 que la edición SI imprime en 19.2.3.1:",
+      "x": 40,
+      "y": 13664
+    },
+    {
+      "id": "r265",
+      "kind": "math",
+      "src": "M_cr1_imp := f_r_imp*I_g1/y_t1 = kN*m",
+      "x": 40,
+      "y": 13712
+    },
+    {
+      "id": "r266",
+      "kind": "math",
+      "src": "I_e1_imp := I_e_de(M_a1, M_cr1_imp, I_cr1, I_g1) = mm^4",
+      "x": 40,
+      "y": 13760
+    },
+    {
+      "id": "r267",
+      "kind": "math",
+      "src": "fl_tot1_imp := fl_tot1*I_e1/I_e1_imp = mm",
+      "x": 40,
+      "y": 13808
+    },
+    {
+      "id": "r268",
+      "kind": "text",
+      "src": "━━ 5 · LA LOSA DEFINITIVA h = 210 mm ━━",
+      "x": 40,
+      "y": 13872
+    },
+    {
+      "id": "r269",
+      "kind": "math",
+      "src": "h_2 := 210 mm",
+      "x": 40,
+      "y": 13920
+    },
+    {
+      "id": "r270",
+      "kind": "math",
+      "src": "d_2 := h_2 - rec - d_b/2 = mm",
+      "x": 40,
+      "y": 13968
+    },
+    {
+      "id": "r271",
+      "kind": "math",
+      "src": "D_2 := g_HA*h_2 + q_term + q_tab = kN/m^2",
+      "x": 40,
+      "y": 14016
+    },
+    {
+      "id": "r272",
+      "kind": "math",
+      "src": "q_u2 := 1.2*D_2 + 1.6*q_L = kN/m^2",
+      "x": 40,
+      "y": 14064
+    },
+    {
+      "id": "r273",
+      "kind": "math",
+      "src": "w_u2 := q_u2*b = kN/m",
+      "x": 40,
+      "y": 14112
+    },
+    {
+      "id": "r274",
+      "kind": "math",
+      "src": "q_s2 := D_2 + q_L = kN/m^2",
+      "x": 40,
+      "y": 14160
+    },
+    {
+      "id": "r275",
+      "kind": "math",
+      "src": "q_so2 := D_2 + f_sost*q_L = kN/m^2",
+      "x": 40,
+      "y": 14208
+    },
+    {
+      "id": "r276",
+      "kind": "math",
+      "src": "q_ad2 := (1 - f_sost)*q_L = kN/m^2",
+      "x": 40,
+      "y": 14256
+    },
+    {
+      "id": "r277",
+      "kind": "math",
+      "src": "A_smin2 := 0.0018*b*h_2 = mm^2",
+      "x": 40,
+      "y": 14304
+    },
+    {
+      "id": "r278",
+      "kind": "math",
+      "src": "M_pos2 := w_u2*l_n^2/14 = kN*m",
+      "x": 40,
+      "y": 14352
+    },
+    {
+      "id": "r279",
+      "kind": "math",
+      "src": "M_ext2 := w_u2*l_n^2/24 = kN*m",
+      "x": 40,
+      "y": 14400
+    },
+    {
+      "id": "r280",
+      "kind": "math",
+      "src": "M_int2 := w_u2*l_n^2/10 = kN*m",
+      "x": 40,
+      "y": 14448
+    },
+    {
+      "id": "r281",
+      "kind": "math",
+      "src": "M_posi2 := w_u2*l_n^2/16 = kN*m",
+      "x": 40,
+      "y": 14496
+    },
+    {
+      "id": "r282",
+      "kind": "math",
+      "src": "M_otr2 := w_u2*l_n^2/11 = kN*m",
+      "x": 40,
+      "y": 14544
+    },
+    {
+      "id": "r283",
+      "kind": "math",
+      "src": "As_pos2 := A_sreq(M_pos2, d_2) = mm^2",
+      "x": 40,
+      "y": 14592
+    },
+    {
+      "id": "r284",
+      "kind": "math",
+      "src": "As_ext2 := A_sreq(M_ext2, d_2) = mm^2",
+      "x": 40,
+      "y": 14640
+    },
+    {
+      "id": "r285",
+      "kind": "math",
+      "src": "As_int2 := A_sreq(M_int2, d_2) = mm^2",
+      "x": 40,
+      "y": 14688
+    },
+    {
+      "id": "r286",
+      "kind": "math",
+      "src": "As_posi2 := A_sreq(M_posi2, d_2) = mm^2",
+      "x": 40,
+      "y": 14736
+    },
+    {
+      "id": "r287",
+      "kind": "math",
+      "src": "As_otr2 := A_sreq(M_otr2, d_2) = mm^2",
+      "x": 40,
+      "y": 14784
+    },
+    {
+      "id": "r288",
+      "kind": "text",
+      "src": "Las cinco quedan bajo el mínimo: el cálculo de flexión no coloca una sola barra.",
+      "x": 40,
+      "y": 14832
+    },
+    {
+      "id": "v_min2",
+      "kind": "math",
+      "src": "As_int2 < A_smin2 =",
+      "x": 40,
+      "y": 14880
+    },
+    {
+      "id": "r290",
+      "kind": "math",
+      "src": "peor_2 := As_int2/A_smin2 =",
+      "x": 40,
+      "y": 14928
+    },
+    {
+      "id": "r291",
+      "kind": "math",
+      "src": "s_2 := malla_de(A_smin2) = mm",
+      "x": 40,
+      "y": 14976
+    },
+    {
+      "id": "r292",
+      "kind": "math",
+      "src": "Asc_2 := b*A_b/s_2 = mm^2",
+      "x": 40,
+      "y": 15024
+    },
+    {
+      "id": "r293",
+      "kind": "math",
+      "src": "u_flex2 := As_int2/Asc_2 =",
+      "x": 40,
+      "y": 15072
+    },
+    {
+      "id": "r294",
+      "kind": "math",
+      "src": "u_min2 := A_smin2/Asc_2 =",
+      "x": 40,
+      "y": 15120
+    },
+    {
+      "id": "v_sfis2",
+      "kind": "math",
+      "src": "s_2 <= s_fis =",
+      "x": 40,
+      "y": 15168
+    },
+    {
+      "id": "r296",
+      "kind": "math",
+      "src": "u_sep2 := s_2/s_fis =",
+      "x": 40,
+      "y": 15216
+    },
+    {
+      "id": "r297",
+      "kind": "text",
+      "src": "24.4.3.3: la retracción y temperatura de la dirección transversal, con su propio tope.",
+      "x": 40,
+      "y": 15264
+    },
+    {
+      "id": "r298",
+      "kind": "math",
+      "src": "s_ret2 := min(5*h_2, 450 mm) = mm",
+      "x": 40,
+      "y": 15312
+    },
+    {
+      "id": "v_sret2",
+      "kind": "math",
+      "src": "s_2 <= s_ret2 =",
+      "x": 40,
+      "y": 15360
+    },
+    {
+      "id": "r300",
+      "kind": "math",
+      "src": "eps_t2 := eps_t_de(Asc_2, d_2) =",
+      "x": 40,
+      "y": 15408
+    },
+    {
+      "id": "v_epst2",
+      "kind": "math",
+      "src": "eps_t2 >= eps_lim =",
+      "x": 40,
+      "y": 15456
+    },
+    {
+      "id": "r302",
+      "kind": "text",
+      "src": "Corte, la misma cadena con la malla de la losa definitiva:",
+      "x": 40,
+      "y": 15504
+    },
+    {
+      "id": "r303",
+      "kind": "math",
+      "src": "V_u2 := 1.15*w_u2*l_n/2 - w_u2*d_2 = kN",
+      "x": 40,
+      "y": 15552
+    },
+    {
+      "id": "r304",
+      "kind": "math",
+      "src": "rho_w2 := Asc_2/(b*d_2) =",
+      "x": 40,
+      "y": 15600
+    },
+    {
+      "id": "r305",
+      "kind": "math",
+      "src": "v_c2 := v_c_de(Asc_2, d_2) = MPa",
+      "x": 40,
+      "y": 15648
+    },
+    {
+      "id": "r306",
+      "kind": "math",
+      "src": "Rd_V2 := phi_v*v_c2*b*d_2 = kN",
+      "x": 40,
+      "y": 15696
+    },
+    {
+      "id": "r307",
+      "kind": "math",
+      "src": "u_V2 := V_u2/Rd_V2 =",
+      "x": 40,
+      "y": 15744
+    },
+    {
+      "id": "v_V2",
+      "kind": "math",
+      "src": "Rd_V2 >= V_u2 =",
+      "x": 40,
+      "y": 15792
+    },
+    {
+      "id": "r309",
+      "kind": "math",
+      "src": "Rd_clas2 := phi_v*k_clas*lambda*rfc*b*d_2 = kN",
+      "x": 40,
+      "y": 15840
+    },
+    {
+      "id": "r310",
+      "kind": "math",
+      "src": "razon_v2 := Rd_V2/Rd_clas2 =",
+      "x": 40,
+      "y": 15888
+    },
+    {
+      "id": "r311",
+      "kind": "text",
+      "src": "Deflexión de la losa definitiva, por las dos rutas de I_e:",
+      "x": 40,
+      "y": 15936
+    },
+    {
+      "id": "r312",
+      "kind": "math",
+      "src": "I_g2 := b*h_2^3/12 = mm^4",
+      "x": 40,
+      "y": 15984
+    },
+    {
+      "id": "r313",
+      "kind": "math",
+      "src": "M_cr2 := f_r*I_g2/(h_2/2) = kN*m",
+      "x": 40,
+      "y": 16032
+    },
+    {
+      "id": "r314",
+      "kind": "math",
+      "src": "M_a2 := cf_pos*q_s2*b*l_n^2 = kN*m",
+      "x": 40,
+      "y": 16080
+    },
+    {
+      "id": "r315",
+      "kind": "math",
+      "src": "M_an2 := cf_neg*q_s2*b*l_n^2 = kN*m",
+      "x": 40,
+      "y": 16128
+    },
+    {
+      "id": "r316",
+      "kind": "math",
+      "src": "I_cr2 := I_cr_de(Asc_2, d_2) = mm^4",
+      "x": 40,
+      "y": 16176
+    },
+    {
+      "id": "r317",
+      "kind": "math",
+      "src": "I_e2 := I_e_de(M_a2, M_cr2, I_cr2, I_g2) = mm^4",
+      "x": 40,
+      "y": 16224
+    },
+    {
+      "id": "r318",
+      "kind": "math",
+      "src": "r_Ie2 := I_e2/I_g2 =",
+      "x": 40,
+      "y": 16272
+    },
+    {
+      "id": "r319",
+      "kind": "math",
+      "src": "I_en2 := I_e_de(M_an2, M_cr2, I_cr2, I_g2) = mm^4",
+      "x": 40,
+      "y": 16320
+    },
+    {
+      "id": "r320",
+      "kind": "math",
+      "src": "I_ep2 := (I_e2 + I_en2)/2 = mm^4",
+      "x": 40,
+      "y": 16368
+    },
+    {
+      "id": "r321",
+      "kind": "math",
+      "src": "w_ef2 := lam_D*q_so2 + q_ad2 = kN/m^2",
+      "x": 40,
+      "y": 16416
+    },
+    {
+      "id": "r322",
+      "kind": "math",
+      "src": "fl_tot2 := cf_def*w_ef2*b*l_n^4/(E_c*I_e2) = mm",
+      "x": 40,
+      "y": 16464
+    },
+    {
+      "id": "r323",
+      "kind": "math",
+      "src": "u_fl2 := fl_tot2/lim_480 =",
+      "x": 40,
+      "y": 16512
+    },
+    {
+      "id": "r324",
+      "kind": "math",
+      "src": "fl_tot2_6 := cf_def*w_ef2*b*l_n^4/(E_c*I_ep2) = mm",
+      "x": 40,
+      "y": 16560
+    },
+    {
+      "id": "r325",
+      "kind": "math",
+      "src": "u_fl2_6 := fl_tot2_6/lim_480 =",
+      "x": 40,
+      "y": 16608
+    },
+    {
+      "id": "r326",
+      "kind": "math",
+      "src": "fl_L2 := cf_def*q_L*b*l_n^4/(E_c*I_e2) = mm",
+      "x": 40,
+      "y": 16656
+    },
+    {
+      "id": "r327",
+      "kind": "math",
+      "src": "u_L2 := fl_L2/lim_360 =",
+      "x": 40,
+      "y": 16704
+    },
+    {
+      "id": "v_fl2",
+      "kind": "math",
+      "src": "u_fl2 <= 1 =",
+      "x": 40,
+      "y": 16752
+    },
+    {
+      "id": "v_fl26",
+      "kind": "math",
+      "src": "u_fl2_6 <= 1 =",
+      "x": 40,
+      "y": 16800
+    },
+    {
+      "id": "r330",
+      "kind": "text",
+      "src": "━━ 6 · LOS BARRIDOS ━━",
+      "x": 40,
+      "y": 16864
+    },
+    {
+      "id": "r331",
+      "kind": "text",
+      "src": "La cadena entera en números planos (mm, N, MPa) para poder barrerla. Va partida en",
+      "x": 40,
+      "y": 16912
+    },
+    {
+      "id": "r332",
+      "kind": "text",
+      "src": "cuatro funciones: un bloque más alto que una página A4 descuadra la paginación.",
+      "x": 40,
+      "y": 16960
+    },
+    {
+      "id": "r333",
+      "kind": "math",
+      "src": "n_pl := 200000/23500 =",
+      "x": 40,
+      "y": 17008
+    },
+    {
+      "id": "r334",
+      "kind": "math",
+      "src": "A_bp := pi*100/4 =",
+      "x": 40,
+      "y": 17056
+    },
+    {
+      "id": "fmpl",
+      "kind": "program",
+      "src": "malla_pl(As) :=\n    s := 300\n    for i in 0:9\n        sc := 300 - 25*i\n        if 1000*A_bp/sc >= As\n            s := sc\n            break\n    return s",
+      "x": 40,
+      "y": 17104
+    },
+    {
+      "id": "ficr",
+      "kind": "program",
+      "src": "icr_pl(As, dd) :=\n    kk := (sqrt((n_pl*As)^2 + 2*1000*n_pl*As*dd) - n_pl*As)/1000\n    return 1000*kk^3/3 + n_pl*As*(dd - kk)^2",
+      "x": 40,
+      "y": 17280
+    },
+    {
+      "id": "fiepl",
+      "kind": "program",
+      "src": "ie_pl(Ma, Mcr, Icr, Ig) :=\n    if Ma <= 2*Mcr/3\n        return Ig\n    else\n        return Icr/(1 - (2*Mcr/(3*Ma))^2*(1 - Icr/Ig))",
+      "x": 40,
+      "y": 17360
+    },
+    {
+      "id": "r338",
+      "kind": "text",
+      "src": "Cargas, canto útil y el acero que pide la flexión en las dos secciones que mandan:",
+      "x": 40,
+      "y": 17472
+    },
+    {
+      "id": "fesf",
+      "kind": "program",
+      "src": "esf(hh, lnn) :=\n    dd := hh - 25\n    DD := 25*hh/1000 + 2\n    qu := 1.2*DD + 1.6*2.5\n    Rq := 0.9*0.85*25*1000\n    Ap := 0.85*25*1000*(dd - sqrt(dd^2 - 2*qu*lnn^2/14/Rq))/420\n    Ai := 0.85*25*1000*(dd - sqrt(dd^2 - 2*qu*lnn^2/10/Rq))/420\n    return [[dd, DD, qu, 0.0018*1000*hh, Ap, Ai]]",
+      "x": 40,
+      "y": 17520
+    },
+    {
+      "id": "r340",
+      "kind": "text",
+      "src": "Y la fila: malla, corte, inercia efectiva por las dos rutas y flecha posterior.",
+      "x": 40,
+      "y": 17696
+    },
+    {
+      "id": "ffila",
+      "kind": "program",
+      "src": "fila(hh, lnn, rp) :=\n    e := esf(hh, lnn)\n    dd := e[1,1]\n    qs := e[1,2] + 2.5\n    Amin := e[1,4]\n    sp := malla_pl(max(Amin, e[1,5]))\n    sn := malla_pl(max(Amin, e[1,6]))\n    Asp := 1000*A_bp/sp\n    Asn := 1000*A_bp/sn\n    ls := min(1, sqrt(2/(1 + dd/250)))\n    vc := min(max(0.66*ls*(Asn/(1000*dd))^(1/3)*5, 0.083*5), 0.42*5)\n    uV := (1.15*e[1,3]*lnn/2000 - e[1,3]*dd/1000)/(0.75*vc*dd)\n    Ig := 1000*hh^3/12\n    Mcr := 0.62*5*Ig/(hh/2)\n    Iep := ie_pl(0.08*qs*lnn^2, Mcr, icr_pl(Asp, dd), Ig)\n    Ien := ie_pl(0.1*qs*lnn^2, Mcr, icr_pl(Asn, dd), Ig)\n    ww := 2/(1 + 50*rp)*(e[1,2] + 0.625) + 1.875\n    f7 := cf_def*ww*lnn^4/(23500*Iep)\n    return [[hh, Amin, e[1,5], sp, Asp, uV, Iep/Ig, f7, f7*480/lnn, 2*f7*Iep/(Iep + Ien)*480/lnn]]",
+      "x": 40,
+      "y": 17744
+    },
+    {
+      "id": "r342",
+      "kind": "text",
+      "src": "Contraste interno: la función plana tiene que dar lo que dio la cadena dimensional.",
+      "x": 40,
+      "y": 18128
+    },
+    {
+      "id": "r343",
+      "kind": "math",
+      "src": "chk1 := fila(170, 4500, 0)",
+      "x": 40,
+      "y": 18176
+    },
+    {
+      "id": "r344",
+      "kind": "math",
+      "src": "chk2 := fila(210, 4500, 0)",
+      "x": 40,
+      "y": 18224
+    },
+    {
+      "id": "r_fila1",
+      "kind": "math",
+      "src": "abs(chk1[1,8]*(1 mm) - fl_tot1) < 0.002 mm =",
+      "x": 40,
+      "y": 18272
+    },
+    {
+      "id": "r_fila2",
+      "kind": "math",
+      "src": "abs(chk2[1,8]*(1 mm) - fl_tot2) < 0.002 mm =",
+      "x": 40,
+      "y": 18320
+    },
+    {
+      "id": "r_filaV1",
+      "kind": "math",
+      "src": "abs(chk1[1,6] - u_V1) < 0.0005 =",
+      "x": 40,
+      "y": 18368
+    },
+    {
+      "id": "r_filaIe2",
+      "kind": "math",
+      "src": "abs(chk2[1,7] - r_Ie2) < 0.0005 =",
+      "x": 40,
+      "y": 18416
+    },
+    {
+      "id": "r_fila16",
+      "kind": "math",
+      "src": "abs(chk1[1,10] - u_fl1_6) < 0.0005 =",
+      "x": 40,
+      "y": 18464
+    },
+    {
+      "id": "r350",
+      "kind": "text",
+      "src": "Barrido de espesores, de 150 a 220 mm:",
+      "x": 40,
+      "y": 18512
+    },
+    {
+      "id": "tabh",
+      "kind": "program",
+      "src": "tabla_h :=\n    acc := fila(150, 4500, 0)\n    for i in 1:6\n        acc := concat(acc, fila(160 + 10*i, 4500, 0), 1)\n    return acc",
+      "x": 40,
+      "y": 18560
+    },
+    {
+      "id": "r352",
+      "kind": "text",
+      "src": "Barrido de luces con el espesor del tanteo:",
+      "x": 40,
+      "y": 18672
+    },
+    {
+      "id": "tabl",
+      "kind": "program",
+      "src": "tabla_l :=\n    acc := fila(170, 4500, 0)\n    acc := concat(acc, fila(170, 4000, 0), 1)\n    acc := concat(acc, fila(170, 3600, 0), 1)\n    acc := concat(acc, fila(170, 3300, 0), 1)\n    return acc",
+      "x": 40,
+      "y": 18720
+    },
+    {
+      "id": "r354",
+      "kind": "text",
+      "src": "La luz que uno DECLARA: luz libre 4,50 contra luz entre ejes 4,80, por las dos rutas.",
+      "x": 40,
+      "y": 18848
+    },
+    {
+      "id": "tabe",
+      "kind": "program",
+      "src": "tabla_ejes :=\n    acc := [[0, 0, 0, 0, 0]]\n    for i in 0:3\n        hh := 200 + 10*i\n        a := fila(hh, 4500, 0)\n        c := fila(hh, 4800, 0)\n        acc := concat(acc, [[hh, a[1,9], a[1,10], c[1,9], c[1,10]]], 1)\n    return acc[2:end, 1:5]",
+      "x": 40,
+      "y": 18896
+    },
+    {
+      "id": "r356",
+      "kind": "text",
+      "src": "El acero comprimido, que en vigas es palanca contra la flecha diferida y acá no:",
+      "x": 40,
+      "y": 19072
+    },
+    {
+      "id": "tabr",
+      "kind": "program",
+      "src": "tabla_rho :=\n    acc := [[0, 0, 0]]\n    for i in 0:2\n        rp := 0.002*i\n        a := fila(170, 4500, rp)\n        acc := concat(acc, [[rp, 2/(1 + 50*rp), a[1,8]]], 1)\n    return acc[2:end, 1:3]",
+      "x": 40,
+      "y": 19120
+    },
+    {
+      "id": "r358",
+      "kind": "text",
+      "src": "La fracción sostenida de la sobrecarga, el supuesto con menos peso del ejemplo:",
+      "x": 40,
+      "y": 19280
+    },
+    {
+      "id": "tabf",
+      "kind": "program",
+      "src": "tabla_fs :=\n    Ie := chk1[1,7]*1000*170^3/12\n    DD := 25*170/1000 + 2\n    acc := [[0, 0]]\n    for i in 1:4\n        fs := 0.2\n        if i == 2\n            fs := 0.25\n        if i == 3\n            fs := 0.5\n        if i == 4\n            fs := 1\n        ww := 2*(DD + fs*2.5) + (1 - fs)*2.5\n        acc := concat(acc, [[fs, cf_def*ww*4500^4/(23500*Ie)]], 1)\n    return acc[2:end, 1:2]",
+      "x": 40,
+      "y": 19328
+    },
+    {
+      "id": "r360",
+      "kind": "math",
+      "src": "recorrido_fs := tabla_fs[4,2]/tabla_fs[1,2] - 1 =",
+      "x": 40,
+      "y": 19632
+    },
+    {
+      "id": "r361",
+      "kind": "text",
+      "src": "Dónde deja de fisurar: el último espesor en que M_a todavía supera ⅔M_cr.",
+      "x": 40,
+      "y": 19680
+    },
+    {
+      "id": "hcru",
+      "kind": "program",
+      "src": "h_cruce :=\n    hc := 0\n    for i in 0:60\n        hh := 200 + i\n        Ig := 1000*hh^3/12\n        Mcr := 0.62*5*Ig/(hh/2)\n        Ma := 0.08*(25*hh/1000 + 2 + 2.5)*4500^2\n        if Ma > 2*Mcr/3\n            hc := hh\n    return hc",
+      "x": 40,
+      "y": 19728
+    },
+    {
+      "id": "r363",
+      "kind": "text",
+      "src": "El tanteo de 17 cm reprueba con las cuatro combinaciones de luz y ruta de I_e:",
+      "x": 40,
+      "y": 19936
+    },
+    {
+      "id": "r364",
+      "kind": "math",
+      "src": "u_t_a := tabla_l[1,9] =",
+      "x": 40,
+      "y": 19984
+    },
+    {
+      "id": "r365",
+      "kind": "math",
+      "src": "u_t_b := tabla_l[1,10] =",
+      "x": 40,
+      "y": 20032
+    },
+    {
+      "id": "r366",
+      "kind": "math",
+      "src": "u_t_c := fila(170, 4800, 0)[1,9] =",
+      "x": 40,
+      "y": 20080
+    },
+    {
+      "id": "r367",
+      "kind": "math",
+      "src": "u_t_d := fila(170, 4800, 0)[1,10] =",
+      "x": 40,
+      "y": 20128
+    },
+    {
+      "id": "r368",
+      "kind": "math",
+      "src": "u_t_min := min(u_t_a, u_t_b, u_t_c, u_t_d) =",
+      "x": 40,
+      "y": 20176
+    },
+    {
+      "id": "r369",
+      "kind": "math",
+      "src": "u_t_max := max(u_t_a, u_t_b, u_t_c, u_t_d) =",
+      "x": 40,
+      "y": 20224
+    },
+    {
+      "id": "v_tanteo",
+      "kind": "math",
+      "src": "u_t_min > 1 =",
+      "x": 40,
+      "y": 20272
+    },
+    {
+      "id": "r371",
+      "kind": "text",
+      "src": "Y la caída de flecha al bajar la luz medio metro, y el crecimiento de I_g:",
+      "x": 40,
+      "y": 20320
+    },
+    {
+      "id": "r372",
+      "kind": "math",
+      "src": "caida_luz := 1 - tabla_l[2,8]/tabla_l[1,8] =",
+      "x": 40,
+      "y": 20368
+    },
+    {
+      "id": "r373",
+      "kind": "math",
+      "src": "sube_Ig := (h_2/h_1)^3 - 1 =",
+      "x": 40,
+      "y": 20416
+    },
+    {
+      "id": "r374",
+      "kind": "text",
+      "src": "━━ 7 · RESUMEN: QUÉ GOBIERNA LA LOSA DE 21 cm ━━",
+      "x": 40,
+      "y": 20496
+    },
+    {
+      "id": "r375",
+      "kind": "text",
+      "src": "`gobierna` se recalcula al cambiar cualquier dato: dice qué estado límite manda.",
+      "x": 40,
+      "y": 20544
+    },
+    {
+      "id": "r376",
+      "kind": "math",
+      "src": "u_max := max(u_V2, u_flex2, u_min2, u_sep2, u_fl2, u_fl2_6, u_L2) =",
+      "x": 40,
+      "y": 20592
+    },
+    {
+      "id": "gob",
+      "kind": "program",
+      "src": "gobierna :=\n    if u_max == u_V2\n        return \"corte a d de la cara (Tabla 22.5.5.1c)\"\n    else if u_max == u_flex2\n        return \"flexión del 1.er apoyo interior (7.5.1.1)\"\n    else if u_max == u_min2\n        return \"armadura mínima de flexión (7.6.1.1)\"\n    else if u_max == u_sep2\n        return \"espaciamiento por fisuración (Tabla 24.3.2)\"\n    else if u_max == u_fl2_6\n        return \"flecha posterior al montaje, I_e promediado (24.2.3.6)\"\n    else if u_max == u_fl2\n        return \"flecha posterior al montaje, I_e del centro (24.2.3.7)\"\n    else\n        return \"flecha inmediata por sobrecarga (24.2.2)\"",
+      "x": 40,
+      "y": 20640
+    },
+    {
+      "id": "v_max",
+      "kind": "math",
+      "src": "u_max <= 1 =",
+      "x": 40,
+      "y": 20944
+    },
+    {
+      "id": "r379",
+      "kind": "text",
+      "src": "━━ 8 · EL ESQUEMA ━━",
+      "x": 40,
+      "y": 21008
+    },
+    {
+      "id": "r380",
+      "kind": "text",
+      "src": "El mapeo a píxeles de la curva lo hace la hoja, no el motor: así la escala y la",
+      "x": 40,
+      "y": 21056
+    },
+    {
+      "id": "r381",
+      "kind": "text",
+      "src": "inversión del eje quedan a la vista. x = espesor en mm, y = flecha en mm.",
+      "x": 40,
+      "y": 21104
+    },
+    {
+      "id": "r382",
+      "kind": "math",
+      "src": "x_0 := 92",
+      "x": 40,
+      "y": 21152
+    },
+    {
+      "id": "r383",
+      "kind": "math",
+      "src": "s_x := 3.8",
+      "x": 40,
+      "y": 21200
+    },
+    {
+      "id": "r384",
+      "kind": "math",
+      "src": "y_0 := 486",
+      "x": 40,
+      "y": 21248
+    },
+    {
+      "id": "r385",
+      "kind": "math",
+      "src": "s_y := 4.5",
+      "x": 40,
+      "y": 21296
+    },
+    {
+      "id": "ptsfl",
+      "kind": "program",
+      "src": "pts_fl :=\n    acc := [[0, 0]]\n    for i in 0:10\n        hh := 150 + 10*i\n        f := fila(hh, 4500, 0)[1,8]\n        acc := concat(acc, [[x_0 + (hh - 150)*s_x, y_0 - f*s_y]], 1)\n    return acc[2:end, 1:2]",
+      "x": 40,
+      "y": 21344
+    },
+    {
+      "id": "r387",
+      "kind": "text",
+      "src": "Los puntos que anclan el dibujo: el tanteo, la losa adoptada y el límite ℓn/480.",
+      "x": 40,
+      "y": 21504
+    },
+    {
+      "id": "r388",
+      "kind": "math",
+      "src": "x_a := x_0 + (170 - 150)*s_x =",
+      "x": 40,
+      "y": 21552
+    },
+    {
+      "id": "r389",
+      "kind": "math",
+      "src": "y_a := y_0 - tabla_h[2,8]*s_y =",
+      "x": 40,
+      "y": 21600
+    },
+    {
+      "id": "r390",
+      "kind": "math",
+      "src": "x_b := x_0 + (210 - 150)*s_x =",
+      "x": 40,
+      "y": 21648
+    },
+    {
+      "id": "r391",
+      "kind": "math",
+      "src": "y_b := y_0 - tabla_h[6,8]*s_y =",
+      "x": 40,
+      "y": 21696
+    },
+    {
+      "id": "r392",
+      "kind": "math",
+      "src": "y_lim := y_0 - (lim_480/(1 mm))*s_y =",
+      "x": 40,
+      "y": 21744
+    },
+    {
+      "id": "r393",
+      "kind": "math",
+      "src": "x_cru := x_0 + (h_cruce - 150)*s_x =",
+      "x": 40,
+      "y": 21792
+    },
+    {
+      "id": "r_ancla",
+      "kind": "math",
+      "src": "abs(y_a - (y_0 - fl_tot1/(1 mm)*s_y)) < 0.01 =",
+      "x": 40,
+      "y": 21840
+    },
+    {
+      "id": "r_anclb",
+      "kind": "math",
+      "src": "abs(y_b - (y_0 - fl_tot2/(1 mm)*s_y)) < 0.01 =",
+      "x": 40,
+      "y": 21888
+    },
+    {
+      "id": "esq",
+      "kind": "image",
+      "src": "/esquemas/losa-unidireccional.svg",
+      "x": 40,
+      "y": 21936,
+      "w": 660,
+      "h": 490
+    },
+    {
+      "id": "r397",
+      "kind": "text",
+      "src": "━━ 9 · CONTRASTE CON EL POST — cada número publicado, contra el calculado ━━",
+      "x": 40,
+      "y": 22464
+    },
+    {
+      "id": "r398",
+      "kind": "text",
+      "src": "Tolerancia: media unidad del último dígito publicado.",
+      "x": 40,
+      "y": 22512
+    },
+    {
+      "id": "r399",
+      "kind": "text",
+      "src": "§ El caso y §1 — el espesor de tabla:",
+      "x": 40,
+      "y": 22560
+    },
+    {
+      "id": "c_recmin",
+      "kind": "math",
+      "src": "abs(rec_min - 19 mm) < 0.5 mm =",
+      "x": 40,
+      "y": 22608
+    },
+    {
+      "id": "c_kfy",
+      "kind": "math",
+      "src": "abs(k_fy - 1.00) < 0.005 =",
+      "x": 40,
+      "y": 22656
+    },
+    {
+      "id": "c_htab",
+      "kind": "math",
+      "src": "abs(h_tab - 187.5 mm) < 0.05 mm =",
+      "x": 40,
+      "y": 22704
+    },
+    {
+      "id": "c_htabint",
+      "kind": "math",
+      "src": "abs(h_tab_int - 160.7 mm) < 0.05 mm =",
+      "x": 40,
+      "y": 22752
+    },
+    {
+      "id": "c_htabejes",
+      "kind": "math",
+      "src": "abs(h_tab_ejes - 200 mm) < 0.5 mm =",
+      "x": 40,
+      "y": 22800
+    },
+    {
+      "id": "r405",
+      "kind": "text",
+      "src": "§2 — cargas y las condiciones de 6.5.1:",
+      "x": 40,
+      "y": 22848
+    },
+    {
+      "id": "c_D1",
+      "kind": "math",
+      "src": "abs(D_1 - 6.25 kN/m^2) < 0.005 kN/m^2 =",
+      "x": 40,
+      "y": 22896
+    },
+    {
+      "id": "c_qu1",
+      "kind": "math",
+      "src": "abs(q_u1 - 11.50 kN/m^2) < 0.005 kN/m^2 =",
+      "x": 40,
+      "y": 22944
+    },
+    {
+      "id": "c_D1t",
+      "kind": "math",
+      "src": "abs(D_1 - 0.637 tonf/m^2) < 0.0005 tonf/m^2 =",
+      "x": 40,
+      "y": 22992
+    },
+    {
+      "id": "c_qu1t",
+      "kind": "math",
+      "src": "abs(q_u1 - 1.173 tonf/m^2) < 0.0005 tonf/m^2 =",
+      "x": 40,
+      "y": 23040
+    },
+    {
+      "id": "c_razonLD",
+      "kind": "math",
+      "src": "abs(razon_LD - 0.13) < 0.005 =",
+      "x": 40,
+      "y": 23088
+    },
+    {
+      "id": "r411",
+      "kind": "text",
+      "src": "§3 — flexión con 17 cm:",
+      "x": 40,
+      "y": 23136
+    },
+    {
+      "id": "c_d1",
+      "kind": "math",
+      "src": "abs(d_1 - 145 mm) < 0.5 mm =",
+      "x": 40,
+      "y": 23184
+    },
+    {
+      "id": "c_Asmin1",
+      "kind": "math",
+      "src": "abs(A_smin1 - 306 mm^2) < 0.5 mm^2 =",
+      "x": 40,
+      "y": 23232
+    },
+    {
+      "id": "c_M_pos1",
+      "kind": "math",
+      "src": "abs(M_pos1 - 16.63 kN*m) < 0.005 kN*m =",
+      "x": 40,
+      "y": 23280
+    },
+    {
+      "id": "c_M_ext1",
+      "kind": "math",
+      "src": "abs(M_ext1 - 9.70 kN*m) < 0.005 kN*m =",
+      "x": 40,
+      "y": 23328
+    },
+    {
+      "id": "c_M_int1",
+      "kind": "math",
+      "src": "abs(M_int1 - 23.29 kN*m) < 0.005 kN*m =",
+      "x": 40,
+      "y": 23376
+    },
+    {
+      "id": "c_M_posi1",
+      "kind": "math",
+      "src": "abs(M_posi1 - 14.55 kN*m) < 0.005 kN*m =",
+      "x": 40,
+      "y": 23424
+    },
+    {
+      "id": "c_M_otr1",
+      "kind": "math",
+      "src": "abs(M_otr1 - 21.17 kN*m) < 0.005 kN*m =",
+      "x": 40,
+      "y": 23472
+    },
+    {
+      "id": "c_As_pos1",
+      "kind": "math",
+      "src": "abs(As_pos1 - 310 mm^2) < 0.5 mm^2 =",
+      "x": 40,
+      "y": 23520
+    },
+    {
+      "id": "c_As_ext1",
+      "kind": "math",
+      "src": "abs(As_ext1 - 179 mm^2) < 0.5 mm^2 =",
+      "x": 40,
+      "y": 23568
+    },
+    {
+      "id": "c_As_int1",
+      "kind": "math",
+      "src": "abs(As_int1 - 438 mm^2) < 0.5 mm^2 =",
+      "x": 40,
+      "y": 23616
+    },
+    {
+      "id": "c_As_posi1",
+      "kind": "math",
+      "src": "abs(As_posi1 - 271 mm^2) < 0.5 mm^2 =",
+      "x": 40,
+      "y": 23664
+    },
+    {
+      "id": "c_As_otr1",
+      "kind": "math",
+      "src": "abs(As_otr1 - 397 mm^2) < 0.5 mm^2 =",
+      "x": 40,
+      "y": 23712
+    },
+    {
+      "id": "c_exceso1",
+      "kind": "math",
+      "src": "abs(exceso1 - 0.43) < 0.005 =",
+      "x": 40,
+      "y": 23760
+    },
+    {
+      "id": "r425",
+      "kind": "text",
+      "src": "§4 — espaciamiento y ductilidad con 17 cm:",
+      "x": 40,
+      "y": 23808
+    },
+    {
+      "id": "c_fs",
+      "kind": "math",
+      "src": "abs(f_s - 280 MPa) < 0.5 MPa =",
+      "x": 40,
+      "y": 23856
+    },
+    {
+      "id": "c_sa",
+      "kind": "math",
+      "src": "abs(s_a - 330 mm) < 0.5 mm =",
+      "x": 40,
+      "y": 23904
+    },
+    {
+      "id": "c_sb",
+      "kind": "math",
+      "src": "abs(s_b - 300 mm) < 0.5 mm =",
+      "x": 40,
+      "y": 23952
+    },
+    {
+      "id": "c_sfis",
+      "kind": "math",
+      "src": "abs(s_fis - 300 mm) < 0.5 mm =",
+      "x": 40,
+      "y": 24000
+    },
+    {
+      "id": "c_smin1",
+      "kind": "math",
+      "src": "abs(s_min1 - 257 mm) < 0.5 mm =",
+      "x": 40,
+      "y": 24048
+    },
+    {
+      "id": "c_spos1",
+      "kind": "math",
+      "src": "abs(s_pos1 - 250 mm) < 0.5 mm =",
+      "x": 40,
+      "y": 24096
+    },
+    {
+      "id": "c_sneg1",
+      "kind": "math",
+      "src": "abs(s_neg1 - 175 mm) < 0.5 mm =",
+      "x": 40,
+      "y": 24144
+    },
+    {
+      "id": "c_Ascpos1",
+      "kind": "math",
+      "src": "abs(Asc_pos1 - 314 mm^2) < 0.5 mm^2 =",
+      "x": 40,
+      "y": 24192
+    },
+    {
+      "id": "c_epst1",
+      "kind": "math",
+      "src": "abs(eps_t1 - 0.039) < 0.0005 =",
+      "x": 40,
+      "y": 24240
+    },
+    {
+      "id": "c_epslim",
+      "kind": "math",
+      "src": "abs(eps_lim - 0.005) < 0.000005 =",
+      "x": 40,
+      "y": 24288
+    },
+    {
+      "id": "r436",
+      "kind": "text",
+      "src": "§5 — corte con 17 cm:",
+      "x": 40,
+      "y": 24336
+    },
+    {
+      "id": "c_Vcara1",
+      "kind": "math",
+      "src": "abs(V_cara1 - 29.76 kN) < 0.005 kN =",
+      "x": 40,
+      "y": 24384
+    },
+    {
+      "id": "c_Vu1",
+      "kind": "math",
+      "src": "abs(V_u1 - 28.09 kN) < 0.005 kN =",
+      "x": 40,
+      "y": 24432
+    },
+    {
+      "id": "c_rhow1",
+      "kind": "math",
+      "src": "abs(rho_w1 - 0.0031) < 0.00005 =",
+      "x": 40,
+      "y": 24480
+    },
+    {
+      "id": "c_lams1",
+      "kind": "math",
+      "src": "abs(lam_s1 - 1.00) < 0.005 =",
+      "x": 40,
+      "y": 24528
+    },
+    {
+      "id": "c_vc1",
+      "kind": "math",
+      "src": "abs(v_c1 - 0.481 MPa) < 0.0005 MPa =",
+      "x": 40,
+      "y": 24576
+    },
+    {
+      "id": "c_vpiso",
+      "kind": "math",
+      "src": "abs(v_piso - 0.415 MPa) < 0.0005 MPa =",
+      "x": 40,
+      "y": 24624
+    },
+    {
+      "id": "c_RdV1",
+      "kind": "math",
+      "src": "abs(Rd_V1 - 52.30 kN) < 0.005 kN =",
+      "x": 40,
+      "y": 24672
+    },
+    {
+      "id": "c_uV1",
+      "kind": "math",
+      "src": "abs(u_V1 - 0.54) < 0.005 =",
+      "x": 40,
+      "y": 24720
+    },
+    {
+      "id": "c_Rdclas1",
+      "kind": "math",
+      "src": "abs(Rd_clas1 - 92.44 kN) < 0.005 kN =",
+      "x": 40,
+      "y": 24768
+    },
+    {
+      "id": "c_razonv1",
+      "kind": "math",
+      "src": "abs(razon_v1 - 0.57) < 0.005 =",
+      "x": 40,
+      "y": 24816
+    },
+    {
+      "id": "c_razonv2",
+      "kind": "math",
+      "src": "abs(razon_v2 - 0.50) < 0.005 =",
+      "x": 40,
+      "y": 24864
+    },
+    {
+      "id": "r448",
+      "kind": "text",
+      "src": "§6 — la deflexión del tanteo:",
+      "x": 40,
+      "y": 24912
+    },
+    {
+      "id": "c_Ec",
+      "kind": "math",
+      "src": "abs(E_c - 23500 MPa) < 50 MPa =",
+      "x": 40,
+      "y": 24960
+    },
+    {
+      "id": "c_n",
+      "kind": "math",
+      "src": "abs(n_h - 8.51) < 0.005 =",
+      "x": 40,
+      "y": 25008
+    },
+    {
+      "id": "c_fr",
+      "kind": "math",
+      "src": "abs(f_r - 3.10 MPa) < 0.005 MPa =",
+      "x": 40,
+      "y": 25056
+    },
+    {
+      "id": "c_frimp",
+      "kind": "math",
+      "src": "abs(f_r_imp - 0.31 MPa) < 0.005 MPa =",
+      "x": 40,
+      "y": 25104
+    },
+    {
+      "id": "c_Mcr1",
+      "kind": "math",
+      "src": "abs(M_cr1 - 14.93 kN*m) < 0.005 kN*m =",
+      "x": 40,
+      "y": 25152
+    },
+    {
+      "id": "c_Mcr231",
+      "kind": "math",
+      "src": "abs(M_cr23_1 - 9.95 kN*m) < 0.005 kN*m =",
+      "x": 40,
+      "y": 25200
+    },
+    {
+      "id": "c_Ma1",
+      "kind": "math",
+      "src": "abs(M_a1 - 14.18 kN*m) < 0.0051 kN*m =",
+      "x": 40,
+      "y": 25248
+    },
+    {
+      "id": "c_kd1",
+      "kind": "math",
+      "src": "abs(kd_1 - 25 mm) < 0.5 mm =",
+      "x": 40,
+      "y": 25296
+    },
+    {
+      "id": "c_Icr1",
+      "kind": "math",
+      "src": "abs(I_cr1 - 43.7 mm^4*1e6) < 0.05 mm^4*1e6 =",
+      "x": 40,
+      "y": 25344
+    },
+    {
+      "id": "c_rIcr1",
+      "kind": "math",
+      "src": "abs(r_Icr1 - 0.107) < 0.0005 =",
+      "x": 40,
+      "y": 25392
+    },
+    {
+      "id": "c_Ie1",
+      "kind": "math",
+      "src": "abs(I_e1 - 78.1 mm^4*1e6) < 0.05 mm^4*1e6 =",
+      "x": 40,
+      "y": 25440
+    },
+    {
+      "id": "c_rIe1",
+      "kind": "math",
+      "src": "abs(r_Ie1 - 0.191) < 0.0005 =",
+      "x": 40,
+      "y": 25488
+    },
+    {
+      "id": "c_lamD",
+      "kind": "math",
+      "src": "abs(lam_D - 2.00) < 0.005 =",
+      "x": 40,
+      "y": 25536
+    },
+    {
+      "id": "c_flserv1",
+      "kind": "math",
+      "src": "abs(fl_serv1 - 13.45 mm) < 0.005 mm =",
+      "x": 40,
+      "y": 25584
+    },
+    {
+      "id": "c_flsost1",
+      "kind": "math",
+      "src": "abs(fl_sost1 - 10.57 mm) < 0.005 mm =",
+      "x": 40,
+      "y": 25632
+    },
+    {
+      "id": "c_fldif1",
+      "kind": "math",
+      "src": "abs(fl_dif1 - 21.14 mm) < 0.005 mm =",
+      "x": 40,
+      "y": 25680
+    },
+    {
+      "id": "c_flad1",
+      "kind": "math",
+      "src": "abs(fl_ad1 - 2.88 mm) < 0.005 mm =",
+      "x": 40,
+      "y": 25728
+    },
+    {
+      "id": "c_fltot1",
+      "kind": "math",
+      "src": "abs(fl_tot1 - 24.03 mm) < 0.005 mm =",
+      "x": 40,
+      "y": 25776
+    },
+    {
+      "id": "c_lim480",
+      "kind": "math",
+      "src": "abs(lim_480 - 9.38 mm) < 0.0051 mm =",
+      "x": 40,
+      "y": 25824
+    },
+    {
+      "id": "c_ufl1",
+      "kind": "math",
+      "src": "abs(u_fl1 - 2.56) < 0.005 =",
+      "x": 40,
+      "y": 25872
+    },
+    {
+      "id": "c_lim240",
+      "kind": "math",
+      "src": "abs(lim_240 - 18.75 mm) < 0.005 mm =",
+      "x": 40,
+      "y": 25920
+    },
+    {
+      "id": "c_ufl1240",
+      "kind": "math",
+      "src": "abs(u_fl1_240 - 1.28) < 0.005 =",
+      "x": 40,
+      "y": 25968
+    },
+    {
+      "id": "c_ufl16",
+      "kind": "math",
+      "src": "abs(u_fl1_6 - 2.51) < 0.005 =",
+      "x": 40,
+      "y": 26016
+    },
+    {
+      "id": "c_flL1",
+      "kind": "math",
+      "src": "abs(fl_L1 - 3.84 mm) < 0.005 mm =",
+      "x": 40,
+      "y": 26064
+    },
+    {
+      "id": "c_lim360",
+      "kind": "math",
+      "src": "abs(lim_360 - 12.50 mm) < 0.005 mm =",
+      "x": 40,
+      "y": 26112
+    },
+    {
+      "id": "c_uL1",
+      "kind": "math",
+      "src": "abs(u_L1 - 0.31) < 0.005 =",
+      "x": 40,
+      "y": 26160
+    },
+    {
+      "id": "c_flpp1",
+      "kind": "math",
+      "src": "abs(fl_pp1 - 13.07 mm) < 0.005 mm =",
+      "x": 40,
+      "y": 26208
+    },
+    {
+      "id": "c_partdif1",
+      "kind": "math",
+      "src": "abs(part_dif1 - 0.88) < 0.005 =",
+      "x": 40,
+      "y": 26256
+    },
+    {
+      "id": "c_fltot1g",
+      "kind": "math",
+      "src": "abs(fl_tot1_g - 4.58 mm) < 0.005 mm =",
+      "x": 40,
+      "y": 26304
+    },
+    {
+      "id": "c_ufl1g",
+      "kind": "math",
+      "src": "abs(u_fl1_g - 0.49) < 0.005 =",
+      "x": 40,
+      "y": 26352
+    },
+    {
+      "id": "c_factorg",
+      "kind": "math",
+      "src": "abs(factor_g - 5.2) < 0.05 =",
+      "x": 40,
+      "y": 26400
+    },
+    {
+      "id": "c_fltot1imp",
+      "kind": "math",
+      "src": "abs(fl_tot1_imp - 43 mm) < 0.5 mm =",
+      "x": 40,
+      "y": 26448
+    },
+    {
+      "id": "c_Mcr1imp",
+      "kind": "math",
+      "src": "abs(M_cr1_imp - 1.49 kN*m) < 0.005 kN*m =",
+      "x": 40,
+      "y": 26496
+    },
+    {
+      "id": "r482",
+      "kind": "text",
+      "src": "§1 — el marco elástico y la sensibilidad del apoyo exterior:",
+      "x": 40,
+      "y": 26544
+    },
+    {
+      "id": "c_cfpos",
+      "kind": "math",
+      "src": "abs(cf_pos - 0.0800) < 0.00005 =",
+      "x": 40,
+      "y": 26592
+    },
+    {
+      "id": "c_cfneg",
+      "kind": "math",
+      "src": "abs(cf_neg - 0.1000) < 0.00005 =",
+      "x": 40,
+      "y": 26640
+    },
+    {
+      "id": "c_cfdef",
+      "kind": "math",
+      "src": "abs(cf_def - 0.006884) < 0.0000005 =",
+      "x": 40,
+      "y": 26688
+    },
+    {
+      "id": "c_cfdefK",
+      "kind": "math",
+      "src": "abs(cf_def_K - 0.006006) < 0.0000005 =",
+      "x": 40,
+      "y": 26736
+    },
+    {
+      "id": "c_caidaK",
+      "kind": "math",
+      "src": "abs(caida_K - 0.13) < 0.005 =",
+      "x": 40,
+      "y": 26784
+    },
+    {
+      "id": "r488",
+      "kind": "text",
+      "src": "§7 — el barrido de espesores, fila por fila:",
+      "x": 40,
+      "y": 26832
+    },
+    {
+      "id": "c_bh150min",
+      "kind": "math",
+      "src": "abs(tabla_h[1,2] - 270) < 0.5 =",
+      "x": 40,
+      "y": 26880
+    },
+    {
+      "id": "c_bh150req",
+      "kind": "math",
+      "src": "abs(tabla_h[1,3] - 343) < 0.5 =",
+      "x": 40,
+      "y": 26928
+    },
+    {
+      "id": "c_bh150uV",
+      "kind": "math",
+      "src": "abs(tabla_h[1,6] - 0.54) < 0.005 =",
+      "x": 40,
+      "y": 26976
+    },
+    {
+      "id": "c_bh150Ie",
+      "kind": "math",
+      "src": "abs(tabla_h[1,7] - 0.176) < 0.0005 =",
+      "x": 40,
+      "y": 27024
+    },
+    {
+      "id": "c_bh150fl",
+      "kind": "math",
+      "src": "abs(tabla_h[1,8] - 35.51) < 0.005 =",
+      "x": 40,
+      "y": 27072
+    },
+    {
+      "id": "c_bh170min",
+      "kind": "math",
+      "src": "abs(tabla_h[2,2] - 306) < 0.5 =",
+      "x": 40,
+      "y": 27120
+    },
+    {
+      "id": "c_bh170req",
+      "kind": "math",
+      "src": "abs(tabla_h[2,3] - 310) < 0.5 =",
+      "x": 40,
+      "y": 27168
+    },
+    {
+      "id": "c_bh170uV",
+      "kind": "math",
+      "src": "abs(tabla_h[2,6] - 0.54) < 0.005 =",
+      "x": 40,
+      "y": 27216
+    },
+    {
+      "id": "c_bh170Ie",
+      "kind": "math",
+      "src": "abs(tabla_h[2,7] - 0.191) < 0.0005 =",
+      "x": 40,
+      "y": 27264
+    },
+    {
+      "id": "c_bh170fl",
+      "kind": "math",
+      "src": "abs(tabla_h[2,8] - 24.03) < 0.005 =",
+      "x": 40,
+      "y": 27312
+    },
+    {
+      "id": "c_bh180min",
+      "kind": "math",
+      "src": "abs(tabla_h[3,2] - 324) < 0.5 =",
+      "x": 40,
+      "y": 27360
+    },
+    {
+      "id": "c_bh180req",
+      "kind": "math",
+      "src": "abs(tabla_h[3,3] - 297) < 0.5 =",
+      "x": 40,
+      "y": 27408
+    },
+    {
+      "id": "c_bh180uV",
+      "kind": "math",
+      "src": "abs(tabla_h[3,6] - 0.52) < 0.005 =",
+      "x": 40,
+      "y": 27456
+    },
+    {
+      "id": "c_bh180Ie",
+      "kind": "math",
+      "src": "abs(tabla_h[3,7] - 0.236) < 0.0005 =",
+      "x": 40,
+      "y": 27504
+    },
+    {
+      "id": "c_bh180fl",
+      "kind": "math",
+      "src": "abs(tabla_h[3,8] - 16.86) < 0.005 =",
+      "x": 40,
+      "y": 27552
+    },
+    {
+      "id": "c_bh190min",
+      "kind": "math",
+      "src": "abs(tabla_h[4,2] - 342) < 0.5 =",
+      "x": 40,
+      "y": 27600
+    },
+    {
+      "id": "c_bh190req",
+      "kind": "math",
+      "src": "abs(tabla_h[4,3] - 285) < 0.5 =",
+      "x": 40,
+      "y": 27648
+    },
+    {
+      "id": "c_bh190uV",
+      "kind": "math",
+      "src": "abs(tabla_h[4,6] - 0.51) < 0.005 =",
+      "x": 40,
+      "y": 27696
+    },
+    {
+      "id": "c_bh190Ie",
+      "kind": "math",
+      "src": "abs(tabla_h[4,7] - 0.285) < 0.0005 =",
+      "x": 40,
+      "y": 27744
+    },
+    {
+      "id": "c_bh190fl",
+      "kind": "math",
+      "src": "abs(tabla_h[4,8] - 12.27) < 0.005 =",
+      "x": 40,
+      "y": 27792
+    },
+    {
+      "id": "c_bh200min",
+      "kind": "math",
+      "src": "abs(tabla_h[5,2] - 360) < 0.5 =",
+      "x": 40,
+      "y": 27840
+    },
+    {
+      "id": "c_bh200req",
+      "kind": "math",
+      "src": "abs(tabla_h[5,3] - 275) < 0.5 =",
+      "x": 40,
+      "y": 27888
+    },
+    {
+      "id": "c_bh200uV",
+      "kind": "math",
+      "src": "abs(tabla_h[5,6] - 0.53) < 0.005 =",
+      "x": 40,
+      "y": 27936
+    },
+    {
+      "id": "c_bh200Ie",
+      "kind": "math",
+      "src": "abs(tabla_h[5,7] - 0.405) < 0.0005 =",
+      "x": 40,
+      "y": 27984
+    },
+    {
+      "id": "c_bh200fl",
+      "kind": "math",
+      "src": "abs(tabla_h[5,8] - 7.63) < 0.005 =",
+      "x": 40,
+      "y": 28032
+    },
+    {
+      "id": "c_bh210min",
+      "kind": "math",
+      "src": "abs(tabla_h[6,2] - 378) < 0.5 =",
+      "x": 40,
+      "y": 28080
+    },
+    {
+      "id": "c_bh210req",
+      "kind": "math",
+      "src": "abs(tabla_h[6,3] - 266) < 0.5 =",
+      "x": 40,
+      "y": 28128
+    },
+    {
+      "id": "c_bh210uV",
+      "kind": "math",
+      "src": "abs(tabla_h[6,6] - 0.52) < 0.005 =",
+      "x": 40,
+      "y": 28176
+    },
+    {
+      "id": "c_bh210Ie",
+      "kind": "math",
+      "src": "abs(tabla_h[6,7] - 0.635) < 0.0005 =",
+      "x": 40,
+      "y": 28224
+    },
+    {
+      "id": "c_bh210fl",
+      "kind": "math",
+      "src": "abs(tabla_h[6,8] - 4.32) < 0.005 =",
+      "x": 40,
+      "y": 28272
+    },
+    {
+      "id": "c_bh220min",
+      "kind": "math",
+      "src": "abs(tabla_h[7,2] - 396) < 0.5 =",
+      "x": 40,
+      "y": 28320
+    },
+    {
+      "id": "c_bh220req",
+      "kind": "math",
+      "src": "abs(tabla_h[7,3] - 258) < 0.5 =",
+      "x": 40,
+      "y": 28368
+    },
+    {
+      "id": "c_bh220uV",
+      "kind": "math",
+      "src": "abs(tabla_h[7,6] - 0.49) < 0.005 =",
+      "x": 40,
+      "y": 28416
+    },
+    {
+      "id": "c_bh220Ie",
+      "kind": "math",
+      "src": "abs(tabla_h[7,7] - 1.000) < 0.0005 =",
+      "x": 40,
+      "y": 28464
+    },
+    {
+      "id": "c_bh220fl",
+      "kind": "math",
+      "src": "abs(tabla_h[7,8] - 2.45) < 0.005 =",
+      "x": 40,
+      "y": 28512
+    },
+    {
+      "id": "r524",
+      "kind": "text",
+      "src": "§7 — el barrido de luces:",
+      "x": 40,
+      "y": 28560
+    },
+    {
+      "id": "c_bl4500fl",
+      "kind": "math",
+      "src": "abs(tabla_l[1,8] - 24.03) < 0.005 =",
+      "x": 40,
+      "y": 28608
+    },
+    {
+      "id": "c_bl4500u6",
+      "kind": "math",
+      "src": "abs(tabla_l[1,10] - 2.51) < 0.005 =",
+      "x": 40,
+      "y": 28656
+    },
+    {
+      "id": "c_bl4000fl",
+      "kind": "math",
+      "src": "abs(tabla_l[2,8] - 7.89) < 0.005 =",
+      "x": 40,
+      "y": 28704
+    },
+    {
+      "id": "c_bl4000u6",
+      "kind": "math",
+      "src": "abs(tabla_l[2,10] - 1.20) < 0.005 =",
+      "x": 40,
+      "y": 28752
+    },
+    {
+      "id": "c_bl3600fl",
+      "kind": "math",
+      "src": "abs(tabla_l[3,8] - 1.88) < 0.005 =",
+      "x": 40,
+      "y": 28800
+    },
+    {
+      "id": "c_bl3600u6",
+      "kind": "math",
+      "src": "abs(tabla_l[3,10] - 0.37) < 0.005 =",
+      "x": 40,
+      "y": 28848
+    },
+    {
+      "id": "c_bl3300fl",
+      "kind": "math",
+      "src": "abs(tabla_l[4,8] - 1.33) < 0.005 =",
+      "x": 40,
+      "y": 28896
+    },
+    {
+      "id": "c_bl3300u6",
+      "kind": "math",
+      "src": "abs(tabla_l[4,10] - 0.19) < 0.005 =",
+      "x": 40,
+      "y": 28944
+    },
+    {
+      "id": "c_bl4000u7",
+      "kind": "math",
+      "src": "abs(tabla_l[2,9] - 0.95) < 0.005 =",
+      "x": 40,
+      "y": 28992
+    },
+    {
+      "id": "r534",
+      "kind": "text",
+      "src": "§7 — luz libre contra luz entre ejes, por las dos rutas de I_e:",
+      "x": 40,
+      "y": 29040
+    },
+    {
+      "id": "c_ej200a7",
+      "kind": "math",
+      "src": "abs(tabla_ejes[1,2] - 0.81) < 0.005 =",
+      "x": 40,
+      "y": 29088
+    },
+    {
+      "id": "c_ej200a6",
+      "kind": "math",
+      "src": "abs(tabla_ejes[1,3] - 1.06) < 0.005 =",
+      "x": 40,
+      "y": 29136
+    },
+    {
+      "id": "c_ej200b7",
+      "kind": "math",
+      "src": "abs(tabla_ejes[1,4] - 1.53) < 0.005 =",
+      "x": 40,
+      "y": 29184
+    },
+    {
+      "id": "c_ej200b6",
+      "kind": "math",
+      "src": "abs(tabla_ejes[1,5] - 1.72) < 0.005 =",
+      "x": 40,
+      "y": 29232
+    },
+    {
+      "id": "c_ej210a7",
+      "kind": "math",
+      "src": "abs(tabla_ejes[2,2] - 0.46) < 0.005 =",
+      "x": 40,
+      "y": 29280
+    },
+    {
+      "id": "c_ej210a6",
+      "kind": "math",
+      "src": "abs(tabla_ejes[2,3] - 0.67) < 0.005 =",
+      "x": 40,
+      "y": 29328
+    },
+    {
+      "id": "c_ej210b7",
+      "kind": "math",
+      "src": "abs(tabla_ejes[2,4] - 1.13) < 0.005 =",
+      "x": 40,
+      "y": 29376
+    },
+    {
+      "id": "c_ej210b6",
+      "kind": "math",
+      "src": "abs(tabla_ejes[2,5] - 1.34) < 0.005 =",
+      "x": 40,
+      "y": 29424
+    },
+    {
+      "id": "c_ej220a7",
+      "kind": "math",
+      "src": "abs(tabla_ejes[3,2] - 0.26) < 0.005 =",
+      "x": 40,
+      "y": 29472
+    },
+    {
+      "id": "c_ej220a6",
+      "kind": "math",
+      "src": "abs(tabla_ejes[3,3] - 0.40) < 0.005 =",
+      "x": 40,
+      "y": 29520
+    },
+    {
+      "id": "c_ej220b7",
+      "kind": "math",
+      "src": "abs(tabla_ejes[3,4] - 0.72) < 0.005 =",
+      "x": 40,
+      "y": 29568
+    },
+    {
+      "id": "c_ej220b6",
+      "kind": "math",
+      "src": "abs(tabla_ejes[3,5] - 0.94) < 0.005 =",
+      "x": 40,
+      "y": 29616
+    },
+    {
+      "id": "c_ej230a7",
+      "kind": "math",
+      "src": "abs(tabla_ejes[4,2] - 0.24) < 0.005 =",
+      "x": 40,
+      "y": 29664
+    },
+    {
+      "id": "c_ej230a6",
+      "kind": "math",
+      "src": "abs(tabla_ejes[4,3] - 0.34) < 0.005 =",
+      "x": 40,
+      "y": 29712
+    },
+    {
+      "id": "c_ej230b7",
+      "kind": "math",
+      "src": "abs(tabla_ejes[4,4] - 0.43) < 0.005 =",
+      "x": 40,
+      "y": 29760
+    },
+    {
+      "id": "c_ej230b6",
+      "kind": "math",
+      "src": "abs(tabla_ejes[4,5] - 0.62) < 0.005 =",
+      "x": 40,
+      "y": 29808
+    },
+    {
+      "id": "r551",
+      "kind": "text",
+      "src": "§7 — el acero comprimido y la fracción sostenida:",
+      "x": 40,
+      "y": 29856
+    },
+    {
+      "id": "c_rho1lam",
+      "kind": "math",
+      "src": "abs(tabla_rho[1,2] - 2.00) < 0.005 =",
+      "x": 40,
+      "y": 29904
+    },
+    {
+      "id": "c_rho1fl",
+      "kind": "math",
+      "src": "abs(tabla_rho[1,3] - 24.03) < 0.005 =",
+      "x": 40,
+      "y": 29952
+    },
+    {
+      "id": "c_rho2lam",
+      "kind": "math",
+      "src": "abs(tabla_rho[2,2] - 1.82) < 0.005 =",
+      "x": 40,
+      "y": 30000
+    },
+    {
+      "id": "c_rho2fl",
+      "kind": "math",
+      "src": "abs(tabla_rho[2,3] - 22.10) < 0.005 =",
+      "x": 40,
+      "y": 30048
+    },
+    {
+      "id": "c_rho3lam",
+      "kind": "math",
+      "src": "abs(tabla_rho[3,2] - 1.67) < 0.005 =",
+      "x": 40,
+      "y": 30096
+    },
+    {
+      "id": "c_rho3fl",
+      "kind": "math",
+      "src": "abs(tabla_rho[3,3] - 20.50) < 0.005 =",
+      "x": 40,
+      "y": 30144
+    },
+    {
+      "id": "c_fs1",
+      "kind": "math",
+      "src": "abs(tabla_fs[1,2] - 23.83) < 0.005 =",
+      "x": 40,
+      "y": 30192
+    },
+    {
+      "id": "c_fs2",
+      "kind": "math",
+      "src": "abs(tabla_fs[2,2] - 24.03) < 0.005 =",
+      "x": 40,
+      "y": 30240
+    },
+    {
+      "id": "c_fs3",
+      "kind": "math",
+      "src": "abs(tabla_fs[3,2] - 24.99) < 0.005 =",
+      "x": 40,
+      "y": 30288
+    },
+    {
+      "id": "c_fs4",
+      "kind": "math",
+      "src": "abs(tabla_fs[4,2] - 26.91) < 0.005 =",
+      "x": 40,
+      "y": 30336
+    },
+    {
+      "id": "c_recfs",
+      "kind": "math",
+      "src": "abs(recorrido_fs - 0.13) < 0.005 =",
+      "x": 40,
+      "y": 30384
+    },
+    {
+      "id": "r563",
+      "kind": "text",
+      "src": "§7 — las sensibilidades que el post publica en prosa:",
+      "x": 40,
+      "y": 30432
+    },
+    {
+      "id": "c_hcruce",
+      "kind": "math",
+      "src": "abs(h_cruce - 215) < 0.5 =",
+      "x": 40,
+      "y": 30480
+    },
+    {
+      "id": "c_caidaluz",
+      "kind": "math",
+      "src": "abs(caida_luz - 0.67) < 0.005 =",
+      "x": 40,
+      "y": 30528
+    },
+    {
+      "id": "c_subeIg",
+      "kind": "math",
+      "src": "abs(sube_Ig - 0.88) < 0.005 =",
+      "x": 40,
+      "y": 30576
+    },
+    {
+      "id": "c_utmin",
+      "kind": "math",
+      "src": "abs(u_t_min - 2.5) < 0.05 =",
+      "x": 40,
+      "y": 30624
+    },
+    {
+      "id": "c_utmax",
+      "kind": "math",
+      "src": "abs(u_t_max - 3.1) < 0.05 =",
+      "x": 40,
+      "y": 30672
+    },
+    {
+      "id": "r569",
+      "kind": "text",
+      "src": "§8 — la losa definitiva de 21 cm:",
+      "x": 40,
+      "y": 30720
+    },
+    {
+      "id": "c_d2",
+      "kind": "math",
+      "src": "abs(d_2 - 185 mm) < 0.5 mm =",
+      "x": 40,
+      "y": 30768
+    },
+    {
+      "id": "c_D2",
+      "kind": "math",
+      "src": "abs(D_2 - 7.25 kN/m^2) < 0.005 kN/m^2 =",
+      "x": 40,
+      "y": 30816
+    },
+    {
+      "id": "c_qu2",
+      "kind": "math",
+      "src": "abs(q_u2 - 12.70 kN/m^2) < 0.005 kN/m^2 =",
+      "x": 40,
+      "y": 30864
+    },
+    {
+      "id": "c_Asmin2",
+      "kind": "math",
+      "src": "abs(A_smin2 - 378 mm^2) < 0.5 mm^2 =",
+      "x": 40,
+      "y": 30912
+    },
+    {
+      "id": "c_M_pos2",
+      "kind": "math",
+      "src": "abs(M_pos2 - 18.37 kN*m) < 0.005 kN*m =",
+      "x": 40,
+      "y": 30960
+    },
+    {
+      "id": "c_M_ext2",
+      "kind": "math",
+      "src": "abs(M_ext2 - 10.72 kN*m) < 0.005 kN*m =",
+      "x": 40,
+      "y": 31008
+    },
+    {
+      "id": "c_M_int2",
+      "kind": "math",
+      "src": "abs(M_int2 - 25.72 kN*m) < 0.005 kN*m =",
+      "x": 40,
+      "y": 31056
+    },
+    {
+      "id": "c_M_posi2",
+      "kind": "math",
+      "src": "abs(M_posi2 - 16.07 kN*m) < 0.005 kN*m =",
+      "x": 40,
+      "y": 31104
+    },
+    {
+      "id": "c_M_otr2",
+      "kind": "math",
+      "src": "abs(M_otr2 - 23.38 kN*m) < 0.005 kN*m =",
+      "x": 40,
+      "y": 31152
+    },
+    {
+      "id": "c_As_pos2",
+      "kind": "math",
+      "src": "abs(As_pos2 - 266 mm^2) < 0.5 mm^2 =",
+      "x": 40,
+      "y": 31200
+    },
+    {
+      "id": "c_As_ext2",
+      "kind": "math",
+      "src": "abs(As_ext2 - 155 mm^2) < 0.5 mm^2 =",
+      "x": 40,
+      "y": 31248
+    },
+    {
+      "id": "c_As_int2",
+      "kind": "math",
+      "src": "abs(As_int2 - 375 mm^2) < 0.5 mm^2 =",
+      "x": 40,
+      "y": 31296
+    },
+    {
+      "id": "c_As_posi2",
+      "kind": "math",
+      "src": "abs(As_posi2 - 233 mm^2) < 0.5 mm^2 =",
+      "x": 40,
+      "y": 31344
+    },
+    {
+      "id": "c_As_otr2",
+      "kind": "math",
+      "src": "abs(As_otr2 - 341 mm^2) < 0.5 mm^2 =",
+      "x": 40,
+      "y": 31392
+    },
+    {
+      "id": "c_s2",
+      "kind": "math",
+      "src": "abs(s_2 - 200 mm) < 0.5 mm =",
+      "x": 40,
+      "y": 31440
+    },
+    {
+      "id": "c_Asc2",
+      "kind": "math",
+      "src": "abs(Asc_2 - 393 mm^2) < 0.5 mm^2 =",
+      "x": 40,
+      "y": 31488
+    },
+    {
+      "id": "c_sret2",
+      "kind": "math",
+      "src": "abs(s_ret2 - 450 mm) < 0.5 mm =",
+      "x": 40,
+      "y": 31536
+    },
+    {
+      "id": "r587",
+      "kind": "text",
+      "src": "§ Resumen demanda-capacidad:",
+      "x": 40,
+      "y": 31584
+    },
+    {
+      "id": "c_uflex2",
+      "kind": "math",
+      "src": "abs(u_flex2 - 0.96) < 0.005 =",
+      "x": 40,
+      "y": 31632
+    },
+    {
+      "id": "c_umin2",
+      "kind": "math",
+      "src": "abs(u_min2 - 0.96) < 0.005 =",
+      "x": 40,
+      "y": 31680
+    },
+    {
+      "id": "c_Vu2",
+      "kind": "math",
+      "src": "abs(V_u2 - 30.51 kN) < 0.005 kN =",
+      "x": 40,
+      "y": 31728
+    },
+    {
+      "id": "c_RdV2",
+      "kind": "math",
+      "src": "abs(Rd_V2 - 58.85 kN) < 0.005 kN =",
+      "x": 40,
+      "y": 31776
+    },
+    {
+      "id": "c_uV2",
+      "kind": "math",
+      "src": "abs(u_V2 - 0.52) < 0.005 =",
+      "x": 40,
+      "y": 31824
+    },
+    {
+      "id": "c_epst2",
+      "kind": "math",
+      "src": "abs(eps_t2 - 0.058) < 0.0005 =",
+      "x": 40,
+      "y": 31872
+    },
+    {
+      "id": "c_usep2",
+      "kind": "math",
+      "src": "abs(u_sep2 - 0.67) < 0.005 =",
+      "x": 40,
+      "y": 31920
+    },
+    {
+      "id": "c_fltot2",
+      "kind": "math",
+      "src": "abs(fl_tot2 - 4.32 mm) < 0.005 mm =",
+      "x": 40,
+      "y": 31968
+    },
+    {
+      "id": "c_ufl2",
+      "kind": "math",
+      "src": "abs(u_fl2 - 0.46) < 0.005 =",
+      "x": 40,
+      "y": 32016
+    },
+    {
+      "id": "c_fltot26",
+      "kind": "math",
+      "src": "abs(fl_tot2_6 - 6.25 mm) < 0.005 mm =",
+      "x": 40,
+      "y": 32064
+    },
+    {
+      "id": "c_ufl26",
+      "kind": "math",
+      "src": "abs(u_fl2_6 - 0.67) < 0.005 =",
+      "x": 40,
+      "y": 32112
+    },
+    {
+      "id": "c_flL2",
+      "kind": "math",
+      "src": "abs(fl_L2 - 0.61 mm) < 0.005 mm =",
+      "x": 40,
+      "y": 32160
+    },
+    {
+      "id": "c_uL2",
+      "kind": "math",
+      "src": "abs(u_L2 - 0.05) < 0.005 =",
+      "x": 40,
+      "y": 32208
+    }
+  ]
+}

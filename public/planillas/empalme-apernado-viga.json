@@ -1,0 +1,1920 @@
+{
+  "version": 1,
+  "meta": {
+    "titulo": "Empalme apernado de viga — el empalme copia las fuerzas, no la sección; y pretensar no agrega resistencia, agrega una verificación (AISC 360-22 J3/J4/J6/F13)",
+    "ficha": "struct_pad/src/content/acero/ejemplo-empalme-apernado-viga.mdx",
+    "esperadoFalso": {
+      "v_d6A": "La tesis del ejemplo: con 6 pernos Clase A el empalme resiste sin romperse pero DESLIZA (uso 1,24). El false es el punto del post."
+    }
+  },
+  "regions": [
+    {
+      "id": "t0",
+      "kind": "text",
+      "x": 40,
+      "y": 32,
+      "src": "EMPALME APERNADO DE VIGA — el empalme copia las FUERZAS, no la sección; y pretensar no agrega resistencia, agrega una VERIFICACIÓN"
+    },
+    {
+      "id": "t1",
+      "kind": "text",
+      "x": 40,
+      "y": 80,
+      "src": "AISC 360-22 · J6 (empalmes) · J3.7 (Ec. J3-1) · J3.9 (Ec. J3-4) · J3.11a (Ecs. J3-6a/c) · J4.1/J4.2/J4.3/J4.4 · F13.1 · B4.3b · LRFD"
+    },
+    {
+      "id": "t2",
+      "kind": "text",
+      "x": 40,
+      "y": 128,
+      "src": "Rd_ = capacidad de diseño (lleva phi) · R_ sin phi = nominal · las comparaciones dan ✓/✗"
+    },
+    {
+      "id": "t3",
+      "kind": "text",
+      "x": 40,
+      "y": 176,
+      "src": "El nudo: empalme de montaje a un cuarto de la luz. Cubreplacas exteriores en las alas (el par del momento) y dos planchas en el alma (el corte)."
+    },
+    {
+      "id": "s4",
+      "kind": "text",
+      "x": 40,
+      "y": 240,
+      "src": "━━ DATOS · MATERIALES ━━"
+    },
+    {
+      "id": "t5",
+      "kind": "text",
+      "x": 40,
+      "y": 288,
+      "src": "Viga W460×74 en A992 · cubreplacas y planchas de alma en A36 · pernos Ø22 ASTM F3125 Gr. A325 = Grupo 120, rosca INCLUIDA en el plano de corte"
+    },
+    {
+      "id": "r000",
+      "kind": "math",
+      "x": 40,
+      "y": 336,
+      "src": "F_yv := 3520 kgf/cm^2"
+    },
+    {
+      "id": "r001",
+      "kind": "math",
+      "x": 40,
+      "y": 384,
+      "src": "F_uv := 4570 kgf/cm^2"
+    },
+    {
+      "id": "r002",
+      "kind": "math",
+      "x": 40,
+      "y": 432,
+      "src": "F_y := 2530 kgf/cm^2"
+    },
+    {
+      "id": "r003",
+      "kind": "math",
+      "x": 40,
+      "y": 480,
+      "src": "F_u := 4080 kgf/cm^2"
+    },
+    {
+      "id": "t6",
+      "kind": "text",
+      "x": 40,
+      "y": 528,
+      "src": "Tabla J3.2, columna métrica: Grupo 120 (e.g. A325), hilos NO excluidos del plano de corte → F_nv = 54 ksi (370 MPa)"
+    },
+    {
+      "id": "r004",
+      "kind": "math",
+      "x": 40,
+      "y": 576,
+      "src": "F_nv := 370 MPa = kgf/cm^2"
+    },
+    {
+      "id": "t7",
+      "kind": "text",
+      "x": 40,
+      "y": 624,
+      "src": "Tabla J3.1M: pretensión mínima para M22 del Grupo 120 → T_b = 176 kN"
+    },
+    {
+      "id": "r005",
+      "kind": "math",
+      "x": 40,
+      "y": 672,
+      "src": "T_b := 176 kN = kgf"
+    },
+    {
+      "id": "t8",
+      "kind": "text",
+      "x": 40,
+      "y": 720,
+      "src": "J3.9: D_u = 1.13 · h_f = 1.0 sin planchas de relleno · mu = 0.30 (Clase A, cascarilla de laminación) y 0.50 (Clase B, chorreada)"
+    },
+    {
+      "id": "r006",
+      "kind": "math",
+      "x": 40,
+      "y": 768,
+      "src": "D_u := 1.13"
+    },
+    {
+      "id": "r007",
+      "kind": "math",
+      "x": 40,
+      "y": 816,
+      "src": "h_f := 1.0"
+    },
+    {
+      "id": "r008",
+      "kind": "math",
+      "x": 40,
+      "y": 864,
+      "src": "mu_A := 0.30"
+    },
+    {
+      "id": "r009",
+      "kind": "math",
+      "x": 40,
+      "y": 912,
+      "src": "mu_B := 0.50"
+    },
+    {
+      "id": "s9",
+      "kind": "text",
+      "x": 40,
+      "y": 976,
+      "src": "━━ DATOS · GEOMETRÍA ━━"
+    },
+    {
+      "id": "t10",
+      "kind": "text",
+      "x": 40,
+      "y": 1024,
+      "src": "La viga W460×74 (catálogo)"
+    },
+    {
+      "id": "r010",
+      "kind": "math",
+      "x": 40,
+      "y": 1072,
+      "src": "d_v := 45.7 cm"
+    },
+    {
+      "id": "r011",
+      "kind": "math",
+      "x": 40,
+      "y": 1120,
+      "src": "b_f := 19.0 cm"
+    },
+    {
+      "id": "r012",
+      "kind": "math",
+      "x": 40,
+      "y": 1168,
+      "src": "t_f := 1.45 cm"
+    },
+    {
+      "id": "r013",
+      "kind": "math",
+      "x": 40,
+      "y": 1216,
+      "src": "t_w := 0.90 cm"
+    },
+    {
+      "id": "r014",
+      "kind": "math",
+      "x": 40,
+      "y": 1264,
+      "src": "I_x := 33300 cm^4"
+    },
+    {
+      "id": "r015",
+      "kind": "math",
+      "x": 40,
+      "y": 1312,
+      "src": "S_x := 1457 cm^3"
+    },
+    {
+      "id": "r016",
+      "kind": "math",
+      "x": 40,
+      "y": 1360,
+      "src": "Z_x := 1655 cm^3"
+    },
+    {
+      "id": "t11",
+      "kind": "text",
+      "x": 40,
+      "y": 1408,
+      "src": "Las planchas del empalme"
+    },
+    {
+      "id": "r017",
+      "kind": "math",
+      "x": 40,
+      "y": 1456,
+      "src": "t_cp := 1.4 cm"
+    },
+    {
+      "id": "r018",
+      "kind": "math",
+      "x": 40,
+      "y": 1504,
+      "src": "b_cp := 19.0 cm"
+    },
+    {
+      "id": "r019",
+      "kind": "math",
+      "x": 40,
+      "y": 1552,
+      "src": "t_wp := 0.8 cm"
+    },
+    {
+      "id": "r020",
+      "kind": "math",
+      "x": 40,
+      "y": 1600,
+      "src": "d_wp := 28.0 cm"
+    },
+    {
+      "id": "r021",
+      "kind": "math",
+      "x": 40,
+      "y": 1648,
+      "src": "n_wp := 2"
+    },
+    {
+      "id": "t12",
+      "kind": "text",
+      "x": 40,
+      "y": 1696,
+      "src": "Los pernos: d_hf = agujero físico (Tabla J3.3M: M22 estándar, 24 mm) · d_h = el de área neta, 2 mm mayor (B4.3b)"
+    },
+    {
+      "id": "r022",
+      "kind": "math",
+      "x": 40,
+      "y": 1744,
+      "src": "d_b := 2.2 cm"
+    },
+    {
+      "id": "r023",
+      "kind": "math",
+      "x": 40,
+      "y": 1792,
+      "src": "d_hf := 2.4 cm"
+    },
+    {
+      "id": "r024",
+      "kind": "math",
+      "x": 40,
+      "y": 1840,
+      "src": "d_h := d_hf + 0.2 cm"
+    },
+    {
+      "id": "r025",
+      "kind": "math",
+      "x": 40,
+      "y": 1888,
+      "src": "A_b := pi*d_b^2/4 = cm^2"
+    },
+    {
+      "id": "t13",
+      "kind": "text",
+      "x": 40,
+      "y": 1936,
+      "src": "Por ala y a cada lado de la junta: 2 líneas × 4 filas = 8 pernos. En el alma: 4 pernos a cada lado, en corte doble."
+    },
+    {
+      "id": "r026",
+      "kind": "math",
+      "x": 40,
+      "y": 1984,
+      "src": "n_lin := 2"
+    },
+    {
+      "id": "r027",
+      "kind": "math",
+      "x": 40,
+      "y": 2032,
+      "src": "n_fil := 4"
+    },
+    {
+      "id": "r028",
+      "kind": "math",
+      "x": 40,
+      "y": 2080,
+      "src": "n_f := n_lin*n_fil"
+    },
+    {
+      "id": "r029",
+      "kind": "math",
+      "x": 40,
+      "y": 2128,
+      "src": "n_w := 4"
+    },
+    {
+      "id": "r030",
+      "kind": "math",
+      "x": 40,
+      "y": 2176,
+      "src": "s := 7.0 cm"
+    },
+    {
+      "id": "r031",
+      "kind": "math",
+      "x": 40,
+      "y": 2224,
+      "src": "g_p := 10.0 cm"
+    },
+    {
+      "id": "r032",
+      "kind": "math",
+      "x": 40,
+      "y": 2272,
+      "src": "L_e := 4.0 cm"
+    },
+    {
+      "id": "r033",
+      "kind": "math",
+      "x": 40,
+      "y": 2320,
+      "src": "L_ev := 3.5 cm"
+    },
+    {
+      "id": "r034",
+      "kind": "math",
+      "x": 40,
+      "y": 2368,
+      "src": "e_w := 4.5 cm"
+    },
+    {
+      "id": "s14",
+      "kind": "text",
+      "x": 40,
+      "y": 2432,
+      "src": "━━ DATOS · SOLICITACIÓN (LRFD) ━━"
+    },
+    {
+      "id": "r035",
+      "kind": "math",
+      "x": 40,
+      "y": 2480,
+      "src": "M_u := 20 tonf*m"
+    },
+    {
+      "id": "r036",
+      "kind": "math",
+      "x": 40,
+      "y": 2528,
+      "src": "V_u := 12 tonf"
+    },
+    {
+      "id": "s15",
+      "kind": "text",
+      "x": 40,
+      "y": 2592,
+      "src": "━━ 1 · EL REPARTO: MOMENTO A LAS ALAS, CORTE AL ALMA ━━"
+    },
+    {
+      "id": "t16",
+      "kind": "text",
+      "x": 40,
+      "y": 2640,
+      "src": "J6: un empalme que no es de tope soldado transfiere las FUERZAS del punto, no la capacidad del miembro"
+    },
+    {
+      "id": "r037",
+      "kind": "math",
+      "x": 40,
+      "y": 2688,
+      "src": "A_f := b_f*t_f = cm^2"
+    },
+    {
+      "id": "r038",
+      "kind": "math",
+      "x": 40,
+      "y": 2736,
+      "src": "h_par := d_v - t_f = cm"
+    },
+    {
+      "id": "r039",
+      "kind": "math",
+      "x": 40,
+      "y": 2784,
+      "src": "y_al := h_par/2 = cm"
+    },
+    {
+      "id": "r040",
+      "kind": "math",
+      "x": 40,
+      "y": 2832,
+      "src": "I_al := 2*A_f*y_al^2 = cm^4"
+    },
+    {
+      "id": "r041",
+      "kind": "math",
+      "x": 40,
+      "y": 2880,
+      "src": "p_al := I_al/I_x ="
+    },
+    {
+      "id": "r042",
+      "kind": "math",
+      "x": 40,
+      "y": 2928,
+      "src": "p_alm := 1 - p_al ="
+    },
+    {
+      "id": "t17",
+      "kind": "text",
+      "x": 40,
+      "y": 2976,
+      "src": "Mandarle todo el momento a las alas es conservador; lo que queda del lado del alma es el resto por rigidez"
+    },
+    {
+      "id": "r043",
+      "kind": "math",
+      "x": 40,
+      "y": 3024,
+      "src": "M_alm := p_alm*M_u = tonf*m"
+    },
+    {
+      "id": "r044",
+      "kind": "math",
+      "x": 40,
+      "y": 3072,
+      "src": "F_f := M_u/h_par = tonf"
+    },
+    {
+      "id": "s18",
+      "kind": "text",
+      "x": 40,
+      "y": 3136,
+      "src": "━━ 2 · LAS CUBREPLACAS DE ALA (J4.1: Ecs. J4-1 y J4-2) ━━"
+    },
+    {
+      "id": "t19",
+      "kind": "text",
+      "x": 40,
+      "y": 3184,
+      "src": "Área neta con el agujero de B4.3b (26 mm): dos agujeros en el ancho. U = 1 (D3, caso 1: toda la sección va conectada)"
+    },
+    {
+      "id": "r045",
+      "kind": "math",
+      "x": 40,
+      "y": 3232,
+      "src": "A_gcp := b_cp*t_cp = cm^2"
+    },
+    {
+      "id": "r046",
+      "kind": "math",
+      "x": 40,
+      "y": 3280,
+      "src": "A_ncp := (b_cp - n_lin*d_h)*t_cp = cm^2"
+    },
+    {
+      "id": "r047",
+      "kind": "math",
+      "x": 40,
+      "y": 3328,
+      "src": "Rd_cfl := 0.90*F_y*A_gcp = tonf"
+    },
+    {
+      "id": "r048",
+      "kind": "math",
+      "x": 40,
+      "y": 3376,
+      "src": "Rd_cro := 0.75*F_u*A_ncp = tonf"
+    },
+    {
+      "id": "v_cfl",
+      "kind": "math",
+      "x": 40,
+      "y": 3424,
+      "src": "Rd_cfl >= F_f ="
+    },
+    {
+      "id": "v_cro",
+      "kind": "math",
+      "x": 40,
+      "y": 3472,
+      "src": "Rd_cro >= F_f ="
+    },
+    {
+      "id": "r049",
+      "kind": "math",
+      "x": 40,
+      "y": 3520,
+      "src": "u_cfl := F_f/Rd_cfl ="
+    },
+    {
+      "id": "r050",
+      "kind": "math",
+      "x": 40,
+      "y": 3568,
+      "src": "u_cro := F_f/Rd_cro ="
+    },
+    {
+      "id": "t20",
+      "kind": "text",
+      "x": 40,
+      "y": 3616,
+      "src": "El punto que abre el ejemplo: la cubreplaca tiene MENOS área que el ala que empalma, y no importa"
+    },
+    {
+      "id": "v_menor",
+      "kind": "math",
+      "x": 40,
+      "y": 3664,
+      "src": "A_gcp < A_f ="
+    },
+    {
+      "id": "r051",
+      "kind": "math",
+      "x": 40,
+      "y": 3712,
+      "src": "Rd_ala := 0.90*F_yv*A_f = tonf"
+    },
+    {
+      "id": "t21",
+      "kind": "text",
+      "x": 40,
+      "y": 3760,
+      "src": "Rd_ala es lo que el ala podría desarrollar; la demanda es F_f, mucho menor"
+    },
+    {
+      "id": "s22",
+      "kind": "text",
+      "x": 40,
+      "y": 3824,
+      "src": "━━ 3 · LOS PERNOS DE ALA: ROTURA POR CORTE (J3.7, Ec. J3-1) ━━"
+    },
+    {
+      "id": "t23",
+      "kind": "text",
+      "x": 40,
+      "y": 3872,
+      "src": "Corte simple: una sola cubreplaca exterior, un único plano de corte"
+    },
+    {
+      "id": "r052",
+      "kind": "math",
+      "x": 40,
+      "y": 3920,
+      "src": "R_nv := F_nv*A_b = kgf"
+    },
+    {
+      "id": "r053",
+      "kind": "math",
+      "x": 40,
+      "y": 3968,
+      "src": "Rd_b1 := 0.75*R_nv = kgf"
+    },
+    {
+      "id": "r054",
+      "kind": "math",
+      "x": 40,
+      "y": 4016,
+      "src": "Rd_per := n_f*Rd_b1 = tonf"
+    },
+    {
+      "id": "v_per",
+      "kind": "math",
+      "x": 40,
+      "y": 4064,
+      "src": "Rd_per >= F_f ="
+    },
+    {
+      "id": "r055",
+      "kind": "math",
+      "x": 40,
+      "y": 4112,
+      "src": "u_per := F_f/Rd_per ="
+    },
+    {
+      "id": "s24",
+      "kind": "text",
+      "x": 40,
+      "y": 4176,
+      "src": "━━ 3b · APOYO Y DESGARRE EN EL AGUJERO (J3.11a, Ecs. J3-6a y J3-6c) ━━"
+    },
+    {
+      "id": "t25",
+      "kind": "text",
+      "x": 40,
+      "y": 4224,
+      "src": "l_c es la distancia LIBRE, y se mide con el agujero FÍSICO (24 mm). La deformación en servicio SÍ es consideración de diseño."
+    },
+    {
+      "id": "r056",
+      "kind": "math",
+      "x": 40,
+      "y": 4272,
+      "src": "lc_b := L_e - d_hf/2 = cm"
+    },
+    {
+      "id": "r057",
+      "kind": "math",
+      "x": 40,
+      "y": 4320,
+      "src": "lc_i := s - d_hf = cm"
+    },
+    {
+      "id": "t26",
+      "kind": "text",
+      "x": 40,
+      "y": 4368,
+      "src": "En la cubreplaca: el perno del extremo desgarra hacia el borde L_e; los tres de la fila, aplastan"
+    },
+    {
+      "id": "r058",
+      "kind": "math",
+      "x": 40,
+      "y": 4416,
+      "src": "R_apc := 2.4*d_b*t_cp*F_u = kgf"
+    },
+    {
+      "id": "r059",
+      "kind": "math",
+      "x": 40,
+      "y": 4464,
+      "src": "R_dgc := 1.2*lc_b*t_cp*F_u = kgf"
+    },
+    {
+      "id": "r060",
+      "kind": "math",
+      "x": 40,
+      "y": 4512,
+      "src": "R_dic := 1.2*lc_i*t_cp*F_u = kgf"
+    },
+    {
+      "id": "r061",
+      "kind": "math",
+      "x": 40,
+      "y": 4560,
+      "src": "Rd_apc := 0.75*n_lin*(min(R_apc, R_dgc) + 3*min(R_apc, R_dic)) = tonf"
+    },
+    {
+      "id": "r062",
+      "kind": "math",
+      "x": 40,
+      "y": 4608,
+      "src": "u_apc := F_f/Rd_apc ="
+    },
+    {
+      "id": "t27",
+      "kind": "text",
+      "x": 40,
+      "y": 4656,
+      "src": "En el ala de la viga: el ala también termina en la junta, así que se le da el mismo l_c de borde (lado conservador)"
+    },
+    {
+      "id": "r063",
+      "kind": "math",
+      "x": 40,
+      "y": 4704,
+      "src": "R_apf := 2.4*d_b*t_f*F_uv = kgf"
+    },
+    {
+      "id": "r064",
+      "kind": "math",
+      "x": 40,
+      "y": 4752,
+      "src": "R_dgf := 1.2*lc_b*t_f*F_uv = kgf"
+    },
+    {
+      "id": "r065",
+      "kind": "math",
+      "x": 40,
+      "y": 4800,
+      "src": "R_dif := 1.2*lc_i*t_f*F_uv = kgf"
+    },
+    {
+      "id": "r066",
+      "kind": "math",
+      "x": 40,
+      "y": 4848,
+      "src": "Rd_apf := 0.75*n_lin*(min(R_apf, R_dgf) + 3*min(R_apf, R_dif)) = tonf"
+    },
+    {
+      "id": "r067",
+      "kind": "math",
+      "x": 40,
+      "y": 4896,
+      "src": "u_apf := F_f/Rd_apf ="
+    },
+    {
+      "id": "v_apc",
+      "kind": "math",
+      "x": 40,
+      "y": 4944,
+      "src": "Rd_apc >= F_f ="
+    },
+    {
+      "id": "v_apf",
+      "kind": "math",
+      "x": 40,
+      "y": 4992,
+      "src": "Rd_apf >= F_f ="
+    },
+    {
+      "id": "s28",
+      "kind": "text",
+      "x": 40,
+      "y": 5056,
+      "src": "━━ 4 · DESLIZAMIENTO CRÍTICO (J3.9, Ec. J3-4) ━━"
+    },
+    {
+      "id": "t29",
+      "kind": "text",
+      "x": 40,
+      "y": 5104,
+      "src": "phi = 1.00 para agujeros estándar (J3.9a). n_s = 1: una sola cubreplaca exterior, un plano de deslizamiento."
+    },
+    {
+      "id": "r068",
+      "kind": "math",
+      "x": 40,
+      "y": 5152,
+      "src": "n_s := 1"
+    },
+    {
+      "id": "r069",
+      "kind": "math",
+      "x": 40,
+      "y": 5200,
+      "src": "Rs_1 := 1.00*mu_A*D_u*h_f*T_b*n_s = kgf"
+    },
+    {
+      "id": "r070",
+      "kind": "math",
+      "x": 40,
+      "y": 5248,
+      "src": "Rd_des := n_f*Rs_1 = tonf"
+    },
+    {
+      "id": "v_des",
+      "kind": "math",
+      "x": 40,
+      "y": 5296,
+      "src": "Rd_des >= F_f ="
+    },
+    {
+      "id": "r071",
+      "kind": "math",
+      "x": 40,
+      "y": 5344,
+      "src": "u_des := F_f/Rd_des ="
+    },
+    {
+      "id": "t30",
+      "kind": "text",
+      "x": 40,
+      "y": 5392,
+      "src": "El mismo perno, dos verificaciones: rotura contra deslizamiento"
+    },
+    {
+      "id": "r072",
+      "kind": "math",
+      "x": 40,
+      "y": 5440,
+      "src": "Rd_b1 = tonf"
+    },
+    {
+      "id": "r073",
+      "kind": "math",
+      "x": 40,
+      "y": 5488,
+      "src": "Rs_1 = tonf"
+    },
+    {
+      "id": "t31",
+      "kind": "text",
+      "x": 40,
+      "y": 5536,
+      "src": "Las tres salidas, cada una recalculada desde los datos (no escalando el número redondeado de la otra)"
+    },
+    {
+      "id": "r074",
+      "kind": "math",
+      "x": 40,
+      "y": 5584,
+      "src": "Rd_d6A := 6*1.00*mu_A*D_u*h_f*T_b*1 = tonf"
+    },
+    {
+      "id": "r075",
+      "kind": "math",
+      "x": 40,
+      "y": 5632,
+      "src": "Rd_d6B := 6*1.00*mu_B*D_u*h_f*T_b*1 = tonf"
+    },
+    {
+      "id": "r076",
+      "kind": "math",
+      "x": 40,
+      "y": 5680,
+      "src": "Rd_d6n2 := 6*1.00*mu_A*D_u*h_f*T_b*2 = tonf"
+    },
+    {
+      "id": "r077",
+      "kind": "math",
+      "x": 40,
+      "y": 5728,
+      "src": "u_d6A := F_f/Rd_d6A ="
+    },
+    {
+      "id": "r078",
+      "kind": "math",
+      "x": 40,
+      "y": 5776,
+      "src": "u_d6B := F_f/Rd_d6B ="
+    },
+    {
+      "id": "r079",
+      "kind": "math",
+      "x": 40,
+      "y": 5824,
+      "src": "u_d6n2 := F_f/Rd_d6n2 ="
+    },
+    {
+      "id": "t32",
+      "kind": "text",
+      "x": 40,
+      "y": 5872,
+      "src": "Con 6 pernos Clase A el empalme resiste sin romperse, pero DESLIZA"
+    },
+    {
+      "id": "v_d6A",
+      "kind": "math",
+      "x": 40,
+      "y": 5920,
+      "src": "Rd_d6A >= F_f ="
+    },
+    {
+      "id": "v_d6Ares",
+      "kind": "math",
+      "x": 40,
+      "y": 5968,
+      "src": "6*Rd_b1 >= F_f ="
+    },
+    {
+      "id": "t33",
+      "kind": "text",
+      "x": 40,
+      "y": 6016,
+      "src": "J3.9 es explícito: la conexión de deslizamiento crítico debe cumplir ADEMÁS todos los estados límite de aplastamiento — por eso los dos bloques anteriores siguen valiendo"
+    },
+    {
+      "id": "v_gob",
+      "kind": "math",
+      "x": 40,
+      "y": 6064,
+      "src": "u_des > u_per ="
+    },
+    {
+      "id": "s34",
+      "kind": "text",
+      "x": 40,
+      "y": 6128,
+      "src": "━━ 5 · EL EMPALME DEL ALMA ━━",
+      "pageBreak": true
+    },
+    {
+      "id": "t35",
+      "kind": "text",
+      "x": 40,
+      "y": 6176,
+      "src": "Las dos planchas llevan el corte, con la excentricidad hasta la línea de pernos. Los 4 pernos van en corte doble → 2 planos."
+    },
+    {
+      "id": "r080",
+      "kind": "math",
+      "x": 40,
+      "y": 6224,
+      "src": "M_e := V_u*e_w = tonf*m"
+    },
+    {
+      "id": "r081",
+      "kind": "math",
+      "x": 40,
+      "y": 6272,
+      "src": "y_max := 3*s/2 = cm"
+    },
+    {
+      "id": "r082",
+      "kind": "math",
+      "x": 40,
+      "y": 6320,
+      "src": "J_w := 2*((s/2)^2 + y_max^2) = cm^2"
+    },
+    {
+      "id": "r083",
+      "kind": "math",
+      "x": 40,
+      "y": 6368,
+      "src": "r_m := M_e*y_max/J_w = tonf"
+    },
+    {
+      "id": "r084",
+      "kind": "math",
+      "x": 40,
+      "y": 6416,
+      "src": "r_v := V_u/n_w = tonf"
+    },
+    {
+      "id": "r085",
+      "kind": "math",
+      "x": 40,
+      "y": 6464,
+      "src": "r_b := sqrt(r_m^2 + r_v^2) = tonf"
+    },
+    {
+      "id": "r086",
+      "kind": "math",
+      "x": 40,
+      "y": 6512,
+      "src": "Rd_bw := 2*Rd_b1 = tonf"
+    },
+    {
+      "id": "r087",
+      "kind": "math",
+      "x": 40,
+      "y": 6560,
+      "src": "u_exc := r_b/Rd_bw ="
+    },
+    {
+      "id": "v_exc",
+      "kind": "math",
+      "x": 40,
+      "y": 6608,
+      "src": "Rd_bw >= r_b ="
+    },
+    {
+      "id": "t36",
+      "kind": "text",
+      "x": 40,
+      "y": 6656,
+      "src": "Deslizamiento del mismo grupo, con n_s = 2 (corte doble = dos planos de deslizamiento)"
+    },
+    {
+      "id": "r088",
+      "kind": "math",
+      "x": 40,
+      "y": 6704,
+      "src": "Rs_w := 2*Rs_1 = tonf"
+    },
+    {
+      "id": "r089",
+      "kind": "math",
+      "x": 40,
+      "y": 6752,
+      "src": "u_desw := r_b/Rs_w ="
+    },
+    {
+      "id": "v_desw",
+      "kind": "math",
+      "x": 40,
+      "y": 6800,
+      "src": "Rs_w >= r_b ="
+    },
+    {
+      "id": "t37",
+      "kind": "text",
+      "x": 40,
+      "y": 6848,
+      "src": "Las planchas en corte (J4.2) y en flexión (J4.5, con Z plástico)"
+    },
+    {
+      "id": "r090",
+      "kind": "math",
+      "x": 40,
+      "y": 6896,
+      "src": "A_gvw := n_wp*t_wp*d_wp = cm^2"
+    },
+    {
+      "id": "r091",
+      "kind": "math",
+      "x": 40,
+      "y": 6944,
+      "src": "Rd_wfl := 1.00*0.6*F_y*A_gvw = tonf"
+    },
+    {
+      "id": "r092",
+      "kind": "math",
+      "x": 40,
+      "y": 6992,
+      "src": "A_nvw := n_wp*t_wp*(d_wp - n_w*d_h) = cm^2"
+    },
+    {
+      "id": "r093",
+      "kind": "math",
+      "x": 40,
+      "y": 7040,
+      "src": "Rd_wro := 0.75*0.6*F_u*A_nvw = tonf"
+    },
+    {
+      "id": "r094",
+      "kind": "math",
+      "x": 40,
+      "y": 7088,
+      "src": "u_wfl := V_u/Rd_wfl ="
+    },
+    {
+      "id": "r095",
+      "kind": "math",
+      "x": 40,
+      "y": 7136,
+      "src": "u_wro := V_u/Rd_wro ="
+    },
+    {
+      "id": "v_wfl",
+      "kind": "math",
+      "x": 40,
+      "y": 7184,
+      "src": "Rd_wfl >= V_u ="
+    },
+    {
+      "id": "v_wro",
+      "kind": "math",
+      "x": 40,
+      "y": 7232,
+      "src": "Rd_wro >= V_u ="
+    },
+    {
+      "id": "r096",
+      "kind": "math",
+      "x": 40,
+      "y": 7280,
+      "src": "Z_wp := n_wp*t_wp*d_wp^2/4 = cm^3"
+    },
+    {
+      "id": "r097",
+      "kind": "math",
+      "x": 40,
+      "y": 7328,
+      "src": "Rd_wfx := 0.90*F_y*Z_wp = tonf*m"
+    },
+    {
+      "id": "t38",
+      "kind": "text",
+      "x": 40,
+      "y": 7376,
+      "src": "La demanda de flexión del alma cierra el reparto del punto 1: el 19 % del momento por rigidez, más el de la propia excentricidad"
+    },
+    {
+      "id": "r098",
+      "kind": "math",
+      "x": 40,
+      "y": 7424,
+      "src": "M_dw := M_alm + M_e = tonf*m"
+    },
+    {
+      "id": "r099",
+      "kind": "math",
+      "x": 40,
+      "y": 7472,
+      "src": "u_wfx := M_dw/Rd_wfx ="
+    },
+    {
+      "id": "v_wfx",
+      "kind": "math",
+      "x": 40,
+      "y": 7520,
+      "src": "Rd_wfx >= M_dw ="
+    },
+    {
+      "id": "s39",
+      "kind": "text",
+      "x": 40,
+      "y": 7584,
+      "src": "━━ 6 · EL ALA PERFORADA DE LA VIGA (F13.1) ━━",
+      "pageBreak": true
+    },
+    {
+      "id": "t40",
+      "kind": "text",
+      "x": 40,
+      "y": 7632,
+      "src": "Los agujeros del empalme también viven en la viga: F13.1 limita M_n por rotura del ala traccionada"
+    },
+    {
+      "id": "r100",
+      "kind": "math",
+      "x": 40,
+      "y": 7680,
+      "src": "A_fg := A_f = cm^2"
+    },
+    {
+      "id": "r101",
+      "kind": "math",
+      "x": 40,
+      "y": 7728,
+      "src": "A_fn := (b_f - n_lin*d_h)*t_f = cm^2"
+    },
+    {
+      "id": "t41",
+      "kind": "text",
+      "x": 40,
+      "y": 7776,
+      "src": "Y_t = 1.0 cuando F_y/F_u <= 0.8"
+    },
+    {
+      "id": "v_yt",
+      "kind": "math",
+      "x": 40,
+      "y": 7824,
+      "src": "F_yv/F_uv <= 0.8 ="
+    },
+    {
+      "id": "r102",
+      "kind": "math",
+      "x": 40,
+      "y": 7872,
+      "src": "Y_t := 1.0"
+    },
+    {
+      "id": "r103",
+      "kind": "math",
+      "x": 40,
+      "y": 7920,
+      "src": "FA_n := F_uv*A_fn = kgf"
+    },
+    {
+      "id": "r104",
+      "kind": "math",
+      "x": 40,
+      "y": 7968,
+      "src": "FA_g := Y_t*F_yv*A_fg = kgf"
+    },
+    {
+      "id": "v_f13",
+      "kind": "math",
+      "x": 40,
+      "y": 8016,
+      "src": "FA_n < FA_g ="
+    },
+    {
+      "id": "r105",
+      "kind": "math",
+      "x": 40,
+      "y": 8064,
+      "src": "deficit := 1 - FA_n/FA_g ="
+    },
+    {
+      "id": "r106",
+      "kind": "math",
+      "x": 40,
+      "y": 8112,
+      "src": "M_n13 := FA_n/A_fg*S_x = tonf*m"
+    },
+    {
+      "id": "r107",
+      "kind": "math",
+      "x": 40,
+      "y": 8160,
+      "src": "Rd_m13 := 0.90*M_n13 = tonf*m"
+    },
+    {
+      "id": "r108",
+      "kind": "math",
+      "x": 40,
+      "y": 8208,
+      "src": "Rd_mp := 0.90*F_yv*Z_x = tonf*m"
+    },
+    {
+      "id": "r109",
+      "kind": "math",
+      "x": 40,
+      "y": 8256,
+      "src": "u_m13 := M_u/Rd_m13 ="
+    },
+    {
+      "id": "v_m13",
+      "kind": "math",
+      "x": 40,
+      "y": 8304,
+      "src": "Rd_m13 >= M_u ="
+    },
+    {
+      "id": "r110",
+      "kind": "math",
+      "x": 40,
+      "y": 8352,
+      "src": "perdida := 1 - Rd_m13/Rd_mp ="
+    },
+    {
+      "id": "s42",
+      "kind": "text",
+      "x": 40,
+      "y": 8416,
+      "src": "━━ 7 · ROTURA EN BLOQUE DE LA CUBREPLACA (Ec. J4-5) ━━"
+    },
+    {
+      "id": "t43",
+      "kind": "text",
+      "x": 40,
+      "y": 8464,
+      "src": "El bloque: dos planos de corte longitudinales de largo 3s + L_e, y el plano de tracción entre las dos líneas de pernos (ancho g)"
+    },
+    {
+      "id": "r111",
+      "kind": "math",
+      "x": 40,
+      "y": 8512,
+      "src": "L_v := 3*s + L_e = cm"
+    },
+    {
+      "id": "r112",
+      "kind": "math",
+      "x": 40,
+      "y": 8560,
+      "src": "A_gvb := 2*L_v*t_cp = cm^2"
+    },
+    {
+      "id": "r113",
+      "kind": "math",
+      "x": 40,
+      "y": 8608,
+      "src": "A_nvb := 2*(L_v - 3.5*d_h)*t_cp = cm^2"
+    },
+    {
+      "id": "r114",
+      "kind": "math",
+      "x": 40,
+      "y": 8656,
+      "src": "A_ntb := (g_p - d_h)*t_cp = cm^2"
+    },
+    {
+      "id": "r115",
+      "kind": "math",
+      "x": 40,
+      "y": 8704,
+      "src": "U_bs := 1"
+    },
+    {
+      "id": "r116",
+      "kind": "math",
+      "x": 40,
+      "y": 8752,
+      "src": "R_bcr := 0.6*F_u*A_nvb = kgf"
+    },
+    {
+      "id": "r117",
+      "kind": "math",
+      "x": 40,
+      "y": 8800,
+      "src": "R_bcy := 0.6*F_y*A_gvb = kgf"
+    },
+    {
+      "id": "t44",
+      "kind": "text",
+      "x": 40,
+      "y": 8848,
+      "src": "El min de J4-5: acá gobierna el tope de fluencia del área bruta"
+    },
+    {
+      "id": "v_bctope",
+      "kind": "math",
+      "x": 40,
+      "y": 8896,
+      "src": "R_bcy < R_bcr ="
+    },
+    {
+      "id": "r118",
+      "kind": "math",
+      "x": 40,
+      "y": 8944,
+      "src": "Rd_bc := 0.75*(min(R_bcr, R_bcy) + U_bs*F_u*A_ntb) = tonf"
+    },
+    {
+      "id": "r119",
+      "kind": "math",
+      "x": 40,
+      "y": 8992,
+      "src": "u_bc := F_f/Rd_bc ="
+    },
+    {
+      "id": "v_bc",
+      "kind": "math",
+      "x": 40,
+      "y": 9040,
+      "src": "Rd_bc >= F_f ="
+    },
+    {
+      "id": "s45",
+      "kind": "text",
+      "x": 40,
+      "y": 9104,
+      "src": "━━ 8 · LA CUBREPLACA COMPRIMIDA (J4.4) ━━"
+    },
+    {
+      "id": "t46",
+      "kind": "text",
+      "x": 40,
+      "y": 9152,
+      "src": "Frontera declarada: el post no publica la longitud no arriostrada de la cubreplaca, solo el cociente L_c/r = 11.3. Se toma como dato."
+    },
+    {
+      "id": "r120",
+      "kind": "math",
+      "x": 40,
+      "y": 9200,
+      "src": "r_cp := t_cp/sqrt(12) = cm"
+    },
+    {
+      "id": "r121",
+      "kind": "math",
+      "x": 40,
+      "y": 9248,
+      "src": "LR_cp := 11.3"
+    },
+    {
+      "id": "r122",
+      "kind": "math",
+      "x": 40,
+      "y": 9296,
+      "src": "L_cp := LR_cp*r_cp = cm"
+    },
+    {
+      "id": "t47",
+      "kind": "text",
+      "x": 40,
+      "y": 9344,
+      "src": "Con L_c/r <= 25 rige la Ec. J4-6, P_n = F_y·A_g: el mismo valor que la fluencia del punto 2"
+    },
+    {
+      "id": "v_lr",
+      "kind": "math",
+      "x": 40,
+      "y": 9392,
+      "src": "LR_cp <= 25 ="
+    },
+    {
+      "id": "r123",
+      "kind": "math",
+      "x": 40,
+      "y": 9440,
+      "src": "Rd_cmp := 0.90*F_y*A_gcp = tonf"
+    },
+    {
+      "id": "v_cmp",
+      "kind": "math",
+      "x": 40,
+      "y": 9488,
+      "src": "abs(Rd_cmp - Rd_cfl) < 0.001 tonf ="
+    },
+    {
+      "id": "s48",
+      "kind": "text",
+      "x": 40,
+      "y": 9552,
+      "src": "━━ 9 · GEOMETRÍA: SEPARACIONES Y DISTANCIAS AL BORDE (J3.4, J3.5, J3.6) ━━"
+    },
+    {
+      "id": "t49",
+      "kind": "text",
+      "x": 40,
+      "y": 9600,
+      "src": "J3.4: paso mínimo 2⅔d (3d preferido) y distancia libre entre agujeros ≥ d · J3.5: Tabla J3.4M da 28 mm para d = 22 · J3.6: borde máximo 12t ≤ 150 mm"
+    },
+    {
+      "id": "v_s267",
+      "kind": "math",
+      "x": 40,
+      "y": 9648,
+      "src": "s >= 8/3*d_b ="
+    },
+    {
+      "id": "v_s3",
+      "kind": "math",
+      "x": 40,
+      "y": 9696,
+      "src": "s >= 3*d_b ="
+    },
+    {
+      "id": "v_g267",
+      "kind": "math",
+      "x": 40,
+      "y": 9744,
+      "src": "g_p >= 8/3*d_b ="
+    },
+    {
+      "id": "v_slib",
+      "kind": "math",
+      "x": 40,
+      "y": 9792,
+      "src": "s - d_hf >= d_b ="
+    },
+    {
+      "id": "v_le",
+      "kind": "math",
+      "x": 40,
+      "y": 9840,
+      "src": "L_e >= 2.8 cm ="
+    },
+    {
+      "id": "v_lev",
+      "kind": "math",
+      "x": 40,
+      "y": 9888,
+      "src": "L_ev >= 2.8 cm ="
+    },
+    {
+      "id": "v_lemax",
+      "kind": "math",
+      "x": 40,
+      "y": 9936,
+      "src": "L_e <= min(12*t_cp, 15 cm) ="
+    },
+    {
+      "id": "s50",
+      "kind": "text",
+      "x": 40,
+      "y": 10000,
+      "src": "━━ 10 · USOS ━━"
+    },
+    {
+      "id": "r124",
+      "kind": "math",
+      "x": 40,
+      "y": 10048,
+      "src": "u_max := max(u_des, u_cfl, u_cro, u_wfx, u_per, u_m13, u_apc, u_apf, u_desw, u_wfl, u_wro, u_exc) ="
+    },
+    {
+      "id": "v_max",
+      "kind": "math",
+      "x": 40,
+      "y": 10096,
+      "src": "u_max <= 1 ="
+    },
+    {
+      "id": "t51",
+      "kind": "text",
+      "x": 40,
+      "y": 10144,
+      "src": "Gobierna el DESLIZAMIENTO — no la rotura. Pretensar no cambió la resistencia última: agregó un estado límite más exigente."
+    },
+    {
+      "id": "v_gobdes",
+      "kind": "math",
+      "x": 40,
+      "y": 10192,
+      "src": "u_max == u_des ="
+    },
+    {
+      "id": "esq",
+      "kind": "image",
+      "x": 40,
+      "y": 10240,
+      "src": "/esquemas/empalme-apernado-viga.svg",
+      "w": 620,
+      "h": 400
+    },
+    {
+      "id": "s52",
+      "kind": "text",
+      "x": 40,
+      "y": 10688,
+      "src": "━━ 11 · CONTRASTE CON EL POST — cada número publicado, contra el calculado ━━"
+    },
+    {
+      "id": "t53",
+      "kind": "text",
+      "x": 40,
+      "y": 10736,
+      "src": "Tolerancia: media unidad del último dígito publicado. Si cambias un dato de entrada, estos contrastes dejarán de cumplirse: comparan contra los números impresos en el post."
+    },
+    {
+      "id": "c_af",
+      "kind": "math",
+      "x": 40,
+      "y": 10784,
+      "src": "abs(A_f - 27.55 cm^2) < 0.005 cm^2 ="
+    },
+    {
+      "id": "c_ypar",
+      "kind": "math",
+      "x": 40,
+      "y": 10832,
+      "src": "abs(y_al - 22.13 cm) <= 0.005 cm ="
+    },
+    {
+      "id": "c_pal",
+      "kind": "math",
+      "x": 40,
+      "y": 10880,
+      "src": "abs(p_al - 0.81) < 0.005 ="
+    },
+    {
+      "id": "c_malm",
+      "kind": "math",
+      "x": 40,
+      "y": 10928,
+      "src": "abs(M_alm - 3.8 tonf*m) < 0.05 tonf*m ="
+    },
+    {
+      "id": "c_hpar",
+      "kind": "math",
+      "x": 40,
+      "y": 10976,
+      "src": "abs(h_par - 0.4425 m) < 0.00005 m ="
+    },
+    {
+      "id": "c_ff",
+      "kind": "math",
+      "x": 40,
+      "y": 11024,
+      "src": "abs(F_f - 45.2 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_agcp",
+      "kind": "math",
+      "x": 40,
+      "y": 11072,
+      "src": "abs(A_gcp - 26.6 cm^2) < 0.05 cm^2 ="
+    },
+    {
+      "id": "c_ancp",
+      "kind": "math",
+      "x": 40,
+      "y": 11120,
+      "src": "abs(A_ncp - 19.32 cm^2) < 0.005 cm^2 ="
+    },
+    {
+      "id": "c_cfl",
+      "kind": "math",
+      "x": 40,
+      "y": 11168,
+      "src": "abs(Rd_cfl - 60.6 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_cro",
+      "kind": "math",
+      "x": 40,
+      "y": 11216,
+      "src": "abs(Rd_cro - 59.1 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_ucfl",
+      "kind": "math",
+      "x": 40,
+      "y": 11264,
+      "src": "abs(u_cfl - 0.75) < 0.005 ="
+    },
+    {
+      "id": "c_ucro",
+      "kind": "math",
+      "x": 40,
+      "y": 11312,
+      "src": "abs(u_cro - 0.76) < 0.005 ="
+    },
+    {
+      "id": "c_ala",
+      "kind": "math",
+      "x": 40,
+      "y": 11360,
+      "src": "abs(Rd_ala - 87 tonf) < 0.5 tonf ="
+    },
+    {
+      "id": "c_ab",
+      "kind": "math",
+      "x": 40,
+      "y": 11408,
+      "src": "abs(A_b - 3.80 cm^2) < 0.005 cm^2 ="
+    },
+    {
+      "id": "c_fnv",
+      "kind": "math",
+      "x": 40,
+      "y": 11456,
+      "src": "abs(F_nv - 3773 kgf/cm^2) < 0.5 kgf/cm^2 ="
+    },
+    {
+      "id": "c_per",
+      "kind": "math",
+      "x": 40,
+      "y": 11504,
+      "src": "abs(Rd_per - 86053 kgf) < 0.5 kgf ="
+    },
+    {
+      "id": "c_pert",
+      "kind": "math",
+      "x": 40,
+      "y": 11552,
+      "src": "abs(Rd_per - 86.1 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_uper",
+      "kind": "math",
+      "x": 40,
+      "y": 11600,
+      "src": "abs(u_per - 0.53) < 0.005 ="
+    },
+    {
+      "id": "c_b1",
+      "kind": "math",
+      "x": 40,
+      "y": 11648,
+      "src": "abs(Rd_b1 - 10.8 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_apc",
+      "kind": "math",
+      "x": 40,
+      "y": 11696,
+      "src": "abs(Rd_apc - 164.5 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_apf",
+      "kind": "math",
+      "x": 40,
+      "y": 11744,
+      "src": "abs(Rd_apf - 190.8 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_uapc",
+      "kind": "math",
+      "x": 40,
+      "y": 11792,
+      "src": "abs(u_apc - 0.27) < 0.005 ="
+    },
+    {
+      "id": "c_uapf",
+      "kind": "math",
+      "x": 40,
+      "y": 11840,
+      "src": "abs(u_apf - 0.24) < 0.005 ="
+    },
+    {
+      "id": "c_tb",
+      "kind": "math",
+      "x": 40,
+      "y": 11888,
+      "src": "abs(T_b - 17947 kgf) < 0.5 kgf ="
+    },
+    {
+      "id": "c_tbt",
+      "kind": "math",
+      "x": 40,
+      "y": 11936,
+      "src": "abs(T_b - 17.9 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_rs1",
+      "kind": "math",
+      "x": 40,
+      "y": 11984,
+      "src": "abs(Rs_1 - 6084 kgf) < 0.5 kgf ="
+    },
+    {
+      "id": "c_rs1t",
+      "kind": "math",
+      "x": 40,
+      "y": 12032,
+      "src": "abs(Rs_1 - 6.08 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_des",
+      "kind": "math",
+      "x": 40,
+      "y": 12080,
+      "src": "abs(Rd_des - 48.7 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_udes",
+      "kind": "math",
+      "x": 40,
+      "y": 12128,
+      "src": "abs(u_des - 0.93) < 0.005 ="
+    },
+    {
+      "id": "c_d6A",
+      "kind": "math",
+      "x": 40,
+      "y": 12176,
+      "src": "abs(Rd_d6A - 36.5 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_ud6A",
+      "kind": "math",
+      "x": 40,
+      "y": 12224,
+      "src": "abs(u_d6A - 1.24) < 0.005 ="
+    },
+    {
+      "id": "c_d6B",
+      "kind": "math",
+      "x": 40,
+      "y": 12272,
+      "src": "abs(Rd_d6B - 60.8 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_ud6B",
+      "kind": "math",
+      "x": 40,
+      "y": 12320,
+      "src": "abs(u_d6B - 0.74) < 0.005 ="
+    },
+    {
+      "id": "c_d6n2",
+      "kind": "math",
+      "x": 40,
+      "y": 12368,
+      "src": "abs(Rd_d6n2 - 73.0 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_ud6n2",
+      "kind": "math",
+      "x": 40,
+      "y": 12416,
+      "src": "abs(u_d6n2 - 0.62) < 0.005 ="
+    },
+    {
+      "id": "c_me",
+      "kind": "math",
+      "x": 40,
+      "y": 12464,
+      "src": "abs(M_e - 0.54 tonf*m) < 0.005 tonf*m ="
+    },
+    {
+      "id": "c_jw",
+      "kind": "math",
+      "x": 40,
+      "y": 12512,
+      "src": "abs(J_w - 245 cm^2) < 0.5 cm^2 ="
+    },
+    {
+      "id": "c_bw",
+      "kind": "math",
+      "x": 40,
+      "y": 12560,
+      "src": "abs(Rd_bw - 21.5 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_uexc",
+      "kind": "math",
+      "x": 40,
+      "y": 12608,
+      "src": "abs(u_exc - 0.18) < 0.005 ="
+    },
+    {
+      "id": "c_rsw",
+      "kind": "math",
+      "x": 40,
+      "y": 12656,
+      "src": "abs(Rs_w - 12.17 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_udesw",
+      "kind": "math",
+      "x": 40,
+      "y": 12704,
+      "src": "abs(u_desw - 0.31) < 0.005 ="
+    },
+    {
+      "id": "c_wfl",
+      "kind": "math",
+      "x": 40,
+      "y": 12752,
+      "src": "abs(Rd_wfl - 68.0 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_uwfl",
+      "kind": "math",
+      "x": 40,
+      "y": 12800,
+      "src": "abs(u_wfl - 0.18) < 0.005 ="
+    },
+    {
+      "id": "c_wro",
+      "kind": "math",
+      "x": 40,
+      "y": 12848,
+      "src": "abs(Rd_wro - 51.7 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_uwro",
+      "kind": "math",
+      "x": 40,
+      "y": 12896,
+      "src": "abs(u_wro - 0.23) < 0.005 ="
+    },
+    {
+      "id": "c_zwp",
+      "kind": "math",
+      "x": 40,
+      "y": 12944,
+      "src": "abs(Z_wp - 313.6 cm^3) < 0.05 cm^3 ="
+    },
+    {
+      "id": "c_wfx",
+      "kind": "math",
+      "x": 40,
+      "y": 12992,
+      "src": "abs(Rd_wfx - 7.14 tonf*m) < 0.005 tonf*m ="
+    },
+    {
+      "id": "c_uwfx",
+      "kind": "math",
+      "x": 40,
+      "y": 13040,
+      "src": "abs(u_wfx - 0.61) < 0.005 ="
+    },
+    {
+      "id": "c_afn",
+      "kind": "math",
+      "x": 40,
+      "y": 13088,
+      "src": "abs(A_fn - 20.01 cm^2) < 0.005 cm^2 ="
+    },
+    {
+      "id": "c_fan",
+      "kind": "math",
+      "x": 40,
+      "y": 13136,
+      "src": "abs(FA_n - 91446 kgf) < 0.5 kgf ="
+    },
+    {
+      "id": "c_fag",
+      "kind": "math",
+      "x": 40,
+      "y": 13184,
+      "src": "abs(FA_g - 96976 kgf) < 0.5 kgf ="
+    },
+    {
+      "id": "c_def",
+      "kind": "math",
+      "x": 40,
+      "y": 13232,
+      "src": "abs(deficit - 0.06) < 0.005 ="
+    },
+    {
+      "id": "c_mn13",
+      "kind": "math",
+      "x": 40,
+      "y": 13280,
+      "src": "abs(M_n13 - 48.4 tonf*m) < 0.05 tonf*m ="
+    },
+    {
+      "id": "c_rdm13",
+      "kind": "math",
+      "x": 40,
+      "y": 13328,
+      "src": "abs(Rd_m13 - 43.5 tonf*m) < 0.05 tonf*m ="
+    },
+    {
+      "id": "c_um13",
+      "kind": "math",
+      "x": 40,
+      "y": 13376,
+      "src": "abs(u_m13 - 0.46) < 0.005 ="
+    },
+    {
+      "id": "c_mp",
+      "kind": "math",
+      "x": 40,
+      "y": 13424,
+      "src": "abs(Rd_mp - 52.4 tonf*m) < 0.05 tonf*m ="
+    },
+    {
+      "id": "c_perd",
+      "kind": "math",
+      "x": 40,
+      "y": 13472,
+      "src": "abs(perdida - 0.17) < 0.005 ="
+    },
+    {
+      "id": "c_lv",
+      "kind": "math",
+      "x": 40,
+      "y": 13520,
+      "src": "abs(L_v - 25.0 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_bc",
+      "kind": "math",
+      "x": 40,
+      "y": 13568,
+      "src": "abs(Rd_bc - 111.4 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_ubc",
+      "kind": "math",
+      "x": 40,
+      "y": 13616,
+      "src": "abs(u_bc - 0.41) < 0.005 ="
+    },
+    {
+      "id": "c_lrcp",
+      "kind": "math",
+      "x": 40,
+      "y": 13664,
+      "src": "abs(L_cp/r_cp - 11.3) < 0.05 ="
+    }
+  ]
+}

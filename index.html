@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Hoja de cálculo estilo SMath: escribe expresiones con unidades (math.js), renderizadas con KaTeX."
+    />
+    <title>Canvas matemático — Struct_Flow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <!-- KaTeX 0.16.11, la MISMA versión de CSS que sirve struct_pad. El paquete npm
+         es 0.17, así que hay una discrepancia heredada — está anotada en el README.
+         No subirla a la ligera: `paginacion.ts` está calibrado al píxel contra PDFs
+         reales y los cortes de página dependen de estas métricas tipográficas. -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
+      crossorigin="anonymous"
+    />
+  </head>
+  <!-- `#root` va como hijo DIRECTO de <body>: WorksheetPrint monta su portal en
+       document.body y la regla de impresión `body > :not(.worksheet-print)` es un
+       selector de hijo directo. Con un envoltorio de por medio, la UI no se
+       ocultaría al imprimir. -->
+  <body class="min-h-screen flex flex-col">
+    <div id="root" class="min-h-screen flex flex-col"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

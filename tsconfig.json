@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    /* `DOM.Iterable` no es opcional: `usePaginacion.ts` recorre el resultado de
+       `querySelectorAll` con `for...of`. El preset de Astro lo traía heredado
+       (no declaraba `lib`, así que con target ESNext caía en `esnext.full`). */
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": false,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    /* Tipa los imports con efecto secundario de CSS y los assets de Vite. */
+    "types": ["vite/client"],
+
+    "strict": true,
+    /* Desactivado a propósito: `canvas-handoff.ts` es la API que usaban las OTRAS
+       herramientas de struct_pad (acero, viga, placa base) para abrir el canvas.
+       Aquí todavía no tiene consumidores, y con `noUnusedLocals` el build caería. */
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"]
+}

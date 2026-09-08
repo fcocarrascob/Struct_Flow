@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 470" font-family="Segoe UI, Arial, sans-serif">
+  <rect width="680" height="470" fill="#ffffff"/>
+  <text x="340" y="24" font-size="14" text-anchor="middle" fill="#222" font-weight="bold">Diagrama de interacción P–M: la frontera de diseño y las dos combinaciones</text>
+
+  <!-- ejes -->
+  <line x1="{{x_0:svg}}" y1="60" x2="{{x_0:svg}}" y2="{{y_0:svg}}" stroke="#333" stroke-width="1.2"/>
+  <line x1="{{x_0:svg}}" y1="{{y_0:svg}}" x2="490" y2="{{y_0:svg}}" stroke="#333" stroke-width="1.2"/>
+  <text x="{{x_0 - 12:svg}}" y="56" font-size="11" text-anchor="end" fill="#333">φP_n</text>
+  <text x="{{x_0 - 12:svg}}" y="68" font-size="9" text-anchor="end" fill="#888">tonf</text>
+  <text x="492" y="{{y_0 + 4:svg}}" font-size="11" fill="#333">φM_n</text>
+  <text x="492" y="{{y_0 + 16:svg}}" font-size="9" fill="#888">tonf·m</text>
+
+  <!-- ticks M -->
+  <line x1="{{x_px(0 tonf*m):svg}}" y1="{{y_0:svg}}" x2="{{x_px(0 tonf*m):svg}}" y2="{{y_0 + 4:svg}}" stroke="#333"/>
+  <text x="{{x_px(0 tonf*m):svg}}" y="{{y_0 + 16:svg}}" font-size="9.5" text-anchor="middle" fill="#555">0</text>
+  <line x1="{{x_px(10 tonf*m):svg}}" y1="{{y_0:svg}}" x2="{{x_px(10 tonf*m):svg}}" y2="{{y_0 + 4:svg}}" stroke="#333"/>
+  <text x="{{x_px(10 tonf*m):svg}}" y="{{y_0 + 16:svg}}" font-size="9.5" text-anchor="middle" fill="#555">10</text>
+  <line x1="{{x_px(20 tonf*m):svg}}" y1="{{y_0:svg}}" x2="{{x_px(20 tonf*m):svg}}" y2="{{y_0 + 4:svg}}" stroke="#333"/>
+  <text x="{{x_px(20 tonf*m):svg}}" y="{{y_0 + 16:svg}}" font-size="9.5" text-anchor="middle" fill="#555">20</text>
+  <line x1="{{x_px(30 tonf*m):svg}}" y1="{{y_0:svg}}" x2="{{x_px(30 tonf*m):svg}}" y2="{{y_0 + 4:svg}}" stroke="#333"/>
+  <text x="{{x_px(30 tonf*m):svg}}" y="{{y_0 + 16:svg}}" font-size="9.5" text-anchor="middle" fill="#555">30</text>
+  <line x1="{{x_px(40 tonf*m):svg}}" y1="{{y_0:svg}}" x2="{{x_px(40 tonf*m):svg}}" y2="{{y_0 + 4:svg}}" stroke="#333"/>
+  <text x="{{x_px(40 tonf*m):svg}}" y="{{y_0 + 16:svg}}" font-size="9.5" text-anchor="middle" fill="#555">40</text>
+  <line x1="{{x_px(50 tonf*m):svg}}" y1="{{y_0:svg}}" x2="{{x_px(50 tonf*m):svg}}" y2="{{y_0 + 4:svg}}" stroke="#333"/>
+  <text x="{{x_px(50 tonf*m):svg}}" y="{{y_0 + 16:svg}}" font-size="9.5" text-anchor="middle" fill="#555">50</text>
+
+  <!-- ticks P -->
+  <line x1="{{x_0 - 4:svg}}" y1="{{y_px(100 tonf):svg}}" x2="{{x_0:svg}}" y2="{{y_px(100 tonf):svg}}" stroke="#333"/>
+  <text x="{{x_0 - 8:svg}}" y="{{y_px(100 tonf) + 3.5:svg}}" font-size="9.5" text-anchor="end" fill="#555">100</text>
+  <line x1="{{x_0 - 4:svg}}" y1="{{y_px(200 tonf):svg}}" x2="{{x_0:svg}}" y2="{{y_px(200 tonf):svg}}" stroke="#333"/>
+  <text x="{{x_0 - 8:svg}}" y="{{y_px(200 tonf) + 3.5:svg}}" font-size="9.5" text-anchor="end" fill="#555">200</text>
+  <line x1="{{x_0 - 4:svg}}" y1="{{y_px(300 tonf):svg}}" x2="{{x_0:svg}}" y2="{{y_px(300 tonf):svg}}" stroke="#333"/>
+  <text x="{{x_0 - 8:svg}}" y="{{y_px(300 tonf) + 3.5:svg}}" font-size="9.5" text-anchor="end" fill="#555">300</text>
+  <text x="{{x_0 - 8:svg}}" y="{{y_0 + 3.5:svg}}" font-size="9.5" text-anchor="end" fill="#555">0</text>
+
+  <!-- ANCLA 1: el tope de 22.4.2.1, que corta la punta frágil -->
+  <line x1="{{x_0:svg}}" y1="{{ya_1:svg}}" x2="480" y2="{{ya_1:svg}}" stroke="#c07a00" stroke-width="1" stroke-dasharray="6 4"/>
+  <text x="{{x_0 + 6:svg}}" y="{{ya_1 - 6:svg}}" font-size="10" fill="#a56a00">φP_n,máx = 0,65·0,80·P_o = {{Rd_P:tonf}} tonf   ·   Tabla 22.4.2.1(a)</text>
+
+  <!-- LA FRONTERA, calculada barriendo el eje neutro -->
+  <polyline points="{{curva_px:svg}}" fill="none" stroke="#1a63a8" stroke-width="2.3"/>
+  <text x="{{x_0 + 14:svg}}" y="{{y_px(190 tonf):svg}}" font-size="11" fill="#1a63a8" font-weight="bold">frontera de diseño</text>
+  <text x="{{x_0 + 14:svg}}" y="{{y_px(190 tonf) + 14:svg}}" font-size="9.5" fill="#1a63a8">{{n_curva}} puntos, un eje neutro cada uno</text>
+  <text x="{{x_0 + 14:svg}}" y="{{y_px(190 tonf) + 27:svg}}" font-size="9.5" fill="#888">(dentro = admisible)</text>
+
+  <!-- ANCLA 2: punto balanceado -->
+  <circle cx="{{xa_2:svg}}" cy="{{ya_2:svg}}" r="4" fill="#5a6b7c"/>
+  <text x="{{xa_2 + 9:svg}}" y="{{ya_2 - 10:svg}}" font-size="10" fill="#4a5b6c">balanceado · c = {{c_bal:cm}} cm</text>
+  <text x="{{xa_2 + 9:svg}}" y="{{ya_2 + 2:svg}}" font-size="9.5" fill="#4a5b6c">({{Rd_Mb:tonf*m}} ; {{Rd_Pb:tonf}}) · ε_t = ε_ty</text>
+
+  <!-- ANCLA 3: flexión pura -->
+  <circle cx="{{xa_3:svg}}" cy="{{ya_3:svg}}" r="4" fill="#5a6b7c"/>
+  <text x="{{xa_3 - 10:svg}}" y="{{ya_3 - 24:svg}}" font-size="10" fill="#4a5b6c" text-anchor="end">flexión pura</text>
+  <text x="{{xa_3 - 10:svg}}" y="{{ya_3 - 12:svg}}" font-size="9.5" fill="#4a5b6c" text-anchor="end">φM_n = {{Rd_M0:tonf*m}} · φ = {{round(phi_0, 2)}}</text>
+
+  <!-- C1 gravedad -->
+  <circle cx="{{xc_1:svg}}" cy="{{yc_1:svg}}" r="5" fill="#1c7c3c"/>
+  <text x="{{xc_1 + 10:svg}}" y="{{yc_1 - 3:svg}}" font-size="10.5" fill="#1c7c3c" font-weight="bold">C1  1,2D+1,6L</text>
+  <text x="{{xc_1 + 10:svg}}" y="{{yc_1 + 10:svg}}" font-size="9.5" fill="#1c7c3c">P_u = {{P_u1:tonf}} · M_u = {{M_u1:tonf*m}} · uso {{round(u_1*100)}} %</text>
+
+  <!-- C2 sismo: el segmento mide la distancia a la frontera -->
+  <line x1="{{xc_2:svg}}" y1="{{yc_2:svg}}" x2="{{xf_2:svg}}" y2="{{yc_2:svg}}" stroke="#c0392b" stroke-width="0.9" stroke-dasharray="3 3"/>
+  <circle cx="{{xc_2:svg}}" cy="{{yc_2:svg}}" r="5.5" fill="#c0392b"/>
+  <text x="{{xc_2 - 10:svg}}" y="{{yc_2 - 10:svg}}" font-size="10.5" fill="#c0392b" font-weight="bold" text-anchor="end">C2  0,9D+1,0E ►</text>
+  <text x="{{xc_2 - 10:svg}}" y="{{yc_2 + 3:svg}}" font-size="9.5" fill="#c0392b" text-anchor="end">P_u = {{P_u2:tonf}} · M_u = {{M_u2:tonf*m}} · uso {{round(u_2*100)}} %</text>
+  <text x="{{xf_2 + 6:svg}}" y="{{yc_2 - 5:svg}}" font-size="9" fill="#c0392b">φM_n = {{Rd_M2:tonf*m}}</text>
+  <text x="{{xf_2 + 6:svg}}" y="{{yc_2 + 7:svg}}" font-size="9" fill="#c0392b">margen {{margen_2:tonf*m}} tonf·m</text>
+
+  <!-- caja: el φ variable y su tope -->
+  <rect x="500" y="76" width="168" height="118" rx="6" fill="#f4f7fa" stroke="#1a63a8"/>
+  <text x="512" y="94" font-size="10" fill="#1a63a8" font-weight="bold">φ no es uno solo</text>
+  <text x="512" y="110" font-size="9" fill="#333">Tabla 21.2.2: 0,65 → 0,90</text>
+  <text x="512" y="123" font-size="9" fill="#333">umbral ε_ty+0,003 = {{round(eps_tc, 5)}}</text>
+  <text x="512" y="139" font-size="9" fill="#333">21.2.2.3 lo acota en P_n:</text>
+  <text x="512" y="152" font-size="9" fill="#333">0,90 en {{P_lo:tonf}} → 0,65 en {{Rd_Pb/phi_cc:tonf}}</text>
+  <text x="512" y="168" font-size="9" fill="#c0392b">en C2 la tabla da {{round(phi_tab2, 3)}}</text>
+  <text x="512" y="181" font-size="9" fill="#c0392b" font-weight="bold">y 21.2.2.3 manda: φ = {{round(phi_2, 3)}}</text>
+
+  <!-- caja: esbeltez -->
+  <rect x="500" y="206" width="168" height="66" rx="6" fill="#f4faf5" stroke="#1c7c3c"/>
+  <text x="512" y="224" font-size="10" fill="#1c7c3c" font-weight="bold">Esbeltez · 6.2.5.1(b)</text>
+  <text x="512" y="240" font-size="9" fill="#333">kℓ_u/r = {{lambda_col}} ≤ {{lim_esb}}</text>
+  <text x="512" y="254" font-size="9" fill="#333">corta: M_u entra sin</text>
+  <text x="512" y="266" font-size="9" fill="#333">amplificar</text>
+
+  <!-- banda de valores -->
+  <line x1="40" y1="392" x2="640" y2="392" stroke="#ccc"/>
+  <text x="40" y="410" font-size="10.5" fill="#333">Demanda: C1 ({{M_u1:tonf*m}} ; {{P_u1:tonf}}) y C2 ({{M_u2:tonf*m}} ; {{P_u2:tonf}}) — C1 lleva {{round(r_axial, 1)}} veces el axial de C2.</text>
+  <text x="40" y="427" font-size="10.5" fill="#333">La frontera hace hablar a φ: en la rama baja vale {{round(phi_2, 3)}} y en la alta {{round(phi_1, 2)}}, y por eso el punto de menos axial es el que se acerca.</text>
+  <text x="40" y="444" font-size="10.5" fill="#c0392b" font-weight="bold">Gobierna: {{gobierna}} — uso {{round(u_max*100)}} %</text>
+  <text x="40" y="460" font-size="9.5" fill="#888">Sección 50×50, 8Ø25 (ρ_g = {{round(rho_g*100, 2)}} %), d derivada = {{d:cm}} cm · f'c = {{f_c:kgf/cm^2}} kgf/cm²</text>
+</svg>

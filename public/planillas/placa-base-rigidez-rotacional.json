@@ -1,0 +1,1320 @@
+{
+  "version": 1,
+  "meta": {
+    "titulo": "Rigidez rotacional de una base expuesta — las cuatro deformaciones de la Ec. C-5 y por qué la base del ejemplo no es ni empotrada ni rotulada (AISC Design Guide 1, 3.ª ed., Apéndice C)",
+    "ficha": "struct_pad/src/content/acero/placas-base-empotrada-o-rotulada.mdx"
+  },
+  "regions": [
+    {
+      "id": "r000",
+      "kind": "text",
+      "x": 40,
+      "y": 32,
+      "src": "RIGIDEZ ROTACIONAL DE UNA BASE EXPUESTA — el resorte que reemplaza a «empotrada o rotulada»"
+    },
+    {
+      "id": "r001",
+      "kind": "text",
+      "x": 40,
+      "y": 80,
+      "src": "AISC Design Guide 1, 3.ª ed. · Apéndice C (C-2 a C-12) + Cap. 4 (4-39, 4-40, 4-53, 4-55, 4-58) · LRFD"
+    },
+    {
+      "id": "r002",
+      "kind": "text",
+      "x": 40,
+      "y": 128,
+      "src": "Ecuaciones leídas en la página rasterizada: Ap. C en pp. 199-203 del PDF, Cap. 4 en pp. 53-54."
+    },
+    {
+      "id": "r003",
+      "kind": "text",
+      "x": 40,
+      "y": 176,
+      "src": "El offset del archivo es impresa = PDF − 10 (el README de la ficha del wiki dice −9 y está corrido)."
+    },
+    {
+      "id": "r004",
+      "kind": "text",
+      "x": 40,
+      "y": 224,
+      "src": "El caso es el del ejemplo trabajado de la serie; acá no se rediseña, se le calcula la rigidez."
+    },
+    {
+      "id": "r005",
+      "kind": "text",
+      "x": 40,
+      "y": 288,
+      "src": "━━ DATOS · LA PLACA Y LOS PERNOS ━━"
+    },
+    {
+      "id": "r006",
+      "kind": "math",
+      "x": 40,
+      "y": 336,
+      "src": "B := 45 cm"
+    },
+    {
+      "id": "r007",
+      "kind": "math",
+      "x": 40,
+      "y": 384,
+      "src": "N := 45 cm"
+    },
+    {
+      "id": "r008",
+      "kind": "math",
+      "x": 40,
+      "y": 432,
+      "src": "t_p := 2.5 cm"
+    },
+    {
+      "id": "r009",
+      "kind": "math",
+      "x": 40,
+      "y": 480,
+      "src": "d_col := 30 cm"
+    },
+    {
+      "id": "r010",
+      "kind": "text",
+      "x": 40,
+      "y": 528,
+      "src": "f: del centro de la placa al eje de la fila de pernos. Pernos a 5 cm del borde."
+    },
+    {
+      "id": "r011",
+      "kind": "math",
+      "x": 40,
+      "y": 576,
+      "src": "f := 17.5 cm"
+    },
+    {
+      "id": "r012",
+      "kind": "math",
+      "x": 40,
+      "y": 624,
+      "src": "n_pernos := 2"
+    },
+    {
+      "id": "r013",
+      "kind": "text",
+      "x": 40,
+      "y": 672,
+      "src": "Perno de 1″ F1554 gr. 36. C-6 pide el área BRUTA, no la de tensión roscada."
+    },
+    {
+      "id": "r014",
+      "kind": "math",
+      "x": 40,
+      "y": 720,
+      "src": "d_perno := 2.54 cm"
+    },
+    {
+      "id": "r015",
+      "kind": "math",
+      "x": 40,
+      "y": 768,
+      "src": "h_ef := 40 cm"
+    },
+    {
+      "id": "r016",
+      "kind": "text",
+      "x": 40,
+      "y": 832,
+      "src": "━━ DATOS · LAS DOS HIPÓTESIS QUE ESTA HOJA TUVO QUE DECLARAR ━━"
+    },
+    {
+      "id": "r017",
+      "kind": "text",
+      "x": 40,
+      "y": 880,
+      "src": "C-6 mide L_rod del tope de la placa al tope de la tuerca del anclaje inferior; el ejemplo"
+    },
+    {
+      "id": "r018",
+      "kind": "text",
+      "x": 40,
+      "y": 928,
+      "src": "trabajado no publica el espesor del mortero de nivelación. Se declara 25 mm."
+    },
+    {
+      "id": "r019",
+      "kind": "math",
+      "x": 40,
+      "y": 976,
+      "src": "t_grout := 2.5 cm"
+    },
+    {
+      "id": "r020",
+      "kind": "text",
+      "x": 40,
+      "y": 1024,
+      "src": "C-12 pide la profundidad TOTAL de la zapata, que el ejemplo tampoco publica. Se declara 80 cm."
+    },
+    {
+      "id": "r021",
+      "kind": "text",
+      "x": 40,
+      "y": 1072,
+      "src": "Es el término que más pesa y el peor conocido: la sensibilidad va al cierre de la hoja."
+    },
+    {
+      "id": "r022",
+      "kind": "math",
+      "x": 40,
+      "y": 1120,
+      "src": "d_footing := 80 cm"
+    },
+    {
+      "id": "r023",
+      "kind": "text",
+      "x": 40,
+      "y": 1184,
+      "src": "━━ DATOS · MATERIALES ━━"
+    },
+    {
+      "id": "r024",
+      "kind": "math",
+      "x": 40,
+      "y": 1232,
+      "src": "f_c := 250 kgf/cm^2"
+    },
+    {
+      "id": "r025",
+      "kind": "text",
+      "x": 40,
+      "y": 1280,
+      "src": "E del acero: 29 000 ksi (AISC 360-22, Símbolos). G = E/(2(1+nu)) con nu = 0,3."
+    },
+    {
+      "id": "r026",
+      "kind": "math",
+      "x": 40,
+      "y": 1328,
+      "src": "E_s := 2.04e6 kgf/cm^2"
+    },
+    {
+      "id": "r027",
+      "kind": "math",
+      "x": 40,
+      "y": 1376,
+      "src": "nu := 0.3"
+    },
+    {
+      "id": "r028",
+      "kind": "math",
+      "x": 40,
+      "y": 1424,
+      "src": "G_s := E_s/(2*(1 + nu)) = kgf/cm^2"
+    },
+    {
+      "id": "r029",
+      "kind": "text",
+      "x": 40,
+      "y": 1472,
+      "src": "E_c por la forma SI que usa la nota teórica de la serie. C-12 la escribe en ksi: el contraste"
+    },
+    {
+      "id": "r030",
+      "kind": "text",
+      "x": 40,
+      "y": 1520,
+      "src": "entre las dos formas va al final de la hoja."
+    },
+    {
+      "id": "r031",
+      "kind": "math",
+      "x": 40,
+      "y": 1568,
+      "src": "E_c := 15100*sqrt(f_c/(1 kgf/cm^2))*kgf/cm^2 = kgf/cm^2"
+    },
+    {
+      "id": "r032",
+      "kind": "text",
+      "x": 40,
+      "y": 1648,
+      "src": "━━ DATOS · CARGAS (LRFD, las del ejemplo trabajado) ━━"
+    },
+    {
+      "id": "r033",
+      "kind": "math",
+      "x": 40,
+      "y": 1696,
+      "src": "P_u := 40 tonf"
+    },
+    {
+      "id": "r034",
+      "kind": "math",
+      "x": 40,
+      "y": 1744,
+      "src": "M_u := 12 tonf*m"
+    },
+    {
+      "id": "r035",
+      "kind": "text",
+      "x": 40,
+      "y": 1808,
+      "src": "━━ CAP. 4 · EL BLOQUE RECTANGULAR CON MOMENTO GRANDE ━━"
+    },
+    {
+      "id": "r036",
+      "kind": "text",
+      "x": 40,
+      "y": 1856,
+      "src": "C.2.1 paso 2: las cuatro deformaciones se obtienen de T y de Y, que el Cap. 4 ya calcula."
+    },
+    {
+      "id": "r037",
+      "kind": "text",
+      "x": 40,
+      "y": 1904,
+      "src": "f_p,max sale de AISC 360-22 J8 con el pedestal 80×80 concéntrico; es dato publicado del ejemplo."
+    },
+    {
+      "id": "r038",
+      "kind": "math",
+      "x": 40,
+      "y": 1952,
+      "src": "f_pmax := 245.6 kgf/cm^2"
+    },
+    {
+      "id": "r039",
+      "kind": "math",
+      "x": 40,
+      "y": 2000,
+      "src": "q_max := f_pmax*B = kgf/cm"
+    },
+    {
+      "id": "r040",
+      "kind": "text",
+      "x": 40,
+      "y": 2048,
+      "src": "4-39: e = M_r/P_r"
+    },
+    {
+      "id": "r041",
+      "kind": "math",
+      "x": 40,
+      "y": 2096,
+      "src": "e := M_u/P_u = cm"
+    },
+    {
+      "id": "r042",
+      "kind": "text",
+      "x": 40,
+      "y": 2144,
+      "src": "4-40: e_crit = N/2 − P_r/(2·q_max)"
+    },
+    {
+      "id": "r043",
+      "kind": "math",
+      "x": 40,
+      "y": 2192,
+      "src": "e_crit := N/2 - P_u/(2*q_max) = cm"
+    },
+    {
+      "id": "r044",
+      "kind": "text",
+      "x": 40,
+      "y": 2240,
+      "src": "4-53: la condición de momento grande, que es la que habilita el caso 2 de C.2.1."
+    },
+    {
+      "id": "v_grande",
+      "kind": "math",
+      "x": 40,
+      "y": 2288,
+      "src": "v_grande := e > e_crit ="
+    },
+    {
+      "id": "r045",
+      "kind": "text",
+      "x": 40,
+      "y": 2336,
+      "src": "4-59: si el radicando de 4-58 fuera negativo no hay solución real y hace falta placa mayor."
+    },
+    {
+      "id": "r046",
+      "kind": "math",
+      "x": 40,
+      "y": 2384,
+      "src": "brazo := f + N/2 = cm"
+    },
+    {
+      "id": "r047",
+      "kind": "math",
+      "x": 40,
+      "y": 2432,
+      "src": "radicando := brazo^2 - 2*P_u*(e + f)/q_max = cm^2"
+    },
+    {
+      "id": "v_real",
+      "kind": "math",
+      "x": 40,
+      "y": 2480,
+      "src": "v_real := radicando > 0 cm^2 ="
+    },
+    {
+      "id": "r048",
+      "kind": "text",
+      "x": 40,
+      "y": 2528,
+      "src": "4-58, raíz menor: el bloque comprimido que cabe dentro de la placa."
+    },
+    {
+      "id": "r049",
+      "kind": "math",
+      "x": 40,
+      "y": 2576,
+      "src": "Y := brazo - sqrt(radicando) = cm"
+    },
+    {
+      "id": "r050",
+      "kind": "text",
+      "x": 40,
+      "y": 2624,
+      "src": "4-55: T es la suma de las resistencias requeridas de TODOS los pernos traccionados."
+    },
+    {
+      "id": "r051",
+      "kind": "math",
+      "x": 40,
+      "y": 2672,
+      "src": "T := q_max*Y - P_u = tonf"
+    },
+    {
+      "id": "r052",
+      "kind": "math",
+      "x": 40,
+      "y": 2720,
+      "src": "T_perno := T/n_pernos = tonf"
+    },
+    {
+      "id": "r053",
+      "kind": "text",
+      "x": 40,
+      "y": 2784,
+      "src": "━━ APÉNDICE C · LAS CUATRO DEFORMACIONES DE LA EC. C-5 ━━"
+    },
+    {
+      "id": "r054",
+      "kind": "text",
+      "x": 40,
+      "y": 2832,
+      "src": "C-6: alargamiento del perno, sobre su longitud total y con el área bruta."
+    },
+    {
+      "id": "r055",
+      "kind": "math",
+      "x": 40,
+      "y": 2880,
+      "src": "A_rod := n_pernos*pi*d_perno^2/4 = cm^2"
+    },
+    {
+      "id": "r056",
+      "kind": "math",
+      "x": 40,
+      "y": 2928,
+      "src": "L_rod := t_p + t_grout + h_ef = cm"
+    },
+    {
+      "id": "r057",
+      "kind": "math",
+      "x": 40,
+      "y": 2976,
+      "src": "D_rod := T*L_rod/(A_rod*E_s) = cm"
+    },
+    {
+      "id": "r058",
+      "kind": "text",
+      "x": 40,
+      "y": 3024,
+      "src": "C-7: flexión de la placa del lado traccionado, con su término de corte."
+    },
+    {
+      "id": "r059",
+      "kind": "text",
+      "x": 40,
+      "y": 3072,
+      "src": "C-8: L_tension = f − d/2, del borde de la columna al eje del perno."
+    },
+    {
+      "id": "r060",
+      "kind": "math",
+      "x": 40,
+      "y": 3120,
+      "src": "L_t := f - d_col/2 = cm"
+    },
+    {
+      "id": "r061",
+      "kind": "math",
+      "x": 40,
+      "y": 3168,
+      "src": "I_p := B*t_p^3/12 = cm^4"
+    },
+    {
+      "id": "r062",
+      "kind": "text",
+      "x": 40,
+      "y": 3216,
+      "src": "C-9: el 5/6 es el área efectiva de corte de una sección rectangular."
+    },
+    {
+      "id": "r063",
+      "kind": "math",
+      "x": 40,
+      "y": 3264,
+      "src": "A_v := (5/6)*B*t_p = cm^2"
+    },
+    {
+      "id": "r064",
+      "kind": "math",
+      "x": 40,
+      "y": 3312,
+      "src": "D_pt := T*L_t^3/(3*E_s*I_p) + T*L_t/(A_v*G_s) = cm"
+    },
+    {
+      "id": "r065",
+      "kind": "text",
+      "x": 40,
+      "y": 3360,
+      "src": "Lado comprimido: la DG1 llama m al voladizo hasta su línea 0,95d. Acá va como m_vol, porque"
+    },
+    {
+      "id": "r066",
+      "kind": "text",
+      "x": 40,
+      "y": 3408,
+      "src": "en la hoja «m» es el metro y una variable con ese nombre se lo come: «4 m» pasaría a valer"
+    },
+    {
+      "id": "r067",
+      "kind": "text",
+      "x": 40,
+      "y": 3456,
+      "src": "4·m_vol = 33 cm sin avisar. Es la única razón del cambio de nombre."
+    },
+    {
+      "id": "r068",
+      "kind": "math",
+      "x": 40,
+      "y": 3504,
+      "src": "m_vol := (N - 0.95*d_col)/2 = cm"
+    },
+    {
+      "id": "r069",
+      "kind": "text",
+      "x": 40,
+      "y": 3552,
+      "src": "C-10 rige si Y ≥ m_vol y C-11 si Y < m_vol. Empalman: el corchete de C-11 vale m^4 en Y = m."
+    },
+    {
+      "id": "v_c11",
+      "kind": "math",
+      "x": 40,
+      "y": 3600,
+      "src": "v_c11 := Y < m_vol ="
+    },
+    {
+      "id": "r070",
+      "kind": "text",
+      "x": 40,
+      "y": 3648,
+      "src": "C-11, las dos partes: flexión sobre el tramo cargado, más corte sobre ese mismo tramo."
+    },
+    {
+      "id": "r071",
+      "kind": "math",
+      "x": 40,
+      "y": 3696,
+      "src": "D_pc := f_pmax*B/(8*E_s*I_p)*(m_vol^4 - (m_vol - Y)^3*(3*m_vol + Y)/3) + f_pmax*B*Y/(A_v*G_s)*(m_vol - Y/2) = cm"
+    },
+    {
+      "id": "r072",
+      "kind": "text",
+      "x": 40,
+      "y": 3744,
+      "src": "C-12: acortamiento de la zapata bajo la punta de la placa, sobre su profundidad total."
+    },
+    {
+      "id": "r073",
+      "kind": "math",
+      "x": 40,
+      "y": 3792,
+      "src": "D_ft := f_pmax*d_footing/E_c = cm"
+    },
+    {
+      "id": "r074",
+      "kind": "math",
+      "x": 40,
+      "y": 3840,
+      "src": "D_tot := D_rod + D_pt + D_pc + D_ft = cm"
+    },
+    {
+      "id": "r075",
+      "kind": "text",
+      "x": 40,
+      "y": 3904,
+      "src": "━━ EC. C-5 Y EC. C-4 · EL GIRO Y LA RIGIDEZ SECANTE ━━"
+    },
+    {
+      "id": "r076",
+      "kind": "text",
+      "x": 40,
+      "y": 3952,
+      "src": "C-5: el giro es la suma de las cuatro deformaciones dividida por el brazo f + N/2."
+    },
+    {
+      "id": "r077",
+      "kind": "math",
+      "x": 40,
+      "y": 4000,
+      "src": "theta := D_tot/brazo ="
+    },
+    {
+      "id": "r078",
+      "kind": "math",
+      "x": 40,
+      "y": 4048,
+      "src": "theta_mrad := theta*1000 ="
+    },
+    {
+      "id": "r079",
+      "kind": "text",
+      "x": 40,
+      "y": 4096,
+      "src": "C-4: beta es SECANTE, medida al momento de diseño M_u. No es la rigidez inicial."
+    },
+    {
+      "id": "r080",
+      "kind": "math",
+      "x": 40,
+      "y": 4144,
+      "src": "beta := M_u/theta = tonf*m"
+    },
+    {
+      "id": "r081",
+      "kind": "text",
+      "x": 40,
+      "y": 4208,
+      "src": "━━ QUÉ FRACCIÓN DEL GIRO APORTA CADA TÉRMINO ━━"
+    },
+    {
+      "id": "r082",
+      "kind": "math",
+      "x": 40,
+      "y": 4256,
+      "src": "p_rod := 100*D_rod/D_tot ="
+    },
+    {
+      "id": "r083",
+      "kind": "math",
+      "x": 40,
+      "y": 4304,
+      "src": "p_pt := 100*D_pt/D_tot ="
+    },
+    {
+      "id": "r084",
+      "kind": "math",
+      "x": 40,
+      "y": 4352,
+      "src": "p_pc := 100*D_pc/D_tot ="
+    },
+    {
+      "id": "r085",
+      "kind": "math",
+      "x": 40,
+      "y": 4400,
+      "src": "p_ft := 100*D_ft/D_tot ="
+    },
+    {
+      "id": "r086",
+      "kind": "math",
+      "x": 40,
+      "y": 4448,
+      "src": "D_max := max(D_rod, D_pt, D_pc, D_ft) = cm"
+    },
+    {
+      "id": "r087",
+      "kind": "program",
+      "x": 40,
+      "y": 4496,
+      "src": "gobierna :=\nif D_max == D_ft\n  return \"acortamiento de la zapata (C-12)\"\nelse if D_max == D_pc\n  return \"flexión de la placa, lado comprimido (C-11)\"\nelse if D_max == D_rod\n  return \"alargamiento del perno (C-6)\"\nelse\n  return \"flexión de la placa, lado traccionado (C-7)\""
+    },
+    {
+      "id": "r088",
+      "kind": "text",
+      "x": 40,
+      "y": 4720,
+      "src": "━━ ¿RÍGIDO RESPECTO DE QUÉ? ━━"
+    },
+    {
+      "id": "r089",
+      "kind": "text",
+      "x": 40,
+      "y": 4768,
+      "src": "Comentario a AISC 360-22 §B3.4, pág. impresa 16.1-320: K_s·L/EI ≥ 20 → totalmente restringida;"
+    },
+    {
+      "id": "r090",
+      "kind": "text",
+      "x": 40,
+      "y": 4816,
+      "src": "≤ 2 → simple; entre medio, parcialmente restringida. Su K_s = M_s/θ_s (C-B3-7) es SECANTE a"
+    },
+    {
+      "id": "r091",
+      "kind": "text",
+      "x": 40,
+      "y": 4864,
+      "src": "cargas de servicio, igual que el beta del Apéndice C. ⚠ Pero ahí L y EI son los de la VIGA:"
+    },
+    {
+      "id": "r092",
+      "kind": "text",
+      "x": 40,
+      "y": 4912,
+      "src": "usarlos de la columna es analogía, no cláusula."
+    },
+    {
+      "id": "r093",
+      "kind": "text",
+      "x": 40,
+      "y": 4960,
+      "src": "Columna del ejemplo: planchas nominales de un HEB 300, sin los redondeos de unión ala-alma,"
+    },
+    {
+      "id": "r094",
+      "kind": "text",
+      "x": 40,
+      "y": 5008,
+      "src": "que bajan I unos puntos y por tanto SUBEN el índice — o sea, en contra de la conclusión."
+    },
+    {
+      "id": "r095",
+      "kind": "math",
+      "x": 40,
+      "y": 5056,
+      "src": "h_col := 30 cm"
+    },
+    {
+      "id": "r096",
+      "kind": "math",
+      "x": 40,
+      "y": 5104,
+      "src": "b_col := 30 cm"
+    },
+    {
+      "id": "r097",
+      "kind": "math",
+      "x": 40,
+      "y": 5152,
+      "src": "tf_col := 1.9 cm"
+    },
+    {
+      "id": "r098",
+      "kind": "math",
+      "x": 40,
+      "y": 5200,
+      "src": "tw_col := 1.1 cm"
+    },
+    {
+      "id": "r099",
+      "kind": "math",
+      "x": 40,
+      "y": 5248,
+      "src": "L_col := 400 cm"
+    },
+    {
+      "id": "r100",
+      "kind": "math",
+      "x": 40,
+      "y": 5296,
+      "src": "I_col := (b_col*h_col^3 - (b_col - tw_col)*(h_col - 2*tf_col)^3)/12 = cm^4"
+    },
+    {
+      "id": "r101",
+      "kind": "math",
+      "x": 40,
+      "y": 5344,
+      "src": "k_col := 4*E_s*I_col/L_col = tonf*m"
+    },
+    {
+      "id": "r102",
+      "kind": "math",
+      "x": 40,
+      "y": 5392,
+      "src": "indice := beta*L_col/(E_s*I_col) ="
+    },
+    {
+      "id": "r103",
+      "kind": "text",
+      "x": 40,
+      "y": 5440,
+      "src": "La base del ejemplo NO es ni empotrada ni rotulada: cae en el tramo parcialmente restringido."
+    },
+    {
+      "id": "v_PR",
+      "kind": "math",
+      "x": 40,
+      "y": 5488,
+      "src": "v_PR := indice > 2 and indice < 20 ="
+    },
+    {
+      "id": "r104",
+      "kind": "text",
+      "x": 40,
+      "y": 5552,
+      "src": "━━ RESISTENCIA ≠ RIGIDEZ · QUÉ MUEVE ENGROSAR LA PLACA ━━"
+    },
+    {
+      "id": "r105",
+      "kind": "text",
+      "x": 40,
+      "y": 5600,
+      "src": "La DG1 exige 35 mm por resistencia a flexión (el ejemplo publica t_req = 3,43 cm). Se recalcula"
+    },
+    {
+      "id": "r106",
+      "kind": "text",
+      "x": 40,
+      "y": 5648,
+      "src": "beta con esa placa: la resistencia sube con t^2, y de los cuatro términos solo se mueven dos."
+    },
+    {
+      "id": "r107",
+      "kind": "math",
+      "x": 40,
+      "y": 5696,
+      "src": "t_35 := 3.5 cm"
+    },
+    {
+      "id": "r108",
+      "kind": "math",
+      "x": 40,
+      "y": 5744,
+      "src": "I_p35 := B*t_35^3/12 = cm^4"
+    },
+    {
+      "id": "r109",
+      "kind": "math",
+      "x": 40,
+      "y": 5792,
+      "src": "A_v35 := (5/6)*B*t_35 = cm^2"
+    },
+    {
+      "id": "r110",
+      "kind": "text",
+      "x": 40,
+      "y": 5840,
+      "src": "C-6 mide L_rod desde el TOPE de la placa, así que engrosarla también alarga el perno: el"
+    },
+    {
+      "id": "r111",
+      "kind": "text",
+      "x": 40,
+      "y": 5888,
+      "src": "término del perno no queda igual, sube un poco. Es chico, pero es del signo contrario al"
+    },
+    {
+      "id": "r112",
+      "kind": "text",
+      "x": 40,
+      "y": 5936,
+      "src": "que la placa gruesa busca, y por eso se recalcula en vez de arrastrarse."
+    },
+    {
+      "id": "r113",
+      "kind": "math",
+      "x": 40,
+      "y": 5984,
+      "src": "L_rod35 := t_35 + t_grout + h_ef = cm"
+    },
+    {
+      "id": "r114",
+      "kind": "math",
+      "x": 40,
+      "y": 6032,
+      "src": "D_rod35 := T*L_rod35/(A_rod*E_s) = cm"
+    },
+    {
+      "id": "r115",
+      "kind": "math",
+      "x": 40,
+      "y": 6080,
+      "src": "D_pt35 := T*L_t^3/(3*E_s*I_p35) + T*L_t/(A_v35*G_s) = cm"
+    },
+    {
+      "id": "r116",
+      "kind": "math",
+      "x": 40,
+      "y": 6128,
+      "src": "D_pc35 := f_pmax*B/(8*E_s*I_p35)*(m_vol^4 - (m_vol - Y)^3*(3*m_vol + Y)/3) + f_pmax*B*Y/(A_v35*G_s)*(m_vol - Y/2) = cm"
+    },
+    {
+      "id": "r117",
+      "kind": "math",
+      "x": 40,
+      "y": 6176,
+      "src": "D_tot35 := D_rod35 + D_pt35 + D_pc35 + D_ft = cm"
+    },
+    {
+      "id": "r118",
+      "kind": "math",
+      "x": 40,
+      "y": 6224,
+      "src": "beta_35 := M_u/(D_tot35/brazo) = tonf*m"
+    },
+    {
+      "id": "r119",
+      "kind": "text",
+      "x": 40,
+      "y": 6272,
+      "src": "El cociente de resistencias contra el cociente de rigideces: no son la misma cosa, y la hoja"
+    },
+    {
+      "id": "r120",
+      "kind": "text",
+      "x": 40,
+      "y": 6320,
+      "src": "los pone uno al lado del otro."
+    },
+    {
+      "id": "r121",
+      "kind": "math",
+      "x": 40,
+      "y": 6368,
+      "src": "r_resistencia := (t_35/t_p)^2 ="
+    },
+    {
+      "id": "r122",
+      "kind": "math",
+      "x": 40,
+      "y": 6416,
+      "src": "r_rigidez := beta_35/beta ="
+    },
+    {
+      "id": "r123",
+      "kind": "math",
+      "x": 40,
+      "y": 6464,
+      "src": "indice_35 := beta_35*L_col/(E_s*I_col) ="
+    },
+    {
+      "id": "r124",
+      "kind": "text",
+      "x": 40,
+      "y": 6512,
+      "src": "Ni con la placa que la norma exige por resistencia la base se acerca a empotrada."
+    },
+    {
+      "id": "v_PR35",
+      "kind": "math",
+      "x": 40,
+      "y": 6560,
+      "src": "v_PR35 := indice_35 > 2 and indice_35 < 20 ="
+    },
+    {
+      "id": "r125",
+      "kind": "text",
+      "x": 40,
+      "y": 6624,
+      "src": "━━ SENSIBILIDAD AL SUPUESTO PEOR CONOCIDO (d_footing) ━━"
+    },
+    {
+      "id": "r126",
+      "kind": "text",
+      "x": 40,
+      "y": 6672,
+      "src": "C-12 es lineal en d_footing, así que el barrido es directo. Se acota entre 40 y 120 cm."
+    },
+    {
+      "id": "r127",
+      "kind": "math",
+      "x": 40,
+      "y": 6720,
+      "src": "D_ft40 := f_pmax*(40 cm)/E_c = cm"
+    },
+    {
+      "id": "r128",
+      "kind": "math",
+      "x": 40,
+      "y": 6768,
+      "src": "D_ft120 := f_pmax*(120 cm)/E_c = cm"
+    },
+    {
+      "id": "r129",
+      "kind": "math",
+      "x": 40,
+      "y": 6816,
+      "src": "beta_40 := M_u/((D_rod + D_pt + D_pc + D_ft40)/brazo) = tonf*m"
+    },
+    {
+      "id": "r130",
+      "kind": "math",
+      "x": 40,
+      "y": 6864,
+      "src": "beta_120 := M_u/((D_rod + D_pt + D_pc + D_ft120)/brazo) = tonf*m"
+    },
+    {
+      "id": "r131",
+      "kind": "math",
+      "x": 40,
+      "y": 6912,
+      "src": "indice_40 := beta_40*L_col/(E_s*I_col) ="
+    },
+    {
+      "id": "r132",
+      "kind": "math",
+      "x": 40,
+      "y": 6960,
+      "src": "indice_120 := beta_120*L_col/(E_s*I_col) ="
+    },
+    {
+      "id": "r133",
+      "kind": "text",
+      "x": 40,
+      "y": 7008,
+      "src": "Lo que aguanta el rango entero NO es «parcialmente restringida»: con la zapata más profunda"
+    },
+    {
+      "id": "r134",
+      "kind": "text",
+      "x": 40,
+      "y": 7056,
+      "src": "el índice cruza por debajo de 2 y la base clasifica como SIMPLE. Lo que aguanta —y es la"
+    },
+    {
+      "id": "r135",
+      "kind": "text",
+      "x": 40,
+      "y": 7104,
+      "src": "conclusión que el supuesto no puede tumbar— es que en ningún punto del rango se acerca a FR."
+    },
+    {
+      "id": "v_lejos_FR",
+      "kind": "math",
+      "x": 40,
+      "y": 7152,
+      "src": "v_lejos_FR := indice_40 < 20 ="
+    },
+    {
+      "id": "r136",
+      "kind": "text",
+      "x": 40,
+      "y": 7200,
+      "src": "Dónde está exactamente el cruce: se despeja el d_footing que deja el índice en 2."
+    },
+    {
+      "id": "r137",
+      "kind": "math",
+      "x": 40,
+      "y": 7248,
+      "src": "D_otros := D_rod + D_pt + D_pc = cm"
+    },
+    {
+      "id": "r138",
+      "kind": "math",
+      "x": 40,
+      "y": 7296,
+      "src": "d_f_simple := (M_u*brazo*L_col/(2*E_s*I_col) - D_otros)*E_c/f_pmax = cm"
+    },
+    {
+      "id": "r139",
+      "kind": "text",
+      "x": 40,
+      "y": 7344,
+      "src": "Por debajo de esa profundidad de zapata la base es parcialmente restringida; por encima, el"
+    },
+    {
+      "id": "r140",
+      "kind": "text",
+      "x": 40,
+      "y": 7392,
+      "src": "índice del Comentario §B3.4 la lee como simple."
+    },
+    {
+      "id": "v_cruce",
+      "kind": "math",
+      "x": 40,
+      "y": 7440,
+      "src": "v_cruce := d_f_simple > 100 cm and d_f_simple < 140 cm ="
+    },
+    {
+      "id": "r141",
+      "kind": "text",
+      "x": 40,
+      "y": 7504,
+      "src": "━━ CONTRASTE · LA EC. C-12 EN SUS DOS SISTEMAS ━━"
+    },
+    {
+      "id": "r142",
+      "kind": "text",
+      "x": 40,
+      "y": 7552,
+      "src": "C-12 escribe E_concrete = w_c^1,5·√f'c con f'c y E en ksi y w_c en lb/ft^3 (90 ≤ w_c ≤ 155)."
+    },
+    {
+      "id": "r143",
+      "kind": "text",
+      "x": 40,
+      "y": 7600,
+      "src": "Acá se usa la forma SI de la serie; la diferencia se mide en vez de darse por despreciable."
+    },
+    {
+      "id": "r144",
+      "kind": "math",
+      "x": 40,
+      "y": 7648,
+      "src": "ksi := 70.30696 kgf/cm^2"
+    },
+    {
+      "id": "r145",
+      "kind": "math",
+      "x": 40,
+      "y": 7696,
+      "src": "w_c := 145"
+    },
+    {
+      "id": "r146",
+      "kind": "math",
+      "x": 40,
+      "y": 7744,
+      "src": "E_c_imp := w_c^1.5*sqrt(f_c/ksi)*ksi = kgf/cm^2"
+    },
+    {
+      "id": "r147",
+      "kind": "math",
+      "x": 40,
+      "y": 7792,
+      "src": "dif_Ec := 100*(E_c_imp/E_c - 1) ="
+    },
+    {
+      "id": "r148",
+      "kind": "text",
+      "x": 40,
+      "y": 7840,
+      "src": "Bajo el 5 %: la elección de forma no cambia ninguna conclusión de la hoja."
+    },
+    {
+      "id": "v_Ec",
+      "kind": "math",
+      "x": 40,
+      "y": 7888,
+      "src": "v_Ec := abs(dif_Ec) < 5 ="
+    },
+    {
+      "id": "r149",
+      "kind": "text",
+      "x": 40,
+      "y": 7952,
+      "src": "━━ CONTINUIDAD DE LAS RAMAS DE C-17 Y C-18 (blockout) ━━"
+    },
+    {
+      "id": "r150",
+      "kind": "text",
+      "x": 40,
+      "y": 8000,
+      "src": "No se usan acá —esta base no está en blockout—, pero es el único autocontraste que la guía"
+    },
+    {
+      "id": "r151",
+      "kind": "text",
+      "x": 40,
+      "y": 8048,
+      "src": "habilita sobre unas constantes que son DIMENSIONALES (kip/in^2,85) y por eso no se convierten."
+    },
+    {
+      "id": "v_c17a",
+      "kind": "math",
+      "x": 40,
+      "y": 8096,
+      "src": "v_c17a := 84*0.5 + 132 == 174 ="
+    },
+    {
+      "id": "v_c17b",
+      "kind": "math",
+      "x": 40,
+      "y": 8144,
+      "src": "v_c17b := 84*2.0 + 132 == 300 ="
+    },
+    {
+      "id": "v_c18a",
+      "kind": "math",
+      "x": 40,
+      "y": 8192,
+      "src": "v_c18a := 14*0.5 + 122 == 129 ="
+    },
+    {
+      "id": "v_c18b",
+      "kind": "math",
+      "x": 40,
+      "y": 8240,
+      "src": "v_c18b := 14*2.0 + 122 == 150 ="
+    },
+    {
+      "id": "esq",
+      "kind": "image",
+      "x": 40,
+      "y": 8288,
+      "src": "/esquemas/placa-base-rigidez-rotacional.svg",
+      "w": 700,
+      "h": 500
+    },
+    {
+      "id": "r152",
+      "kind": "text",
+      "x": 40,
+      "y": 8832,
+      "src": "━━ CONTRASTE CON EL POST ━━"
+    },
+    {
+      "id": "c_Y",
+      "kind": "math",
+      "x": 40,
+      "y": 8880,
+      "src": "abs(Y - 4.56 cm) < 0.005 cm ="
+    },
+    {
+      "id": "c_T",
+      "kind": "math",
+      "x": 40,
+      "y": 8928,
+      "src": "abs(T - 10.37 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_drod",
+      "kind": "math",
+      "x": 40,
+      "y": 8976,
+      "src": "abs(D_rod - 0.02257 cm) < 0.000005 cm ="
+    },
+    {
+      "id": "c_dpt",
+      "kind": "math",
+      "x": 40,
+      "y": 9024,
+      "src": "abs(D_pt - 0.00080 cm) < 0.000005 cm ="
+    },
+    {
+      "id": "c_dpc",
+      "kind": "math",
+      "x": 40,
+      "y": 9072,
+      "src": "abs(D_pc - 0.05195 cm) < 0.000005 cm ="
+    },
+    {
+      "id": "c_dft",
+      "kind": "math",
+      "x": 40,
+      "y": 9120,
+      "src": "abs(D_ft - 0.08229 cm) < 0.000005 cm ="
+    },
+    {
+      "id": "c_theta",
+      "kind": "math",
+      "x": 40,
+      "y": 9168,
+      "src": "abs(theta_mrad - 3.94) < 0.005 ="
+    },
+    {
+      "id": "c_beta",
+      "kind": "math",
+      "x": 40,
+      "y": 9216,
+      "src": "abs(beta - 3045 tonf*m) < 0.5 tonf*m ="
+    },
+    {
+      "id": "c_prod",
+      "kind": "math",
+      "x": 40,
+      "y": 9264,
+      "src": "abs(p_rod - 14.3) < 0.05 ="
+    },
+    {
+      "id": "c_ppc",
+      "kind": "math",
+      "x": 40,
+      "y": 9312,
+      "src": "abs(p_pc - 33.0) < 0.05 ="
+    },
+    {
+      "id": "c_pft",
+      "kind": "math",
+      "x": 40,
+      "y": 9360,
+      "src": "abs(p_ft - 52.2) < 0.05 ="
+    },
+    {
+      "id": "c_icol",
+      "kind": "math",
+      "x": 40,
+      "y": 9408,
+      "src": "abs(I_col - 24187 cm^4) < 0.5 cm^4 ="
+    },
+    {
+      "id": "c_indice",
+      "kind": "math",
+      "x": 40,
+      "y": 9456,
+      "src": "abs(indice - 2.47) < 0.005 ="
+    },
+    {
+      "id": "c_beta35",
+      "kind": "math",
+      "x": 40,
+      "y": 9504,
+      "src": "abs(beta_35 - 3805 tonf*m) < 0.5 tonf*m ="
+    },
+    {
+      "id": "c_ind120",
+      "kind": "math",
+      "x": 40,
+      "y": 9552,
+      "src": "abs(indice_120 - 1.96) < 0.005 ="
+    },
+    {
+      "id": "c_ind40",
+      "kind": "math",
+      "x": 40,
+      "y": 9600,
+      "src": "abs(indice_40 - 3.34) < 0.005 ="
+    },
+    {
+      "id": "c_rrig",
+      "kind": "math",
+      "x": 40,
+      "y": 9648,
+      "src": "abs(r_rigidez - 1.25) < 0.005 ="
+    },
+    {
+      "id": "c_rres",
+      "kind": "math",
+      "x": 40,
+      "y": 9696,
+      "src": "abs(r_resistencia - 1.96) < 0.005 ="
+    },
+    {
+      "id": "c_difEc",
+      "kind": "math",
+      "x": 40,
+      "y": 9744,
+      "src": "abs(dif_Ec - (-3.0)) < 0.05 ="
+    },
+    {
+      "id": "c_beta40",
+      "kind": "math",
+      "x": 40,
+      "y": 9792,
+      "src": "abs(beta_40 - 4121 tonf*m) < 0.5 tonf*m ="
+    },
+    {
+      "id": "c_beta120",
+      "kind": "math",
+      "x": 40,
+      "y": 9840,
+      "src": "abs(beta_120 - 2415 tonf*m) < 0.5 tonf*m ="
+    }
+  ]
+}

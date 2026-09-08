@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "meta": {
+    "titulo": "Estados y combinaciones del galpón del altiplano — NCh 3171 §9 y NCh 2369 §4.5",
+    "ficha": "struct_pad/src/content/apuntes/ejemplo-galpon-altiplano-cargas-combinaciones.mdx",
+    "esperadoFalso": {}
+  },
+  "regions": [
+    { "id": "g-00", "kind": "text", "x": 40, "y": 40, "src": "━━ DATOS · GEOMETRÍA ━━" },
+    { "id": "g-01", "kind": "math", "x": 40, "y": 86, "src": "luz := 24.0 m" },
+    { "id": "g-02", "kind": "math", "x": 40, "y": 132, "src": "largo := 24.0 m" },
+    { "id": "g-03", "kind": "math", "x": 40, "y": 178, "src": "alero := 8.0 m" },
+    { "id": "g-04", "kind": "math", "x": 40, "y": 224, "src": "pend := 10 deg" },
+
+    { "id": "p-00", "kind": "text", "x": 40, "y": 270, "src": "━━ DATOS · PRESIONES (estudio de sitio y decisión de proyecto, sin cláusula al lado) ━━" },
+    { "id": "p-01", "kind": "math", "x": 40, "y": 316, "src": "p_techo := 0.35 kN/m^2" },
+    { "id": "p-02", "kind": "math", "x": 40, "y": 362, "src": "p_muro := 0.12 kN/m^2" },
+    { "id": "p-03", "kind": "math", "x": 40, "y": 408, "src": "p_lr := 0.30 kN/m^2" },
+    { "id": "p-04", "kind": "math", "x": 40, "y": 454, "src": "p_nieve := 1.20 kN/m^2" },
+    { "id": "p-05", "kind": "math", "x": 40, "y": 500, "src": "f_unb := 0.50" },
+    { "id": "p-06", "kind": "text", "x": 40, "y": 546, "src": "f_unb: la nieve desbalanceada deja 100 % en un faldón y f_unb en el otro." },
+
+    { "id": "m-00", "kind": "text", "x": 40, "y": 592, "src": "━━ DATO DEL MOTOR · el peso propio del acero no se calcula acá ━━" },
+    { "id": "m-01", "kind": "math", "x": 40, "y": 638, "src": "D_dead := 233.657226 kN" },
+
+    { "id": "a-00", "kind": "text", "x": 40, "y": 684, "src": "━━ ÁREAS ━━" },
+    { "id": "a-01", "kind": "math", "x": 40, "y": 730, "src": "flecha := (luz/2) * tan(pend) = m" },
+    { "id": "a-02", "kind": "math", "x": 40, "y": 776, "src": "Ap := luz * largo = m^2" },
+    { "id": "a-03", "kind": "math", "x": 40, "y": 822, "src": "Af := 2 * (luz/2) / cos(pend) * largo = m^2" },
+    { "id": "a-04", "kind": "math", "x": 40, "y": 868, "src": "Am := 2*largo*alero + 2*(luz*alero + 0.5*luz*flecha) = m^2" },
+    { "id": "a-05", "kind": "text", "x": 40, "y": 914, "src": "Ap: proyección horizontal (nieve y sobrecarga) · Af: el faldón inclinado (muerta de techo) · Am: muros y hastiales." },
+
+    { "id": "e-00", "kind": "text", "x": 40, "y": 960, "src": "━━ RESULTANTES POR ESTADO · cada una contra la reacción del modelo ━━" },
+    { "id": "e-01", "kind": "math", "x": 40, "y": 1006, "src": "D_sup := p_techo*Af + p_muro*Am = kN" },
+    { "id": "c_dsd", "kind": "math", "x": 40, "y": 1052, "src": "abs(D_sup - 302.963865 kN) < 0.001 kN =" },
+    { "id": "e-02", "kind": "math", "x": 40, "y": 1098, "src": "S_bal := p_nieve * Ap = kN" },
+    { "id": "c_sbal", "kind": "math", "x": 40, "y": 1144, "src": "abs(S_bal - 691.2 kN) < 0.001 kN =" },
+    { "id": "e-03", "kind": "math", "x": 40, "y": 1190, "src": "S_unb := (1 + f_unb)/2 * S_bal = kN" },
+    { "id": "c_sunb", "kind": "math", "x": 40, "y": 1236, "src": "abs(S_unb - 518.4 kN) < 0.001 kN =" },
+    { "id": "e-04", "kind": "math", "x": 40, "y": 1282, "src": "LR_tot := p_lr * Ap = kN" },
+    { "id": "c_lr", "kind": "math", "x": 40, "y": 1328, "src": "abs(LR_tot - 172.8 kN) < 0.001 kN =" },
+    { "id": "e-05", "kind": "math", "x": 40, "y": 1374, "src": "D_tot := D_dead + D_sup = kN" },
+    { "id": "c_dtot", "kind": "math", "x": 40, "y": 1420, "src": "abs(D_tot - 536.621091 kN) < 0.001 kN =" },
+
+    { "id": "n-00", "kind": "text", "x": 40, "y": 1466, "src": "━━ LA NIEVE MANDA · dos razones para mirarla antes que nada ━━" },
+    { "id": "n-01", "kind": "math", "x": 40, "y": 1512, "src": "razon_SD := S_bal / D_tot =" },
+    { "id": "v_nieve_manda", "kind": "math", "x": 40, "y": 1558, "src": "S_bal > D_tot =" },
+    { "id": "v_lr_muere", "kind": "math", "x": 40, "y": 1604, "src": "p_lr < p_nieve =" },
+    { "id": "n-02", "kind": "text", "x": 40, "y": 1650, "src": "↑ por eso L_r no sobrevive a ninguna combinación donde S esté presente: se declara y se muere en la poda." },
+
+    { "id": "s-00", "kind": "text", "x": 40, "y": 1696, "src": "━━ MASA SÍSMICA · §5.1.2 da un criterio; el 0,2 lo pone la combinación (5) de NCh 3171 ━━" },
+    { "id": "s-01", "kind": "math", "x": 40, "y": 1742, "src": "a_nieve := 0.20" },
+    { "id": "s-02", "kind": "math", "x": 40, "y": 1788, "src": "P_sis := D_tot + a_nieve * S_bal = kN" },
+    { "id": "c_masa", "kind": "math", "x": 40, "y": 1834, "src": "abs(P_sis - 674.861091 kN) < 0.001 kN =" },
+    { "id": "s-03", "kind": "math", "x": 40, "y": 1880, "src": "incremento := P_sis/D_tot - 1 =" },
+    { "id": "s-04", "kind": "math", "x": 40, "y": 1926, "src": "deficit := 1 - D_tot/P_sis =" },
+    { "id": "s-05", "kind": "text", "x": 40, "y": 1972, "src": "↑ armar la masa solo con D deja la demanda un 'deficit' corta. Con a_nieve = 0 los dos veredictos de abajo caen." },
+
+    { "id": "l-00", "kind": "text", "x": 40, "y": 2018, "src": "━━ LINEALIDAD · lo que SAP tiene que devolver, o la combinación no es lineal ━━" },
+    { "id": "l-01", "kind": "math", "x": 40, "y": 2064, "src": "G1 := 1.4 * D_tot = kN" },
+    { "id": "c_g1", "kind": "math", "x": 40, "y": 2110, "src": "abs(G1 - 751.269527 kN) < 0.000001 kN =" },
+    { "id": "l-02", "kind": "math", "x": 40, "y": 2156, "src": "G3A_B := 1.2 * D_tot + 1.6 * S_bal = kN" },
+    { "id": "c_g3a", "kind": "math", "x": 40, "y": 2202, "src": "abs(G3A_B - 1749.865309 kN) < 0.000001 kN =" },
+
+    { "id": "t-00", "kind": "text", "x": 40, "y": 2248, "src": "━━ EL ÁRBOL · cada rama es una multiplicación, no una enumeración ━━" },
+    { "id": "t-01", "kind": "math", "x": 40, "y": 2294, "src": "n_nieve := 3" },
+    { "id": "t-02", "kind": "math", "x": 40, "y": 2340, "src": "n_viento := 4" },
+    { "id": "t-03", "kind": "math", "x": 40, "y": 2386, "src": "n_pi := 2" },
+    { "id": "t-04", "kind": "math", "x": 40, "y": 2432, "src": "n_ecs := 3" },
+    { "id": "t-05", "kind": "math", "x": 40, "y": 2478, "src": "n_ev := 2" },
+    { "id": "t-06", "kind": "math", "x": 40, "y": 2524, "src": "n_bases := 2" },
+    { "id": "t-07", "kind": "text", "x": 40, "y": 2570, "src": "n_nieve: balanceada + dos desbalanceadas · n_viento: transversal ± y longitudinal ± · n_pi: los dos signos de GC_pi" },
+    { "id": "t-08", "kind": "math", "x": 40, "y": 2616, "src": "n_grav := 1 + n_nieve + n_nieve + 2*n_nieve*n_viento*n_pi + n_viento*n_pi =" },
+    { "id": "t-09", "kind": "math", "x": 40, "y": 2662, "src": "n_sismo := n_ecs * n_ev * n_bases =" },
+    { "id": "t-10", "kind": "math", "x": 40, "y": 2708, "src": "n_ilus := 2 * n_ev =" },
+    { "id": "t-11", "kind": "math", "x": 40, "y": 2754, "src": "n_total := n_grav + n_sismo + n_ilus =" },
+    { "id": "c_total", "kind": "math", "x": 40, "y": 2800, "src": "n_total == 79 =" },
+    { "id": "c_grav", "kind": "math", "x": 40, "y": 2846, "src": "n_grav == 63 =" },
+
+    { "id": "x-00", "kind": "text", "x": 40, "y": 2892, "src": "━━ POR QUÉ LA RAMA SÍSMICA SON 12 Y NO 48 ━━" },
+    { "id": "x-01", "kind": "math", "x": 40, "y": 2938, "src": "n_ingenuo := n_ecs * 2^3 * n_bases =" },
+    { "id": "c_sismo", "kind": "math", "x": 40, "y": 2984, "src": "n_sismo == 12 =" },
+    { "id": "v_ahorro", "kind": "math", "x": 40, "y": 3030, "src": "n_ingenuo == 4 * n_sismo =" },
+    { "id": "x-02", "kind": "text", "x": 40, "y": 3076, "src": "SAP aplica un caso espectral con signo ± automático y reporta Máx/Mín: enumerar a mano los signos de E_x y E_y" },
+    { "id": "x-03", "kind": "text", "x": 40, "y": 3122, "src": "los duplicaría sin agregar un resultado. Solo se enumera el de E_z, que entró como caso estático (§5.7.1)." }
+  ]
+}

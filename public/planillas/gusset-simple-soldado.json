@@ -1,0 +1,1092 @@
+{
+  "version": 1,
+  "meta": {
+    "titulo": "Gusset de un solo borde, soldado — el cordón abre la banda de Whitmore y el eslabón débil se muda al tubo (NCh2369 8.4.1/8.6.8 + AISC 360-22)",
+    "ficha": "struct_pad/src/content/acero/ejemplo-gusset-simple-soldado.mdx",
+    "esperadoFalso": {}
+  },
+  "regions": [
+    {
+      "id": "r000",
+      "kind": "text",
+      "x": 40,
+      "y": 32,
+      "src": "GUSSET DE UN SOLO BORDE, SOLDADO — el cordón abre la banda y el eslabón débil se muda al tubo"
+    },
+    {
+      "id": "r001",
+      "kind": "text",
+      "x": 40,
+      "y": 80,
+      "src": "NCh2369:2025 cl. 8.4.1 / 8.6.8 / Tabla 9 + AISC 360-22 D3, J2, J4 · LRFD"
+    },
+    {
+      "id": "r002",
+      "kind": "text",
+      "x": 40,
+      "y": 128,
+      "src": "Rd_ = capacidad de diseño (incluye phi) · las comparaciones dan ✓/✗"
+    },
+    {
+      "id": "r003",
+      "kind": "image",
+      "x": 40,
+      "y": 6256,
+      "src": "/esquemas/gusset-simple-soldado.svg",
+      "w": 520,
+      "h": 474
+    },
+    {
+      "id": "r004",
+      "kind": "text",
+      "x": 40,
+      "y": 176,
+      "src": "El nudo: tubo ranurado calzado sobre el gusset, cuatro filetes longitudinales."
+    },
+    {
+      "id": "r005",
+      "kind": "text",
+      "x": 40,
+      "y": 240,
+      "src": "━━ DATOS · ACEROS ━━"
+    },
+    {
+      "id": "r006",
+      "kind": "text",
+      "x": 40,
+      "y": 288,
+      "src": "Plancha A36 (gusset) · tubo A500 Gr. C · electrodo E70XX"
+    },
+    {
+      "id": "r007",
+      "kind": "math",
+      "x": 40,
+      "y": 336,
+      "src": "F_y := 2530 kgf/cm^2"
+    },
+    {
+      "id": "r008",
+      "kind": "math",
+      "x": 40,
+      "y": 384,
+      "src": "F_u := 4080 kgf/cm^2"
+    },
+    {
+      "id": "r009",
+      "kind": "math",
+      "x": 40,
+      "y": 432,
+      "src": "F_yt := 3520 kgf/cm^2"
+    },
+    {
+      "id": "r010",
+      "kind": "math",
+      "x": 40,
+      "y": 480,
+      "src": "F_ut := 4360 kgf/cm^2"
+    },
+    {
+      "id": "r011",
+      "kind": "math",
+      "x": 40,
+      "y": 528,
+      "src": "R_yt := 1.3"
+    },
+    {
+      "id": "r012",
+      "kind": "math",
+      "x": 40,
+      "y": 576,
+      "src": "F_EXX := 4920 kgf/cm^2"
+    },
+    {
+      "id": "r013",
+      "kind": "math",
+      "x": 40,
+      "y": 624,
+      "src": "E := 2039000 kgf/cm^2"
+    },
+    {
+      "id": "r014",
+      "kind": "text",
+      "x": 40,
+      "y": 688,
+      "src": "━━ DATOS · DIAGONAL □150×150×8 ━━"
+    },
+    {
+      "id": "r015",
+      "kind": "math",
+      "x": 40,
+      "y": 736,
+      "src": "B_t := 15.0 cm"
+    },
+    {
+      "id": "r016",
+      "kind": "math",
+      "x": 40,
+      "y": 784,
+      "src": "t_t := 0.8 cm"
+    },
+    {
+      "id": "r017",
+      "kind": "math",
+      "x": 40,
+      "y": 832,
+      "src": "A_gt := B_t^2 - (B_t - 2*t_t)^2 = cm^2"
+    },
+    {
+      "id": "r018",
+      "kind": "text",
+      "x": 40,
+      "y": 880,
+      "src": "Tabla 9 de NCh2369: esbeltez local de la pared, con el R_y·F_y DEL TUBO (no el del A36)"
+    },
+    {
+      "id": "r019",
+      "kind": "math",
+      "x": 40,
+      "y": 928,
+      "src": "bt_r := (B_t - 3*t_t)/t_t ="
+    },
+    {
+      "id": "r020",
+      "kind": "math",
+      "x": 40,
+      "y": 976,
+      "src": "lam_md := 0.76*sqrt(E/(R_yt*F_yt)) ="
+    },
+    {
+      "id": "v_t9",
+      "kind": "math",
+      "x": 40,
+      "y": 1024,
+      "src": "bt_r <= lam_md ="
+    },
+    {
+      "id": "r021",
+      "kind": "text",
+      "x": 40,
+      "y": 1088,
+      "src": "━━ DATOS · GUSSET Y CONTORNO ━━"
+    },
+    {
+      "id": "r022",
+      "kind": "math",
+      "x": 40,
+      "y": 1136,
+      "src": "t_g := 2.0 cm"
+    },
+    {
+      "id": "r023",
+      "kind": "text",
+      "x": 40,
+      "y": 1184,
+      "src": "El contorno se DECLARA y de él se derivan el ancho disponible y el largo libre (§4 y §7)"
+    },
+    {
+      "id": "r024",
+      "kind": "math",
+      "x": 40,
+      "y": 1232,
+      "src": "b_sup := 96.0 cm"
+    },
+    {
+      "id": "r025",
+      "kind": "math",
+      "x": 40,
+      "y": 1280,
+      "src": "b_inf := 65.5 cm"
+    },
+    {
+      "id": "r026",
+      "kind": "math",
+      "x": 40,
+      "y": 1328,
+      "src": "prof_g := 74.3 cm"
+    },
+    {
+      "id": "r027",
+      "kind": "math",
+      "x": 40,
+      "y": 1376,
+      "src": "th := pi/4"
+    },
+    {
+      "id": "r028",
+      "kind": "text",
+      "x": 40,
+      "y": 1440,
+      "src": "━━ 1 · DEMANDA — la escalera de 8.4.1 (acá gobierna la BASE) ━━"
+    },
+    {
+      "id": "r029",
+      "kind": "math",
+      "x": 40,
+      "y": 1488,
+      "src": "P_E := 40.0 tonf"
+    },
+    {
+      "id": "r030",
+      "kind": "math",
+      "x": 40,
+      "y": 1536,
+      "src": "amp := 2.8"
+    },
+    {
+      "id": "r031",
+      "kind": "text",
+      "x": 40,
+      "y": 1584,
+      "src": "amp = 0,7·R1, con R = 5 y R1 = 4,0"
+    },
+    {
+      "id": "r032",
+      "kind": "math",
+      "x": 40,
+      "y": 1632,
+      "src": "T_ye := R_yt*F_yt*A_gt = tonf"
+    },
+    {
+      "id": "r033",
+      "kind": "math",
+      "x": 40,
+      "y": 1680,
+      "src": "base := amp*P_E = tonf"
+    },
+    {
+      "id": "r034",
+      "kind": "math",
+      "x": 40,
+      "y": 1728,
+      "src": "piso := 0.5*T_ye = tonf"
+    },
+    {
+      "id": "r035",
+      "kind": "math",
+      "x": 40,
+      "y": 1776,
+      "src": "T_r := max(min(T_ye, base), piso) = tonf"
+    },
+    {
+      "id": "v_base",
+      "kind": "math",
+      "x": 40,
+      "y": 1824,
+      "src": "base > piso ="
+    },
+    {
+      "id": "v_techo",
+      "kind": "math",
+      "x": 40,
+      "y": 1872,
+      "src": "base < T_ye ="
+    },
+    {
+      "id": "r036",
+      "kind": "text",
+      "x": 40,
+      "y": 1920,
+      "src": "El PT está en el centroide de la interfaz: N y V sin momento — el nudo es determinado"
+    },
+    {
+      "id": "r037",
+      "kind": "math",
+      "x": 40,
+      "y": 1968,
+      "src": "N_i := T_r*sin(th) = tonf"
+    },
+    {
+      "id": "r038",
+      "kind": "math",
+      "x": 40,
+      "y": 2016,
+      "src": "V_i := T_r*cos(th) = tonf"
+    },
+    {
+      "id": "r039",
+      "kind": "text",
+      "x": 40,
+      "y": 2080,
+      "src": "━━ 2 · LOS CUATRO FILETES (J2.4) ━━"
+    },
+    {
+      "id": "r040",
+      "kind": "text",
+      "x": 40,
+      "y": 2128,
+      "src": "El gusset pasa por la ranura: queda plancha a los dos lados dentro del tubo → 4 cordones"
+    },
+    {
+      "id": "r041",
+      "kind": "math",
+      "x": 40,
+      "y": 2176,
+      "src": "l_w := 35.0 cm"
+    },
+    {
+      "id": "r042",
+      "kind": "math",
+      "x": 40,
+      "y": 2224,
+      "src": "pier := 0.8 cm"
+    },
+    {
+      "id": "r043",
+      "kind": "math",
+      "x": 40,
+      "y": 2272,
+      "src": "gar := pier/sqrt(2) = cm"
+    },
+    {
+      "id": "r044",
+      "kind": "math",
+      "x": 40,
+      "y": 2320,
+      "src": "Rd_sol4 := 0.75*0.6*F_EXX*gar*l_w*4 = tonf"
+    },
+    {
+      "id": "v_sol4",
+      "kind": "math",
+      "x": 40,
+      "y": 2368,
+      "src": "Rd_sol4 >= T_r ="
+    },
+    {
+      "id": "r045",
+      "kind": "text",
+      "x": 40,
+      "y": 2416,
+      "src": "Sin aumento por direccionalidad: cordones longitudinales (theta = 0) → k_ds = 1,0"
+    },
+    {
+      "id": "r046",
+      "kind": "text",
+      "x": 40,
+      "y": 2480,
+      "src": "━━ 3 · LA DIAGONAL — lo que cuesta la ranura (B4.3 + Tabla D3.1 Caso 5) ━━"
+    },
+    {
+      "id": "r047",
+      "kind": "math",
+      "x": 40,
+      "y": 2528,
+      "src": "w_ran := t_g + 0.3 cm"
+    },
+    {
+      "id": "r048",
+      "kind": "math",
+      "x": 40,
+      "y": 2576,
+      "src": "A_nd := A_gt - 2*t_t*w_ran = cm^2"
+    },
+    {
+      "id": "r049",
+      "kind": "text",
+      "x": 40,
+      "y": 2624,
+      "src": "Caso 5: x barra es el centroide de media sección, espesor incluido (cambió en 360-22)"
+    },
+    {
+      "id": "r050",
+      "kind": "math",
+      "x": 40,
+      "y": 2672,
+      "src": "b_5 := B_t/2 = cm"
+    },
+    {
+      "id": "r051",
+      "kind": "math",
+      "x": 40,
+      "y": 2720,
+      "src": "x_b := b_5 - (2*b_5^2 + t_t*B_t - 2*t_t^2)/(2*B_t + 4*b_5 - 4*t_t) = cm"
+    },
+    {
+      "id": "r052",
+      "kind": "math",
+      "x": 40,
+      "y": 2768,
+      "src": "U_5 := 1 - x_b/l_w ="
+    },
+    {
+      "id": "r053",
+      "kind": "math",
+      "x": 40,
+      "y": 2816,
+      "src": "A_e := A_nd*U_5 = cm^2"
+    },
+    {
+      "id": "r054",
+      "kind": "math",
+      "x": 40,
+      "y": 2864,
+      "src": "Rd_dfl := 0.90*F_yt*A_gt = tonf"
+    },
+    {
+      "id": "r055",
+      "kind": "math",
+      "x": 40,
+      "y": 2912,
+      "src": "Rd_dro := 0.75*F_ut*A_e = tonf"
+    },
+    {
+      "id": "v_dfl",
+      "kind": "math",
+      "x": 40,
+      "y": 2960,
+      "src": "Rd_dfl >= T_r ="
+    },
+    {
+      "id": "r056",
+      "kind": "text",
+      "x": 40,
+      "y": 3008,
+      "src": "El que GOBIERNA todo el diseño (uso 0,968): se pagan los dos peajes, el área y el U"
+    },
+    {
+      "id": "v_dro",
+      "kind": "math",
+      "x": 40,
+      "y": 3056,
+      "src": "Rd_dro >= T_r ="
+    },
+    {
+      "id": "r057",
+      "kind": "text",
+      "x": 40,
+      "y": 3120,
+      "src": "━━ 4 · EL CONTORNO → ancho disponible en la sección de Whitmore ━━",
+      "pageBreak": true
+    },
+    {
+      "id": "r058",
+      "kind": "text",
+      "x": 40,
+      "y": 3168,
+      "src": "La sección cae en el extremo del cordón del lado del ala; de ahí salen el ancho Y el largo libre"
+    },
+    {
+      "id": "r059",
+      "kind": "math",
+      "x": 40,
+      "y": 3216,
+      "src": "t_sec := 34.1 cm"
+    },
+    {
+      "id": "r060",
+      "kind": "math",
+      "x": 40,
+      "y": 3264,
+      "src": "t_esq := (b_sup/2)/sqrt(2) = cm"
+    },
+    {
+      "id": "r061",
+      "kind": "text",
+      "x": 40,
+      "y": 3312,
+      "src": "La sección queda PASADA la esquina del ala: vale la rama de abajo (si esto falla, rehacer §4)"
+    },
+    {
+      "id": "v_rama",
+      "kind": "math",
+      "x": 40,
+      "y": 3360,
+      "src": "t_sec > t_esq ="
+    },
+    {
+      "id": "r062",
+      "kind": "math",
+      "x": 40,
+      "y": 3408,
+      "src": "s_max := t_esq + (t_sec + t_esq)/(prof_g + t_esq)*(b_inf/2 - t_esq) = cm"
+    },
+    {
+      "id": "r063",
+      "kind": "math",
+      "x": 40,
+      "y": 3456,
+      "src": "s_min := -t_esq + (t_sec - t_esq)/(prof_g - t_esq)*(t_esq - b_inf/2) = cm"
+    },
+    {
+      "id": "r064",
+      "kind": "math",
+      "x": 40,
+      "y": 3504,
+      "src": "w_disp := s_max - s_min = cm"
+    },
+    {
+      "id": "r065",
+      "kind": "text",
+      "x": 40,
+      "y": 3568,
+      "src": "━━ 5 · WHITMORE — DOS bandas, y acá el tope de plancha MUERDE ━━"
+    },
+    {
+      "id": "r066",
+      "kind": "math",
+      "x": 40,
+      "y": 3616,
+      "src": "w_t := min(B_t + 2*l_w*tan(pi/4), w_disp) = cm"
+    },
+    {
+      "id": "r067",
+      "kind": "math",
+      "x": 40,
+      "y": 3664,
+      "src": "w_c := min(B_t + 2*l_w*tan(pi/6), w_disp) = cm"
+    },
+    {
+      "id": "r068",
+      "kind": "text",
+      "x": 40,
+      "y": 3712,
+      "src": "La fórmula pide 85 cm sobre los 67 que hay: no acotar sobrestimaría la fluencia un 27 %"
+    },
+    {
+      "id": "v_tope",
+      "kind": "math",
+      "x": 40,
+      "y": 3760,
+      "src": "B_t + 2*l_w*tan(pi/4) > w_disp ="
+    },
+    {
+      "id": "v_ala",
+      "kind": "math",
+      "x": 40,
+      "y": 3808,
+      "src": "w_t/2 <= t_sec ="
+    },
+    {
+      "id": "r069",
+      "kind": "text",
+      "x": 40,
+      "y": 3856,
+      "src": "Sin agujeros A_n = A_g: la rotura J4-2 no compite con la fluencia"
+    },
+    {
+      "id": "r070",
+      "kind": "math",
+      "x": 40,
+      "y": 3904,
+      "src": "Rd_flu := 0.90*F_y*w_t*t_g = tonf"
+    },
+    {
+      "id": "r071",
+      "kind": "math",
+      "x": 40,
+      "y": 3952,
+      "src": "Rd_rot := 0.75*F_u*w_t*t_g = tonf"
+    },
+    {
+      "id": "v_flu",
+      "kind": "math",
+      "x": 40,
+      "y": 4000,
+      "src": "Rd_flu >= T_r ="
+    },
+    {
+      "id": "v_rot",
+      "kind": "math",
+      "x": 40,
+      "y": 4048,
+      "src": "Rd_rot >= T_r ="
+    },
+    {
+      "id": "r072",
+      "kind": "text",
+      "x": 40,
+      "y": 4112,
+      "src": "━━ 6 · BLOQUE DE CORTE (J4-5) — los cordones como planos ━━"
+    },
+    {
+      "id": "r073",
+      "kind": "math",
+      "x": 40,
+      "y": 4160,
+      "src": "A_gv := 2*l_w*t_g = cm^2"
+    },
+    {
+      "id": "r074",
+      "kind": "math",
+      "x": 40,
+      "y": 4208,
+      "src": "A_nt := B_t*t_g = cm^2"
+    },
+    {
+      "id": "r075",
+      "kind": "text",
+      "x": 40,
+      "y": 4256,
+      "src": "Sin agujeros A_nv = A_gv: el min de J4-5 lo gana SIEMPRE la fluencia (0,6·F_y < 0,6·F_u)"
+    },
+    {
+      "id": "r076",
+      "kind": "math",
+      "x": 40,
+      "y": 4304,
+      "src": "Rd_bc := 0.75*(min(0.6*F_u*A_gv, 0.6*F_y*A_gv) + 1.0*F_u*A_nt) = tonf"
+    },
+    {
+      "id": "v_bc",
+      "kind": "math",
+      "x": 40,
+      "y": 4352,
+      "src": "Rd_bc >= T_r ="
+    },
+    {
+      "id": "r077",
+      "kind": "text",
+      "x": 40,
+      "y": 4416,
+      "src": "━━ 7 · PANDEO DEL GUSSET (J4.4 → Cap. E) ━━"
+    },
+    {
+      "id": "r078",
+      "kind": "math",
+      "x": 40,
+      "y": 4464,
+      "src": "K_g := 1.2"
+    },
+    {
+      "id": "r079",
+      "kind": "text",
+      "x": 40,
+      "y": 4512,
+      "src": "Mismo K declarado que en el apernado; el largo libre NO: la sección está más lejos del apoyo"
+    },
+    {
+      "id": "r080",
+      "kind": "math",
+      "x": 40,
+      "y": 4560,
+      "src": "L_lib := t_sec = cm"
+    },
+    {
+      "id": "r081",
+      "kind": "math",
+      "x": 40,
+      "y": 4608,
+      "src": "r_g := t_g/sqrt(12) = cm"
+    },
+    {
+      "id": "r082",
+      "kind": "math",
+      "x": 40,
+      "y": 4656,
+      "src": "esb := K_g*L_lib/r_g ="
+    },
+    {
+      "id": "r083",
+      "kind": "program",
+      "x": 40,
+      "y": 4704,
+      "src": "F_cr :=\n    if esb <= 25\n        return F_y\n    lim := 4.71*sqrt(E/F_y)\n    F_e := pi^2*E/esb^2\n    if esb <= lim\n        return 0.658^(F_y/F_e)*F_y\n    return 0.877*F_e"
+    },
+    {
+      "id": "r084",
+      "kind": "math",
+      "x": 40,
+      "y": 4880,
+      "src": "F_cr = kgf/cm^2"
+    },
+    {
+      "id": "r085",
+      "kind": "math",
+      "x": 40,
+      "y": 4928,
+      "src": "Rd_pan := 0.90*F_cr*w_c*t_g = tonf"
+    },
+    {
+      "id": "v_pan",
+      "kind": "math",
+      "x": 40,
+      "y": 4976,
+      "src": "Rd_pan >= T_r ="
+    },
+    {
+      "id": "r086",
+      "kind": "text",
+      "x": 40,
+      "y": 5024,
+      "src": "La pinza: la rama compacta J4-6 pediría este espesor de plancha, y hay 20 mm"
+    },
+    {
+      "id": "r087",
+      "kind": "math",
+      "x": 40,
+      "y": 5072,
+      "src": "t_J46 := w_t*K_g*sqrt(12)/50 = cm"
+    },
+    {
+      "id": "v_pinza",
+      "kind": "math",
+      "x": 40,
+      "y": 5120,
+      "src": "t_J46 > t_g ="
+    },
+    {
+      "id": "r088",
+      "kind": "text",
+      "x": 40,
+      "y": 5184,
+      "src": "━━ 8 · INTERFAZ CON EL ALA (J2.4 + Ec. J4-3) ━━"
+    },
+    {
+      "id": "r089",
+      "kind": "math",
+      "x": 40,
+      "y": 5232,
+      "src": "Rd_sol := 0.75*0.6*F_EXX*(pier/sqrt(2))*b_sup*2 = tonf"
+    },
+    {
+      "id": "v_sol",
+      "kind": "math",
+      "x": 40,
+      "y": 5280,
+      "src": "Rd_sol >= T_r ="
+    },
+    {
+      "id": "r090",
+      "kind": "text",
+      "x": 40,
+      "y": 5328,
+      "src": "Y la plancha misma sobre su sección de borde — en el gusset del ápice ESTO gobernaba"
+    },
+    {
+      "id": "r091",
+      "kind": "math",
+      "x": 40,
+      "y": 5376,
+      "src": "A_bo := b_sup*t_g = cm^2"
+    },
+    {
+      "id": "r092",
+      "kind": "math",
+      "x": 40,
+      "y": 5424,
+      "src": "Rd_vb := 1.00*0.6*F_y*A_bo = tonf"
+    },
+    {
+      "id": "v_vb",
+      "kind": "math",
+      "x": 40,
+      "y": 5472,
+      "src": "Rd_vb >= V_i ="
+    },
+    {
+      "id": "r093",
+      "kind": "math",
+      "x": 40,
+      "y": 5520,
+      "src": "sig_b := N_i/A_bo = kgf/cm^2"
+    },
+    {
+      "id": "r094",
+      "kind": "math",
+      "x": 40,
+      "y": 5568,
+      "src": "tau_b := V_i/A_bo = kgf/cm^2"
+    },
+    {
+      "id": "r095",
+      "kind": "math",
+      "x": 40,
+      "y": 5616,
+      "src": "u_vm := sqrt(sig_b^2 + 3*tau_b^2)/(0.90*F_y) ="
+    },
+    {
+      "id": "v_vm",
+      "kind": "math",
+      "x": 40,
+      "y": 5664,
+      "src": "u_vm <= 1 ="
+    },
+    {
+      "id": "r096",
+      "kind": "text",
+      "x": 40,
+      "y": 5728,
+      "src": "━━ 9 · USOS ━━",
+      "pageBreak": true
+    },
+    {
+      "id": "r097",
+      "kind": "math",
+      "x": 40,
+      "y": 5776,
+      "src": "u_dro := T_r/Rd_dro ="
+    },
+    {
+      "id": "r098",
+      "kind": "math",
+      "x": 40,
+      "y": 5824,
+      "src": "u_dfl := T_r/Rd_dfl ="
+    },
+    {
+      "id": "r099",
+      "kind": "math",
+      "x": 40,
+      "y": 5872,
+      "src": "u_sol4 := T_r/Rd_sol4 ="
+    },
+    {
+      "id": "r100",
+      "kind": "math",
+      "x": 40,
+      "y": 5920,
+      "src": "u_pan := T_r/Rd_pan ="
+    },
+    {
+      "id": "r101",
+      "kind": "math",
+      "x": 40,
+      "y": 5968,
+      "src": "u_solb := T_r/Rd_sol ="
+    },
+    {
+      "id": "r102",
+      "kind": "math",
+      "x": 40,
+      "y": 6016,
+      "src": "u_bc := T_r/Rd_bc ="
+    },
+    {
+      "id": "r103",
+      "kind": "math",
+      "x": 40,
+      "y": 6064,
+      "src": "u_flu := T_r/Rd_flu ="
+    },
+    {
+      "id": "r104",
+      "kind": "math",
+      "x": 40,
+      "y": 6112,
+      "src": "u_max := max(u_dro, u_dfl, u_sol4, u_pan, u_solb, u_bc, u_flu) ="
+    },
+    {
+      "id": "v_umax",
+      "kind": "math",
+      "x": 40,
+      "y": 6160,
+      "src": "u_max <= 1 ="
+    },
+    {
+      "id": "r105",
+      "kind": "text",
+      "x": 40,
+      "y": 6208,
+      "src": "Gobierna la ROTURA DEL TUBO (0,968): el estado que decide está en el Cap. D, no en el gusset"
+    },
+    {
+      "id": "r106",
+      "kind": "text",
+      "x": 40,
+      "y": 6768,
+      "src": "━━ 10 · CONTRASTE CON EL POST — cada capacidad publicada, contra la calculada ━━"
+    },
+    {
+      "id": "r107",
+      "kind": "text",
+      "x": 40,
+      "y": 6816,
+      "src": "Tolerancia: media unidad del último dígito publicado. Si cambias un dato de entrada, estos contrastes dejarán de cumplirse: comparan contra los números impresos en el post."
+    },
+    {
+      "id": "c_tr",
+      "kind": "math",
+      "x": 40,
+      "y": 6864,
+      "src": "abs(T_r - 112.00 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_pct",
+      "kind": "math",
+      "x": 40,
+      "y": 6912,
+      "src": "abs(base/piso - 1.077) < 0.0005 ="
+    },
+    {
+      "id": "c_vi",
+      "kind": "math",
+      "x": 40,
+      "y": 6960,
+      "src": "abs(V_i - 79.20 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_sol4",
+      "kind": "math",
+      "x": 40,
+      "y": 7008,
+      "src": "abs(Rd_sol4 - 175.34 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_agt",
+      "kind": "math",
+      "x": 40,
+      "y": 7056,
+      "src": "abs(A_gt - 45.44 cm^2) < 0.005 cm^2 ="
+    },
+    {
+      "id": "c_and",
+      "kind": "math",
+      "x": 40,
+      "y": 7104,
+      "src": "abs(A_nd - 41.76 cm^2) < 0.005 cm^2 ="
+    },
+    {
+      "id": "c_xb",
+      "kind": "math",
+      "x": 40,
+      "y": 7152,
+      "src": "abs(x_b - 5.331 cm) < 0.0005 cm ="
+    },
+    {
+      "id": "c_u5",
+      "kind": "math",
+      "x": 40,
+      "y": 7200,
+      "src": "abs(U_5 - 0.8477) < 0.00005 ="
+    },
+    {
+      "id": "c_ae",
+      "kind": "math",
+      "x": 40,
+      "y": 7248,
+      "src": "abs(A_e - 35.40 cm^2) < 0.005 cm^2 ="
+    },
+    {
+      "id": "c_dro",
+      "kind": "math",
+      "x": 40,
+      "y": 7296,
+      "src": "abs(Rd_dro - 115.76 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_dfl",
+      "kind": "math",
+      "x": 40,
+      "y": 7344,
+      "src": "abs(Rd_dfl - 143.95 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_wban",
+      "kind": "math",
+      "x": 40,
+      "y": 7392,
+      "src": "abs(B_t + 2*l_w*tan(pi/4) - 85.0 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_wdisp",
+      "kind": "math",
+      "x": 40,
+      "y": 7440,
+      "src": "abs(w_disp - 67.1 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_wc",
+      "kind": "math",
+      "x": 40,
+      "y": 7488,
+      "src": "abs(w_c - 55.41 cm) < 0.005 cm ="
+    },
+    {
+      "id": "c_flu",
+      "kind": "math",
+      "x": 40,
+      "y": 7536,
+      "src": "abs(Rd_flu - 305.70 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_rot",
+      "kind": "math",
+      "x": 40,
+      "y": 7584,
+      "src": "abs(Rd_rot - 410.83 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_flu85",
+      "kind": "math",
+      "x": 40,
+      "y": 7632,
+      "src": "abs(0.90*F_y*(B_t + 2*l_w*tan(pi/4))*t_g - 387.1 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_agv",
+      "kind": "math",
+      "x": 40,
+      "y": 7680,
+      "src": "abs(A_gv - 140.0 cm^2) < 0.05 cm^2 ="
+    },
+    {
+      "id": "c_ant",
+      "kind": "math",
+      "x": 40,
+      "y": 7728,
+      "src": "abs(A_nt - 30.0 cm^2) < 0.05 cm^2 ="
+    },
+    {
+      "id": "c_bc",
+      "kind": "math",
+      "x": 40,
+      "y": 7776,
+      "src": "abs(Rd_bc - 251.19 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_esb",
+      "kind": "math",
+      "x": 40,
+      "y": 7824,
+      "src": "abs(esb - 70.9) < 0.05 ="
+    },
+    {
+      "id": "c_fcr",
+      "kind": "math",
+      "x": 40,
+      "y": 7872,
+      "src": "abs(F_cr - 1942 kgf/cm^2) < 0.5 kgf/cm^2 ="
+    },
+    {
+      "id": "c_pan",
+      "kind": "math",
+      "x": 40,
+      "y": 7920,
+      "src": "abs(Rd_pan - 193.74 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_tj46",
+      "kind": "math",
+      "x": 40,
+      "y": 7968,
+      "src": "abs(t_J46 - 5.6 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_sol",
+      "kind": "math",
+      "x": 40,
+      "y": 8016,
+      "src": "abs(Rd_sol - 240.47 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_vb",
+      "kind": "math",
+      "x": 40,
+      "y": 8064,
+      "src": "abs(Rd_vb - 291.46 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_udro",
+      "kind": "math",
+      "x": 40,
+      "y": 8112,
+      "src": "abs(u_dro - 0.968) < 0.0005 ="
+    },
+    {
+      "id": "c_t9",
+      "kind": "math",
+      "x": 40,
+      "y": 8160,
+      "src": "abs(bt_r/lam_md - 0.982) < 0.0005 ="
+    }
+  ]
+}

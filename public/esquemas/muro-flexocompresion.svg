@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 690 470" font-family="Segoe UI, Arial, sans-serif">
+  <rect width="690" height="470" fill="#ffffff"/>
+  <defs>
+    <marker id="mr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b02a1a"/>
+    </marker>
+    <marker id="mv" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2f7a4f"/>
+    </marker>
+  </defs>
+  <text x="345" y="22" font-size="13.5" text-anchor="middle" fill="#222" font-weight="bold">Frontera P–M del muro: cada verificación mira una combinación distinta</text>
+
+  <!-- ejes -->
+  <line x1="{{x_0:svg}}" y1="62" x2="{{x_0:svg}}" y2="{{y_0:svg}}" stroke="#333" stroke-width="1.2"/>
+  <line x1="{{x_0:svg}}" y1="{{y_0:svg}}" x2="458" y2="{{y_0:svg}}" stroke="#333" stroke-width="1.2"/>
+  <text x="{{x_0 - 10:svg}}" y="58" font-size="10.5" text-anchor="end" fill="#333">φP_n</text>
+  <text x="{{x_0 - 10:svg}}" y="70" font-size="9" text-anchor="end" fill="#888">tonf</text>
+  <text x="{{x_0 + 4:svg}}" y="{{y_0 + 30:svg}}" font-size="10.5" fill="#333">φM_n</text>
+  <text x="{{x_0 + 42:svg}}" y="{{y_0 + 30:svg}}" font-size="9" fill="#888">tonf·m</text>
+
+  <!-- ticks M -->
+  <line x1="{{x_px(1000 tonf*m):svg}}" y1="{{y_0:svg}}" x2="{{x_px(1000 tonf*m):svg}}" y2="{{y_0 + 4:svg}}" stroke="#333"/>
+  <text x="{{x_px(1000 tonf*m):svg}}" y="{{y_0 + 15:svg}}" font-size="9" text-anchor="middle" fill="#555">1000</text>
+  <line x1="{{x_px(2000 tonf*m):svg}}" y1="{{y_0:svg}}" x2="{{x_px(2000 tonf*m):svg}}" y2="{{y_0 + 4:svg}}" stroke="#333"/>
+  <text x="{{x_px(2000 tonf*m):svg}}" y="{{y_0 + 15:svg}}" font-size="9" text-anchor="middle" fill="#555">2000</text>
+  <line x1="{{x_px(3000 tonf*m):svg}}" y1="{{y_0:svg}}" x2="{{x_px(3000 tonf*m):svg}}" y2="{{y_0 + 4:svg}}" stroke="#333"/>
+  <text x="{{x_px(3000 tonf*m):svg}}" y="{{y_0 + 15:svg}}" font-size="9" text-anchor="middle" fill="#555">3000</text>
+  <line x1="{{x_px(4000 tonf*m):svg}}" y1="{{y_0:svg}}" x2="{{x_px(4000 tonf*m):svg}}" y2="{{y_0 + 4:svg}}" stroke="#333"/>
+  <text x="{{x_px(4000 tonf*m):svg}}" y="{{y_0 + 15:svg}}" font-size="9" text-anchor="middle" fill="#555">4000</text>
+
+  <!-- ticks P -->
+  <line x1="{{x_0 - 4:svg}}" y1="{{y_px(500 tonf):svg}}" x2="{{x_0:svg}}" y2="{{y_px(500 tonf):svg}}" stroke="#333"/>
+  <text x="{{x_0 - 7:svg}}" y="{{y_px(500 tonf) + 3.5:svg}}" font-size="9" text-anchor="end" fill="#555">500</text>
+  <line x1="{{x_0 - 4:svg}}" y1="{{y_px(1000 tonf):svg}}" x2="{{x_0:svg}}" y2="{{y_px(1000 tonf):svg}}" stroke="#333"/>
+  <text x="{{x_0 - 7:svg}}" y="{{y_px(1000 tonf) + 3.5:svg}}" font-size="9" text-anchor="end" fill="#555">1000</text>
+  <line x1="{{x_0 - 4:svg}}" y1="{{y_px(1500 tonf):svg}}" x2="{{x_0:svg}}" y2="{{y_px(1500 tonf):svg}}" stroke="#333"/>
+  <text x="{{x_0 - 7:svg}}" y="{{y_px(1500 tonf) + 3.5:svg}}" font-size="9" text-anchor="end" fill="#555">1500</text>
+  <line x1="{{x_0 - 4:svg}}" y1="{{y_px(2000 tonf):svg}}" x2="{{x_0:svg}}" y2="{{y_px(2000 tonf):svg}}" stroke="#333"/>
+  <text x="{{x_0 - 7:svg}}" y="{{y_px(2000 tonf) + 3.5:svg}}" font-size="9" text-anchor="end" fill="#555">2000</text>
+  <text x="{{x_0 - 7:svg}}" y="{{y_0 + 3.5:svg}}" font-size="9" text-anchor="end" fill="#555">0</text>
+
+  <!-- tope de 22.4.2.1: corta la punta frágil -->
+  <line x1="{{x_0:svg}}" y1="{{ya_1:svg}}" x2="300" y2="{{ya_1:svg}}" stroke="#c07a00" stroke-width="1" stroke-dasharray="6 4"/>
+  <text x="{{x_0 + 6:svg}}" y="{{ya_1 - 6:svg}}" font-size="9.5" fill="#a56a00">φP_n,máx = 0,65·0,80·P_o = {{Rd_P:tonf}} tonf · Tabla 22.4.2.1(a)</text>
+
+  <!-- LA FRONTERA, barriendo el eje neutro -->
+  <polyline points="{{curva_px:svg}}" fill="none" stroke="#1a63a8" stroke-width="2.3"/>
+  <text x="{{x_0 + 14:svg}}" y="{{y_px(1750 tonf):svg}}" font-size="10.5" fill="#1a63a8" font-weight="bold">frontera de diseño</text>
+  <text x="{{x_0 + 14:svg}}" y="{{y_px(1750 tonf) + 13:svg}}" font-size="9" fill="#1a63a8">{{n_curva}} puntos, un eje neutro cada uno</text>
+  <text x="{{x_0 + 14:svg}}" y="{{y_px(1750 tonf) + 25:svg}}" font-size="9" fill="#888">(dentro = admisible)</text>
+
+  <!-- balanceado -->
+  <circle cx="{{xa_2:svg}}" cy="{{ya_2:svg}}" r="3.5" fill="#5a6b7c"/>
+  <text x="{{xa_2 - 8:svg}}" y="{{ya_2 - 3:svg}}" font-size="9" fill="#4a5b6c" text-anchor="end">balanceado · c = {{c_bal:cm}} cm</text>
+  <text x="{{xa_2 - 8:svg}}" y="{{ya_2 + 8:svg}}" font-size="9" fill="#4a5b6c" text-anchor="end">({{Rd_Mb:tonf*m}} ; {{Rd_Pb:tonf}}) · ε_t = ε_ty</text>
+
+  <!-- flexión pura -->
+  <circle cx="{{xa_3:svg}}" cy="{{ya_3:svg}}" r="3.5" fill="#5a6b7c"/>
+  <text x="{{xa_3 - 8:svg}}" y="{{ya_3 - 16:svg}}" font-size="9" fill="#4a5b6c" text-anchor="end">flexión pura</text>
+  <text x="{{xa_3 - 8:svg}}" y="{{ya_3 - 5:svg}}" font-size="9" fill="#4a5b6c" text-anchor="end">φM_n = {{Rd_M0:tonf*m}} · φ = {{round(phi_0, 2)}}</text>
+
+  <!-- el umbral de 21.2.2.3: cae ENTRE las dos combinaciones -->
+  <line x1="{{x_0:svg}}" y1="{{y_lo:svg}}" x2="152" y2="{{y_lo:svg}}" stroke="#7a5aa8" stroke-width="0.9" stroke-dasharray="4 3"/>
+  <text x="{{x_0 + 10:svg}}" y="{{y_lo + 14:svg}}" font-size="9" fill="#7a5aa8">0,1f'c·A_g = {{P_lo:tonf}} tonf · 21.2.2.3 muerde arriba</text>
+
+  <!-- demanda: la recta M_u con las dos combinaciones -->
+  <line x1="{{xc_A:svg}}" y1="{{y_0:svg}}" x2="{{xc_A:svg}}" y2="{{yc_A - 8:svg}}" stroke="#666" stroke-width="0.8" stroke-dasharray="2 3"/>
+  <text x="{{xc_A:svg}}" y="{{y_0 + 27:svg}}" font-size="9" fill="#666" text-anchor="middle">M_u = {{M_u:tonf*m}}</text>
+
+  <line x1="{{xc_A:svg}}" y1="{{yc_A:svg}}" x2="{{xf_A:svg}}" y2="{{yc_A:svg}}" stroke="#b02a1a" stroke-width="1.1" stroke-dasharray="3 3"/>
+  <circle cx="{{xc_A:svg}}" cy="{{yc_A:svg}}" r="4.5" fill="#b02a1a"/>
+  <text x="{{xc_A - 12:svg}}" y="{{yc_A - 24:svg}}" font-size="10" fill="#b02a1a" font-weight="bold" text-anchor="end">A · 1,2D+aL+E ►</text>
+  <text x="{{xc_A - 12:svg}}" y="{{yc_A - 13:svg}}" font-size="9" fill="#b02a1a" text-anchor="end">P_u = {{P_uA:tonf}} · φM_n = {{Rd_MA:tonf*m}}</text>
+  <text x="{{xc_A - 12:svg}}" y="{{yc_A - 2:svg}}" font-size="9" fill="#b02a1a" text-anchor="end">φ = {{round(phi_A, 3)}} · 21.2.2.3 · uso {{round(u_A*100)}} %</text>
+
+  <line x1="{{xc_B:svg}}" y1="{{yc_B:svg}}" x2="{{xf_B:svg}}" y2="{{yc_B:svg}}" stroke="#2f7a4f" stroke-width="1.1" stroke-dasharray="3 3"/>
+  <circle cx="{{xc_B:svg}}" cy="{{yc_B:svg}}" r="4.5" fill="#2f7a4f"/>
+  <text x="{{xf_B + 8:svg}}" y="{{yc_B + 14:svg}}" font-size="10" fill="#2f7a4f" font-weight="bold">B · 0,9D+E ◄ gobierna</text>
+  <text x="{{xf_B + 8:svg}}" y="{{yc_B + 25:svg}}" font-size="9" fill="#2f7a4f">P_u = {{P_uB:tonf}} · φM_n = {{Rd_MB:tonf*m}}</text>
+  <text x="{{xf_B + 8:svg}}" y="{{yc_B + 36:svg}}" font-size="9" fill="#2f7a4f">φ = {{round(phi_B, 2)}} (la tabla) · uso {{round(u_B*100)}} %</text>
+
+  <!-- las dos plantas: la misma sección, dos ejes neutros -->
+  <text x="{{x_sec + w_sec/2:svg}}" y="62" font-size="11" fill="#666" text-anchor="middle" font-weight="bold">La misma sección, dos combinaciones</text>
+
+  <rect x="{{x_sec:svg}}" y="96" width="{{w_sec:svg}}" height="30" fill="#dcd8d0" stroke="#8a857c" stroke-width="1.3"/>
+  <rect x="{{x_sec:svg}}" y="96" width="{{wc_A:svg}}" height="30" fill="#b02a1a" opacity="0.30"/>
+  <rect x="{{x_sec:svg}}" y="96" width="{{w_be:svg}}" height="30" fill="none" stroke="#8a857c" stroke-width="0.8" stroke-dasharray="3 2"/>
+  <rect x="{{x_sec + w_sec - w_be:svg}}" y="96" width="{{w_be:svg}}" height="30" fill="none" stroke="#8a857c" stroke-width="0.8" stroke-dasharray="3 2"/>
+  <line x1="{{x_sec + wc_A:svg}}" y1="88" x2="{{x_sec + wc_A:svg}}" y2="134" stroke="#b02a1a" stroke-width="1.6"/>
+  <text x="{{x_sec:svg}}" y="88" font-size="10" fill="#b02a1a" font-weight="bold">A: P_u = {{P_uA:tonf}} tonf</text>
+  <line x1="{{x_sec:svg}}" y1="146" x2="{{x_sec + wc_A:svg}}" y2="146" stroke="#b02a1a" stroke-width="1" marker-start="url(#mr)" marker-end="url(#mr)"/>
+  <text x="{{x_sec + wc_A + 8:svg}}" y="149" font-size="10" fill="#b02a1a" font-weight="bold">c = {{c_A:cm}} cm</text>
+
+  <rect x="{{x_sec:svg}}" y="186" width="{{w_sec:svg}}" height="30" fill="#dcd8d0" stroke="#8a857c" stroke-width="1.3"/>
+  <rect x="{{x_sec:svg}}" y="186" width="{{wc_B:svg}}" height="30" fill="#2f7a4f" opacity="0.30"/>
+  <rect x="{{x_sec:svg}}" y="186" width="{{w_be:svg}}" height="30" fill="none" stroke="#8a857c" stroke-width="0.8" stroke-dasharray="3 2"/>
+  <rect x="{{x_sec + w_sec - w_be:svg}}" y="186" width="{{w_be:svg}}" height="30" fill="none" stroke="#8a857c" stroke-width="0.8" stroke-dasharray="3 2"/>
+  <line x1="{{x_sec + wc_B:svg}}" y1="178" x2="{{x_sec + wc_B:svg}}" y2="224" stroke="#2f7a4f" stroke-width="1.6"/>
+  <text x="{{x_sec:svg}}" y="178" font-size="10" fill="#2f7a4f" font-weight="bold">B: P_u = {{P_uB:tonf}} tonf</text>
+  <line x1="{{x_sec:svg}}" y1="236" x2="{{x_sec + wc_B:svg}}" y2="236" stroke="#2f7a4f" stroke-width="1" marker-start="url(#mv)" marker-end="url(#mv)"/>
+  <text x="{{x_sec + wc_B + 8:svg}}" y="239" font-size="10" fill="#2f7a4f" font-weight="bold">c = {{c_B:cm}} cm</text>
+
+  <!-- lo que el espesor decide -->
+  <rect x="{{x_sec - 8:svg}}" y="258" width="212" height="96" rx="5" fill="#f2f0ec" stroke="#8a857c" stroke-width="0.8"/>
+  <text x="{{x_sec:svg}}" y="276" font-size="10" fill="#222" font-weight="bold">Lo que decide el espesor</text>
+  <text x="{{x_sec:svg}}" y="291" font-size="9" fill="#333">Ec. (18.10.6.2b) con c = {{c_be:cm}} cm:</text>
+  <text x="{{x_sec:svg}}" y="304" font-size="9" fill="#333">δ_c/h = {{round(der_c, 5)}} ≥ 1,5δ_u/h = {{round(der_dem, 5)}}</text>
+  <text x="{{x_sec:svg}}" y="317" font-size="9" fill="#1c7c3c">b = 30 cm → uso {{round(u_der, 2)}} ✓</text>
+  <text x="{{x_sec:svg}}" y="330" font-size="9" fill="#c0392b">b = 25 cm → uso {{round(u_der25, 2)}} ✗, con la flexión</text>
+  <text x="{{x_sec:svg}}" y="342" font-size="9" fill="#c0392b">en {{round(u_flex25, 2)}} ✓ y el corte en {{round(u_V25, 2)}} ✓</text>
+
+  <!-- banda de valores -->
+  <line x1="40" y1="392" x2="650" y2="392" stroke="#ccc"/>
+  <text x="40" y="409" font-size="10" fill="#333">Demanda: M_u = {{M_u:tonf*m}} tonf·m con P_u de {{P_uB:tonf}} (B) a {{P_uA:tonf}} tonf (A) — y el eje neutro va de {{c_B:cm}} a {{c_A:cm}} cm.</text>
+  <text x="40" y="425" font-size="10" fill="#333">El corte de diseño no es el del análisis: V_e = Ω_v·ω_v·V_uEh = 1,5·{{round(omega_v, 3)}}·{{V_uEh:tonf}} = {{V_e:tonf}} tonf (×{{round(f_ampl, 3)}}), uso {{round(u_V, 2)}}.</text>
+  <text x="40" y="441" font-size="10" fill="#c0392b" font-weight="bold">Gobierna: {{gobierna}} — uso {{round(u_max*100)}} %</text>
+  <text x="40" y="457" font-size="9" fill="#888">Muro 500×30 cm · 2×16φ28 de borde en ℓ_be = {{l_be:cm}} cm + 30φ12 de alma (ρ_g = {{round(rho_g*100, 2)}} %) · f'c = {{f_c:kgf/cm^2}} kgf/cm² · β1 = {{round(beta_1, 3)}}</text>
+</svg>

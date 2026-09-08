@@ -1,0 +1,1888 @@
+{
+ "version": 1,
+ "meta": {
+  "titulo": "Columna de hormigón a flexocompresión — el diagrama P–M barrido, el φ variable con el tope de 21.2.2.3, y la esbeltez (ACI 318-25)",
+  "ficha": "struct_pad/src/content/hormigon/ejemplo-columna-interaccion-esbeltez.mdx",
+  "esperadoFalso": {
+   "c_d1": "HALLAZGO 2026-08-02: d' derivada da 6,25 cm (40 mm de recubrimiento + estribo Ø10 + 12,5 mm de radio) y el post declara 6.",
+   "c_d": "HALLAZGO 2026-08-02: d = h - d' = 43,75 cm y el post publica 44, redondeado hacia arriba, que es el lado inseguro. Misma especie que la viga a flexión y corte (53,75 → 54) y la zapata (45,7 → 46).",
+   "c_epsty": "HALLAZGO 2026-08-02: con E_s = 200 000 MPa (20.2.2.2) sale ε_ty = 0,00206. El post declara E_s = 2,1e6 kgf/cm² y ε_ty = 0,002; 21.2.2.1 permite el 0,002 para Grado 420, pero las otras dos planillas de hormigón publican 0,00206.",
+   "c_cbal": "HALLAZGO 2026-08-02: c_b = 25,94 cm contra los 26,4 publicados. Arrastra la d redondeada y la ε_ty (con los datos del post da 26,4 exacto).",
+   "c_RdPb": "HALLAZGO 2026-08-02: φP_nb = 151,7 tonf contra 155,1. Con los datos del post (d = 44, ε_ty = 0,002) la planilla da 156,2: el par balanceado publicado no lo reproduce ninguna hipótesis limpia, ni con descuento del hormigón desplazado ni sin él.",
+   "c_RdMb": "HALLAZGO 2026-08-02: φM_nb = 35,98 tonf·m contra 36,3. Ver c_RdPb.",
+   "c_RdM0": "HALLAZGO 2026-08-02: φM_n = 29,62 tonf·m en flexión pura contra 29,8. Con los datos del post da 29,83, o sea que el gap es la d redondeada.",
+   "c_RdM1": "HALLAZGO 2026-08-02: φM_n = 28,96 tonf·m para C1 contra 29,2. Con los datos del post da 29,11.",
+   "c_RdM2": "HALLAZGO 2026-08-02: φM_n = 40,08 tonf·m para C2 contra 41,4. La causa principal es 21.2.2.3, que acota el φ de la Tabla 21.2.2 y en C2 lo baja de 0,90 a 0,874; sin ese tope y con los datos del post la planilla da 41,30.",
+   "c_u2": "HALLAZGO 2026-08-02: el uso de C2 sube a 0,70 (0,68 publicado) al aplicar 21.2.2.3. La tesis del post no se toca: C2 queda MÁS cerca de la frontera, no menos.",
+   "v007": "25.7.2.3(b): con 3 barras por cara en 50 cm la barra central queda a 162,5 mm libres de la de esquina, sobre los 150 mm, así que pide traba. El post declara la sección admisible mirando solo el mínimo de 4 barras de 10.7.3.1. HALLAZGO 2026-08-02: además el 0,80 de la Tabla 22.4.2.1(a) cuelga de 22.4.2.4, que remite a 25.7.2."
+  }
+ },
+ "regions": [
+  {
+   "id": "r000",
+   "kind": "text",
+   "x": 40,
+   "y": 32,
+   "src": "COLUMNA DE HORMIGÓN A FLEXOCOMPRESIÓN — el diagrama P–M y la esbeltez"
+  },
+  {
+   "id": "r001",
+   "kind": "text",
+   "x": 40,
+   "y": 80,
+   "src": "ACI 318-25 (edición SI) · Cap. 10 · 21.2.2 · 22.2 · 22.4.2 · 6.2.5"
+  },
+  {
+   "id": "r002",
+   "kind": "text",
+   "x": 40,
+   "y": 128,
+   "src": "Rd_ = capacidad de diseño (incluye φ) · las comparaciones dan ✓/✗"
+  },
+  {
+   "id": "r003",
+   "kind": "text",
+   "x": 40,
+   "y": 176,
+   "src": ""
+  },
+  {
+   "id": "r004",
+   "kind": "text",
+   "x": 40,
+   "y": 192,
+   "src": "Los tres coeficientes empíricos del ejemplo (0,85 · β1 · 0,80) son adimensionales,"
+  },
+  {
+   "id": "r005",
+   "kind": "text",
+   "x": 40,
+   "y": 240,
+   "src": "así que son idénticos en la edición SI y en la inch-pound. No interviene ninguno"
+  },
+  {
+   "id": "r006",
+   "kind": "text",
+   "x": 40,
+   "y": 288,
+   "src": "que multiplique √f'c. Lo que sí cambia de edición es la FRONTERA de la Tabla"
+  },
+  {
+   "id": "r007",
+   "kind": "text",
+   "x": 40,
+   "y": 336,
+   "src": "22.2.2.4.3, tabulada en MPa: se lee en MPa (§1)."
+  },
+  {
+   "id": "r008",
+   "kind": "text",
+   "x": 40,
+   "y": 400,
+   "src": "━━ 1 · DATOS · MATERIALES ━━"
+  },
+  {
+   "id": "r009",
+   "kind": "text",
+   "x": 40,
+   "y": 448,
+   "src": "f'c y f_y son frontera declarada; todo lo demás se deriva."
+  },
+  {
+   "id": "r010",
+   "kind": "math",
+   "x": 40,
+   "y": 496,
+   "src": "f_c := 250 kgf/cm^2"
+  },
+  {
+   "id": "r011",
+   "kind": "math",
+   "x": 40,
+   "y": 544,
+   "src": "f_y := 4200 kgf/cm^2"
+  },
+  {
+   "id": "r012",
+   "kind": "math",
+   "x": 40,
+   "y": 592,
+   "src": "f_cM := f_c = MPa"
+  },
+  {
+   "id": "r013",
+   "kind": "math",
+   "x": 40,
+   "y": 640,
+   "src": "f_yM := f_y = MPa"
+  },
+  {
+   "id": "r014",
+   "kind": "text",
+   "x": 40,
+   "y": 688,
+   "src": "22.4.2.1: el f_y que entra en P_o está limitado a 550 MPa."
+  },
+  {
+   "id": "v000",
+   "kind": "math",
+   "x": 40,
+   "y": 736,
+   "src": "f_yM < 550 MPa ="
+  },
+  {
+   "id": "r016",
+   "kind": "text",
+   "x": 40,
+   "y": 784,
+   "src": "20.2.2.2: se permite tomar E_s = 200 000 MPa para barras no pretensadas."
+  },
+  {
+   "id": "r017",
+   "kind": "math",
+   "x": 40,
+   "y": 832,
+   "src": "E_s := 200000 MPa"
+  },
+  {
+   "id": "r018",
+   "kind": "text",
+   "x": 40,
+   "y": 880,
+   "src": "21.2.2.1: ε_ty = f_y/E_s (para Grado 420 se permite además tomar 0,002)."
+  },
+  {
+   "id": "r019",
+   "kind": "math",
+   "x": 40,
+   "y": 928,
+   "src": "eps_ty := f_y/E_s ="
+  },
+  {
+   "id": "r020",
+   "kind": "text",
+   "x": 40,
+   "y": 976,
+   "src": "22.2.2.1: deformación útil máxima del hormigón en la fibra comprimida."
+  },
+  {
+   "id": "r021",
+   "kind": "math",
+   "x": 40,
+   "y": 1024,
+   "src": "eps_cu := 0.003"
+  },
+  {
+   "id": "r022",
+   "kind": "text",
+   "x": 40,
+   "y": 1072,
+   "src": "Tabla 22.2.2.4.3(a): β1 = 0,85 para 17 ≤ f'c ≤ 28 MPa. La frontera se lee en MPa."
+  },
+  {
+   "id": "r023",
+   "kind": "math",
+   "x": 40,
+   "y": 1120,
+   "src": "beta_1 := 0.85"
+  },
+  {
+   "id": "v001",
+   "kind": "math",
+   "x": 40,
+   "y": 1168,
+   "src": "f_cM >= 17 MPa and f_cM <= 28 MPa ="
+  },
+  {
+   "id": "r025",
+   "kind": "text",
+   "x": 40,
+   "y": 1216,
+   "src": "La misma frontera en la edición inch-pound es 4000 psi = 281 kgf/cm²: con 250"
+  },
+  {
+   "id": "r026",
+   "kind": "text",
+   "x": 40,
+   "y": 1264,
+   "src": "kgf/cm² las dos ediciones dan 0,85, así que β1 no es sensible a la edición."
+  },
+  {
+   "id": "v002",
+   "kind": "math",
+   "x": 40,
+   "y": 1312,
+   "src": "f_c <= 281 kgf/cm^2 ="
+  },
+  {
+   "id": "r028",
+   "kind": "text",
+   "x": 40,
+   "y": 1360,
+   "src": "22.2.2.4.1: bloque rectangular equivalente de 0,85f'c sobre a = β1·c."
+  },
+  {
+   "id": "r029",
+   "kind": "math",
+   "x": 40,
+   "y": 1408,
+   "src": "k_bloque := 0.85"
+  },
+  {
+   "id": "r030",
+   "kind": "text",
+   "x": 40,
+   "y": 1472,
+   "src": "━━ 2 · GEOMETRÍA · SECCIÓN Y ARMADURA ━━"
+  },
+  {
+   "id": "r031",
+   "kind": "math",
+   "x": 40,
+   "y": 1520,
+   "src": "b := 50 cm"
+  },
+  {
+   "id": "r032",
+   "kind": "math",
+   "x": 40,
+   "y": 1568,
+   "src": "h := 50 cm"
+  },
+  {
+   "id": "r033",
+   "kind": "math",
+   "x": 40,
+   "y": 1616,
+   "src": "A_g := b*h ="
+  },
+  {
+   "id": "r034",
+   "kind": "text",
+   "x": 40,
+   "y": 1664,
+   "src": "8Ø25 en 3–2–3. El área nominal de la barra es la frontera declarada."
+  },
+  {
+   "id": "r035",
+   "kind": "math",
+   "x": 40,
+   "y": 1712,
+   "src": "d_b := 25 mm"
+  },
+  {
+   "id": "r036",
+   "kind": "math",
+   "x": 40,
+   "y": 1760,
+   "src": "A_b := pi*d_b^2/4 = cm^2"
+  },
+  {
+   "id": "r037",
+   "kind": "math",
+   "x": 40,
+   "y": 1808,
+   "src": "n_1 := 3"
+  },
+  {
+   "id": "r038",
+   "kind": "math",
+   "x": 40,
+   "y": 1856,
+   "src": "n_2 := 2"
+  },
+  {
+   "id": "r039",
+   "kind": "math",
+   "x": 40,
+   "y": 1904,
+   "src": "n_3 := 3"
+  },
+  {
+   "id": "r040",
+   "kind": "math",
+   "x": 40,
+   "y": 1952,
+   "src": "n_t := n_1 + n_2 + n_3"
+  },
+  {
+   "id": "r041",
+   "kind": "math",
+   "x": 40,
+   "y": 2000,
+   "src": "A_s1 := n_1*A_b = cm^2"
+  },
+  {
+   "id": "r042",
+   "kind": "math",
+   "x": 40,
+   "y": 2048,
+   "src": "A_s2 := n_2*A_b = cm^2"
+  },
+  {
+   "id": "r043",
+   "kind": "math",
+   "x": 40,
+   "y": 2096,
+   "src": "A_s3 := n_3*A_b = cm^2"
+  },
+  {
+   "id": "r044",
+   "kind": "math",
+   "x": 40,
+   "y": 2144,
+   "src": "A_st := n_t*A_b = cm^2"
+  },
+  {
+   "id": "r045",
+   "kind": "math",
+   "x": 40,
+   "y": 2192,
+   "src": "rho_g := A_st/A_g ="
+  },
+  {
+   "id": "r046",
+   "kind": "text",
+   "x": 40,
+   "y": 2240,
+   "src": "Tabla 20.5.1.3.1: 40 mm para columnas no expuestas a la intemperie ni al suelo."
+  },
+  {
+   "id": "r047",
+   "kind": "math",
+   "x": 40,
+   "y": 2288,
+   "src": "rec := 40 mm"
+  },
+  {
+   "id": "r048",
+   "kind": "text",
+   "x": 40,
+   "y": 2336,
+   "src": "25.7.2.2(a): el estribo es al menos No. 10 encerrando barras No. 32 o menores."
+  },
+  {
+   "id": "r049",
+   "kind": "math",
+   "x": 40,
+   "y": 2384,
+   "src": "d_e := 10 mm"
+  },
+  {
+   "id": "r050",
+   "kind": "text",
+   "x": 40,
+   "y": 2432,
+   "src": "La posición de cada capa se DERIVA del recubrimiento, el estribo y el radio de"
+  },
+  {
+   "id": "r051",
+   "kind": "text",
+   "x": 40,
+   "y": 2480,
+   "src": "la barra: no se declara. De d_1 y d_3 cuelga todo el diagrama."
+  },
+  {
+   "id": "r052",
+   "kind": "math",
+   "x": 40,
+   "y": 2528,
+   "src": "d_1 := rec + d_e + d_b/2 = cm"
+  },
+  {
+   "id": "r053",
+   "kind": "math",
+   "x": 40,
+   "y": 2576,
+   "src": "d_3 := h - d_1 = cm"
+  },
+  {
+   "id": "r054",
+   "kind": "math",
+   "x": 40,
+   "y": 2624,
+   "src": "d_2 := h/2 = cm"
+  },
+  {
+   "id": "r055",
+   "kind": "text",
+   "x": 40,
+   "y": 2672,
+   "src": "d = d_3 es la altura útil: la capa extrema traccionada del lado del momento."
+  },
+  {
+   "id": "r056",
+   "kind": "math",
+   "x": 40,
+   "y": 2720,
+   "src": "d := d_3 = cm"
+  },
+  {
+   "id": "r057",
+   "kind": "text",
+   "x": 40,
+   "y": 2784,
+   "src": "━━ 3 · LÍMITES DE ARMADURA (10.6.1.1, 10.7.3.1) ━━"
+  },
+  {
+   "id": "r058",
+   "kind": "text",
+   "x": 40,
+   "y": 2832,
+   "src": "10.6.1.1: 0,01A_g ≤ A_st ≤ 0,08A_g."
+  },
+  {
+   "id": "v003",
+   "kind": "math",
+   "x": 40,
+   "y": 2880,
+   "src": "rho_g >= 0.01 ="
+  },
+  {
+   "id": "v004",
+   "kind": "math",
+   "x": 40,
+   "y": 2928,
+   "src": "rho_g <= 0.08 ="
+  },
+  {
+   "id": "r061",
+   "kind": "text",
+   "x": 40,
+   "y": 2976,
+   "src": "R10.6.1.1: bajo el 4 % si las barras se empalman por traslapo (no es requisito)."
+  },
+  {
+   "id": "v005",
+   "kind": "math",
+   "x": 40,
+   "y": 3024,
+   "src": "rho_g <= 0.04 ="
+  },
+  {
+   "id": "r063",
+   "kind": "text",
+   "x": 40,
+   "y": 3072,
+   "src": "10.7.3.1(b): mínimo cuatro barras longitudinales dentro de estribos rectangulares."
+  },
+  {
+   "id": "v006",
+   "kind": "math",
+   "x": 40,
+   "y": 3120,
+   "src": "n_t >= 4 ="
+  },
+  {
+   "id": "r065",
+   "kind": "text",
+   "x": 40,
+   "y": 3168,
+   "src": "25.7.2.3(b): ninguna barra sin soporte lateral a más de 150 mm libres de una que"
+  },
+  {
+   "id": "r066",
+   "kind": "text",
+   "x": 40,
+   "y": 3216,
+   "src": "sí lo tenga. Con 3 barras por cara, la del medio queda a:"
+  },
+  {
+   "id": "r067",
+   "kind": "math",
+   "x": 40,
+   "y": 3264,
+   "src": "s_libre := (d_2 - d_1) - d_b = mm"
+  },
+  {
+   "id": "v007",
+   "kind": "math",
+   "x": 40,
+   "y": 3312,
+   "src": "s_libre <= 150 mm ="
+  },
+  {
+   "id": "r069",
+   "kind": "text",
+   "x": 40,
+   "y": 3360,
+   "src": "25.7.2.1(b): separación del estribo ≤ menor de 16d_b, 48d_e y la menor dimensión."
+  },
+  {
+   "id": "r070",
+   "kind": "math",
+   "x": 40,
+   "y": 3408,
+   "src": "s_e_max := min(16*d_b, 48*d_e, b) = mm"
+  },
+  {
+   "id": "r071",
+   "kind": "text",
+   "x": 40,
+   "y": 3472,
+   "src": "━━ 4 · COMPRESIÓN PURA Y SU TOPE (22.4.2) ━━"
+  },
+  {
+   "id": "r072",
+   "kind": "text",
+   "x": 40,
+   "y": 3520,
+   "src": "Ec. (22.4.2.2): P_o = 0,85f'c(A_g − A_st) + f_y·A_st."
+  },
+  {
+   "id": "r073",
+   "kind": "math",
+   "x": 40,
+   "y": 3568,
+   "src": "P_o := k_bloque*f_c*(A_g - A_st) + f_y*A_st = tonf"
+  },
+  {
+   "id": "r074",
+   "kind": "text",
+   "x": 40,
+   "y": 3616,
+   "src": "Tabla 22.4.2.1(a): con estribos conformes a 22.4.2.4, P_n,máx = 0,80P_o."
+  },
+  {
+   "id": "r075",
+   "kind": "math",
+   "x": 40,
+   "y": 3664,
+   "src": "k_tope := 0.80"
+  },
+  {
+   "id": "r076",
+   "kind": "math",
+   "x": 40,
+   "y": 3712,
+   "src": "P_nmax := k_tope*P_o = tonf"
+  },
+  {
+   "id": "r077",
+   "kind": "text",
+   "x": 40,
+   "y": 3760,
+   "src": "La tabla no termina en la tabla: 22.4.2.4 remite a 10.7.6.2 y 25.7.2, así que el"
+  },
+  {
+   "id": "r078",
+   "kind": "text",
+   "x": 40,
+   "y": 3808,
+   "src": "0,80 vale solo si el estribo cumple §3. HIPÓTESIS: estribo Ø10 a ≤ 400 mm con"
+  },
+  {
+   "id": "r079",
+   "kind": "text",
+   "x": 40,
+   "y": 3856,
+   "src": "trabas en las barras centrales, que el ejemplo no dimensiona."
+  },
+  {
+   "id": "r080",
+   "kind": "text",
+   "x": 40,
+   "y": 3904,
+   "src": "Tabla 21.2.2(b): φ = 0,65 en compresión pura, con estribos (no espiral)."
+  },
+  {
+   "id": "r081",
+   "kind": "math",
+   "x": 40,
+   "y": 3952,
+   "src": "phi_cc := 0.65"
+  },
+  {
+   "id": "r082",
+   "kind": "math",
+   "x": 40,
+   "y": 4000,
+   "src": "Rd_P := phi_cc*P_nmax = tonf"
+  },
+  {
+   "id": "r083",
+   "kind": "text",
+   "x": 40,
+   "y": 4064,
+   "src": "━━ 5 · LA SECCIÓN, FIJADO EL EJE NEUTRO (22.2) ━━"
+  },
+  {
+   "id": "r084",
+   "kind": "text",
+   "x": 40,
+   "y": 4112,
+   "src": "22.2.1.2: la deformación es proporcional a la distancia al eje neutro. Signo:"
+  },
+  {
+   "id": "r085",
+   "kind": "text",
+   "x": 40,
+   "y": 4160,
+   "src": "compresión positiva. Una capa a d_i con el eje neutro en c deforma:"
+  },
+  {
+   "id": "r086",
+   "kind": "program",
+   "x": 40,
+   "y": 4208,
+   "src": "eps_s(c, d_i) := eps_cu*(c - d_i)/c"
+  },
+  {
+   "id": "r087",
+   "kind": "text",
+   "x": 40,
+   "y": 4240,
+   "src": "22.2.3.2 con 20.2.2.1: acero elastoplástico, acotado a ±f_y."
+  },
+  {
+   "id": "r088",
+   "kind": "program",
+   "x": 40,
+   "y": 4288,
+   "src": "f_s(c, d_i) := min(max(E_s*eps_s(c, d_i), -f_y), f_y)"
+  },
+  {
+   "id": "r089",
+   "kind": "text",
+   "x": 40,
+   "y": 4320,
+   "src": "Fuerza de una capa. Si la capa cae DENTRO del bloque comprimido se descuenta el"
+  },
+  {
+   "id": "r090",
+   "kind": "text",
+   "x": 40,
+   "y": 4368,
+   "src": "hormigón desplazado (0,85f'c), que es lo que hace consistente el barrido con la"
+  },
+  {
+   "id": "r091",
+   "kind": "text",
+   "x": 40,
+   "y": 4416,
+   "src": "Ec. (22.4.2.2): con c → ∞ la suma reproduce P_o."
+  },
+  {
+   "id": "r092",
+   "kind": "program",
+   "x": 40,
+   "y": 4464,
+   "src": "F_s(c, d_i, A_si) :=\n    a := min(beta_1*c, h)\n    f_si := f_s(c, d_i)\n    if d_i <= a\n        f_si := f_si - k_bloque*f_c\n    return A_si*f_si"
+  },
+  {
+   "id": "r093",
+   "kind": "text",
+   "x": 40,
+   "y": 4592,
+   "src": "22.2.2.4.1: bloque de compresión del hormigón, acotado al canto de la sección."
+  },
+  {
+   "id": "r094",
+   "kind": "program",
+   "x": 40,
+   "y": 4640,
+   "src": "C_c(c) :=\n    a := min(beta_1*c, h)\n    return k_bloque*f_c*a*b"
+  },
+  {
+   "id": "r095",
+   "kind": "text",
+   "x": 40,
+   "y": 4720,
+   "src": "22.2.1.1 · equilibrio de fuerzas: P_n(c) = C_c + Σ F_si."
+  },
+  {
+   "id": "r096",
+   "kind": "program",
+   "x": 40,
+   "y": 4768,
+   "src": "P_n(c) :=\n    return C_c(c) + F_s(c, d_1, A_s1) + F_s(c, d_2, A_s2) + F_s(c, d_3, A_s3)"
+  },
+  {
+   "id": "r097",
+   "kind": "text",
+   "x": 40,
+   "y": 4832,
+   "src": "Equilibrio de momentos respecto del centroide de la sección (h/2, simétrica)."
+  },
+  {
+   "id": "r098",
+   "kind": "program",
+   "x": 40,
+   "y": 4880,
+   "src": "M_n(c) :=\n    a := min(beta_1*c, h)\n    M := C_c(c)*(h/2 - a/2)\n    M := M + F_s(c, d_1, A_s1)*(h/2 - d_1)\n    M := M + F_s(c, d_2, A_s2)*(h/2 - d_2)\n    M := M + F_s(c, d_3, A_s3)*(h/2 - d_3)\n    return M"
+  },
+  {
+   "id": "r099",
+   "kind": "text",
+   "x": 40,
+   "y": 5040,
+   "src": "Con c muy grande toda la sección está comprimida y la suma tiene que reproducir"
+  },
+  {
+   "id": "r100",
+   "kind": "text",
+   "x": 40,
+   "y": 5088,
+   "src": "la Ec. (22.4.2.2). Es lo que ata el barrido al ancla 1 y lo que justifica el"
+  },
+  {
+   "id": "r101",
+   "kind": "text",
+   "x": 40,
+   "y": 5136,
+   "src": "descuento del hormigón desplazado:"
+  },
+  {
+   "id": "v008",
+   "kind": "math",
+   "x": 40,
+   "y": 5184,
+   "src": "abs(P_n(4*h) - P_o) < 0.05 tonf ="
+  },
+  {
+   "id": "r103",
+   "kind": "text",
+   "x": 40,
+   "y": 5232,
+   "src": "Fig. R21.2.2a: ε_t es la deformación NETA DE TRACCIÓN de la capa extrema, d_3."
+  },
+  {
+   "id": "r104",
+   "kind": "program",
+   "x": 40,
+   "y": 5280,
+   "src": "eps_t(c) := eps_cu*(d_3 - c)/c"
+  },
+  {
+   "id": "r105",
+   "kind": "text",
+   "x": 40,
+   "y": 5344,
+   "src": "━━ 6 · ANCLA 2 · PUNTO BALANCEADO ━━",
+   "pageBreak": true
+  },
+  {
+   "id": "r106",
+   "kind": "text",
+   "x": 40,
+   "y": 5392,
+   "src": "El hormigón llega a ε_cu y la capa extrema a ε_ty a la vez. De la compatibilidad:"
+  },
+  {
+   "id": "r107",
+   "kind": "math",
+   "x": 40,
+   "y": 5440,
+   "src": "c_bal := eps_cu/(eps_cu + eps_ty)*d = cm"
+  },
+  {
+   "id": "r108",
+   "kind": "math",
+   "x": 40,
+   "y": 5488,
+   "src": "P_nb := P_n(c_bal) = tonf"
+  },
+  {
+   "id": "r109",
+   "kind": "math",
+   "x": 40,
+   "y": 5536,
+   "src": "M_nb := M_n(c_bal) = tonf*m"
+  },
+  {
+   "id": "r110",
+   "kind": "text",
+   "x": 40,
+   "y": 5584,
+   "src": "Tabla 21.2.2(b): en ε_t = ε_ty la sección es controlada por compresión, φ = 0,65."
+  },
+  {
+   "id": "r111",
+   "kind": "math",
+   "x": 40,
+   "y": 5632,
+   "src": "Rd_Pb := phi_cc*P_nb = tonf"
+  },
+  {
+   "id": "r112",
+   "kind": "math",
+   "x": 40,
+   "y": 5680,
+   "src": "Rd_Mb := phi_cc*M_nb = tonf*m"
+  },
+  {
+   "id": "r113",
+   "kind": "text",
+   "x": 40,
+   "y": 5744,
+   "src": "━━ 7 · φ A LO LARGO DE LA CURVA (Tabla 21.2.2 y 21.2.2.3) ━━"
+  },
+  {
+   "id": "r114",
+   "kind": "text",
+   "x": 40,
+   "y": 5792,
+   "src": "Tabla 21.2.2, columna «Other»: 0,65 hasta ε_ty, transición lineal hasta"
+  },
+  {
+   "id": "r115",
+   "kind": "text",
+   "x": 40,
+   "y": 5840,
+   "src": "ε_ty + 0,003, y 0,90 de ahí en adelante. En 318-25 el umbral es ε_ty + 0,003,"
+  },
+  {
+   "id": "r116",
+   "kind": "text",
+   "x": 40,
+   "y": 5888,
+   "src": "no el 0,005 fijo de antes de 2019."
+  },
+  {
+   "id": "r117",
+   "kind": "math",
+   "x": 40,
+   "y": 5936,
+   "src": "eps_tc := eps_ty + 0.003 ="
+  },
+  {
+   "id": "r118",
+   "kind": "program",
+   "x": 40,
+   "y": 5984,
+   "src": "phi_tab(c) :=\n    e_t := eps_t(c)\n    if e_t <= eps_ty\n        return 0.65\n    else if e_t >= eps_tc\n        return 0.90\n    else\n        return 0.65 + 0.25*(e_t - eps_ty)/0.003"
+  },
+  {
+   "id": "r119",
+   "kind": "text",
+   "x": 40,
+   "y": 6160,
+   "src": "La tabla tampoco termina en la tabla: 21.2.2.3 acota ese φ por interpolación"
+  },
+  {
+   "id": "r120",
+   "kind": "text",
+   "x": 40,
+   "y": 6208,
+   "src": "lineal en P_n entre 0,90 en 0,1f'c·A_g y φ_cc en P_n,bal. Es un requisito de"
+  },
+  {
+   "id": "r121",
+   "kind": "text",
+   "x": 40,
+   "y": 6256,
+   "src": "318-19 en adelante y solo puede BAJAR el φ de la tabla."
+  },
+  {
+   "id": "r122",
+   "kind": "math",
+   "x": 40,
+   "y": 6304,
+   "src": "P_lo := 0.1*f_c*A_g = tonf"
+  },
+  {
+   "id": "r123",
+   "kind": "text",
+   "x": 40,
+   "y": 6352,
+   "src": "R21.2.2: si P_n,bal < 0,1f'c·A_g, 21.2.2.3 no aplica. Acá sí aplica:"
+  },
+  {
+   "id": "r124",
+   "kind": "math",
+   "x": 40,
+   "y": 6400,
+   "src": "c_2123_aplica := P_nb > P_lo ="
+  },
+  {
+   "id": "r125",
+   "kind": "program",
+   "x": 40,
+   "y": 6448,
+   "src": "phi_lim(Pn) :=\n    if Pn < P_lo\n        return 0.90\n    else if Pn > P_nb\n        return phi_cc\n    else\n        return 0.90 + (phi_cc - 0.90)*(Pn - P_lo)/(P_nb - P_lo)"
+  },
+  {
+   "id": "r126",
+   "kind": "program",
+   "x": 40,
+   "y": 6608,
+   "src": "phi_c(c) := min(phi_tab(c), phi_lim(P_n(c)))"
+  },
+  {
+   "id": "r127",
+   "kind": "text",
+   "x": 40,
+   "y": 6672,
+   "src": "━━ 8 · ANCLA 3 · FLEXIÓN PURA (P_n = 0) ━━"
+  },
+  {
+   "id": "r128",
+   "kind": "text",
+   "x": 40,
+   "y": 6720,
+   "src": "No hay fórmula cerrada: se busca el c que anula P_n por bisección. P_n crece con"
+  },
+  {
+   "id": "r129",
+   "kind": "text",
+   "x": 40,
+   "y": 6768,
+   "src": "c, así que el intervalo [0,5 cm; d] encierra la raíz."
+  },
+  {
+   "id": "r130",
+   "kind": "program",
+   "x": 40,
+   "y": 6816,
+   "src": "c_0 :=\n    lo := 0.5 cm\n    hi := d\n    for i in 1:60\n        mid := (lo + hi)/2\n        if P_n(mid) > 0 tonf\n            hi := mid\n        else\n            lo := mid\n    return (lo + hi)/2"
+  },
+  {
+   "id": "r131",
+   "kind": "math",
+   "x": 40,
+   "y": 7024,
+   "src": "c_0 = cm"
+  },
+  {
+   "id": "v009",
+   "kind": "math",
+   "x": 40,
+   "y": 7072,
+   "src": "abs(P_n(c_0)) < 0.01 tonf ="
+  },
+  {
+   "id": "r133",
+   "kind": "math",
+   "x": 40,
+   "y": 7120,
+   "src": "M_0 := M_n(c_0) = tonf*m"
+  },
+  {
+   "id": "r134",
+   "kind": "math",
+   "x": 40,
+   "y": 7168,
+   "src": "eps_t0 := eps_t(c_0) ="
+  },
+  {
+   "id": "r135",
+   "kind": "math",
+   "x": 40,
+   "y": 7216,
+   "src": "phi_0 := phi_c(c_0) ="
+  },
+  {
+   "id": "r136",
+   "kind": "text",
+   "x": 40,
+   "y": 7264,
+   "src": "Con P_n = 0 < 0,1f'c·A_g el tope de 21.2.2.3 no muerde, y ε_t supera ε_ty+0,003:"
+  },
+  {
+   "id": "r137",
+   "kind": "text",
+   "x": 40,
+   "y": 7312,
+   "src": "la sección es controlada por tracción y φ = 0,90."
+  },
+  {
+   "id": "v010",
+   "kind": "math",
+   "x": 40,
+   "y": 7360,
+   "src": "phi_0 == 0.90 ="
+  },
+  {
+   "id": "r139",
+   "kind": "math",
+   "x": 40,
+   "y": 7408,
+   "src": "Rd_M0 := phi_0*M_0 = tonf*m"
+  },
+  {
+   "id": "r140",
+   "kind": "text",
+   "x": 40,
+   "y": 7472,
+   "src": "━━ 9 · EL BARRIDO: LA FRONTERA COMPLETA ━━"
+  },
+  {
+   "id": "r141",
+   "kind": "text",
+   "x": 40,
+   "y": 7520,
+   "src": "Cada posición del eje neutro da un punto (φM_n, φP_n). Se barre c desde la"
+  },
+  {
+   "id": "r142",
+   "kind": "text",
+   "x": 40,
+   "y": 7568,
+   "src": "flexión pura hasta que φP_n alcanza el tope Rd_P, que corta la punta frágil."
+  },
+  {
+   "id": "r143",
+   "kind": "math",
+   "x": 40,
+   "y": 7616,
+   "src": "n_pasos := 160"
+  },
+  {
+   "id": "r144",
+   "kind": "math",
+   "x": 40,
+   "y": 7664,
+   "src": "c_fin := 2*h"
+  },
+  {
+   "id": "r145",
+   "kind": "program",
+   "x": 40,
+   "y": 7712,
+   "src": "curva :=\n    acc := [[0, 0]]\n    for i in 0:n_pasos\n        c := c_0 + (c_fin - c_0)*i/n_pasos\n        phi := phi_c(c)\n        Pd := phi*P_n(c)\n        Md := phi*M_n(c)\n        if Pd > Rd_P\n            break\n        acc := concat(acc, [[Md/(1 tonf*m), Pd/(1 tonf)]], 1)\n    acc := concat(acc, [[0, Rd_P/(1 tonf)]], 1)\n    return acc[2:end, 1:2]"
+  },
+  {
+   "id": "r146",
+   "kind": "math",
+   "x": 40,
+   "y": 7968,
+   "src": "n_curva := size(curva)[1]"
+  },
+  {
+   "id": "r147",
+   "kind": "text",
+   "x": 40,
+   "y": 8016,
+   "src": "La curva arranca en la flexión pura y cierra sobre el tope. Los dos extremos se"
+  },
+  {
+   "id": "r148",
+   "kind": "text",
+   "x": 40,
+   "y": 8064,
+   "src": "contrastan contra los anclas calculadas aparte: si no coinciden, el barrido"
+  },
+  {
+   "id": "r149",
+   "kind": "text",
+   "x": 40,
+   "y": 8112,
+   "src": "corre al revés o la escala está mal."
+  },
+  {
+   "id": "v011",
+   "kind": "math",
+   "x": 40,
+   "y": 8160,
+   "src": "abs(curva[1,1]*1 tonf*m - Rd_M0) < 0.01 tonf*m ="
+  },
+  {
+   "id": "v012",
+   "kind": "math",
+   "x": 40,
+   "y": 8208,
+   "src": "abs(curva[1,2]) < 0.01 ="
+  },
+  {
+   "id": "v013",
+   "kind": "math",
+   "x": 40,
+   "y": 8256,
+   "src": "abs(curva[n_curva,2]*1 tonf - Rd_P) < 0.01 tonf ="
+  },
+  {
+   "id": "r153",
+   "kind": "text",
+   "x": 40,
+   "y": 8304,
+   "src": "Y el barrido tiene que subir monótono en φP_n: es lo que autoriza a buscar por"
+  },
+  {
+   "id": "r154",
+   "kind": "text",
+   "x": 40,
+   "y": 8352,
+   "src": "bisección el punto de la frontera que acompaña a cada P_u."
+  },
+  {
+   "id": "r155",
+   "kind": "program",
+   "x": 40,
+   "y": 8400,
+   "src": "sube :=\n    ok := 1\n    for i in 2:(n_curva - 1)\n        if curva[i,2] < curva[i-1,2]\n            ok := 0\n    return ok"
+  },
+  {
+   "id": "v014",
+   "kind": "math",
+   "x": 40,
+   "y": 8528,
+   "src": "sube == 1 ="
+  },
+  {
+   "id": "r157",
+   "kind": "text",
+   "x": 40,
+   "y": 8576,
+   "src": "El momento de diseño máximo de la frontera y dónde cae (la panza de la curva)."
+  },
+  {
+   "id": "r158",
+   "kind": "program",
+   "x": 40,
+   "y": 8624,
+   "src": "M_max :=\n    m := 0\n    for i in 1:n_curva\n        if curva[i,1] > m\n            m := curva[i,1]\n    return m"
+  },
+  {
+   "id": "r159",
+   "kind": "math",
+   "x": 40,
+   "y": 8752,
+   "src": "Rd_Mmax := M_max*1 tonf*m"
+  },
+  {
+   "id": "r160",
+   "kind": "text",
+   "x": 40,
+   "y": 8800,
+   "src": "En la curva NOMINAL el máximo es el balanceado; en la de DISEÑO se corre abajo,"
+  },
+  {
+   "id": "r161",
+   "kind": "text",
+   "x": 40,
+   "y": 8848,
+   "src": "porque al pasar el balanceado φ empieza a subir."
+  },
+  {
+   "id": "v015",
+   "kind": "math",
+   "x": 40,
+   "y": 8896,
+   "src": "Rd_Mmax > Rd_Mb ="
+  },
+  {
+   "id": "r163",
+   "kind": "text",
+   "x": 40,
+   "y": 8960,
+   "src": "━━ 10 · LAS COMBINACIONES CONTRA LA FRONTERA (10.5.1.1) ━━"
+  },
+  {
+   "id": "r164",
+   "kind": "text",
+   "x": 40,
+   "y": 9008,
+   "src": "Demanda declarada: dos combinaciones del análisis, dato de entrada del ejemplo."
+  },
+  {
+   "id": "r165",
+   "kind": "math",
+   "x": 40,
+   "y": 9056,
+   "src": "P_u1 := 260 tonf"
+  },
+  {
+   "id": "r166",
+   "kind": "math",
+   "x": 40,
+   "y": 9104,
+   "src": "M_u1 := 12 tonf*m"
+  },
+  {
+   "id": "r167",
+   "kind": "math",
+   "x": 40,
+   "y": 9152,
+   "src": "P_u2 := 70 tonf"
+  },
+  {
+   "id": "r168",
+   "kind": "math",
+   "x": 40,
+   "y": 9200,
+   "src": "M_u2 := 28 tonf*m"
+  },
+  {
+   "id": "r169",
+   "kind": "math",
+   "x": 40,
+   "y": 9248,
+   "src": "r_axial := P_u1/P_u2 ="
+  },
+  {
+   "id": "r170",
+   "kind": "text",
+   "x": 40,
+   "y": 9296,
+   "src": "10.5.1.1(a): φP_n ≥ P_u, con el tope de 22.4.2.1 como techo axial."
+  },
+  {
+   "id": "r171",
+   "kind": "math",
+   "x": 40,
+   "y": 9344,
+   "src": "u_P1 := P_u1/Rd_P ="
+  },
+  {
+   "id": "r172",
+   "kind": "math",
+   "x": 40,
+   "y": 9392,
+   "src": "u_P2 := P_u2/Rd_P ="
+  },
+  {
+   "id": "r173",
+   "kind": "text",
+   "x": 40,
+   "y": 9440,
+   "src": "10.5.1.1(b): la capacidad a momento se lee en la frontera al nivel de axial de"
+  },
+  {
+   "id": "r174",
+   "kind": "text",
+   "x": 40,
+   "y": 9488,
+   "src": "cada combinación. Se busca por bisección el c cuyo φP_n iguala el P_u."
+  },
+  {
+   "id": "r175",
+   "kind": "program",
+   "x": 40,
+   "y": 9536,
+   "src": "c_de_P(P_obj) :=\n    lo := c_0\n    hi := c_fin\n    for i in 1:60\n        mid := (lo + hi)/2\n        if phi_c(mid)*P_n(mid) > P_obj\n            hi := mid\n        else\n            lo := mid\n    return (lo + hi)/2"
+  },
+  {
+   "id": "r176",
+   "kind": "math",
+   "x": 40,
+   "y": 9744,
+   "src": "c_1 := c_de_P(P_u1) = cm"
+  },
+  {
+   "id": "r177",
+   "kind": "math",
+   "x": 40,
+   "y": 9792,
+   "src": "phi_1 := phi_c(c_1) ="
+  },
+  {
+   "id": "r178",
+   "kind": "math",
+   "x": 40,
+   "y": 9840,
+   "src": "Rd_M1 := phi_1*M_n(c_1) = tonf*m"
+  },
+  {
+   "id": "r179",
+   "kind": "math",
+   "x": 40,
+   "y": 9888,
+   "src": "u_1 := M_u1/Rd_M1 ="
+  },
+  {
+   "id": "r180",
+   "kind": "math",
+   "x": 40,
+   "y": 9936,
+   "src": "c_2 := c_de_P(P_u2) = cm"
+  },
+  {
+   "id": "r181",
+   "kind": "math",
+   "x": 40,
+   "y": 9984,
+   "src": "eps_t2 := eps_t(c_2) ="
+  },
+  {
+   "id": "r182",
+   "kind": "math",
+   "x": 40,
+   "y": 10032,
+   "src": "phi_tab2 := phi_tab(c_2) ="
+  },
+  {
+   "id": "r183",
+   "kind": "math",
+   "x": 40,
+   "y": 10080,
+   "src": "phi_lim2 := phi_lim(P_n(c_2)) ="
+  },
+  {
+   "id": "r184",
+   "kind": "text",
+   "x": 40,
+   "y": 10128,
+   "src": "Cuál de los dos manda el φ de C2: el de la tabla o el tope de 21.2.2.3."
+  },
+  {
+   "id": "r185",
+   "kind": "math",
+   "x": 40,
+   "y": 10176,
+   "src": "c_2123_manda := phi_lim2 < phi_tab2 ="
+  },
+  {
+   "id": "r186",
+   "kind": "math",
+   "x": 40,
+   "y": 10224,
+   "src": "phi_2 := phi_c(c_2) ="
+  },
+  {
+   "id": "r187",
+   "kind": "math",
+   "x": 40,
+   "y": 10272,
+   "src": "Rd_M2 := phi_2*M_n(c_2) = tonf*m"
+  },
+  {
+   "id": "r188",
+   "kind": "math",
+   "x": 40,
+   "y": 10320,
+   "src": "u_2 := M_u2/Rd_M2 ="
+  },
+  {
+   "id": "r189",
+   "kind": "text",
+   "x": 40,
+   "y": 10368,
+   "src": "La distancia a la frontera de la que gobierna, que es lo que el diagrama muestra."
+  },
+  {
+   "id": "r190",
+   "kind": "math",
+   "x": 40,
+   "y": 10416,
+   "src": "margen_2 := Rd_M2 - M_u2 = tonf*m"
+  },
+  {
+   "id": "r191",
+   "kind": "math",
+   "x": 40,
+   "y": 10464,
+   "src": "margen_1 := Rd_M1 - M_u1 = tonf*m"
+  },
+  {
+   "id": "r192",
+   "kind": "text",
+   "x": 40,
+   "y": 10528,
+   "src": "━━ 11 · ESBELTEZ (6.2.5) ━━"
+  },
+  {
+   "id": "r193",
+   "kind": "math",
+   "x": 40,
+   "y": 10576,
+   "src": "l_u := 3.0 m"
+  },
+  {
+   "id": "r194",
+   "kind": "text",
+   "x": 40,
+   "y": 10624,
+   "src": "Pórtico arriostrado por los muros: k = 1,0 (R6.2.5.1 lo admite como primera"
+  },
+  {
+   "id": "r195",
+   "kind": "text",
+   "x": 40,
+   "y": 10672,
+   "src": "aproximación en la Ec. 6.2.5.1b)."
+  },
+  {
+   "id": "r196",
+   "kind": "math",
+   "x": 40,
+   "y": 10720,
+   "src": "k_col := 1.0"
+  },
+  {
+   "id": "r197",
+   "kind": "text",
+   "x": 40,
+   "y": 10768,
+   "src": "6.2.5.2(b): r = 0,30·h en la dirección considerada, para columna rectangular."
+  },
+  {
+   "id": "r198",
+   "kind": "math",
+   "x": 40,
+   "y": 10816,
+   "src": "r_gyr := 0.30*h = cm"
+  },
+  {
+   "id": "r199",
+   "kind": "math",
+   "x": 40,
+   "y": 10864,
+   "src": "lambda_col := k_col*l_u/r_gyr ="
+  },
+  {
+   "id": "r200",
+   "kind": "text",
+   "x": 40,
+   "y": 10912,
+   "src": "6.2.5.1(b): el cociente M_1/M_2 es NEGATIVO en curvatura simple (318-14 en"
+  },
+  {
+   "id": "r201",
+   "kind": "text",
+   "x": 40,
+   "y": 10960,
+   "src": "adelante invirtió el signo: la ecuación es 34 + 12(M_1/M_2), no 34 − 12(M_1/M_2))."
+  },
+  {
+   "id": "r202",
+   "kind": "math",
+   "x": 40,
+   "y": 11008,
+   "src": "rel_M := -0.5"
+  },
+  {
+   "id": "r203",
+   "kind": "math",
+   "x": 40,
+   "y": 11056,
+   "src": "lim_b := 34 + 12*rel_M ="
+  },
+  {
+   "id": "r204",
+   "kind": "text",
+   "x": 40,
+   "y": 11104,
+   "src": "6.2.5.1(c): y además el cociente no puede pasar de 40. Las dos condiciones van"
+  },
+  {
+   "id": "r205",
+   "kind": "text",
+   "x": 40,
+   "y": 11152,
+   "src": "unidas por «and»: la que manda es la menor."
+  },
+  {
+   "id": "r206",
+   "kind": "math",
+   "x": 40,
+   "y": 11200,
+   "src": "lim_c := 40"
+  },
+  {
+   "id": "r207",
+   "kind": "math",
+   "x": 40,
+   "y": 11248,
+   "src": "lim_esb := min(lim_b, lim_c) ="
+  },
+  {
+   "id": "v016",
+   "kind": "math",
+   "x": 40,
+   "y": 11296,
+   "src": "lambda_col <= lim_esb ="
+  },
+  {
+   "id": "r209",
+   "kind": "text",
+   "x": 40,
+   "y": 11344,
+   "src": "6.2.5.3: si no se cumpliera, no baja la frontera — amplifica la demanda M_u."
+  },
+  {
+   "id": "r210",
+   "kind": "text",
+   "x": 40,
+   "y": 11408,
+   "src": "━━ 12 · QUÉ GOBIERNA ━━"
+  },
+  {
+   "id": "r211",
+   "kind": "math",
+   "x": 40,
+   "y": 11456,
+   "src": "u_max := max(u_P1, u_1, u_2) ="
+  },
+  {
+   "id": "r212",
+   "kind": "program",
+   "x": 40,
+   "y": 11504,
+   "src": "gobierna :=\n    if u_max == u_2\n        return \"flexocompresión C2 (0,9D+E), rama baja\"\n    else if u_max == u_1\n        return \"flexocompresión C1 (1,2D+1,6L)\"\n    else\n        return \"axial máximo, tope de 22.4.2.1\""
+  },
+  {
+   "id": "v017",
+   "kind": "math",
+   "x": 40,
+   "y": 11664,
+   "src": "u_max <= 1 ="
+  },
+  {
+   "id": "r214",
+   "kind": "text",
+   "x": 40,
+   "y": 11728,
+   "src": "━━ 13 · EL DIAGRAMA ━━"
+  },
+  {
+   "id": "r215",
+   "kind": "text",
+   "x": 40,
+   "y": 11776,
+   "src": "El mapeo a píxeles lo hace la hoja, no el motor: así la escala y el sentido de"
+  },
+  {
+   "id": "r216",
+   "kind": "text",
+   "x": 40,
+   "y": 11824,
+   "src": "los ejes quedan a la vista. Origen del diagrama en (x_0, y_0), el eje P hacia"
+  },
+  {
+   "id": "r217",
+   "kind": "text",
+   "x": 40,
+   "y": 11872,
+   "src": "arriba (por eso y_px resta) y el eje M hacia la derecha."
+  },
+  {
+   "id": "r218",
+   "kind": "math",
+   "x": 40,
+   "y": 11920,
+   "src": "x_0 := 70"
+  },
+  {
+   "id": "r219",
+   "kind": "math",
+   "x": 40,
+   "y": 11968,
+   "src": "y_0 := 360"
+  },
+  {
+   "id": "r220",
+   "kind": "math",
+   "x": 40,
+   "y": 12016,
+   "src": "M_esc := 50 tonf*m"
+  },
+  {
+   "id": "r221",
+   "kind": "math",
+   "x": 40,
+   "y": 12064,
+   "src": "P_esc := 400 tonf"
+  },
+  {
+   "id": "r222",
+   "kind": "math",
+   "x": 40,
+   "y": 12112,
+   "src": "w_dib := 400"
+  },
+  {
+   "id": "r223",
+   "kind": "math",
+   "x": 40,
+   "y": 12160,
+   "src": "h_dib := 290"
+  },
+  {
+   "id": "r224",
+   "kind": "math",
+   "x": 40,
+   "y": 12208,
+   "src": "s_M := w_dib/(M_esc/(1 tonf*m))"
+  },
+  {
+   "id": "r225",
+   "kind": "math",
+   "x": 40,
+   "y": 12256,
+   "src": "s_P := h_dib/(P_esc/(1 tonf))"
+  },
+  {
+   "id": "r226",
+   "kind": "program",
+   "x": 40,
+   "y": 12304,
+   "src": "x_px(Md) := x_0 + Md/(1 tonf*m)*s_M"
+  },
+  {
+   "id": "r227",
+   "kind": "program",
+   "x": 40,
+   "y": 12336,
+   "src": "y_px(Pd) := y_0 - Pd/(1 tonf)*s_P"
+  },
+  {
+   "id": "r228",
+   "kind": "program",
+   "x": 40,
+   "y": 12368,
+   "src": "curva_px :=\n    acc := [[0, 0]]\n    for i in 1:n_curva\n        acc := concat(acc, [[x_0 + curva[i,1]*s_M, y_0 - curva[i,2]*s_P]], 1)\n    return acc[2:end, 1:2]"
+  },
+  {
+   "id": "r229",
+   "kind": "text",
+   "x": 40,
+   "y": 12480,
+   "src": "Las tres anclas y las dos combinaciones, en píxeles."
+  },
+  {
+   "id": "r230",
+   "kind": "math",
+   "x": 40,
+   "y": 12528,
+   "src": "xa_1 := x_px(0 tonf*m)"
+  },
+  {
+   "id": "r231",
+   "kind": "math",
+   "x": 40,
+   "y": 12576,
+   "src": "ya_1 := y_px(Rd_P)"
+  },
+  {
+   "id": "r232",
+   "kind": "math",
+   "x": 40,
+   "y": 12624,
+   "src": "xa_2 := x_px(Rd_Mb)"
+  },
+  {
+   "id": "r233",
+   "kind": "math",
+   "x": 40,
+   "y": 12672,
+   "src": "ya_2 := y_px(Rd_Pb)"
+  },
+  {
+   "id": "r234",
+   "kind": "math",
+   "x": 40,
+   "y": 12720,
+   "src": "xa_3 := x_px(Rd_M0)"
+  },
+  {
+   "id": "r235",
+   "kind": "math",
+   "x": 40,
+   "y": 12768,
+   "src": "ya_3 := y_px(0 tonf)"
+  },
+  {
+   "id": "r236",
+   "kind": "math",
+   "x": 40,
+   "y": 12816,
+   "src": "xc_1 := x_px(M_u1)"
+  },
+  {
+   "id": "r237",
+   "kind": "math",
+   "x": 40,
+   "y": 12864,
+   "src": "yc_1 := y_px(P_u1)"
+  },
+  {
+   "id": "r238",
+   "kind": "math",
+   "x": 40,
+   "y": 12912,
+   "src": "xc_2 := x_px(M_u2)"
+  },
+  {
+   "id": "r239",
+   "kind": "math",
+   "x": 40,
+   "y": 12960,
+   "src": "yc_2 := y_px(P_u2)"
+  },
+  {
+   "id": "r240",
+   "kind": "text",
+   "x": 40,
+   "y": 13008,
+   "src": "Y el segmento que mide la distancia de C2 a la frontera, sobre su nivel de axial."
+  },
+  {
+   "id": "r241",
+   "kind": "math",
+   "x": 40,
+   "y": 13056,
+   "src": "xf_2 := x_px(Rd_M2)"
+  },
+  {
+   "id": "r242",
+   "kind": "image",
+   "x": 40,
+   "y": 13104,
+   "src": "/esquemas/columna-interaccion-esbeltez.svg",
+   "w": 680,
+   "h": 470
+  },
+  {
+   "id": "r243",
+   "kind": "text",
+   "x": 40,
+   "y": 13616,
+   "src": "━━ CONTRASTE CON EL POST ━━",
+   "pageBreak": true
+  },
+  {
+   "id": "r244",
+   "kind": "text",
+   "x": 40,
+   "y": 13664,
+   "src": "Tolerancia: media unidad del último dígito publicado."
+  },
+  {
+   "id": "c_Ast",
+   "kind": "math",
+   "x": 40,
+   "y": 13712,
+   "src": "abs(A_st - 39.27 cm^2) < 0.005 cm^2 ="
+  },
+  {
+   "id": "c_rho",
+   "kind": "math",
+   "x": 40,
+   "y": 13760,
+   "src": "abs(rho_g*100 - 1.57) < 0.005 ="
+  },
+  {
+   "id": "c_d1",
+   "kind": "math",
+   "x": 40,
+   "y": 13808,
+   "src": "abs(d_1 - 6 cm) < 0.05 cm ="
+  },
+  {
+   "id": "c_d",
+   "kind": "math",
+   "x": 40,
+   "y": 13856,
+   "src": "abs(d - 44 cm) < 0.05 cm ="
+  },
+  {
+   "id": "c_epsty",
+   "kind": "math",
+   "x": 40,
+   "y": 13904,
+   "src": "abs(eps_ty - 0.002) < 0.0000005 ="
+  },
+  {
+   "id": "c_Po",
+   "kind": "math",
+   "x": 40,
+   "y": 13952,
+   "src": "abs(P_o - 687.8 tonf) < 0.05 tonf ="
+  },
+  {
+   "id": "c_RdP",
+   "kind": "math",
+   "x": 40,
+   "y": 14000,
+   "src": "abs(Rd_P - 357.7 tonf) < 0.05 tonf ="
+  },
+  {
+   "id": "c_cbal",
+   "kind": "math",
+   "x": 40,
+   "y": 14048,
+   "src": "abs(c_bal - 26.4 cm) < 0.05 cm ="
+  },
+  {
+   "id": "c_RdPb",
+   "kind": "math",
+   "x": 40,
+   "y": 14096,
+   "src": "abs(Rd_Pb - 155.1 tonf) < 0.05 tonf ="
+  },
+  {
+   "id": "c_RdMb",
+   "kind": "math",
+   "x": 40,
+   "y": 14144,
+   "src": "abs(Rd_Mb - 36.3 tonf*m) < 0.05 tonf*m ="
+  },
+  {
+   "id": "c_RdM0",
+   "kind": "math",
+   "x": 40,
+   "y": 14192,
+   "src": "abs(Rd_M0 - 29.8 tonf*m) < 0.05 tonf*m ="
+  },
+  {
+   "id": "c_RdM1",
+   "kind": "math",
+   "x": 40,
+   "y": 14240,
+   "src": "abs(Rd_M1 - 29.2 tonf*m) < 0.05 tonf*m ="
+  },
+  {
+   "id": "c_u1",
+   "kind": "math",
+   "x": 40,
+   "y": 14288,
+   "src": "abs(u_1 - 0.41) < 0.005 ="
+  },
+  {
+   "id": "c_RdM2",
+   "kind": "math",
+   "x": 40,
+   "y": 14336,
+   "src": "abs(Rd_M2 - 41.4 tonf*m) < 0.05 tonf*m ="
+  },
+  {
+   "id": "c_u2",
+   "kind": "math",
+   "x": 40,
+   "y": 14384,
+   "src": "abs(u_2 - 0.68) < 0.005 ="
+  },
+  {
+   "id": "c_uP1",
+   "kind": "math",
+   "x": 40,
+   "y": 14432,
+   "src": "abs(u_P1 - 0.73) < 0.005 ="
+  },
+  {
+   "id": "c_ratio",
+   "kind": "math",
+   "x": 40,
+   "y": 14480,
+   "src": "abs(r_axial - 3.7) < 0.05 ="
+  },
+  {
+   "id": "c_lambda",
+   "kind": "math",
+   "x": 40,
+   "y": 14528,
+   "src": "abs(lambda_col - 20) < 0.05 ="
+  },
+  {
+   "id": "c_lim",
+   "kind": "math",
+   "x": 40,
+   "y": 14576,
+   "src": "abs(lim_esb - 28) < 0.05 ="
+  },
+  {
+   "id": "c_r",
+   "kind": "math",
+   "x": 40,
+   "y": 14624,
+   "src": "abs(r_gyr - 15 cm) < 0.05 cm ="
+  },
+  {
+   "id": "c_gobierna",
+   "kind": "math",
+   "x": 40,
+   "y": 14672,
+   "src": "u_2 > u_1 ="
+  }
+ ]
+}

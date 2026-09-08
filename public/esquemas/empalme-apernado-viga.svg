@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 490" font-family="Segoe UI, Arial, sans-serif">
+  <!-- Esquema paramétrico de la planilla `empalme-apernado-viga`.
+       Derivado de /ejemplos/empalme-esquema.svg: misma composición (elevación
+       del empalme, junta en rojo, par de fuerzas en las alas y corte al alma) y
+       mismos colores, redibujado más chico y con las cajas estáticas
+       reemplazadas por lo que la hoja calcula. -->
+  <defs>
+    <marker id="ea" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#555"/>
+    </marker>
+    <marker id="et" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#c0392b"/>
+    </marker>
+    <marker id="ec" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1f6f4a"/>
+    </marker>
+    <marker id="ev" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1f4e79"/>
+    </marker>
+  </defs>
+  <rect width="760" height="490" fill="#ffffff"/>
+  <text x="380" y="22" font-size="12.5" text-anchor="middle" fill="#222" font-weight="bold">Empalme apernado: el momento va a las alas como un par, el corte al alma — y gobierna el deslizamiento</text>
+
+  <!-- ── elevación del empalme ───────────────────────────────────────────── -->
+  <rect x="40" y="110" width="380" height="8" fill="#9bb0c6" stroke="#333" stroke-width="0.9"/>
+  <rect x="40" y="250" width="380" height="8" fill="#9bb0c6" stroke="#333" stroke-width="0.9"/>
+  <rect x="40" y="118" width="380" height="132" fill="#f4f7fa" stroke="#c8d2dd" stroke-width="0.9"/>
+  <text x="62" y="240" font-size="9" fill="#7a8ba0">viga W460×74</text>
+
+  <!-- la junta -->
+  <line x1="230" y1="94" x2="230" y2="274" stroke="#c0392b" stroke-width="1.8" stroke-dasharray="7 4"/>
+  <text x="230" y="90" font-size="9" text-anchor="middle" fill="#c0392b" font-weight="bold">junta</text>
+
+  <!-- cubreplacas de ala -->
+  <rect x="110" y="100" width="240" height="10" fill="#eef2f7" stroke="#333" stroke-width="1.2"/>
+  <rect x="110" y="258" width="240" height="10" fill="#eef2f7" stroke="#333" stroke-width="1.2"/>
+  <g fill="#333">
+    <circle cx="130" cy="105" r="4"/><circle cx="158" cy="105" r="4"/><circle cx="186" cy="105" r="4"/><circle cx="214" cy="105" r="4"/>
+    <circle cx="246" cy="105" r="4"/><circle cx="274" cy="105" r="4"/><circle cx="302" cy="105" r="4"/><circle cx="330" cy="105" r="4"/>
+    <circle cx="130" cy="263" r="4"/><circle cx="158" cy="263" r="4"/><circle cx="186" cy="263" r="4"/><circle cx="214" cy="263" r="4"/>
+    <circle cx="246" cy="263" r="4"/><circle cx="274" cy="263" r="4"/><circle cx="302" cy="263" r="4"/><circle cx="330" cy="263" r="4"/>
+  </g>
+  <text x="108" y="62" font-size="9" fill="#333">cubreplaca PL {{t_cp:mm}}×{{b_cp:mm}} (A36)</text>
+  <text x="108" y="74" font-size="9" fill="#333">{{n_f}} Ø{{d_b:mm}} pretensados por lado ({{n_lin}} líneas × {{n_fil}} filas)</text>
+  <text x="420" y="286" font-size="9" text-anchor="end" fill="#333">cubreplaca PL {{t_cp:mm}}×{{b_cp:mm}}</text>
+
+  <!-- planchas y pernos del alma -->
+  <rect x="160" y="130" width="140" height="108" fill="#eef2f7" stroke="#333" stroke-width="1.2"/>
+  <text x="230" y="126" font-size="9" text-anchor="middle" fill="#333">{{n_wp}} PL {{t_wp:mm}}×{{d_wp:mm}} en el alma</text>
+  <g fill="#333">
+    <circle cx="196" cy="143.5" r="3.4"/><circle cx="196" cy="170.5" r="3.4"/><circle cx="196" cy="197.5" r="3.4"/><circle cx="196" cy="224.5" r="3.4"/>
+    <circle cx="264" cy="143.5" r="3.4"/><circle cx="264" cy="170.5" r="3.4"/><circle cx="264" cy="197.5" r="3.4"/><circle cx="264" cy="224.5" r="3.4"/>
+  </g>
+  <line x1="230" y1="290" x2="264" y2="290" stroke="#555" stroke-width="0.8" marker-start="url(#ea)" marker-end="url(#ea)"/>
+  <text x="247" y="302" font-size="8.5" text-anchor="middle" fill="#555">e = {{e_w:mm}}</text>
+
+  <!-- el par del momento y el corte -->
+  <line x1="358" y1="105" x2="416" y2="105" stroke="#c0392b" stroke-width="2.2" marker-end="url(#et)"/>
+  <text x="386" y="98" font-size="9.5" text-anchor="middle" fill="#c0392b" font-weight="bold">T = {{F_f:tonf}} tonf</text>
+  <line x1="102" y1="263" x2="44" y2="263" stroke="#1f6f4a" stroke-width="2.2" marker-end="url(#ec)"/>
+  <text x="73" y="280" font-size="9.5" text-anchor="middle" fill="#1f6f4a" font-weight="bold">C = {{F_f:tonf}} tonf</text>
+  <line x1="330" y1="160" x2="330" y2="208" stroke="#1f4e79" stroke-width="2" marker-end="url(#ev)"/>
+  <text x="338" y="188" font-size="9.5" fill="#1f4e79" font-weight="bold">V_u = {{V_u:tonf}} tonf</text>
+
+  <!-- el brazo del par -->
+  <line x1="88" y1="105" x2="88" y2="263" stroke="#555" stroke-width="0.8" marker-start="url(#ea)" marker-end="url(#ea)"/>
+  <text x="82" y="180" font-size="8.5" text-anchor="end" fill="#555">d − t_f</text>
+  <text x="82" y="191" font-size="8.5" text-anchor="end" fill="#555">= {{h_par:mm}}</text>
+  <text x="40" y="316" font-size="8.5" fill="#888">cotas en mm · el {{p_al*100}} % de I_x lo aportan las alas, así que mandarles todo el momento es conservador</text>
+
+  <!-- ── el mismo grupo de pernos, dos verificaciones ────────────────────── -->
+  <rect x="440" y="40" width="305" height="118" rx="6" fill="#f8fafc" stroke="#9bb0c6"/>
+  <text x="452" y="58" font-size="10" fill="#222" font-weight="bold">Los mismos {{n_f}} pernos, dos verificaciones</text>
+  <text x="452" y="78" font-size="9" fill="#333">Rotura por corte (Ec. J3-1)</text>
+  <text x="735" y="78" font-size="9" text-anchor="end" fill="#333">{{Rd_per:tonf}} tonf · {{u_per}}</text>
+  <text x="452" y="95" font-size="9" fill="#c0392b" font-weight="bold">Deslizamiento (Ec. J3-4) ← gobierna</text>
+  <text x="735" y="95" font-size="9" text-anchor="end" fill="#c0392b" font-weight="bold">{{Rd_des:tonf}} tonf · {{u_des}}</text>
+  <line x1="452" y1="106" x2="735" y2="106" stroke="#c8d2dd" stroke-width="1"/>
+  <text x="452" y="122" font-size="9" fill="#333">Por perno: φr_n rotura</text>
+  <text x="735" y="122" font-size="9" text-anchor="end" fill="#333">{{Rd_b1:tonf}} tonf</text>
+  <text x="452" y="138" font-size="9" fill="#333">Por perno: φr_n deslizamiento (T_b = {{T_b:kN}} kN)</text>
+  <text x="735" y="138" font-size="9" text-anchor="end" fill="#333">{{Rs_1:tonf}} tonf</text>
+  <text x="452" y="152" font-size="8.5" fill="#888">Pretensar no sube la resistencia última: agrega un estado límite.</text>
+
+  <!-- ── las tres salidas ────────────────────────────────────────────────── -->
+  <rect x="440" y="170" width="305" height="122" rx="6" fill="#fff6f4" stroke="#c0392b"/>
+  <text x="452" y="188" font-size="10" fill="#c0392b" font-weight="bold">Las salidas: pernos, superficie o planos de deslizamiento</text>
+  <text x="452" y="208" font-size="9" fill="#c0392b" font-weight="bold">6 pernos, Clase A (μ = {{mu_A}})</text>
+  <text x="735" y="208" font-size="9" text-anchor="end" fill="#c0392b" font-weight="bold">{{Rd_d6A:tonf}} tonf · {{u_d6A}} desliza</text>
+  <text x="452" y="226" font-size="9" fill="#333">{{n_f}} pernos, Clase A</text>
+  <text x="735" y="226" font-size="9" text-anchor="end" fill="#333">{{Rd_des:tonf}} tonf · {{u_des}}</text>
+  <text x="452" y="244" font-size="9" fill="#333">6 pernos, Clase B (μ = {{mu_B}}, chorreada)</text>
+  <text x="735" y="244" font-size="9" text-anchor="end" fill="#333">{{Rd_d6B:tonf}} tonf · {{u_d6B}}</text>
+  <text x="452" y="262" font-size="9" fill="#333">6 pernos, n_s = 2 (cubreplacas interiores)</text>
+  <text x="735" y="262" font-size="9" text-anchor="end" fill="#333">{{Rd_d6n2:tonf}} tonf · {{u_d6n2}}</text>
+  <text x="452" y="283" font-size="8.5" fill="#888">Con 6 pernos el empalme resiste ({{Rd_per*6/8:tonf}} tonf a la rotura) pero desliza.</text>
+
+  <!-- ── el resto de la cadena ───────────────────────────────────────────── -->
+  <rect x="40" y="326" width="705" height="86" rx="6" fill="#f8fafc" stroke="#9bb0c6"/>
+  <text x="52" y="344" font-size="10" fill="#222" font-weight="bold">El resto de la cadena — φR_n y uso</text>
+  <text x="52" y="362" font-size="9" fill="#333">Cubreplaca, fluencia (J4-1)</text>
+  <text x="378" y="362" font-size="9" text-anchor="end" fill="#333">{{Rd_cfl:tonf}} tonf · {{u_cfl}}</text>
+  <text x="52" y="379" font-size="9" fill="#333">Cubreplaca, rotura del área neta (J4-2)</text>
+  <text x="378" y="379" font-size="9" text-anchor="end" fill="#333">{{Rd_cro:tonf}} tonf · {{u_cro}}</text>
+  <text x="52" y="396" font-size="9" fill="#333">Rotura en bloque de la cubreplaca (J4-5)</text>
+  <text x="378" y="396" font-size="9" text-anchor="end" fill="#333">{{Rd_bc:tonf}} tonf · {{u_bc}}</text>
+  <text x="400" y="362" font-size="9" fill="#333">Planchas de alma, flexión (M_alma + V·e)</text>
+  <text x="733" y="362" font-size="9" text-anchor="end" fill="#333">{{Rd_wfx:tonf*m}} tonf·m · {{u_wfx}}</text>
+  <text x="400" y="379" font-size="9" fill="#333">Ala perforada de la viga (Ec. F13-1)</text>
+  <text x="733" y="379" font-size="9" text-anchor="end" fill="#333">{{Rd_m13:tonf*m}} tonf·m · {{u_m13}}</text>
+  <text x="400" y="396" font-size="9" fill="#333">Apoyo en la cubreplaca / en el ala (J3-6a/c)</text>
+  <text x="733" y="396" font-size="9" text-anchor="end" fill="#333">{{Rd_apc:tonf}} / {{Rd_apf:tonf}} tonf</text>
+
+  <!-- ── banda de valores: lo que la hoja concluye ───────────────────────── -->
+  <line x1="40" y1="428" x2="745" y2="428" stroke="#c8d2dd" stroke-width="1"/>
+  <text x="40" y="444" font-size="9" fill="#333">Demanda: M_u = {{M_u:tonf*m}} tonf·m → par F_f = {{F_f:tonf}} tonf con brazo d − t_f = {{h_par:mm}} mm · V_u = {{V_u:tonf}} tonf al alma</text>
+  <text x="40" y="461" font-size="9" fill="#c0392b" font-weight="bold">Gobierna el DESLIZAMIENTO (Ec. J3-4): φR_n = {{Rd_des:tonf}} tonf → uso {{u_des}}, contra {{u_per}} de la rotura de los mismos pernos</text>
+  <text x="40" y="478" font-size="9" fill="#333">La cubreplaca ({{A_gcp:cm^2}} cm²) es más chica que el ala ({{A_f:cm^2}} cm²) y pasa igual: la demanda son {{F_f:tonf}} tonf, no las {{Rd_ala:tonf}} que el ala desarrolla</text>
+</svg>

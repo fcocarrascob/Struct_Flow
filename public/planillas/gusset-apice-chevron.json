@@ -1,0 +1,1522 @@
+{
+  "version": 1,
+  "meta": {
+    "titulo": "Gusset del ápice de un paño en V invertida — diseño a capacidad (NCh2369 8.4.1 / 8.6.6 / 8.6.8)",
+    "ficha": "struct_pad/src/content/acero/ejemplo-gusset-apice-chevron.mdx",
+    "esperadoFalso": {
+      "v_wnote": "el atajo tabulado del User Note (0,62 t_p) queda 1,6 % del lado inseguro frente al cálculo explícito: es un hallazgo del ejemplo, no un defecto",
+      "v_plena": "a capacidad plena (T_ye) el área efectiva requerida supera el área BRUTA del tubo: es el contraste que justifica la vía de 8.4.1"
+    }
+  },
+  "regions": [
+    {
+      "id": "r000",
+      "kind": "text",
+      "x": 40,
+      "y": 32,
+      "src": "GUSSET DEL ÁPICE DE UN PAÑO EN V INVERTIDA — diseño a capacidad"
+    },
+    {
+      "id": "r001",
+      "kind": "text",
+      "x": 40,
+      "y": 80,
+      "src": "NCh2369:2025 cl. 8.4.1 / 8.6.6 / 8.6.8 + AISC 360-22 J4 · LRFD · A36"
+    },
+    {
+      "id": "r002",
+      "kind": "text",
+      "x": 40,
+      "y": 128,
+      "src": "Edita cualquier dato de entrada: toda la hoja se recalcula."
+    },
+    {
+      "id": "r003",
+      "kind": "text",
+      "x": 40,
+      "y": 176,
+      "src": "Rn_ nominal · Rd_ de diseño (ya incluye phi) · las comparaciones dan ✓/✗"
+    },
+    {
+      "id": "r004",
+      "kind": "text",
+      "x": 40,
+      "y": 240,
+      "src": "━━ DATOS · ACERO A36 ━━"
+    },
+    {
+      "id": "r005",
+      "kind": "math",
+      "x": 40,
+      "y": 288,
+      "src": "F_y := 2530 kgf/cm^2"
+    },
+    {
+      "id": "r006",
+      "kind": "math",
+      "x": 40,
+      "y": 336,
+      "src": "F_u := 4080 kgf/cm^2"
+    },
+    {
+      "id": "r007",
+      "kind": "math",
+      "x": 40,
+      "y": 384,
+      "src": "E := 2039000 kgf/cm^2"
+    },
+    {
+      "id": "r008",
+      "kind": "math",
+      "x": 40,
+      "y": 432,
+      "src": "R_y := 1.3"
+    },
+    {
+      "id": "r009",
+      "kind": "math",
+      "x": 40,
+      "y": 480,
+      "src": "F_ye := R_y*F_y = kgf/cm^2"
+    },
+    {
+      "id": "r010",
+      "kind": "text",
+      "x": 40,
+      "y": 544,
+      "src": "━━ DATOS · DIAGONAL [] 200x200x10 (cajón soldado) ━━"
+    },
+    {
+      "id": "r011",
+      "kind": "math",
+      "x": 40,
+      "y": 592,
+      "src": "A_g := 76.0 cm^2"
+    },
+    {
+      "id": "r012",
+      "kind": "math",
+      "x": 40,
+      "y": 640,
+      "src": "t_t := 1.0 cm"
+    },
+    {
+      "id": "r013",
+      "kind": "math",
+      "x": 40,
+      "y": 688,
+      "src": "B_t := 20.0 cm"
+    },
+    {
+      "id": "r014",
+      "kind": "math",
+      "x": 40,
+      "y": 736,
+      "src": "H_t := 20.0 cm"
+    },
+    {
+      "id": "r015",
+      "kind": "math",
+      "x": 40,
+      "y": 784,
+      "src": "esb_d := 72.8"
+    },
+    {
+      "id": "r016",
+      "kind": "math",
+      "x": 40,
+      "y": 832,
+      "src": "alfa := 45 deg"
+    },
+    {
+      "id": "r017",
+      "kind": "text",
+      "x": 40,
+      "y": 896,
+      "src": "━━ DATOS · ANÁLISIS Y SISTEMA ━━"
+    },
+    {
+      "id": "r018",
+      "kind": "math",
+      "x": 40,
+      "y": 944,
+      "src": "P_E := 36.0 tonf"
+    },
+    {
+      "id": "r019",
+      "kind": "math",
+      "x": 40,
+      "y": 992,
+      "src": "amp := 2.8"
+    },
+    {
+      "id": "r020",
+      "kind": "math",
+      "x": 40,
+      "y": 1040,
+      "src": "Q_cap := amp*P_E = tonf"
+    },
+    {
+      "id": "r021",
+      "kind": "text",
+      "x": 40,
+      "y": 1104,
+      "src": "━━ DATOS · GUSSET Y SOLDADURA ━━"
+    },
+    {
+      "id": "r022",
+      "kind": "math",
+      "x": 40,
+      "y": 1152,
+      "src": "t_g := 2.0 cm"
+    },
+    {
+      "id": "r023",
+      "kind": "math",
+      "x": 40,
+      "y": 1200,
+      "src": "R_yg := 1.3"
+    },
+    {
+      "id": "r024",
+      "kind": "math",
+      "x": 40,
+      "y": 1248,
+      "src": "F_EXX := 4920 kgf/cm^2"
+    },
+    {
+      "id": "r025",
+      "kind": "math",
+      "x": 40,
+      "y": 1296,
+      "src": "w_t := 0.8 cm"
+    },
+    {
+      "id": "r026",
+      "kind": "math",
+      "x": 40,
+      "y": 1344,
+      "src": "w_i := 1.3 cm"
+    },
+    {
+      "id": "r027",
+      "kind": "text",
+      "x": 40,
+      "y": 1408,
+      "src": "━━ DATOS · VIGA H 600x300x138,5 ━━"
+    },
+    {
+      "id": "r028",
+      "kind": "math",
+      "x": 40,
+      "y": 1456,
+      "src": "t_wv := 0.8 cm"
+    },
+    {
+      "id": "r029",
+      "kind": "math",
+      "x": 40,
+      "y": 1504,
+      "src": "b_fv := 30.0 cm"
+    },
+    {
+      "id": "r030",
+      "kind": "math",
+      "x": 40,
+      "y": 1552,
+      "src": "k_v := 3.0 cm"
+    },
+    {
+      "id": "r031",
+      "kind": "text",
+      "x": 40,
+      "y": 1616,
+      "src": "━━ 1 · CAPACIDADES ESPERADAS (8.3.1) ━━"
+    },
+    {
+      "id": "r032",
+      "kind": "math",
+      "x": 40,
+      "y": 1664,
+      "src": "T_ye := F_ye*A_g = tonf"
+    },
+    {
+      "id": "r033",
+      "kind": "math",
+      "x": 40,
+      "y": 1712,
+      "src": "F_e := pi^2*E/esb_d^2 = kgf/cm^2"
+    },
+    {
+      "id": "r034",
+      "kind": "program",
+      "x": 40,
+      "y": 1760,
+      "src": "F_cre :=\n    lim := 4.71*sqrt(E/F_ye)\n    if esb_d <= lim\n        return 0.658^(F_ye/F_e)*F_ye\n    return 0.877*F_e"
+    },
+    {
+      "id": "r035",
+      "kind": "math",
+      "x": 40,
+      "y": 1872,
+      "src": "P_ne := 1.14*F_cre*A_g = tonf"
+    },
+    {
+      "id": "r036",
+      "kind": "math",
+      "x": 40,
+      "y": 1920,
+      "src": "P_res := 0.30*P_ne = tonf"
+    },
+    {
+      "id": "r037",
+      "kind": "text",
+      "x": 40,
+      "y": 1984,
+      "src": "━━ 2 · DEMANDA DE LA CONEXIÓN (8.4.1: techo Y PISO) ━━"
+    },
+    {
+      "id": "r038",
+      "kind": "math",
+      "x": 40,
+      "y": 2032,
+      "src": "T_techo := min(T_ye, Q_cap) = tonf"
+    },
+    {
+      "id": "r039",
+      "kind": "math",
+      "x": 40,
+      "y": 2080,
+      "src": "T_piso := 0.50*T_ye = tonf"
+    },
+    {
+      "id": "r040",
+      "kind": "math",
+      "x": 40,
+      "y": 2128,
+      "src": "T_req := max(T_techo, T_piso) = tonf"
+    },
+    {
+      "id": "r041",
+      "kind": "math",
+      "x": 40,
+      "y": 2176,
+      "src": "C_techo := min(P_ne, Q_cap) = tonf"
+    },
+    {
+      "id": "r042",
+      "kind": "math",
+      "x": 40,
+      "y": 2224,
+      "src": "C_piso := 0.50*P_ne = tonf"
+    },
+    {
+      "id": "r043",
+      "kind": "math",
+      "x": 40,
+      "y": 2272,
+      "src": "C_req := max(C_techo, C_piso) = tonf"
+    },
+    {
+      "id": "r044",
+      "kind": "text",
+      "x": 40,
+      "y": 2320,
+      "src": "El piso de 8.4.1 gobierna la tracción: es 24 % más que el techo de 0,7R1."
+    },
+    {
+      "id": "v_piso",
+      "kind": "math",
+      "x": 40,
+      "y": 2368,
+      "src": "T_piso > T_techo ="
+    },
+    {
+      "id": "v_cpiso",
+      "kind": "math",
+      "x": 40,
+      "y": 2416,
+      "src": "C_techo > C_piso ="
+    },
+    {
+      "id": "r047",
+      "kind": "text",
+      "x": 40,
+      "y": 2480,
+      "src": "━━ 3 · CONEXIÓN AL TUBO — el bloque de corte fija el largo ━━"
+    },
+    {
+      "id": "r048",
+      "kind": "math",
+      "x": 40,
+      "y": 2528,
+      "src": "l_min := T_req/(0.75*0.6*F_y*4*t_t) = cm"
+    },
+    {
+      "id": "r049",
+      "kind": "math",
+      "x": 40,
+      "y": 2576,
+      "src": "l := 30.0 cm"
+    },
+    {
+      "id": "r050",
+      "kind": "math",
+      "x": 40,
+      "y": 2624,
+      "src": "A_gv := 4*l*t_t = cm^2"
+    },
+    {
+      "id": "r051",
+      "kind": "math",
+      "x": 40,
+      "y": 2672,
+      "src": "Rn_blo := min(0.6*F_u*A_gv, 0.6*F_y*A_gv) = tonf"
+    },
+    {
+      "id": "r052",
+      "kind": "math",
+      "x": 40,
+      "y": 2720,
+      "src": "Rd_blo := 0.75*Rn_blo = tonf"
+    },
+    {
+      "id": "v_lmin",
+      "kind": "math",
+      "x": 40,
+      "y": 2768,
+      "src": "l >= l_min ="
+    },
+    {
+      "id": "v_blo",
+      "kind": "math",
+      "x": 40,
+      "y": 2816,
+      "src": "Rd_blo >= T_req ="
+    },
+    {
+      "id": "r055",
+      "kind": "text",
+      "x": 40,
+      "y": 2864,
+      "src": "Retraso de corte — Tabla D3.1 caso 5 (cajón con gusset pasante por ranuras)"
+    },
+    {
+      "id": "r056",
+      "kind": "math",
+      "x": 40,
+      "y": 2912,
+      "src": "b_5 := B_t/2 = cm"
+    },
+    {
+      "id": "r057",
+      "kind": "math",
+      "x": 40,
+      "y": 2960,
+      "src": "x_b := b_5 - (2*b_5^2 + t_t*H_t - 2*t_t^2)/(2*H_t + 4*b_5 - 4*t_t) = cm"
+    },
+    {
+      "id": "r058",
+      "kind": "math",
+      "x": 40,
+      "y": 3008,
+      "src": "U := 1 - x_b/l ="
+    },
+    {
+      "id": "r059",
+      "kind": "math",
+      "x": 40,
+      "y": 3056,
+      "src": "w_r := t_g + 0.3 cm = cm"
+    },
+    {
+      "id": "r060",
+      "kind": "math",
+      "x": 40,
+      "y": 3104,
+      "src": "A_n := A_g - 2*w_r*t_t = cm^2"
+    },
+    {
+      "id": "r061",
+      "kind": "math",
+      "x": 40,
+      "y": 3152,
+      "src": "A_e := A_n*U = cm^2"
+    },
+    {
+      "id": "r062",
+      "kind": "math",
+      "x": 40,
+      "y": 3200,
+      "src": "Rd_rot := 0.75*F_u*A_e = tonf"
+    },
+    {
+      "id": "v_rot",
+      "kind": "math",
+      "x": 40,
+      "y": 3248,
+      "src": "Rd_rot >= T_req ="
+    },
+    {
+      "id": "r064",
+      "kind": "text",
+      "x": 40,
+      "y": 3296,
+      "src": "Soldadura de la diagonal: 4 filetes longitudinales, theta = 0 -> sin k_ds"
+    },
+    {
+      "id": "r065",
+      "kind": "math",
+      "x": 40,
+      "y": 3344,
+      "src": "gar := 0.707*w_t = cm"
+    },
+    {
+      "id": "r066",
+      "kind": "math",
+      "x": 40,
+      "y": 3392,
+      "src": "q_d := 0.75*0.6*F_EXX*4*gar = tonf/cm"
+    },
+    {
+      "id": "r067",
+      "kind": "math",
+      "x": 40,
+      "y": 3440,
+      "src": "Rd_sol := q_d*l = tonf"
+    },
+    {
+      "id": "v_sol",
+      "kind": "math",
+      "x": 40,
+      "y": 3488,
+      "src": "Rd_sol >= T_req ="
+    },
+    {
+      "id": "r069",
+      "kind": "text",
+      "x": 40,
+      "y": 3536,
+      "src": "CONTRASTE: si se diseñara a capacidad PLENA (T_ye), la sección neta es imposible"
+    },
+    {
+      "id": "r070",
+      "kind": "math",
+      "x": 40,
+      "y": 3584,
+      "src": "A_ereq := T_ye/(0.75*F_u) = cm^2"
+    },
+    {
+      "id": "r071",
+      "kind": "math",
+      "x": 40,
+      "y": 3632,
+      "src": "razon := F_ye/(0.75*F_u) ="
+    },
+    {
+      "id": "v_plena",
+      "kind": "math",
+      "x": 40,
+      "y": 3680,
+      "src": "A_ereq <= A_g ="
+    },
+    {
+      "id": "r073",
+      "kind": "text",
+      "x": 40,
+      "y": 3744,
+      "src": "━━ 4 · GEOMETRÍA — el canto del tubo fija la holgura, no la cláusula ━━"
+    },
+    {
+      "id": "r074",
+      "kind": "math",
+      "x": 40,
+      "y": 3792,
+      "src": "gap := 3.0 cm"
+    },
+    {
+      "id": "r075",
+      "kind": "math",
+      "x": 40,
+      "y": 3840,
+      "src": "s_geom := (gap + (H_t/2)*sin(alfa))/sin(alfa) = cm"
+    },
+    {
+      "id": "r076",
+      "kind": "math",
+      "x": 40,
+      "y": 3888,
+      "src": "s_e := 15.0 cm"
+    },
+    {
+      "id": "r077",
+      "kind": "math",
+      "x": 40,
+      "y": 3936,
+      "src": "hol := 0.5*s_e = cm"
+    },
+    {
+      "id": "r078",
+      "kind": "math",
+      "x": 40,
+      "y": 3984,
+      "src": "hol_req := 2*t_g = cm"
+    },
+    {
+      "id": "v_sgeom",
+      "kind": "math",
+      "x": 40,
+      "y": 4032,
+      "src": "s_e >= s_geom ="
+    },
+    {
+      "id": "v_hol",
+      "kind": "math",
+      "x": 40,
+      "y": 4080,
+      "src": "hol >= hol_req ="
+    },
+    {
+      "id": "r081",
+      "kind": "text",
+      "x": 40,
+      "y": 4144,
+      "src": "━━ 5 · SECCIÓN DE WHITMORE (30°) Y EL TRASLAPE DE LAS DOS BANDAS ━━"
+    },
+    {
+      "id": "r082",
+      "kind": "math",
+      "x": 40,
+      "y": 4192,
+      "src": "b_w := 2*l*tan(30 deg) = cm"
+    },
+    {
+      "id": "r083",
+      "kind": "math",
+      "x": 40,
+      "y": 4240,
+      "src": "A_w := b_w*t_g = cm^2"
+    },
+    {
+      "id": "r084",
+      "kind": "math",
+      "x": 40,
+      "y": 4288,
+      "src": "Rd_flu := 0.90*F_y*A_w = tonf"
+    },
+    {
+      "id": "r085",
+      "kind": "math",
+      "x": 40,
+      "y": 4336,
+      "src": "Rd_rog := 0.75*F_u*A_w = tonf"
+    },
+    {
+      "id": "v_flu",
+      "kind": "math",
+      "x": 40,
+      "y": 4384,
+      "src": "Rd_flu >= T_req ="
+    },
+    {
+      "id": "v_rog",
+      "kind": "math",
+      "x": 40,
+      "y": 4432,
+      "src": "Rd_rog >= T_req ="
+    },
+    {
+      "id": "r088",
+      "kind": "math",
+      "x": 40,
+      "y": 4480,
+      "src": "huella := b_w*cos(alfa) = cm"
+    },
+    {
+      "id": "r089",
+      "kind": "math",
+      "x": 40,
+      "y": 4528,
+      "src": "sep := 2*s_e*cos(alfa) = cm"
+    },
+    {
+      "id": "r090",
+      "kind": "math",
+      "x": 40,
+      "y": 4576,
+      "src": "trasl := huella - sep = cm"
+    },
+    {
+      "id": "r091",
+      "kind": "math",
+      "x": 40,
+      "y": 4624,
+      "src": "hue_tot := sep + huella = cm"
+    },
+    {
+      "id": "v_trasl",
+      "kind": "math",
+      "x": 40,
+      "y": 4672,
+      "src": "trasl > 0 cm ="
+    },
+    {
+      "id": "r093",
+      "kind": "text",
+      "x": 40,
+      "y": 4736,
+      "src": "━━ 6 · PANDEO DEL GUSSET (J4.4) — r no depende del ancho ━━",
+      "pageBreak": true
+    },
+    {
+      "id": "r094",
+      "kind": "math",
+      "x": 40,
+      "y": 4784,
+      "src": "r_b := t_g/sqrt(12) = cm"
+    },
+    {
+      "id": "r095",
+      "kind": "math",
+      "x": 40,
+      "y": 4832,
+      "src": "umb := 25*r_b = cm"
+    },
+    {
+      "id": "r096",
+      "kind": "math",
+      "x": 40,
+      "y": 4880,
+      "src": "L_p := s_e = cm"
+    },
+    {
+      "id": "v_umb",
+      "kind": "math",
+      "x": 40,
+      "y": 4928,
+      "src": "L_p > umb ="
+    },
+    {
+      "id": "r098",
+      "kind": "math",
+      "x": 40,
+      "y": 4976,
+      "src": "K_g := 1.2"
+    },
+    {
+      "id": "r099",
+      "kind": "math",
+      "x": 40,
+      "y": 5024,
+      "src": "esb_g := K_g*L_p/r_b ="
+    },
+    {
+      "id": "r100",
+      "kind": "math",
+      "x": 40,
+      "y": 5072,
+      "src": "esb_25 := 25"
+    },
+    {
+      "id": "r101",
+      "kind": "program",
+      "x": 40,
+      "y": 5120,
+      "src": "F_ng :=\n    if esb_g <= esb_25\n        return F_y\n    lim2 := 4.71*sqrt(E/F_y)\n    F_eg := pi^2*E/esb_g^2\n    if esb_g <= lim2\n        return 0.658^(F_y/F_eg)*F_y\n    return 0.877*F_eg"
+    },
+    {
+      "id": "r102",
+      "kind": "math",
+      "x": 40,
+      "y": 5296,
+      "src": "Rd_pan := 0.90*F_ng*A_w = tonf"
+    },
+    {
+      "id": "v_pan",
+      "kind": "math",
+      "x": 40,
+      "y": 5344,
+      "src": "Rd_pan >= C_req ="
+    },
+    {
+      "id": "r104",
+      "kind": "text",
+      "x": 40,
+      "y": 5408,
+      "src": "━━ 7 · INTERFAZ GUSSET - ALA INFERIOR DE LA VIGA ━━",
+      "pageBreak": true
+    },
+    {
+      "id": "r105",
+      "kind": "text",
+      "x": 40,
+      "y": 5456,
+      "src": "Estado A = desbalance de 8.6.6 · Estado B = amplificado simétrico"
+    },
+    {
+      "id": "r106",
+      "kind": "math",
+      "x": 40,
+      "y": 5504,
+      "src": "H_A := (T_req + P_res)*sin(alfa) = tonf"
+    },
+    {
+      "id": "r107",
+      "kind": "math",
+      "x": 40,
+      "y": 5552,
+      "src": "V_A := (T_req - P_res)*sin(alfa) = tonf"
+    },
+    {
+      "id": "r108",
+      "kind": "math",
+      "x": 40,
+      "y": 5600,
+      "src": "H_B := 2*Q_cap*sin(alfa) = tonf"
+    },
+    {
+      "id": "r109",
+      "kind": "math",
+      "x": 40,
+      "y": 5648,
+      "src": "R_A := sqrt(H_A^2 + V_A^2) = tonf"
+    },
+    {
+      "id": "r110",
+      "kind": "text",
+      "x": 40,
+      "y": 5696,
+      "src": "7a · La pierna la fija la PLANCHA, no la carga (AISC 341-22 F2.6c.4)"
+    },
+    {
+      "id": "r111",
+      "kind": "math",
+      "x": 40,
+      "y": 5744,
+      "src": "q_req := 0.6*R_yg*F_y*t_g = tonf/cm"
+    },
+    {
+      "id": "r112",
+      "kind": "math",
+      "x": 40,
+      "y": 5792,
+      "src": "q_cm := 2*0.75*0.6*F_EXX*0.707 = tonf/cm^2"
+    },
+    {
+      "id": "r113",
+      "kind": "math",
+      "x": 40,
+      "y": 5840,
+      "src": "w_des := q_req/q_cm = cm"
+    },
+    {
+      "id": "r114",
+      "kind": "math",
+      "x": 40,
+      "y": 5888,
+      "src": "w_note := 0.62*t_g = cm"
+    },
+    {
+      "id": "r115",
+      "kind": "math",
+      "x": 40,
+      "y": 5936,
+      "src": "w_max := t_g - 0.2 cm = cm"
+    },
+    {
+      "id": "v_wdes",
+      "kind": "math",
+      "x": 40,
+      "y": 5984,
+      "src": "w_i >= w_des ="
+    },
+    {
+      "id": "v_wmax",
+      "kind": "math",
+      "x": 40,
+      "y": 6032,
+      "src": "w_i <= w_max ="
+    },
+    {
+      "id": "v_wnote",
+      "kind": "math",
+      "x": 40,
+      "y": 6080,
+      "src": "w_note >= w_des ="
+    },
+    {
+      "id": "r119",
+      "kind": "text",
+      "x": 40,
+      "y": 6128,
+      "src": "7b · Siete largos mínimos compiten; manda el mayor"
+    },
+    {
+      "id": "r120",
+      "kind": "math",
+      "x": 40,
+      "y": 6176,
+      "src": "Rv_cm := 1.00*0.6*F_y*t_g = tonf/cm"
+    },
+    {
+      "id": "r121",
+      "kind": "math",
+      "x": 40,
+      "y": 6224,
+      "src": "Rn_cm := 0.90*F_y*t_g = tonf/cm"
+    },
+    {
+      "id": "r122",
+      "kind": "math",
+      "x": 40,
+      "y": 6272,
+      "src": "L_cor := H_B/Rv_cm = cm"
+    },
+    {
+      "id": "r123",
+      "kind": "math",
+      "x": 40,
+      "y": 6320,
+      "src": "L_nor := V_A/Rn_cm = cm"
+    },
+    {
+      "id": "r124",
+      "kind": "math",
+      "x": 40,
+      "y": 6368,
+      "src": "L_iA := sqrt((H_A/Rv_cm)^2 + (V_A/Rn_cm)^2) = cm"
+    },
+    {
+      "id": "r125",
+      "kind": "math",
+      "x": 40,
+      "y": 6432,
+      "src": "L_iB := sqrt((H_B/Rv_cm)^2) = cm"
+    },
+    {
+      "id": "r126",
+      "kind": "math",
+      "x": 40,
+      "y": 6496,
+      "src": "q_di := q_cm*w_i = tonf/cm"
+    },
+    {
+      "id": "r127",
+      "kind": "math",
+      "x": 40,
+      "y": 6544,
+      "src": "k_ds := 1 + 0.5*(V_A/R_A)^1.5 ="
+    },
+    {
+      "id": "r128",
+      "kind": "math",
+      "x": 40,
+      "y": 6592,
+      "src": "L_sA := R_A/(q_di*k_ds) = cm"
+    },
+    {
+      "id": "r129",
+      "kind": "math",
+      "x": 40,
+      "y": 6640,
+      "src": "L_sB := H_B/q_di = cm"
+    },
+    {
+      "id": "r130",
+      "kind": "math",
+      "x": 40,
+      "y": 6688,
+      "src": "L_gob := max(L_cor, L_nor, L_iA, L_iB, L_sA, L_sB, hue_tot) = cm"
+    },
+    {
+      "id": "r131",
+      "kind": "math",
+      "x": 40,
+      "y": 6736,
+      "src": "L_i := 50.0 cm"
+    },
+    {
+      "id": "v_lgob",
+      "kind": "math",
+      "x": 40,
+      "y": 6784,
+      "src": "L_i >= L_gob ="
+    },
+    {
+      "id": "r133",
+      "kind": "text",
+      "x": 40,
+      "y": 6832,
+      "src": "7c · Verificación con el largo adoptado"
+    },
+    {
+      "id": "r134",
+      "kind": "math",
+      "x": 40,
+      "y": 6880,
+      "src": "Rd_cor := Rv_cm*L_i = tonf"
+    },
+    {
+      "id": "r135",
+      "kind": "math",
+      "x": 40,
+      "y": 6928,
+      "src": "Rd_nor := Rn_cm*L_i = tonf"
+    },
+    {
+      "id": "r136",
+      "kind": "math",
+      "x": 40,
+      "y": 6976,
+      "src": "int_A := (H_A/Rd_cor)^2 + (V_A/Rd_nor)^2 ="
+    },
+    {
+      "id": "r137",
+      "kind": "math",
+      "x": 40,
+      "y": 7024,
+      "src": "int_B := (H_B/Rd_cor)^2 ="
+    },
+    {
+      "id": "v_cor",
+      "kind": "math",
+      "x": 40,
+      "y": 7072,
+      "src": "Rd_cor >= H_B ="
+    },
+    {
+      "id": "v_nor",
+      "kind": "math",
+      "x": 40,
+      "y": 7120,
+      "src": "Rd_nor >= V_A ="
+    },
+    {
+      "id": "v_intA",
+      "kind": "math",
+      "x": 40,
+      "y": 7168,
+      "src": "int_A <= 1 ="
+    },
+    {
+      "id": "v_intB",
+      "kind": "math",
+      "x": 40,
+      "y": 7216,
+      "src": "int_B <= 1 ="
+    },
+    {
+      "id": "r142",
+      "kind": "text",
+      "x": 40,
+      "y": 7280,
+      "src": "━━ 8 · LA VIGA QUE RECIBE LA CARGA (J10) ━━"
+    },
+    {
+      "id": "r143",
+      "kind": "math",
+      "x": 40,
+      "y": 7328,
+      "src": "exe := 0.15*b_fv = cm"
+    },
+    {
+      "id": "v_j101",
+      "kind": "math",
+      "x": 40,
+      "y": 7376,
+      "src": "t_g < exe ="
+    },
+    {
+      "id": "r145",
+      "kind": "math",
+      "x": 40,
+      "y": 7424,
+      "src": "Rd_j102 := 1.00*F_y*t_wv*(5*k_v + L_i) = tonf"
+    },
+    {
+      "id": "v_j102",
+      "kind": "math",
+      "x": 40,
+      "y": 7472,
+      "src": "Rd_j102 >= V_A ="
+    },
+    {
+      "id": "r147",
+      "kind": "text",
+      "x": 40,
+      "y": 7536,
+      "src": "━━ 9 · FACTORES DE USO ━━"
+    },
+    {
+      "id": "r148",
+      "kind": "math",
+      "x": 40,
+      "y": 7584,
+      "src": "u_rot := T_req/Rd_rot ="
+    },
+    {
+      "id": "r149",
+      "kind": "math",
+      "x": 40,
+      "y": 7632,
+      "src": "u_blo := T_req/Rd_blo ="
+    },
+    {
+      "id": "r150",
+      "kind": "math",
+      "x": 40,
+      "y": 7680,
+      "src": "u_sol := T_req/Rd_sol ="
+    },
+    {
+      "id": "r151",
+      "kind": "math",
+      "x": 40,
+      "y": 7728,
+      "src": "u_flu := T_req/Rd_flu ="
+    },
+    {
+      "id": "r152",
+      "kind": "math",
+      "x": 40,
+      "y": 7776,
+      "src": "u_pan := C_req/Rd_pan ="
+    },
+    {
+      "id": "r153",
+      "kind": "math",
+      "x": 40,
+      "y": 7824,
+      "src": "u_cor := H_B/Rd_cor ="
+    },
+    {
+      "id": "r154",
+      "kind": "math",
+      "x": 40,
+      "y": 7872,
+      "src": "u_max := max(u_rot, u_blo, u_sol, u_flu, u_pan, u_cor) ="
+    },
+    {
+      "id": "r155",
+      "kind": "text",
+      "x": 40,
+      "y": 8320,
+      "src": "━━ 10 · CONTRASTE CON EL POST — cada capacidad publicada, contra la calculada ━━"
+    },
+    {
+      "id": "r156",
+      "kind": "text",
+      "x": 40,
+      "y": 8368,
+      "src": "Tolerancia: media unidad del último dígito publicado. Si cambias un dato de entrada, estos contrastes dejarán de cumplirse: comparan contra los números impresos en el post."
+    },
+    {
+      "id": "c_fye",
+      "kind": "math",
+      "x": 40,
+      "y": 8416,
+      "src": "abs(F_ye - 3289 kgf/cm^2) < 0.5 kgf/cm^2 ="
+    },
+    {
+      "id": "c_tye",
+      "kind": "math",
+      "x": 40,
+      "y": 8464,
+      "src": "abs(T_ye - 249.96 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_fe",
+      "kind": "math",
+      "x": 40,
+      "y": 8512,
+      "src": "abs(F_e - 3797 kgf/cm^2) < 0.5 kgf/cm^2 ="
+    },
+    {
+      "id": "c_fcre",
+      "kind": "math",
+      "x": 40,
+      "y": 8560,
+      "src": "abs(F_cre - 2288.8 kgf/cm^2) < 0.05 kgf/cm^2 ="
+    },
+    {
+      "id": "c_pne",
+      "kind": "math",
+      "x": 40,
+      "y": 8608,
+      "src": "abs(P_ne - 198.30 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_pres",
+      "kind": "math",
+      "x": 40,
+      "y": 8656,
+      "src": "abs(P_res - 59.49 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_qcap",
+      "kind": "math",
+      "x": 40,
+      "y": 8704,
+      "src": "abs(Q_cap - 100.80 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_treq",
+      "kind": "math",
+      "x": 40,
+      "y": 8752,
+      "src": "abs(T_req - 124.98 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_cpiso",
+      "kind": "math",
+      "x": 40,
+      "y": 8800,
+      "src": "abs(C_piso - 99.15 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_creq",
+      "kind": "math",
+      "x": 40,
+      "y": 8848,
+      "src": "abs(C_req - 100.80 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_lmin",
+      "kind": "math",
+      "x": 40,
+      "y": 8896,
+      "src": "abs(l_min - 27.44 cm) < 0.005 cm ="
+    },
+    {
+      "id": "c_blo",
+      "kind": "math",
+      "x": 40,
+      "y": 8944,
+      "src": "abs(Rd_blo - 136.62 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_xb",
+      "kind": "math",
+      "x": 40,
+      "y": 8992,
+      "src": "abs(x_b - 7.13 cm) < 0.005 cm ="
+    },
+    {
+      "id": "c_u",
+      "kind": "math",
+      "x": 40,
+      "y": 9040,
+      "src": "abs(U - 0.762) < 0.0005 ="
+    },
+    {
+      "id": "c_an",
+      "kind": "math",
+      "x": 40,
+      "y": 9088,
+      "src": "abs(A_n - 71.40 cm^2) < 0.005 cm^2 ="
+    },
+    {
+      "id": "c_ae",
+      "kind": "math",
+      "x": 40,
+      "y": 9136,
+      "src": "abs(A_e - 54.43 cm^2) < 0.005 cm^2 ="
+    },
+    {
+      "id": "c_rot",
+      "kind": "math",
+      "x": 40,
+      "y": 9184,
+      "src": "abs(Rd_rot - 166.55 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_sol",
+      "kind": "math",
+      "x": 40,
+      "y": 9232,
+      "src": "abs(Rd_sol - 150.27 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_aereq",
+      "kind": "math",
+      "x": 40,
+      "y": 9280,
+      "src": "abs(A_ereq - 81.69 cm^2) < 0.005 cm^2 ="
+    },
+    {
+      "id": "c_razon",
+      "kind": "math",
+      "x": 40,
+      "y": 9328,
+      "src": "abs(razon - 1.075) < 0.0005 ="
+    },
+    {
+      "id": "c_u84",
+      "kind": "math",
+      "x": 40,
+      "y": 9376,
+      "src": "abs(T_req/(0.75*F_u*A_g) - 0.537) < 0.0005 ="
+    },
+    {
+      "id": "c_sgeom",
+      "kind": "math",
+      "x": 40,
+      "y": 9424,
+      "src": "abs(s_geom - 14.24 cm) < 0.005 cm ="
+    },
+    {
+      "id": "c_hol",
+      "kind": "math",
+      "x": 40,
+      "y": 9472,
+      "src": "abs(hol - 7.50 cm) < 0.005 cm ="
+    },
+    {
+      "id": "c_holreq",
+      "kind": "math",
+      "x": 40,
+      "y": 9520,
+      "src": "abs(hol_req - 4.00 cm) < 0.005 cm ="
+    },
+    {
+      "id": "c_bw",
+      "kind": "math",
+      "x": 40,
+      "y": 9568,
+      "src": "abs(b_w - 34.64 cm) < 0.005 cm ="
+    },
+    {
+      "id": "c_aw",
+      "kind": "math",
+      "x": 40,
+      "y": 9616,
+      "src": "abs(A_w - 69.28 cm^2) < 0.005 cm^2 ="
+    },
+    {
+      "id": "c_flu",
+      "kind": "math",
+      "x": 40,
+      "y": 9664,
+      "src": "abs(Rd_flu - 157.76 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_rog",
+      "kind": "math",
+      "x": 40,
+      "y": 9712,
+      "src": "abs(Rd_rog - 212.00 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_hue",
+      "kind": "math",
+      "x": 40,
+      "y": 9760,
+      "src": "abs(huella - 24.49 cm) < 0.005 cm ="
+    },
+    {
+      "id": "c_sep",
+      "kind": "math",
+      "x": 40,
+      "y": 9808,
+      "src": "abs(sep - 21.21 cm) < 0.005 cm ="
+    },
+    {
+      "id": "c_trasl",
+      "kind": "math",
+      "x": 40,
+      "y": 9856,
+      "src": "abs(trasl - 3.28 cm) < 0.005 cm ="
+    },
+    {
+      "id": "c_rb",
+      "kind": "math",
+      "x": 40,
+      "y": 9904,
+      "src": "abs(r_b - 0.577 cm) < 0.0005 cm ="
+    },
+    {
+      "id": "c_umb",
+      "kind": "math",
+      "x": 40,
+      "y": 9952,
+      "src": "abs(umb - 14.43 cm) < 0.005 cm ="
+    },
+    {
+      "id": "c_esbg",
+      "kind": "math",
+      "x": 40,
+      "y": 10000,
+      "src": "abs(esb_g - 31.2) < 0.05 ="
+    },
+    {
+      "id": "c_pan",
+      "kind": "math",
+      "x": 40,
+      "y": 10048,
+      "src": "abs(Rd_pan - 149.89 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_ha",
+      "kind": "math",
+      "x": 40,
+      "y": 10096,
+      "src": "abs(H_A - 130.44 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_va",
+      "kind": "math",
+      "x": 40,
+      "y": 10144,
+      "src": "abs(V_A - 46.31 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_hb",
+      "kind": "math",
+      "x": 40,
+      "y": 10192,
+      "src": "abs(H_B - 142.55 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_ra",
+      "kind": "math",
+      "x": 40,
+      "y": 10240,
+      "src": "abs(R_A - 138.42 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_qreq",
+      "kind": "math",
+      "x": 40,
+      "y": 10288,
+      "src": "abs(q_req - 3.947 tonf/cm) < 0.0005 tonf/cm ="
+    },
+    {
+      "id": "c_wdes",
+      "kind": "math",
+      "x": 40,
+      "y": 10336,
+      "src": "abs(w_des - 12.61 mm) < 0.005 mm ="
+    },
+    {
+      "id": "c_wnote",
+      "kind": "math",
+      "x": 40,
+      "y": 10384,
+      "src": "abs(w_note - 12.40 mm) < 0.005 mm ="
+    },
+    {
+      "id": "c_wmax",
+      "kind": "math",
+      "x": 40,
+      "y": 10432,
+      "src": "abs(w_max - 18 mm) < 0.5 mm ="
+    },
+    {
+      "id": "c_lcor",
+      "kind": "math",
+      "x": 40,
+      "y": 10480,
+      "src": "abs(L_cor - 46.95 cm) < 0.005 cm ="
+    },
+    {
+      "id": "c_huetot",
+      "kind": "math",
+      "x": 40,
+      "y": 10528,
+      "src": "abs(hue_tot - 45.71 cm) < 0.005 cm ="
+    },
+    {
+      "id": "c_lia",
+      "kind": "math",
+      "x": 40,
+      "y": 10576,
+      "src": "abs(L_iA - 44.15 cm) < 0.005 cm ="
+    },
+    {
+      "id": "c_lsb",
+      "kind": "math",
+      "x": 40,
+      "y": 10624,
+      "src": "abs(L_sB - 35.03 cm) < 0.005 cm ="
+    },
+    {
+      "id": "c_kds",
+      "kind": "math",
+      "x": 40,
+      "y": 10672,
+      "src": "abs(k_ds - 1.097) < 0.0005 ="
+    },
+    {
+      "id": "c_lsa",
+      "kind": "math",
+      "x": 40,
+      "y": 10720,
+      "src": "abs(L_sA - 31.01 cm) < 0.005 cm ="
+    },
+    {
+      "id": "c_lnor",
+      "kind": "math",
+      "x": 40,
+      "y": 10768,
+      "src": "abs(L_nor - 10.17 cm) < 0.005 cm ="
+    },
+    {
+      "id": "c_rdcor",
+      "kind": "math",
+      "x": 40,
+      "y": 10816,
+      "src": "abs(Rd_cor - 151.80 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_rdnor",
+      "kind": "math",
+      "x": 40,
+      "y": 10864,
+      "src": "abs(Rd_nor - 227.70 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_inta",
+      "kind": "math",
+      "x": 40,
+      "y": 10912,
+      "src": "abs(int_A - 0.780) < 0.0005 ="
+    },
+    {
+      "id": "c_intb",
+      "kind": "math",
+      "x": 40,
+      "y": 10960,
+      "src": "abs(int_B - 0.882) < 0.0005 ="
+    },
+    {
+      "id": "c_exe",
+      "kind": "math",
+      "x": 40,
+      "y": 11008,
+      "src": "abs(exe - 4.50 cm) < 0.005 cm ="
+    },
+    {
+      "id": "c_j102",
+      "kind": "math",
+      "x": 40,
+      "y": 11056,
+      "src": "abs(Rd_j102 - 131.56 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_umax",
+      "kind": "math",
+      "x": 40,
+      "y": 11104,
+      "src": "abs(u_max - 0.939) < 0.0005 ="
+    },
+    {
+      "id": "r_esq",
+      "kind": "image",
+      "x": 40,
+      "y": 7920,
+      "src": "/esquemas/gusset-apice-chevron.svg",
+      "w": 600,
+      "h": 360
+    }
+  ]
+}

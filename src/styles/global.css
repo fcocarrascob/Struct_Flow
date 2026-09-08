@@ -1,0 +1,128 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --color-ink: #1a1a1a;
+  --color-muted: #6b7280;
+  --color-accent: #2563eb;
+  --color-surface: #f9fafb;
+  --color-border: #e5e7eb;
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Override KaTeX font size to match body text */
+.katex {
+  font-size: 1em;
+}
+
+/* ── Canvas: documento de impresión (memoria de cálculo) ──────────────────────
+   La planilla del canvas se refluye a un documento lineal limpio. En pantalla se
+   oculta; al imprimir (o "Guardar como PDF") se oculta la UI y se muestra solo el
+   documento. Ver src/components/canvas/WorksheetPrint.tsx.
+
+   Ojo con la estructura: los estilos del documento van FUERA de `@media print`,
+   y el media query solo decide quién se ve. Es a propósito — `usePaginacion`
+   mide este documento en pantalla para anunciar los cortes de página, y dentro
+   de un `@media print` las reglas no aplicarían ahí: mediría un documento sin
+   estilar y anunciaría cortes falsos. */
+@page {
+  size: A4;
+  margin: 15mm;
+}
+.worksheet-print {
+  display: none;
+  color: #1a1a1a;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11pt;
+  line-height: 1.5;
+}
+@media print {
+  /* WorksheetPrint se monta como portal en <body>; ocultamos todo lo demás. */
+  body > :not(.worksheet-print) {
+    display: none !important;
+  }
+  .worksheet-print {
+    display: block;
+  }
+}
+.worksheet-print .wp-header {
+  border-bottom: 2px solid #1a1a1a;
+  padding-bottom: 0.4rem;
+  margin-bottom: 1rem;
+}
+.worksheet-print .wp-header h1 {
+  font-size: 15pt;
+  font-weight: 700;
+  margin: 0;
+}
+.worksheet-print .wp-meta {
+  font-size: 9pt;
+  color: #6b7280;
+  margin: 0.2rem 0 0;
+}
+.worksheet-print .wp-h2 {
+  font-size: 11.5pt;
+  font-weight: 700;
+  color: #1a1a1a;
+  border-bottom: 1px solid #d1d5db;
+  margin: 1.1rem 0 0.5rem;
+  padding-bottom: 0.15rem;
+  break-after: avoid;
+}
+.worksheet-print .wp-label {
+  font-size: 9.5pt;
+  color: #4b5563;
+  margin: 0.5rem 0 0.15rem;
+}
+.worksheet-print .wp-eq {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.25rem 0;
+  break-inside: avoid;
+}
+.worksheet-print .wp-raw {
+  font-family: 'JetBrains Mono', monospace;
+}
+.worksheet-print .wp-fig {
+  margin: 0.6rem 0;
+  break-inside: avoid;
+}
+/* El ancho en px de la hoja se respeta, pero nunca desborda el papel. */
+.worksheet-print .wp-fig img,
+.worksheet-print .wp-fig svg {
+  max-width: 100%;
+  height: auto;
+}
+/* Salto de página forzado por el autor (Region.pageBreak). */
+.worksheet-print .wp-break {
+  break-before: page;
+}
+.worksheet-print .wp-ok {
+  color: #15803d;
+  font-weight: 700;
+}
+.worksheet-print .wp-no {
+  color: #b91c1c;
+  font-weight: 700;
+}
+.worksheet-print .wp-err {
+  color: #b91c1c;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5pt;
+}
+.worksheet-print .wp-footer {
+  margin-top: 1.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #d1d5db;
+  font-size: 8.5pt;
+  color: #6b7280;
+}

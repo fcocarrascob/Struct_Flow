@@ -1,0 +1,797 @@
+{
+  "version": 1,
+  "meta": {
+    "titulo": "Diagonales y puntal del galpón del altiplano — NCh2369:2025 8.6.3 / 8.8.4 / 12.2.2 + AISC 360-22",
+    "ficha": "struct_pad/src/content/acero/ejemplo-diagonal-longitudinal-galpon.mdx",
+    "esperadoFalso": {
+      "c_local_muro": "ES EL HALLAZGO DEL POST: la diagonal de muro de 100x100x4 pasa la esbeltez global (95,6 % del limite) y falla el pandeo local sismico por 22 %. Se resuelve con la iteracion a 5 mm (§6) o por la exencion (§5), que aca SI abre.",
+      "c_puntal_a572": "Deliberado: muestra que cambiar el A36 por un A572 Gr. 50 —un acero MEJOR— deja al puntal fuera del lambda_md, porque el limite de la Tabla 9 va con Ry*Fy en el denominador. Con el A36 del proyecto el puntal SI cumple (ver c_local_puntal)."
+    }
+  },
+  "regions": [
+    {
+      "id": "r-01",
+      "kind": "text",
+      "x": 40,
+      "y": 40,
+      "src": "━━ DIAGONALES Y PUNTAL DEL GALPÓN DEL ALTIPLANO ━━"
+    },
+    {
+      "id": "r-02",
+      "kind": "text",
+      "x": 40,
+      "y": 86,
+      "src": "Cajones soldados por planchas · NCh2369:2025 8.6.3, 8.8.4, 12.2.2 y Tabla 9 · AISC 360-22 Caps. B, D y E"
+    },
+    {
+      "id": "r-03",
+      "kind": "text",
+      "x": 40,
+      "y": 132,
+      "src": "━━ 1. MATERIAL — A36 EN PLANCHA ━━"
+    },
+    {
+      "id": "r-04",
+      "kind": "text",
+      "x": 40,
+      "y": 178,
+      "src": "R_y = 1,3 sale de AISC 341-22 Tabla A3.2, fila «Plates, Strips, and Sheets», por remisión de NCh2369 8.3.3"
+    },
+    {
+      "id": "r-05",
+      "kind": "math",
+      "x": 40,
+      "y": 224,
+      "src": "F_y := 250 MPa"
+    },
+    {
+      "id": "r-06",
+      "kind": "math",
+      "x": 40,
+      "y": 270,
+      "src": "E_ac := 200000 MPa"
+    },
+    {
+      "id": "r-07",
+      "kind": "math",
+      "x": 40,
+      "y": 316,
+      "src": "R_y := 1.3"
+    },
+    {
+      "id": "r-08",
+      "kind": "math",
+      "x": 40,
+      "y": 362,
+      "src": "R_yF_y := R_y*F_y = MPa"
+    },
+    {
+      "id": "r-09",
+      "kind": "math",
+      "x": 40,
+      "y": 408,
+      "src": "phi_c := 0.90"
+    },
+    {
+      "id": "r-10",
+      "kind": "math",
+      "x": 40,
+      "y": 454,
+      "src": "phi_t := 0.90"
+    },
+    {
+      "id": "r-11",
+      "kind": "text",
+      "x": 40,
+      "y": 500,
+      "src": "━━ 2. LOS TRES LÍMITES ━━"
+    },
+    {
+      "id": "r-12",
+      "kind": "text",
+      "x": 40,
+      "y": 546,
+      "src": "Tabla 9 de NCh2369, fila «paredes de perfiles rectangulares SOLDADOS usados como arriostramientos» (razón h/t)"
+    },
+    {
+      "id": "r-13",
+      "kind": "math",
+      "x": 40,
+      "y": 592,
+      "src": "lambda_md := 0.76*sqrt(E_ac/R_yF_y) ="
+    },
+    {
+      "id": "r-14",
+      "kind": "text",
+      "x": 40,
+      "y": 638,
+      "src": "Tabla B4.1a de AISC 360-22, caso 8 «All other stiffened elements» — el cajón ARMADO no es el caso 6 de HSS"
+    },
+    {
+      "id": "r-15",
+      "kind": "math",
+      "x": 40,
+      "y": 684,
+      "src": "lambda_r := 1.49*sqrt(E_ac/F_y) ="
+    },
+    {
+      "id": "r-16",
+      "kind": "math",
+      "x": 40,
+      "y": 730,
+      "src": "lambda_r_hss := 1.40*sqrt(E_ac/F_y) ="
+    },
+    {
+      "id": "r-17",
+      "kind": "math",
+      "x": 40,
+      "y": 776,
+      "src": "razon_listones := lambda_r/lambda_md ="
+    },
+    {
+      "id": "r-18",
+      "kind": "text",
+      "x": 40,
+      "y": 822,
+      "src": "Esbeltez global de 8.6.3 y 8.8.4, y el quiebre E3(a)/E3(b) de AISC — son el mismo número al 0,05 %"
+    },
+    {
+      "id": "r-19",
+      "kind": "math",
+      "x": 40,
+      "y": 868,
+      "src": "esb_lim := 1.5*pi*sqrt(E_ac/F_y) ="
+    },
+    {
+      "id": "r-20",
+      "kind": "math",
+      "x": 40,
+      "y": 914,
+      "src": "esb_aisc := 4.71*sqrt(E_ac/F_y) ="
+    },
+    {
+      "id": "r-21",
+      "kind": "math",
+      "x": 40,
+      "y": 960,
+      "src": "difieren_pct := 100*(esb_lim/esb_aisc - 1) ="
+    },
+    {
+      "id": "r-22",
+      "kind": "text",
+      "x": 40,
+      "y": 1006,
+      "src": "━━ 3. EL CAJÓN SOLDADO, COMO FUNCIONES ━━"
+    },
+    {
+      "id": "r-23",
+      "kind": "text",
+      "x": 40,
+      "y": 1052,
+      "src": "§B4.1b(e) de AISC 360-22: en un cajón armado el ancho es la LUZ LIBRE entre los elementos que atiesan,"
+    },
+    {
+      "id": "r-24",
+      "kind": "text",
+      "x": 40,
+      "y": 1098,
+      "src": "o sea b = B − 2t. El b = B − 3t del item (d) está escrito solo para HSS, para descontar el radio de esquina."
+    },
+    {
+      "id": "r-25",
+      "kind": "program",
+      "x": 40,
+      "y": 1144,
+      "src": "area_caj(B_x, t_x) :=\n    b_x := B_x - 2*t_x\n    2*B_x*t_x + 2*b_x*t_x"
+    },
+    {
+      "id": "r-26",
+      "kind": "program",
+      "x": 40,
+      "y": 1238,
+      "src": "inercia_caj(B_x, t_x) :=\n    b_x := B_x - 2*t_x\n    2*(B_x*t_x^3/12 + B_x*t_x*((B_x - t_x)/2)^2) + 2*(t_x*b_x^3/12)"
+    },
+    {
+      "id": "r-27",
+      "kind": "program",
+      "x": 40,
+      "y": 1332,
+      "src": "radio_caj(B_x, t_x) :=\n    sqrt(inercia_caj(B_x, t_x)/area_caj(B_x, t_x))"
+    },
+    {
+      "id": "r-28",
+      "kind": "text",
+      "x": 40,
+      "y": 1404,
+      "src": "φ_c·P_n por las Ecs. E3-1, E3-2, E3-3 y E3-4. La rama la elige el quiebre, tal como está escrito en E3."
+    },
+    {
+      "id": "r-29",
+      "kind": "program",
+      "x": 40,
+      "y": 1450,
+      "src": "phiPn_caj(B_x, t_x, Lc_x) :=\n    r_x := radio_caj(B_x, t_x)\n    esb_x := Lc_x/r_x\n    Fe_x := pi^2*E_ac/esb_x^2\n    if esb_x <= esb_aisc\n        Fn_x := 0.658^(F_y/Fe_x)*F_y\n    else\n        Fn_x := 0.877*Fe_x\n    phi_c*Fn_x*area_caj(B_x, t_x)"
+    },
+    {
+      "id": "r-30",
+      "kind": "text",
+      "x": 40,
+      "y": 1676,
+      "src": "━━ 4. DIAGONAL DE MURO — CAJ 100×100×4 · cláusula 8.6.3 ━━"
+    },
+    {
+      "id": "r-31",
+      "kind": "text",
+      "x": 40,
+      "y": 1722,
+      "src": "L_c = media diagonal: el cruce de la X es punto fijo por 8.6.4. Demanda de la envolvente sísmica E2P_A."
+    },
+    {
+      "id": "r-32",
+      "kind": "math",
+      "x": 40,
+      "y": 1768,
+      "src": "B_mu := 100 mm"
+    },
+    {
+      "id": "r-33",
+      "kind": "math",
+      "x": 40,
+      "y": 1814,
+      "src": "t_mu := 4 mm"
+    },
+    {
+      "id": "r-34",
+      "kind": "math",
+      "x": 40,
+      "y": 1860,
+      "src": "Lc_mu := 5000 mm"
+    },
+    {
+      "id": "r-35",
+      "kind": "math",
+      "x": 40,
+      "y": 1906,
+      "src": "Pu_mu := 39.895 kN"
+    },
+    {
+      "id": "r-36",
+      "kind": "math",
+      "x": 40,
+      "y": 1952,
+      "src": "b_mu := B_mu - 2*t_mu = mm"
+    },
+    {
+      "id": "r-37",
+      "kind": "math",
+      "x": 40,
+      "y": 1998,
+      "src": "A_mu := area_caj(B_mu, t_mu) = mm^2"
+    },
+    {
+      "id": "r-38",
+      "kind": "math",
+      "x": 40,
+      "y": 2044,
+      "src": "r_mu := radio_caj(B_mu, t_mu) = mm"
+    },
+    {
+      "id": "r-39",
+      "kind": "math",
+      "x": 40,
+      "y": 2090,
+      "src": "lam_mu := b_mu/t_mu ="
+    },
+    {
+      "id": "r-40",
+      "kind": "math",
+      "x": 40,
+      "y": 2136,
+      "src": "esb_mu := Lc_mu/r_mu ="
+    },
+    {
+      "id": "r-41",
+      "kind": "text",
+      "x": 40,
+      "y": 2182,
+      "src": "El que todos miran pasa, el que decide no:"
+    },
+    {
+      "id": "c_global_muro",
+      "kind": "math",
+      "x": 40,
+      "y": 2228,
+      "src": "esb_mu <= esb_lim ="
+    },
+    {
+      "id": "c_aisc_muro",
+      "kind": "math",
+      "x": 40,
+      "y": 2274,
+      "src": "lam_mu <= lambda_r ="
+    },
+    {
+      "id": "c_local_muro",
+      "kind": "math",
+      "x": 40,
+      "y": 2320,
+      "src": "lam_mu <= lambda_md ="
+    },
+    {
+      "id": "r-45",
+      "kind": "math",
+      "x": 40,
+      "y": 2366,
+      "src": "exceso_mu := lam_mu/lambda_md ="
+    },
+    {
+      "id": "r-46",
+      "kind": "math",
+      "x": 40,
+      "y": 2412,
+      "src": "phiPn_mu := phiPn_caj(B_mu, t_mu, Lc_mu) = kN"
+    },
+    {
+      "id": "c_resist_muro",
+      "kind": "math",
+      "x": 40,
+      "y": 2458,
+      "src": "phiPn_mu >= Pu_mu ="
+    },
+    {
+      "id": "r-48",
+      "kind": "math",
+      "x": 40,
+      "y": 2504,
+      "src": "uso_mu := Pu_mu/phiPn_mu ="
+    },
+    {
+      "id": "r-49",
+      "kind": "text",
+      "x": 40,
+      "y": 2550,
+      "src": "━━ 5. LA EXENCIÓN DE 8.6.3, CON EL 0,5R₁ DE 12.2.2 ━━"
+    },
+    {
+      "id": "r-50",
+      "kind": "text",
+      "x": 40,
+      "y": 2596,
+      "src": "R₁ es DIRECCIONAL (Ec. 14). Esta diagonal vive en la longitudinal, donde R* = 3,830 — no en la transversal,"
+    },
+    {
+      "id": "r-51",
+      "kind": "text",
+      "x": 40,
+      "y": 2642,
+      "src": "donde R* = 4 y el amplificador sería 2,00. Se usa una COTA SUPERIOR: se amplifica toda la combinación,"
+    },
+    {
+      "id": "r-52",
+      "kind": "text",
+      "x": 40,
+      "y": 2688,
+      "src": "gravedad incluida, que es más desfavorable que amplificar solo la parte sísmica. Si con eso pasa, pasa."
+    },
+    {
+      "id": "r-53",
+      "kind": "math",
+      "x": 40,
+      "y": 2734,
+      "src": "R_star_Y := 3.8301633726045696"
+    },
+    {
+      "id": "r-54",
+      "kind": "math",
+      "x": 40,
+      "y": 2780,
+      "src": "Q0_Y := 130.2571888641845 kN"
+    },
+    {
+      "id": "r-55",
+      "kind": "math",
+      "x": 40,
+      "y": 2826,
+      "src": "Q0_min := 70.86041455430902 kN"
+    },
+    {
+      "id": "r-56",
+      "kind": "math",
+      "x": 40,
+      "y": 2872,
+      "src": "R_1_Y := R_star_Y*min(Q0_Y/Q0_min, 1) ="
+    },
+    {
+      "id": "r-57",
+      "kind": "math",
+      "x": 40,
+      "y": 2918,
+      "src": "amplif := 0.5*R_1_Y ="
+    },
+    {
+      "id": "r-58",
+      "kind": "math",
+      "x": 40,
+      "y": 2964,
+      "src": "Pu_amp := amplif*Pu_mu = kN"
+    },
+    {
+      "id": "c_exencion",
+      "kind": "math",
+      "x": 40,
+      "y": 3010,
+      "src": "phiPn_mu >= Pu_amp ="
+    },
+    {
+      "id": "r-60",
+      "kind": "math",
+      "x": 40,
+      "y": 3056,
+      "src": "uso_amp := Pu_amp/phiPn_mu ="
+    },
+    {
+      "id": "r-61",
+      "kind": "text",
+      "x": 40,
+      "y": 3102,
+      "src": "━━ 6. LA ITERACIÓN — CAJ 100×100×5 ━━"
+    },
+    {
+      "id": "r-62",
+      "kind": "text",
+      "x": 40,
+      "y": 3148,
+      "src": "Ojo: engrosar la pared EMPEORA la esbeltez global, porque el material agregado va hacia adentro."
+    },
+    {
+      "id": "r-63",
+      "kind": "math",
+      "x": 40,
+      "y": 3194,
+      "src": "t_it := 5 mm"
+    },
+    {
+      "id": "r-64",
+      "kind": "math",
+      "x": 40,
+      "y": 3240,
+      "src": "b_it := B_mu - 2*t_it = mm"
+    },
+    {
+      "id": "r-65",
+      "kind": "math",
+      "x": 40,
+      "y": 3286,
+      "src": "lam_it := b_it/t_it ="
+    },
+    {
+      "id": "r-66",
+      "kind": "math",
+      "x": 40,
+      "y": 3332,
+      "src": "r_it := radio_caj(B_mu, t_it) = mm"
+    },
+    {
+      "id": "r-67",
+      "kind": "math",
+      "x": 40,
+      "y": 3378,
+      "src": "esb_it := Lc_mu/r_it ="
+    },
+    {
+      "id": "c_local_iter",
+      "kind": "math",
+      "x": 40,
+      "y": 3424,
+      "src": "lam_it <= lambda_md ="
+    },
+    {
+      "id": "c_global_iter",
+      "kind": "math",
+      "x": 40,
+      "y": 3470,
+      "src": "esb_it <= esb_lim ="
+    },
+    {
+      "id": "r-70",
+      "kind": "math",
+      "x": 40,
+      "y": 3516,
+      "src": "A_it := area_caj(B_mu, t_it) = mm^2"
+    },
+    {
+      "id": "r-71",
+      "kind": "math",
+      "x": 40,
+      "y": 3562,
+      "src": "mas_acero_pct := 100*(A_it/A_mu - 1) ="
+    },
+    {
+      "id": "c_radio_baja",
+      "kind": "math",
+      "x": 40,
+      "y": 3608,
+      "src": "r_it < r_mu ="
+    },
+    {
+      "id": "r-73",
+      "kind": "math",
+      "x": 40,
+      "y": 3654,
+      "src": "phiPn_it := phiPn_caj(B_mu, t_it, Lc_mu) = kN"
+    },
+    {
+      "id": "c_resist_iter",
+      "kind": "math",
+      "x": 40,
+      "y": 3700,
+      "src": "phiPn_it >= Pu_mu ="
+    },
+    {
+      "id": "r-75",
+      "kind": "text",
+      "x": 40,
+      "y": 3746,
+      "src": "━━ 7. DIAGONAL DE TECHO — CAJ 75×75×4 · cláusula 8.8.4 ━━"
+    },
+    {
+      "id": "r-76",
+      "kind": "text",
+      "x": 40,
+      "y": 3792,
+      "src": "Panel del arriostramiento de cubierta: Δx = 4,000 m · Δy = 6,000 m · Δz = 0,705 m, y se modela la MITAD."
+    },
+    {
+      "id": "r-77",
+      "kind": "math",
+      "x": 40,
+      "y": 3838,
+      "src": "dx_te := 4.0 m"
+    },
+    {
+      "id": "r-78",
+      "kind": "math",
+      "x": 40,
+      "y": 3884,
+      "src": "dy_te := 6.0 m"
+    },
+    {
+      "id": "r-79",
+      "kind": "math",
+      "x": 40,
+      "y": 3930,
+      "src": "dz_te := 3*(12/9)*tan(10 deg) m"
+    },
+    {
+      "id": "r-80",
+      "kind": "math",
+      "x": 40,
+      "y": 3976,
+      "src": "Lc_te := sqrt(dx_te^2 + dy_te^2 + dz_te^2)/2 = mm"
+    },
+    {
+      "id": "r-81",
+      "kind": "math",
+      "x": 40,
+      "y": 4022,
+      "src": "B_te := 75 mm"
+    },
+    {
+      "id": "r-82",
+      "kind": "math",
+      "x": 40,
+      "y": 4068,
+      "src": "t_te := 4 mm"
+    },
+    {
+      "id": "r-83",
+      "kind": "math",
+      "x": 40,
+      "y": 4114,
+      "src": "Pu_te := 28.234 kN"
+    },
+    {
+      "id": "r-84",
+      "kind": "math",
+      "x": 40,
+      "y": 4160,
+      "src": "lam_te := (B_te - 2*t_te)/t_te ="
+    },
+    {
+      "id": "r-85",
+      "kind": "math",
+      "x": 40,
+      "y": 4206,
+      "src": "r_te := radio_caj(B_te, t_te) = mm"
+    },
+    {
+      "id": "r-86",
+      "kind": "math",
+      "x": 40,
+      "y": 4252,
+      "src": "esb_te := Lc_te/r_te ="
+    },
+    {
+      "id": "c_local_techo",
+      "kind": "math",
+      "x": 40,
+      "y": 4298,
+      "src": "lam_te <= lambda_md ="
+    },
+    {
+      "id": "c_global_techo",
+      "kind": "math",
+      "x": 40,
+      "y": 4344,
+      "src": "esb_te <= esb_lim ="
+    },
+    {
+      "id": "r-89",
+      "kind": "math",
+      "x": 40,
+      "y": 4390,
+      "src": "phiPn_te := phiPn_caj(B_te, t_te, Lc_te) = kN"
+    },
+    {
+      "id": "c_resist_techo",
+      "kind": "math",
+      "x": 40,
+      "y": 4436,
+      "src": "phiPn_te >= Pu_te ="
+    },
+    {
+      "id": "r-91",
+      "kind": "text",
+      "x": 40,
+      "y": 4482,
+      "src": "━━ 8. PUNTAL DE TECHO — CAJ 125×125×6 · cláusula 8.8.4 ━━"
+    },
+    {
+      "id": "r-92",
+      "kind": "text",
+      "x": 40,
+      "y": 4528,
+      "src": "8.8.4 cubre «las diagonales Y PUNTALES» del arriostramiento de cubierta, así que el λ_md también le aplica."
+    },
+    {
+      "id": "r-93",
+      "kind": "math",
+      "x": 40,
+      "y": 4574,
+      "src": "B_pu := 125 mm"
+    },
+    {
+      "id": "r-94",
+      "kind": "math",
+      "x": 40,
+      "y": 4620,
+      "src": "t_pu := 6 mm"
+    },
+    {
+      "id": "r-95",
+      "kind": "math",
+      "x": 40,
+      "y": 4666,
+      "src": "Lc_pu := 6000 mm"
+    },
+    {
+      "id": "r-96",
+      "kind": "math",
+      "x": 40,
+      "y": 4712,
+      "src": "Pu_pu := 96.087 kN"
+    },
+    {
+      "id": "r-97",
+      "kind": "math",
+      "x": 40,
+      "y": 4758,
+      "src": "lam_pu := (B_pu - 2*t_pu)/t_pu ="
+    },
+    {
+      "id": "r-98",
+      "kind": "math",
+      "x": 40,
+      "y": 4804,
+      "src": "r_pu := radio_caj(B_pu, t_pu) = mm"
+    },
+    {
+      "id": "r-99",
+      "kind": "math",
+      "x": 40,
+      "y": 4850,
+      "src": "esb_pu := Lc_pu/r_pu ="
+    },
+    {
+      "id": "c_local_puntal",
+      "kind": "math",
+      "x": 40,
+      "y": 4896,
+      "src": "lam_pu <= lambda_md ="
+    },
+    {
+      "id": "r-101",
+      "kind": "math",
+      "x": 40,
+      "y": 4942,
+      "src": "margen_pu := lam_pu/lambda_md ="
+    },
+    {
+      "id": "c_global_puntal",
+      "kind": "math",
+      "x": 40,
+      "y": 4988,
+      "src": "esb_pu <= esb_lim ="
+    },
+    {
+      "id": "r-103",
+      "kind": "math",
+      "x": 40,
+      "y": 5034,
+      "src": "phiPn_pu := phiPn_caj(B_pu, t_pu, Lc_pu) = kN"
+    },
+    {
+      "id": "c_resist_puntal",
+      "kind": "math",
+      "x": 40,
+      "y": 5080,
+      "src": "phiPn_pu >= Pu_pu ="
+    },
+    {
+      "id": "r-105",
+      "kind": "text",
+      "x": 40,
+      "y": 5126,
+      "src": "━━ 9. TRACCIÓN, Y EL ACERO MEJOR QUE REPROBARÍA AL PUNTAL ━━"
+    },
+    {
+      "id": "r-106",
+      "kind": "math",
+      "x": 40,
+      "y": 5172,
+      "src": "phiTn_mu := phi_t*F_y*A_mu = kN"
+    },
+    {
+      "id": "r-107",
+      "kind": "text",
+      "x": 40,
+      "y": 5218,
+      "src": "Los límites de la Tabla 9 van con R_y·F_y en el denominador: subir el grado del acero los BAJA."
+    },
+    {
+      "id": "r-108",
+      "kind": "text",
+      "x": 40,
+      "y": 5264,
+      "src": "A572 Gr. 50 en plancha: R_y = 1,1 (Tabla A3.2) pero F_y = 345 MPa, y el producto sube de 325 a 379,5 MPa."
+    },
+    {
+      "id": "r-109",
+      "kind": "math",
+      "x": 40,
+      "y": 5310,
+      "src": "F_y_572 := 345 MPa"
+    },
+    {
+      "id": "r-110",
+      "kind": "math",
+      "x": 40,
+      "y": 5356,
+      "src": "R_y_572 := 1.1"
+    },
+    {
+      "id": "r-111",
+      "kind": "math",
+      "x": 40,
+      "y": 5402,
+      "src": "lambda_md_572 := 0.76*sqrt(E_ac/(R_y_572*F_y_572)) ="
+    },
+    {
+      "id": "c_puntal_a572",
+      "kind": "math",
+      "x": 40,
+      "y": 5448,
+      "src": "lam_pu <= lambda_md_572 ="
+    }
+  ]
+}

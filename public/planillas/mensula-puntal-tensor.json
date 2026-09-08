@@ -1,0 +1,2253 @@
+{
+  "version": 1,
+  "meta": {
+    "titulo": "Ménsula corta por puntal-tensor — el Cap. 23 con los cerrojos del Cap. 16 de ACI 318-25",
+    "ficha": "struct_pad/src/content/hormigon/ejemplo-mensula-puntal-tensor.mdx",
+    "esperadoFalso": {}
+  },
+  "regions": [
+    {
+      "id": "r000",
+      "kind": "text",
+      "x": 40,
+      "y": 32,
+      "src": "MÉNSULA CORTA POR PUNTAL-TENSOR — un puntal, un tirante, dos nodos"
+    },
+    {
+      "id": "r001",
+      "kind": "text",
+      "x": 40,
+      "y": 80,
+      "src": "ACI 318-25 (edición SI) · Cap. 23 (puntal-tensor) + 16.5 (ménsulas) + 16.2.2.3"
+    },
+    {
+      "id": "r002",
+      "kind": "text",
+      "x": 40,
+      "y": 128,
+      "src": "(fuerza de restricción N_uc) + 22.8.3 (aplastamiento) + 22.9 (corte por fricción) + 25.4.3"
+    },
+    {
+      "id": "r004",
+      "kind": "text",
+      "x": 40,
+      "y": 176,
+      "src": ""
+    },
+    {
+      "id": "r005",
+      "kind": "text",
+      "x": 40,
+      "y": 192,
+      "src": "Rd_ = capacidad de diseño (incluye phi) · las comparaciones dan ✓/✗"
+    },
+    {
+      "id": "r006",
+      "kind": "text",
+      "x": 40,
+      "y": 240,
+      "src": ""
+    },
+    {
+      "id": "r007",
+      "kind": "text",
+      "x": 40,
+      "y": 256,
+      "src": "Frontera declarada: f'c, f_y, área nominal de la barra, geometría de la ménsula y V_u."
+    },
+    {
+      "id": "r014",
+      "kind": "text",
+      "x": 40,
+      "y": 320,
+      "src": "━━ DATOS · MATERIALES ━━"
+    },
+    {
+      "id": "r015",
+      "kind": "math",
+      "x": 40,
+      "y": 368,
+      "src": "f_c := 250 kgf/cm^2"
+    },
+    {
+      "id": "r016",
+      "kind": "math",
+      "x": 40,
+      "y": 416,
+      "src": "f_y := 4200 kgf/cm^2"
+    },
+    {
+      "id": "r017",
+      "kind": "text",
+      "x": 40,
+      "y": 464,
+      "src": "Coeficientes empíricos: edición SI, evaluados con f'c en MPa."
+    },
+    {
+      "id": "r019",
+      "kind": "math",
+      "x": 40,
+      "y": 512,
+      "src": "f_cM := f_c = MPa"
+    },
+    {
+      "id": "r020",
+      "kind": "math",
+      "x": 40,
+      "y": 560,
+      "src": "f_yM := f_y = MPa"
+    },
+    {
+      "id": "r021",
+      "kind": "math",
+      "x": 40,
+      "y": 608,
+      "src": "rfc := sqrt(f_c/MPa)"
+    },
+    {
+      "id": "r022",
+      "kind": "text",
+      "x": 40,
+      "y": 656,
+      "src": "19.2.4.2: hormigón de densidad normal, y la ménsula es monolítica con la columna."
+    },
+    {
+      "id": "r023",
+      "kind": "math",
+      "x": 40,
+      "y": 704,
+      "src": "lam := 1"
+    },
+    {
+      "id": "r024",
+      "kind": "text",
+      "x": 40,
+      "y": 768,
+      "src": "━━ DATOS · FACTORES φ (Tabla 21.2.1) ━━"
+    },
+    {
+      "id": "r025",
+      "kind": "text",
+      "x": 40,
+      "y": 816,
+      "src": "21.2.1(g): φ = 0,75 para puntales, tirantes, zonas nodales y áreas de apoyo del Cap. 23."
+    },
+    {
+      "id": "r027",
+      "kind": "math",
+      "x": 40,
+      "y": 864,
+      "src": "phi_stm := 0.75"
+    },
+    {
+      "id": "r028",
+      "kind": "text",
+      "x": 40,
+      "y": 912,
+      "src": "21.2.1(e): φ = 0,75 para ménsulas y cartelas (la vía del 16.5)."
+    },
+    {
+      "id": "r029",
+      "kind": "math",
+      "x": 40,
+      "y": 960,
+      "src": "phi_men := 0.75"
+    },
+    {
+      "id": "r030",
+      "kind": "text",
+      "x": 40,
+      "y": 1008,
+      "src": "21.2.1(d): φ = 0,65 para aplastamiento (lectura conservadora; 21.2.1(g) daría 0,75)."
+    },
+    {
+      "id": "r033",
+      "kind": "math",
+      "x": 40,
+      "y": 1056,
+      "src": "phi_ap := 0.65"
+    },
+    {
+      "id": "r034",
+      "kind": "text",
+      "x": 40,
+      "y": 1104,
+      "src": "21.2.1(b): φ = 0,75 para cortante (corte por fricción, 22.9)."
+    },
+    {
+      "id": "r035",
+      "kind": "math",
+      "x": 40,
+      "y": 1152,
+      "src": "phi_v := 0.75"
+    },
+    {
+      "id": "r036",
+      "kind": "text",
+      "x": 40,
+      "y": 1216,
+      "src": "━━ DATOS · GEOMETRÍA DE LA MÉNSULA ━━"
+    },
+    {
+      "id": "r037",
+      "kind": "math",
+      "x": 40,
+      "y": 1264,
+      "src": "b := 40 cm"
+    },
+    {
+      "id": "r038",
+      "kind": "math",
+      "x": 40,
+      "y": 1312,
+      "src": "h := 45 cm"
+    },
+    {
+      "id": "r039",
+      "kind": "math",
+      "x": 40,
+      "y": 1360,
+      "src": "h_borde := 30 cm"
+    },
+    {
+      "id": "r040",
+      "kind": "math",
+      "x": 40,
+      "y": 1408,
+      "src": "vuelo := 30 cm"
+    },
+    {
+      "id": "r041",
+      "kind": "math",
+      "x": 40,
+      "y": 1456,
+      "src": "a_v := 15 cm"
+    },
+    {
+      "id": "r042",
+      "kind": "text",
+      "x": 40,
+      "y": 1504,
+      "src": "Placa 20 × 25 cm: 20 en el plano del modelo, 25 transversales."
+    },
+    {
+      "id": "r044",
+      "kind": "math",
+      "x": 40,
+      "y": 1552,
+      "src": "L_pl := 20 cm"
+    },
+    {
+      "id": "r045",
+      "kind": "math",
+      "x": 40,
+      "y": 1600,
+      "src": "B_pl := 25 cm"
+    },
+    {
+      "id": "r046",
+      "kind": "math",
+      "x": 40,
+      "y": 1648,
+      "src": "A_1 := L_pl*B_pl = cm^2"
+    },
+    {
+      "id": "r047",
+      "kind": "text",
+      "x": 40,
+      "y": 1696,
+      "src": "Barras: el área NOMINAL es frontera declarada; A_s se deriva."
+    },
+    {
+      "id": "r048",
+      "kind": "math",
+      "x": 40,
+      "y": 1744,
+      "src": "d_b := 16 mm"
+    },
+    {
+      "id": "r049",
+      "kind": "math",
+      "x": 40,
+      "y": 1792,
+      "src": "n_b := 3"
+    },
+    {
+      "id": "r050",
+      "kind": "math",
+      "x": 40,
+      "y": 1840,
+      "src": "A_b := pi/4*d_b^2 = cm^2"
+    },
+    {
+      "id": "r051",
+      "kind": "math",
+      "x": 40,
+      "y": 1888,
+      "src": "A_s := n_b*A_b = cm^2"
+    },
+    {
+      "id": "r052",
+      "kind": "math",
+      "x": 40,
+      "y": 1936,
+      "src": "d_e := 10 mm"
+    },
+    {
+      "id": "r053",
+      "kind": "math",
+      "x": 40,
+      "y": 1984,
+      "src": "A_e := pi/4*d_e^2 = cm^2"
+    },
+    {
+      "id": "r054",
+      "kind": "text",
+      "x": 40,
+      "y": 2032,
+      "src": "Tabla 20.5.1.3.1: no expuesto, barras No. 36 y menores → recubrimiento 40 mm."
+    },
+    {
+      "id": "r056",
+      "kind": "math",
+      "x": 40,
+      "y": 2080,
+      "src": "rec := 40 mm"
+    },
+    {
+      "id": "r057",
+      "kind": "text",
+      "x": 40,
+      "y": 2128,
+      "src": "16.5.2.1: d se calcula EN LA CARA DEL APOYO. Eje del tirante a 5 cm (decisión de armado):"
+    },
+    {
+      "id": "r060",
+      "kind": "math",
+      "x": 40,
+      "y": 2176,
+      "src": "c_eje := 5 cm"
+    },
+    {
+      "id": "v_rec",
+      "kind": "math",
+      "x": 40,
+      "y": 2224,
+      "src": "v_rec := c_eje - d_b/2 >= rec ="
+    },
+    {
+      "id": "r062",
+      "kind": "math",
+      "x": 40,
+      "y": 2272,
+      "src": "d := h - c_eje = cm"
+    },
+    {
+      "id": "r063",
+      "kind": "text",
+      "x": 40,
+      "y": 2320,
+      "src": "(Con el recubrimiento justo el eje quedaría a 4,8 cm y d = 40,2 cm; los 5 cm son conservadores.)"
+    },
+    {
+      "id": "r065",
+      "kind": "text",
+      "x": 40,
+      "y": 2384,
+      "src": "━━ CERROJOS DIMENSIONALES (16.5.2) ━━"
+    },
+    {
+      "id": "r066",
+      "kind": "text",
+      "x": 40,
+      "y": 2432,
+      "src": "16.5.1.1: el método del 16.5 sólo se valida para a_v/d ≤ 1,0 y N_uc ≤ V_u."
+    },
+    {
+      "id": "r067",
+      "kind": "text",
+      "x": 40,
+      "y": 2480,
+      "src": "23.2.11: por la vía del Cap. 23 el umbral es a_v/d < 2,0."
+    },
+    {
+      "id": "r068",
+      "kind": "math",
+      "x": 40,
+      "y": 2528,
+      "src": "avd := a_v/d ="
+    },
+    {
+      "id": "v_avd",
+      "kind": "math",
+      "x": 40,
+      "y": 2576,
+      "src": "v_avd := avd <= 1 ="
+    },
+    {
+      "id": "r070",
+      "kind": "text",
+      "x": 40,
+      "y": 2624,
+      "src": "16.5.2.2: el canto en el borde exterior del área de apoyo ≥ 0,5d."
+    },
+    {
+      "id": "r071",
+      "kind": "math",
+      "x": 40,
+      "y": 2672,
+      "src": "h_min := 0.5*d = cm"
+    },
+    {
+      "id": "v_hborde",
+      "kind": "math",
+      "x": 40,
+      "y": 2720,
+      "src": "v_hborde := h_borde >= h_min ="
+    },
+    {
+      "id": "r073",
+      "kind": "text",
+      "x": 40,
+      "y": 2768,
+      "src": "16.5.2.3: el área de apoyo no puede sobresalir del tramo recto del tirante."
+    },
+    {
+      "id": "r075",
+      "kind": "math",
+      "x": 40,
+      "y": 2816,
+      "src": "x_placa := a_v + L_pl/2 = cm"
+    },
+    {
+      "id": "v_placa",
+      "kind": "math",
+      "x": 40,
+      "y": 2864,
+      "src": "v_placa := x_placa <= vuelo ="
+    },
+    {
+      "id": "r077",
+      "kind": "text",
+      "x": 40,
+      "y": 2928,
+      "src": "━━ CARGAS ━━"
+    },
+    {
+      "id": "r078",
+      "kind": "text",
+      "x": 40,
+      "y": 2976,
+      "src": "V_u = 28 tonf es dato de diseño declarado por el post."
+    },
+    {
+      "id": "r079",
+      "kind": "math",
+      "x": 40,
+      "y": 3024,
+      "src": "V_u := 28 tonf"
+    },
+    {
+      "id": "r080",
+      "kind": "text",
+      "x": 40,
+      "y": 3072,
+      "src": ""
+    },
+    {
+      "id": "r081",
+      "kind": "text",
+      "x": 40,
+      "y": 3088,
+      "src": "16.5.3.2 remite a 16.2.2.3: (a) sin almohadilla, N_uc con las combinaciones de 5.3.6 y la"
+    },
+    {
+      "id": "r085",
+      "kind": "text",
+      "x": 40,
+      "y": 3136,
+      "src": "restricción como carga viva; (b) sobre almohadilla, 20 % de la reacción SOSTENIDA sin mayorar × 1,6."
+    },
+    {
+      "id": "r087",
+      "kind": "text",
+      "x": 40,
+      "y": 3184,
+      "src": "R16.2.2.3: sostenidas son la carga muerta y las permanentes. La rueda del puente grúa no lo es."
+    },
+    {
+      "id": "r091",
+      "kind": "text",
+      "x": 40,
+      "y": 3232,
+      "src": ""
+    },
+    {
+      "id": "r092",
+      "kind": "text",
+      "x": 40,
+      "y": 3248,
+      "src": "Vía del post, 0,2·V_u con V_u ya mayorado:"
+    },
+    {
+      "id": "r093",
+      "kind": "math",
+      "x": 40,
+      "y": 3296,
+      "src": "N_uc := 0.2*V_u = tonf"
+    },
+    {
+      "id": "r094",
+      "kind": "text",
+      "x": 40,
+      "y": 3344,
+      "src": "Vía 16.2.2.3(b), con la reacción sostenida sin mayorar (w = 0,236 tonf/m sobre L = 8 m):"
+    },
+    {
+      "id": "r096",
+      "kind": "math",
+      "x": 40,
+      "y": 3392,
+      "src": "w_pp := 0.236 tonf/m"
+    },
+    {
+      "id": "r097",
+      "kind": "math",
+      "x": 40,
+      "y": 3440,
+      "src": "L_viga := 8 m"
+    },
+    {
+      "id": "r098",
+      "kind": "math",
+      "x": 40,
+      "y": 3488,
+      "src": "R_sost := w_pp*L_viga/2 = tonf"
+    },
+    {
+      "id": "r099",
+      "kind": "math",
+      "x": 40,
+      "y": 3536,
+      "src": "N_uc_b := 0.2*R_sost*1.6 = tonf"
+    },
+    {
+      "id": "r100",
+      "kind": "text",
+      "x": 40,
+      "y": 3584,
+      "src": "Reacción sostenida que haría falta para llegar a los 5,6 tonf del post:"
+    },
+    {
+      "id": "r102",
+      "kind": "math",
+      "x": 40,
+      "y": 3632,
+      "src": "R_equiv := N_uc/(0.2*1.6) = tonf"
+    },
+    {
+      "id": "r103",
+      "kind": "text",
+      "x": 40,
+      "y": 3680,
+      "src": "Los 5,6 tonf son DATO DE DISEÑO por 16.2.2.3(a) (frenado longitudinal). La hoja sigue con ellos."
+    },
+    {
+      "id": "v_Nuc",
+      "kind": "math",
+      "x": 40,
+      "y": 3728,
+      "src": "v_Nuc := N_uc <= V_u ="
+    },
+    {
+      "id": "r107",
+      "kind": "text",
+      "x": 40,
+      "y": 3792,
+      "src": "━━ 1 · EL ENREJADO: LA HIPÓTESIS GEOMÉTRICA ━━"
+    },
+    {
+      "id": "r108",
+      "kind": "text",
+      "x": 40,
+      "y": 3840,
+      "src": "23.2.2: el enrejado es una ELECCIÓN, y su geometría debe ser consistente con las"
+    },
+    {
+      "id": "r111",
+      "kind": "math",
+      "x": 40,
+      "y": 3888,
+      "src": "w_s := 8 cm"
+    },
+    {
+      "id": "r112",
+      "kind": "text",
+      "x": 40,
+      "y": 3936,
+      "src": "dimensiones de puntales, tirantes y zonas nodales. Nodo B a w_s/2 sobre el fondo;"
+    },
+    {
+      "id": "r114",
+      "kind": "math",
+      "x": 40,
+      "y": 3984,
+      "src": "jd := d - w_s/2 = cm"
+    },
+    {
+      "id": "r115",
+      "kind": "math",
+      "x": 40,
+      "y": 4032,
+      "src": "theta := atan(jd/a_v)"
+    },
+    {
+      "id": "r116",
+      "kind": "math",
+      "x": 40,
+      "y": 4080,
+      "src": "theta_gr := theta*180/pi ="
+    },
+    {
+      "id": "r117",
+      "kind": "text",
+      "x": 40,
+      "y": 4128,
+      "src": "nodo A en el eje del tirante bajo el centro de la placa. 23.2.7: ángulo puntal–tirante ≥ 25°."
+    },
+    {
+      "id": "v_theta",
+      "kind": "math",
+      "x": 40,
+      "y": 4176,
+      "src": "v_theta := theta_gr >= 25 ="
+    },
+    {
+      "id": "r120",
+      "kind": "text",
+      "x": 40,
+      "y": 4240,
+      "src": "━━ 1.1 · LAS DOS LECTURAS DEL TIRANTE ━━"
+    },
+    {
+      "id": "r121",
+      "kind": "text",
+      "x": 40,
+      "y": 4288,
+      "src": "Equilibrio vertical en el nodo A: el puntal se lleva entero el V_u."
+    },
+    {
+      "id": "r122",
+      "kind": "math",
+      "x": 40,
+      "y": 4336,
+      "src": "C_u := V_u/sin(theta) = tonf"
+    },
+    {
+      "id": "v_sumV",
+      "kind": "math",
+      "x": 40,
+      "y": 4384,
+      "src": "v_sumV := abs(C_u*sin(theta) - V_u) < 0.0001 tonf ="
+    },
+    {
+      "id": "r124",
+      "kind": "text",
+      "x": 40,
+      "y": 4432,
+      "src": "Lectura 1 — triángulo puro, N_uc al nivel del tirante. Equilibrio horizontal en el nodo A:"
+    },
+    {
+      "id": "r127",
+      "kind": "math",
+      "x": 40,
+      "y": 4480,
+      "src": "T_tri := C_u*cos(theta) + N_uc = tonf"
+    },
+    {
+      "id": "r128",
+      "kind": "text",
+      "x": 40,
+      "y": 4528,
+      "src": "Lectura 2 — 16.5.3.1:  M_u = V_u·a_v + N_uc·(h − d), con la palanca de los 5 cm."
+    },
+    {
+      "id": "r131",
+      "kind": "math",
+      "x": 40,
+      "y": 4576,
+      "src": "M_u := V_u*a_v + N_uc*(h - d) = tonf*m"
+    },
+    {
+      "id": "r132",
+      "kind": "math",
+      "x": 40,
+      "y": 4624,
+      "src": "T_u := M_u/jd + N_uc = tonf"
+    },
+    {
+      "id": "r133",
+      "kind": "text",
+      "x": 40,
+      "y": 4672,
+      "src": "Y ésta es la forma en que el post lo escribe — idéntica, por álgebra:"
+    },
+    {
+      "id": "r134",
+      "kind": "math",
+      "x": 40,
+      "y": 4720,
+      "src": "T_post := (V_u*a_v + N_uc*(jd + h - d))/jd = tonf"
+    },
+    {
+      "id": "v_Tigual",
+      "kind": "math",
+      "x": 40,
+      "y": 4768,
+      "src": "v_Tigual := abs(T_u - T_post) < 0.0001 tonf ="
+    },
+    {
+      "id": "r136",
+      "kind": "text",
+      "x": 40,
+      "y": 4816,
+      "src": "Diferencia entre las dos lecturas: el residuo horizontal del enrejado."
+    },
+    {
+      "id": "r137",
+      "kind": "math",
+      "x": 40,
+      "y": 4864,
+      "src": "dT := T_u - T_tri = tonf"
+    },
+    {
+      "id": "r138",
+      "kind": "math",
+      "x": 40,
+      "y": 4912,
+      "src": "dT_pct := dT/T_u*100 ="
+    },
+    {
+      "id": "r139",
+      "kind": "text",
+      "x": 40,
+      "y": 4960,
+      "src": "El post adopta la lectura 2, que es la conservadora y la que manda 16.5.3.1."
+    },
+    {
+      "id": "r144",
+      "kind": "text",
+      "x": 40,
+      "y": 5008,
+      "src": "Aporte de N_uc al tirante (tiro directo + palanca) y cuánto se pierde al olvidarlo:"
+    },
+    {
+      "id": "r145",
+      "kind": "math",
+      "x": 40,
+      "y": 5056,
+      "src": "T_sinN := V_u*a_v/jd = tonf"
+    },
+    {
+      "id": "r146",
+      "kind": "math",
+      "x": 40,
+      "y": 5104,
+      "src": "dT_N := T_u - T_sinN = tonf"
+    },
+    {
+      "id": "r147",
+      "kind": "math",
+      "x": 40,
+      "y": 5152,
+      "src": "frac_N := dT_N/T_u ="
+    },
+    {
+      "id": "r148",
+      "kind": "math",
+      "x": 40,
+      "y": 5200,
+      "src": "corto := 1 - T_sinN/T_u ="
+    },
+    {
+      "id": "r149",
+      "kind": "text",
+      "x": 40,
+      "y": 5264,
+      "src": "━━ 2 · EL TIRANTE (23.7.2) ━━"
+    },
+    {
+      "id": "r150",
+      "kind": "text",
+      "x": 40,
+      "y": 5312,
+      "src": "23.7.2: F_nt = A_ts·f_y (sin pretensado). 23.3.1(b): φF_nt ≥ F_ut."
+    },
+    {
+      "id": "r151",
+      "kind": "math",
+      "x": 40,
+      "y": 5360,
+      "src": "A_sreq := T_u/(phi_stm*f_y) = cm^2"
+    },
+    {
+      "id": "v_As",
+      "kind": "math",
+      "x": 40,
+      "y": 5408,
+      "src": "v_As := A_s >= A_sreq ="
+    },
+    {
+      "id": "r153",
+      "kind": "math",
+      "x": 40,
+      "y": 5456,
+      "src": "Rd_T := phi_stm*A_s*f_y = tonf"
+    },
+    {
+      "id": "r154",
+      "kind": "math",
+      "x": 40,
+      "y": 5504,
+      "src": "u_T := T_u/Rd_T ="
+    },
+    {
+      "id": "r155",
+      "kind": "text",
+      "x": 40,
+      "y": 5552,
+      "src": "23.2.11: con a_v/d < 2,0 por el Cap. 23 hay que cumplir 16.5.2, 16.5.6 y la Ec. (23.2.11)."
+    },
+    {
+      "id": "r157",
+      "kind": "math",
+      "x": 40,
+      "y": 5600,
+      "src": "A_scmin := 0.04*(f_c/f_y)*b*d = cm^2"
+    },
+    {
+      "id": "v_Asmin",
+      "kind": "math",
+      "x": 40,
+      "y": 5648,
+      "src": "v_Asmin := A_s >= A_scmin ="
+    },
+    {
+      "id": "r159",
+      "kind": "text",
+      "x": 40,
+      "y": 5696,
+      "src": "16.5.4.3: el acero que toma la tracción directa, A_n = N_uc/(φ f_y)."
+    },
+    {
+      "id": "r160",
+      "kind": "math",
+      "x": 40,
+      "y": 5744,
+      "src": "A_n := N_uc/(phi_stm*f_y) = cm^2"
+    },
+    {
+      "id": "r161",
+      "kind": "text",
+      "x": 40,
+      "y": 5792,
+      "src": "16.5.5.2: A_h ≥ 0,5(A_sc − A_n), repartidos en los 2/3 de d adyacentes al tirante (16.5.6.6)."
+    },
+    {
+      "id": "r163",
+      "kind": "math",
+      "x": 40,
+      "y": 5840,
+      "src": "A_hreq := 0.5*(A_s - A_n) = cm^2"
+    },
+    {
+      "id": "r164",
+      "kind": "math",
+      "x": 40,
+      "y": 5888,
+      "src": "n_h := 2"
+    },
+    {
+      "id": "r165",
+      "kind": "math",
+      "x": 40,
+      "y": 5936,
+      "src": "A_h := n_h*2*A_e = cm^2"
+    },
+    {
+      "id": "v_Ah",
+      "kind": "math",
+      "x": 40,
+      "y": 5984,
+      "src": "v_Ah := A_h >= A_hreq ="
+    },
+    {
+      "id": "r167",
+      "kind": "text",
+      "x": 40,
+      "y": 6032,
+      "src": ""
+    },
+    {
+      "id": "r168",
+      "kind": "text",
+      "x": 40,
+      "y": 6048,
+      "src": "Vía alternativa del 16.5.5.1: A_sc = el mayor de (a) A_f + A_n, (b) (2/3)A_vf + A_n y"
+    },
+    {
+      "id": "r169",
+      "kind": "text",
+      "x": 40,
+      "y": 6096,
+      "src": "(c) 0,04(f'c/f_y)b·d. La rama (b) usa el corte por fricción del 22.9 con μ = 1,4λ (Tabla 22.9.4.2):"
+    },
+    {
+      "id": "r172",
+      "kind": "math",
+      "x": 40,
+      "y": 6144,
+      "src": "mu_sf := 1.4*lam"
+    },
+    {
+      "id": "r173",
+      "kind": "math",
+      "x": 40,
+      "y": 6192,
+      "src": "A_vf := V_u/(phi_v*mu_sf*f_y) = cm^2"
+    },
+    {
+      "id": "r174",
+      "kind": "math",
+      "x": 40,
+      "y": 6240,
+      "src": "A_sc_a := A_sreq"
+    },
+    {
+      "id": "r175",
+      "kind": "math",
+      "x": 40,
+      "y": 6288,
+      "src": "A_sc_b := 2/3*A_vf + A_n = cm^2"
+    },
+    {
+      "id": "r176",
+      "kind": "math",
+      "x": 40,
+      "y": 6336,
+      "src": "A_sc_req := max(A_sc_a, A_sc_b, A_scmin) = cm^2"
+    },
+    {
+      "id": "r177",
+      "kind": "math",
+      "x": 40,
+      "y": 6384,
+      "src": "u_16 := A_sc_req/A_s ="
+    },
+    {
+      "id": "r178",
+      "kind": "text",
+      "x": 40,
+      "y": 6432,
+      "src": "Gobierna la rama (b)."
+    },
+    {
+      "id": "r180",
+      "kind": "text",
+      "x": 40,
+      "y": 6496,
+      "src": "━━ 3 · EL PUNTAL (23.4) ━━"
+    },
+    {
+      "id": "r181",
+      "kind": "text",
+      "x": 40,
+      "y": 6544,
+      "src": "Ec. (23.4.3): f_ce = 0,85·β_c·β_s·f'c."
+    },
+    {
+      "id": "r182",
+      "kind": "text",
+      "x": 40,
+      "y": 6592,
+      "src": "Tabla 23.4.3(a) línea (d): β_s = 0,75 con la armadura distribuida de la Tabla 23.5.1."
+    },
+    {
+      "id": "r184",
+      "kind": "math",
+      "x": 40,
+      "y": 6640,
+      "src": "beta_s := 0.75"
+    },
+    {
+      "id": "r185",
+      "kind": "text",
+      "x": 40,
+      "y": 6688,
+      "src": "Tabla 23.4.3(b): β_c = √(A_2/A_1) ≤ 2,0 con superficie de apoyo; 1,0 en los demás casos."
+    },
+    {
+      "id": "r189",
+      "kind": "math",
+      "x": 40,
+      "y": 6736,
+      "src": "beta_c := 1.0"
+    },
+    {
+      "id": "r190",
+      "kind": "math",
+      "x": 40,
+      "y": 6784,
+      "src": "f_ces := 0.85*beta_c*beta_s*f_c = kgf/cm^2"
+    },
+    {
+      "id": "r191",
+      "kind": "text",
+      "x": 40,
+      "y": 6832,
+      "src": "R23.4.1: el ancho del puntal es la dimensión perpendicular a su eje."
+    },
+    {
+      "id": "r193",
+      "kind": "math",
+      "x": 40,
+      "y": 6880,
+      "src": "w_perp := w_s*sin(theta) = cm"
+    },
+    {
+      "id": "r194",
+      "kind": "math",
+      "x": 40,
+      "y": 6928,
+      "src": "A_cs := w_perp*b = cm^2"
+    },
+    {
+      "id": "r195",
+      "kind": "math",
+      "x": 40,
+      "y": 6976,
+      "src": "Rd_s := phi_stm*f_ces*A_cs = tonf"
+    },
+    {
+      "id": "r196",
+      "kind": "math",
+      "x": 40,
+      "y": 7024,
+      "src": "u_s := C_u/Rd_s ="
+    },
+    {
+      "id": "v_s",
+      "kind": "math",
+      "x": 40,
+      "y": 7072,
+      "src": "v_s := Rd_s >= C_u ="
+    },
+    {
+      "id": "r198",
+      "kind": "text",
+      "x": 40,
+      "y": 7120,
+      "src": "23.4.1: F_ns se evalúa en los dos extremos y gobierna el menor. En A el espesor lo limita"
+    },
+    {
+      "id": "r199",
+      "kind": "text",
+      "x": 40,
+      "y": 7168,
+      "src": "la placa (25 cm) y el ancho vale l_b·senθ + w_t·cosθ, con w_t = 2(h − d) (23.8.1)."
+    },
+    {
+      "id": "r203",
+      "kind": "math",
+      "x": 40,
+      "y": 7216,
+      "src": "w_t := 2*(h - d) = cm"
+    },
+    {
+      "id": "r204",
+      "kind": "math",
+      "x": 40,
+      "y": 7264,
+      "src": "w_permA := L_pl*sin(theta) + w_t*cos(theta) = cm"
+    },
+    {
+      "id": "r205",
+      "kind": "math",
+      "x": 40,
+      "y": 7312,
+      "src": "A_csA := w_permA*B_pl = cm^2"
+    },
+    {
+      "id": "v_extremo",
+      "kind": "math",
+      "x": 40,
+      "y": 7360,
+      "src": "v_extremo := A_cs < A_csA ="
+    },
+    {
+      "id": "r208",
+      "kind": "text",
+      "x": 40,
+      "y": 7408,
+      "src": "23.4.4 no aplica: el β_s viene de la línea (d) de la Tabla 23.4.3(a), no de la (e)."
+    },
+    {
+      "id": "r210",
+      "kind": "text",
+      "x": 40,
+      "y": 7472,
+      "src": "━━ 3.1 · ARMADURA DISTRIBUIDA MÍNIMA (23.5) — LO QUE HABILITA EL β_s = 0,75 ━━"
+    },
+    {
+      "id": "r211",
+      "kind": "text",
+      "x": 40,
+      "y": 7520,
+      "src": "Tabla 23.5.1 fila (b): armadura en UNA dirección → cuantía mínima 0,0025/sen²α_1."
+    },
+    {
+      "id": "r214",
+      "kind": "math",
+      "x": 40,
+      "y": 7568,
+      "src": "alpha_1 := theta"
+    },
+    {
+      "id": "r215",
+      "kind": "math",
+      "x": 40,
+      "y": 7616,
+      "src": "rho_req := 0.0025/sin(alpha_1)^2 ="
+    },
+    {
+      "id": "r216",
+      "kind": "text",
+      "x": 40,
+      "y": 7664,
+      "src": "(La fila (a), 0,0025, es para malla ortogonal.) Los estribos van en los 2/3 de d bajo el tirante:"
+    },
+    {
+      "id": "r217",
+      "kind": "math",
+      "x": 40,
+      "y": 7712,
+      "src": "z_h := 2/3*d = cm"
+    },
+    {
+      "id": "r218",
+      "kind": "math",
+      "x": 40,
+      "y": 7760,
+      "src": "s_h := z_h/n_h = cm"
+    },
+    {
+      "id": "r219",
+      "kind": "math",
+      "x": 40,
+      "y": 7808,
+      "src": "rho_prov := 2*A_e/(b*s_h) ="
+    },
+    {
+      "id": "v_rho",
+      "kind": "math",
+      "x": 40,
+      "y": 7856,
+      "src": "v_rho := rho_prov >= rho_req ="
+    },
+    {
+      "id": "r221",
+      "kind": "math",
+      "x": 40,
+      "y": 7904,
+      "src": "hol_rho := rho_prov/rho_req - 1 ="
+    },
+    {
+      "id": "r222",
+      "kind": "text",
+      "x": 40,
+      "y": 7952,
+      "src": "Por la vía del Cap. 23 el que gobierna los estribos es 23.5.1, no 16.5.5.2:"
+    },
+    {
+      "id": "r225",
+      "kind": "math",
+      "x": 40,
+      "y": 8000,
+      "src": "A_hreq23 := rho_req*b*z_h = cm^2"
+    },
+    {
+      "id": "r226",
+      "kind": "math",
+      "x": 40,
+      "y": 8048,
+      "src": "u_h := A_hreq23/A_h ="
+    },
+    {
+      "id": "v_h23",
+      "kind": "math",
+      "x": 40,
+      "y": 8096,
+      "src": "v_h23 := A_h >= A_hreq23 ="
+    },
+    {
+      "id": "r228",
+      "kind": "text",
+      "x": 40,
+      "y": 8144,
+      "src": "Si no se cumple 23.5.1, β_s cae a 0,40 (línea (f) de la Tabla 23.4.3(a)):"
+    },
+    {
+      "id": "r231",
+      "kind": "math",
+      "x": 40,
+      "y": 8192,
+      "src": "Rd_s_sin := phi_stm*0.85*beta_c*0.40*f_c*A_cs = tonf"
+    },
+    {
+      "id": "r232",
+      "kind": "math",
+      "x": 40,
+      "y": 8240,
+      "src": "u_s_sin := C_u/Rd_s_sin ="
+    },
+    {
+      "id": "r233",
+      "kind": "text",
+      "x": 40,
+      "y": 8288,
+      "src": "23.5.2: α_1 ≥ 40° (c) · s ≤ 300 mm (b) · dos planos si la dimensión fuera del plano > 250 mm (d)."
+    },
+    {
+      "id": "v_alpha",
+      "kind": "math",
+      "x": 40,
+      "y": 8336,
+      "src": "v_alpha := alpha_1*180/pi >= 40 ="
+    },
+    {
+      "id": "v_sh",
+      "kind": "math",
+      "x": 40,
+      "y": 8384,
+      "src": "v_sh := s_h <= 300 mm ="
+    },
+    {
+      "id": "v_dosplanos",
+      "kind": "math",
+      "x": 40,
+      "y": 8432,
+      "src": "v_dosplanos := b > 250 mm ="
+    },
+    {
+      "id": "r239",
+      "kind": "text",
+      "x": 40,
+      "y": 8496,
+      "src": "━━ 4 · LOS NODOS (23.9) ━━"
+    },
+    {
+      "id": "r240",
+      "kind": "text",
+      "x": 40,
+      "y": 8544,
+      "src": "Ec. (23.9.2): f_ce = 0,85·β_c·β_n·f'c, con β_n de la Tabla 23.9.2:"
+    },
+    {
+      "id": "r241",
+      "kind": "text",
+      "x": 40,
+      "y": 8592,
+      "src": "Tabla 23.9.2: β_n = 1,0 sin tirantes · 0,80 si ancla uno · 0,60 si ancla dos o más."
+    },
+    {
+      "id": "r243",
+      "kind": "math",
+      "x": 40,
+      "y": 8640,
+      "src": "beta_nA := 0.80"
+    },
+    {
+      "id": "r244",
+      "kind": "math",
+      "x": 40,
+      "y": 8688,
+      "src": "beta_nB := 1.0"
+    },
+    {
+      "id": "r245",
+      "kind": "text",
+      "x": 40,
+      "y": 8736,
+      "src": "Nodo A (CCT) — ancla el tirante; la cara cargada es la placa de apoyo."
+    },
+    {
+      "id": "r246",
+      "kind": "math",
+      "x": 40,
+      "y": 8784,
+      "src": "f_ceA := 0.85*beta_c*beta_nA*f_c = kgf/cm^2"
+    },
+    {
+      "id": "r247",
+      "kind": "math",
+      "x": 40,
+      "y": 8832,
+      "src": "Rd_A := phi_stm*f_ceA*A_1 = tonf"
+    },
+    {
+      "id": "r248",
+      "kind": "math",
+      "x": 40,
+      "y": 8880,
+      "src": "u_A := V_u/Rd_A ="
+    },
+    {
+      "id": "r249",
+      "kind": "text",
+      "x": 40,
+      "y": 8928,
+      "src": "Nodo B (CCC), limitado por puntales; el área es perpendicular a F_us (23.9.4(a))."
+    },
+    {
+      "id": "r251",
+      "kind": "math",
+      "x": 40,
+      "y": 8976,
+      "src": "A_nzB := A_cs = cm^2"
+    },
+    {
+      "id": "r252",
+      "kind": "math",
+      "x": 40,
+      "y": 9024,
+      "src": "f_ceB := 0.85*beta_c*beta_nB*f_c = kgf/cm^2"
+    },
+    {
+      "id": "r253",
+      "kind": "math",
+      "x": 40,
+      "y": 9072,
+      "src": "Rd_B := phi_stm*f_ceB*A_nzB = tonf"
+    },
+    {
+      "id": "r254",
+      "kind": "math",
+      "x": 40,
+      "y": 9120,
+      "src": "u_B := C_u/Rd_B ="
+    },
+    {
+      "id": "v_nodos",
+      "kind": "math",
+      "x": 40,
+      "y": 9168,
+      "src": "v_nodos := Rd_A >= V_u and Rd_B >= C_u ="
+    },
+    {
+      "id": "r256",
+      "kind": "text",
+      "x": 40,
+      "y": 9232,
+      "src": "━━ 5 · EL TECHO GLOBAL DE CORTE (16.5.2.4) — LAS DOS EDICIONES ━━"
+    },
+    {
+      "id": "r257",
+      "kind": "text",
+      "x": 40,
+      "y": 9280,
+      "src": "16.5.2.4: para hormigón de peso normal, V_u/φ no debe exceder el MENOR de"
+    },
+    {
+      "id": "r258",
+      "kind": "text",
+      "x": 40,
+      "y": 9328,
+      "src": "(a) 0,2f'c·b_w·d, (b) (3,3 + 0,08f'c)·b_w·d, (c) 11·b_w·d — en MPa, edición SI."
+    },
+    {
+      "id": "r259",
+      "kind": "math",
+      "x": 40,
+      "y": 9376,
+      "src": "A_c := b*d = cm^2"
+    },
+    {
+      "id": "r260",
+      "kind": "math",
+      "x": 40,
+      "y": 9424,
+      "src": "lim_a := 0.2*f_c*A_c = tonf"
+    },
+    {
+      "id": "r261",
+      "kind": "math",
+      "x": 40,
+      "y": 9472,
+      "src": "lim_b := (3.3 + 0.08*f_cM/MPa)*MPa*A_c = tonf"
+    },
+    {
+      "id": "r262",
+      "kind": "math",
+      "x": 40,
+      "y": 9520,
+      "src": "lim_c := 11*MPa*A_c = tonf"
+    },
+    {
+      "id": "r263",
+      "kind": "math",
+      "x": 40,
+      "y": 9568,
+      "src": "Vn_max := min(lim_a, lim_b, lim_c) = tonf"
+    },
+    {
+      "id": "r264",
+      "kind": "math",
+      "x": 40,
+      "y": 9616,
+      "src": "Rd_Vmax := phi_men*Vn_max = tonf"
+    },
+    {
+      "id": "r265",
+      "kind": "math",
+      "x": 40,
+      "y": 9664,
+      "src": "u_Vmax := V_u/Rd_Vmax ="
+    },
+    {
+      "id": "v_Vmax",
+      "kind": "math",
+      "x": 40,
+      "y": 9712,
+      "src": "v_Vmax := V_u/phi_men <= Vn_max ="
+    },
+    {
+      "id": "r267",
+      "kind": "text",
+      "x": 40,
+      "y": 9760,
+      "src": "Contra la impresión inch-pound, que tabula (480 + 0,08f'c) psi y 1600 psi en (b) y (c):"
+    },
+    {
+      "id": "r269",
+      "kind": "math",
+      "x": 40,
+      "y": 9808,
+      "src": "f_cpsi := f_c/(1 psi)"
+    },
+    {
+      "id": "r270",
+      "kind": "math",
+      "x": 40,
+      "y": 9856,
+      "src": "lim_b_ip := (480 + 0.08*f_cpsi)*psi*A_c = tonf"
+    },
+    {
+      "id": "r271",
+      "kind": "math",
+      "x": 40,
+      "y": 9904,
+      "src": "lim_c_ip := 1600*psi*A_c = tonf"
+    },
+    {
+      "id": "r272",
+      "kind": "math",
+      "x": 40,
+      "y": 9952,
+      "src": "dif_b := lim_b_ip/lim_b - 1 ="
+    },
+    {
+      "id": "r273",
+      "kind": "math",
+      "x": 40,
+      "y": 10000,
+      "src": "dif_c := lim_c_ip/lim_c - 1 ="
+    },
+    {
+      "id": "r274",
+      "kind": "text",
+      "x": 40,
+      "y": 10048,
+      "src": "Gobierna la rama (a), 0,2f'c: fracción de f'c, idéntica en las dos ediciones."
+    },
+    {
+      "id": "r277",
+      "kind": "text",
+      "x": 40,
+      "y": 10112,
+      "src": "━━ 6 · APLASTAMIENTO BAJO LA PLACA (22.8.3) ━━"
+    },
+    {
+      "id": "r278",
+      "kind": "text",
+      "x": 40,
+      "y": 10160,
+      "src": "Tabla 22.8.3.2 caso (c) «otros casos»: B_n = 0,85·f'c·A_1 (la placa está a 2,5 cm del borde)."
+    },
+    {
+      "id": "r281",
+      "kind": "math",
+      "x": 40,
+      "y": 10208,
+      "src": "Rd_ap := phi_ap*0.85*f_c*A_1 = tonf"
+    },
+    {
+      "id": "r282",
+      "kind": "math",
+      "x": 40,
+      "y": 10256,
+      "src": "u_ap := V_u/Rd_ap ="
+    },
+    {
+      "id": "v_ap",
+      "kind": "math",
+      "x": 40,
+      "y": 10304,
+      "src": "v_ap := Rd_ap >= V_u ="
+    },
+    {
+      "id": "r284",
+      "kind": "math",
+      "x": 40,
+      "y": 10352,
+      "src": "borde_libre := vuelo - x_placa = cm"
+    },
+    {
+      "id": "r285",
+      "kind": "text",
+      "x": 40,
+      "y": 10416,
+      "src": "━━ 7 · CORTE POR FRICCIÓN EN LA CARA DE LA COLUMNA (23.2.12 + 22.9) ━━"
+    },
+    {
+      "id": "r286",
+      "kind": "text",
+      "x": 40,
+      "y": 10464,
+      "src": "23.2.12 y R23.2.12: el corte por fricción del 22.9 aplica en la junta ménsula-columna."
+    },
+    {
+      "id": "r290",
+      "kind": "math",
+      "x": 40,
+      "y": 10512,
+      "src": "A_vf_prov := A_s + A_h = cm^2"
+    },
+    {
+      "id": "r291",
+      "kind": "math",
+      "x": 40,
+      "y": 10560,
+      "src": "V_nsf := mu_sf*A_vf_prov*f_y = tonf"
+    },
+    {
+      "id": "r292",
+      "kind": "math",
+      "x": 40,
+      "y": 10608,
+      "src": "Rd_sf := phi_v*min(V_nsf, Vn_max) = tonf"
+    },
+    {
+      "id": "r293",
+      "kind": "math",
+      "x": 40,
+      "y": 10656,
+      "src": "u_sf := V_u/Rd_sf ="
+    },
+    {
+      "id": "v_sf",
+      "kind": "math",
+      "x": 40,
+      "y": 10704,
+      "src": "v_sf := Rd_sf >= V_u ="
+    },
+    {
+      "id": "r295",
+      "kind": "text",
+      "x": 40,
+      "y": 10768,
+      "src": "━━ 8 · EL ANCLAJE DEL TIRANTE (25.4.3) ━━"
+    },
+    {
+      "id": "r296",
+      "kind": "text",
+      "x": 40,
+      "y": 10816,
+      "src": "Tabla 25.4.3.2 de 318-25: λ, ψ_e, ψ_s, ψ_cc y ψ_r (ψ_o y ψ_c eran de 318-19)."
+    },
+    {
+      "id": "r299",
+      "kind": "math",
+      "x": 40,
+      "y": 10864,
+      "src": "psi_e := 1.0"
+    },
+    {
+      "id": "r300",
+      "kind": "math",
+      "x": 40,
+      "y": 10912,
+      "src": "psi_s := 1.0"
+    },
+    {
+      "id": "r301",
+      "kind": "math",
+      "x": 40,
+      "y": 10960,
+      "src": "psi_cc := 1.0"
+    },
+    {
+      "id": "r302",
+      "kind": "math",
+      "x": 40,
+      "y": 11008,
+      "src": "psi_r := 1.0"
+    },
+    {
+      "id": "r303",
+      "kind": "text",
+      "x": 40,
+      "y": 11056,
+      "src": "25.4.3.1(a) tal como está impresa en esta edición SI: f_y·ψ_e·ψ_s·ψ_cc·ψ_r/(21λ√f'c)·d_b"
+    },
+    {
+      "id": "r304",
+      "kind": "math",
+      "x": 40,
+      "y": 11104,
+      "src": "ldh_a := f_yM*psi_e*psi_s*psi_cc*psi_r/(21*lam*rfc*MPa)*d_b = cm"
+    },
+    {
+      "id": "r305",
+      "kind": "math",
+      "x": 40,
+      "y": 11152,
+      "src": "ldh_lit := max(ldh_a, 8*d_b, 150 mm) = cm"
+    },
+    {
+      "id": "r306",
+      "kind": "text",
+      "x": 40,
+      "y": 11200,
+      "src": "Ese literal daría ℓ_dh ≈ 4·d_b. R25.4.3.1 dice que restituye 318-14, cuya constante SI es 0,24:"
+    },
+    {
+      "id": "r310",
+      "kind": "math",
+      "x": 40,
+      "y": 11248,
+      "src": "ldh_318_14 := 0.24*f_yM/(lam*rfc*MPa)*d_b = cm"
+    },
+    {
+      "id": "r311",
+      "kind": "math",
+      "x": 40,
+      "y": 11296,
+      "src": "razon := ldh_318_14/ldh_a ="
+    },
+    {
+      "id": "r312",
+      "kind": "text",
+      "x": 40,
+      "y": 11344,
+      "src": "El cociente es 5: la constante impresa (21) es cinco veces la de 318-14 (4,17). Se toma la conservadora."
+    },
+    {
+      "id": "r314",
+      "kind": "math",
+      "x": 40,
+      "y": 11392,
+      "src": "ldh := ldh_318_14 = cm"
+    },
+    {
+      "id": "r315",
+      "kind": "text",
+      "x": 40,
+      "y": 11440,
+      "src": "Largo disponible: ancho de columna menos recubrimiento y estribo de la cara opuesta."
+    },
+    {
+      "id": "r317",
+      "kind": "math",
+      "x": 40,
+      "y": 11488,
+      "src": "b_col := 40 cm"
+    },
+    {
+      "id": "r318",
+      "kind": "math",
+      "x": 40,
+      "y": 11536,
+      "src": "l_disp := b_col - rec - d_e = cm"
+    },
+    {
+      "id": "v_ldh",
+      "kind": "math",
+      "x": 40,
+      "y": 11584,
+      "src": "v_ldh := ldh <= l_disp ="
+    },
+    {
+      "id": "r320",
+      "kind": "math",
+      "x": 40,
+      "y": 11632,
+      "src": "u_ldh := ldh/l_disp ="
+    },
+    {
+      "id": "r321",
+      "kind": "text",
+      "x": 40,
+      "y": 11680,
+      "src": "16.5.6.3: en la cara frontal, anclaje por (a) barra transversal soldada, (b) horquilla u (c) equivalente."
+    },
+    {
+      "id": "r325",
+      "kind": "text",
+      "x": 40,
+      "y": 11744,
+      "src": "━━ 9 · RESUMEN: QUÉ GOBIERNA ━━"
+    },
+    {
+      "id": "r326",
+      "kind": "math",
+      "x": 40,
+      "y": 11792,
+      "src": "u_max := max(u_T, u_s, u_B, u_A, u_ap, u_Vmax, u_sf) ="
+    },
+    {
+      "id": "gob",
+      "kind": "program",
+      "src": "gobierna :=\nif u_max == u_T\n  return \"el tirante (23.7.2)\"\nelse if u_max == u_s\n  return \"el puntal (23.4)\"\nelse if u_max == u_B\n  return \"la zona nodal B (23.9)\"\nelse if u_max == u_A\n  return \"la zona nodal A (23.9)\"\nelse if u_max == u_ap\n  return \"el aplastamiento bajo la placa (22.8.3)\"\nelse if u_max == u_Vmax\n  return \"el techo global de corte (16.5.2.4)\"\nelse\n  return \"el corte por fricción de la junta (22.9)\"",
+      "x": 40,
+      "y": 11840
+    },
+    {
+      "id": "v_ductil",
+      "kind": "math",
+      "x": 40,
+      "y": 12144,
+      "src": "v_ductil := u_T > u_s ="
+    },
+    {
+      "id": "esq",
+      "kind": "image",
+      "x": 40,
+      "y": 12192,
+      "src": "/esquemas/mensula-puntal-tensor.svg",
+      "w": 720,
+      "h": 420,
+      "pageBreak": true
+    },
+    {
+      "id": "r329",
+      "kind": "text",
+      "x": 40,
+      "y": 12752,
+      "src": "━━ CONTRASTE CON EL POST ━━"
+    },
+    {
+      "id": "r330",
+      "kind": "text",
+      "x": 40,
+      "y": 12800,
+      "src": "Un booleano por número publicado. Tolerancia: media unidad del último dígito."
+    },
+    {
+      "id": "r332",
+      "kind": "text",
+      "x": 40,
+      "y": 12848,
+      "src": "Tabla del caso y cerrojos:"
+    },
+    {
+      "id": "c_d",
+      "kind": "math",
+      "x": 40,
+      "y": 12896,
+      "src": "abs(d - 40 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_avd",
+      "kind": "math",
+      "x": 40,
+      "y": 12944,
+      "src": "abs(avd - 0.375) < 0.0005 ="
+    },
+    {
+      "id": "c_hmin",
+      "kind": "math",
+      "x": 40,
+      "y": 12992,
+      "src": "abs(h_min - 20 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_Nuc",
+      "kind": "math",
+      "x": 40,
+      "y": 13040,
+      "src": "abs(N_uc - 5.6 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_A1",
+      "kind": "math",
+      "x": 40,
+      "y": 13088,
+      "src": "abs(A_1 - 500 cm^2) < 0.5 cm^2 ="
+    },
+    {
+      "id": "r338",
+      "kind": "text",
+      "x": 40,
+      "y": 13136,
+      "src": "§0 — techo de corte y aplastamiento:"
+    },
+    {
+      "id": "c_RdVmax",
+      "kind": "math",
+      "x": 40,
+      "y": 13184,
+      "src": "abs(Rd_Vmax - 60 tonf) < 0.5 tonf ="
+    },
+    {
+      "id": "c_uVmax",
+      "kind": "math",
+      "x": 40,
+      "y": 13232,
+      "src": "abs(u_Vmax - 0.47) < 0.005 ="
+    },
+    {
+      "id": "c_Rdap",
+      "kind": "math",
+      "x": 40,
+      "y": 13280,
+      "src": "abs(Rd_ap - 69063 kgf) < 0.5 kgf ="
+    },
+    {
+      "id": "c_Rdap2",
+      "kind": "math",
+      "x": 40,
+      "y": 13328,
+      "src": "abs(Rd_ap - 69.1 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_uap",
+      "kind": "math",
+      "x": 40,
+      "y": 13376,
+      "src": "abs(u_ap - 0.41) < 0.005 ="
+    },
+    {
+      "id": "r344",
+      "kind": "text",
+      "x": 40,
+      "y": 13424,
+      "src": "§1 — el enrejado:"
+    },
+    {
+      "id": "c_jd",
+      "kind": "math",
+      "x": 40,
+      "y": 13472,
+      "src": "abs(jd - 36 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_theta",
+      "kind": "math",
+      "x": 40,
+      "y": 13520,
+      "src": "abs(theta_gr - 67.4) < 0.05 ="
+    },
+    {
+      "id": "c_C",
+      "kind": "math",
+      "x": 40,
+      "y": 13568,
+      "src": "abs(C_u - 30.3 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_T",
+      "kind": "math",
+      "x": 40,
+      "y": 13616,
+      "src": "abs(T_u - 18.0 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "r349",
+      "kind": "text",
+      "x": 40,
+      "y": 13664,
+      "src": "El post escribe el numerador «420 + 230» y, en el §2, el tirante como 18 044 kgf:"
+    },
+    {
+      "id": "c_num1",
+      "kind": "math",
+      "x": 40,
+      "y": 13712,
+      "src": "abs(V_u*a_v - 420 tonf*cm) < 0.5 tonf*cm ="
+    },
+    {
+      "id": "c_num2",
+      "kind": "math",
+      "x": 40,
+      "y": 13760,
+      "src": "abs(N_uc*(jd + h - d) - 230 tonf*cm) < 0.5 tonf*cm ="
+    },
+    {
+      "id": "c_T18044",
+      "kind": "math",
+      "x": 40,
+      "y": 13808,
+      "src": "abs(T_u - 18044 kgf) < 0.5 kgf ="
+    },
+    {
+      "id": "c_dTN",
+      "kind": "math",
+      "x": 40,
+      "y": 13856,
+      "src": "abs(dT_N - 6.4 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "r354",
+      "kind": "text",
+      "x": 40,
+      "y": 13904,
+      "src": "La Note del §1 publica el cierre que no da: 11,7 + 5,6 = 17,3, sobran 0,78, y el uso sería 0,91."
+    },
+    {
+      "id": "c_Ccos",
+      "kind": "math",
+      "x": 40,
+      "y": 13952,
+      "src": "abs(C_u*cos(theta) - 11.7 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_Ttri",
+      "kind": "math",
+      "x": 40,
+      "y": 14000,
+      "src": "abs(T_tri - 17.3 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_dT",
+      "kind": "math",
+      "x": 40,
+      "y": 14048,
+      "src": "abs(dT - 0.78 tonf) < 0.005 tonf ="
+    },
+    {
+      "id": "c_uTtri",
+      "kind": "math",
+      "x": 40,
+      "y": 14096,
+      "src": "abs(T_tri/Rd_T - 0.91) < 0.005 ="
+    },
+    {
+      "id": "r360",
+      "kind": "text",
+      "x": 40,
+      "y": 14144,
+      "src": "«Un tercio del tirante»: el valor exacto es 0,353."
+    },
+    {
+      "id": "c_tercio",
+      "kind": "math",
+      "x": 40,
+      "y": 14192,
+      "src": "frac_N > 1/3 and frac_N < 0.36 ="
+    },
+    {
+      "id": "c_corto",
+      "kind": "math",
+      "x": 40,
+      "y": 14240,
+      "src": "abs(corto - 0.35) < 0.005 ="
+    },
+    {
+      "id": "r364",
+      "kind": "text",
+      "x": 40,
+      "y": 14288,
+      "src": "§2 — el tirante:"
+    },
+    {
+      "id": "c_Asreq",
+      "kind": "math",
+      "x": 40,
+      "y": 14336,
+      "src": "abs(A_sreq - 5.73 cm^2) < 0.005 cm^2 ="
+    },
+    {
+      "id": "c_As",
+      "kind": "math",
+      "x": 40,
+      "y": 14384,
+      "src": "abs(A_s - 6.03 cm^2) < 0.005 cm^2 ="
+    },
+    {
+      "id": "c_uT",
+      "kind": "math",
+      "x": 40,
+      "y": 14432,
+      "src": "abs(u_T - 0.95) < 0.005 ="
+    },
+    {
+      "id": "c_RdT",
+      "kind": "math",
+      "x": 40,
+      "y": 14480,
+      "src": "abs(Rd_T - 19.0 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_Asmin",
+      "kind": "math",
+      "x": 40,
+      "y": 14528,
+      "src": "abs(A_scmin - 3.81 cm^2) < 0.005 cm^2 ="
+    },
+    {
+      "id": "c_An",
+      "kind": "math",
+      "x": 40,
+      "y": 14576,
+      "src": "abs(A_n - 1.78 cm^2) < 0.005 cm^2 ="
+    },
+    {
+      "id": "c_Ahreq",
+      "kind": "math",
+      "x": 40,
+      "y": 14624,
+      "src": "abs(A_hreq - 2.13 cm^2) < 0.005 cm^2 ="
+    },
+    {
+      "id": "c_Ah",
+      "kind": "math",
+      "x": 40,
+      "y": 14672,
+      "src": "abs(A_h - 3.14 cm^2) < 0.005 cm^2 ="
+    },
+    {
+      "id": "r373",
+      "kind": "text",
+      "x": 40,
+      "y": 14720,
+      "src": "Cuantía distribuida y el umbral que le corresponde (Tabla 23.5.1 fila (b)), y el área que gobierna:"
+    },
+    {
+      "id": "c_rho",
+      "kind": "math",
+      "x": 40,
+      "y": 14768,
+      "src": "abs(rho_prov - 0.00295) < 0.000005 ="
+    },
+    {
+      "id": "c_rhoreq",
+      "kind": "math",
+      "x": 40,
+      "y": 14816,
+      "src": "abs(rho_req - 0.00293) < 0.000005 ="
+    },
+    {
+      "id": "c_Ahreq23",
+      "kind": "math",
+      "x": 40,
+      "y": 14864,
+      "src": "abs(A_hreq23 - 3.13 cm^2) < 0.005 cm^2 ="
+    },
+    {
+      "id": "c_uh",
+      "kind": "math",
+      "x": 40,
+      "y": 14912,
+      "src": "abs(u_h - 1.00) < 0.005 ="
+    },
+    {
+      "id": "c_ussin",
+      "kind": "math",
+      "x": 40,
+      "y": 14960,
+      "src": "abs(u_s_sin - 1.61) < 0.005 ="
+    },
+    {
+      "id": "r381",
+      "kind": "text",
+      "x": 40,
+      "y": 15008,
+      "src": "§0 — el corte por fricción de la junta, que el post ahora publica:"
+    },
+    {
+      "id": "c_Avfprov",
+      "kind": "math",
+      "x": 40,
+      "y": 15056,
+      "src": "abs(A_vf_prov - 9.17 cm^2) < 0.005 cm^2 ="
+    },
+    {
+      "id": "c_Rdsf",
+      "kind": "math",
+      "x": 40,
+      "y": 15104,
+      "src": "abs(Rd_sf - 40.5 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_usf",
+      "kind": "math",
+      "x": 40,
+      "y": 15152,
+      "src": "abs(u_sf - 0.69) < 0.005 ="
+    },
+    {
+      "id": "r385",
+      "kind": "text",
+      "x": 40,
+      "y": 15200,
+      "src": "§El caso — la rama (b) de 16.2.2.3 que la Note cita:"
+    },
+    {
+      "id": "c_Nucb",
+      "kind": "math",
+      "x": 40,
+      "y": 15248,
+      "src": "abs(N_uc_b - 0.3 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "r387",
+      "kind": "text",
+      "x": 40,
+      "y": 15296,
+      "src": "§3 — puntal y nodos:"
+    },
+    {
+      "id": "c_fces",
+      "kind": "math",
+      "x": 40,
+      "y": 15344,
+      "src": "abs(f_ces - 159.4 kgf/cm^2) < 0.05 kgf/cm^2 ="
+    },
+    {
+      "id": "c_wperp",
+      "kind": "math",
+      "x": 40,
+      "y": 15392,
+      "src": "abs(w_perp - 7.4 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_Rds",
+      "kind": "math",
+      "x": 40,
+      "y": 15440,
+      "src": "abs(Rd_s - 35.3 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_us",
+      "kind": "math",
+      "x": 40,
+      "y": 15488,
+      "src": "abs(u_s - 0.86) < 0.005 ="
+    },
+    {
+      "id": "c_Acs",
+      "kind": "math",
+      "x": 40,
+      "y": 15536,
+      "src": "abs(A_cs - 295 cm^2) < 0.5 cm^2 ="
+    },
+    {
+      "id": "c_fceB",
+      "kind": "math",
+      "x": 40,
+      "y": 15584,
+      "src": "abs(f_ceB - 212.5 kgf/cm^2) < 0.05 kgf/cm^2 ="
+    },
+    {
+      "id": "c_RdB",
+      "kind": "math",
+      "x": 40,
+      "y": 15632,
+      "src": "abs(Rd_B - 47.1 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_uB",
+      "kind": "math",
+      "x": 40,
+      "y": 15680,
+      "src": "abs(u_B - 0.64) < 0.005 ="
+    },
+    {
+      "id": "c_fceA",
+      "kind": "math",
+      "x": 40,
+      "y": 15728,
+      "src": "abs(f_ceA - 170 kgf/cm^2) < 0.5 kgf/cm^2 ="
+    },
+    {
+      "id": "c_RdA",
+      "kind": "math",
+      "x": 40,
+      "y": 15776,
+      "src": "abs(Rd_A - 63.8 tonf) <= 0.05 tonf ="
+    },
+    {
+      "id": "c_uA",
+      "kind": "math",
+      "x": 40,
+      "y": 15824,
+      "src": "abs(u_A - 0.44) < 0.005 ="
+    },
+    {
+      "id": "c_holgura",
+      "kind": "math",
+      "x": 40,
+      "y": 15872,
+      "src": "abs(1 - u_s - 0.14) < 0.005 ="
+    },
+    {
+      "id": "r400",
+      "kind": "text",
+      "x": 40,
+      "y": 15920,
+      "src": "§4 — el anclaje, y la Note sobre la constante de la 25.4.3.1(a):"
+    },
+    {
+      "id": "c_ldh",
+      "kind": "math",
+      "x": 40,
+      "y": 15968,
+      "src": "abs(ldh - 32 cm) < 0.5 cm ="
+    },
+    {
+      "id": "c_ldha",
+      "kind": "math",
+      "x": 40,
+      "y": 16016,
+      "src": "abs(ldh_a - 6.3 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_ldhlit",
+      "kind": "math",
+      "x": 40,
+      "y": 16064,
+      "src": "abs(ldh_lit - 15 cm) < 0.5 cm ="
+    },
+    {
+      "id": "c_razon",
+      "kind": "math",
+      "x": 40,
+      "y": 16112,
+      "src": "abs(razon - 5) < 0.05 ="
+    },
+    {
+      "id": "c_const",
+      "kind": "math",
+      "x": 40,
+      "y": 16160,
+      "src": "abs(1/0.24 - 4.17) < 0.005 ="
+    },
+    {
+      "id": "c_ldisp",
+      "kind": "math",
+      "x": 40,
+      "y": 16208,
+      "src": "abs(l_disp - 35 cm) < 0.5 cm ="
+    }
+  ]
+}

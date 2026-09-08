@@ -1,0 +1,1304 @@
+{
+  "version": 1,
+  "meta": {
+    "titulo": "Conexión de momento con placas de ala (BFP) — la conexión pasa con usos 0.49–0.76 y la columna no: flexión local del ala 1.43, fluencia del alma 1.12 y zona panel 1.07 con el término axial de J10-10 (AISC 360-22 J3.7, J4, F13.1, J10)",
+    "ficha": "struct_pad/src/content/acero/ejemplo-conexion-momento-placas-ala.mdx",
+    "esperadoFalso": {
+      "v_fla": "El post lo declara: la flexión local del ala de la columna FALLA (Ec. J10-1, uso 1.43); la resuelven los rigidizadores de continuidad de la sección 7.",
+      "v_alm": "El post lo declara: la fluencia local del alma de la columna FALLA (Ec. J10-2, uso 1.12); la resuelven los rigidizadores de continuidad.",
+      "v_pz": "El post lo declara: la zona panel FALLA (Ec. J10-10, uso 1.07) por el término axial 1.4 - Pr/Pc; la resuelve el doubler de 6 mm."
+    }
+  },
+  "regions": [
+    {
+      "id": "r000",
+      "kind": "text",
+      "x": 40,
+      "y": 32,
+      "src": "CONEXIÓN DE MOMENTO CON PLACAS DE ALA (BFP) — la conexión pasa; la columna, del otro lado del nudo, no"
+    },
+    {
+      "id": "r001",
+      "kind": "text",
+      "x": 40,
+      "y": 80,
+      "src": "AISC 360-22 J3.7, J4, F13.1 y J10 (fuerzas concentradas y zona panel) · LRFD"
+    },
+    {
+      "id": "r002",
+      "kind": "text",
+      "x": 40,
+      "y": 128,
+      "src": "Rd_ = capacidad de diseño (incluye phi) · las comparaciones dan ✓/✗"
+    },
+    {
+      "id": "r003",
+      "kind": "image",
+      "x": 40,
+      "y": 6976,
+      "src": "/esquemas/conexion-momento-placas-ala.svg",
+      "w": 560,
+      "h": 313
+    },
+    {
+      "id": "r004",
+      "kind": "text",
+      "x": 40,
+      "y": 176,
+      "src": "El caso: nudo exterior — viga W460×74 con placas de ala apernadas a una columna W310×97 que además lleva 200 tonf de axial."
+    },
+    {
+      "id": "r005",
+      "kind": "text",
+      "x": 40,
+      "y": 240,
+      "src": "━━ DATOS · ACEROS ━━"
+    },
+    {
+      "id": "r006",
+      "kind": "text",
+      "x": 40,
+      "y": 288,
+      "src": "Viga y columna A992 · placas de ala A36 · pernos A490-N (hilos incluidos)"
+    },
+    {
+      "id": "r_fya",
+      "kind": "math",
+      "x": 40,
+      "y": 336,
+      "src": "F_ya := 3520 kgf/cm^2"
+    },
+    {
+      "id": "r_fua",
+      "kind": "math",
+      "x": 40,
+      "y": 384,
+      "src": "F_ua := 4570 kgf/cm^2"
+    },
+    {
+      "id": "r_fyp",
+      "kind": "math",
+      "x": 40,
+      "y": 432,
+      "src": "F_yp := 2530 kgf/cm^2"
+    },
+    {
+      "id": "r_fup",
+      "kind": "math",
+      "x": 40,
+      "y": 480,
+      "src": "F_up := 4080 kgf/cm^2"
+    },
+    {
+      "id": "r007",
+      "kind": "text",
+      "x": 40,
+      "y": 528,
+      "src": "F_nv del A490-N como lo declara el post, ya convertido de la Tabla J3.2: 470 MPa → 4792"
+    },
+    {
+      "id": "r_fnv",
+      "kind": "math",
+      "x": 40,
+      "y": 576,
+      "src": "F_nv := 4792 kgf/cm^2"
+    },
+    {
+      "id": "r_e",
+      "kind": "math",
+      "x": 40,
+      "y": 624,
+      "src": "E := 2040000 kgf/cm^2"
+    },
+    {
+      "id": "r008",
+      "kind": "text",
+      "x": 40,
+      "y": 688,
+      "src": "━━ DATOS · VIGA W460×74 ━━"
+    },
+    {
+      "id": "r_dv",
+      "kind": "math",
+      "x": 40,
+      "y": 736,
+      "src": "d_v := 45.7 cm"
+    },
+    {
+      "id": "r_bfv",
+      "kind": "math",
+      "x": 40,
+      "y": 784,
+      "src": "b_fv := 19.0 cm"
+    },
+    {
+      "id": "r_tfv",
+      "kind": "math",
+      "x": 40,
+      "y": 832,
+      "src": "t_fv := 1.45 cm"
+    },
+    {
+      "id": "r_sx",
+      "kind": "math",
+      "x": 40,
+      "y": 880,
+      "src": "S_x := 1457 cm^3"
+    },
+    {
+      "id": "r_zx",
+      "kind": "math",
+      "x": 40,
+      "y": 928,
+      "src": "Z_x := 1655 cm^3"
+    },
+    {
+      "id": "r009",
+      "kind": "text",
+      "x": 40,
+      "y": 992,
+      "src": "━━ DATOS · COLUMNA W310×97 ━━"
+    },
+    {
+      "id": "r_dc",
+      "kind": "math",
+      "x": 40,
+      "y": 1040,
+      "src": "d_c := 30.8 cm"
+    },
+    {
+      "id": "r_bfc",
+      "kind": "math",
+      "x": 40,
+      "y": 1088,
+      "src": "b_fc := 30.5 cm"
+    },
+    {
+      "id": "r_tfc",
+      "kind": "math",
+      "x": 40,
+      "y": 1136,
+      "src": "t_fc := 1.54 cm"
+    },
+    {
+      "id": "r_twc",
+      "kind": "math",
+      "x": 40,
+      "y": 1184,
+      "src": "t_wc := 0.99 cm"
+    },
+    {
+      "id": "r_kc",
+      "kind": "math",
+      "x": 40,
+      "y": 1232,
+      "src": "k_c := 3.05 cm"
+    },
+    {
+      "id": "r_agc",
+      "kind": "math",
+      "x": 40,
+      "y": 1280,
+      "src": "A_gc := 123 cm^2"
+    },
+    {
+      "id": "r010",
+      "kind": "text",
+      "x": 40,
+      "y": 1344,
+      "src": "━━ DATOS · PLACAS DE ALA Y PERNOS ━━"
+    },
+    {
+      "id": "r_bp",
+      "kind": "math",
+      "x": 40,
+      "y": 1392,
+      "src": "b_p := 20.0 cm"
+    },
+    {
+      "id": "r_tp",
+      "kind": "math",
+      "x": 40,
+      "y": 1440,
+      "src": "t_p := 2.0 cm"
+    },
+    {
+      "id": "r_db",
+      "kind": "math",
+      "x": 40,
+      "y": 1488,
+      "src": "d_b := 2.4 cm"
+    },
+    {
+      "id": "r011",
+      "kind": "text",
+      "x": 40,
+      "y": 1536,
+      "src": "A_b del Ø24 derivada del diametro · d_h = 26 mm agujero estándar · d_hn = d_h + 2 mm para áreas netas (B4.3b)"
+    },
+    {
+      "id": "r_ab",
+      "kind": "math",
+      "x": 40,
+      "y": 1584,
+      "src": "A_b := pi*d_b^2/4 = cm^2"
+    },
+    {
+      "id": "r_dh",
+      "kind": "math",
+      "x": 40,
+      "y": 1632,
+      "src": "d_h := 2.6 cm"
+    },
+    {
+      "id": "r_dhn",
+      "kind": "math",
+      "x": 40,
+      "y": 1680,
+      "src": "d_hn := d_h + 0.2 cm"
+    },
+    {
+      "id": "r_s",
+      "kind": "math",
+      "x": 40,
+      "y": 1728,
+      "src": "s := 7.0 cm"
+    },
+    {
+      "id": "r_g",
+      "kind": "math",
+      "x": 40,
+      "y": 1776,
+      "src": "g := 10.0 cm"
+    },
+    {
+      "id": "r_le",
+      "kind": "math",
+      "x": 40,
+      "y": 1824,
+      "src": "L_e := 4.0 cm"
+    },
+    {
+      "id": "r012",
+      "kind": "text",
+      "x": 40,
+      "y": 1888,
+      "src": "━━ DATOS · SOLICITACIÓN (LRFD) ━━"
+    },
+    {
+      "id": "r_mu",
+      "kind": "math",
+      "x": 40,
+      "y": 1936,
+      "src": "M_u := 32 tonf*m"
+    },
+    {
+      "id": "r_vu",
+      "kind": "math",
+      "x": 40,
+      "y": 1984,
+      "src": "V_u := 15 tonf"
+    },
+    {
+      "id": "r_pu",
+      "kind": "math",
+      "x": 40,
+      "y": 2032,
+      "src": "P_u := 200 tonf"
+    },
+    {
+      "id": "r_h",
+      "kind": "math",
+      "x": 40,
+      "y": 2080,
+      "src": "H := 3.5 m"
+    },
+    {
+      "id": "r013",
+      "kind": "text",
+      "x": 40,
+      "y": 2144,
+      "src": "━━ 1 · EL PAR: DE MOMENTO A FUERZA DE PLACA ━━"
+    },
+    {
+      "id": "r014",
+      "kind": "text",
+      "x": 40,
+      "y": 2192,
+      "src": "Las placas apoyan SOBRE las alas: el brazo del par es d + t_p, no d - t_f"
+    },
+    {
+      "id": "r_ff",
+      "kind": "math",
+      "x": 40,
+      "y": 2240,
+      "src": "F_f := M_u/(d_v + t_p) = tonf"
+    },
+    {
+      "id": "r015",
+      "kind": "text",
+      "x": 40,
+      "y": 2304,
+      "src": "━━ 2 · PERNOS: CORTE (Ec. J3-1), APOYO/DESGARRE (J3-6a/c) Y GRUPO (Sec. J3.7) ━━"
+    },
+    {
+      "id": "r_rnv",
+      "kind": "math",
+      "x": 40,
+      "y": 2352,
+      "src": "r_nv := F_nv*A_b = kgf"
+    },
+    {
+      "id": "r_cor",
+      "kind": "math",
+      "x": 40,
+      "y": 2400,
+      "src": "Rd_cor := 6*0.75*r_nv = tonf"
+    },
+    {
+      "id": "v_cor",
+      "kind": "math",
+      "x": 40,
+      "y": 2448,
+      "src": "Rd_cor >= F_f ="
+    },
+    {
+      "id": "r016",
+      "kind": "text",
+      "x": 40,
+      "y": 2496,
+      "src": "Apoyo/desgarre en el elemento más delgado del paquete: el ala de la viga (14.5 mm, A992). l_c con agujero estándar de 26 mm"
+    },
+    {
+      "id": "r_lcb",
+      "kind": "math",
+      "x": 40,
+      "y": 2544,
+      "src": "l_cb := L_e - d_h/2 = cm"
+    },
+    {
+      "id": "r_lci",
+      "kind": "math",
+      "x": 40,
+      "y": 2592,
+      "src": "l_ci := s - d_h = cm"
+    },
+    {
+      "id": "r_rdb",
+      "kind": "math",
+      "x": 40,
+      "y": 2640,
+      "src": "r_db := 1.2*l_cb*t_fv*F_ua = kgf"
+    },
+    {
+      "id": "r_rdi",
+      "kind": "math",
+      "x": 40,
+      "y": 2688,
+      "src": "r_di := 1.2*l_ci*t_fv*F_ua = kgf"
+    },
+    {
+      "id": "r_rap",
+      "kind": "math",
+      "x": 40,
+      "y": 2736,
+      "src": "r_ap := 2.4*d_b*t_fv*F_ua = kgf"
+    },
+    {
+      "id": "r017",
+      "kind": "text",
+      "x": 40,
+      "y": 2784,
+      "src": "El desgarre queda bajo el tope de aplastamiento en los seis pernos: gobierna el desgarre, como dice el post"
+    },
+    {
+      "id": "r_rb",
+      "kind": "math",
+      "x": 40,
+      "y": 2832,
+      "src": "r_b := min(r_db, r_ap) = kgf"
+    },
+    {
+      "id": "r_ri",
+      "kind": "math",
+      "x": 40,
+      "y": 2880,
+      "src": "r_i := min(r_di, r_ap) = kgf"
+    },
+    {
+      "id": "r_apo",
+      "kind": "math",
+      "x": 40,
+      "y": 2928,
+      "src": "Rd_apo := 0.75*(2*r_b + 4*r_i) = tonf"
+    },
+    {
+      "id": "v_apo",
+      "kind": "math",
+      "x": 40,
+      "y": 2976,
+      "src": "Rd_apo >= F_f ="
+    },
+    {
+      "id": "r018",
+      "kind": "text",
+      "x": 40,
+      "y": 3024,
+      "src": "Sec. J3.7: la resistencia efectiva de cada perno es la MENOR entre su corte y su apoyo/desgarre; la del grupo, la suma de esas menores"
+    },
+    {
+      "id": "r_reb",
+      "kind": "math",
+      "x": 40,
+      "y": 3072,
+      "src": "r_eb := min(r_nv, r_b) = kgf"
+    },
+    {
+      "id": "r_rei",
+      "kind": "math",
+      "x": 40,
+      "y": 3120,
+      "src": "r_ei := min(r_nv, r_i) = kgf"
+    },
+    {
+      "id": "r_gru",
+      "kind": "math",
+      "x": 40,
+      "y": 3168,
+      "src": "Rd_gru := 0.75*(2*r_eb + 4*r_ei) = tonf"
+    },
+    {
+      "id": "v_gru",
+      "kind": "math",
+      "x": 40,
+      "y": 3216,
+      "src": "Rd_gru >= F_f ="
+    },
+    {
+      "id": "r019",
+      "kind": "text",
+      "x": 40,
+      "y": 3280,
+      "src": "━━ 3 · PLACAS DE ALA: TRACCIÓN Y COMPRESIÓN (J4) ━━"
+    },
+    {
+      "id": "r_ag",
+      "kind": "math",
+      "x": 40,
+      "y": 3328,
+      "src": "A_g := b_p*t_p = cm^2"
+    },
+    {
+      "id": "r_an",
+      "kind": "math",
+      "x": 40,
+      "y": 3376,
+      "src": "A_n := (b_p - 2*d_hn)*t_p = cm^2"
+    },
+    {
+      "id": "r_pfl",
+      "kind": "math",
+      "x": 40,
+      "y": 3424,
+      "src": "Rd_pfl := 0.90*F_yp*A_g = tonf"
+    },
+    {
+      "id": "r_pro",
+      "kind": "math",
+      "x": 40,
+      "y": 3472,
+      "src": "Rd_pro := 0.75*F_up*A_n = tonf"
+    },
+    {
+      "id": "v_pfl",
+      "kind": "math",
+      "x": 40,
+      "y": 3520,
+      "src": "Rd_pfl >= F_f ="
+    },
+    {
+      "id": "v_pro",
+      "kind": "math",
+      "x": 40,
+      "y": 3568,
+      "src": "Rd_pro >= F_f ="
+    },
+    {
+      "id": "r020",
+      "kind": "text",
+      "x": 40,
+      "y": 3616,
+      "src": "Placa comprimida (J4.4): longitud no arriostrada = la ranura entre la cara de la columna y el primer perno, K = 0.65"
+    },
+    {
+      "id": "r_rgir",
+      "kind": "math",
+      "x": 40,
+      "y": 3664,
+      "src": "r_gir := t_p/sqrt(12) = cm"
+    },
+    {
+      "id": "r_lcr",
+      "kind": "math",
+      "x": 40,
+      "y": 3712,
+      "src": "lcr := 0.65*L_e/r_gir ="
+    },
+    {
+      "id": "v_lcr",
+      "kind": "math",
+      "x": 40,
+      "y": 3760,
+      "src": "lcr <= 25 ="
+    },
+    {
+      "id": "r021",
+      "kind": "text",
+      "x": 40,
+      "y": 3808,
+      "src": "Con L_c/r <= 25 no hay pandeo: la placa comprimida vale lo mismo que la fluencia, Rd_pfl"
+    },
+    {
+      "id": "r022",
+      "kind": "text",
+      "x": 40,
+      "y": 3872,
+      "src": "━━ 4 · VIGA: EL ALA PERFORADA REDUCE LA CAPACIDAD DE LA VIGA (F13.1) ━━"
+    },
+    {
+      "id": "r_afg",
+      "kind": "math",
+      "x": 40,
+      "y": 3920,
+      "src": "A_fg := b_fv*t_fv = cm^2"
+    },
+    {
+      "id": "r_afn",
+      "kind": "math",
+      "x": 40,
+      "y": 3968,
+      "src": "A_fn := A_fg - 2*d_hn*t_fv = cm^2"
+    },
+    {
+      "id": "r023",
+      "kind": "text",
+      "x": 40,
+      "y": 4016,
+      "src": "Y_t = 1.0 porque F_y/F_u = 0.77 <= 0.8. Si F_u·A_fn < Y_t·F_y·A_fg, la rotura del ala controla y M_n deja de ser M_p"
+    },
+    {
+      "id": "r_rot",
+      "kind": "math",
+      "x": 40,
+      "y": 4064,
+      "src": "R_rot := F_ua*A_fn = kgf"
+    },
+    {
+      "id": "r_flu",
+      "kind": "math",
+      "x": 40,
+      "y": 4112,
+      "src": "R_flu := 1.0*F_ya*A_fg = kgf"
+    },
+    {
+      "id": "v_f13",
+      "kind": "math",
+      "x": 40,
+      "y": 4160,
+      "src": "R_rot < R_flu ="
+    },
+    {
+      "id": "r_mn",
+      "kind": "math",
+      "x": 40,
+      "y": 4208,
+      "src": "M_n := (R_rot/A_fg)*S_x = tonf*m"
+    },
+    {
+      "id": "r_mf",
+      "kind": "math",
+      "x": 40,
+      "y": 4256,
+      "src": "Rd_mf := 0.90*M_n = tonf*m"
+    },
+    {
+      "id": "r_mp",
+      "kind": "math",
+      "x": 40,
+      "y": 4304,
+      "src": "Rd_mp := 0.90*F_ya*Z_x = tonf*m"
+    },
+    {
+      "id": "v_mf",
+      "kind": "math",
+      "x": 40,
+      "y": 4352,
+      "src": "Rd_mf >= M_u ="
+    },
+    {
+      "id": "r024",
+      "kind": "text",
+      "x": 40,
+      "y": 4416,
+      "src": "━━ 5 · LA COLUMNA: FUERZAS CONCENTRADAS (J10.1 A J10.3) ━━"
+    },
+    {
+      "id": "r025",
+      "kind": "text",
+      "x": 40,
+      "y": 4464,
+      "src": "l_b = espesor de la placa de ala: la línea por donde las 67.1 tonf entran al ala de la columna"
+    },
+    {
+      "id": "r_lb",
+      "kind": "math",
+      "x": 40,
+      "y": 4512,
+      "src": "l_b := t_p = cm"
+    },
+    {
+      "id": "r_fla",
+      "kind": "math",
+      "x": 40,
+      "y": 4560,
+      "src": "Rd_fla := 0.90*6.25*F_ya*t_fc^2 = tonf"
+    },
+    {
+      "id": "v_fla",
+      "kind": "math",
+      "x": 40,
+      "y": 4608,
+      "src": "Rd_fla >= F_f ="
+    },
+    {
+      "id": "r_alm",
+      "kind": "math",
+      "x": 40,
+      "y": 4656,
+      "src": "Rd_alm := 1.00*F_ya*t_wc*(5*k_c + l_b) = tonf"
+    },
+    {
+      "id": "v_alm",
+      "kind": "math",
+      "x": 40,
+      "y": 4704,
+      "src": "Rd_alm >= F_f ="
+    },
+    {
+      "id": "r_cri",
+      "kind": "math",
+      "x": 40,
+      "y": 4752,
+      "src": "Rd_cri := 0.75*0.80*t_wc^2*(1 + 3*(l_b/d_c)*(t_wc/t_fc)^1.5)*sqrt(E*F_ya*t_fc/t_wc) = tonf"
+    },
+    {
+      "id": "v_cri",
+      "kind": "math",
+      "x": 40,
+      "y": 4816,
+      "src": "Rd_cri >= F_f ="
+    },
+    {
+      "id": "r026",
+      "kind": "text",
+      "x": 40,
+      "y": 4864,
+      "src": "J10.4 y J10.5 no aplican: el ala traccionada está arriostrada y la compresión entra por una sola ala"
+    },
+    {
+      "id": "r027",
+      "kind": "text",
+      "x": 40,
+      "y": 4928,
+      "src": "━━ 6 · LA ZONA PANEL (J10.6) — recibe un corte, no una fuerza ━━"
+    },
+    {
+      "id": "r_vcol",
+      "kind": "math",
+      "x": 40,
+      "y": 4976,
+      "src": "V_col := M_u/H = tonf"
+    },
+    {
+      "id": "r_vpz",
+      "kind": "math",
+      "x": 40,
+      "y": 5024,
+      "src": "V_pz := F_f - V_col = tonf"
+    },
+    {
+      "id": "r028",
+      "kind": "text",
+      "x": 40,
+      "y": 5072,
+      "src": "Con P_r/P_c > 0.40 no aplica la rama simple J10-9: el axial de la columna degrada el panel (Ec. J10-10)"
+    },
+    {
+      "id": "r_pc",
+      "kind": "math",
+      "x": 40,
+      "y": 5120,
+      "src": "P_c := F_ya*A_gc = tonf"
+    },
+    {
+      "id": "r_rpc",
+      "kind": "math",
+      "x": 40,
+      "y": 5168,
+      "src": "rPc := P_u/P_c ="
+    },
+    {
+      "id": "v_rama",
+      "kind": "math",
+      "x": 40,
+      "y": 5216,
+      "src": "rPc > 0.40 ="
+    },
+    {
+      "id": "r_pz0",
+      "kind": "math",
+      "x": 40,
+      "y": 5264,
+      "src": "Rd_pz0 := 0.90*0.60*F_ya*d_c*t_wc = tonf"
+    },
+    {
+      "id": "r_pz",
+      "kind": "math",
+      "x": 40,
+      "y": 5312,
+      "src": "Rd_pz := Rd_pz0*(1.4 - rPc) = tonf"
+    },
+    {
+      "id": "v_pz",
+      "kind": "math",
+      "x": 40,
+      "y": 5360,
+      "src": "Rd_pz >= V_pz ="
+    },
+    {
+      "id": "r029",
+      "kind": "text",
+      "x": 40,
+      "y": 5408,
+      "src": "La tesis del post: sin el término axial la capacidad sería Rd_pz0 = 58.0 tonf y el uso, exactamente 1.00"
+    },
+    {
+      "id": "r_usx",
+      "kind": "math",
+      "x": 40,
+      "y": 5456,
+      "src": "u_sinax := V_pz/Rd_pz0 ="
+    },
+    {
+      "id": "r030",
+      "kind": "text",
+      "x": 40,
+      "y": 5504,
+      "src": "Ec. J10-11 (solo si el análisis modela la deformación del panel): crédito de las alas. Su umbral es 0.75·P_c, no 0.40"
+    },
+    {
+      "id": "v_r11",
+      "kind": "math",
+      "x": 40,
+      "y": 5552,
+      "src": "rPc < 0.75 ="
+    },
+    {
+      "id": "r_f11",
+      "kind": "math",
+      "x": 40,
+      "y": 5600,
+      "src": "f_11 := 1 + 3*b_fc*t_fc^2/(d_v*d_c*t_wc) ="
+    },
+    {
+      "id": "r_p11",
+      "kind": "math",
+      "x": 40,
+      "y": 5648,
+      "src": "Rd_p11 := Rd_pz0*f_11 = tonf"
+    },
+    {
+      "id": "v_p11",
+      "kind": "math",
+      "x": 40,
+      "y": 5696,
+      "src": "Rd_p11 >= V_pz ="
+    },
+    {
+      "id": "r031",
+      "kind": "text",
+      "x": 40,
+      "y": 5760,
+      "src": "━━ 7 · REFUERZOS: RIGIDIZADORES DE CONTINUIDAD (J10.8) Y DOUBLER ━━"
+    },
+    {
+      "id": "r032",
+      "kind": "text",
+      "x": 40,
+      "y": 5808,
+      "src": "Área requerida: el déficit del estado límite que gobierna (flexión local del ala) sobre phi·F_y del rigidizador A36"
+    },
+    {
+      "id": "r_ast",
+      "kind": "math",
+      "x": 40,
+      "y": 5856,
+      "src": "A_st := (F_f - Rd_fla)/(0.90*F_yp) = cm^2"
+    },
+    {
+      "id": "r_apro",
+      "kind": "math",
+      "x": 40,
+      "y": 5904,
+      "src": "A_pro := 2 * 10 cm * 1.2 cm = cm^2"
+    },
+    {
+      "id": "v_ast",
+      "kind": "math",
+      "x": 40,
+      "y": 5952,
+      "src": "A_pro >= A_st ="
+    },
+    {
+      "id": "r033",
+      "kind": "text",
+      "x": 40,
+      "y": 6000,
+      "src": "Doubler: engrosa t_w de la zona panel; misma Ec. J10-10 con el espesor efectivo"
+    },
+    {
+      "id": "r_tw6",
+      "kind": "math",
+      "x": 40,
+      "y": 6048,
+      "src": "t_w6 := t_wc + 0.6 cm = cm"
+    },
+    {
+      "id": "r_d6",
+      "kind": "math",
+      "x": 40,
+      "y": 6096,
+      "src": "Rd_d6 := 0.90*0.60*F_ya*d_c*t_w6*(1.4 - rPc) = tonf"
+    },
+    {
+      "id": "v_d6",
+      "kind": "math",
+      "x": 40,
+      "y": 6144,
+      "src": "Rd_d6 >= V_pz ="
+    },
+    {
+      "id": "r_ud6",
+      "kind": "math",
+      "x": 40,
+      "y": 6192,
+      "src": "u_d6 := V_pz/Rd_d6 ="
+    },
+    {
+      "id": "r_tw8",
+      "kind": "math",
+      "x": 40,
+      "y": 6240,
+      "src": "t_w8 := t_wc + 0.8 cm = cm"
+    },
+    {
+      "id": "r_d8",
+      "kind": "math",
+      "x": 40,
+      "y": 6288,
+      "src": "Rd_d8 := 0.90*0.60*F_ya*d_c*t_w8*(1.4 - rPc) = tonf"
+    },
+    {
+      "id": "v_d8",
+      "kind": "math",
+      "x": 40,
+      "y": 6336,
+      "src": "Rd_d8 >= V_pz ="
+    },
+    {
+      "id": "r034",
+      "kind": "text",
+      "x": 40,
+      "y": 6400,
+      "src": "━━ 8 · USOS ━━"
+    },
+    {
+      "id": "r_uapo",
+      "kind": "math",
+      "x": 40,
+      "y": 6448,
+      "src": "u_apo := F_f/Rd_apo ="
+    },
+    {
+      "id": "r_ucor",
+      "kind": "math",
+      "x": 40,
+      "y": 6496,
+      "src": "u_cor := F_f/Rd_cor ="
+    },
+    {
+      "id": "r_ugru",
+      "kind": "math",
+      "x": 40,
+      "y": 6544,
+      "src": "u_gru := F_f/Rd_gru ="
+    },
+    {
+      "id": "r_upfl",
+      "kind": "math",
+      "x": 40,
+      "y": 6592,
+      "src": "u_pfl := F_f/Rd_pfl ="
+    },
+    {
+      "id": "r_upro",
+      "kind": "math",
+      "x": 40,
+      "y": 6640,
+      "src": "u_pro := F_f/Rd_pro ="
+    },
+    {
+      "id": "r_uf13",
+      "kind": "math",
+      "x": 40,
+      "y": 6688,
+      "src": "u_f13 := M_u/Rd_mf ="
+    },
+    {
+      "id": "r_ucri",
+      "kind": "math",
+      "x": 40,
+      "y": 6736,
+      "src": "u_cri := F_f/Rd_cri ="
+    },
+    {
+      "id": "r_upz",
+      "kind": "math",
+      "x": 40,
+      "y": 6784,
+      "src": "u_pz := V_pz/Rd_pz ="
+    },
+    {
+      "id": "r_ualm",
+      "kind": "math",
+      "x": 40,
+      "y": 6832,
+      "src": "u_alm := F_f/Rd_alm ="
+    },
+    {
+      "id": "r_ufla",
+      "kind": "math",
+      "x": 40,
+      "y": 6880,
+      "src": "u_fla := F_f/Rd_fla ="
+    },
+    {
+      "id": "r035",
+      "kind": "text",
+      "x": 40,
+      "y": 6928,
+      "src": "La conexión y la viga: todo entre 0.49 y 0.76. La columna: 0.98, 1.07, 1.12 y 1.43 — tres estados límite sobre 1.0"
+    },
+    {
+      "id": "r036",
+      "kind": "text",
+      "x": 40,
+      "y": 7328,
+      "src": "━━ 9 · CONTRASTE CON EL POST — cada capacidad publicada, contra la calculada ━━"
+    },
+    {
+      "id": "r037",
+      "kind": "text",
+      "x": 40,
+      "y": 7376,
+      "src": "Tolerancia: media unidad del último dígito publicado. Si cambias un dato de entrada, estos contrastes dejarán de cumplirse: comparan contra los números impresos en el post."
+    },
+    {
+      "id": "c_ff",
+      "kind": "math",
+      "x": 40,
+      "y": 7424,
+      "src": "abs(F_f - 67.1 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_rnv",
+      "kind": "math",
+      "x": 40,
+      "y": 7472,
+      "src": "abs(r_nv - 21678 kgf) < 0.5 kgf ="
+    },
+    {
+      "id": "c_cor",
+      "kind": "math",
+      "x": 40,
+      "y": 7520,
+      "src": "abs(Rd_cor - 97.6 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_rb",
+      "kind": "math",
+      "x": 40,
+      "y": 7568,
+      "src": "abs(r_b - 21470 kgf) < 0.5 kgf ="
+    },
+    {
+      "id": "c_lcb",
+      "kind": "math",
+      "x": 40,
+      "y": 7616,
+      "src": "abs(l_cb - 2.7 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_lci",
+      "kind": "math",
+      "x": 40,
+      "y": 7664,
+      "src": "abs(l_ci - 4.4 cm) < 0.05 cm ="
+    },
+    {
+      "id": "c_apo",
+      "kind": "math",
+      "x": 40,
+      "y": 7712,
+      "src": "abs(Rd_apo - 137.2 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_gru",
+      "kind": "math",
+      "x": 40,
+      "y": 7760,
+      "src": "abs(Rd_gru - 97.2 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_ugru",
+      "kind": "math",
+      "x": 40,
+      "y": 7808,
+      "src": "abs(u_gru - 0.69) < 0.005 ="
+    },
+    {
+      "id": "c_ag",
+      "kind": "math",
+      "x": 40,
+      "y": 7856,
+      "src": "abs(A_g - 40 cm^2) < 0.5 cm^2 ="
+    },
+    {
+      "id": "c_an",
+      "kind": "math",
+      "x": 40,
+      "y": 7904,
+      "src": "abs(A_n - 28.8 cm^2) < 0.05 cm^2 ="
+    },
+    {
+      "id": "c_pfl",
+      "kind": "math",
+      "x": 40,
+      "y": 7952,
+      "src": "abs(Rd_pfl - 91.1 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_pro",
+      "kind": "math",
+      "x": 40,
+      "y": 8000,
+      "src": "abs(Rd_pro - 88.1 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_lcr",
+      "kind": "math",
+      "x": 40,
+      "y": 8048,
+      "src": "abs(lcr - 4.5) < 0.05 ="
+    },
+    {
+      "id": "c_afg",
+      "kind": "math",
+      "x": 40,
+      "y": 8096,
+      "src": "abs(A_fg - 27.55 cm^2) < 0.005 cm^2 ="
+    },
+    {
+      "id": "c_afn",
+      "kind": "math",
+      "x": 40,
+      "y": 8144,
+      "src": "abs(A_fn - 19.43 cm^2) < 0.005 cm^2 ="
+    },
+    {
+      "id": "c_rot",
+      "kind": "math",
+      "x": 40,
+      "y": 8192,
+      "src": "abs(R_rot - 88795 kgf) < 0.5 kgf ="
+    },
+    {
+      "id": "c_flu",
+      "kind": "math",
+      "x": 40,
+      "y": 8240,
+      "src": "abs(R_flu - 96976 kgf) < 0.5 kgf ="
+    },
+    {
+      "id": "c_mn",
+      "kind": "math",
+      "x": 40,
+      "y": 8288,
+      "src": "abs(M_n - 47.0 tonf*m) < 0.05 tonf*m ="
+    },
+    {
+      "id": "c_mf",
+      "kind": "math",
+      "x": 40,
+      "y": 8336,
+      "src": "abs(Rd_mf - 42.3 tonf*m) < 0.05 tonf*m ="
+    },
+    {
+      "id": "c_uf13",
+      "kind": "math",
+      "x": 40,
+      "y": 8384,
+      "src": "abs(u_f13 - 0.76) < 0.005 ="
+    },
+    {
+      "id": "c_mp",
+      "kind": "math",
+      "x": 40,
+      "y": 8432,
+      "src": "abs(Rd_mp - 52.4 tonf*m) < 0.05 tonf*m ="
+    },
+    {
+      "id": "c_fla",
+      "kind": "math",
+      "x": 40,
+      "y": 8480,
+      "src": "abs(Rd_fla - 47.0 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_ufla",
+      "kind": "math",
+      "x": 40,
+      "y": 8528,
+      "src": "abs(u_fla - 1.43) < 0.005 ="
+    },
+    {
+      "id": "c_alm",
+      "kind": "math",
+      "x": 40,
+      "y": 8576,
+      "src": "abs(Rd_alm - 60.1 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_cri",
+      "kind": "math",
+      "x": 40,
+      "y": 8624,
+      "src": "abs(Rd_cri - 68.4 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_vcol",
+      "kind": "math",
+      "x": 40,
+      "y": 8672,
+      "src": "abs(V_col - 9.1 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_vpz",
+      "kind": "math",
+      "x": 40,
+      "y": 8720,
+      "src": "abs(V_pz - 57.9 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_pc",
+      "kind": "math",
+      "x": 40,
+      "y": 8768,
+      "src": "abs(P_c - 433 tonf) < 0.5 tonf ="
+    },
+    {
+      "id": "c_rpc",
+      "kind": "math",
+      "x": 40,
+      "y": 8816,
+      "src": "abs(rPc - 0.462) < 0.0005 ="
+    },
+    {
+      "id": "c_pz0",
+      "kind": "math",
+      "x": 40,
+      "y": 8864,
+      "src": "abs(Rd_pz0 - 58.0 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_pz",
+      "kind": "math",
+      "x": 40,
+      "y": 8912,
+      "src": "abs(Rd_pz - 54.4 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_upz",
+      "kind": "math",
+      "x": 40,
+      "y": 8960,
+      "src": "abs(u_pz - 1.07) < 0.005 ="
+    },
+    {
+      "id": "c_usx",
+      "kind": "math",
+      "x": 40,
+      "y": 9008,
+      "src": "abs(u_sinax - 1.00) < 0.005 ="
+    },
+    {
+      "id": "c_f11",
+      "kind": "math",
+      "x": 40,
+      "y": 9056,
+      "src": "abs(f_11 - 1.156) < 0.0005 ="
+    },
+    {
+      "id": "c_p11",
+      "kind": "math",
+      "x": 40,
+      "y": 9104,
+      "src": "abs(Rd_p11 - 67.0 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_ast",
+      "kind": "math",
+      "x": 40,
+      "y": 9152,
+      "src": "abs(A_st - 8.8 cm^2) < 0.05 cm^2 ="
+    },
+    {
+      "id": "c_apro",
+      "kind": "math",
+      "x": 40,
+      "y": 9200,
+      "src": "abs(A_pro - 24.0 cm^2) < 0.05 cm^2 ="
+    },
+    {
+      "id": "c_d6",
+      "kind": "math",
+      "x": 40,
+      "y": 9248,
+      "src": "abs(Rd_d6 - 87.3 tonf) < 0.05 tonf ="
+    },
+    {
+      "id": "c_ud6",
+      "kind": "math",
+      "x": 40,
+      "y": 9296,
+      "src": "abs(u_d6 - 0.66) < 0.005 ="
+    },
+    {
+      "id": "c_d8",
+      "kind": "math",
+      "x": 40,
+      "y": 9344,
+      "src": "abs(Rd_d8 - 98.3 tonf) < 0.05 tonf ="
+    }
+  ]
+}

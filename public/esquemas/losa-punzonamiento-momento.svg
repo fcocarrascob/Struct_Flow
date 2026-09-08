@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 540" font-family="Segoe UI, Arial, sans-serif">
+  <rect width="860" height="540" fill="#ffffff"/>
+  <text x="430" y="26" font-size="14.5" text-anchor="middle" fill="#222" font-weight="bold">Punzonamiento con momento: la rampa sobre el perímetro crítico (columna interior)</text>
+  <text x="430" y="46" font-size="10.5" text-anchor="middle" fill="#666">h = {{h:cm}} cm · d = {{d:cm}} cm · b_o = {{b_o:cm}} cm · M_sc = {{M_sc:tonf*m}} tonf·m ({{round(p_des*100)}} % por vanos desiguales)</text>
+
+  <!-- ejes -->
+  <line x1="150" y1="114" x2="150" y2="330" stroke="#333" stroke-width="1"/>
+  <line x1="150" y1="330" x2="790" y2="330" stroke="#333" stroke-width="1"/>
+  <line x1="146" y1="330" x2="150" y2="330" stroke="#999"/>
+  <text x="143" y="333.5" font-size="8.5" fill="#999" text-anchor="end">0</text>
+  <line x1="146" y1="276" x2="150" y2="276" stroke="#999"/>
+  <text x="143" y="279.5" font-size="8.5" fill="#999" text-anchor="end">4</text>
+  <line x1="146" y1="222" x2="150" y2="222" stroke="#999"/>
+  <text x="143" y="225.5" font-size="8.5" fill="#999" text-anchor="end">8</text>
+  <line x1="146" y1="168" x2="150" y2="168" stroke="#999"/>
+  <text x="143" y="171.5" font-size="8.5" fill="#999" text-anchor="end">12</text>
+  <line x1="146" y1="114" x2="150" y2="114" stroke="#999"/>
+  <text x="143" y="117.5" font-size="8.5" fill="#999" text-anchor="end">16</text>
+  <text x="108" y="102" font-size="8.5" fill="#999">kgf/cm²</text>
+
+  <!-- rampa de tensión, calculada por la hoja -->
+  <polygon points="{{pts_ra:svg}}" fill="#1a63a8" fill-opacity="0.14" stroke="#1a63a8" stroke-width="1.6"/>
+
+  <!-- v_uv medio -->
+  <line x1="150" y1="{{y_uv:svg}}" x2="790" y2="{{y_uv:svg}}" stroke="#1a63a8" stroke-width="1.1" stroke-dasharray="4 3"/>
+  <text x="156" y="{{y_uv - 5:svg}}" font-size="9.5" fill="#1a63a8">v_uv = {{v_uv:kgf/cm^2}} (solo la carga vertical, uso {{round(u_vert, 2)}})</text>
+
+  <!-- capacidad -->
+  <line x1="150" y1="{{y_ph:svg}}" x2="790" y2="{{y_ph:svg}}" stroke="#b02a1a" stroke-width="1.4"/>
+  <text x="156" y="{{y_ph - 5:svg}}" font-size="10" fill="#b02a1a" font-weight="bold">φ·v_c = {{Rd_v:kgf/cm^2}} (Tabla 22.6.5.2(a) · φ = 0,75)</text>
+
+  <!-- triángulo de exceso: nace donde la rampa cruza φ·v_c -->
+  <polygon points="{{tri_px:svg}}" fill="#b02a1a" fill-opacity="0.30"/>
+  <line x1="{{x_cru:svg}}" y1="{{y_ph:svg}}" x2="{{x_cru:svg}}" y2="336" stroke="#b02a1a" stroke-width="0.8" stroke-dasharray="3 2"/>
+  <text x="{{x_cru:svg}}" y="348" font-size="9" text-anchor="middle" fill="#b02a1a">cruza φ·v_c al {{round(r_cru*100)}} % del ancho</text>
+
+  <text x="790" y="{{y_AB - 8:svg}}" font-size="10.5" text-anchor="end" fill="#b02a1a" font-weight="bold">v_u,AB = {{v_AB:kgf/cm^2}}</text>
+  <text x="156" y="{{y_CD + 14:svg}}" font-size="9.5" fill="#666">v_u,CD = {{v_CD:kgf/cm^2}}</text>
+  <text x="150" y="348" font-size="9.5" fill="#666">cara CD</text>
+  <text x="790" y="348" font-size="9.5" text-anchor="end" fill="#666">cara AB</text>
+  <text x="470" y="372" font-size="10" text-anchor="middle" fill="#222">±γ_v·M_sc·c_AB/J_c = ±{{v_M:kgf/cm^2}} kgf/cm² → +{{round(p_mom*100)}} % sobre v_uv · exceso sobre φ·v_c: {{exceso:kgf/cm^2}} kgf/cm²</text>
+
+  <!-- banda de valores -->
+  <line x1="60" y1="392" x2="800" y2="392" stroke="#ccc" stroke-width="1"/>
+  <text x="60" y="416" font-size="11" fill="#333">El marco, resuelto en la hoja: M(7,50 m) = {{M_der:tonf*m}} contra M(5,50 m) = {{M_izq:tonf*m}} → M_sc = {{M_sc:tonf*m}} tonf·m</text>
+  <text x="60" y="436" font-size="11" fill="#333">Uso sin momento {{round(u_vert, 2)}} → con momento {{round(u_mom, 2)}} ✗ · subir γ_f exige v_uv ≤ 0,4·φv_c = {{lim_gf:kgf/cm^2}} y hay {{v_uv:kgf/cm^2}}</text>
+  <text x="60" y="456" font-size="11" fill="#333">Solución: ábaco 2,50×2,50 m + 10 cm — sección interior {{round(u_int, 2)}} · exterior {{round(u_ext, 2)}} · 7φ16 en b_slab: {{round(u_min, 2)}}</text>
+  <text x="60" y="480" font-size="11.5" fill="#b02a1a" font-weight="bold">Gobierna: {{gobierna}} — uso máximo {{round(u_max, 2)}}</text>
+  <text x="60" y="504" font-size="10" fill="#666">Engrosar a 26 cm en toda la planta gastaría {{round(r_V, 1)}} veces más hormigón que el ábaco local, para peor uso ({{round(u_h26, 2)}} contra {{round(u_int, 2)}}).</text>
+</svg>

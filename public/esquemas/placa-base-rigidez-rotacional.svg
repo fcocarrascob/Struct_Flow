@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 616" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#555"/>
+    </marker>
+    <pattern id="hormigon" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="7" stroke="#ccd4dc" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="840" height="616" fill="#ffffff"/>
+
+  <text x="420" y="26" font-size="15" text-anchor="middle" fill="#222" font-weight="bold">Base expuesta: θ = {{round(theta_mrad,2)}} mrad al momento de diseño → β = {{round(beta/(1 tonf*m),0)}} tonf·m/rad</text>
+  <text x="420" y="45" font-size="10.5" text-anchor="middle" fill="#777">AISC Design Guide 1, 3.ª ed., Ecs. C-4 a C-12 · P_u = {{P_u:tonf}} tonf · M_u = {{M_u:tonf*m}} tonf·m · placa {{B:cm}}×{{N:cm}}×{{t_p:cm}} cm</text>
+
+  <!-- ==================== IZQUIERDA: geometría ==================== -->
+  <text x="30" y="78" font-size="11.5" fill="#222" font-weight="bold">Las cuatro deformaciones de la Ec. C-5</text>
+  <text x="30" y="94" font-size="9" fill="#999">deformaciones muy exageradas · brazo f + N/2 = {{brazo:cm}} cm</text>
+
+  <!-- columna, ligeramente inclinada -->
+  <g fill="#dfe6ee" stroke="#444" stroke-width="1.2">
+    <path d="M196,226 L214,226 L224,116 L206,116 Z"/>
+    <path d="M256,226 L274,226 L284,116 L266,116 Z"/>
+  </g>
+  <line x1="214" y1="226" x2="224" y2="118" stroke="#444" stroke-width="0.9"/>
+  <line x1="256" y1="226" x2="266" y2="118" stroke="#444" stroke-width="0.9"/>
+  <!-- eje vertical de referencia y el giro -->
+  <line x1="240" y1="230" x2="240" y2="110" stroke="#bbb" stroke-width="0.9" stroke-dasharray="4 3"/>
+  <line x1="240" y1="230" x2="250" y2="110" stroke="#c0392b" stroke-width="1.2"/>
+  <text x="256" y="126" font-size="12" fill="#c0392b" font-weight="bold">θ</text>
+
+  <!-- zapata -->
+  <rect x="70" y="262" width="320" height="72" fill="url(#hormigon)" stroke="#8a97a3" stroke-width="1.2"/>
+
+  <!-- superficie de la zapata SIN deformar -->
+  <line x1="58" y1="262" x2="408" y2="262" stroke="#999" stroke-width="1" stroke-dasharray="5 4"/>
+  <text x="412" y="265" font-size="8.5" fill="#999">sin deformar</text>
+
+  <!-- placa base girada: se levanta a la izquierda, apoya a la derecha -->
+  <path d="M76,222 L376,256 L376,266 L76,232 Z" fill="#eef2f7" stroke="#333" stroke-width="1.4"/>
+
+  <!-- bloque comprimido Y, en la punta derecha -->
+  <rect x="352" y="262" width="24" height="8" fill="#7a5ea8" opacity="0.40"/>
+
+  <!-- perno traccionado, izquierda -->
+  <rect x="92" y="215" width="18" height="8" fill="#c0392b"/>
+  <line x1="101" y1="223" x2="101" y2="316" stroke="#c0392b" stroke-width="2.4"/>
+  <rect x="91" y="312" width="20" height="8" fill="#c0392b"/>
+
+  <!-- (1) Delta_rod -->
+  <line x1="56" y1="226" x2="56" y2="262" stroke="#c0392b" stroke-width="0.9" marker-start="url(#ar)" marker-end="url(#ar)"/>
+  <text x="52" y="222" font-size="10" text-anchor="end" fill="#c0392b" font-weight="bold">①</text>
+  <!-- (2) Delta_placa traccionada -->
+  <line x1="152" y1="238" x2="152" y2="262" stroke="#1c6fa8" stroke-width="0.9" marker-start="url(#ar)" marker-end="url(#ar)"/>
+  <text x="158" y="248" font-size="10" fill="#1c6fa8" font-weight="bold">②</text>
+  <!-- (3) Delta_placa comprimida -->
+  <line x1="392" y1="254" x2="392" y2="268" stroke="#7a5ea8" stroke-width="0.9" marker-start="url(#ar)" marker-end="url(#ar)"/>
+  <text x="398" y="252" font-size="10" fill="#7a5ea8" font-weight="bold">③</text>
+  <!-- (4) Delta_zapata -->
+  <line x1="392" y1="278" x2="392" y2="330" stroke="#1c7c3c" stroke-width="0.9" marker-start="url(#ar)" marker-end="url(#ar)"/>
+  <text x="398" y="308" font-size="10" fill="#1c7c3c" font-weight="bold">④</text>
+
+  <text x="118" y="332" font-size="9" fill="#c0392b">L_rod = {{L_rod:cm}} cm · T = {{round(T/(1 tonf),2)}} tonf</text>
+  <text x="230" y="348" font-size="9" text-anchor="middle" fill="#8a97a3">zapata · d_footing = {{d_footing:cm}} cm (hipótesis declarada)</text>
+
+  <!-- leyenda de los cuatro, bajo el dibujo -->
+  <g font-size="9.5">
+    <text x="30" y="374" fill="#c0392b" font-weight="bold">① Δ_rod (C-6)</text>
+    <text x="30" y="388" fill="#c0392b">{{round(D_rod/(1 cm),4)}} cm — alarga el perno</text>
+    <text x="220" y="374" fill="#1c6fa8" font-weight="bold">② Δ_placa,tracc (C-7)</text>
+    <text x="220" y="388" fill="#1c6fa8">{{round(D_pt/(1 cm),4)}} cm — voladizo L_t = {{L_t:cm}} cm</text>
+    <text x="30" y="406" fill="#7a5ea8" font-weight="bold">③ Δ_placa,compr (C-11)</text>
+    <text x="30" y="420" fill="#7a5ea8">{{round(D_pc/(1 cm),4)}} cm — Y = {{round(Y/(1 cm),2)}} &lt; m = {{round(m_vol/(1 cm),2)}} cm</text>
+    <text x="220" y="406" fill="#1c7c3c" font-weight="bold">④ Δ_zapata (C-12)</text>
+    <text x="220" y="420" fill="#1c7c3c">{{round(D_ft/(1 cm),4)}} cm — aplasta el hormigón</text>
+  </g>
+
+  <!-- ==================== DERECHA: el reparto ==================== -->
+  <text x="470" y="78" font-size="11.5" fill="#222" font-weight="bold">Cuánto aporta cada una al giro</text>
+  <text x="470" y="96" font-size="9.5" fill="#777">manda: {{gobierna}}</text>
+
+  <g font-size="9.5">
+    <text x="470" y="120" fill="#555">Δ_rod — perno (C-6)</text>
+    <rect x="470" y="126" width="{{p_rod*3:svg}}" height="18" fill="#c0392b" opacity="0.85"/>
+    <text x="{{478 + p_rod*3:svg}}" y="140" fill="#c0392b" font-weight="bold">{{round(p_rod,1)}} %</text>
+
+    <text x="470" y="170" fill="#555">Δ_placa,tracc — placa, lado traccionado (C-7)</text>
+    <rect x="470" y="176" width="{{p_pt*3:svg}}" height="18" fill="#1c6fa8" opacity="0.85"/>
+    <text x="{{478 + p_pt*3:svg}}" y="190" fill="#1c6fa8" font-weight="bold">{{round(p_pt,1)}} %</text>
+
+    <text x="470" y="220" fill="#555">Δ_placa,compr — placa, lado comprimido (C-11)</text>
+    <rect x="470" y="226" width="{{p_pc*3:svg}}" height="18" fill="#7a5ea8" opacity="0.85"/>
+    <text x="{{478 + p_pc*3:svg}}" y="240" fill="#7a5ea8" font-weight="bold">{{round(p_pc,1)}} %</text>
+
+    <text x="470" y="270" fill="#555">Δ_zapata — acortamiento del hormigón (C-12)</text>
+    <rect x="470" y="276" width="{{p_ft*3:svg}}" height="18" fill="#1c7c3c" opacity="0.85"/>
+    <text x="{{478 + p_ft*3:svg}}" y="290" fill="#1c7c3c" font-weight="bold">{{round(p_ft,1)}} %</text>
+  </g>
+
+  <rect x="470" y="312" width="340" height="46" fill="#fdf6e8" stroke="#e8c88a" stroke-width="1"/>
+  <text x="482" y="330" font-size="9.5" fill="#8a6d2f">Engrosar la placa no toca el perno ni la zapata, y</text>
+  <text x="482" y="345" font-size="9.5" fill="#8a6d2f">esos dos ya son el <tspan font-weight="bold">{{round(p_rod + p_ft,1)}} %</tspan> del giro.</text>
+
+  <text x="470" y="382" font-size="9.5" fill="#777">Placa de {{t_35:cm}} cm (la que la DG1 exige por resistencia):</text>
+  <text x="470" y="398" font-size="9.5" fill="#777">φM_p ×<tspan font-weight="bold">{{round(r_resistencia,2)}}</tspan> pero β solo ×<tspan font-weight="bold">{{round(r_rigidez,2)}}</tspan>.</text>
+
+  <!-- ==================== ABAJO: la escala ==================== -->
+  <line x1="30" y1="440" x2="810" y2="440" stroke="#e4e8ec" stroke-width="1"/>
+  <text x="30" y="468" font-size="11.5" fill="#222" font-weight="bold">¿Rígido respecto de qué? — el índice β·L/EI con la columna del ejemplo</text>
+  <text x="30" y="486" font-size="9.5" fill="#777">Umbrales del Comentario a AISC 360-22 §B3.4, pág. 16.1-320. ⚠ Ahí L y EI son los de la VIGA: usarlos de la columna es analogía.</text>
+
+  <!-- eje logaritmico 0,5 a 50: x = 60 + 220*log10(v/0,5) -->
+  <rect x="60" y="512" width="132" height="22" fill="#1c6fa8" opacity="0.13"/>
+  <rect x="192" y="512" width="351" height="22" fill="#e8a33d" opacity="0.20"/>
+  <rect x="543" y="512" width="177" height="22" fill="#1c7c3c" opacity="0.13"/>
+  <text x="126" y="527" font-size="9.5" text-anchor="middle" fill="#1c6fa8" font-weight="bold">SIMPLE</text>
+  <text x="367" y="527" font-size="9.5" text-anchor="middle" fill="#a9741c" font-weight="bold">PARCIALMENTE RESTRINGIDA</text>
+  <text x="631" y="527" font-size="9.5" text-anchor="middle" fill="#1c7c3c" font-weight="bold">FR (empotrada)</text>
+
+  <line x1="60" y1="540" x2="740" y2="540" stroke="#555" stroke-width="1.2"/>
+  <g font-size="9" fill="#888" text-anchor="middle">
+    <line x1="60" y1="536" x2="60" y2="548" stroke="#888"/><text x="60" y="557">0,5</text>
+    <line x1="126" y1="536" x2="126" y2="548" stroke="#888"/><text x="126" y="557">1</text>
+    <line x1="192" y1="536" x2="192" y2="548" stroke="#888"/><text x="192" y="557">2</text>
+    <line x1="345" y1="536" x2="345" y2="548" stroke="#888"/><text x="345" y="557">5</text>
+    <line x1="411" y1="536" x2="411" y2="548" stroke="#888"/><text x="411" y="557">10</text>
+    <line x1="543" y1="536" x2="543" y2="548" stroke="#888"/><text x="543" y="557">20</text>
+    <line x1="696" y1="536" x2="696" y2="548" stroke="#888"/><text x="696" y="557">50</text>
+  </g>
+
+  <!-- banda de sensibilidad por d_footing -->
+  <line x1="{{60 + 220*log(indice_120/0.5, 10):svg}}" y1="508" x2="{{60 + 220*log(indice_40/0.5, 10):svg}}" y2="508" stroke="#c0392b" stroke-width="5" opacity="0.30"/>
+  <!-- marca de la placa de 35 mm -->
+  <line x1="{{60 + 220*log(indice_35/0.5, 10):svg}}" y1="512" x2="{{60 + 220*log(indice_35/0.5, 10):svg}}" y2="534" stroke="#7a5ea8" stroke-width="1.6" stroke-dasharray="3 3"/>
+  <!-- el caso -->
+  <line x1="{{60 + 220*log(indice/0.5, 10):svg}}" y1="502" x2="{{60 + 220*log(indice/0.5, 10):svg}}" y2="540" stroke="#c0392b" stroke-width="2"/>
+  <circle cx="{{60 + 220*log(indice/0.5, 10):svg}}" cy="540" r="4.5" fill="#c0392b"/>
+  <text x="{{60 + 220*log(indice/0.5, 10):svg}}" y="498" font-size="11" text-anchor="middle" fill="#c0392b" font-weight="bold">β·L/EI = {{round(indice,2)}}</text>
+
+  <text x="285" y="580" font-size="9.5" fill="#777">Banda roja: zapata de 40 a 120 cm → {{round(indice_120,2)}} a {{round(indice_40,2)}}. Línea morada: placa de 35 mm → {{round(indice_35,2)}}.</text>
+  <text x="285" y="596" font-size="9.5" fill="#777">Ningún supuesto la acerca a empotrada; con zapata sobre {{round(d_f_simple/(1 cm),0)}} cm el índice la lee como simple.</text>
+</svg>

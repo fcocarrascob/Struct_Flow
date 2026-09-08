@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 490" font-family="Segoe UI, Arial, sans-serif">
+  <rect width="840" height="490" fill="#ffffff"/>
+  <text x="420" y="24" font-size="15" text-anchor="middle" fill="#222" font-weight="bold">Ménsula {{b:cm}} cm de ancho, h = {{h:cm}} cm, vuelo {{vuelo:cm}} cm — y su enrejado interno (escala 2,25 px/cm)</text>
+
+  <!-- ===== Panel izquierdo: geometría y cargas ===== -->
+  <text x="190" y="48" font-size="12" text-anchor="middle" fill="#222" font-weight="bold">Geometría y cargas</text>
+  <rect x="70" y="62" width="90" height="178" fill="#f2f4f6" stroke="#333" stroke-width="1.4"/>
+  <path d="M 160 120 L 228 120 L 228 188 L 160 221 Z" fill="#f2f4f6" stroke="#333" stroke-width="1.4"/>
+  <line x1="160" y1="120" x2="160" y2="221" stroke="#f2f4f6" stroke-width="2"/>
+  <!-- placa -->
+  <rect x="171" y="113" width="45" height="7" fill="#5a6b7c"/>
+  <!-- Vu -->
+  <line x1="194" y1="76" x2="194" y2="104" stroke="#c0392b" stroke-width="2.4"/>
+  <path d="M 194 111 L 189 100 L 199 100 Z" fill="#c0392b"/>
+  <text x="204" y="86" font-size="11" fill="#c0392b" font-weight="bold">V_u = {{V_u:tonf}} tonf</text>
+  <!-- Nuc -->
+  <line x1="222" y1="109" x2="252" y2="109" stroke="#c07a00" stroke-width="2.2"/>
+  <path d="M 259 109 L 249 104 L 249 114 Z" fill="#c07a00"/>
+  <text x="264" y="112" font-size="10.5" fill="#c07a00" font-weight="bold">N_uc = {{N_uc:tonf}} tonf</text>
+  <!-- cotas -->
+  <line x1="160" y1="248" x2="194" y2="248" stroke="#888" stroke-width="1"/>
+  <line x1="160" y1="244" x2="160" y2="252" stroke="#888"/>
+  <line x1="194" y1="244" x2="194" y2="252" stroke="#888"/>
+  <text x="200" y="252" font-size="9" fill="#888">a_v = {{a_v:cm}}</text>
+  <line x1="240" y1="120" x2="240" y2="188" stroke="#888" stroke-width="1"/>
+  <line x1="236" y1="120" x2="244" y2="120" stroke="#888"/>
+  <line x1="236" y1="188" x2="244" y2="188" stroke="#888"/>
+  <text x="248" y="158" font-size="9" fill="#888">{{h_borde:cm}}</text>
+  <line x1="146" y1="120" x2="146" y2="221" stroke="#888" stroke-width="1"/>
+  <text x="140" y="174" font-size="9" text-anchor="end" fill="#888">h = {{h:cm}}</text>
+
+  <!-- ===== Panel derecho: modelo puntal-tensor ===== -->
+  <text x="590" y="48" font-size="12" text-anchor="middle" fill="#222" font-weight="bold">Modelo puntal-tensor</text>
+  <rect x="450" y="62" width="90" height="178" fill="#f7f8fa" stroke="#999" stroke-width="1.1"/>
+  <path d="M 540 120 L 608 120 L 608 188 L 540 221 Z" fill="#f7f8fa" stroke="#999" stroke-width="1.1"/>
+  <line x1="540" y1="120" x2="540" y2="221" stroke="#f7f8fa" stroke-width="2"/>
+  <rect x="551" y="113" width="45" height="7" fill="#8fa0af"/>
+  <!-- puntal -->
+  <path d="M 566 127 L 582 135 L 548 216 L 532 208 Z" fill="#fdecea" stroke="#c0392b" stroke-width="1.6"/>
+  <!-- tirante -->
+  <line x1="480" y1="131" x2="596" y2="131" stroke="#1a63a8" stroke-width="3"/>
+  <path d="M 480 131 q -10 0 -10 12" fill="none" stroke="#1a63a8" stroke-width="3"/>
+  <path d="M 596 131 q 10 0 10 12" fill="none" stroke="#1a63a8" stroke-width="3"/>
+  <!-- estribos Ah -->
+  <line x1="552" y1="153" x2="600" y2="153" stroke="#1c7c3c" stroke-width="2"/>
+  <line x1="552" y1="180" x2="600" y2="180" stroke="#1c7c3c" stroke-width="2"/>
+  <!-- nodos -->
+  <circle cx="574" cy="131" r="6" fill="#fff" stroke="#333" stroke-width="1.8"/>
+  <circle cx="540" cy="212" r="6" fill="#333"/>
+  <text x="612" y="138" font-size="9.5" fill="#333" font-weight="bold">A (CCT)</text>
+  <line x1="581" y1="133" x2="609" y2="135" stroke="#888" stroke-width="0.8"/>
+  <text x="496" y="216" font-size="9.5" fill="#333" font-weight="bold" text-anchor="end">B (CCC)</text>
+  <line x1="500" y1="212" x2="532" y2="212" stroke="#888" stroke-width="0.8"/>
+  <!-- Vu en A -->
+  <line x1="574" y1="80" x2="574" y2="106" stroke="#c0392b" stroke-width="2.2"/>
+  <path d="M 574 113 L 569 102 L 579 102 Z" fill="#c0392b"/>
+  <text x="582" y="92" font-size="10" fill="#c0392b" font-weight="bold">V_u</text>
+  <!-- etiquetas de fuerzas -->
+  <text x="678" y="204" font-size="10.5" fill="#c0392b" font-weight="bold">C = {{C_u:tonf}} tonf</text>
+  <text x="678" y="219" font-size="9.5" fill="#c0392b">θ = {{theta_gr}}°</text>
+  <text x="443" y="128" font-size="10.5" text-anchor="end" fill="#1a63a8" font-weight="bold">T = {{T_u:tonf}} tonf</text>
+  <line x1="447" y1="125" x2="468" y2="133" stroke="#1a63a8" stroke-width="0.8"/>
+  <!-- jd -->
+  <line x1="640" y1="131" x2="640" y2="212" stroke="#888" stroke-width="1"/>
+  <line x1="636" y1="131" x2="644" y2="131" stroke="#888"/>
+  <line x1="636" y1="212" x2="644" y2="212" stroke="#888"/>
+  <text x="648" y="175" font-size="9" fill="#888">jd = {{jd:cm}}</text>
+
+  <!-- ===== leyendas bajo los dibujos ===== -->
+  <text x="70" y="274" font-size="10" fill="#555">Columna {{b_col:cm}}×{{b_col:cm}} · placa {{L_pl:cm}}×{{B_pl:cm}} cm a {{a_v:cm}} cm de la cara</text>
+  <text x="70" y="290" font-size="10" fill="#555">Eje del tirante a {{c_eje:cm}} cm → d = {{d:cm}} cm · a_v/d = {{avd}} ≤ 1 (16.5.1.1)</text>
+  <text x="70" y="306" font-size="10" fill="#555">Canto en el borde {{h_borde:cm}} ≥ 0,5d = {{h_min:cm}} cm (16.5.2.2)</text>
+  <text x="450" y="274" font-size="10" fill="#555">Tirante {{n_b}}Ø{{d_b:mm}} = {{A_s:cm^2}} cm², gancho ℓ_dh = {{ldh:cm}} ≤ {{l_disp:cm}} cm (25.4.3)</text>
+  <text x="450" y="290" font-size="10" fill="#1c7c3c">Estribos {{n_h}}Ø{{d_e:mm}} cerrados, repartidos en 2/3 d = {{z_h:cm}} cm (16.5.6.6)</text>
+  <text x="450" y="306" font-size="10" fill="#555">w_s = {{w_s:cm}} cm (supuesto) · θ = {{theta_gr}}° ≥ 25° (23.2.7)</text>
+
+  <!-- ===== el enrejado, en numeros ===== -->
+  <rect x="60" y="320" width="720" height="74" rx="6" fill="#f4f7fb" stroke="#1a63a8"/>
+  <text x="74" y="342" font-size="10.5" fill="#333">jd = d − w_s/2 = {{jd:cm}} cm · θ = atan(jd/a_v) = {{theta_gr}}° · C = V_u/sen θ = {{C_u:tonf}} tonf</text>
+  <text x="74" y="361" font-size="10.5" fill="#333">T = [V_u·a_v + N_uc·(jd + h − d)]/jd = {{T_sinN:tonf}} + {{dT_N:tonf}} = {{T_u:tonf}} tonf   (16.5.3.1)</text>
+  <text x="74" y="380" font-size="10.5" fill="#c0392b">Triángulo puro: T = {{T_tri:tonf}} tonf. La diferencia de {{dT:tonf}} tonf es la excentricidad de N_uc.</text>
+
+  <!-- =============== BANDA DE VALORES =============== -->
+  <line x1="46" y1="414" x2="794" y2="414" stroke="#d5dbe2" stroke-width="1"/>
+  <text x="46" y="434" font-size="11" fill="#c0392b" font-weight="bold">Gobierna el TIRANTE (23.7.2) con uso {{round(u_T,3)}} — dúctil antes que frágil.</text>
+  <text x="46" y="453" font-size="11" fill="#333">Usos: puntal {{round(u_s,3)}} · corte por fricción {{round(u_sf,3)}} · nodo B {{round(u_B,3)}} · techo de corte {{round(u_Vmax,3)}} · nodo A {{round(u_A,3)}} · aplastamiento {{round(u_ap,3)}}</text>
+  <text x="46" y="472" font-size="11" fill="#1c7c3c">Estribos: manda 23.5.1 con {{A_hreq23:cm^2}} cm² (no los {{A_hreq:cm^2}} de 16.5.5.2) contra {{A_h:cm^2}} provistos — {{hol_rho*100}} % de margen.</text>
+</svg>

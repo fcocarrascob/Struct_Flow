@@ -1,0 +1,1798 @@
+{
+  "version": 1,
+  "meta": {
+    "titulo": "Zapata aislada bajo columna — el canto, el piso de 22.5.5.1.1 y los coeficientes de la edición SI (ACI 318-25)",
+    "ficha": "struct_pad/src/content/hormigon/ejemplo-zapata-aislada.mdx",
+    "esperadoFalso": {}
+  },
+  "regions": [
+    {
+      "id": "r000",
+      "kind": "text",
+      "src": "ZAPATA AISLADA BAJO COLUMNA — qué fija el canto en ACI 318-25",
+      "x": 40,
+      "y": 32
+    },
+    {
+      "id": "r001",
+      "kind": "text",
+      "src": "ACI 318-25 (edición SI) · Cap. 13 · 22.5 (corte 1D) · 22.6 (punzonamiento) · 25.4",
+      "x": 40,
+      "y": 80
+    },
+    {
+      "id": "r002",
+      "kind": "text",
+      "src": "Rd_ = capacidad de diseño (incluye φ) · las comparaciones dan ✓/✗",
+      "x": 40,
+      "y": 128
+    },
+    {
+      "id": "r003",
+      "kind": "text",
+      "src": "",
+      "x": 40,
+      "y": 176
+    },
+    {
+      "id": "r004",
+      "kind": "text",
+      "src": "Coeficientes empíricos: edición SI, en MPa. Sus equivalencias en kgf/cm², en §0.",
+      "x": 40,
+      "y": 192
+    },
+    {
+      "id": "r005",
+      "kind": "text",
+      "src": "━━ DATOS · MATERIALES ━━",
+      "x": 40,
+      "y": 256
+    },
+    {
+      "id": "r006",
+      "kind": "text",
+      "src": "f'c y f_y son frontera declarada; todo lo demás se deriva.",
+      "x": 40,
+      "y": 304
+    },
+    {
+      "id": "r007",
+      "kind": "math",
+      "src": "f_c := 250 kgf/cm^2",
+      "x": 40,
+      "y": 352
+    },
+    {
+      "id": "r008",
+      "kind": "math",
+      "src": "f_y := 4200 kgf/cm^2",
+      "x": 40,
+      "y": 400
+    },
+    {
+      "id": "r009",
+      "kind": "math",
+      "src": "f_cM := f_c = MPa",
+      "x": 40,
+      "y": 448
+    },
+    {
+      "id": "r010",
+      "kind": "text",
+      "src": "19.2.4.2: hormigón de densidad normal → λ = 1.",
+      "x": 40,
+      "y": 496
+    },
+    {
+      "id": "r011",
+      "kind": "math",
+      "src": "lambda := 1",
+      "x": 40,
+      "y": 544
+    },
+    {
+      "id": "r012",
+      "kind": "text",
+      "src": "Tabla 22.2.2.4.3(a): β1 = 0,85 para 17 ≤ f'c ≤ 28 MPa.",
+      "x": 40,
+      "y": 592
+    },
+    {
+      "id": "r013",
+      "kind": "math",
+      "src": "beta_1 := 0.85",
+      "x": 40,
+      "y": 640
+    },
+    {
+      "id": "r014",
+      "kind": "text",
+      "src": "20.2.2.2: se permite tomar E_s = 200 000 MPa para barras no pretensadas.",
+      "x": 40,
+      "y": 688
+    },
+    {
+      "id": "r015",
+      "kind": "math",
+      "src": "E_s := 200000 MPa",
+      "x": 40,
+      "y": 736
+    },
+    {
+      "id": "r016",
+      "kind": "math",
+      "src": "eps_ty := f_y/E_s =",
+      "x": 40,
+      "y": 784
+    },
+    {
+      "id": "r017",
+      "kind": "text",
+      "src": "22.2.2.1: deformación útil máxima del hormigón en compresión.",
+      "x": 40,
+      "y": 832
+    },
+    {
+      "id": "r018",
+      "kind": "math",
+      "src": "eps_cu := 0.003",
+      "x": 40,
+      "y": 880
+    },
+    {
+      "id": "r019",
+      "kind": "text",
+      "src": "━━ DATOS · FACTORES φ ━━",
+      "x": 40,
+      "y": 944
+    },
+    {
+      "id": "r020",
+      "kind": "text",
+      "src": "Tabla 21.2.1: φ = 0,75 para cortante, en una y en dos direcciones.",
+      "x": 40,
+      "y": 992
+    },
+    {
+      "id": "r021",
+      "kind": "math",
+      "src": "phi_v := 0.75",
+      "x": 40,
+      "y": 1040
+    },
+    {
+      "id": "r022",
+      "kind": "text",
+      "src": "Tabla 21.2.2(f): φ = 0,90 si es controlada por tracción (se verifica en §5).",
+      "x": 40,
+      "y": 1088
+    },
+    {
+      "id": "r023",
+      "kind": "math",
+      "src": "phi_f := 0.90",
+      "x": 40,
+      "y": 1136
+    },
+    {
+      "id": "r024",
+      "kind": "text",
+      "src": "━━ DATOS · GEOMETRÍA Y ARMADURA ━━",
+      "x": 40,
+      "y": 1200
+    },
+    {
+      "id": "r025",
+      "kind": "math",
+      "src": "c_col := 40 cm",
+      "x": 40,
+      "y": 1248
+    },
+    {
+      "id": "r026",
+      "kind": "math",
+      "src": "B := 220 cm",
+      "x": 40,
+      "y": 1296
+    },
+    {
+      "id": "r027",
+      "kind": "math",
+      "src": "h := 55 cm",
+      "x": 40,
+      "y": 1344
+    },
+    {
+      "id": "r028",
+      "kind": "math",
+      "src": "A_zap := B^2 = m^2",
+      "x": 40,
+      "y": 1392
+    },
+    {
+      "id": "r029",
+      "kind": "text",
+      "src": "Tabla 20.5.1.3.1: vaciado contra el suelo y en contacto permanente → 75 mm.",
+      "x": 40,
+      "y": 1440
+    },
+    {
+      "id": "r030",
+      "kind": "math",
+      "src": "rec := 7.5 cm",
+      "x": 40,
+      "y": 1488
+    },
+    {
+      "id": "r031",
+      "kind": "text",
+      "src": "Frontera declarada: el diámetro nominal de la barra y cuántas van.",
+      "x": 40,
+      "y": 1536
+    },
+    {
+      "id": "r032",
+      "kind": "math",
+      "src": "d_b := 1.8 cm",
+      "x": 40,
+      "y": 1584
+    },
+    {
+      "id": "r033",
+      "kind": "math",
+      "src": "n_b := 9",
+      "x": 40,
+      "y": 1632
+    },
+    {
+      "id": "r034",
+      "kind": "math",
+      "src": "A_b := pi*d_b^2/4 = cm^2",
+      "x": 40,
+      "y": 1680
+    },
+    {
+      "id": "r035",
+      "kind": "math",
+      "src": "A_s := n_b*A_b = cm^2",
+      "x": 40,
+      "y": 1728
+    },
+    {
+      "id": "r036",
+      "kind": "text",
+      "src": "Altura útil: se DERIVA. Malla en dos capas ortogonales, así que el promedio de",
+      "x": 40,
+      "y": 1776
+    },
+    {
+      "id": "r037",
+      "kind": "text",
+      "src": "las dos es h − rec − d_b (una a −d_b/2 de la cara inferior de la malla, la otra",
+      "x": 40,
+      "y": 1824
+    },
+    {
+      "id": "r038",
+      "kind": "text",
+      "src": "a −3d_b/2). No se redondea: de d cuelgan V_c, φM_n, λ_s y ℓ_d a la vez.",
+      "x": 40,
+      "y": 1872
+    },
+    {
+      "id": "r039",
+      "kind": "math",
+      "src": "d := h - rec - d_b = cm",
+      "x": 40,
+      "y": 1920
+    },
+    {
+      "id": "r040",
+      "kind": "text",
+      "src": "━━ DATOS · SUELO Y CARGAS DE SERVICIO ━━",
+      "x": 40,
+      "y": 1984
+    },
+    {
+      "id": "r041",
+      "kind": "text",
+      "src": "Frontera declarada: la presión admisible del informe de mecánica de suelos.",
+      "x": 40,
+      "y": 2032
+    },
+    {
+      "id": "r042",
+      "kind": "math",
+      "src": "q_a := 2.0 kgf/cm^2",
+      "x": 40,
+      "y": 2080
+    },
+    {
+      "id": "r043",
+      "kind": "math",
+      "src": "P_D := 60 tonf",
+      "x": 40,
+      "y": 2128
+    },
+    {
+      "id": "r044",
+      "kind": "math",
+      "src": "P_L := 30 tonf",
+      "x": 40,
+      "y": 2176
+    },
+    {
+      "id": "r045",
+      "kind": "text",
+      "src": "━━ 0 · LOS COEFICIENTES: LA COLUMNA MÉTRICA DE ACI 318 ━━",
+      "x": 40,
+      "y": 2240
+    },
+    {
+      "id": "r046",
+      "kind": "text",
+      "src": "ACI 318 se publica en dos ediciones y sus coeficientes empíricos no son",
+      "x": 40,
+      "y": 2288
+    },
+    {
+      "id": "r047",
+      "kind": "text",
+      "src": "conversión exacta uno del otro. El PDF en disco es la edición SI: manda ésa.",
+      "x": 40,
+      "y": 2336
+    },
+    {
+      "id": "r048",
+      "kind": "math",
+      "src": "fconv := sqrt(1 MPa/(1 kgf/cm^2)) =",
+      "x": 40,
+      "y": 2384
+    },
+    {
+      "id": "r049",
+      "kind": "math",
+      "src": "rfck := sqrt(f_c/(1 kgf/cm^2))*kgf/cm^2 = kgf/cm^2",
+      "x": 40,
+      "y": 2432
+    },
+    {
+      "id": "r050",
+      "kind": "text",
+      "src": "Tabla 22.5.5.1(c): el 0,66 que multiplica √f'c en MPa.",
+      "x": 40,
+      "y": 2496
+    },
+    {
+      "id": "r051",
+      "kind": "math",
+      "src": "k_1d := 0.66*fconv =",
+      "x": 40,
+      "y": 2544
+    },
+    {
+      "id": "r052",
+      "kind": "text",
+      "src": "22.5.5.1.1: el piso 0,083 y el tope 0,42 de la misma tabla.",
+      "x": 40,
+      "y": 2592
+    },
+    {
+      "id": "r053",
+      "kind": "math",
+      "src": "k_piso := 0.083*fconv =",
+      "x": 40,
+      "y": 2640
+    },
+    {
+      "id": "r054",
+      "kind": "math",
+      "src": "k_tope := 0.42*fconv =",
+      "x": 40,
+      "y": 2688
+    },
+    {
+      "id": "r055",
+      "kind": "text",
+      "src": "Tabla 22.5.5.1(a): el 0,17 de la expresión clásica, sin cuantía ni tamaño.",
+      "x": 40,
+      "y": 2736
+    },
+    {
+      "id": "r056",
+      "kind": "math",
+      "src": "k_clas := 0.17*fconv =",
+      "x": 40,
+      "y": 2784
+    },
+    {
+      "id": "r057",
+      "kind": "text",
+      "src": "Tabla 22.6.5.2: (a) 0,33 · (b) 0,17 · (c) 0,083.",
+      "x": 40,
+      "y": 2832
+    },
+    {
+      "id": "r058",
+      "kind": "math",
+      "src": "k_2a := 0.33*fconv =",
+      "x": 40,
+      "y": 2880
+    },
+    {
+      "id": "r059",
+      "kind": "math",
+      "src": "k_2b := 0.17*fconv =",
+      "x": 40,
+      "y": 2928
+    },
+    {
+      "id": "r060",
+      "kind": "math",
+      "src": "k_2c := 0.083*fconv =",
+      "x": 40,
+      "y": 2976
+    },
+    {
+      "id": "r061",
+      "kind": "text",
+      "src": "Tabla 25.4.2.3, columna de barras No. 19 y menores: el 2,1 del denominador.",
+      "x": 40,
+      "y": 3024
+    },
+    {
+      "id": "r062",
+      "kind": "math",
+      "src": "k_ld := 2.1*fconv =",
+      "x": 40,
+      "y": 3072
+    },
+    {
+      "id": "r063",
+      "kind": "text",
+      "src": "━━ 1 · DIMENSIONAMIENTO EN PLANTA (13.3.1.1, cargas de SERVICIO) ━━",
+      "x": 40,
+      "y": 3136
+    },
+    {
+      "id": "r064",
+      "kind": "text",
+      "src": "13.3.1.1: el área en planta se proporciona con cargas no mayoradas contra la",
+      "x": 40,
+      "y": 3184
+    },
+    {
+      "id": "r065",
+      "kind": "text",
+      "src": "presión admisible del suelo.",
+      "x": 40,
+      "y": 3232
+    },
+    {
+      "id": "r066",
+      "kind": "math",
+      "src": "A_req := (P_D + P_L)/q_a = m^2",
+      "x": 40,
+      "y": 3280
+    },
+    {
+      "id": "r067",
+      "kind": "math",
+      "src": "q_serv := (P_D + P_L)/A_zap = kgf/cm^2",
+      "x": 40,
+      "y": 3328
+    },
+    {
+      "id": "r068",
+      "kind": "math",
+      "src": "u_q := q_serv/q_a =",
+      "x": 40,
+      "y": 3376
+    },
+    {
+      "id": "r069",
+      "kind": "math",
+      "src": "u_q <= 1 =",
+      "x": 40,
+      "y": 3424
+    },
+    {
+      "id": "r070",
+      "kind": "text",
+      "src": "━━ 2 · PRESIÓN MAYORADA DE DISEÑO (Tabla 5.3.1, Ec. 5.3.1b) ━━",
+      "x": 40,
+      "y": 3488
+    },
+    {
+      "id": "r071",
+      "kind": "text",
+      "src": "El peso propio de la zapata no solicita la sección: lo equilibra el suelo justo",
+      "x": 40,
+      "y": 3536
+    },
+    {
+      "id": "r072",
+      "kind": "text",
+      "src": "debajo. Solo la carga que baja por la columna genera corte y momento.",
+      "x": 40,
+      "y": 3584
+    },
+    {
+      "id": "r073",
+      "kind": "math",
+      "src": "N_u := 1.2*P_D + 1.6*P_L = tonf",
+      "x": 40,
+      "y": 3632
+    },
+    {
+      "id": "r074",
+      "kind": "math",
+      "src": "q_u := N_u/A_zap = tonf/m^2",
+      "x": 40,
+      "y": 3680
+    },
+    {
+      "id": "r075",
+      "kind": "math",
+      "src": "vol := (B - c_col)/2 = cm",
+      "x": 40,
+      "y": 3728
+    },
+    {
+      "id": "r076",
+      "kind": "text",
+      "src": "━━ 3 · CORTE EN UNA DIRECCIÓN (13.2.7.2 → 8.5.3.1.1 → 22.5) ━━",
+      "x": 40,
+      "y": 3792
+    },
+    {
+      "id": "r077",
+      "kind": "text",
+      "src": "13.2.7.2 mide la sección crítica desde la cara de la columna; 8.4.3.2 la ubica",
+      "x": 40,
+      "y": 3840
+    },
+    {
+      "id": "r078",
+      "kind": "text",
+      "src": "a d de esa cara.",
+      "x": 40,
+      "y": 3888
+    },
+    {
+      "id": "r079",
+      "kind": "math",
+      "src": "V_u1 := q_u*B*(vol - d) = tonf",
+      "x": 40,
+      "y": 3936
+    },
+    {
+      "id": "r080",
+      "kind": "text",
+      "src": "Sin estribos, A_v < A_v,min → Tabla 22.5.5.1 fila (c), con λ_s y ρ_w explícitos.",
+      "x": 40,
+      "y": 3984
+    },
+    {
+      "id": "r081",
+      "kind": "math",
+      "src": "rho_w := A_s/(B*d) =",
+      "x": 40,
+      "y": 4032
+    },
+    {
+      "id": "r082",
+      "kind": "math",
+      "src": "crho := rho_w^(1/3) =",
+      "x": 40,
+      "y": 4080
+    },
+    {
+      "id": "r083",
+      "kind": "text",
+      "src": "Ec. (22.5.5.1.3): factor de efecto de tamaño, con d en mm.",
+      "x": 40,
+      "y": 4128
+    },
+    {
+      "id": "r084",
+      "kind": "math",
+      "src": "lam_s := min(1, sqrt(2/(1 + (d/(1 mm))/250))) =",
+      "x": 40,
+      "y": 4176
+    },
+    {
+      "id": "r085",
+      "kind": "math",
+      "src": "v_bruto := k_1d*lam_s*lambda*crho*rfck = kgf/cm^2",
+      "x": 40,
+      "y": 4240
+    },
+    {
+      "id": "r086",
+      "kind": "text",
+      "src": "22.5.5.1.1: V_c no se toma mayor que 0,42λ√f'c·b·d, y NO hace falta tomarlo",
+      "x": 40,
+      "y": 4288
+    },
+    {
+      "id": "r087",
+      "kind": "text",
+      "src": "menor que 0,083λ√f'c·b·d. Las dos excepciones al piso —(a) tracción axial neta,",
+      "x": 40,
+      "y": 4336
+    },
+    {
+      "id": "r088",
+      "kind": "text",
+      "src": "(b) 18.6.5.2 o 18.7.6.2.1— no aplican a esta zapata.",
+      "x": 40,
+      "y": 4384
+    },
+    {
+      "id": "r089",
+      "kind": "math",
+      "src": "v_piso := k_piso*lambda*rfck = kgf/cm^2",
+      "x": 40,
+      "y": 4432
+    },
+    {
+      "id": "r090",
+      "kind": "math",
+      "src": "v_tope := k_tope*lambda*rfck = kgf/cm^2",
+      "x": 40,
+      "y": 4480
+    },
+    {
+      "id": "r091",
+      "kind": "math",
+      "src": "v_c1 := min(max(v_bruto, v_piso), v_tope) = kgf/cm^2",
+      "x": 40,
+      "y": 4528
+    },
+    {
+      "id": "r092",
+      "kind": "math",
+      "src": "piso_manda := v_bruto < v_piso =",
+      "x": 40,
+      "y": 4576
+    },
+    {
+      "id": "r093",
+      "kind": "math",
+      "src": "V_c1 := v_c1*B*d = tonf",
+      "x": 40,
+      "y": 4624
+    },
+    {
+      "id": "r094",
+      "kind": "math",
+      "src": "Rd_V1 := phi_v*V_c1 = tonf",
+      "x": 40,
+      "y": 4672
+    },
+    {
+      "id": "r095",
+      "kind": "math",
+      "src": "u_V1 := V_u1/Rd_V1 =",
+      "x": 40,
+      "y": 4720
+    },
+    {
+      "id": "r096",
+      "kind": "math",
+      "src": "Rd_V1 >= V_u1 =",
+      "x": 40,
+      "y": 4768
+    },
+    {
+      "id": "r097",
+      "kind": "text",
+      "src": "━━ 3.1 · DE DÓNDE VIENE LA CAÍDA DE CAPACIDAD ━━",
+      "x": 40,
+      "y": 4832
+    },
+    {
+      "id": "r098",
+      "kind": "text",
+      "src": "Expresión clásica de la fila (a), 0,17λ√f'c·b·d, la del «código antiguo»:",
+      "x": 40,
+      "y": 4880
+    },
+    {
+      "id": "r099",
+      "kind": "math",
+      "src": "Rd_clas := phi_v*k_clas*lambda*rfck*B*d = tonf",
+      "x": 40,
+      "y": 4928
+    },
+    {
+      "id": "r100",
+      "kind": "math",
+      "src": "u_clas := V_u1/Rd_clas =",
+      "x": 40,
+      "y": 4976
+    },
+    {
+      "id": "r101",
+      "kind": "text",
+      "src": "La expresión nueva sin efecto de tamaño (λ_s = 1), ya con el piso aplicado:",
+      "x": 40,
+      "y": 5024
+    },
+    {
+      "id": "r102",
+      "kind": "math",
+      "src": "v_ls1 := max(k_1d*lambda*crho*rfck, v_piso) = kgf/cm^2",
+      "x": 40,
+      "y": 5072
+    },
+    {
+      "id": "r103",
+      "kind": "math",
+      "src": "Rd_ls1 := phi_v*v_ls1*B*d = tonf",
+      "x": 40,
+      "y": 5120
+    },
+    {
+      "id": "r104",
+      "kind": "math",
+      "src": "u_ls1 := V_u1/Rd_ls1 =",
+      "x": 40,
+      "y": 5168
+    },
+    {
+      "id": "r105",
+      "kind": "text",
+      "src": "Y lo que el efecto de tamaño agrega encima: la caída bruta contra la que el",
+      "x": 40,
+      "y": 5216
+    },
+    {
+      "id": "r106",
+      "kind": "text",
+      "src": "piso de 22.5.5.1.1 deja pasar.",
+      "x": 40,
+      "y": 5264
+    },
+    {
+      "id": "r107",
+      "kind": "math",
+      "src": "V_c1bruto := v_bruto*B*d = tonf",
+      "x": 40,
+      "y": 5312
+    },
+    {
+      "id": "r108",
+      "kind": "math",
+      "src": "Rd_bruto := phi_v*V_c1bruto = tonf",
+      "x": 40,
+      "y": 5360
+    },
+    {
+      "id": "r109",
+      "kind": "math",
+      "src": "u_bruto := V_u1/Rd_bruto =",
+      "x": 40,
+      "y": 5408
+    },
+    {
+      "id": "r110",
+      "kind": "math",
+      "src": "caida_expr := 1 - Rd_ls1/Rd_clas =",
+      "x": 40,
+      "y": 5456
+    },
+    {
+      "id": "r111",
+      "kind": "math",
+      "src": "caida_lams_bruta := 1 - Rd_bruto/Rd_ls1 =",
+      "x": 40,
+      "y": 5504
+    },
+    {
+      "id": "r112",
+      "kind": "math",
+      "src": "caida_lams_real := 1 - Rd_V1/Rd_ls1 =",
+      "x": 40,
+      "y": 5552
+    },
+    {
+      "id": "r113",
+      "kind": "text",
+      "src": "━━ 4 · PUNZONAMIENTO — CORTE EN DOS DIRECCIONES (22.6.4.1 y Tabla 22.6.5.2) ━━",
+      "x": 40,
+      "y": 5616
+    },
+    {
+      "id": "r114",
+      "kind": "text",
+      "src": "22.6.4.1(a): perímetro crítico a d/2 de la cara de la columna.",
+      "x": 40,
+      "y": 5664
+    },
+    {
+      "id": "r115",
+      "kind": "math",
+      "src": "b_o := 4*(c_col + d) = cm",
+      "x": 40,
+      "y": 5712
+    },
+    {
+      "id": "r116",
+      "kind": "math",
+      "src": "V_u2 := q_u*(A_zap - (c_col + d)^2) = tonf",
+      "x": 40,
+      "y": 5760
+    },
+    {
+      "id": "r117",
+      "kind": "text",
+      "src": "Tabla 22.6.5.2: el menor de (a), (b) y (c). β = 1 por columna cuadrada;",
+      "x": 40,
+      "y": 5808
+    },
+    {
+      "id": "r118",
+      "kind": "text",
+      "src": "22.6.5.3: α_s = 40 para columna interior.",
+      "x": 40,
+      "y": 5856
+    },
+    {
+      "id": "r119",
+      "kind": "math",
+      "src": "beta_c := 1",
+      "x": 40,
+      "y": 5904
+    },
+    {
+      "id": "r120",
+      "kind": "math",
+      "src": "alpha_s := 40",
+      "x": 40,
+      "y": 5952
+    },
+    {
+      "id": "r121",
+      "kind": "math",
+      "src": "v_2a := k_2a*lam_s*lambda*rfck = kgf/cm^2",
+      "x": 40,
+      "y": 6000
+    },
+    {
+      "id": "r122",
+      "kind": "math",
+      "src": "v_2b := k_2b*(1 + 2/beta_c)*lam_s*lambda*rfck = kgf/cm^2",
+      "x": 40,
+      "y": 6048
+    },
+    {
+      "id": "r123",
+      "kind": "math",
+      "src": "v_2c := k_2c*(2 + alpha_s*d/b_o)*lam_s*lambda*rfck = kgf/cm^2",
+      "x": 40,
+      "y": 6096
+    },
+    {
+      "id": "r124",
+      "kind": "math",
+      "src": "v_c2 := min(v_2a, v_2b, v_2c) = kgf/cm^2",
+      "x": 40,
+      "y": 6144
+    },
+    {
+      "id": "r125",
+      "kind": "math",
+      "src": "Rd_V2 := phi_v*v_c2*b_o*d = tonf",
+      "x": 40,
+      "y": 6192
+    },
+    {
+      "id": "r126",
+      "kind": "math",
+      "src": "u_V2 := V_u2/Rd_V2 =",
+      "x": 40,
+      "y": 6240
+    },
+    {
+      "id": "r127",
+      "kind": "math",
+      "src": "Rd_V2 >= V_u2 =",
+      "x": 40,
+      "y": 6288
+    },
+    {
+      "id": "r128",
+      "kind": "text",
+      "src": "━━ 5 · FLEXIÓN (Tabla 13.2.7.1 y 22.2/22.3) ━━",
+      "x": 40,
+      "y": 6352
+    },
+    {
+      "id": "r129",
+      "kind": "text",
+      "src": "Tabla 13.2.7.1: con columna de hormigón, M_u se toma en la CARA de la columna.",
+      "x": 40,
+      "y": 6400
+    },
+    {
+      "id": "r130",
+      "kind": "math",
+      "src": "M_u := q_u*B*vol^2/2 = tonf*m",
+      "x": 40,
+      "y": 6448
+    },
+    {
+      "id": "r131",
+      "kind": "text",
+      "src": "22.2.2.4.1: bloque rectangular equivalente de 0,85f'c sobre una altura a = β1·c.",
+      "x": 40,
+      "y": 6496
+    },
+    {
+      "id": "r132",
+      "kind": "math",
+      "src": "a_bl := A_s*f_y/(0.85*f_c*B) = cm",
+      "x": 40,
+      "y": 6544
+    },
+    {
+      "id": "r133",
+      "kind": "math",
+      "src": "c_na := a_bl/beta_1 = cm",
+      "x": 40,
+      "y": 6592
+    },
+    {
+      "id": "r134",
+      "kind": "math",
+      "src": "Rd_M := phi_f*A_s*f_y*(d - a_bl/2) = tonf*m",
+      "x": 40,
+      "y": 6640
+    },
+    {
+      "id": "r135",
+      "kind": "math",
+      "src": "u_M := M_u/Rd_M =",
+      "x": 40,
+      "y": 6688
+    },
+    {
+      "id": "r136",
+      "kind": "math",
+      "src": "Rd_M >= M_u =",
+      "x": 40,
+      "y": 6736
+    },
+    {
+      "id": "r137",
+      "kind": "text",
+      "src": "21.2.2: controlada por tracción si ε_t ≥ ε_ty + 0,003 (no el 0,005 fijo de 318-14).",
+      "x": 40,
+      "y": 6784
+    },
+    {
+      "id": "r138",
+      "kind": "math",
+      "src": "eps_t := eps_cu*(d - c_na)/c_na =",
+      "x": 40,
+      "y": 6832
+    },
+    {
+      "id": "r139",
+      "kind": "math",
+      "src": "eps_lim := eps_ty + 0.003 =",
+      "x": 40,
+      "y": 6880
+    },
+    {
+      "id": "r140",
+      "kind": "math",
+      "src": "eps_t >= eps_lim =",
+      "x": 40,
+      "y": 6928
+    },
+    {
+      "id": "r141",
+      "kind": "text",
+      "src": "━━ 6 · REFUERZO MÍNIMO Y DISTRIBUCIÓN (13.3.3.1 → 8.6.1.1) ━━",
+      "pageBreak": true,
+      "x": 40,
+      "y": 6992
+    },
+    {
+      "id": "r142",
+      "kind": "text",
+      "src": "13.3.3.1 remite la zapata aislada de dos direcciones al Cap. 8, y 8.6.1.1 pide",
+      "x": 40,
+      "y": 7040
+    },
+    {
+      "id": "r143",
+      "kind": "text",
+      "src": "A_s,min = 0,0018·A_g — la misma cuantía de retracción y temperatura de 24.4.3.2.",
+      "x": 40,
+      "y": 7088
+    },
+    {
+      "id": "r144",
+      "kind": "math",
+      "src": "A_smin := 0.0018*B*h = cm^2",
+      "x": 40,
+      "y": 7136
+    },
+    {
+      "id": "r145",
+      "kind": "math",
+      "src": "A_s >= A_smin =",
+      "x": 40,
+      "y": 7184
+    },
+    {
+      "id": "r146",
+      "kind": "text",
+      "src": "El acero que la flexión pediría, para ver cuál de los dos manda. Dos pasadas",
+      "x": 40,
+      "y": 7232
+    },
+    {
+      "id": "r147",
+      "kind": "text",
+      "src": "bastan: el brazo casi no se mueve entre una y otra.",
+      "x": 40,
+      "y": 7280
+    },
+    {
+      "id": "r148",
+      "kind": "math",
+      "src": "A_s0 := M_u/(phi_f*f_y*0.95*d) = cm^2",
+      "x": 40,
+      "y": 7328
+    },
+    {
+      "id": "r149",
+      "kind": "math",
+      "src": "a_req := A_s0*f_y/(0.85*f_c*B) = cm",
+      "x": 40,
+      "y": 7376
+    },
+    {
+      "id": "r150",
+      "kind": "math",
+      "src": "A_sreq := M_u/(phi_f*f_y*(d - a_req/2)) = cm^2",
+      "x": 40,
+      "y": 7424
+    },
+    {
+      "id": "r151",
+      "kind": "math",
+      "src": "min_manda := A_smin > A_sreq =",
+      "x": 40,
+      "y": 7472
+    },
+    {
+      "id": "r152",
+      "kind": "text",
+      "src": "13.3.3.2: en zapatas CUADRADAS el refuerzo va uniforme en todo el ancho, en las",
+      "x": 40,
+      "y": 7520
+    },
+    {
+      "id": "r153",
+      "kind": "text",
+      "src": "dos direcciones (13.3.3.3 es la de las rectangulares, con banda central γ_s·A_s).",
+      "x": 40,
+      "y": 7568
+    },
+    {
+      "id": "r154",
+      "kind": "math",
+      "src": "sep := (B - 2*rec - d_b)/(n_b - 1) = cm",
+      "x": 40,
+      "y": 7616
+    },
+    {
+      "id": "r155",
+      "kind": "text",
+      "src": "━━ 7 · DESARROLLO DE LA BARRA (Tabla 25.4.2.3 y 25.4.2.1) ━━",
+      "x": 40,
+      "y": 7680
+    },
+    {
+      "id": "r156",
+      "kind": "text",
+      "src": "Condición de confinamiento, segunda opción de la tabla: separación libre ≥ 2d_b",
+      "x": 40,
+      "y": 7728
+    },
+    {
+      "id": "r157",
+      "kind": "text",
+      "src": "y recubrimiento libre ≥ d_b. Con eso entra la columna del 2,1.",
+      "x": 40,
+      "y": 7776
+    },
+    {
+      "id": "r158",
+      "kind": "math",
+      "src": "sep_libre := sep - d_b = cm",
+      "x": 40,
+      "y": 7824
+    },
+    {
+      "id": "r159",
+      "kind": "math",
+      "src": "sep_libre >= 2*d_b =",
+      "x": 40,
+      "y": 7872
+    },
+    {
+      "id": "r160",
+      "kind": "math",
+      "src": "rec >= d_b =",
+      "x": 40,
+      "y": 7920
+    },
+    {
+      "id": "r161",
+      "kind": "text",
+      "src": "ψ_t = 1 (barra inferior), ψ_e = 1 (sin epóxico), ψ_g = 1 (Grado 420), λ = 1.",
+      "x": 40,
+      "y": 7968
+    },
+    {
+      "id": "r162",
+      "kind": "math",
+      "src": "psi_t := 1",
+      "x": 40,
+      "y": 8016
+    },
+    {
+      "id": "r163",
+      "kind": "math",
+      "src": "psi_e := 1",
+      "x": 40,
+      "y": 8064
+    },
+    {
+      "id": "r164",
+      "kind": "math",
+      "src": "psi_g := 1",
+      "x": 40,
+      "y": 8112
+    },
+    {
+      "id": "r165",
+      "kind": "math",
+      "src": "l_d := f_y*psi_t*psi_e*psi_g/(k_ld*lambda*rfck)*d_b = cm",
+      "x": 40,
+      "y": 8160
+    },
+    {
+      "id": "r166",
+      "kind": "text",
+      "src": "25.4.2.1: además ℓ_d ≥ 300 mm.",
+      "x": 40,
+      "y": 8208
+    },
+    {
+      "id": "r167",
+      "kind": "math",
+      "src": "l_d >= 300 mm =",
+      "x": 40,
+      "y": 8256
+    },
+    {
+      "id": "r168",
+      "kind": "text",
+      "src": "Longitud disponible: el volado menos el recubrimiento de borde.",
+      "x": 40,
+      "y": 8304
+    },
+    {
+      "id": "r169",
+      "kind": "math",
+      "src": "l_disp := vol - rec = cm",
+      "x": 40,
+      "y": 8352
+    },
+    {
+      "id": "r170",
+      "kind": "math",
+      "src": "u_ld := l_d/l_disp =",
+      "x": 40,
+      "y": 8400
+    },
+    {
+      "id": "r171",
+      "kind": "math",
+      "src": "l_disp >= l_d =",
+      "x": 40,
+      "y": 8448
+    },
+    {
+      "id": "r172",
+      "kind": "text",
+      "src": "━━ 8 · DETALLADO ━━",
+      "x": 40,
+      "y": 8512
+    },
+    {
+      "id": "r173",
+      "kind": "text",
+      "src": "13.3.1.2: la altura útil del refuerzo inferior debe ser al menos 150 mm.",
+      "x": 40,
+      "y": 8560
+    },
+    {
+      "id": "r174",
+      "kind": "math",
+      "src": "d >= 150 mm =",
+      "x": 40,
+      "y": 8608
+    },
+    {
+      "id": "r175",
+      "kind": "text",
+      "src": "16.3.4.1: espigas de al menos 0,005·A_g de la columna a través de la junta.",
+      "x": 40,
+      "y": 8656
+    },
+    {
+      "id": "r176",
+      "kind": "math",
+      "src": "A_dow := 0.005*c_col^2 = cm^2",
+      "x": 40,
+      "y": 8704
+    },
+    {
+      "id": "r177",
+      "kind": "text",
+      "src": "━━ RESUMEN: QUÉ GOBIERNA ━━",
+      "x": 40,
+      "y": 8768
+    },
+    {
+      "id": "r178",
+      "kind": "text",
+      "src": "`gobierna` se recalcula al cambiar cualquier dato: dice qué estado límite manda.",
+      "x": 40,
+      "y": 8816
+    },
+    {
+      "id": "r179",
+      "kind": "math",
+      "src": "u_max := max(u_q, u_V1, u_V2, u_M, u_ld) =",
+      "x": 40,
+      "y": 8864
+    },
+    {
+      "id": "gob",
+      "kind": "program",
+      "src": "gobierna :=\nif u_max == u_q\n  return \"presión de contacto en servicio (13.3.1.1)\"\nelse if u_max == u_V1\n  return \"corte en una dirección (Tabla 22.5.5.1c)\"\nelse if u_max == u_V2\n  return \"punzonamiento (Tabla 22.6.5.2)\"\nelse if u_max == u_M\n  return \"flexión (22.3.1)\"\nelse\n  return \"desarrollo de la barra (Tabla 25.4.2.3)\"",
+      "x": 40,
+      "y": 8912
+    },
+    {
+      "id": "r180",
+      "kind": "text",
+      "src": "La presión fija la PLANTA. El canto lo fija el mayor de los estados de la sección:",
+      "x": 40,
+      "y": 9136
+    },
+    {
+      "id": "r181",
+      "kind": "math",
+      "src": "u_canto := max(u_V1, u_V2, u_M) =",
+      "x": 40,
+      "y": 9184
+    },
+    {
+      "id": "gobc",
+      "kind": "program",
+      "src": "gob_canto :=\nif u_canto == u_V1\n  return \"corte en una dirección\"\nelse if u_canto == u_V2\n  return \"punzonamiento\"\nelse\n  return \"flexión\"",
+      "x": 40,
+      "y": 9232
+    },
+    {
+      "id": "r182",
+      "kind": "math",
+      "src": "u_max <= 1 =",
+      "x": 40,
+      "y": 9392
+    },
+    {
+      "id": "esq",
+      "kind": "image",
+      "src": "/esquemas/zapata-aislada.svg",
+      "w": 660,
+      "h": 440,
+      "x": 40,
+      "y": 9440
+    },
+    {
+      "id": "r183",
+      "kind": "text",
+      "src": "━━ 9 · CONTRASTE CON EL POST — cada número publicado, contra el calculado ━━",
+      "x": 40,
+      "y": 9920
+    },
+    {
+      "id": "r184",
+      "kind": "text",
+      "src": "Tolerancia: media unidad del último dígito publicado.",
+      "x": 40,
+      "y": 9968
+    },
+    {
+      "id": "r185",
+      "kind": "text",
+      "src": "§1 — dimensionamiento en planta:",
+      "x": 40,
+      "y": 10016
+    },
+    {
+      "id": "c_Areq",
+      "kind": "math",
+      "src": "abs(A_req - 4.5 m^2) < 0.05 m^2 =",
+      "x": 40,
+      "y": 10064
+    },
+    {
+      "id": "c_A",
+      "kind": "math",
+      "src": "abs(A_zap - 4.84 m^2) < 0.005 m^2 =",
+      "x": 40,
+      "y": 10112
+    },
+    {
+      "id": "c_qserv",
+      "kind": "math",
+      "src": "abs(q_serv - 18.6 tonf/m^2) < 0.05 tonf/m^2 =",
+      "x": 40,
+      "y": 10160
+    },
+    {
+      "id": "c_uq",
+      "kind": "math",
+      "src": "abs(u_q - 0.93) < 0.005 =",
+      "x": 40,
+      "y": 10208
+    },
+    {
+      "id": "r186",
+      "kind": "text",
+      "src": "§2 — presión mayorada y altura útil derivada:",
+      "x": 40,
+      "y": 10256
+    },
+    {
+      "id": "c_Nu",
+      "kind": "math",
+      "src": "abs(N_u - 120 tonf) < 0.5 tonf =",
+      "x": 40,
+      "y": 10304
+    },
+    {
+      "id": "c_qu",
+      "kind": "math",
+      "src": "abs(q_u - 24.79 tonf/m^2) < 0.005 tonf/m^2 =",
+      "x": 40,
+      "y": 10352
+    },
+    {
+      "id": "c_d",
+      "kind": "math",
+      "src": "abs(d - 45.7 cm) < 0.05 cm =",
+      "x": 40,
+      "y": 10400
+    },
+    {
+      "id": "r187",
+      "kind": "text",
+      "src": "§3 — corte en una dirección, el número insignia del post:",
+      "x": 40,
+      "y": 10448
+    },
+    {
+      "id": "c_brazo",
+      "kind": "math",
+      "src": "abs((vol - d) - 0.443 m) < 0.0005 m =",
+      "x": 40,
+      "y": 10496
+    },
+    {
+      "id": "c_Vu1",
+      "kind": "math",
+      "src": "abs(V_u1 - 24.2 tonf) < 0.05 tonf =",
+      "x": 40,
+      "y": 10544
+    },
+    {
+      "id": "c_rho",
+      "kind": "math",
+      "src": "abs(rho_w - 0.00228) < 0.000005 =",
+      "x": 40,
+      "y": 10592
+    },
+    {
+      "id": "c_lams",
+      "kind": "math",
+      "src": "abs(lam_s - 0.841) < 0.0005 =",
+      "x": 40,
+      "y": 10640
+    },
+    {
+      "id": "c_Vcbruto",
+      "kind": "math",
+      "src": "abs(V_c1bruto - 37.1 tonf) < 0.05 tonf =",
+      "x": 40,
+      "y": 10688
+    },
+    {
+      "id": "r188",
+      "kind": "text",
+      "src": "El piso de 22.5.5.1.1 y la comparación que decide cuál de los dos manda:",
+      "x": 40,
+      "y": 10736
+    },
+    {
+      "id": "c_vbruto",
+      "kind": "math",
+      "src": "abs(v_bruto - 3.69 kgf/cm^2) < 0.005 kgf/cm^2 =",
+      "x": 40,
+      "y": 10784
+    },
+    {
+      "id": "c_vpiso",
+      "kind": "math",
+      "src": "abs(v_piso - 4.19 kgf/cm^2) < 0.005 kgf/cm^2 =",
+      "x": 40,
+      "y": 10832
+    },
+    {
+      "id": "c_Vc1",
+      "kind": "math",
+      "src": "abs(V_c1 - 42.1 tonf) < 0.05 tonf =",
+      "x": 40,
+      "y": 10880
+    },
+    {
+      "id": "c_RdV1",
+      "kind": "math",
+      "src": "abs(Rd_V1 - 31.6 tonf) < 0.05 tonf =",
+      "x": 40,
+      "y": 10928
+    },
+    {
+      "id": "c_uV1",
+      "kind": "math",
+      "src": "abs(u_V1 - 0.76) < 0.005 =",
+      "x": 40,
+      "y": 10976
+    },
+    {
+      "id": "r189",
+      "kind": "text",
+      "src": "§3 — la tabla de la Note, tramo por tramo:",
+      "x": 40,
+      "y": 11024
+    },
+    {
+      "id": "c_Rdclas",
+      "kind": "math",
+      "src": "abs(Rd_clas - 64.7 tonf) < 0.05 tonf =",
+      "x": 40,
+      "y": 11072
+    },
+    {
+      "id": "c_uclas",
+      "kind": "math",
+      "src": "abs(u_clas - 0.37) < 0.005 =",
+      "x": 40,
+      "y": 11120
+    },
+    {
+      "id": "c_Rdls1",
+      "kind": "math",
+      "src": "abs(Rd_ls1 - 33.1 tonf) < 0.05 tonf =",
+      "x": 40,
+      "y": 11168
+    },
+    {
+      "id": "c_uls1",
+      "kind": "math",
+      "src": "abs(u_ls1 - 0.73) < 0.005 =",
+      "x": 40,
+      "y": 11216
+    },
+    {
+      "id": "c_Rdbruto",
+      "kind": "math",
+      "src": "abs(Rd_bruto - 27.8 tonf) < 0.05 tonf =",
+      "x": 40,
+      "y": 11264
+    },
+    {
+      "id": "c_ubruto",
+      "kind": "math",
+      "src": "abs(u_bruto - 0.87) < 0.005 =",
+      "x": 40,
+      "y": 11312
+    },
+    {
+      "id": "c_caidaexpr",
+      "kind": "math",
+      "src": "abs(caida_expr - 0.489) < 0.0005 =",
+      "x": 40,
+      "y": 11360
+    },
+    {
+      "id": "c_caidabruta",
+      "kind": "math",
+      "src": "abs(caida_lams_bruta - 0.159) < 0.0005 =",
+      "x": 40,
+      "y": 11408
+    },
+    {
+      "id": "c_caidareal",
+      "kind": "math",
+      "src": "abs(caida_lams_real - 0.044) < 0.0005 =",
+      "x": 40,
+      "y": 11456
+    },
+    {
+      "id": "r190",
+      "kind": "text",
+      "src": "§3 — la tabla de coeficientes de la Note: cada equivalencia en kgf/cm².",
+      "x": 40,
+      "y": 11504
+    },
+    {
+      "id": "c_fconv",
+      "kind": "math",
+      "src": "abs(fconv - 3.1933) < 0.00005 =",
+      "x": 40,
+      "y": 11552
+    },
+    {
+      "id": "c_k1d",
+      "kind": "math",
+      "src": "abs(k_1d - 2.108) < 0.0005 =",
+      "x": 40,
+      "y": 11600
+    },
+    {
+      "id": "c_kpiso",
+      "kind": "math",
+      "src": "abs(k_piso - 0.265) < 0.0005 =",
+      "x": 40,
+      "y": 11648
+    },
+    {
+      "id": "c_ktope",
+      "kind": "math",
+      "src": "abs(k_tope - 1.341) < 0.0005 =",
+      "x": 40,
+      "y": 11696
+    },
+    {
+      "id": "c_kclas",
+      "kind": "math",
+      "src": "abs(k_clas - 0.5429) < 0.00005 =",
+      "x": 40,
+      "y": 11744
+    },
+    {
+      "id": "c_k2a",
+      "kind": "math",
+      "src": "abs(k_2a - 1.0538) < 0.00005 =",
+      "x": 40,
+      "y": 11792
+    },
+    {
+      "id": "c_kld",
+      "kind": "math",
+      "src": "abs(k_ld - 6.706) < 0.0005 =",
+      "x": 40,
+      "y": 11840
+    },
+    {
+      "id": "r191",
+      "kind": "text",
+      "src": "Y la brecha con el 0,53 de la edición pulgada-libra que el post cita al pie:",
+      "x": 40,
+      "y": 11888
+    },
+    {
+      "id": "c_brecha",
+      "kind": "math",
+      "src": "abs((k_clas/0.53 - 1) - 0.024) < 0.0005 =",
+      "x": 40,
+      "y": 11936
+    },
+    {
+      "id": "r192",
+      "kind": "text",
+      "src": "§4 — punzonamiento, con los tres términos de la Tabla 22.6.5.2:",
+      "x": 40,
+      "y": 11984
+    },
+    {
+      "id": "c_bo",
+      "kind": "math",
+      "src": "abs(b_o - 342.8 cm) < 0.05 cm =",
+      "x": 40,
+      "y": 12032
+    },
+    {
+      "id": "c_Vu2",
+      "kind": "math",
+      "src": "abs(V_u2 - 101.8 tonf) < 0.05 tonf =",
+      "x": 40,
+      "y": 12080
+    },
+    {
+      "id": "c_vc2",
+      "kind": "math",
+      "src": "abs(v_c2 - 14.0 kgf/cm^2) < 0.05 kgf/cm^2 =",
+      "x": 40,
+      "y": 12128
+    },
+    {
+      "id": "c_v2b",
+      "kind": "math",
+      "src": "abs(v_2b - 21.7 kgf/cm^2) < 0.05 kgf/cm^2 =",
+      "x": 40,
+      "y": 12176
+    },
+    {
+      "id": "c_v2c",
+      "kind": "math",
+      "src": "abs(v_2c - 25.8 kgf/cm^2) < 0.05 kgf/cm^2 =",
+      "x": 40,
+      "y": 12224
+    },
+    {
+      "id": "c_RdV2",
+      "kind": "math",
+      "src": "abs(Rd_V2 - 164.6 tonf) < 0.05 tonf =",
+      "x": 40,
+      "y": 12272
+    },
+    {
+      "id": "c_uV2",
+      "kind": "math",
+      "src": "abs(u_V2 - 0.62) < 0.005 =",
+      "x": 40,
+      "y": 12320
+    },
+    {
+      "id": "r193",
+      "kind": "text",
+      "src": "§5 — flexión:",
+      "x": 40,
+      "y": 12368
+    },
+    {
+      "id": "c_Mu",
+      "kind": "math",
+      "src": "abs(M_u - 22.1 tonf*m) < 0.05 tonf*m =",
+      "x": 40,
+      "y": 12416
+    },
+    {
+      "id": "c_Asreq",
+      "kind": "math",
+      "src": "abs(A_sreq - 13.0 cm^2) < 0.05 cm^2 =",
+      "x": 40,
+      "y": 12464
+    },
+    {
+      "id": "c_a",
+      "kind": "math",
+      "src": "abs(a_bl - 2.06 cm) < 0.005 cm =",
+      "x": 40,
+      "y": 12512
+    },
+    {
+      "id": "c_RdM",
+      "kind": "math",
+      "src": "abs(Rd_M - 38.7 tonf*m) < 0.05 tonf*m =",
+      "x": 40,
+      "y": 12560
+    },
+    {
+      "id": "c_uM",
+      "kind": "math",
+      "src": "abs(u_M - 0.57) < 0.005 =",
+      "x": 40,
+      "y": 12608
+    },
+    {
+      "id": "c_epst",
+      "kind": "math",
+      "src": "abs(eps_t - 0.054) < 0.0005 =",
+      "x": 40,
+      "y": 12656
+    },
+    {
+      "id": "c_epslim",
+      "kind": "math",
+      "src": "abs(eps_lim - 0.0051) < 0.00005 =",
+      "x": 40,
+      "y": 12704
+    },
+    {
+      "id": "r194",
+      "kind": "text",
+      "src": "§5 — refuerzo mínimo, separación y desarrollo:",
+      "x": 40,
+      "y": 12752
+    },
+    {
+      "id": "c_Asmin",
+      "kind": "math",
+      "src": "abs(A_smin - 21.8 cm^2) < 0.05 cm^2 =",
+      "x": 40,
+      "y": 12800
+    },
+    {
+      "id": "c_As",
+      "kind": "math",
+      "src": "abs(A_s - 22.9 cm^2) < 0.05 cm^2 =",
+      "x": 40,
+      "y": 12848
+    },
+    {
+      "id": "c_sep",
+      "kind": "math",
+      "src": "abs(sep - 25.4 cm) < 0.05 cm =",
+      "x": 40,
+      "y": 12896
+    },
+    {
+      "id": "c_seplibre",
+      "kind": "math",
+      "src": "abs(sep_libre - 23.6 cm) < 0.05 cm =",
+      "x": 40,
+      "y": 12944
+    },
+    {
+      "id": "c_ld",
+      "kind": "math",
+      "src": "abs(l_d - 71 cm) < 0.5 cm =",
+      "x": 40,
+      "y": 12992
+    },
+    {
+      "id": "c_ldisp",
+      "kind": "math",
+      "src": "abs(l_disp - 82.5 cm) < 0.05 cm =",
+      "x": 40,
+      "y": 13040
+    },
+    {
+      "id": "c_uld",
+      "kind": "math",
+      "src": "abs(u_ld - 0.86) < 0.005 =",
+      "x": 40,
+      "y": 13088
+    },
+    {
+      "id": "r195",
+      "kind": "text",
+      "src": "§8 — detallado: el mínimo de espigas de 16.3.4.1.",
+      "x": 40,
+      "y": 13136
+    },
+    {
+      "id": "c_Adow",
+      "kind": "math",
+      "src": "abs(A_dow - 8 cm^2) < 0.05 cm^2 =",
+      "x": 40,
+      "y": 13184
+    }
+  ]
+}

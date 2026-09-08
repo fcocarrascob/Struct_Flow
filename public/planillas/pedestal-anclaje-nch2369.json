@@ -1,0 +1,3446 @@
+{
+ "version": 1,
+ "meta": {
+  "titulo": "El pedestal según NCh2369:2025 — 8.5 (anclajes) y 9.5 (pedestales)",
+  "ficha": "struct_pad/src/content/hormigon/ejemplo-pedestal-anclaje-nch2369.mdx",
+  "esperadoFalso": {
+   "v_pb": "La tesis de §2: sin detalle dúctil el perno φ1″ no da (uso 1,30) — por eso se adopta la vía (a).",
+   "v_sd": "La tesis de §2: bajar a R = 3 no compensa, deja el perno peor (1,70 > 1,30).",
+   "v_btN": "La tesis del post: el breakout del grupo no resiste la capacidad esperada del perno (9.5.2).",
+   "v_btA": "La tesis del post: el breakout nominal no llega a 1,2·N_sa (ACI 17.10.5.3(a)) — de ahí la armadura de anclaje.",
+   "v_poN": "La tesis del post: el pullout con tuerca no resiste la capacidad esperada (9.5.2).",
+   "v_poA": "La tesis del post: el pullout nominal no llega a 1,2·N_sa — de ahí la plancha de cabeza.",
+   "v_global": "La tesis del §3.1: el u_max lo pone el breakout del hormigón de la llave (ACI 17.11.3), que no verifica sin la armadura de la zona de protección que C9.5.2 manda concentrar arriba.",
+   "v_cbsl": "La tesis del §3.1: el cono de la llave da 1,23 y no depende del espesor ni del embebido, sino del ancho del pedestal. Se resuelve con los estribos de la zona de protección (C9.5.2).",
+   "v008": "La `Note` del §3.1: 17.11.1.1.8(b) pide h_ef/c_sl ≥ 2,5 y el detalle da 1,60, así que se diseña por la vía de «métodos alternativos» que abre la 17.11.1.1.",
+   "v022": "La tesis de §6: con R₁ = 2 los criterios de Cat. II y Cat. III–IV NO habrían convergido."
+  }
+ },
+ "regions": [
+  {
+   "id": "r001",
+   "kind": "text",
+   "src": "EL PEDESTAL SEGÚN NCh2369:2025 — 8.5 (anclajes) y 9.5 (pedestales)",
+   "x": 40,
+   "y": 32
+  },
+  {
+   "id": "r002",
+   "kind": "text",
+   "src": "Sobre el mismo detalle del ejemplo del Cap. 17 de ACI 318-25 (edición SI).",
+   "x": 40,
+   "y": 80
+  },
+  {
+   "id": "r003",
+   "kind": "text",
+   "src": "Rd_ = capacidad de diseño · u_ = uso · las comparaciones dan ✓/✗",
+   "x": 40,
+   "y": 128
+  },
+  {
+   "id": "r004",
+   "kind": "text",
+   "src": "",
+   "x": 40,
+   "y": 176
+  },
+  {
+   "id": "r005",
+   "kind": "text",
+   "src": "━━ DATOS ━━",
+   "x": 40,
+   "y": 224
+  },
+  {
+   "id": "r006",
+   "kind": "text",
+   "src": "Pedestal (b = lado menor) y placa base:",
+   "x": 40,
+   "y": 272
+  },
+  {
+   "id": "r007",
+   "kind": "math",
+   "src": "b_p := 100 cm",
+   "x": 40,
+   "y": 320
+  },
+  {
+   "id": "r008",
+   "kind": "math",
+   "src": "h_p := 120 cm",
+   "x": 40,
+   "y": 368
+  },
+  {
+   "id": "r009",
+   "kind": "math",
+   "src": "f_c := 250 kgf/cm^2",
+   "x": 40,
+   "y": 416
+  },
+  {
+   "id": "r010",
+   "kind": "math",
+   "src": "lam := 1",
+   "x": 40,
+   "y": 464
+  },
+  {
+   "id": "r011",
+   "kind": "math",
+   "src": "B_pl := 60 cm",
+   "x": 40,
+   "y": 512
+  },
+  {
+   "id": "r012",
+   "kind": "math",
+   "src": "N_pl := 60 cm",
+   "x": 40,
+   "y": 560
+  },
+  {
+   "id": "r013",
+   "kind": "text",
+   "src": "Pernos 4 × φ1″ ASTM F1554 Gr. 55, cast-in, a ±e_p del centro (patrón s_g × s_g):",
+   "x": 40,
+   "y": 608
+  },
+  {
+   "id": "r014",
+   "kind": "math",
+   "src": "d_a := 2.54 cm",
+   "x": 40,
+   "y": 656
+  },
+  {
+   "id": "r015",
+   "kind": "math",
+   "src": "e_p := 25 cm",
+   "x": 40,
+   "y": 704
+  },
+  {
+   "id": "r016",
+   "kind": "math",
+   "src": "s_g := 2 * e_p = cm",
+   "x": 40,
+   "y": 752
+  },
+  {
+   "id": "r017",
+   "kind": "math",
+   "src": "h_ef := 40 cm",
+   "x": 40,
+   "y": 800
+  },
+  {
+   "id": "r018",
+   "kind": "math",
+   "src": "c_a := 25 cm",
+   "x": 40,
+   "y": 848
+  },
+  {
+   "id": "v000",
+   "kind": "math",
+   "src": "abs(c_a + s_g + c_a - b_p) < 0.001 cm =",
+   "x": 40,
+   "y": 896
+  },
+  {
+   "id": "r019",
+   "kind": "math",
+   "src": "n_T := 2",
+   "x": 40,
+   "y": 944
+  },
+  {
+   "id": "r020",
+   "kind": "text",
+   "src": "R17.6.1.2 (ASME B1.1): A_se = (π/4)(d_a − 0,9743/n_t)², n_t hilos/pulgada (1″-8UNC)",
+   "x": 40,
+   "y": 992
+  },
+  {
+   "id": "r021",
+   "kind": "math",
+   "src": "n_t := 8",
+   "x": 40,
+   "y": 1040
+  },
+  {
+   "id": "r022",
+   "kind": "math",
+   "src": "d_r := d_a - 0.9743/n_t * 2.54 * cm = cm",
+   "x": 40,
+   "y": 1088
+  },
+  {
+   "id": "r023",
+   "kind": "math",
+   "src": "A_se := pi/4 * d_r^2 = cm^2",
+   "x": 40,
+   "y": 1136
+  },
+  {
+   "id": "r024",
+   "kind": "math",
+   "src": "A_g := pi/4 * d_a^2 = cm^2",
+   "x": 40,
+   "y": 1184
+  },
+  {
+   "id": "r025",
+   "kind": "text",
+   "src": "F1554 Gr. 55: f_y = 55 ksi, f_uta = 75 ksi",
+   "x": 40,
+   "y": 1232
+  },
+  {
+   "id": "r026",
+   "kind": "math",
+   "src": "f_ya := 55 * 6.894757 * MPa = kgf/cm^2",
+   "x": 40,
+   "y": 1280
+  },
+  {
+   "id": "r027",
+   "kind": "math",
+   "src": "f_uta := 75 * 6.894757 * MPa = kgf/cm^2",
+   "x": 40,
+   "y": 1328
+  },
+  {
+   "id": "r028",
+   "kind": "text",
+   "src": "Llave de corte: plancha A36 de b_sl × t_sl, h_lc total, e_mort de mortero de nivelación",
+   "x": 40,
+   "y": 1376
+  },
+  {
+   "id": "r029",
+   "kind": "math",
+   "src": "b_sl := 30 cm",
+   "x": 40,
+   "y": 1424
+  },
+  {
+   "id": "r030",
+   "kind": "math",
+   "src": "t_sl := 3 cm",
+   "x": 40,
+   "y": 1472
+  },
+  {
+   "id": "r031",
+   "kind": "math",
+   "src": "h_lc := 20 cm",
+   "x": 40,
+   "y": 1520
+  },
+  {
+   "id": "r032",
+   "kind": "math",
+   "src": "e_mort := 5 cm",
+   "x": 40,
+   "y": 1568
+  },
+  {
+   "id": "r033",
+   "kind": "math",
+   "src": "h_sl := h_lc - e_mort = cm",
+   "x": 40,
+   "y": 1616
+  },
+  {
+   "id": "r034",
+   "kind": "math",
+   "src": "F_ysl := 2530 kgf/cm^2",
+   "x": 40,
+   "y": 1664
+  },
+  {
+   "id": "r035",
+   "kind": "math",
+   "src": "f_yr := 4200 kgf/cm^2",
+   "x": 40,
+   "y": 1712
+  },
+  {
+   "id": "r036",
+   "kind": "text",
+   "src": "Estados de carga en la base (E = sismo direccionalmente combinado, dato del análisis):",
+   "x": 40,
+   "y": 1760
+  },
+  {
+   "id": "r037",
+   "kind": "math",
+   "src": "D_P := 20.0 tonf",
+   "x": 40,
+   "y": 1808
+  },
+  {
+   "id": "r038",
+   "kind": "math",
+   "src": "E_P := -14.0 tonf",
+   "x": 40,
+   "y": 1856
+  },
+  {
+   "id": "r039",
+   "kind": "math",
+   "src": "E_M := 5.55 tonf*m",
+   "x": 40,
+   "y": 1904
+  },
+  {
+   "id": "r040",
+   "kind": "math",
+   "src": "E_V := 3.50 tonf",
+   "x": 40,
+   "y": 1952
+  },
+  {
+   "id": "r041",
+   "kind": "text",
+   "src": "Tabla 7, línea 5.3: marcos arriostrados CON anclajes dúctiles → R = 5",
+   "x": 40,
+   "y": 2000
+  },
+  {
+   "id": "r042",
+   "kind": "text",
+   "src": "Ec. (14): R_1 = R·mín(Q_0/Q_mín ; 1), o sea R_1 ≤ R",
+   "x": 40,
+   "y": 2048
+  },
+  {
+   "id": "r043",
+   "kind": "math",
+   "src": "R_t := 5",
+   "x": 40,
+   "y": 2096
+  },
+  {
+   "id": "r044",
+   "kind": "math",
+   "src": "R_1 := 4.0",
+   "x": 40,
+   "y": 2144
+  },
+  {
+   "id": "v001",
+   "kind": "math",
+   "src": "R_1 <= R_t =",
+   "x": 40,
+   "y": 2192
+  },
+  {
+   "id": "r045",
+   "kind": "math",
+   "src": "amp := 0.7 * R_1 =",
+   "x": 40,
+   "y": 2240
+  },
+  {
+   "id": "v_amp",
+   "kind": "math",
+   "src": "amp >= 1.0 =",
+   "x": 40,
+   "y": 2288
+  },
+  {
+   "id": "r046",
+   "kind": "text",
+   "src": "",
+   "x": 40,
+   "y": 2336
+  },
+  {
+   "id": "r047",
+   "kind": "text",
+   "src": "━━ FACTORES DE MINORACIÓN ━━",
+   "x": 40,
+   "y": 2384
+  },
+  {
+   "id": "r048",
+   "kind": "text",
+   "src": "ACI Tabla 21.2.1: (m) hormigón tracción redundante 0,75 · (o) acero dúctil 0,75",
+   "x": 40,
+   "y": 2432
+  },
+  {
+   "id": "r049",
+   "kind": "text",
+   "src": "· (c) aplastamiento 0,65 · Tabla 17.5.4.1 «Cast-in»: Ψ_a = 0,95 sin armadura",
+   "x": 40,
+   "y": 2480
+  },
+  {
+   "id": "r050",
+   "kind": "math",
+   "src": "phi_c := 0.75",
+   "x": 40,
+   "y": 2528
+  },
+  {
+   "id": "r051",
+   "kind": "math",
+   "src": "Psi_a := 0.95",
+   "x": 40,
+   "y": 2576
+  },
+  {
+   "id": "r052",
+   "kind": "math",
+   "src": "phiPsi := phi_c * Psi_a =",
+   "x": 40,
+   "y": 2624
+  },
+  {
+   "id": "r053",
+   "kind": "math",
+   "src": "phi_sN := 0.75",
+   "x": 40,
+   "y": 2672
+  },
+  {
+   "id": "r054",
+   "kind": "math",
+   "src": "phi_b := 0.65",
+   "x": 40,
+   "y": 2720
+  },
+  {
+   "id": "r055",
+   "kind": "text",
+   "src": "ACI 17.11.1.1.4 y .6: φ = 0,65 en la llave · 17.5.2.1: φ = 0,75 en la armadura",
+   "x": 40,
+   "y": 2768
+  },
+  {
+   "id": "r056",
+   "kind": "math",
+   "src": "phi_sl := 0.65",
+   "x": 40,
+   "y": 2816
+  },
+  {
+   "id": "r057",
+   "kind": "math",
+   "src": "phi_anc := 0.75",
+   "x": 40,
+   "y": 2864
+  },
+  {
+   "id": "r058",
+   "kind": "math",
+   "src": "phi_f := 0.90",
+   "x": 40,
+   "y": 2912
+  },
+  {
+   "id": "r059",
+   "kind": "text",
+   "src": "",
+   "x": 40,
+   "y": 2960
+  },
+  {
+   "id": "r060",
+   "kind": "text",
+   "src": "━━ 1 · LOS DOS NIVELES DE CARGA (4.5 y 0,7R₁) ━━",
+   "x": 40,
+   "y": 3008
+  },
+  {
+   "id": "r061",
+   "kind": "text",
+   "src": "4.5, LRFD: la combinación que gobierna el levantamiento es 0,9·D + SA + E (SA = 0 acá).",
+   "x": 40,
+   "y": 3056
+  },
+  {
+   "id": "r062",
+   "kind": "text",
+   "src": "ACI 22.8.3.2: f_p,max = φ·0,85·f'c·√(A₂/A₁), con √(A₂/A₁) ≤ 2 (22.8.3.2)",
+   "x": 40,
+   "y": 3104
+  },
+  {
+   "id": "r063",
+   "kind": "math",
+   "src": "A_1 := B_pl * N_pl = cm^2",
+   "x": 40,
+   "y": 3152
+  },
+  {
+   "id": "r064",
+   "kind": "math",
+   "src": "A_2 := b_p^2 = cm^2",
+   "x": 40,
+   "y": 3200
+  },
+  {
+   "id": "r065",
+   "kind": "math",
+   "src": "razon_A := A_2/A_1 =",
+   "x": 40,
+   "y": 3248
+  },
+  {
+   "id": "r066",
+   "kind": "math",
+   "src": "raiz_A := min(sqrt(razon_A), 2) =",
+   "x": 40,
+   "y": 3296
+  },
+  {
+   "id": "r067",
+   "kind": "math",
+   "src": "f_pmax := phi_b * 0.85 * f_c * raiz_A = kgf/cm^2",
+   "x": 40,
+   "y": 3344
+  },
+  {
+   "id": "r068",
+   "kind": "math",
+   "src": "q_max := f_pmax * B_pl = tonf/cm",
+   "x": 40,
+   "y": 3392
+  },
+  {
+   "id": "r069",
+   "kind": "text",
+   "src": "Modelo rígido: bloque de aplastamiento de largo Y y fila traccionada a brazo del borde",
+   "x": 40,
+   "y": 3440
+  },
+  {
+   "id": "r070",
+   "kind": "math",
+   "src": "brazo := N_pl/2 + e_p = cm",
+   "x": 40,
+   "y": 3488
+  },
+  {
+   "id": "r071",
+   "kind": "text",
+   "src": "ΣM en la fila traccionada (P > 0 en compresión): q·Y·(brazo − Y/2) = M + P·e_p",
+   "x": 40,
+   "y": 3536
+  },
+  {
+   "id": "f_Y",
+   "kind": "program",
+   "src": "Y_bloque(P, M) :=\n  Mc := M + P * e_p\n  raiz := sqrt((q_max*brazo)^2 - 2*q_max*Mc)\n  return (q_max*brazo - raiz)/q_max",
+   "x": 40,
+   "y": 3584
+  },
+  {
+   "id": "f_T",
+   "kind": "program",
+   "src": "T_perno(mult) :=\n  P := 0.9*D_P + mult*E_P\n  M := mult*E_M\n  Yb := Y_bloque(P, M)\n  return (q_max*Yb - P)/n_T",
+   "x": 40,
+   "y": 3680
+  },
+  {
+   "id": "r072",
+   "kind": "text",
+   "src": "── Caso A · el estado sísmico SIN amplificar (nivel del fusible, 8.5.2 vía a) ──",
+   "x": 40,
+   "y": 3792
+  },
+  {
+   "id": "r073",
+   "kind": "math",
+   "src": "P_A := 0.9*D_P + E_P = tonf",
+   "x": 40,
+   "y": 3840
+  },
+  {
+   "id": "r074",
+   "kind": "math",
+   "src": "M_A := E_M = tonf*m",
+   "x": 40,
+   "y": 3888
+  },
+  {
+   "id": "r075",
+   "kind": "math",
+   "src": "V_A := E_V = tonf",
+   "x": 40,
+   "y": 3936
+  },
+  {
+   "id": "r076",
+   "kind": "math",
+   "src": "Y_A := Y_bloque(P_A, M_A) = cm",
+   "x": 40,
+   "y": 3984
+  },
+  {
+   "id": "r077",
+   "kind": "math",
+   "src": "C_A := q_max * Y_A = tonf",
+   "x": 40,
+   "y": 4032
+  },
+  {
+   "id": "r078",
+   "kind": "math",
+   "src": "Tg_A := C_A - P_A = tonf",
+   "x": 40,
+   "y": 4080
+  },
+  {
+   "id": "r079",
+   "kind": "math",
+   "src": "Ti_A := Tg_A / n_T = tonf",
+   "x": 40,
+   "y": 4128
+  },
+  {
+   "id": "r080",
+   "kind": "text",
+   "src": "── Caso B · el estado sísmico AMPLIFICADO por 0,7R₁ (8.5.3, 8.3.4, 9.5.2) ──",
+   "x": 40,
+   "y": 4176
+  },
+  {
+   "id": "r081",
+   "kind": "math",
+   "src": "P_B := 0.9*D_P + amp*E_P = tonf",
+   "x": 40,
+   "y": 4224
+  },
+  {
+   "id": "r082",
+   "kind": "math",
+   "src": "M_B := amp*E_M = tonf*m",
+   "x": 40,
+   "y": 4272
+  },
+  {
+   "id": "r083",
+   "kind": "math",
+   "src": "V_B := amp*E_V = tonf",
+   "x": 40,
+   "y": 4320
+  },
+  {
+   "id": "r084",
+   "kind": "math",
+   "src": "Y_B := Y_bloque(P_B, M_B) = cm",
+   "x": 40,
+   "y": 4368
+  },
+  {
+   "id": "r085",
+   "kind": "math",
+   "src": "C_B := q_max * Y_B = tonf",
+   "x": 40,
+   "y": 4416
+  },
+  {
+   "id": "r086",
+   "kind": "math",
+   "src": "Tg_B := C_B - P_B = tonf",
+   "x": 40,
+   "y": 4464
+  },
+  {
+   "id": "r087",
+   "kind": "math",
+   "src": "Ti_B := Tg_B / n_T = tonf",
+   "x": 40,
+   "y": 4512
+  },
+  {
+   "id": "r088",
+   "kind": "text",
+   "src": "El perno toma el desbalance; el peso de 0,9·D no se amplifica con el sismo:",
+   "x": 40,
+   "y": 4560
+  },
+  {
+   "id": "r089",
+   "kind": "math",
+   "src": "factor_T := Ti_B / Ti_A =",
+   "x": 40,
+   "y": 4608
+  },
+  {
+   "id": "r090",
+   "kind": "text",
+   "src": "",
+   "x": 40,
+   "y": 4656
+  },
+  {
+   "id": "r091",
+   "kind": "text",
+   "src": "━━ 2 · EL PERNO: LA BIFURCACIÓN DE 8.5.2 ━━",
+   "x": 40,
+   "y": 4704
+  },
+  {
+   "id": "r092",
+   "kind": "text",
+   "src": "17.6.1.2: N_sa = A_se·f_uta · topes 1,9·f_ya y 860 MPa",
+   "x": 40,
+   "y": 4752
+  },
+  {
+   "id": "v002",
+   "kind": "math",
+   "src": "(f_uta <= 1.9*f_ya) and (f_uta <= 860 MPa) =",
+   "x": 40,
+   "y": 4800
+  },
+  {
+   "id": "r093",
+   "kind": "math",
+   "src": "N_sa := A_se * f_uta = tonf",
+   "x": 40,
+   "y": 4848
+  },
+  {
+   "id": "r094",
+   "kind": "math",
+   "src": "Rd_Nsa := phi_sN * N_sa = tonf",
+   "x": 40,
+   "y": 4896
+  },
+  {
+   "id": "r095",
+   "kind": "text",
+   "src": "Vía (a): detalle dúctil (silla, hilo, longitud expuesta), E sin amplificar",
+   "x": 40,
+   "y": 4944
+  },
+  {
+   "id": "r096",
+   "kind": "math",
+   "src": "u_pa := Ti_A / Rd_Nsa =",
+   "x": 40,
+   "y": 4992
+  },
+  {
+   "id": "v_pa",
+   "kind": "math",
+   "src": "Rd_Nsa >= Ti_A =",
+   "x": 40,
+   "y": 5040
+  },
+  {
+   "id": "r097",
+   "kind": "text",
+   "src": "Vía (b): sin detalle dúctil, se diseña con E × 0,7R₁",
+   "x": 40,
+   "y": 5088
+  },
+  {
+   "id": "r098",
+   "kind": "math",
+   "src": "u_pb := Ti_B / Rd_Nsa =",
+   "x": 40,
+   "y": 5136
+  },
+  {
+   "id": "v_pb",
+   "kind": "math",
+   "src": "Rd_Nsa >= Ti_B =",
+   "x": 40,
+   "y": 5184
+  },
+  {
+   "id": "r099",
+   "kind": "text",
+   "src": "8.5.2: longitud expuesta ≥ máx(250 mm; 8·d), hilo bajo la tuerca ≥ 75 mm",
+   "x": 40,
+   "y": 5232
+  },
+  {
+   "id": "r100",
+   "kind": "math",
+   "src": "L_exp := max(25 cm, 8*d_a) = cm",
+   "x": 40,
+   "y": 5280
+  },
+  {
+   "id": "r101",
+   "kind": "math",
+   "src": "L_hilo := 7.5 cm",
+   "x": 40,
+   "y": 5328
+  },
+  {
+   "id": "r102",
+   "kind": "text",
+   "src": "ACI 17.10.5.3(a)(iii) pide estiramiento ≥ 8·d_a: el detalle de 8.5.2 lo provee",
+   "x": 40,
+   "y": 5376
+  },
+  {
+   "id": "v003",
+   "kind": "math",
+   "src": "L_exp >= 8*d_a =",
+   "x": 40,
+   "y": 5424
+  },
+  {
+   "id": "r103",
+   "kind": "text",
+   "src": "ACI 17.10.5.3(a)(v): con hilo parcial, f_uta/f_ya ≥ 1,3",
+   "x": 40,
+   "y": 5472
+  },
+  {
+   "id": "r104",
+   "kind": "math",
+   "src": "razon_fu := f_uta / f_ya =",
+   "x": 40,
+   "y": 5520
+  },
+  {
+   "id": "v004",
+   "kind": "math",
+   "src": "razon_fu >= 1.3 =",
+   "x": 40,
+   "y": 5568
+  },
+  {
+   "id": "r105",
+   "kind": "text",
+   "src": "ACI 17.10.5.2: si el sismo supera el 20 % de la tracción, rige 17.10.5.3",
+   "x": 40,
+   "y": 5616
+  },
+  {
+   "id": "r106",
+   "kind": "math",
+   "src": "frac_E := 1.0",
+   "x": 40,
+   "y": 5664
+  },
+  {
+   "id": "v005",
+   "kind": "math",
+   "src": "frac_E > 0.20 =",
+   "x": 40,
+   "y": 5712
+  },
+  {
+   "id": "r107",
+   "kind": "text",
+   "src": "Si se toma la vía (b): el φ1″ no da y habría que subir a φ1¼″ (1¼″-7UNC)",
+   "x": 40,
+   "y": 5760
+  },
+  {
+   "id": "r108",
+   "kind": "math",
+   "src": "d_125 := 1.25 * 2.54 * cm = cm",
+   "x": 40,
+   "y": 5808
+  },
+  {
+   "id": "r109",
+   "kind": "math",
+   "src": "d_r125 := d_125 - 0.9743/7 * 2.54 * cm = cm",
+   "x": 40,
+   "y": 5856
+  },
+  {
+   "id": "r110",
+   "kind": "math",
+   "src": "A_se125 := pi/4 * d_r125^2 = cm^2",
+   "x": 40,
+   "y": 5904
+  },
+  {
+   "id": "r111",
+   "kind": "math",
+   "src": "Rd_125 := phi_sN * A_se125 * f_uta = tonf",
+   "x": 40,
+   "y": 5952
+  },
+  {
+   "id": "r112",
+   "kind": "math",
+   "src": "u_125 := Ti_B / Rd_125 =",
+   "x": 40,
+   "y": 6000
+  },
+  {
+   "id": "r113",
+   "kind": "text",
+   "src": "Y sin anclajes dúctiles la Tabla 7 baja a la línea 5.4, R = 3: el sismo sube R_t/3",
+   "x": 40,
+   "y": 6048
+  },
+  {
+   "id": "r114",
+   "kind": "math",
+   "src": "R_sd := 3",
+   "x": 40,
+   "y": 6096
+  },
+  {
+   "id": "r115",
+   "kind": "math",
+   "src": "subida_E := (R_t - R_sd)/R_sd * 100 =",
+   "x": 40,
+   "y": 6144
+  },
+  {
+   "id": "r116",
+   "kind": "text",
+   "src": "El E mayor entra igual amplificado por 0,7R₁ = 2,10, o sea 3,50 sobre el E original",
+   "x": 40,
+   "y": 6192
+  },
+  {
+   "id": "r117",
+   "kind": "math",
+   "src": "amp_sd := 0.7 * R_sd * R_t/R_sd =",
+   "x": 40,
+   "y": 6240
+  },
+  {
+   "id": "r118",
+   "kind": "math",
+   "src": "Ti_sd := T_perno(amp_sd) = tonf",
+   "x": 40,
+   "y": 6288
+  },
+  {
+   "id": "r119",
+   "kind": "math",
+   "src": "u_sd := Ti_sd / Rd_Nsa =",
+   "x": 40,
+   "y": 6336
+  },
+  {
+   "id": "v_sd",
+   "kind": "math",
+   "src": "u_sd <= u_pb =",
+   "x": 40,
+   "y": 6384
+  },
+  {
+   "id": "r120",
+   "kind": "text",
+   "src": "",
+   "x": 40,
+   "y": 6432
+  },
+  {
+   "id": "r121",
+   "kind": "text",
+   "src": "━━ 3 · LA LLAVE DE CORTE (8.5.3) Y LO QUE 8.5.4 PROHÍBE CONTAR ━━",
+   "x": 40,
+   "y": 6480
+  },
+  {
+   "id": "r122",
+   "kind": "text",
+   "src": "8.5.3: el corte del apoyo se determina SIEMPRE con el sismo amplificado por 0,7R₁",
+   "x": 40,
+   "y": 6528
+  },
+  {
+   "id": "r123",
+   "kind": "math",
+   "src": "V_d := V_B = tonf",
+   "x": 40,
+   "y": 6576
+  },
+  {
+   "id": "r124",
+   "kind": "math",
+   "src": "V_kN := V_d = kN",
+   "x": 40,
+   "y": 6624
+  },
+  {
+   "id": "r125",
+   "kind": "text",
+   "src": "8.5.3, exc. 1: se eximen los apoyos con corte < 75 kN (LRFD)",
+   "x": 40,
+   "y": 6672
+  },
+  {
+   "id": "r126",
+   "kind": "text",
+   "src": "8.5.3, exc. 2: sistemas de anclaje con nueve o más pernos",
+   "x": 40,
+   "y": 6720
+  },
+  {
+   "id": "r127",
+   "kind": "math",
+   "src": "umbral := 75 kN",
+   "x": 40,
+   "y": 6768
+  },
+  {
+   "id": "r128",
+   "kind": "math",
+   "src": "n_pernos := 4",
+   "x": 40,
+   "y": 6816
+  },
+  {
+   "id": "v006",
+   "kind": "math",
+   "src": "(V_kN > umbral) and (n_pernos < 9) =",
+   "x": 40,
+   "y": 6864
+  },
+  {
+   "id": "r129",
+   "kind": "text",
+   "src": "── 3.1 · Aplastamiento en corte de la llave (ACI 17.11.2) ──",
+   "x": 40,
+   "y": 6912
+  },
+  {
+   "id": "r130",
+   "kind": "text",
+   "src": "17.11.2.1.1(b): con la placa sobre el hormigón sólo cuenta la llave en 2·t_sl",
+   "x": 40,
+   "y": 6960
+  },
+  {
+   "id": "r131",
+   "kind": "math",
+   "src": "h_efsl := min(h_sl, 2*t_sl) = cm",
+   "x": 40,
+   "y": 7008
+  },
+  {
+   "id": "r132",
+   "kind": "math",
+   "src": "A_efsl := b_sl * h_efsl = cm^2",
+   "x": 40,
+   "y": 7056
+  },
+  {
+   "id": "r133",
+   "kind": "text",
+   "src": "17.11.2.2.1(a): con tracción axial, ψ_brg,sl = 1 + P_u/(n·N_sa) ≤ 1 (P_u < 0)",
+   "x": 40,
+   "y": 7104
+  },
+  {
+   "id": "r134",
+   "kind": "math",
+   "src": "Nsa_g := n_T * N_sa = tonf",
+   "x": 40,
+   "y": 7152
+  },
+  {
+   "id": "r135",
+   "kind": "math",
+   "src": "psi_brg := min(1, 1 + P_B/Nsa_g) =",
+   "x": 40,
+   "y": 7200
+  },
+  {
+   "id": "r136",
+   "kind": "text",
+   "src": "Ec. (17.11.2.1): V_brg,sl = 1,7·f'c·A_ef,sl·ψ_brg,sl   ·   17.11.1.1.4: φ = 0,65",
+   "x": 40,
+   "y": 7248
+  },
+  {
+   "id": "r137",
+   "kind": "math",
+   "src": "V_brgsl := 1.7 * f_c * A_efsl * psi_brg = tonf",
+   "x": 40,
+   "y": 7296
+  },
+  {
+   "id": "r138",
+   "kind": "math",
+   "src": "Rd_brg := phi_sl * V_brgsl = tonf",
+   "x": 40,
+   "y": 7344
+  },
+  {
+   "id": "r139",
+   "kind": "math",
+   "src": "u_brg := V_d / Rd_brg =",
+   "x": 40,
+   "y": 7392
+  },
+  {
+   "id": "v_brg",
+   "kind": "math",
+   "src": "Rd_brg >= V_d =",
+   "x": 40,
+   "y": 7440
+  },
+  {
+   "id": "r140",
+   "kind": "text",
+   "src": "── 3.2 · Breakout del hormigón de la llave (ACI 17.11.3) ──",
+   "x": 40,
+   "y": 7488
+  },
+  {
+   "id": "r141",
+   "kind": "text",
+   "src": "17.11.3.1: c_a1 se mide desde la superficie de apoyo de la llave al borde libre",
+   "x": 40,
+   "y": 7536
+  },
+  {
+   "id": "r142",
+   "kind": "math",
+   "src": "f_ed := sqrt((1 MPa)/(1 kgf/cm^2)) =",
+   "x": 40,
+   "y": 7584
+  },
+  {
+   "id": "r143",
+   "kind": "math",
+   "src": "rfc := sqrt(f_c/MPa) =",
+   "x": 40,
+   "y": 7632
+  },
+  {
+   "id": "r144",
+   "kind": "math",
+   "src": "c_a1sl := b_p/2 - t_sl/2 = cm",
+   "x": 40,
+   "y": 7680
+  },
+  {
+   "id": "r145",
+   "kind": "text",
+   "src": "Ec. (17.7.2.2.1b), el tope de la edición SI: V_b = 3,7·λ·√f'c·c_a1^1,5 (N, mm, MPa)",
+   "x": 40,
+   "y": 7728
+  },
+  {
+   "id": "r146",
+   "kind": "math",
+   "src": "ca1_mm := c_a1sl/mm =",
+   "x": 40,
+   "y": 7776
+  },
+  {
+   "id": "r147",
+   "kind": "math",
+   "src": "V_bsl := 3.7 * lam * rfc * ca1_mm^1.5 * N = tonf",
+   "x": 40,
+   "y": 7824
+  },
+  {
+   "id": "r148",
+   "kind": "math",
+   "src": "A_Vcosl := 4.5 * c_a1sl^2 = cm^2",
+   "x": 40,
+   "y": 7872
+  },
+  {
+   "id": "r149",
+   "kind": "text",
+   "src": "17.11.3.1.1: 1,5·c_a1 a los lados y bajo h_ef,sl, descontando A_ef,sl",
+   "x": 40,
+   "y": 7920
+  },
+  {
+   "id": "r150",
+   "kind": "math",
+   "src": "proy_sl := 1.5 * c_a1sl = cm",
+   "x": 40,
+   "y": 7968
+  },
+  {
+   "id": "r151",
+   "kind": "math",
+   "src": "AVc_ancho := min(b_sl + 2*proy_sl, b_p) = cm",
+   "x": 40,
+   "y": 8016
+  },
+  {
+   "id": "r152",
+   "kind": "math",
+   "src": "AVc_alto := min(h_efsl + proy_sl, h_p) = cm",
+   "x": 40,
+   "y": 8064
+  },
+  {
+   "id": "r153",
+   "kind": "math",
+   "src": "A_Vcsl := AVc_ancho * AVc_alto - A_efsl = cm^2",
+   "x": 40,
+   "y": 8112
+  },
+  {
+   "id": "r154",
+   "kind": "text",
+   "src": "17.7.2.4.1: ψ_ed,V con el c_a2 lateral · 17.7.2.6.1: ψ_h,V = 1 si h ≥ 1,5·c_a1",
+   "x": 40,
+   "y": 8160
+  },
+  {
+   "id": "r155",
+   "kind": "math",
+   "src": "c_a2sl := (b_p - b_sl)/2 = cm",
+   "x": 40,
+   "y": 8208
+  },
+  {
+   "id": "r156",
+   "kind": "math",
+   "src": "ed_Vsl := 0.7 + 0.3*c_a2sl/proy_sl =",
+   "x": 40,
+   "y": 8256
+  },
+  {
+   "id": "r157",
+   "kind": "math",
+   "src": "psi_edVsl := min(1, ed_Vsl) =",
+   "x": 40,
+   "y": 8304
+  },
+  {
+   "id": "r158",
+   "kind": "math",
+   "src": "razon_hVsl := proy_sl/h_p =",
+   "x": 40,
+   "y": 8352
+  },
+  {
+   "id": "r159",
+   "kind": "math",
+   "src": "psi_hVsl := max(1, sqrt(razon_hVsl)) =",
+   "x": 40,
+   "y": 8400
+  },
+  {
+   "id": "r160",
+   "kind": "text",
+   "src": "Ec. (17.7.2.1a) aplicada a la llave, con ψ_c,V = 1 (fisurado, sin armadura)",
+   "x": 40,
+   "y": 8448
+  },
+  {
+   "id": "r161",
+   "kind": "math",
+   "src": "ratio_Vsl := A_Vcsl/A_Vcosl =",
+   "x": 40,
+   "y": 8496
+  },
+  {
+   "id": "r162",
+   "kind": "math",
+   "src": "V_cbsl := ratio_Vsl * psi_edVsl * psi_hVsl * V_bsl = tonf",
+   "x": 40,
+   "y": 8544
+  },
+  {
+   "id": "r163",
+   "kind": "math",
+   "src": "Rd_cbsl := phi_sl * V_cbsl = tonf",
+   "x": 40,
+   "y": 8592
+  },
+  {
+   "id": "r164",
+   "kind": "math",
+   "src": "u_cbsl := V_d / Rd_cbsl =",
+   "x": 40,
+   "y": 8640
+  },
+  {
+   "id": "v_cbsl",
+   "kind": "math",
+   "src": "Rd_cbsl >= V_d =",
+   "x": 40,
+   "y": 8688
+  },
+  {
+   "id": "r165",
+   "kind": "text",
+   "src": "── 3.3 · Rango de aplicación de 17.11 y el par de 17.11.1.1.9 ──",
+   "x": 40,
+   "y": 8736
+  },
+  {
+   "id": "r166",
+   "kind": "text",
+   "src": "17.11.1.1.8: con anclajes en tracción, h_ef/h_sl ≥ 2,5 y h_ef/c_sl ≥ 2,5",
+   "x": 40,
+   "y": 8784
+  },
+  {
+   "id": "r167",
+   "kind": "math",
+   "src": "r_hsl := h_ef / h_sl =",
+   "x": 40,
+   "y": 8832
+  },
+  {
+   "id": "v007",
+   "kind": "math",
+   "src": "r_hsl >= 2.5 =",
+   "x": 40,
+   "y": 8880
+  },
+  {
+   "id": "r168",
+   "kind": "math",
+   "src": "c_sl := e_p = cm",
+   "x": 40,
+   "y": 8928
+  },
+  {
+   "id": "r169",
+   "kind": "math",
+   "src": "r_csl := h_ef / c_sl =",
+   "x": 40,
+   "y": 8976
+  },
+  {
+   "id": "v008",
+   "kind": "math",
+   "src": "r_csl >= 2.5 =",
+   "x": 40,
+   "y": 9024
+  },
+  {
+   "id": "r170",
+   "kind": "text",
+   "src": "El h_ef que (b) pediría con esta llave y este patrón de pernos:",
+   "x": 40,
+   "y": 9072
+  },
+  {
+   "id": "r171",
+   "kind": "math",
+   "src": "hef_req := 2.5 * c_sl = cm",
+   "x": 40,
+   "y": 9120
+  },
+  {
+   "id": "r172",
+   "kind": "text",
+   "src": "17.11.1.1.9: el par corte–reacción entra en la tracción de los pernos",
+   "x": 40,
+   "y": 9168
+  },
+  {
+   "id": "r173",
+   "kind": "math",
+   "src": "brazo_sl := e_mort + h_efsl/2 = cm",
+   "x": 40,
+   "y": 9216
+  },
+  {
+   "id": "r174",
+   "kind": "math",
+   "src": "dM_sl := V_d * brazo_sl = tonf*m",
+   "x": 40,
+   "y": 9264
+  },
+  {
+   "id": "r175",
+   "kind": "math",
+   "src": "M_B2 := M_B + dM_sl = tonf*m",
+   "x": 40,
+   "y": 9312
+  },
+  {
+   "id": "r176",
+   "kind": "math",
+   "src": "Y_B2 := Y_bloque(P_B, M_B2) = cm",
+   "x": 40,
+   "y": 9360
+  },
+  {
+   "id": "r177",
+   "kind": "math",
+   "src": "Tg_B2 := q_max*Y_B2 - P_B = tonf",
+   "x": 40,
+   "y": 9408
+  },
+  {
+   "id": "r178",
+   "kind": "math",
+   "src": "Ti_B2 := Tg_B2/n_T = tonf",
+   "x": 40,
+   "y": 9456
+  },
+  {
+   "id": "r179",
+   "kind": "math",
+   "src": "dT_sl := (Ti_B2 - Ti_B)/Ti_B * 100 =",
+   "x": 40,
+   "y": 9504
+  },
+  {
+   "id": "r180",
+   "kind": "math",
+   "src": "Tg_B2 := n_T * Ti_B2 = tonf",
+   "x": 40,
+   "y": 9552
+  },
+  {
+   "id": "r181",
+   "kind": "text",
+   "src": "── 3.4 · Flexión de la plancha de la llave ──",
+   "x": 40,
+   "y": 9600
+  },
+  {
+   "id": "r182",
+   "kind": "text",
+   "src": "Voladizo desde la cara del hormigón: el brazo es e_mort + h_sl/2 (hipótesis)",
+   "x": 40,
+   "y": 9648
+  },
+  {
+   "id": "r183",
+   "kind": "math",
+   "src": "brazo_f := e_mort + h_sl/2 = cm",
+   "x": 40,
+   "y": 9696
+  },
+  {
+   "id": "r184",
+   "kind": "math",
+   "src": "M_usl := V_d * brazo_f = tonf*cm",
+   "x": 40,
+   "y": 9744
+  },
+  {
+   "id": "r185",
+   "kind": "math",
+   "src": "Z_sl := b_sl * t_sl^2 / 4 = cm^3",
+   "x": 40,
+   "y": 9792
+  },
+  {
+   "id": "r186",
+   "kind": "math",
+   "src": "Rd_Msl := phi_f * F_ysl * Z_sl = tonf*cm",
+   "x": 40,
+   "y": 9840
+  },
+  {
+   "id": "r187",
+   "kind": "math",
+   "src": "u_Msl := M_usl / Rd_Msl =",
+   "x": 40,
+   "y": 9888
+  },
+  {
+   "id": "v_Msl",
+   "kind": "math",
+   "src": "Rd_Msl >= M_usl =",
+   "x": 40,
+   "y": 9936
+  },
+  {
+   "id": "r188",
+   "kind": "text",
+   "src": "El mortero fija el brazo: pasar de 25 a 50 mm lo alarga de 100 a 125 mm",
+   "x": 40,
+   "y": 9984
+  },
+  {
+   "id": "r189",
+   "kind": "math",
+   "src": "brazo_25 := 2.5 cm + h_sl/2 = cm",
+   "x": 40,
+   "y": 10032
+  },
+  {
+   "id": "r190",
+   "kind": "math",
+   "src": "sube_M := (brazo_f - brazo_25)/brazo_25 * 100 =",
+   "x": 40,
+   "y": 10080
+  },
+  {
+   "id": "r191",
+   "kind": "text",
+   "src": "── 3.5 · 8.5.4: el roce existe y no se puede contar ──",
+   "x": 40,
+   "y": 10128
+  },
+  {
+   "id": "r192",
+   "kind": "math",
+   "src": "mu_pl := 0.40",
+   "x": 40,
+   "y": 10176
+  },
+  {
+   "id": "r193",
+   "kind": "math",
+   "src": "roce := mu_pl * C_B = tonf",
+   "x": 40,
+   "y": 10224
+  },
+  {
+   "id": "r194",
+   "kind": "math",
+   "src": "frac_roce := roce / V_d * 100 =",
+   "x": 40,
+   "y": 10272
+  },
+  {
+   "id": "r195",
+   "kind": "text",
+   "src": "",
+   "x": 40,
+   "y": 10320
+  },
+  {
+   "id": "r196",
+   "kind": "text",
+   "src": "━━ 4 · EL HORMIGÓN SE DISEÑA PARA EL PERNO (8.5.5 → 9.5.2 y ACI 17.10.5.3) ━━",
+   "x": 40,
+   "y": 10368
+  },
+  {
+   "id": "r197",
+   "kind": "text",
+   "src": "8.3.1, LRFD: capacidad en tracción esperada T_ye = F_ye·A_g, con F_ye = R_y·F_y",
+   "x": 40,
+   "y": 10416
+  },
+  {
+   "id": "r198",
+   "kind": "text",
+   "src": "Hipótesis: se evalúa sobre A_se, la sección que plastifica en el hilo",
+   "x": 40,
+   "y": 10464
+  },
+  {
+   "id": "r199",
+   "kind": "text",
+   "src": "8.3.3: R_y de la Tabla A3.1 de AISC 341-16 u otro justificado; se adopta 1,10",
+   "x": 40,
+   "y": 10512
+  },
+  {
+   "id": "r200",
+   "kind": "math",
+   "src": "R_y := 1.10",
+   "x": 40,
+   "y": 10560
+  },
+  {
+   "id": "r201",
+   "kind": "math",
+   "src": "T_ye := R_y * f_ya * A_se = tonf",
+   "x": 40,
+   "y": 10608
+  },
+  {
+   "id": "r202",
+   "kind": "math",
+   "src": "T_yeg := n_T * T_ye = tonf",
+   "x": 40,
+   "y": 10656
+  },
+  {
+   "id": "r203",
+   "kind": "math",
+   "src": "T_yeAg := R_y * f_ya * A_g = tonf",
+   "x": 40,
+   "y": 10704
+  },
+  {
+   "id": "r204",
+   "kind": "text",
+   "src": "9.5.2: la resistencia del pedestal no necesita superar la máxima carga que el",
+   "x": 40,
+   "y": 10752
+  },
+  {
+   "id": "r205",
+   "kind": "text",
+   "src": "sistema puede transferirle, que 8.3.1 define por las capacidades esperadas",
+   "x": 40,
+   "y": 10800
+  },
+  {
+   "id": "r206",
+   "kind": "math",
+   "src": "techo := min(Tg_B, T_yeg) = tonf",
+   "x": 40,
+   "y": 10848
+  },
+  {
+   "id": "v009",
+   "kind": "math",
+   "src": "techo == T_yeg =",
+   "x": 40,
+   "y": 10896
+  },
+  {
+   "id": "r207",
+   "kind": "text",
+   "src": "ACI 17.10.5.3(a)(i): el acero se toma como 1,2 veces su resistencia nominal;",
+   "x": 40,
+   "y": 10944
+  },
+  {
+   "id": "r208",
+   "kind": "text",
+   "src": "(a)(ii): el hormigón, como la NOMINAL. Grupo simétrico → el criterio es ×n_T",
+   "x": 40,
+   "y": 10992
+  },
+  {
+   "id": "r209",
+   "kind": "math",
+   "src": "D_ACI := 1.2 * N_sa * n_T = tonf",
+   "x": 40,
+   "y": 11040
+  },
+  {
+   "id": "r210",
+   "kind": "math",
+   "src": "D_ACIi := 1.2 * N_sa = tonf",
+   "x": 40,
+   "y": 11088
+  },
+  {
+   "id": "r211",
+   "kind": "math",
+   "src": "dem_ACI0 := n_T * Ti_A = tonf",
+   "x": 40,
+   "y": 11136
+  },
+  {
+   "id": "r212",
+   "kind": "math",
+   "src": "veces_ACI := D_ACI / dem_ACI0 =",
+   "x": 40,
+   "y": 11184
+  },
+  {
+   "id": "r213",
+   "kind": "text",
+   "src": "── 4.1 · Breakout del grupo (17.6.2), con el h'_ef que impone 17.6.2.1.2 ──",
+   "x": 40,
+   "y": 11232
+  },
+  {
+   "id": "r214",
+   "kind": "text",
+   "src": "17.6.2.1.2: con 3+ bordes bajo 1,5·h_ef, h'_ef = máx(c_a,max/1,5 ; s/3)",
+   "x": 40,
+   "y": 11280
+  },
+  {
+   "id": "r215",
+   "kind": "math",
+   "src": "proy_real := 1.5 * h_ef = cm",
+   "x": 40,
+   "y": 11328
+  },
+  {
+   "id": "r216",
+   "kind": "math",
+   "src": "c_sotav := s_g + c_a = cm",
+   "x": 40,
+   "y": 11376
+  },
+  {
+   "id": "r217",
+   "kind": "math",
+   "src": "n_bordes := 3 * (c_a < proy_real) + (c_sotav < proy_real) =",
+   "x": 40,
+   "y": 11424
+  },
+  {
+   "id": "v010",
+   "kind": "math",
+   "src": "n_bordes >= 3 =",
+   "x": 40,
+   "y": 11472
+  },
+  {
+   "id": "r218",
+   "kind": "math",
+   "src": "h_efT := max(c_a/1.5, s_g/3) = cm",
+   "x": 40,
+   "y": 11520
+  },
+  {
+   "id": "r219",
+   "kind": "text",
+   "src": "17.6.2.2.1: N_b = k_c·λ·√f'c·h_ef^1,5, con k_c = 10 de la edición SI (N, mm, MPa)",
+   "x": 40,
+   "y": 11568
+  },
+  {
+   "id": "r220",
+   "kind": "math",
+   "src": "hef_mm := h_efT/mm =",
+   "x": 40,
+   "y": 11616
+  },
+  {
+   "id": "r221",
+   "kind": "math",
+   "src": "N_b := 10 * lam * rfc * hef_mm^1.5 * N = tonf",
+   "x": 40,
+   "y": 11664
+  },
+  {
+   "id": "r222",
+   "kind": "math",
+   "src": "A_Nco := 9 * h_efT^2 = cm^2",
+   "x": 40,
+   "y": 11712
+  },
+  {
+   "id": "r223",
+   "kind": "math",
+   "src": "proy_T := 1.5 * h_efT = cm",
+   "x": 40,
+   "y": 11760
+  },
+  {
+   "id": "r224",
+   "kind": "math",
+   "src": "ANc_x := min(c_a, proy_T) + proy_T = cm",
+   "x": 40,
+   "y": 11808
+  },
+  {
+   "id": "r225",
+   "kind": "math",
+   "src": "ANc_y := min(c_a, proy_T) + s_g + min(c_a, proy_T) = cm",
+   "x": 40,
+   "y": 11856
+  },
+  {
+   "id": "r226",
+   "kind": "math",
+   "src": "A_Nc := min(ANc_x * ANc_y, n_T * A_Nco) = cm^2",
+   "x": 40,
+   "y": 11904
+  },
+  {
+   "id": "r227",
+   "kind": "text",
+   "src": "17.6.2.4.1: ψ_ed,N = 1 si c_a,mín ≥ 1,5·h'_ef; los demás ψ valen 1 acá",
+   "x": 40,
+   "y": 11952
+  },
+  {
+   "id": "r228",
+   "kind": "math",
+   "src": "ed_N := 0.7 + 0.3*c_a/proy_T =",
+   "x": 40,
+   "y": 12000
+  },
+  {
+   "id": "r229",
+   "kind": "math",
+   "src": "psi_edN := min(1, ed_N) =",
+   "x": 40,
+   "y": 12048
+  },
+  {
+   "id": "r230",
+   "kind": "math",
+   "src": "ratio_N := A_Nc/A_Nco =",
+   "x": 40,
+   "y": 12096
+  },
+  {
+   "id": "r231",
+   "kind": "math",
+   "src": "N_cbg := ratio_N * psi_edN * N_b = tonf",
+   "x": 40,
+   "y": 12144
+  },
+  {
+   "id": "r232",
+   "kind": "math",
+   "src": "Rd_bt := phiPsi * N_cbg = tonf",
+   "x": 40,
+   "y": 12192
+  },
+  {
+   "id": "r233",
+   "kind": "text",
+   "src": "9.5.2 mide contra la resistencia de DISEÑO; ACI 17.10.5.3(a)(ii), la NOMINAL",
+   "x": 40,
+   "y": 12240
+  },
+  {
+   "id": "r234",
+   "kind": "math",
+   "src": "u_btN := T_yeg / Rd_bt =",
+   "x": 40,
+   "y": 12288
+  },
+  {
+   "id": "r235",
+   "kind": "math",
+   "src": "u_btA := D_ACI / N_cbg =",
+   "x": 40,
+   "y": 12336
+  },
+  {
+   "id": "v_btN",
+   "kind": "math",
+   "src": "Rd_bt >= T_yeg =",
+   "x": 40,
+   "y": 12384
+  },
+  {
+   "id": "v_btA",
+   "kind": "math",
+   "src": "N_cbg >= D_ACI =",
+   "x": 40,
+   "y": 12432
+  },
+  {
+   "id": "r236",
+   "kind": "text",
+   "src": "── 4.2 · Pullout del perno más cargado (17.6.3) ──",
+   "x": 40,
+   "y": 12480
+  },
+  {
+   "id": "r237",
+   "kind": "text",
+   "src": "ASME B18.2.2, tuerca hex. PESADA de 1″: entrecaras F = 1-5/8″ (la normal es 1-1/2″)",
+   "x": 40,
+   "y": 12528
+  },
+  {
+   "id": "r238",
+   "kind": "math",
+   "src": "F_tuerca := 1.625 * 2.54 * cm = cm",
+   "x": 40,
+   "y": 12576
+  },
+  {
+   "id": "r239",
+   "kind": "math",
+   "src": "A_vast := pi * d_a^2 / 4 = cm^2",
+   "x": 40,
+   "y": 12624
+  },
+  {
+   "id": "r240",
+   "kind": "math",
+   "src": "A_brg := 0.866 * F_tuerca^2 - A_vast = cm^2",
+   "x": 40,
+   "y": 12672
+  },
+  {
+   "id": "r241",
+   "kind": "text",
+   "src": "17.6.3.2.2a: N_p = 8·A_brg·f'c · 17.6.3.3.1(b): ψ_c,P = 1 (fisurado)",
+   "x": 40,
+   "y": 12720
+  },
+  {
+   "id": "r242",
+   "kind": "math",
+   "src": "N_pn := 8 * A_brg * f_c = tonf",
+   "x": 40,
+   "y": 12768
+  },
+  {
+   "id": "r243",
+   "kind": "math",
+   "src": "Rd_po := phiPsi * N_pn = tonf",
+   "x": 40,
+   "y": 12816
+  },
+  {
+   "id": "r244",
+   "kind": "math",
+   "src": "u_poN := T_ye / Rd_po =",
+   "x": 40,
+   "y": 12864
+  },
+  {
+   "id": "r245",
+   "kind": "math",
+   "src": "u_poA := D_ACIi / N_pn =",
+   "x": 40,
+   "y": 12912
+  },
+  {
+   "id": "v_poN",
+   "kind": "math",
+   "src": "Rd_po >= T_ye =",
+   "x": 40,
+   "y": 12960
+  },
+  {
+   "id": "v_poA",
+   "kind": "math",
+   "src": "N_pn >= D_ACIi =",
+   "x": 40,
+   "y": 13008
+  },
+  {
+   "id": "r246",
+   "kind": "text",
+   "src": "Área de apoyo que cada criterio pide, con su propio denominador:",
+   "x": 40,
+   "y": 13056
+  },
+  {
+   "id": "r247",
+   "kind": "math",
+   "src": "den_po := phiPsi * 8 * f_c = kgf/cm^2",
+   "x": 40,
+   "y": 13104
+  },
+  {
+   "id": "r248",
+   "kind": "math",
+   "src": "den_pon := 8 * f_c = kgf/cm^2",
+   "x": 40,
+   "y": 13152
+  },
+  {
+   "id": "r249",
+   "kind": "math",
+   "src": "Areq_N := T_ye / den_po = cm^2",
+   "x": 40,
+   "y": 13200
+  },
+  {
+   "id": "r250",
+   "kind": "math",
+   "src": "Areq_A := D_ACIi / den_pon = cm^2",
+   "x": 40,
+   "y": 13248
+  },
+  {
+   "id": "r251",
+   "kind": "math",
+   "src": "Areq := max(Areq_N, Areq_A) = cm^2",
+   "x": 40,
+   "y": 13296
+  },
+  {
+   "id": "v011",
+   "kind": "math",
+   "src": "A_brg < Areq =",
+   "x": 40,
+   "y": 13344
+  },
+  {
+   "id": "r252",
+   "kind": "text",
+   "src": "Plancha de cabeza de L_pl × L_pl: A_brg neta = área de la plancha − área del vástago",
+   "x": 40,
+   "y": 13392
+  },
+  {
+   "id": "r253",
+   "kind": "math",
+   "src": "L_pl := 8 cm",
+   "x": 40,
+   "y": 13440
+  },
+  {
+   "id": "r254",
+   "kind": "math",
+   "src": "A_brgp := L_pl^2 - A_vast = cm^2",
+   "x": 40,
+   "y": 13488
+  },
+  {
+   "id": "r255",
+   "kind": "math",
+   "src": "N_pnp := 8 * A_brgp * f_c = tonf",
+   "x": 40,
+   "y": 13536
+  },
+  {
+   "id": "r256",
+   "kind": "math",
+   "src": "Rd_pop := phiPsi * N_pnp = tonf",
+   "x": 40,
+   "y": 13584
+  },
+  {
+   "id": "r257",
+   "kind": "math",
+   "src": "u_popN := T_ye / Rd_pop =",
+   "x": 40,
+   "y": 13632
+  },
+  {
+   "id": "r258",
+   "kind": "math",
+   "src": "u_popA := D_ACIi / N_pnp =",
+   "x": 40,
+   "y": 13680
+  },
+  {
+   "id": "v_popN",
+   "kind": "math",
+   "src": "Rd_pop >= T_ye =",
+   "x": 40,
+   "y": 13728
+  },
+  {
+   "id": "v_popA",
+   "kind": "math",
+   "src": "N_pnp >= D_ACIi =",
+   "x": 40,
+   "y": 13776
+  },
+  {
+   "id": "r259",
+   "kind": "text",
+   "src": "── 4.3 · Side-face blowout (17.6.4): con el h_ef REAL, que 17.6.2.1.2 no alcanza ──",
+   "x": 40,
+   "y": 13824
+  },
+  {
+   "id": "r260",
+   "kind": "math",
+   "src": "gatillo_sb := 2.5 * c_a = cm",
+   "x": 40,
+   "y": 13872
+  },
+  {
+   "id": "v012",
+   "kind": "math",
+   "src": "h_ef < gatillo_sb =",
+   "x": 40,
+   "y": 13920
+  },
+  {
+   "id": "r261",
+   "kind": "text",
+   "src": "── 4.4 · Armadura de anclaje (17.5.2.1): permite ignorar el cono ──",
+   "x": 40,
+   "y": 13968
+  },
+  {
+   "id": "r262",
+   "kind": "text",
+   "src": "17.5.2.1: barras desarrolladas a ambos lados del plano de falla, φ = 0,75",
+   "x": 40,
+   "y": 14016
+  },
+  {
+   "id": "r263",
+   "kind": "math",
+   "src": "den_arm := phi_anc * f_yr = kgf/cm^2",
+   "x": 40,
+   "y": 14064
+  },
+  {
+   "id": "r264",
+   "kind": "math",
+   "src": "A_sreq := D_ACI / den_arm = cm^2",
+   "x": 40,
+   "y": 14112
+  },
+  {
+   "id": "r265",
+   "kind": "math",
+   "src": "n_bar := 8",
+   "x": 40,
+   "y": 14160
+  },
+  {
+   "id": "r266",
+   "kind": "math",
+   "src": "d_bar := 1.6 cm",
+   "x": 40,
+   "y": 14208
+  },
+  {
+   "id": "r267",
+   "kind": "math",
+   "src": "A_bar := pi/4 * d_bar^2 = cm^2",
+   "x": 40,
+   "y": 14256
+  },
+  {
+   "id": "r268",
+   "kind": "math",
+   "src": "A_sprov := n_bar * A_bar = cm^2",
+   "x": 40,
+   "y": 14304
+  },
+  {
+   "id": "r269",
+   "kind": "math",
+   "src": "u_arm := A_sreq / A_sprov =",
+   "x": 40,
+   "y": 14352
+  },
+  {
+   "id": "v_arm",
+   "kind": "math",
+   "src": "A_sprov >= A_sreq =",
+   "x": 40,
+   "y": 14400
+  },
+  {
+   "id": "r270",
+   "kind": "text",
+   "src": "",
+   "x": 40,
+   "y": 14448
+  },
+  {
+   "id": "r271",
+   "kind": "text",
+   "src": "━━ 5 · EL PEDESTAL SE DETALLA (9.5) ━━",
+   "x": 40,
+   "y": 14496
+  },
+  {
+   "id": "r272",
+   "kind": "text",
+   "src": "C9.5: es pedestal si la razón altura / lado menor no supera 3",
+   "x": 40,
+   "y": 14544
+  },
+  {
+   "id": "r273",
+   "kind": "math",
+   "src": "razon_hb := h_p / b_p =",
+   "x": 40,
+   "y": 14592
+  },
+  {
+   "id": "v013",
+   "kind": "math",
+   "src": "razon_hb <= 3 =",
+   "x": 40,
+   "y": 14640
+  },
+  {
+   "id": "r274",
+   "kind": "text",
+   "src": "9.5.1: por sobre esa razón hay que cumplir además los requisitos de MORM",
+   "x": 40,
+   "y": 14688
+  },
+  {
+   "id": "r275",
+   "kind": "math",
+   "src": "h_lim := 3 * b_p = cm",
+   "x": 40,
+   "y": 14736
+  },
+  {
+   "id": "r276",
+   "kind": "text",
+   "src": "9.5.3: la zona de protección es el mayor de (a) el lado menor y (b) la altura",
+   "x": 40,
+   "y": 14784
+  },
+  {
+   "id": "r277",
+   "kind": "text",
+   "src": "de la llave más la proyección a 45° desde su pie hasta la cara del pedestal",
+   "x": 40,
+   "y": 14832
+  },
+  {
+   "id": "r278",
+   "kind": "math",
+   "src": "zp_a := b_p = cm",
+   "x": 40,
+   "y": 14880
+  },
+  {
+   "id": "r279",
+   "kind": "math",
+   "src": "proy_45 := (b_p - b_sl)/2 = cm",
+   "x": 40,
+   "y": 14928
+  },
+  {
+   "id": "r280",
+   "kind": "math",
+   "src": "zp_b := h_sl + proy_45 = cm",
+   "x": 40,
+   "y": 14976
+  },
+  {
+   "id": "r281",
+   "kind": "math",
+   "src": "zp := max(zp_a, zp_b) = cm",
+   "x": 40,
+   "y": 15024
+  },
+  {
+   "id": "r282",
+   "kind": "math",
+   "src": "frac_zp := zp / h_p * 100 =",
+   "x": 40,
+   "y": 15072
+  },
+  {
+   "id": "v014",
+   "kind": "math",
+   "src": "zp == zp_a =",
+   "x": 40,
+   "y": 15120
+  },
+  {
+   "id": "r283",
+   "kind": "text",
+   "src": "9.5.3: s ≤ 0,4·b en toda la altura · s ≤ 0,2·b en la zona de protección ·",
+   "x": 40,
+   "y": 15168
+  },
+  {
+   "id": "r284",
+   "kind": "text",
+   "src": "espaciamiento LIBRE de los tres primeros ≤ 50 mm",
+   "x": 40,
+   "y": 15216
+  },
+  {
+   "id": "r285",
+   "kind": "math",
+   "src": "s_todo := 0.4 * b_p = cm",
+   "x": 40,
+   "y": 15264
+  },
+  {
+   "id": "r286",
+   "kind": "math",
+   "src": "s_zp := 0.2 * b_p = cm",
+   "x": 40,
+   "y": 15312
+  },
+  {
+   "id": "r287",
+   "kind": "math",
+   "src": "s_libre := 5 cm",
+   "x": 40,
+   "y": 15360
+  },
+  {
+   "id": "r288",
+   "kind": "math",
+   "src": "d_e := 1.2 cm",
+   "x": 40,
+   "y": 15408
+  },
+  {
+   "id": "r289",
+   "kind": "math",
+   "src": "s_eje := s_libre + d_e = cm",
+   "x": 40,
+   "y": 15456
+  },
+  {
+   "id": "r290",
+   "kind": "text",
+   "src": "Cuatro estribos cubren los tres primeros espaciamientos libres; el resto a s_zp",
+   "x": 40,
+   "y": 15504
+  },
+  {
+   "id": "r291",
+   "kind": "math",
+   "src": "e_1 := s_libre = cm",
+   "x": 40,
+   "y": 15552
+  },
+  {
+   "id": "r292",
+   "kind": "math",
+   "src": "e_2 := e_1 + s_eje = cm",
+   "x": 40,
+   "y": 15600
+  },
+  {
+   "id": "r293",
+   "kind": "math",
+   "src": "e_3 := e_2 + s_eje = cm",
+   "x": 40,
+   "y": 15648
+  },
+  {
+   "id": "r294",
+   "kind": "math",
+   "src": "e_4 := e_3 + s_eje = cm",
+   "x": 40,
+   "y": 15696
+  },
+  {
+   "id": "r295",
+   "kind": "math",
+   "src": "e_5 := e_4 + s_zp = cm",
+   "x": 40,
+   "y": 15744
+  },
+  {
+   "id": "r296",
+   "kind": "math",
+   "src": "e_6 := e_5 + s_zp = cm",
+   "x": 40,
+   "y": 15792
+  },
+  {
+   "id": "r297",
+   "kind": "math",
+   "src": "e_7 := e_6 + s_zp = cm",
+   "x": 40,
+   "y": 15840
+  },
+  {
+   "id": "r298",
+   "kind": "math",
+   "src": "e_8 := zp = cm",
+   "x": 40,
+   "y": 15888
+  },
+  {
+   "id": "r299",
+   "kind": "math",
+   "src": "n_est := 8",
+   "x": 40,
+   "y": 15936
+  },
+  {
+   "id": "v015",
+   "kind": "math",
+   "src": "e_8 - e_7 <= s_zp =",
+   "x": 40,
+   "y": 15984
+  },
+  {
+   "id": "r300",
+   "kind": "text",
+   "src": "Bajo la cota de la zona de protección el pedestal sólo tiene:",
+   "x": 40,
+   "y": 16032
+  },
+  {
+   "id": "r301",
+   "kind": "math",
+   "src": "resto := h_p - zp = cm",
+   "x": 40,
+   "y": 16080
+  },
+  {
+   "id": "v016",
+   "kind": "math",
+   "src": "resto <= s_todo =",
+   "x": 40,
+   "y": 16128
+  },
+  {
+   "id": "r302",
+   "kind": "text",
+   "src": "C9.5.3 recomienda malla superior desde b ≥ 700 mm y doble capa desde 2 000 mm",
+   "x": 40,
+   "y": 16176
+  },
+  {
+   "id": "v017",
+   "kind": "math",
+   "src": "b_p >= 70 cm =",
+   "x": 40,
+   "y": 16224
+  },
+  {
+   "id": "r303",
+   "kind": "text",
+   "src": "C9.5.3, práctica tradicional: 200 mm en toda la altura y 100 en la zona;",
+   "x": 40,
+   "y": 16272
+  },
+  {
+   "id": "r304",
+   "kind": "text",
+   "src": "las reglas relativas de 9.5.3 coinciden con ella exactamente en b = 500 mm",
+   "x": 40,
+   "y": 16320
+  },
+  {
+   "id": "r305",
+   "kind": "math",
+   "src": "b_igual := (10 cm) / 0.2 = cm",
+   "x": 40,
+   "y": 16368
+  },
+  {
+   "id": "v018",
+   "kind": "math",
+   "src": "abs(0.4*b_igual - 20 cm) < 0.001 cm =",
+   "x": 40,
+   "y": 16416
+  },
+  {
+   "id": "r306",
+   "kind": "text",
+   "src": "",
+   "x": 40,
+   "y": 16464
+  },
+  {
+   "id": "r307",
+   "kind": "text",
+   "src": "━━ 6 · SENSIBILIDAD ━━",
+   "x": 40,
+   "y": 16512
+  },
+  {
+   "id": "r308",
+   "kind": "text",
+   "src": "0,7R₁ es el parámetro que mueve todo (T por perno y corte del apoyo):",
+   "x": 40,
+   "y": 16560
+  },
+  {
+   "id": "r309",
+   "kind": "math",
+   "src": "T_r143 := T_perno(0.7/0.7) = tonf",
+   "x": 40,
+   "y": 16608
+  },
+  {
+   "id": "r310",
+   "kind": "math",
+   "src": "V_r143 := 1.0 * E_V = kN",
+   "x": 40,
+   "y": 16656
+  },
+  {
+   "id": "r311",
+   "kind": "math",
+   "src": "T_r200 := T_perno(0.7*2) = tonf",
+   "x": 40,
+   "y": 16704
+  },
+  {
+   "id": "r312",
+   "kind": "math",
+   "src": "V_r200 := 0.7*2 * E_V = kN",
+   "x": 40,
+   "y": 16752
+  },
+  {
+   "id": "r313",
+   "kind": "math",
+   "src": "T_r300 := T_perno(0.7*3) = tonf",
+   "x": 40,
+   "y": 16800
+  },
+  {
+   "id": "r314",
+   "kind": "math",
+   "src": "V_r300 := 0.7*3 * E_V = kN",
+   "x": 40,
+   "y": 16848
+  },
+  {
+   "id": "r315",
+   "kind": "math",
+   "src": "T_r500 := T_perno(0.7*5) = tonf",
+   "x": 40,
+   "y": 16896
+  },
+  {
+   "id": "r316",
+   "kind": "math",
+   "src": "V_r500 := 0.7*5 * E_V = kN",
+   "x": 40,
+   "y": 16944
+  },
+  {
+   "id": "r317",
+   "kind": "text",
+   "src": "El umbral de llave de corte se cruza entre R₁ = 3 y R₁ = 4:",
+   "x": 40,
+   "y": 16992
+  },
+  {
+   "id": "v019",
+   "kind": "math",
+   "src": "(V_r300 < umbral) and (V_kN > umbral) =",
+   "x": 40,
+   "y": 17040
+  },
+  {
+   "id": "r318",
+   "kind": "text",
+   "src": "Usar R de tabla en vez de R₁ subiría la tracción del perno un:",
+   "x": 40,
+   "y": 17088
+  },
+  {
+   "id": "r319",
+   "kind": "math",
+   "src": "error_R := (T_r500 - Ti_B)/Ti_B * 100 =",
+   "x": 40,
+   "y": 17136
+  },
+  {
+   "id": "r320",
+   "kind": "text",
+   "src": "R_y casi no mueve nada: mientras ACI sea la ruta exigente, A_s no cambia",
+   "x": 40,
+   "y": 17184
+  },
+  {
+   "id": "r321",
+   "kind": "math",
+   "src": "As_ry10 := 2 * 1.0 * f_ya * A_se / den_arm = cm^2",
+   "x": 40,
+   "y": 17232
+  },
+  {
+   "id": "r322",
+   "kind": "math",
+   "src": "As_ry13 := 2 * 1.3 * f_ya * A_se / den_arm = cm^2",
+   "x": 40,
+   "y": 17280
+  },
+  {
+   "id": "v020",
+   "kind": "math",
+   "src": "(As_ry10 < A_sreq) and (As_ry13 < A_sreq) =",
+   "x": 40,
+   "y": 17328
+  },
+  {
+   "id": "r323",
+   "kind": "text",
+   "src": "Cat. III–IV (9.5.2): el pedestal debe resistir la capacidad esperada",
+   "x": 40,
+   "y": 17376
+  },
+  {
+   "id": "r324",
+   "kind": "text",
+   "src": "Convergen sólo porque 0,7R₁ se pasó de la fluencia del perno:",
+   "x": 40,
+   "y": 17424
+  },
+  {
+   "id": "v021",
+   "kind": "math",
+   "src": "Tg_B >= T_yeg =",
+   "x": 40,
+   "y": 17472
+  },
+  {
+   "id": "r325",
+   "kind": "math",
+   "src": "Tg_r200 := n_T * T_r200 = tonf",
+   "x": 40,
+   "y": 17520
+  },
+  {
+   "id": "v022",
+   "kind": "math",
+   "src": "Tg_r200 >= T_yeg =",
+   "x": 40,
+   "y": 17568
+  },
+  {
+   "id": "r326",
+   "kind": "text",
+   "src": "",
+   "x": 40,
+   "y": 17616
+  },
+  {
+   "id": "r327",
+   "kind": "text",
+   "src": "━━ RESUMEN: QUÉ GOBIERNA ━━",
+   "x": 40,
+   "y": 17664
+  },
+  {
+   "id": "r328",
+   "kind": "text",
+   "src": "Con la llave tomando el total del corte los pernos quedan en tracción pura:",
+   "x": 40,
+   "y": 17712
+  },
+  {
+   "id": "r329",
+   "kind": "text",
+   "src": "la interacción N–V de 17.8.3 del ejemplo de ACI deja de aplicar.",
+   "x": 40,
+   "y": 17760
+  },
+  {
+   "id": "r330",
+   "kind": "text",
+   "src": "u_max recorre el diseño ADOPTADO: perno dúctil, llave de corte, plancha de",
+   "x": 40,
+   "y": 17808
+  },
+  {
+   "id": "r331",
+   "kind": "text",
+   "src": "cabeza y armadura de anclaje (sin las dos últimas mandan u_btA y u_poA).",
+   "x": 40,
+   "y": 17856
+  },
+  {
+   "id": "r332",
+   "kind": "math",
+   "src": "u_max := max(u_pa, u_brg, u_cbsl, u_Msl, u_popA, u_arm) =",
+   "x": 40,
+   "y": 17904
+  },
+  {
+   "id": "gob",
+   "kind": "program",
+   "src": "gobierna :=\nif u_max == u_btA\n  return \"breakout del grupo por capacidad (17.6.2 / 17.10.5.3)\"\nelse if u_max == u_cbsl\n  return \"breakout del hormigón de la llave (17.11.3)\"\nelse if u_max == u_poA\n  return \"pullout por capacidad (17.6.3 / 17.10.5.3)\"\nelse if u_max == u_Msl\n  return \"flexión de la plancha de la llave\"\nelse if u_max == u_arm\n  return \"armadura de anclaje (17.5.2.1)\"\nelse if u_max == u_brg\n  return \"aplastamiento en corte de la llave (17.11.2)\"\nelse\n  return \"tracción del perno (8.5.2 vía a)\"",
+   "x": 40,
+   "y": 17952
+  },
+  {
+   "id": "v_global",
+   "kind": "math",
+   "src": "u_max <= 1 =",
+   "x": 40,
+   "y": 18256
+  },
+  {
+   "id": "r333",
+   "kind": "text",
+   "src": "",
+   "x": 40,
+   "y": 18304
+  },
+  {
+   "id": "esq",
+   "kind": "image",
+   "src": "/esquemas/pedestal-anclaje-nch2369.svg",
+   "w": 660,
+   "h": 440,
+   "x": 40,
+   "y": 18320
+  },
+  {
+   "id": "r334",
+   "kind": "text",
+   "src": "",
+   "x": 40,
+   "y": 18784
+  },
+  {
+   "id": "r335",
+   "kind": "text",
+   "src": "━━ CONTRASTE CON EL POST ━━",
+   "x": 40,
+   "y": 18832
+  },
+  {
+   "id": "r336",
+   "kind": "text",
+   "src": "Un booleano por número publicado, a media unidad del último dígito.",
+   "x": 40,
+   "y": 18880
+  },
+  {
+   "id": "r337",
+   "kind": "text",
+   "src": "· El caso y los dos niveles de carga:",
+   "x": 40,
+   "y": 18928
+  },
+  {
+   "id": "c_amp",
+   "kind": "math",
+   "src": "abs(amp - 2.80) < 0.005 =",
+   "x": 40,
+   "y": 18976
+  },
+  {
+   "id": "c_Ase",
+   "kind": "math",
+   "src": "abs(A_se - 3.91 cm^2) < 0.005 cm^2 =",
+   "x": 40,
+   "y": 19024
+  },
+  {
+   "id": "c_fya",
+   "kind": "math",
+   "src": "abs(f_ya - 3867 kgf/cm^2) < 0.5 kgf/cm^2 =",
+   "x": 40,
+   "y": 19072
+  },
+  {
+   "id": "c_futa",
+   "kind": "math",
+   "src": "abs(f_uta - 5273 kgf/cm^2) < 0.5 kgf/cm^2 =",
+   "x": 40,
+   "y": 19120
+  },
+  {
+   "id": "c_fp",
+   "kind": "math",
+   "src": "abs(f_pmax - 230 kgf/cm^2) < 0.5 kgf/cm^2 =",
+   "x": 40,
+   "y": 19168
+  },
+  {
+   "id": "c_q",
+   "kind": "math",
+   "src": "abs(q_max - 13.81 tonf/cm) < 0.005 tonf/cm =",
+   "x": 40,
+   "y": 19216
+  },
+  {
+   "id": "c_PA",
+   "kind": "math",
+   "src": "abs(P_A - 4.00 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 19264
+  },
+  {
+   "id": "c_YA",
+   "kind": "math",
+   "src": "abs(Y_A - 0.87 cm) < 0.005 cm =",
+   "x": 40,
+   "y": 19312
+  },
+  {
+   "id": "c_CA",
+   "kind": "math",
+   "src": "abs(C_A - 12.00 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 19360
+  },
+  {
+   "id": "c_TA",
+   "kind": "math",
+   "src": "abs(Ti_A - 4.00 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 19408
+  },
+  {
+   "id": "c_PB",
+   "kind": "math",
+   "src": "abs(P_B + 21.20 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 19456
+  },
+  {
+   "id": "c_MB",
+   "kind": "math",
+   "src": "abs(M_B - 15.54 tonf*m) < 0.005 tonf*m =",
+   "x": 40,
+   "y": 19504
+  },
+  {
+   "id": "c_VB",
+   "kind": "math",
+   "src": "abs(V_B - 9.80 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 19552
+  },
+  {
+   "id": "c_YB",
+   "kind": "math",
+   "src": "abs(Y_B - 1.36 cm) < 0.005 cm =",
+   "x": 40,
+   "y": 19600
+  },
+  {
+   "id": "c_CB",
+   "kind": "math",
+   "src": "abs(C_B - 18.85 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 19648
+  },
+  {
+   "id": "c_TgB",
+   "kind": "math",
+   "src": "abs(Tg_B - 40.05 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 19696
+  },
+  {
+   "id": "c_TB",
+   "kind": "math",
+   "src": "abs(Ti_B - 20.03 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 19744
+  },
+  {
+   "id": "c_factor",
+   "kind": "math",
+   "src": "abs(factor_T - 5.00) < 0.005 =",
+   "x": 40,
+   "y": 19792
+  },
+  {
+   "id": "r338",
+   "kind": "text",
+   "src": "· §2 el perno:",
+   "x": 40,
+   "y": 19840
+  },
+  {
+   "id": "c_RdNsa",
+   "kind": "math",
+   "src": "abs(Rd_Nsa - 15.5 tonf) < 0.05 tonf =",
+   "x": 40,
+   "y": 19888
+  },
+  {
+   "id": "c_upa",
+   "kind": "math",
+   "src": "abs(u_pa - 0.26) < 0.005 =",
+   "x": 40,
+   "y": 19936
+  },
+  {
+   "id": "c_upb",
+   "kind": "math",
+   "src": "abs(u_pb - 1.30) < 0.005 =",
+   "x": 40,
+   "y": 19984
+  },
+  {
+   "id": "c_Lexp",
+   "kind": "math",
+   "src": "abs(L_exp - 25 cm) < 0.05 cm =",
+   "x": 40,
+   "y": 20032
+  },
+  {
+   "id": "c_Ase125",
+   "kind": "math",
+   "src": "abs(A_se125 - 6.25 cm^2) < 0.005 cm^2 =",
+   "x": 40,
+   "y": 20080
+  },
+  {
+   "id": "c_Rd125",
+   "kind": "math",
+   "src": "abs(Rd_125 - 24.7 tonf) < 0.05 tonf =",
+   "x": 40,
+   "y": 20128
+  },
+  {
+   "id": "c_u125",
+   "kind": "math",
+   "src": "abs(u_125 - 0.81) < 0.005 =",
+   "x": 40,
+   "y": 20176
+  },
+  {
+   "id": "c_subida",
+   "kind": "math",
+   "src": "abs(subida_E - 67) < 0.5 =",
+   "x": 40,
+   "y": 20224
+  },
+  {
+   "id": "c_Tisd",
+   "kind": "math",
+   "src": "abs(Ti_sd - 26.27 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 20272
+  },
+  {
+   "id": "c_usd",
+   "kind": "math",
+   "src": "abs(u_sd - 1.70) < 0.005 =",
+   "x": 40,
+   "y": 20320
+  },
+  {
+   "id": "r339",
+   "kind": "text",
+   "src": "· §3 la llave de corte:",
+   "x": 40,
+   "y": 20368
+  },
+  {
+   "id": "c_VkN",
+   "kind": "math",
+   "src": "abs(V_kN - 96.1 kN) < 0.05 kN =",
+   "x": 40,
+   "y": 20416
+  },
+  {
+   "id": "c_Aefsl",
+   "kind": "math",
+   "src": "abs(A_efsl - 180 cm^2) < 0.5 cm^2 =",
+   "x": 40,
+   "y": 20464
+  },
+  {
+   "id": "c_2tsl",
+   "kind": "math",
+   "src": "abs(2*t_sl - 6 cm) < 0.05 cm =",
+   "x": 40,
+   "y": 20512
+  },
+  {
+   "id": "c_Nsag",
+   "kind": "math",
+   "src": "abs(Nsa_g - 41.21 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 20560
+  },
+  {
+   "id": "c_psibrg",
+   "kind": "math",
+   "src": "abs(psi_brg - 0.486) < 0.0005 =",
+   "x": 40,
+   "y": 20608
+  },
+  {
+   "id": "c_Rdbrg",
+   "kind": "math",
+   "src": "abs(Rd_brg - 24.1 tonf) < 0.05 tonf =",
+   "x": 40,
+   "y": 20656
+  },
+  {
+   "id": "c_ubrg",
+   "kind": "math",
+   "src": "abs(u_brg - 0.41) < 0.005 =",
+   "x": 40,
+   "y": 20704
+  },
+  {
+   "id": "c_ca1sl",
+   "kind": "math",
+   "src": "abs(c_a1sl - 48.5 cm) < 0.05 cm =",
+   "x": 40,
+   "y": 20752
+  },
+  {
+   "id": "c_Vbsl",
+   "kind": "math",
+   "src": "abs(V_bsl - 19.95 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 20800
+  },
+  {
+   "id": "c_AVcsl",
+   "kind": "math",
+   "src": "abs(A_Vcsl - 7695 cm^2) < 0.5 cm^2 =",
+   "x": 40,
+   "y": 20848
+  },
+  {
+   "id": "c_AVcosl",
+   "kind": "math",
+   "src": "abs(A_Vcosl - 10585 cm^2) < 0.5 cm^2 =",
+   "x": 40,
+   "y": 20896
+  },
+  {
+   "id": "c_proysl",
+   "kind": "math",
+   "src": "abs(proy_sl - 72.8 cm) < 0.06 cm =",
+   "x": 40,
+   "y": 20944
+  },
+  {
+   "id": "c_ca2sl",
+   "kind": "math",
+   "src": "abs(c_a2sl - 35 cm) < 0.05 cm =",
+   "x": 40,
+   "y": 20992
+  },
+  {
+   "id": "c_psiedVsl",
+   "kind": "math",
+   "src": "abs(psi_edVsl - 0.844) < 0.0005 =",
+   "x": 40,
+   "y": 21040
+  },
+  {
+   "id": "c_Rdcbsl",
+   "kind": "math",
+   "src": "abs(Rd_cbsl - 7.96 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 21088
+  },
+  {
+   "id": "c_ucbsl",
+   "kind": "math",
+   "src": "abs(u_cbsl - 1.23) < 0.005 =",
+   "x": 40,
+   "y": 21136
+  },
+  {
+   "id": "c_rhsl",
+   "kind": "math",
+   "src": "abs(r_hsl - 2.67) < 0.005 =",
+   "x": 40,
+   "y": 21184
+  },
+  {
+   "id": "c_rcsl",
+   "kind": "math",
+   "src": "abs(r_csl - 1.60) < 0.005 =",
+   "x": 40,
+   "y": 21232
+  },
+  {
+   "id": "c_hefreq",
+   "kind": "math",
+   "src": "abs(hef_req - 62.5 cm) < 0.05 cm =",
+   "x": 40,
+   "y": 21280
+  },
+  {
+   "id": "c_brazosl",
+   "kind": "math",
+   "src": "abs(brazo_sl - 8 cm) < 0.05 cm =",
+   "x": 40,
+   "y": 21328
+  },
+  {
+   "id": "c_dMsl",
+   "kind": "math",
+   "src": "abs(dM_sl - 0.78 tonf*m) < 0.005 tonf*m =",
+   "x": 40,
+   "y": 21376
+  },
+  {
+   "id": "c_TiB2",
+   "kind": "math",
+   "src": "abs(Ti_B2 - 20.76 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 21424
+  },
+  {
+   "id": "c_dTsl",
+   "kind": "math",
+   "src": "abs(dT_sl - 3.7) < 0.05 =",
+   "x": 40,
+   "y": 21472
+  },
+  {
+   "id": "c_TgB2",
+   "kind": "math",
+   "src": "abs(Tg_B2 - 41.5 tonf) < 0.05 tonf =",
+   "x": 40,
+   "y": 21520
+  },
+  {
+   "id": "c_Musl",
+   "kind": "math",
+   "src": "abs(M_usl - 122.5 tonf*cm) < 0.05 tonf*cm =",
+   "x": 40,
+   "y": 21568
+  },
+  {
+   "id": "c_RdMsl",
+   "kind": "math",
+   "src": "abs(Rd_Msl - 153.7 tonf*cm) < 0.05 tonf*cm =",
+   "x": 40,
+   "y": 21616
+  },
+  {
+   "id": "c_uMsl",
+   "kind": "math",
+   "src": "abs(u_Msl - 0.80) < 0.005 =",
+   "x": 40,
+   "y": 21664
+  },
+  {
+   "id": "c_subeM",
+   "kind": "math",
+   "src": "abs(sube_M - 25) < 0.5 =",
+   "x": 40,
+   "y": 21712
+  },
+  {
+   "id": "c_roce",
+   "kind": "math",
+   "src": "abs(roce - 7.54 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 21760
+  },
+  {
+   "id": "c_fracroce",
+   "kind": "math",
+   "src": "abs(frac_roce - 77) < 0.5 =",
+   "x": 40,
+   "y": 21808
+  },
+  {
+   "id": "r340",
+   "kind": "text",
+   "src": "· §4 el hormigón por capacidad:",
+   "x": 40,
+   "y": 21856
+  },
+  {
+   "id": "c_Tye",
+   "kind": "math",
+   "src": "abs(T_ye - 16.62 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 21904
+  },
+  {
+   "id": "c_TyeAg",
+   "kind": "math",
+   "src": "abs(T_yeAg - 21.55 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 21952
+  },
+  {
+   "id": "c_techo",
+   "kind": "math",
+   "src": "abs(techo - 33.25 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 22000
+  },
+  {
+   "id": "c_Nsa",
+   "kind": "math",
+   "src": "abs(N_sa - 20.61 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 22048
+  },
+  {
+   "id": "c_DACI",
+   "kind": "math",
+   "src": "abs(D_ACI - 49.46 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 22096
+  },
+  {
+   "id": "c_DACIi",
+   "kind": "math",
+   "src": "abs(D_ACIi - 24.73 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 22144
+  },
+  {
+   "id": "c_veces",
+   "kind": "math",
+   "src": "abs(veces_ACI - 6.2) < 0.05 =",
+   "x": 40,
+   "y": 22192
+  },
+  {
+   "id": "c_Ncbg",
+   "kind": "math",
+   "src": "abs(N_cbg - 21.73 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 22240
+  },
+  {
+   "id": "c_Rdbt",
+   "kind": "math",
+   "src": "abs(Rd_bt - 15.48 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 22288
+  },
+  {
+   "id": "c_ubtN",
+   "kind": "math",
+   "src": "abs(u_btN - 2.15) < 0.005 =",
+   "x": 40,
+   "y": 22336
+  },
+  {
+   "id": "c_ubtA",
+   "kind": "math",
+   "src": "abs(u_btA - 2.28) < 0.005 =",
+   "x": 40,
+   "y": 22384
+  },
+  {
+   "id": "c_Abrg",
+   "kind": "math",
+   "src": "abs(A_brg - 9.686 cm^2) < 0.0005 cm^2 =",
+   "x": 40,
+   "y": 22432
+  },
+  {
+   "id": "c_Npn",
+   "kind": "math",
+   "src": "abs(N_pn - 19.37 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 22480
+  },
+  {
+   "id": "c_Rdpo",
+   "kind": "math",
+   "src": "abs(Rd_po - 13.80 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 22528
+  },
+  {
+   "id": "c_upoN",
+   "kind": "math",
+   "src": "abs(u_poN - 1.20) < 0.005 =",
+   "x": 40,
+   "y": 22576
+  },
+  {
+   "id": "c_upoA",
+   "kind": "math",
+   "src": "abs(u_poA - 1.28) < 0.005 =",
+   "x": 40,
+   "y": 22624
+  },
+  {
+   "id": "c_AreqN",
+   "kind": "math",
+   "src": "abs(Areq_N - 11.7 cm^2) < 0.05 cm^2 =",
+   "x": 40,
+   "y": 22672
+  },
+  {
+   "id": "c_AreqA",
+   "kind": "math",
+   "src": "abs(Areq_A - 12.4 cm^2) < 0.05 cm^2 =",
+   "x": 40,
+   "y": 22720
+  },
+  {
+   "id": "c_Abrgp",
+   "kind": "math",
+   "src": "abs(A_brgp - 58.93 cm^2) < 0.005 cm^2 =",
+   "x": 40,
+   "y": 22768
+  },
+  {
+   "id": "c_Npnp",
+   "kind": "math",
+   "src": "abs(N_pnp - 117.9 tonf) < 0.05 tonf =",
+   "x": 40,
+   "y": 22816
+  },
+  {
+   "id": "c_Rdpop",
+   "kind": "math",
+   "src": "abs(Rd_pop - 84.0 tonf) < 0.05 tonf =",
+   "x": 40,
+   "y": 22864
+  },
+  {
+   "id": "c_upopN",
+   "kind": "math",
+   "src": "abs(u_popN - 0.20) < 0.005 =",
+   "x": 40,
+   "y": 22912
+  },
+  {
+   "id": "c_upopA",
+   "kind": "math",
+   "src": "abs(u_popA - 0.21) < 0.005 =",
+   "x": 40,
+   "y": 22960
+  },
+  {
+   "id": "c_Asreq",
+   "kind": "math",
+   "src": "abs(A_sreq - 15.70 cm^2) < 0.005 cm^2 =",
+   "x": 40,
+   "y": 23008
+  },
+  {
+   "id": "c_Asprov",
+   "kind": "math",
+   "src": "abs(A_sprov - 16.08 cm^2) < 0.005 cm^2 =",
+   "x": 40,
+   "y": 23056
+  },
+  {
+   "id": "c_uarm",
+   "kind": "math",
+   "src": "abs(u_arm - 0.98) < 0.005 =",
+   "x": 40,
+   "y": 23104
+  },
+  {
+   "id": "r341",
+   "kind": "text",
+   "src": "· §5 el detallado:",
+   "x": 40,
+   "y": 23152
+  },
+  {
+   "id": "c_hb",
+   "kind": "math",
+   "src": "abs(razon_hb - 1.20) < 0.005 =",
+   "x": 40,
+   "y": 23200
+  },
+  {
+   "id": "c_zpb",
+   "kind": "math",
+   "src": "abs(zp_b - 50 cm) < 0.5 cm =",
+   "x": 40,
+   "y": 23248
+  },
+  {
+   "id": "c_zp",
+   "kind": "math",
+   "src": "abs(zp - 100 cm) < 0.5 cm =",
+   "x": 40,
+   "y": 23296
+  },
+  {
+   "id": "c_fraczp",
+   "kind": "math",
+   "src": "abs(frac_zp - 83) < 0.5 =",
+   "x": 40,
+   "y": 23344
+  },
+  {
+   "id": "c_stodo",
+   "kind": "math",
+   "src": "abs(s_todo - 40 cm) < 0.05 cm =",
+   "x": 40,
+   "y": 23392
+  },
+  {
+   "id": "c_szp",
+   "kind": "math",
+   "src": "abs(s_zp - 20 cm) < 0.05 cm =",
+   "x": 40,
+   "y": 23440
+  },
+  {
+   "id": "c_seje",
+   "kind": "math",
+   "src": "abs(s_eje - 6.2 cm) < 0.05 cm =",
+   "x": 40,
+   "y": 23488
+  },
+  {
+   "id": "c_e4",
+   "kind": "math",
+   "src": "abs(e_4 - 23.6 cm) < 0.05 cm =",
+   "x": 40,
+   "y": 23536
+  },
+  {
+   "id": "c_e7",
+   "kind": "math",
+   "src": "abs(e_7 - 83.6 cm) < 0.05 cm =",
+   "x": 40,
+   "y": 23584
+  },
+  {
+   "id": "c_resto",
+   "kind": "math",
+   "src": "abs(resto - 20 cm) < 0.5 cm =",
+   "x": 40,
+   "y": 23632
+  },
+  {
+   "id": "r342",
+   "kind": "text",
+   "src": "· §6 la sensibilidad:",
+   "x": 40,
+   "y": 23680
+  },
+  {
+   "id": "c_Tr143",
+   "kind": "math",
+   "src": "abs(T_r143 - 4.00 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 23728
+  },
+  {
+   "id": "c_Vr143",
+   "kind": "math",
+   "src": "abs(V_r143 - 34.3 kN) < 0.05 kN =",
+   "x": 40,
+   "y": 23776
+  },
+  {
+   "id": "c_Tr200",
+   "kind": "math",
+   "src": "abs(T_r200 - 7.56 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 23824
+  },
+  {
+   "id": "c_Vr200",
+   "kind": "math",
+   "src": "abs(V_r200 - 48.1 kN) < 0.05 kN =",
+   "x": 40,
+   "y": 23872
+  },
+  {
+   "id": "c_Tr300",
+   "kind": "math",
+   "src": "abs(T_r300 - 13.79 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 23920
+  },
+  {
+   "id": "c_Vr300",
+   "kind": "math",
+   "src": "abs(V_r300 - 72.1 kN) < 0.05 kN =",
+   "x": 40,
+   "y": 23968
+  },
+  {
+   "id": "c_Tr500",
+   "kind": "math",
+   "src": "abs(T_r500 - 26.27 tonf) < 0.005 tonf =",
+   "x": 40,
+   "y": 24016
+  },
+  {
+   "id": "c_Vr500",
+   "kind": "math",
+   "src": "abs(V_r500 - 120.1 kN) < 0.05 kN =",
+   "x": 40,
+   "y": 24064
+  },
+  {
+   "id": "c_errorR",
+   "kind": "math",
+   "src": "abs(error_R - 31) < 0.5 =",
+   "x": 40,
+   "y": 24112
+  },
+  {
+   "id": "c_Asry10",
+   "kind": "math",
+   "src": "abs(As_ry10 - 9.59 cm^2) < 0.005 cm^2 =",
+   "x": 40,
+   "y": 24160
+  },
+  {
+   "id": "c_Asry13",
+   "kind": "math",
+   "src": "abs(As_ry13 - 12.47 cm^2) < 0.005 cm^2 =",
+   "x": 40,
+   "y": 24208
+  }
+ ]
+}

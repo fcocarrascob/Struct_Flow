@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 528" font-family="Segoe UI, Arial, sans-serif">
+  <!-- Esquema paramétrico de la planilla `gusset-apice-chevron`.
+       Derivado de /gusset/apice-nudo.svg (la figura del post, estática):
+       misma composición, pero los rótulos leen la hoja. El viewBox se estiró
+       hacia abajo para la banda de valores. -->
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#555"/>
+    </marker>
+    <marker id="rr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#c0392b"/>
+    </marker>
+    <marker id="gr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2c7a4b"/>
+    </marker>
+    <pattern id="hatch" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="7" stroke="#8a857c" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="880" height="528" fill="#ffffff"/>
+  <text x="440.0" y="26" font-size="15" text-anchor="middle" fill="#222" font-weight="bold">El gusset del ápice: el canto del tubo fija la holgura, y las dos bandas de Whitmore se traslapan</text>
+  <rect x="255.0" y="46" width="370.0" height="46" fill="#dcd8d0" stroke="#666" stroke-width="1.2"/>
+  <text x="265.0" y="64" font-size="10" fill="#555">viga H 600×300×138,5 — ala inferior</text>
+  <polygon points="325.0,92.0 293.6,238.4 586.4,238.4 555.0,92.0" fill="#eef2f7" stroke="#333" stroke-width="1.6"/>
+  <polygon points="423.7,173.3 326.2,270.9 261.1,205.8 358.7,108.3" fill="#dfe5ec" fill-opacity="0.92" stroke="#333" stroke-width="1.6"/>
+  <line x1="440.0" y1="92.0" x2="293.6" y2="238.4" stroke="#888" stroke-width="0.8" stroke-dasharray="6 4"/>
+  <polygon points="456.3,173.3 553.8,270.9 618.9,205.8 521.3,108.3" fill="#dfe5ec" fill-opacity="0.92" stroke="#333" stroke-width="1.6"/>
+  <line x1="440.0" y1="92.0" x2="586.4" y2="238.4" stroke="#888" stroke-width="0.8" stroke-dasharray="6 4"/>
+  <polygon points="391.2,140.8 334.9,92.0 447.5,92.0" fill="#1a63a8" fill-opacity="0.30" stroke="#1a63a8" stroke-width="1.3"/>
+  <line x1="334.9" y1="92.0" x2="447.5" y2="92.0" stroke="#1a63a8" stroke-width="3"/>
+  <polygon points="488.8,140.8 432.5,92.0 545.1,92.0" fill="#1a63a8" fill-opacity="0.30" stroke="#1a63a8" stroke-width="1.3"/>
+  <line x1="432.5" y1="92.0" x2="545.1" y2="92.0" stroke="#1a63a8" stroke-width="3"/>
+  <rect x="432.5" y="92.0" width="15.1" height="48.8" fill="#c0392b" fill-opacity="0.35" stroke="#c0392b" stroke-width="1.2"/>
+  <line x1="432.5" y1="116.4" x2="262.0" y2="134.0" stroke="#c0392b" stroke-width="0.8"/>
+  <text x="118.0" y="132.0" font-size="10.5" fill="#c0392b" font-weight="bold">traslape {{trasl:cm}} cm</text>
+  <text x="118.0" y="145.0" font-size="9.5" fill="#c0392b">{{trasl/b_w*100}} % de cada banda</text>
+  <text x="283.6" y="276.0" font-size="10.5" fill="#222" font-weight="bold">□ {{B_t:mm}}×{{H_t:mm}}×{{t_t:mm}}</text>
+  <text x="532.0" y="276.0" font-size="10.5" fill="#222" font-weight="bold">□ {{B_t:mm}}×{{H_t:mm}}×{{t_t:mm}}</text>
+  <circle cx="391.2" cy="140.8" r="3.6" fill="#c0392b"/>
+  <circle cx="488.8" cy="140.8" r="3.6" fill="#c0392b"/>
+  <line x1="391.2" y1="140.8" x2="437.0" y2="95.0" stroke="#2c7a4b" stroke-width="2" marker-end="url(#gr)"/>
+  <text x="88.0" y="242.0" font-size="10.5" fill="#2c7a4b" font-weight="bold">holgura de rótula = {{hol:cm}} cm = {{hol/t_g}} t</text>
+  <text x="88.0" y="256.0" font-size="9.5" fill="#2c7a4b">exigido 2t = {{hol_req:cm}} cm ✓ — la da el canto del tubo</text>
+  <line x1="332.0" y1="238.0" x2="385.2" y2="148.8" stroke="#2c7a4b" stroke-width="0.8"/>
+  <line x1="325.0" y1="84" x2="555.0" y2="84" stroke="#666" stroke-width="0.9" marker-start="url(#ar)" marker-end="url(#ar)"/>
+  <text x="440.0" y="78" font-size="10.5" text-anchor="middle" fill="#666">L = {{L_i:cm}} cm — largo soldado al ala</text>
+  <line x1="293.6" y1="268.3711037056153" x2="586.4" y2="268.3711037056153" stroke="#666" stroke-width="0.9" marker-start="url(#ar)" marker-end="url(#ar)"/>
+  <text x="440.0" y="262.3711037056153" font-size="10.5" text-anchor="middle" fill="#666">borde libre = 63,64 cm  (31,8 t)</text>
+  <line x1="532.6" y1="96.9" x2="630.2" y2="194.5" stroke="#666" stroke-width="0.9" marker-start="url(#ar)" marker-end="url(#ar)"/>
+  <text x="589.4" y="139.7" font-size="10.5" fill="#666">l = {{l:cm}} cm</text>
+  <line x1="40" y1="314" x2="840" y2="314" stroke="#dcd8d0" stroke-width="1"/>
+  <text x="40" y="330" font-size="11" fill="#1a63a8" font-weight="bold">Los dos estados simultáneos que la interfaz debe resistir</text>
+  <rect x="40" y="340" width="390" height="62" fill="#c07a00" fill-opacity="0.08" stroke="#c07a00" stroke-width="1.2"/>
+  <text x="52" y="358" font-size="10.5" fill="#c07a00" font-weight="bold">A · Desbalance de 8.6.6 (una pandeada)</text>
+  <text x="52" y="374" font-size="10.5" fill="#222">T = {{T_req:tonf}} tonf  y  0,3P_ne = {{P_res:tonf}} tonf</text>
+  <text x="52" y="390" font-size="10.5" fill="#222" font-weight="bold">H = {{H_A:tonf}}   V = {{V_A:tonf}}   R = {{R_A:tonf}} tonf</text>
+  <rect x="450" y="340" width="390" height="62" fill="#1a63a8" fill-opacity="0.08" stroke="#1a63a8" stroke-width="1.2"/>
+  <text x="462" y="358" font-size="10.5" fill="#1a63a8" font-weight="bold">B · Amplificado simétrico (ninguna pandeada)</text>
+  <text x="462" y="374" font-size="10.5" fill="#222">ambas en 0,7R₁·P_E = {{Q_cap:tonf}} tonf</text>
+  <text x="462" y="390" font-size="10.5" fill="#222" font-weight="bold">H = {{H_B:tonf}}   V = 0   R = {{H_B:tonf}} tonf</text>
+  <text x="40" y="422" font-size="9.5" fill="#666">El estado B gobierna el corte del borde; el A, la componente normal. Ninguno de los dos domina al otro: hay que verificar ambos.</text>
+
+  <!-- banda de valores vivos: lo que la hoja calcula, bajo el dibujo -->
+  <line x1="40" y1="444" x2="840" y2="444" stroke="#dcd8d0" stroke-width="1"/>
+  <text x="40" y="462" font-size="10" fill="#333">La escalera de 8.4.1: amplificado {{Q_cap:tonf}} · piso 0,5·T_ye = {{T_piso:tonf}} · techo T_ye = {{T_ye:tonf}} tonf → manda el piso, T_req = {{T_req:tonf}}</text>
+  <text x="40" y="480" font-size="10" fill="#1a63a8">Whitmore a 30°: b_w = {{b_w:cm}} cm → huella {{huella:cm}} cm contra separación {{sep:cm}} cm, y de ahí el traslape de {{trasl:cm}} cm</text>
+  <text x="40" y="498" font-size="10" fill="#c0392b" font-weight="bold">Usos: corte del borde {{u_cor}} · bloque {{u_blo}} · soldadura {{u_sol}} · Whitmore {{u_flu}} · rotura {{u_rot}} · pandeo {{u_pan}} → máx {{u_max}}</text>
+  <text x="40" y="516" font-size="9.5" fill="#666">La interacción de von Mises del mismo borde: estado A {{int_A}} · estado B {{int_B}} (≤ 1).</text>
+</svg>

@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 624" font-family="Segoe UI, Arial, sans-serif">
+  <rect width="840" height="624" fill="#ffffff"/>
+  <text x="420" y="26" font-size="15" text-anchor="middle" fill="#222" font-weight="bold">Losa unidireccional de {{h_2:cm}} cm, tres tramos de {{l_n:m}} m: la resistencia no decide nada</text>
+  <text x="420" y="46" font-size="10.5" text-anchor="middle" fill="#666">A_s,m&#237;n = 0,0018&#183;b&#183;h = {{A_smin2:mm^2}} mm&#178;/m &#183; malla &#966;10@{{s_2:mm}} = {{Asc_2:mm^2}} mm&#178;/m &#183; d = {{d_2:mm}} mm</text>
+
+  <!-- ============ PANEL A ============ -->
+  <text x="55" y="72" font-size="11.5" fill="#1a63a8" font-weight="bold">Las cinco secciones cr&#237;ticas de la Tabla 6.5.2</text>
+
+  <rect x="70" y="84" width="374" height="16" fill="#dcd8d0" stroke="#333" stroke-width="1.1"/>
+  <rect x="70" y="100" width="14" height="20" fill="#8a857c" stroke="#333" stroke-width="0.9"/>
+  <rect x="190" y="100" width="14" height="20" fill="#8a857c" stroke="#333" stroke-width="0.9"/>
+  <rect x="310" y="100" width="14" height="20" fill="#8a857c" stroke="#333" stroke-width="0.9"/>
+  <rect x="430" y="100" width="14" height="20" fill="#8a857c" stroke="#333" stroke-width="0.9"/>
+  <text x="77" y="131" font-size="8" fill="#999" text-anchor="middle">borde</text>
+  <text x="197" y="131" font-size="8" fill="#999" text-anchor="middle">interior</text>
+  <text x="317" y="131" font-size="8" fill="#999" text-anchor="middle">interior</text>
+  <text x="437" y="131" font-size="8" fill="#999" text-anchor="middle">borde</text>
+  <g stroke="#b02a1a" stroke-width="2.2">
+    <line x1="72" y1="88" x2="119" y2="88"/><line x1="155" y1="88" x2="239" y2="88"/>
+    <line x1="275" y1="88" x2="359" y2="88"/><line x1="395" y1="88" x2="442" y2="88"/>
+  </g>
+  <g stroke="#1a63a8" stroke-width="2.2">
+    <line x1="86" y1="96" x2="188" y2="96"/><line x1="206" y1="96" x2="308" y2="96"/>
+    <line x1="326" y1="96" x2="428" y2="96"/>
+  </g>
+  <text x="66" y="90.5" font-size="8" fill="#b02a1a" text-anchor="end">sup.</text>
+  <text x="66" y="98.5" font-size="8" fill="#1a63a8" text-anchor="end">inf.</text>
+
+  <line x1="70" y1="190.0" x2="444" y2="190.0" stroke="#bbb" stroke-width="0.8" stroke-dasharray="4 3"/>
+  <path d="M 77.0,174.5 L 80.0,179.1 L 83.0,183.4 L 86.0,187.5 L 89.0,191.4 L 92.0,194.9 L 95.0,198.3 L 98.0,201.3 L 101.0,204.1 L 104.0,206.6 L 107.0,208.8 L 110.0,210.8 L 113.0,212.5 L 116.0,213.9 L 119.0,215.1 L 122.0,216.0 L 125.0,216.7 L 128.0,217.1 L 131.0,217.2 L 134.0,217.0 L 137.0,216.6 L 140.0,216.0 L 143.0,215.0 L 146.0,213.8 L 149.0,212.3 L 152.0,210.6 L 155.0,208.6 L 158.0,206.3 L 161.0,203.8 L 164.0,201.0 L 167.0,197.9 L 170.0,194.6 L 173.0,191.0 L 176.0,187.2 L 179.0,183.0 L 182.0,178.6 L 185.0,174.0 L 188.0,169.1 L 191.0,163.9 L 194.0,158.4 L 197.0,152.7" fill="none" stroke="#222" stroke-width="1.5"/>
+  <path d="M 197.0,152.7 L 200.0,158.5 L 203.0,164.1 L 206.0,169.3 L 209.0,174.2 L 212.0,178.9 L 215.0,183.3 L 218.0,187.3 L 221.0,191.1 L 224.0,194.6 L 227.0,197.7 L 230.0,200.6 L 233.0,203.2 L 236.0,205.5 L 239.0,207.5 L 242.0,209.2 L 245.0,210.6 L 248.0,211.7 L 251.0,212.5 L 254.0,213.1 L 257.0,213.3 L 260.0,213.2 L 263.0,212.9 L 266.0,212.2 L 269.0,211.3 L 272.0,210.0 L 275.0,208.5 L 278.0,206.7 L 281.0,204.6 L 284.0,202.1 L 287.0,199.4 L 290.0,196.4 L 293.0,193.1 L 296.0,189.5 L 299.0,185.6 L 302.0,181.4 L 305.0,177.0 L 308.0,172.2 L 311.0,167.1 L 314.0,161.8 L 317.0,156.1" fill="none" stroke="#222" stroke-width="1.5"/>
+  <path d="M 317.0,156.1 L 320.0,161.6 L 323.0,166.8 L 326.0,171.7 L 329.0,176.4 L 332.0,180.9 L 335.0,185.0 L 338.0,189.0 L 341.0,192.6 L 344.0,196.1 L 347.0,199.2 L 350.0,202.1 L 353.0,204.7 L 356.0,207.1 L 359.0,209.3 L 362.0,211.1 L 365.0,212.7 L 368.0,214.1 L 371.0,215.2 L 374.0,216.0 L 377.0,216.6 L 380.0,217.0 L 383.0,217.0 L 386.0,216.9 L 389.0,216.4 L 392.0,215.7 L 395.0,214.8 L 398.0,213.6 L 401.0,212.1 L 404.0,210.4 L 407.0,208.4 L 410.0,206.1 L 413.0,203.7 L 416.0,200.9 L 419.0,197.9 L 422.0,194.6 L 425.0,191.1 L 428.0,187.3 L 431.0,183.3 L 434.0,179.0 L 437.0,174.5" fill="none" stroke="#222" stroke-width="1.5"/>
+  <text x="64" y="157" font-size="9.5" fill="#999" text-anchor="end">M&#8315;</text>
+  <text x="64" y="217" font-size="9.5" fill="#999" text-anchor="end">M&#8314;</text>
+
+  <circle cx="77" cy="174.5" r="3.2" fill="#2f7a4f"/>
+  <circle cx="137" cy="216.6" r="3.2" fill="#2f7a4f"/>
+  <circle cx="197" cy="152.7" r="3.2" fill="#2f7a4f"/>
+  <circle cx="257" cy="213.3" r="3.2" fill="#2f7a4f"/>
+  <circle cx="317" cy="156.1" r="3.2" fill="#2f7a4f"/>
+  <text x="84" y="167" font-size="8.5" fill="#555">w_u&#183;&#8467;n&#178;/24</text>
+  <text x="137" y="232" font-size="8.5" fill="#555" text-anchor="middle">w_u&#183;&#8467;n&#178;/14</text>
+  <text x="197" y="146" font-size="8.5" fill="#555" text-anchor="middle">w_u&#183;&#8467;n&#178;/10</text>
+  <text x="257" y="228" font-size="8.5" fill="#555" text-anchor="middle">w_u&#183;&#8467;n&#178;/16</text>
+  <text x="317" y="149" font-size="8.5" fill="#555" text-anchor="middle">w_u&#183;&#8467;n&#178;/11</text>
+
+  <text x="55" y="248" font-size="9.5" fill="#666">Corte a d de la cara, Tabla 22.5.5.1(c): V_u = {{V_u2:kN}} kN/m contra &#966;V_c = {{Rd_V2:kN}} kN/m,</text>
+  <text x="55" y="263" font-size="9.5" fill="#666">o sea uso {{u_V2}}. Con la expresi&#243;n previa a 318-19 ser&#237;an {{Rd_clas2:kN}} kN/m: la de hoy</text>
+  <text x="55" y="278" font-size="9.5" fill="#666">entrega el {{round(razon_v2*100, 0)}} % de aquella, y aun as&#237; el corte no decide nada.</text>
+
+  <!-- tabla de las cinco secciones -->
+  <text x="500" y="72" font-size="11.5" fill="#1a63a8" font-weight="bold">Lo que pide cada una, contra los {{A_smin2:mm^2}} mm&#178;/m del m&#237;nimo</text>
+  <text x="500" y="94" font-size="9.5" fill="#999">Secci&#243;n</text>
+  <text x="686" y="94" font-size="9.5" fill="#999" text-anchor="end">M_u (kN&#183;m/m)</text>
+  <text x="768" y="94" font-size="9.5" fill="#999" text-anchor="end">A_s (mm&#178;/m)</text>
+  <text x="822" y="94" font-size="9.5" fill="#999" text-anchor="end">manda</text>
+  <line x1="500" y1="100" x2="822" y2="100" stroke="#ddd" stroke-width="1"/>
+  <text x="500" y="118" font-size="9.5" fill="#444">M&#8315; cara int. del apoyo exterior</text>
+  <text x="686" y="118" font-size="9.5" fill="#444" text-anchor="end">{{M_ext2:kN*m}}</text>
+  <text x="768" y="118" font-size="9.5" fill="#444" text-anchor="end">{{As_ext2:mm^2}}</text>
+  <text x="822" y="118" font-size="9.5" fill="#2f7a4f" text-anchor="end">m&#237;nimo</text>
+  <text x="500" y="138" font-size="9.5" fill="#444">M&#8314; tramo extremo</text>
+  <text x="686" y="138" font-size="9.5" fill="#444" text-anchor="end">{{M_pos2:kN*m}}</text>
+  <text x="768" y="138" font-size="9.5" fill="#444" text-anchor="end">{{As_pos2:mm^2}}</text>
+  <text x="822" y="138" font-size="9.5" fill="#2f7a4f" text-anchor="end">m&#237;nimo</text>
+  <text x="500" y="158" font-size="9.5" fill="#222" font-weight="bold">M&#8315; 1.er apoyo interior</text>
+  <text x="686" y="158" font-size="9.5" fill="#222" text-anchor="end" font-weight="bold">{{M_int2:kN*m}}</text>
+  <text x="768" y="158" font-size="9.5" fill="#222" text-anchor="end" font-weight="bold">{{As_int2:mm^2}}</text>
+  <text x="822" y="158" font-size="9.5" fill="#2f7a4f" text-anchor="end" font-weight="bold">m&#237;nimo</text>
+  <text x="500" y="178" font-size="9.5" fill="#444">M&#8314; tramo interior</text>
+  <text x="686" y="178" font-size="9.5" fill="#444" text-anchor="end">{{M_posi2:kN*m}}</text>
+  <text x="768" y="178" font-size="9.5" fill="#444" text-anchor="end">{{As_posi2:mm^2}}</text>
+  <text x="822" y="178" font-size="9.5" fill="#2f7a4f" text-anchor="end">m&#237;nimo</text>
+  <text x="500" y="198" font-size="9.5" fill="#444">M&#8315; cara de los dem&#225;s apoyos</text>
+  <text x="686" y="198" font-size="9.5" fill="#444" text-anchor="end">{{M_otr2:kN*m}}</text>
+  <text x="768" y="198" font-size="9.5" fill="#444" text-anchor="end">{{As_otr2:mm^2}}</text>
+  <text x="822" y="198" font-size="9.5" fill="#2f7a4f" text-anchor="end">m&#237;nimo</text>
+  <line x1="500" y1="208" x2="822" y2="208" stroke="#ddd" stroke-width="1"/>
+  <text x="500" y="228" font-size="10" fill="#2f7a4f" font-weight="bold">Cinco de cinco: ni la peor llega al m&#237;nimo &#8212; pide el {{round(peor_2*100, 1)}} %.</text>
+  <text x="500" y="246" font-size="9.5" fill="#666">El c&#225;lculo de flexi&#243;n no coloca una sola barra: toda la losa</text>
+  <text x="500" y="261" font-size="9.5" fill="#666">se arma con la malla del 0,18 % de 7.6.1.1, arriba y abajo.</text>
+
+  <!-- ============ PANEL B ============ -->
+  <line x1="55" y1="294" x2="822" y2="294" stroke="#eee" stroke-width="1"/>
+  <text x="55" y="314" font-size="11.5" fill="#1a63a8" font-weight="bold">Lo &#250;nico que decide: la flecha posterior al montaje contra el espesor</text>
+
+  <line x1="92" y1="486" x2="472" y2="486" stroke="#333" stroke-width="1"/>
+  <line x1="92" y1="322" x2="92" y2="486" stroke="#333" stroke-width="1"/>
+  <g stroke="#333" stroke-width="0.8">
+    <line x1="92" y1="486" x2="92" y2="490"/><line x1="187" y1="486" x2="187" y2="490"/>
+    <line x1="282" y1="486" x2="282" y2="490"/><line x1="377" y1="486" x2="377" y2="490"/>
+    <line x1="472" y1="486" x2="472" y2="490"/>
+    <line x1="88" y1="486" x2="92" y2="486"/><line x1="88" y1="441" x2="92" y2="441"/>
+    <line x1="88" y1="396" x2="92" y2="396"/><line x1="88" y1="351" x2="92" y2="351"/>
+  </g>
+  <text x="92" y="502" font-size="8.5" fill="#888" text-anchor="middle">150</text>
+  <text x="187" y="502" font-size="8.5" fill="#888" text-anchor="middle">175</text>
+  <text x="282" y="502" font-size="8.5" fill="#888" text-anchor="middle">200</text>
+  <text x="377" y="502" font-size="8.5" fill="#888" text-anchor="middle">225</text>
+  <text x="472" y="502" font-size="8.5" fill="#888" text-anchor="middle">250</text>
+  <text x="282" y="518" font-size="10" fill="#444" text-anchor="middle">espesor h (mm)</text>
+  <text x="84" y="489" font-size="8.5" fill="#888" text-anchor="end">0</text>
+  <text x="84" y="444" font-size="8.5" fill="#888" text-anchor="end">10</text>
+  <text x="84" y="399" font-size="8.5" fill="#888" text-anchor="end">20</text>
+  <text x="84" y="354" font-size="8.5" fill="#888" text-anchor="end">30</text>
+  <text x="36" y="404" font-size="10" fill="#444" text-anchor="middle" transform="rotate(-90 36,404)">flecha (mm)</text>
+
+  <line x1="92" y1="{{y_lim:svg}}" x2="472" y2="{{y_lim:svg}}" stroke="#b02a1a" stroke-width="1.3" stroke-dasharray="6 4"/>
+  <text x="470" y="{{y_lim - 6:svg}}" font-size="9" fill="#b02a1a" text-anchor="end">&#8467;n/480 = {{lim_480:mm}} mm</text>
+  <line x1="{{x_cru:svg}}" y1="330" x2="{{x_cru:svg}}" y2="486" stroke="#2f7a4f" stroke-width="1" stroke-dasharray="3 3"/>
+  <text x="{{x_cru + 5:svg}}" y="336" font-size="8.5" fill="#2f7a4f">deja de fisurar</text>
+  <text x="{{x_cru + 5:svg}}" y="347" font-size="8.5" fill="#2f7a4f">h = {{h_cruce}} mm</text>
+
+  <polyline points="{{pts_fl:svg}}" fill="none" stroke="#1a63a8" stroke-width="2.2"/>
+
+  <circle cx="{{x_a:svg}}" cy="{{y_a:svg}}" r="5" fill="none" stroke="#b02a1a" stroke-width="2"/>
+  <text x="{{x_a + 11:svg}}" y="{{y_a - 20:svg}}" font-size="9.5" fill="#b02a1a" font-weight="bold">h = 170 mm &#8212; el tanteo</text>
+  <text x="{{x_a + 11:svg}}" y="{{y_a - 8:svg}}" font-size="9" fill="#b02a1a">{{fl_tot1:mm}} mm &#8212; uso {{u_fl1}} &#10007;</text>
+  <circle cx="{{x_b:svg}}" cy="{{y_b:svg}}" r="5" fill="none" stroke="#2f7a4f" stroke-width="2"/>
+  <line x1="{{x_b - 8:svg}}" y1="{{y_b + 4:svg}}" x2="{{x_b - 20:svg}}" y2="466" stroke="#2f7a4f" stroke-width="0.8"/>
+  <text x="{{x_b - 22:svg}}" y="466" font-size="9.5" fill="#2f7a4f" text-anchor="end" font-weight="bold">h = 210 mm &#8212; la adoptada</text>
+  <text x="{{x_b - 22:svg}}" y="478" font-size="9" fill="#2f7a4f" text-anchor="end">{{fl_tot2:mm}} mm &#8212; uso {{u_fl2}} &#10003;</text>
+
+  <rect x="508" y="322" width="314" height="176" rx="5" fill="#f4f7fb" stroke="#1a63a8" stroke-width="0.9"/>
+  <text x="520" y="342" font-size="10.5" fill="#222" font-weight="bold">Las lecturas que la norma no zanja</text>
+  <text x="520" y="360" font-size="9" fill="#999">uso contra &#8467;n/480</text>
+  <text x="712" y="360" font-size="9" fill="#999" text-anchor="end">I_e centro</text>
+  <text x="810" y="360" font-size="9" fill="#999" text-anchor="end">I_e promediado</text>
+  <line x1="520" y1="366" x2="810" y2="366" stroke="#dde" stroke-width="1"/>
+  <text x="520" y="383" font-size="9.5" fill="#b02a1a">h = 170, &#8467; = &#8467;n</text>
+  <text x="712" y="383" font-size="9.5" fill="#b02a1a" text-anchor="end">{{u_fl1}}</text>
+  <text x="810" y="383" font-size="9.5" fill="#b02a1a" text-anchor="end">{{u_fl1_6}}</text>
+  <text x="520" y="401" font-size="9.5" fill="#444">h = 200, &#8467; = &#8467;n</text>
+  <text x="712" y="401" font-size="9.5" fill="#2f7a4f" text-anchor="end">{{tabla_ejes[1,2]}}</text>
+  <text x="810" y="401" font-size="9.5" fill="#b02a1a" text-anchor="end">{{tabla_ejes[1,3]}}</text>
+  <text x="520" y="419" font-size="9.5" fill="#222" font-weight="bold">h = 210, &#8467; = &#8467;n = {{l_n:m}} m</text>
+  <text x="712" y="419" font-size="9.5" fill="#2f7a4f" text-anchor="end" font-weight="bold">{{u_fl2}}</text>
+  <text x="810" y="419" font-size="9.5" fill="#2f7a4f" text-anchor="end" font-weight="bold">{{u_fl2_6}}</text>
+  <text x="520" y="437" font-size="9.5" fill="#444">h = 210, &#8467; entre ejes {{l_ejes:m}} m</text>
+  <text x="712" y="437" font-size="9.5" fill="#b02a1a" text-anchor="end">{{tabla_ejes[2,4]}}</text>
+  <text x="810" y="437" font-size="9.5" fill="#b02a1a" text-anchor="end">{{tabla_ejes[2,5]}}</text>
+  <text x="520" y="455" font-size="9.5" fill="#444">h = 220, &#8467; entre ejes {{l_ejes:m}} m</text>
+  <text x="712" y="455" font-size="9.5" fill="#2f7a4f" text-anchor="end">{{tabla_ejes[3,4]}}</text>
+  <text x="810" y="455" font-size="9.5" fill="#2f7a4f" text-anchor="end">{{tabla_ejes[3,5]}}</text>
+  <line x1="520" y1="465" x2="810" y2="465" stroke="#dde" stroke-width="1"/>
+  <text x="520" y="481" font-size="9" fill="#555">Y el apoyo exterior: tomarlo con el K = {{K_14}} EI/L que</text>
+  <text x="520" y="492" font-size="9" fill="#555">da el w_u&#183;&#8467;n&#178;/14 de 6.5.2 baja la flecha un {{round(caida_K*100, 0)}} %.</text>
+
+  <!-- ============ banda de valores ============ -->
+  <line x1="55" y1="536" x2="822" y2="536" stroke="#ccc" stroke-width="1"/>
+  <text x="55" y="558" font-size="11" fill="#333">El tanteo de 17 cm reprueba por {{u_fl1}} veces, y tambi&#233;n contra el l&#237;mite m&#225;s blando de todos, &#8467;n/240 ({{u_fl1_240}}).</text>
+  <text x="55" y="578" font-size="11" fill="#333">La variable que hace hablar al ejemplo: I_e/I_g pasa de {{round(r_Ie1*100, 1)}} % en 17 cm a {{round(r_Ie2*100, 1)}} % en 21 cm, y la secci&#243;n casi deja de fisurar.</text>
+  <text x="55" y="598" font-size="11" fill="#333">Calculada con la secci&#243;n bruta, sin 24.2.3.5, esa misma losa de 17 cm dar&#237;a {{fl_tot1_g:mm}} mm y uso {{u_fl1_g}}: un factor {{factor_g}} del lado inseguro.</text>
+  <text x="55" y="618" font-size="11" fill="#b02a1a" font-weight="bold">Gobierna la losa de 21 cm: {{gobierna}} &#8212; uso m&#225;ximo {{u_max}}.</text>
+</svg>

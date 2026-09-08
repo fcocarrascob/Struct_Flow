@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 630" font-family="Segoe UI, Arial, sans-serif">
+  <!-- Esquema paramétrico de la planilla `gusset-esquina-apernado`.
+       Derivado de /gusset/esquina-reparto.svg (la figura del post, estática):
+       misma composición, pero los rótulos leen la hoja. El viewBox se estiró
+       hacia abajo para la banda de valores. -->
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#555"/>
+    </marker>
+    <marker id="rr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#c0392b"/>
+    </marker>
+    <marker id="gr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2c7a4b"/>
+    </marker>
+  </defs>
+  <rect width="880" height="630" fill="#ffffff"/>
+  <text x="440.0" y="26" font-size="15" text-anchor="middle" fill="#222" font-weight="bold">El gusset de esquina es indeterminado: el UFM es una elección, no una consecuencia</text>
+  <rect x="80.0" y="112.0" width="104.0" height="338.0" fill="#dcd8d0" stroke="#666" stroke-width="1.2"/>
+  <rect x="80.0" y="294.0" width="317.2" height="156.0" fill="#dcd8d0" stroke="#666" stroke-width="1.2"/>
+  <text x="371.2" y="377.2" font-size="9.5" text-anchor="end" fill="#555">viga H 600×300</text>
+  <text x="132.0" y="122.4" font-size="9.5" text-anchor="middle" fill="#555">columna H 400×200</text>
+  <line x1="59.2" y1="372.0" x2="397.2" y2="372.0" stroke="#aaa" stroke-width="0.7" stroke-dasharray="8 3 2 3"/>
+  <line x1="132.0" y1="470.8" x2="132.0" y2="112.0" stroke="#aaa" stroke-width="0.7" stroke-dasharray="8 3 2 3"/>
+  <polygon points="184.0,294.0 314.0,294.0 184.0,138.0" fill="#eef2f7" stroke="#333" stroke-width="1.8"/>
+  <line x1="132.0" y1="372.0" x2="303.6" y2="143.2" stroke="#888" stroke-width="0.9" stroke-dasharray="7 4"/>
+  <polygon points="186.6,266.7 291.1,127.3 322.3,150.7 217.8,290.1" fill="#dfe5ec" fill-opacity="0.9" stroke="#333" stroke-width="1.6"/>
+  <text x="319.2" y="122.4" font-size="10" fill="#222" font-weight="bold">□ {{B_x:mm}}×{{B_x:mm}}×{{t_x:mm}}</text>
+  <circle cx="216.2" cy="285.7" r="3.2" fill="#333"/>
+  <circle cx="191.3" cy="267.0" r="3.2" fill="#333"/>
+  <circle cx="227.2" cy="271.1" r="3.2" fill="#333"/>
+  <circle cx="202.2" cy="252.4" r="3.2" fill="#333"/>
+  <circle cx="238.1" cy="256.6" r="3.2" fill="#333"/>
+  <circle cx="213.1" cy="237.8" r="3.2" fill="#333"/>
+  <text x="282.8" y="304.4" font-size="9.5" fill="#222">{{n_p}} × M{{d_p:mm}}, corte doble</text>
+  <circle cx="249.0" cy="216.0" r="4.4" fill="#c0392b"/>
+  <line x1="132.0" y1="372.0" x2="249.0" y2="216.0" stroke="#c0392b" stroke-width="2"/>
+  <!-- Los tres rótulos que siguen caen sobre la diagonal: halo blanco para que
+       se lean sin moverlos del punto que nombran. -->
+  <text x="277.6" y="197.8" font-size="10.5" fill="#c0392b" font-weight="bold" paint-order="stroke" stroke="#fff" stroke-width="3" stroke-linejoin="round">(a, b) = ({{a_l:cm}}, {{b_l:cm}})</text>
+  <text x="277.6" y="210.8" font-size="9.5" fill="#c0392b" paint-order="stroke" stroke="#fff" stroke-width="3" stroke-linejoin="round">r = {{r_u:cm}} cm</text>
+  <circle cx="249.0" cy="294.0" r="3.4" fill="#1a63a8"/>
+  <circle cx="184.0" cy="216.0" r="3.4" fill="#1a63a8"/>
+  <line x1="132.0" y1="476.0" x2="184.0" y2="476.0" stroke="#1a63a8" stroke-width="0.9" marker-start="url(#ar)" marker-end="url(#ar)"/>
+  <text x="158.0" y="469.0" font-size="10" text-anchor="middle" fill="#1a63a8" font-weight="bold">e_c = {{e_c:cm}}</text>
+  <line x1="184.0" y1="476.0" x2="249.0" y2="476.0" stroke="#1a63a8" stroke-width="0.9" marker-start="url(#ar)" marker-end="url(#ar)"/>
+  <text x="216.5" y="469.0" font-size="10" text-anchor="middle" fill="#1a63a8" font-weight="bold">α = {{alfa:cm}}</text>
+  <line x1="412.8" y1="372.0" x2="412.8" y2="294.0" stroke="#1a63a8" stroke-width="0.9" marker-start="url(#ar)" marker-end="url(#ar)"/>
+  <text x="446.8" y="333.0" font-size="10" text-anchor="end" fill="#1a63a8" font-weight="bold">e_b = {{e_b:cm}}</text>
+  <line x1="412.8" y1="294.0" x2="412.8" y2="216.0" stroke="#1a63a8" stroke-width="0.9" marker-start="url(#ar)" marker-end="url(#ar)"/>
+  <text x="446.8" y="255.0" font-size="10" text-anchor="end" fill="#1a63a8" font-weight="bold">β = {{beta:cm}}</text>
+  <line x1="184.0" y1="281.0" x2="314.0" y2="281.0" stroke="#2c7a4b" stroke-width="0.9" marker-start="url(#ar)" marker-end="url(#ar)"/>
+  <text x="249.0" y="274.0" font-size="10" text-anchor="middle" fill="#2c7a4b" font-weight="bold" paint-order="stroke" stroke="#fff" stroke-width="3" stroke-linejoin="round">L_b = {{L_b:cm}}</text>
+  <line x1="163.2" y1="294.0" x2="163.2" y2="138.0" stroke="#2c7a4b" stroke-width="0.9" marker-start="url(#ar)" marker-end="url(#ar)"/>
+  <text x="159.2" y="216.0" font-size="10" text-anchor="end" fill="#2c7a4b" font-weight="bold">L_c = {{L_c:cm}}</text>
+  <text x="40" y="502" font-size="10.5" fill="#c0392b" font-weight="bold">La condición geométrica del UFM, dicha con un dibujo: el punto (a, b) cae SOBRE el eje de la diagonal.</text>
+  <text x="40" y="522" font-size="9.5" fill="#666">Es lo mismo que tan θ = (α+e_c)/(β+e_b) = {{geo}} = {{tan_t}}. Si no se cumple, aparece un momento en las interfaces y hay que superponerlo.</text>
+  <text x="40" y="540" font-size="9.5" fill="#666">Con ella cumplida, ΣM se reduce a α·V_c = β·V_b — y quedan 3 ecuaciones para 4 incógnitas.</text>
+  <text x="468" y="56" font-size="12" fill="#1a63a8" font-weight="bold">B · Tres cierres, los tres en equilibrio</text>
+  <text x="468" y="72" font-size="10" fill="#666">P = {{P:tonf}} tonf · Px = {{Px:tonf}} · Py = {{Py:tonf}} tonf</text>
+  <text x="468" y="100" font-size="9.5" fill="#666" font-weight="bold">Cierre</text>
+  <text x="668" y="100" font-size="9.5" text-anchor="end" fill="#666" font-weight="bold">V_b</text>
+  <text x="722" y="100" font-size="9.5" text-anchor="end" fill="#666" font-weight="bold">N_b</text>
+  <text x="776" y="100" font-size="9.5" text-anchor="end" fill="#666" font-weight="bold">N_c</text>
+  <text x="830" y="100" font-size="9.5" text-anchor="end" fill="#666" font-weight="bold">V_c</text>
+  <line x1="468" y1="106" x2="836" y2="106" stroke="#dcd8d0" stroke-width="1"/>
+  <text x="468" y="124" font-size="9.5" fill="#666" font-weight="normal">A · KISS (V→viga, H→columna)</text>
+  <text x="668" y="124" font-size="10" text-anchor="end" fill="#666" font-weight="normal">{{VbA:tonf}}</text>
+  <text x="722" y="124" font-size="10" text-anchor="end" fill="#666" font-weight="normal">{{NbA:tonf}}</text>
+  <text x="776" y="124" font-size="10" text-anchor="end" fill="#666" font-weight="normal">{{NcA:tonf}}</text>
+  <text x="830" y="124" font-size="10" text-anchor="end" fill="#666" font-weight="normal">{{VcA:tonf}}</text>
+  <text x="834" y="139" font-size="9" text-anchor="end" fill="#2c7a4b">ΣFx = ΣFy = ΣM = 0 ✓</text>
+  <text x="468" y="164" font-size="9.5" fill="#c0392b" font-weight="bold">B · UFM (P/r por su brazo)</text>
+  <text x="668" y="164" font-size="10" text-anchor="end" fill="#c0392b" font-weight="bold">{{VbB:tonf}}</text>
+  <text x="722" y="164" font-size="10" text-anchor="end" fill="#c0392b" font-weight="bold">{{NbB:tonf}}</text>
+  <text x="776" y="164" font-size="10" text-anchor="end" fill="#c0392b" font-weight="bold">{{NcB:tonf}}</text>
+  <text x="830" y="164" font-size="10" text-anchor="end" fill="#c0392b" font-weight="bold">{{VcB:tonf}}</text>
+  <text x="834" y="179" font-size="9" text-anchor="end" fill="#2c7a4b">ΣFx = ΣFy = ΣM = 0 ✓</text>
+  <text x="468" y="204" font-size="9.5" fill="#666" font-weight="normal">C · resultantes al punto de trabajo</text>
+  <text x="668" y="204" font-size="10" text-anchor="end" fill="#666" font-weight="normal">{{VbC:tonf}}</text>
+  <text x="722" y="204" font-size="10" text-anchor="end" fill="#666" font-weight="normal">{{NbC:tonf}}</text>
+  <text x="776" y="204" font-size="10" text-anchor="end" fill="#666" font-weight="normal">{{NcC:tonf}}</text>
+  <text x="830" y="204" font-size="10" text-anchor="end" fill="#666" font-weight="normal">{{VcC:tonf}}</text>
+  <text x="834" y="219" font-size="9" text-anchor="end" fill="#2c7a4b">ΣFx = ΣFy = ΣM = 0 ✓</text>
+  <rect x="468" y="248" width="368" height="94" fill="#c0392b" fill-opacity="0.07" stroke="#c0392b" stroke-width="1.4"/>
+  <text x="652" y="268" font-size="11.5" text-anchor="middle" fill="#222" font-weight="bold">Lo que distingue al UFM</text>
+  <text x="652" y="288" font-size="12" text-anchor="middle" fill="#c0392b" font-weight="bold">V_b/L_b = V_c/L_c = P/(2r) = {{q_t:tonf/cm}} tonf/cm</text>
+  <text x="478" y="306" font-size="9.5" fill="#666">Los <tspan font-weight="bold">tres</tspan> cierres igualan el flujo entre interfaces: esa igualdad</text>
+  <text x="478" y="319" font-size="9.5" fill="#666"><tspan font-style="italic">es</tspan> la ecuación de momento (α·V_c = β·V_b con L_b = 2α, L_c = 2β).</text>
+  <text x="478" y="332" font-size="9.5" fill="#666">Lo propio del UFM es su <tspan font-weight="bold">valor</tspan>, P/(2r) — o el reparto N_b/V_b = e_b/α.</text>
+  <rect x="468" y="358" width="368" height="62" fill="#c07a00" fill-opacity="0.09" stroke="#c07a00" stroke-width="1.2"/>
+  <text x="478" y="376" font-size="10.5" fill="#c07a00" font-weight="bold">Envolvente de los tres (lo que se diseña)</text>
+  <text x="478" y="392" font-size="10.5" fill="#222" font-weight="bold">V_b = {{Vb:tonf}}  N_b = {{Nb:tonf}}  N_c = {{Nc:tonf}}  V_c = {{Vc:tonf}} tonf</text>
+  <text x="478" y="410" font-size="9.5" fill="#c0392b">No está en equilibrio: es una cota de diseño, no un estado.</text>
+
+  <!-- banda de valores vivos: lo que la hoja calcula, bajo el dibujo -->
+  <line x1="40" y1="556" x2="840" y2="556" stroke="#dcd8d0" stroke-width="1"/>
+  <text x="40" y="572" font-size="10" fill="#333">Demanda T_req = {{T_req:tonf}} tonf — manda el techo min(T_ye, 0,7·R₁·P_E) = {{T_techo:tonf}} sobre el piso 0,5·T_ye = {{T_piso:tonf}} tonf</text>
+  <text x="40" y="588" font-size="10" fill="#1a63a8">Whitmore b_w = {{b_w:cm}} cm · pandeo de Thornton con L_máx = {{L_mx:cm}} cm → esbeltez {{esb_g}} y φR_n = {{Rd_pan:tonf}} tonf</text>
+  <text x="40" y="604" font-size="10" fill="#c07a00">Las interfaces, con la envolvente: viga {{int_b}} · columna {{int_c}} (interacción cuadrática, ≤ 1)</text>
+  <text x="40" y="620" font-size="10" fill="#c0392b" font-weight="bold">Usos: pandeo {{u_pan}} · Whitmore {{u_flu}} · pernos {{u_cor}} · rotura {{u_rot}} · alma de la viga {{u_jb}} → máx {{u_max}}</text>
+</svg>
