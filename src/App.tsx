@@ -1,4 +1,5 @@
 import MathCanvas from './components/canvas/MathCanvas';
+import ErrorBoundary from './components/ErrorBoundary';
 
 /**
  * El chrome de la aplicación: el encabezado y la ayuda que en struct_pad vivían
@@ -20,7 +21,9 @@ export default function App() {
       </header>
 
       <div className="h-[70vh] w-full overflow-hidden rounded-lg border border-border bg-white">
-        <MathCanvas />
+        <ErrorBoundary>
+          <MathCanvas />
+        </ErrorBoundary>
       </div>
 
       <p className="mt-3 text-xs text-muted">

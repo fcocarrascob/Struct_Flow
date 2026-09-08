@@ -29,8 +29,14 @@ function loadInitial(): Region[] {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const data = JSON.parse(raw);
+      // Si lo guardado es la hoja de ejemplo sin tocar, se devuelve DEMO por
+      // referencia: así el autoguardado la sigue reconociendo y no empieza a
+      // contarla como trabajo del usuario a partir de la segunda visita.
+      if (data?.demo) return DEMO;
       if (Array.isArray(data?.regions)) {
-        return (data.regions as Region[]).filter((r) => r.src.trim() !== '');
+        // Saneadas también aquí: el localStorage puede traer una hoja escrita
+        // por una versión anterior, o a medio escribir.
+        return sanearRegiones(data.regions).filter((r) => r.src.trim() !== '');
       }
     }
   } catch {
@@ -42,28 +48,89 @@ function loadInitial(): Region[] {
 const newId = () => `r${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
 /**
+ * Quita el parámetro de deep-link de la URL, ya consumido.
+ *
+ * Si se queda, recargar la página media hora después vuelve a dispararlo y
+ * ofrece reemplazar la hoja por la planilla original — con el mismo diálogo que
+ * el usuario ya aceptó al entrar, y sin deshacer al que recurrir.
+ */
+function limpiarDeepLink(param: string): void {
+  const url = new URL(window.location.href);
+  if (!url.searchParams.has(param)) return;
+  url.searchParams.delete(param);
+  window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+}
+
+/**
  * ¿Hay trabajo guardado que un deep-link estaría a punto de pisar? Se consulta
  * el `localStorage` y no el estado, porque los deep-links corren en el primer
  * render, antes de que el usuario haya tocado nada.
+ *
+ * La hoja de ejemplo no cuenta. El autoguardado la persiste a los 300 ms de
+ * montar, antes de que el `fetch` del deep-link llegue hasta aquí, así que sin
+ * esta salvedad el diálogo de reemplazo salía SIEMPRE — incluso en una hoja que
+ * el usuario no había tocado, que es justo lo que se quería evitar.
  */
 function hasStoredWork(): boolean {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     const data = raw ? JSON.parse(raw) : null;
-    return Array.isArray(data?.regions) && data.regions.some((r: Region) => r.src?.trim());
+    if (!Array.isArray(data?.regions)) return false;
+    if (data.demo) return false;
+    return data.regions.some((r: Region) => r.src?.trim());
   } catch {
     return false;
   }
 }
 
+const KINDS: ReadonlySet<string> = new Set(['math', 'text', 'program', 'image']);
+
 /**
- * ¿Tiene forma de hoja del canvas? Es todo lo que se exige para cargarla: un
- * `regions` que sea array. Las regiones malformadas de dentro las delata el
- * motor con un error visible en su región, que es mejor que un rechazo opaco
- * del archivo entero.
+ * ¿Es una región utilizable? Hay que comprobarlo de verdad, región por región:
+ * el motor NO delata las malformadas con un error en su región, como se creía.
+ * `evaluateSheet` hace `region.src.trim()` sin red, así que una entrada sin
+ * `src` lanza dentro del `useMemo` de render y, sin ErrorBoundary, React
+ * desmonta la raíz y deja la pantalla en blanco. Y la vía principal de entrada
+ * es pegar el JSON que acaba de escribir un chat.
  */
-function esHoja(data: unknown): data is { regions: Region[]; meta?: { titulo?: string } } {
-  return Array.isArray((data as { regions?: unknown } | null)?.regions);
+function esRegion(r: unknown): r is Region {
+  if (!r || typeof r !== 'object') return false;
+  const c = r as Partial<Region>;
+  return (
+    typeof c.src === 'string' &&
+    typeof c.kind === 'string' &&
+    KINDS.has(c.kind) &&
+    Number.isFinite(c.x) &&
+    Number.isFinite(c.y)
+  );
+}
+
+/**
+ * ¿Tiene forma de hoja del canvas? Se exige un `regions` que sea array y que
+ * al menos una de sus entradas sea una región válida; las inservibles se
+ * descartan luego en `sanearRegiones`. Rechazar el archivo entero por una
+ * región mala sería peor que perder esa región.
+ */
+function esHoja(data: unknown): data is { regions: unknown[]; meta?: { titulo?: string } } {
+  const regions = (data as { regions?: unknown } | null)?.regions;
+  return Array.isArray(regions) && (regions.length === 0 || regions.some(esRegion));
+}
+
+/**
+ * Deja una lista de regiones utilizable: descarta las malformadas y **reasigna
+ * los ids**.
+ *
+ * Los ids repetidos son frecuentes en el JSON que genera un chat, y comparten
+ * entrada en `results` (que es un Record por id): las dos regiones muestran el
+ * mismo resultado, comparten `key` de React y `updateRegion` las edita a la vez.
+ */
+function sanearRegiones(regions: unknown[]): Region[] {
+  const vistos = new Set<string>();
+  return regions.filter(esRegion).map((r) => {
+    const id = r.id && !vistos.has(r.id) ? r.id : newId();
+    vistos.add(id);
+    return { ...r, id };
+  });
 }
 
 /**
@@ -74,7 +141,7 @@ function esHoja(data: unknown): data is { regions: Region[]; meta?: { titulo?: s
  * los ```json vienen pegados al JSON más veces de las que no. Rechazarlo por eso
  * sería un no gratuito.
  */
-function parsearHoja(text: string): { regions: Region[]; meta?: { titulo?: string } } | null {
+function parsearHoja(text: string): { regions: unknown[]; meta?: { titulo?: string } } | null {
   let limpio = text.trim();
   const valla = /^```[a-z]*\s*\n([\s\S]*?)\n?\s*```$/i.exec(limpio);
   if (valla) limpio = valla[1].trim();
@@ -196,9 +263,10 @@ export default function MathCanvas() {
       ) {
         return false;
       }
-      // Se clonan las regiones: una plantilla de la galería es un objeto
-      // compartido y editarla en la hoja no debe mutarlo.
-      setRegions(data.regions.map((r) => ({ ...r })));
+      // `sanearRegiones` clona (una plantilla de la galería es un objeto
+      // compartido y editarla en la hoja no debe mutarlo), descarta las
+      // malformadas y reasigna los ids repetidos.
+      setRegions(sanearRegiones(data.regions));
       setSelected(new Set());
       setActiveId(null);
       setInsertAt(null);
@@ -214,6 +282,7 @@ export default function MathCanvas() {
     const tpl = TEMPLATES.find((t) => t.id === id);
     if (!tpl) return;
     cargarHoja(tpl, { titulo: tpl.titulo, hayTrabajo: hasStoredWork() });
+    limpiarDeepLink('plantilla');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -233,9 +302,10 @@ export default function MathCanvas() {
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
       .then((data) => {
         if (cancelled) return;
-        if (!Array.isArray(data?.regions)) throw new Error('formato inválido');
+        if (!esHoja(data)) throw new Error('formato inválido');
         const titulo = typeof data?.meta?.titulo === 'string' ? data.meta.titulo : slug;
         cargarHoja(data, { titulo, hayTrabajo: hasStoredWork() });
+        limpiarDeepLink('planilla');
       })
       .catch(() => {
         if (!cancelled) alert(`No se pudo cargar la planilla «${slug}».`);
@@ -257,7 +327,13 @@ export default function MathCanvas() {
         // Las regiones vacías son transitorias (se borran al salir de edición):
         // no se persisten por si la página se cierra con una a medio crear.
         const persistable = regions.filter((r) => r.src.trim() !== '');
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, regions: persistable }));
+        // Se marca la hoja de ejemplo intacta para que `hasStoredWork` no la
+        // confunda con trabajo del usuario (ver el comentario de esa función).
+        const demo = regions === DEMO;
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({ version: 1, regions: persistable, ...(demo ? { demo: true } : {}) }),
+        );
         setStorageWarn(null);
       } catch (err) {
         const quota =
