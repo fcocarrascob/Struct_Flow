@@ -6,26 +6,41 @@ cada uno. Están ordenados por relación valor/esfuerzo, no por gravedad.
 Lo que sí se arregló ese día está en el historial: el generador de LaTeX (subíndices,
 nombres de función, griegas), la robustez al cargar hojas y el panel de variables.
 
-## 1. Rendimiento: se reevalúa la hoja entera en cada tecla y en cada píxel de arrastre
+## 1. Rendimiento — hecho en lo esencial, queda el motor
 
-`MathCanvas.tsx` — `useMemo(() => evaluateSheet(regions), [regions])`. Cada pulsación crea
-un array nuevo, así que se reevalúan con mathjs las ~250 expresiones (parse + toTex +
-evaluate, más `runProgram`). No hay un solo `React.memo` en el proyecto, de modo que además
-se vuelven a renderizar las 250 `MathRegion` y las 250 filas de `WorksheetPrint`.
+**Resuelto** (medido sobre `muro-flexocompresion`, 646 regiones, la planilla más pesada):
 
-Lo peor es el arrastre: `MathRegion` llama `onMove` en **cada `pointermove`** (60-120 Hz)
-y dispara ese mismo ciclo completo. Mover un bloque en `chevron-nch2369` (308 regiones) es
-muy lento.
+| | antes | después |
+|---|---:|---:|
+| por `pointermove` de un arrastre | 3.729 ms | 22 ms |
+| por pulsación de tecla | 4.571 ms | 18 ms |
+| `evaluateSheet` completo | 4.317 ms | ~1.400 ms |
+| `npm run verify:planillas` | 8,8 s | 3,2 s |
 
-Relacionado: `EsquemaImpreso` rehace el `fetch` del SVG en cada tecla, porque su efecto
-depende de `scope`, que `evaluateSheet` construye como objeto nuevo en cada evaluación. Y
-`usePaginacion` mide los ~250 nodos del documento impreso cada 250 ms de escritura, con
-`getBoundingClientRect` — un layout síncrono forzado. Como el temporizador se reinicia con
-cada tecla, durante una ráfaga la paginación **nunca** se actualiza: el contador de páginas
-queda obsoleto justo mientras se edita.
+Cuatro cambios: evaluación aplazada 120 ms (una evaluación por ráfaga en vez de una por
+evento), `React.memo` en `MathRegion`, caché de expresiones parseadas, y scope heredado por
+prototipo en lugar de copiado en cada llamada a función.
 
-*Coste*: medio. `React.memo` en `MathRegion` y arrastre con estado local (confirmando solo
-en `pointerup`) resuelven la mitad. Es el mayor salto de calidad percibida que queda.
+**Lo que queda.** `evaluateSheet` sigue costando ~1,4 s en esa planilla y **escala peor que
+lineal**: al doblar el número de regiones el tiempo se multiplica por ~4,5. El coste está
+casi entero en las regiones `program` — quitándolas, la misma hoja se evalúa en 14 ms.
+
+La causa es la forma de esas planillas: `c_de_Pn` hace una bisección de 60 iteraciones y en
+cada vuelta llama a `P_n`, que a su vez recorre las capas. Son decenas de miles de llamadas
+a `node.evaluate(scope)` por evaluación de la hoja.
+
+La sospecha para el siguiente paso es que math.js normaliza el objeto de scope en **cada**
+`evaluate`, lo que volvería a hacer el coste proporcional al número de variables. Si se
+confirma, la vía es llevar el scope como `Map`, que es la estructura que math.js prefiere.
+No se pudo comprobar en esta sesión porque math.js no se deja importar suelto desde el
+navegador para medirlo aislado; hay que instrumentarlo desde Node.
+
+Sigue pendiente aparte, y es barato: `EsquemaImpreso` rehace el `fetch` del SVG cada vez que
+cambia `scope`, que `evaluateSheet` construye como objeto nuevo en cada evaluación. Y
+`usePaginacion` mide los ~250 nodos del documento impreso con `getBoundingClientRect`
+(layout síncrono forzado); como su temporizador se reinicia con cada tecla, durante una
+ráfaga de escritura la paginación **nunca** se actualiza y el contador de páginas queda
+obsoleto justo mientras se edita.
 
 ## 2. No hay deshacer
 

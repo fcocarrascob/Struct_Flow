@@ -12,7 +12,7 @@
 // Las dependencias entre regiones son implícitas por nombre de variable y se
 // resuelven en orden de lectura: arriba→abajo, izquierda→derecha (como SMath).
 
-import { create, all } from 'mathjs';
+import { create, all, type MathNode } from 'mathjs';
 import { parseProgram, runProgram, type ProgramContext } from './program';
 
 const math = create(all, {});
@@ -58,6 +58,34 @@ math.import(
 
 /** Tope de iteraciones por programa (anti-bucle-infinito; evita colgar la pestaña). */
 const MAX_ITERS = 100_000;
+
+/**
+ * Expresiones ya parseadas, por texto.
+ *
+ * `math.evaluate(expr, scope)` parsea la expresión CADA vez que se la llama, y
+ * `program.ts` la invoca por sentencia y por vuelta de bucle: un bucle de mil
+ * iteraciones reparseaba mil veces las mismas expresiones. Medido sobre
+ * `muro-flexocompresion`, sus 28 regiones `program` costaban el 99 % del tiempo
+ * de evaluar la hoja (4,3 s de 4,3 s; sin ellas, 30 ms).
+ *
+ * El árbol que devuelve `math.parse` no guarda estado entre evaluaciones —el
+ * scope va como argumento—, así que reutilizarlo es seguro.
+ */
+const nodeCache = new Map<string, MathNode>();
+
+/** Tope de la caché: una hoja tiene pocas expresiones distintas, pero al teclear se generan variantes. */
+const NODE_CACHE_MAX = 5_000;
+
+/** Evalúa una expresión reutilizando su árbol ya parseado. */
+function evalCached(expr: string, scope: Record<string, unknown>): unknown {
+  let node = nodeCache.get(expr);
+  if (!node) {
+    node = math.parse(expr) as MathNode;
+    if (nodeCache.size >= NODE_CACHE_MAX) nodeCache.clear();
+    nodeCache.set(expr, node);
+  }
+  return node.evaluate(scope);
+}
 
 export type RegionKind = 'math' | 'text' | 'program' | 'image';
 
@@ -343,7 +371,7 @@ export function evaluateSheet(regions: Region[]): SheetResults {
     .sort((a, b) => a.y - b.y || a.x - b.x);
 
   const ctx: ProgramContext = {
-    evaluate: (expr, s) => math.evaluate(expr, s),
+    evaluate: (expr, s) => evalCached(expr, s),
     maxIters: MAX_ITERS,
   };
 
@@ -382,7 +410,7 @@ export function evaluateSheet(regions: Region[]): SheetResults {
     }
 
     try {
-      let value = math.evaluate(parsed.expr, scope);
+      let value = evalCached(parsed.expr, scope);
       if (parsed.targetUnit) {
         if (!math.isUnit(value)) throw new Error(`El resultado no tiene unidades, no se puede convertir a ${parsed.targetUnit}`);
         value = value.to(parsed.targetUnit);
@@ -399,7 +427,7 @@ export function evaluateSheet(regions: Region[]): SheetResults {
       const isBool = typeof value === 'boolean';
       if (isBool && parsed.showResult) {
         // `tex` es la comparación renderizada; el veredicto ✓/✗ lo pinta MathRegion.
-        results[region.id] = { tex, bool: value, define };
+        results[region.id] = { tex, bool: value as boolean, define };
       } else {
         if (!isBool && parsed.showResult && tex !== undefined) {
           tex += `=${resultToTex(value)}`;
@@ -437,7 +465,15 @@ function evalProgramRegion(
     // El closure captura el scope vivo: ve las variables de la hoja al llamarse
     // (y permite recursión, pues `name` ya está en el scope).
     scope[name] = (...args: unknown[]) => {
-      const local = { ...scope };
+      // Hereda del scope en vez de copiarlo: O(1) en lugar de O(nº variables),
+      // y la semántica es la misma —se lee lo de la hoja, se escribe aquí, y
+      // las variables internas no la contaminan.
+      //
+      // No es un detalle: estas funciones se llaman desde bucles anidados
+      // (`c_de_Pn` itera 60 veces y en cada vuelta llama a `P_n`, que recorre
+      // las capas), así que copiar el scope entero se pagaba decenas de miles
+      // de veces por evaluación de la hoja.
+      const local: Record<string, unknown> = Object.create(scope);
       params.forEach((p, i) => {
         local[p] = args[i];
       });
@@ -448,7 +484,10 @@ function evalProgramRegion(
   }
 
   try {
-    const value = runProgram(prog.body, { ...scope }, ctx, { n: 0 });
+    // Igual que en el closure de arriba: hereda del scope en vez de copiarlo.
+    const value = runProgram(prog.body, Object.create(scope) as Record<string, unknown>, ctx, {
+      n: 0,
+    });
     if (prog.name) scope[prog.name] = value;
     let tex: string | undefined;
     if (value !== undefined) {

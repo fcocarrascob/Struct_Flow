@@ -201,7 +201,27 @@ export default function MathCanvas() {
     regionsRef.current = regions;
   }, [regions]);
 
-  const results = useMemo(() => evaluateSheet(regions), [regions]);
+  /**
+   * Las regiones sobre las que se evalúa, un paso por detrás de las que se
+   * editan.
+   *
+   * `evaluateSheet` vuelve a parsear y evaluar la hoja ENTERA con math.js, y en
+   * una planilla real eso son ~4 s. Colgado directamente de `regions` se
+   * disparaba en cada pulsación y en cada `pointermove` de un arrastre (60-120
+   * veces por segundo), que es lo que volvía inusables las planillas grandes.
+   *
+   * Con el aplazamiento, una ráfaga de tecleo o un arrastre completo cuestan
+   * UNA evaluación en vez de una por evento. El precio es que el resultado va
+   * hasta 120 ms por detrás del texto — que es como se comporta cualquier hoja
+   * de cálculo, y muy por debajo del umbral en el que se nota.
+   */
+  const [regionsEval, setRegionsEval] = useState(regions);
+  useEffect(() => {
+    const t = setTimeout(() => setRegionsEval(regions), 120);
+    return () => clearTimeout(t);
+  }, [regions]);
+
+  const results = useMemo(() => evaluateSheet(regionsEval), [regionsEval]);
 
   // Dónde cae cada corte de A4 al imprimir. Se mide el documento de impresión,
   // que es lineal y distinto de este plano 2D: por eso el corte se anuncia

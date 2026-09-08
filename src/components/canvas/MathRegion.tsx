@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import katex from 'katex';
 import type { Region, RegionResult } from '../../lib/worksheet';
 import { renderEsquema, ESQUEMAS_PREFIX } from '../../lib/esquema';
@@ -87,7 +87,7 @@ function Katex({ tex }: { tex: string }) {
   return <span ref={ref} />;
 }
 
-export default function MathRegion({
+function MathRegion({
   region,
   result,
   active,
@@ -287,3 +287,32 @@ export default function MathRegion({
     </div>
   );
 }
+
+/**
+ * Una hoja real tiene ~650 regiones, y cualquier cambio en una —mover un
+ * bloque, teclear en otra— cambiaba la identidad del array y volvía a
+ * renderizarlas TODAS, con su KaTeX incluido. Memoizada, solo se rehace la que
+ * de verdad cambió.
+ *
+ * La comparación mira los datos y no los callbacks a propósito: varios llegan
+ * como funciones nuevas en cada render (`onResize={(w,h) => updateRegion(r.id,
+ * …)}`), lo que dejaría la memoización sin efecto. Ignorarlos es seguro porque
+ * todos se apoyan en `updateRegion`, que es estable, y en el `id` de la región,
+ * que no cambia mientras la región exista: una versión anterior del callback
+ * hace exactamente lo mismo que la nueva.
+ */
+export default memo(MathRegion, (a, b) => {
+  const x = a.region;
+  const y = b.region;
+  return (
+    x === y ||
+    (x.id === y.id &&
+      x.x === y.x &&
+      x.y === y.y &&
+      x.src === y.src &&
+      x.kind === y.kind &&
+      x.w === y.w &&
+      x.h === y.h &&
+      x.pageBreak === y.pageBreak)
+  ) && a.result === b.result && a.active === b.active && a.selected === b.selected;
+});
