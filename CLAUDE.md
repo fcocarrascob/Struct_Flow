@@ -78,6 +78,18 @@ motor, extiende los módulos puros y mantén los componentes React delgados.
 - **Un solo scope de mathjs.** Hoja y esquema comparten instancia: las unidades locales
   (`tonf`) y los objetos `Unit` del scope no sobreviven a dos instancias distintas. Por eso
   el punto de entrada de Node es `planilla-engine.ts` y no `worksheet.ts` directamente.
+- **`nombreTex` es la única autoridad sobre nombre → LaTeX.** Los tres caminos que dibujan
+  un identificador —el lado izquierdo de una definición, los símbolos de una expresión y los
+  nombres de función dentro de `\mathrm{}`— tienen que salir por ella. Cuando cada uno se
+  las arreglaba por su cuenta, el corpus acumuló 11 regiones en rojo y unas 250 impresas mal
+  en silencio.
+
+  Los segmentos de un nombre se unen con **coma en un único subíndice plano**
+  (`A_s_min` → `A_{s,min}`), nunca con `_`: un `_` crudo dentro de un subíndice vuelve a ser
+  un subíndice para KaTeX, y con dos ya es un «doble subíndice», que es sintaxis inválida.
+  Plano y no anidado también porque no crece en altura, y los cortes de página están
+  calibrados al píxel. Y las llaves alrededor no son decorativas: sin ellas, un `\cdot`
+  pegado al nombre se lee como el comando inexistente `\cdotM`.
 
 ## Planillas
 
