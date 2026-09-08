@@ -104,6 +104,16 @@ export interface RegionResult {
   /** Mensaje de error (sintaxis, variable indefinida, unidad incoherente...). */
   error?: string;
   /**
+   * Variable o función que esta región define, ya formateada para mostrar.
+   * Lo consume el panel de inspección: recorriendo los resultados obtiene la
+   * lista de variables de la hoja y, de paso, en qué región se define cada una.
+   *
+   * Va aquí y no en un segundo valor de retorno de `evaluateSheet` para no
+   * cambiar su firma: `SheetResults` sigue siendo un Record por id de región y
+   * `verify-planilla.mjs` y `planilla-engine.ts` no se enteran.
+   */
+  define?: { nombre: string; valor: string; esFuncion?: boolean };
+  /**
    * Solo `image`: instantánea del scope en la posición de lectura de la región.
    * Es lo que consume el esquema paramétrico (`esquema.ts`): la imagen ve las
    * variables definidas más arriba/izquierda, igual que una región math.
@@ -379,15 +389,22 @@ export function evaluateSheet(regions: Region[]): SheetResults {
       }
       if (parsed.varName) scope[parsed.varName] = value;
 
+      // Para el panel de inspección: qué define esta región, ya formateado.
+      // `parsed.targetUnit` ya se aplicó arriba, así que el valor se muestra en
+      // la unidad que pidió el autor y no en la interna de math.js.
+      const define = parsed.varName
+        ? { nombre: parsed.varName, valor: formatValor(value) }
+        : undefined;
+
       const isBool = typeof value === 'boolean';
       if (isBool && parsed.showResult) {
         // `tex` es la comparación renderizada; el veredicto ✓/✗ lo pinta MathRegion.
-        results[region.id] = { tex, bool: value };
+        results[region.id] = { tex, bool: value, define };
       } else {
         if (!isBool && parsed.showResult && tex !== undefined) {
           tex += `=${resultToTex(value)}`;
         }
-        results[region.id] = { tex };
+        results[region.id] = { tex, define };
       }
     } catch (err) {
       results[region.id] = { tex, error: errMsg(err) };
@@ -426,7 +443,8 @@ function evalProgramRegion(
       });
       return runProgram(body, local, ctx, { n: 0 });
     };
-    return { defined: `${name}(${params.join(', ')})` };
+    const firma = `${name}(${params.join(', ')})`;
+    return { defined: firma, define: { nombre: name, valor: firma, esFuncion: true } };
   }
 
   try {
@@ -437,7 +455,10 @@ function evalProgramRegion(
       const lhs = prog.name ? `${symbolTex(prog.name)}=` : '';
       tex = lhs + resultToTex(value);
     }
-    return { tex };
+    return {
+      tex,
+      define: prog.name ? { nombre: prog.name, valor: formatValor(value) } : undefined,
+    };
   } catch (err) {
     return { error: errMsg(err) };
   }

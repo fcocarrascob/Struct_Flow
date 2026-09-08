@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import MathRegion, { GRID, snap } from './MathRegion';
 import SymbolPalette, { type SymbolEntry } from './SymbolPalette';
 import WorksheetPrint from './WorksheetPrint';
+import VariablePanel from './VariablePanel';
 import { usePaginacion } from './usePaginacion';
 import { evaluateSheet, type Region, type RegionKind } from '../../lib/worksheet';
 import { TEMPLATES, type Template } from '../../lib/worksheet-templates';
@@ -178,8 +179,12 @@ export default function MathCanvas() {
   const [storageWarn, setStorageWarn] = useState<string | null>(null);
   /** Hay un archivo sobrevolando la hoja (realce de la zona de soltado). */
   const [dropping, setDropping] = useState(false);
+  /** Panel de inspección de variables abierto. */
+  const [showVars, setShowVars] = useState(false);
 
   const sheetRef = useRef<HTMLDivElement>(null);
+  /** El contenedor con scroll; lo necesita el panel de variables para saltar. */
+  const scrollRef = useRef<HTMLDivElement>(null);
   const activeInputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const imageFileRef = useRef<HTMLInputElement>(null);
@@ -348,6 +353,26 @@ export default function MathCanvas() {
     }, 300);
     return () => clearTimeout(t);
   }, [regions]);
+
+  /**
+   * Desplaza la hoja hasta una región y la deja seleccionada.
+   *
+   * Se calcula el destino a mano en vez de usar `scrollIntoView` porque la
+   * región debe quedar centrada en el visor y no pegada al borde: en una hoja
+   * de 16.000 px, un bloque en el filo se lee mal.
+   */
+  const irARegion = useCallback((id: string) => {
+    const cont = scrollRef.current;
+    const region = regionsRef.current.find((r) => r.id === id);
+    if (!cont || !region) return;
+    cont.scrollTo({
+      top: Math.max(0, region.y - cont.clientHeight / 2),
+      left: Math.max(0, region.x - cont.clientWidth / 2),
+      behavior: 'smooth',
+    });
+    setSelected(new Set([id]));
+    setActiveId(null);
+  }, []);
 
   const updateRegion = useCallback((id: string, patch: Partial<Region>) => {
     setRegions((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
@@ -763,6 +788,14 @@ export default function MathCanvas() {
             </span>
           )}
         </button>
+        <button
+          className={`${toolBtn} ${showVars ? 'bg-ink/10' : ''}`}
+          onClick={() => setShowVars((v) => !v)}
+          aria-pressed={showVars}
+          title="Lista las variables de la hoja con su valor; al pulsar una, salta a donde se define"
+        >
+          𝑥 Variables
+        </button>
         <button className={toolBtn} onClick={exportJson}>
           Exportar
         </button>
@@ -870,7 +903,7 @@ export default function MathCanvas() {
       )}
 
       <div className="flex min-h-0 flex-1">
-        <div className="relative flex-1 overflow-auto bg-white">
+        <div ref={scrollRef} className="relative flex-1 overflow-auto bg-white">
           <div
             ref={sheetRef}
             className={`relative cursor-crosshair ${dropping ? 'ring-2 ring-inset ring-accent' : ''}`}
@@ -988,6 +1021,9 @@ export default function MathCanvas() {
             ))}
           </div>
         </div>
+        {showVars && (
+          <VariablePanel regions={regions} results={results} onIr={irARegion} />
+        )}
         <SymbolPalette
           onInsert={insertSymbol}
           activeKind={activeId ? (regions.find((r) => r.id === activeId)?.kind ?? null) : null}
