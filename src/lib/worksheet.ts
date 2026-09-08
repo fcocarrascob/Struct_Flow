@@ -145,9 +145,22 @@ export function parseMathRegion(src: string): ParsedMath {
   return { varName, expr: rest.trim(), showResult, targetUnit };
 }
 
-/** Convierte `\_x` escapado por mathjs.toTex() en subíndices reales `_{x}`. */
+/**
+ * Convierte `\_x` escapado por mathjs.toTex() en subíndices reales `_{x}`.
+ *
+ * Captura la SECUENCIA completa de segmentos y la colapsa en un solo subíndice:
+ * `V\_c\_max` → `V_{c,max}`. Reemplazar cada `\_x` por su cuenta daba
+ * `V_{c}_{max}`, dos subíndices hermanos sobre el mismo átomo — sintaxis
+ * inválida que KaTeX rechaza con «Double subscript» y que tiñe de rojo la
+ * región entera. Se llega por aquí cuando el símbolo no está en el scope
+ * (definido más abajo, o su región falló), así que un error se propagaba en
+ * cascada a todo lo que usara esa variable.
+ */
 function fixSubscripts(tex: string): string {
-  return tex.replace(/\\_([\p{L}\p{N}]+)/gu, '_{$1}');
+  return tex.replace(/((?:\\_[\p{L}\p{N}]+)+)/gu, (seq) => {
+    const partes = seq.split('\\_').filter(Boolean);
+    return `_{${partes.join(',')}}`;
+  });
 }
 
 /**
@@ -167,12 +180,44 @@ const GREEK = new Set([
   'Psi', 'Omega',
 ]);
 
-/** LaTeX de un nombre de variable: griegas y subíndices (`alpha_s` → `\alpha_{s}`). */
-function symbolTex(name: string): string {
+/**
+ * Abreviaturas que la práctica escribe cortas pero se leen como la griega.
+ * `eps` va a `\varepsilon` y no a `\epsilon`: la deformación unitaria de ACI y
+ * NCh es la epsilon redonda.
+ */
+const GREEK_ALIAS: Record<string, string> = {
+  eps: 'varepsilon',
+  lam: 'lambda',
+};
+
+/** La cabeza de un nombre, como comando LaTeX si es una griega. */
+function cabezaTex(head: string): string {
+  if (GREEK.has(head)) return `\\${head}`;
+  const alias = GREEK_ALIAS[head];
+  return alias ? `\\${alias}` : head;
+}
+
+/**
+ * LaTeX de un nombre — la única autoridad sobre cómo se dibuja un identificador
+ * (variable o función): `alpha_s` → `\alpha_{s}`, `A_s_min` → `A_{s,min}`.
+ *
+ * Los segundos y siguientes segmentos se unen con COMA dentro de un ÚNICO
+ * subíndice, y no con `_`. Un `_` crudo ahí dentro vuelve a ser un subíndice
+ * para KaTeX: `A_{s_min}` se dibuja como `s` con subíndice `m` y un `in` suelto,
+ * y con un segmento más (`v_pdelta_X_no`) es directamente un doble subíndice,
+ * que es sintaxis inválida. El subíndice plano además es la convención de ACI y
+ * AISC (`A_{s,min}`, `V_{c,max}`) y no crece en altura, así que no mueve los
+ * cortes de página que calcula `paginacion.ts`.
+ */
+function nombreTex(name: string): string {
   const [head, ...rest] = name.split('_');
-  const h = GREEK.has(head) ? `\\${head}` : head;
-  // Llaves para que sea seguro concatenar (evita `\cdotL`).
-  return rest.length ? `{${h}_{${rest.join('_')}}}` : `{${h}}`;
+  const h = cabezaTex(head);
+  return rest.length ? `${h}_{${rest.join(',')}}` : h;
+}
+
+/** Como `nombreTex`, con llaves para que sea seguro concatenar (evita `\cdotL`). */
+function symbolTex(name: string): string {
+  return `{${nombreTex(name)}}`;
 }
 
 /**
@@ -191,7 +236,34 @@ function exprToTex(expr: string, vars: ReadonlySet<string>): string {
       return undefined;
     },
   });
-  return fixPlusExponent(fixSubscripts(tex.trim()));
+  return fixPlusExponent(fixSubscripts(fixNombresDeFuncion(tex.trim())));
+}
+
+/**
+ * Arregla los nombres de función, que no pasan por el `handler` de arriba.
+ *
+ * El handler solo intercepta `SymbolNode`; una llamada es un `FunctionNode` y
+ * mathjs emite su nombre crudo dentro de `\mathrm{}`. Y `\mathrm` no desactiva
+ * el modo matemático, así que el `_` sigue siendo un subíndice: `P_o_f(b)` sale
+ * como `\mathrm{P_o_f}` y KaTeX lo rechaza por doble subíndice. Era la causa de
+ * casi todas las regiones en rojo del corpus.
+ *
+ * Se hace por reescritura y no extendiendo el `handler` porque el handler tiene
+ * que devolver el LaTeX de la llamada ENTERA, argumentos incluidos, lo que
+ * obliga a recorrer el árbol de mathjs a mano.
+ *
+ * Solo toca los `\mathrm{}` que llevan `_`, y se aplica aquí dentro —antes de
+ * que `resultToTex` añada valor y unidad—, así que no alcanza al `\mathrm{}` de
+ * las unidades ni al de `matriz`.
+ *
+ * Sale por `symbolTex` y no por `nombreTex` para conservar las llaves: el
+ * `\mathrm{}` que se sustituye puede venir pegado a un operador, y sin ellas
+ * `\cdot` + `M_n` se lee como el comando inexistente `\cdotM`.
+ */
+function fixNombresDeFuncion(tex: string): string {
+  return tex.replace(/\\mathrm\{([^{}]*_[^{}]*)\}/g, (m, nombre: string) =>
+    nombre.includes('\\') ? m : symbolTex(nombre),
+  );
 }
 
 /** Notación "2.0947e+5" → "2.0947\cdot 10^{5}". */
