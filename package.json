@@ -7,9 +7,10 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "dev": "npm run indice:planillas && vite",
+    "build": "npm run indice:planillas && tsc --noEmit && vite build",
     "preview": "vite preview",
+    "indice:planillas": "node scripts/indice-planillas.mjs",
     "verify:planilla": "node scripts/verify-planilla.mjs",
     "verify:planillas": "node scripts/verify-planilla.mjs public/planillas"
   },

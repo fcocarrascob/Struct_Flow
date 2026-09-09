@@ -24,9 +24,17 @@ npm run verify:planillas # evalúa las 33 planillas fuera del navegador
 
 Requiere Node >= 22.12.0.
 
+### El catálogo
+
+El botón **Ejemplos** abre el catálogo: las plantillas editables del bundle
+(`src/lib/worksheet-templates.ts`) y las 33 memorias de cálculo publicadas de
+`public/planillas/`, agrupadas por disciplina y con buscador. El menú se puebla desde
+`public/planillas-indice.json`, que genera `npm run indice:planillas` (lo invocan `dev` y
+`build`, así que no puede quedar desfasado); cada planilla se descarga solo al abrirla.
+
 ### Deep-links
 
-- `/?plantilla=<id>` abre una plantilla de la galería (`src/lib/worksheet-templates.ts`)
+- `/?plantilla=<id>` abre una plantilla de la galería
 - `/?planilla=<slug>` carga una planilla de `public/planillas/`
 
 ## De dónde viene

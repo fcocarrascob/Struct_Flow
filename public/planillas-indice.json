@@ -1,0 +1,203 @@
+{
+  "version": 1,
+  "planillas": [
+    {
+      "slug": "anclajes-pedestal",
+      "titulo": "Grupo de anclajes de una placa base en pedestal — el Cap. 17 de ACI 318-25 (edición SI)",
+      "disciplina": "hormigon",
+      "regiones": 298
+    },
+    {
+      "slug": "chevron-nch2369",
+      "titulo": "El paño en V invertida: la viga que el análisis elástico no ve — el desequilibrio de 8.6.6, sus dos techos, y la diagonal que la ductilidad dimensiona (NCh2369:2025 8.3.1/8.6, Tabla 9)",
+      "disciplina": "acero",
+      "regiones": 308
+    },
+    {
+      "slug": "columna-galpon-compresion",
+      "titulo": "Columna de galpón a compresión — la longitud efectiva pesa más que el radio de giro: gobierna el eje fuerte (AISC 360-22 E2/E3/E4, Tabla B4.1a)",
+      "disciplina": "acero",
+      "regiones": 158
+    },
+    {
+      "slug": "columna-interaccion-esbeltez",
+      "titulo": "Columna de hormigón a flexocompresión — el diagrama P–M barrido, el φ variable con el tope de 21.2.2.3, y la esbeltez (ACI 318-25)",
+      "disciplina": "hormigon",
+      "regiones": 266
+    },
+    {
+      "slug": "conexion-apernada-corte",
+      "titulo": "Conexión apernada a corte (shear tab) — la cadena la gobierna la plancha y al perno lo gobierna la excentricidad (AISC 360-22 J3/J4)",
+      "disciplina": "acero",
+      "regiones": 181
+    },
+    {
+      "slug": "conexion-doble-angulo",
+      "titulo": "Conexión de corte: doble ángulo vs. shear tab — duplicar el plano de corte y el elemento, y qué queda escondido en la excentricidad (AISC 360-22 J3/J4)",
+      "disciplina": "acero",
+      "regiones": 241
+    },
+    {
+      "slug": "conexion-momento-end-plate",
+      "titulo": "Conexión de momento con placa de extremo extendida 4E — el momento se hace par y el efecto palanca mete el espesor de la placa en la resistencia de los pernos (AISC 360-22 J2, J3.7, J4, J10 + Manual Parte 9)",
+      "disciplina": "acero",
+      "regiones": 169
+    },
+    {
+      "slug": "conexion-momento-placas-ala",
+      "titulo": "Conexión de momento con placas de ala (BFP) — la conexión pasa con usos 0.49–0.76 y la columna no: flexión local del ala 1.43, fluencia del alma 1.12 y zona panel 1.07 con el término axial de J10-10 (AISC 360-22 J3.7, J4, F13.1, J10)",
+      "disciplina": "acero",
+      "regiones": 184
+    },
+    {
+      "slug": "diagonal-hss-traccion",
+      "titulo": "Diagonal HSS en los dos sentidos: tracción y compresión por AISC 360-22 (D2, D3.1 Caso 5, E3) y la capa sismorresistente de NCh2369:2025 (8.6.3, 8.6.4, 8.6.8)",
+      "disciplina": "acero",
+      "regiones": 283
+    },
+    {
+      "slug": "diagonal-longitudinal-galpon",
+      "titulo": "Diagonales y puntal del galpón del altiplano — NCh2369:2025 8.6.3 / 8.8.4 / 12.2.2 + AISC 360-22",
+      "disciplina": "acero",
+      "regiones": 112
+    },
+    {
+      "slug": "ejemplo-analisis-sismico-cepa-nch2369",
+      "titulo": "Del corte modal al R₁ — la cadena §5.1.2 → §5.2.2 → Ec. (1a/1b) → banda §5.12–§5.13 → Ec. (14), y la deriva del Note final (NCh2369:2025)",
+      "disciplina": "apuntes",
+      "regiones": 97
+    },
+    {
+      "slug": "ejemplo-torre-deformaciones-nch2369",
+      "titulo": "La deriva que dimensiona — §6.1 a §6.4 sobre la torre mixta, y la cepa a mano (NCh2369:2025)",
+      "disciplina": "apuntes",
+      "regiones": 82
+    },
+    {
+      "slug": "ejemplo-torre-sismica-nch2369",
+      "titulo": "La torre mixta: mismo R de tabla, un R₁ por cada dirección — la cadena §5.1.2 → Ec. (1b) → banda §5.12–§5.13 → Ec. (14) (NCh2369:2025)",
+      "disciplina": "apuntes",
+      "regiones": 59
+    },
+    {
+      "slug": "empalme-apernado-viga",
+      "titulo": "Empalme apernado de viga — el empalme copia las fuerzas, no la sección; y pretensar no agrega resistencia, agrega una verificación (AISC 360-22 J3/J4/J6/F13)",
+      "disciplina": "acero",
+      "regiones": 272
+    },
+    {
+      "slug": "galpon-altiplano-cargas-combinaciones",
+      "titulo": "Estados y combinaciones del galpón del altiplano — NCh 3171 §9 y NCh 2369 §4.5",
+      "disciplina": "apuntes",
+      "regiones": 68
+    },
+    {
+      "slug": "galpon-altiplano-sismico-nch2369",
+      "titulo": "El sísmico del galpón del altiplano — las dos rutas de la Tabla 7, NCh 2369:2025",
+      "disciplina": "apuntes",
+      "regiones": 102
+    },
+    {
+      "slug": "galpon-altiplano-viento-sitio-nch432",
+      "titulo": "El sitio del galpón del altiplano — K_zt, K_e y el q_h por NCh 432:2025",
+      "disciplina": "apuntes",
+      "regiones": 74
+    },
+    {
+      "slug": "gusset-apice-chevron",
+      "titulo": "Gusset del ápice de un paño en V invertida — diseño a capacidad (NCh2369 8.4.1 / 8.6.6 / 8.6.8)",
+      "disciplina": "acero",
+      "regiones": 215
+    },
+    {
+      "slug": "gusset-esquina-apernado",
+      "titulo": "Gusset apernado de esquina — el reparto entre viga y columna es indeterminado (NCh2369 8.4.1 + UFM derivado)",
+      "disciplina": "acero",
+      "regiones": 284
+    },
+    {
+      "slug": "gusset-simple-apernado",
+      "titulo": "Gusset de un solo borde, apernado — dos anchos efectivos para la misma plancha y gobierna la compresión (NCh2369 8.4.1/8.6.8 + AISC 360-22)",
+      "disciplina": "acero",
+      "regiones": 175
+    },
+    {
+      "slug": "gusset-simple-soldado",
+      "titulo": "Gusset de un solo borde, soldado — el cordón abre la banda de Whitmore y el eslabón débil se muda al tubo (NCh2369 8.4.1/8.6.8 + AISC 360-22)",
+      "disciplina": "acero",
+      "regiones": 154
+    },
+    {
+      "slug": "losa-punzonamiento-momento",
+      "titulo": "Losa plana: punzonamiento con momento desbalanceado — el marco resuelto en la hoja, la rampa y las dos salidas (ACI 318-25)",
+      "disciplina": "hormigon",
+      "regiones": 454
+    },
+    {
+      "slug": "losa-unidireccional",
+      "titulo": "Losa unidireccional continua — el marco elástico resuelto en la hoja y el espesor que lo fija el servicio (ACI 318-25)",
+      "disciplina": "hormigon",
+      "regiones": 601
+    },
+    {
+      "slug": "mensula-puntal-tensor",
+      "titulo": "Ménsula corta por puntal-tensor — el Cap. 23 con los cerrojos del Cap. 16 de ACI 318-25",
+      "disciplina": "hormigon",
+      "regiones": 320
+    },
+    {
+      "slug": "muro-flexocompresion",
+      "titulo": "Muro de corte a flexocompresión con elementos de borde — la frontera P–M barrida, el corte amplificado por Ω_v·ω_v y las tres verificaciones de 18.10.6 (ACI 318-25)",
+      "disciplina": "hormigon",
+      "regiones": 646
+    },
+    {
+      "slug": "pedestal-anclaje-nch2369",
+      "titulo": "El pedestal según NCh2369:2025 — 8.5 (anclajes) y 9.5 (pedestales)",
+      "disciplina": "hormigon",
+      "regiones": 489
+    },
+    {
+      "slug": "placa-base-rigidez-rotacional",
+      "titulo": "Rigidez rotacional de una base expuesta — las cuatro deformaciones de la Ec. C-5 y por qué la base del ejemplo no es ni empotrada ni rotulada (AISC Design Guide 1, 3.ª ed., Apéndice C)",
+      "disciplina": "acero",
+      "regiones": 187
+    },
+    {
+      "slug": "viga-carrilera-puente-grua",
+      "titulo": "Viga carrilera de puente grúa 20 t — sección combinada W610×155 + canal C310×45 (AISC 360-22 Caps. F/G/H/J10 y Apéndice 3, cargas ASCE 7 §4.9, servicio AIST TR13)",
+      "disciplina": "acero",
+      "regiones": 394
+    },
+    {
+      "slug": "viga-columna",
+      "titulo": "Viga-columna de fachada W250×58 — compresión y flexión combinadas: el presupuesto H1-1a y el momento amplificado B_1 (AISC 360-22 Cap. H, Cap. E, Cap. F, Apéndice 8)",
+      "disciplina": "acero",
+      "regiones": 324
+    },
+    {
+      "slug": "viga-flexion-corte",
+      "titulo": "Viga de hormigón armado a flexión y corte — el Cap. 9 completo, con los coeficientes de la edición SI de ACI 318-25",
+      "disciplina": "hormigon",
+      "regiones": 218
+    },
+    {
+      "slug": "viga-hss-flexion",
+      "titulo": "Viga de tubo HSS rectangular en flexión — el ancho de pared es el que diseña (AISC 360-22 F7, G4, Tabla B4.1b casos 17 y 19, B4.2)",
+      "disciplina": "acero",
+      "regiones": 518
+    },
+    {
+      "slug": "viga-ltb",
+      "titulo": "Viga laminada con pandeo lateral-torsional — la misma viga falla con L_b = 8 m y sobra con L_b = 4 m (AISC 360-22 F1/F2, Tabla B4.1b)",
+      "disciplina": "acero",
+      "regiones": 189
+    },
+    {
+      "slug": "zapata-aislada",
+      "titulo": "Zapata aislada bajo columna — el canto, el piso de 22.5.5.1.1 y los coeficientes de la edición SI (ACI 318-25)",
+      "disciplina": "hormigon",
+      "regiones": 255
+    }
+  ]
+}

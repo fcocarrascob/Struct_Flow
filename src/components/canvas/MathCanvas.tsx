@@ -3,6 +3,7 @@ import MathRegion, { GRID, snap } from './MathRegion';
 import SymbolPalette, { type SymbolEntry } from './SymbolPalette';
 import WorksheetPrint from './WorksheetPrint';
 import VariablePanel from './VariablePanel';
+import CatalogoMenu from './CatalogoMenu';
 import { usePaginacion } from './usePaginacion';
 import { evaluateSheet, type Region, type RegionKind } from '../../lib/worksheet';
 import { TEMPLATES, type Template } from '../../lib/worksheet-templates';
@@ -311,32 +312,45 @@ export default function MathCanvas() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Deep-link: /herramientas/canvas?planilla=<slug> importa `/planillas/<slug>.json`.
-  //
-  // Es la vía para las planillas publicadas junto a los posts. A diferencia de
-  // `?plantilla=`, que sirve la galería compilada en `worksheet-templates.ts`,
-  // estas viven como archivo suelto en `public/planillas/`: se acumulan sin
-  // tocar el bundle, se descargan como JSON y se verifican fuera del navegador
-  // con `npm run verify:planilla`. El slug se valida contra [a-z0-9-] para que
-  // el parámetro no pueda apuntar a otra ruta.
+  /**
+   * Descarga una planilla publicada y la abre.
+   *
+   * A diferencia de `?plantilla=`, que sirve la galería compilada en
+   * `worksheet-templates.ts`, estas viven como archivo suelto en
+   * `public/planillas/`: se acumulan sin tocar el bundle, se descargan como
+   * JSON y se verifican fuera del navegador con `npm run verify:planilla`.
+   *
+   * La usan el deep-link y el menú del catálogo, que necesitan exactamente lo
+   * mismo. El slug se valida contra [a-z0-9-] para que no pueda apuntar a otra
+   * ruta.
+   */
+  const cargarPlanilla = useCallback(
+    (slug: string, opts: { hayTrabajo?: boolean; señal?: { cancelado: boolean } } = {}) => {
+      if (!/^[a-z0-9-]+$/.test(slug)) return;
+      fetch(`/planillas/${slug}.json`)
+        .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+        .then((data) => {
+          if (opts.señal?.cancelado) return;
+          if (!esHoja(data)) throw new Error('formato inválido');
+          const titulo = typeof data?.meta?.titulo === 'string' ? data.meta.titulo : slug;
+          cargarHoja(data, { titulo, hayTrabajo: opts.hayTrabajo });
+        })
+        .catch(() => {
+          if (!opts.señal?.cancelado) alert(`No se pudo cargar la planilla «${slug}».`);
+        });
+    },
+    [cargarHoja],
+  );
+
+  // Deep-link: /?planilla=<slug> abre esa planilla al entrar.
   useEffect(() => {
     const slug = new URLSearchParams(window.location.search).get('planilla');
-    if (!slug || !/^[a-z0-9-]+$/.test(slug)) return;
-    let cancelled = false;
-    fetch(`/planillas/${slug}.json`)
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then((data) => {
-        if (cancelled) return;
-        if (!esHoja(data)) throw new Error('formato inválido');
-        const titulo = typeof data?.meta?.titulo === 'string' ? data.meta.titulo : slug;
-        cargarHoja(data, { titulo, hayTrabajo: hasStoredWork() });
-        limpiarDeepLink('planilla');
-      })
-      .catch(() => {
-        if (!cancelled) alert(`No se pudo cargar la planilla «${slug}».`);
-      });
+    if (!slug) return;
+    const señal = { cancelado: false };
+    cargarPlanilla(slug, { hayTrabajo: hasStoredWork(), señal });
+    limpiarDeepLink('planilla');
     return () => {
-      cancelled = true;
+      señal.cancelado = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -761,27 +775,20 @@ export default function MathCanvas() {
           <button
             className={`${toolBtn} ${templatesOpen ? '!border-accent !text-accent' : ''}`}
             onClick={() => setTemplatesOpen((o) => !o)}
-            title="Cargar una planilla de diseño"
+            title="Plantillas para empezar y memorias de cálculo ya resueltas"
           >
-            Plantillas ▾
+            Ejemplos ▾
           </button>
           {templatesOpen && (
-            <>
-              {/* Capa para cerrar el menú al hacer clic fuera. */}
-              <div className="fixed inset-0 z-30" onClick={() => setTemplatesOpen(false)} />
-              <div className="absolute left-0 top-full z-40 mt-1 w-72 rounded border border-border bg-white py-1 shadow-lg">
-                {TEMPLATES.map((tpl) => (
-                  <button
-                    key={tpl.id}
-                    className="block w-full px-3 py-1.5 text-left hover:bg-accent/10"
-                    onClick={() => loadTemplate(tpl)}
-                  >
-                    <span className="block text-xs font-medium text-ink">{tpl.titulo}</span>
-                    <span className="block text-[10px] text-muted">{tpl.norma}</span>
-                  </button>
-                ))}
-              </div>
-            </>
+            <CatalogoMenu
+              plantillas={TEMPLATES}
+              onPlantilla={(tpl) => loadTemplate(tpl)}
+              onPlanilla={(slug) => {
+                setTemplatesOpen(false);
+                cargarPlanilla(slug);
+              }}
+              onCerrar={() => setTemplatesOpen(false)}
+            />
           )}
         </div>
         <button
