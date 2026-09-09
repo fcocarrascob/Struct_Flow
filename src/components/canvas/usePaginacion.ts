@@ -37,8 +37,14 @@ export interface Paginacion {
 
 const VACIA: Paginacion = { paginas: [], porRegion: new Map(), cortes: [], largos: [] };
 
-/** Altos de cada bloque del documento, con el colapso de márgenes resuelto. */
-function medirBloques(root: HTMLElement, saltos: Set<string>): Bloque[] {
+/**
+ * Altos de cada bloque del documento, con el colapso de márgenes resuelto.
+ *
+ * Se exporta porque la vista de calibración (`/calibrar`) mide las 33 planillas
+ * con este mismo código. Medirlas con una copia sería medir la copia: el punto
+ * de esa vista es contrastar contra lo que de verdad se imprime.
+ */
+export function medirBloques(root: HTMLElement, saltos: Set<string>): Bloque[] {
   const previo = root.getAttribute('style');
 
   // Fuera de la pantalla, con el ancho exacto del papel. `fixed` lo saca del

@@ -6,6 +6,7 @@ import IndiceDiseno from './components/diseno/IndiceDiseno';
 import PaginaDiseno from './components/diseno/PaginaDiseno';
 import Enlace from './components/Enlace';
 import { useRuta } from './components/useRuta';
+import Calibrar from './components/dev/Calibrar';
 import { moduloPorId } from './lib/diseno/registro';
 
 /**
@@ -49,6 +50,18 @@ export default function App() {
         </ErrorBoundary>
       );
 
+    // Herramientas de calibración de la A4. Solo en desarrollo: miden con el
+    // documento de impresión de verdad, así que tienen que vivir en la
+    // aplicación, pero no son una vista del producto. En producción la ruta cae
+    // en el menú, como cualquier otra desconocida.
+    case 'calibrar':
+      if (!import.meta.env.DEV) break;
+      return (
+        <ErrorBoundary>
+          <Calibrar />
+        </ErrorBoundary>
+      );
+
     case 'modulo': {
       const modulo = moduloPorId(ruta.id);
       if (!modulo) return <NoEncontrado id={ruta.id} />;
@@ -59,13 +72,13 @@ export default function App() {
       );
     }
 
-    default:
-      return (
-        <ErrorBoundary>
-          <Landing />
-        </ErrorBoundary>
-      );
   }
+
+  return (
+    <ErrorBoundary>
+      <Landing />
+    </ErrorBoundary>
+  );
 }
 
 function NoEncontrado({ id }: { id: string }) {

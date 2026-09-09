@@ -38,7 +38,11 @@ diseño que no cumple es un resultado legítimo, al revés que en una planilla p
 La separación es estricta y hay que mantenerla:
 
 **Vistas** (`src/App.tsx` + `src/lib/ruta.ts`): `/` es el menú, `/planillas` el catálogo,
-`/canvas` la hoja y `/diseno/<id>` un módulo. El router es propio y son ~70 líneas puras;
+`/canvas` la hoja y `/diseno/<id>` un módulo. `/calibrar` es una quinta vista **solo de
+desarrollo** (`src/components/dev/`): mide cuántas páginas ocupa cada planilla y calibra
+`A4_ALTO_UTIL_PX` contra un PDF real. Vive dentro de la aplicación porque mide con el
+documento de impresión de verdad, y `App.tsx` la deja fuera con `import.meta.env.DEV`, así
+que no llega al bundle de producción. Los resultados están en `docs/linea-base-pagina.md`. El router es propio y son ~70 líneas puras;
 `src/components/useRuta.ts` es el único puente con React. `MathCanvas` solo se monta en
 `/canvas`, que es lo que mantiene válidos sus `useEffect` de deep-link con dependencias
 `[]`. Las formas antiguas `/?planilla=…` se reescriben en `main.tsx` **antes** del primer

@@ -31,10 +31,19 @@ export const A4_ALTO_PX = (A4.alto - 2 * A4.margen) * PX_POR_MM;
  * píxeles CSS enteros, así que 267 mm no son los 1009.134 px de la cuenta sino
  * 1010.
  *
- * No es una fruslería de redondeo. Medido contra el PDF: un bloque que cerraba
- * la página en 1010.000 px cabía, y uno que la cerraba en 1010.622 no. Usar el
- * valor teórico adelanta un corte cada varias páginas — el canvas anunciaba
- * una partición donde el PDF no la tenía.
+ * No es una fruslería de redondeo: usar el valor teórico adelanta un corte cada
+ * varias páginas, y el canvas anuncia una partición que el PDF no tiene.
+ *
+ * **Confirmado el 2026-09-09 con Chromium 148.0.7778.96**, y esta vez enseñado
+ * en vez de deducido. La vista `/calibrar` (solo en desarrollo) imprime seis
+ * `<section>` de alto `H` y se cuentan las hojas del PDF: hasta 1010.0 salen
+ * seis, y desde 1010.2 salen ocho. La caja mide 1010.0 px exactos.
+ *
+ * Antes se infería del comportamiento de un bloque al filo —«uno que cerraba en
+ * 1010.000 cabía y uno en 1010.622 no»—, que obliga a fabricar ese bloque y a
+ * fiarse de que no haya nada más en juego. Si hay que recalibrar (otra versión
+ * de Chromium, otras métricas tipográficas), el método está en
+ * `docs/linea-base-pagina.md`.
  */
 export const A4_ALTO_UTIL_PX = Math.ceil(A4_ALTO_PX);
 

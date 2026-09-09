@@ -37,6 +37,7 @@ Requiere Node >= 22.12.0.
 | `/planillas` | el catálogo de las 33 memorias publicadas |
 | `/canvas` | la hoja |
 | `/diseno` · `/diseno/<id>` | los módulos de diseño |
+| `/calibrar` | herramientas de calibración de la A4 — **solo en desarrollo** |
 
 La navegación es un micro-router propio (`src/lib/ruta.ts`, ~70 líneas): para cinco vistas
 no se justifica una dependencia más. Al servir la aplicación en producción hace falta el

@@ -13,7 +13,9 @@ export type Ruta =
   | { vista: 'planillas' }
   | { vista: 'canvas' }
   | { vista: 'diseno' }
-  | { vista: 'modulo'; id: string };
+  | { vista: 'modulo'; id: string }
+  /** Herramientas de calibración de la página. Solo se renderiza en desarrollo. */
+  | { vista: 'calibrar' };
 
 /** Se emite tras `navegar()`, porque `pushState` no dispara `popstate`. */
 export const EVENTO_RUTA = 'structflow:ruta';
@@ -26,6 +28,7 @@ export function parsearRuta(pathname: string): Ruta {
   if (partes.length === 0) return { vista: 'inicio' };
   if (partes[0] === 'planillas' && partes.length === 1) return { vista: 'planillas' };
   if (partes[0] === 'canvas' && partes.length === 1) return { vista: 'canvas' };
+  if (partes[0] === 'calibrar' && partes.length === 1) return { vista: 'calibrar' };
   if (partes[0] === 'diseno') {
     if (partes.length === 1) return { vista: 'diseno' };
     if (partes.length === 2 && ID_RE.test(partes[1])) return { vista: 'modulo', id: partes[1] };
@@ -46,6 +49,8 @@ export function href(ruta: Ruta): string {
       return '/diseno';
     case 'modulo':
       return `/diseno/${ruta.id}`;
+    case 'calibrar':
+      return '/calibrar';
   }
 }
 
