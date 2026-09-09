@@ -42,13 +42,19 @@ cambia `scope`, que `evaluateSheet` construye como objeto nuevo en cada evaluaci
 ráfaga de escritura la paginación **nunca** se actualiza y el contador de páginas queda
 obsoleto justo mientras se edita.
 
-## 2. No hay deshacer
+## 2. Deshacer — hecho
 
-`Supr` borra toda la selección y 300 ms después el autoguardado consolida la pérdida. No
-existe historial. Perder media planilla con una tecla es un evento real.
+`Ctrl+Z` / `Ctrl+Y`, con botones en la barra. `useHistorial` observa `regions` en vez de
+envolver los ocho sitios que la modifican, así que no hay forma de añadir una acción nueva
+y olvidarse de registrarla.
 
-*Coste*: medio. El estado ya es inmutable, así que una pila de versiones de `regions` es
-viable.
+Los cambios entran en el historial tras 400 ms de pausa, de modo que una ráfaga de tecleo o
+un arrastre completo son **un** paso: escribir `fy := 420 MPa` cuesta un Ctrl+Z, no trece.
+Guardar 60 estados sale barato porque `setRegions` conserva los objetos de las regiones que
+no cambiaron: cada instantánea es un array de punteros, no una copia de la hoja.
+
+Queda fuera: mientras se edita el texto de una región, `Ctrl+Z` es del input y no del
+canvas. Es lo esperable, pero conviene saberlo.
 
 ## 3. Regiones que se solapan
 

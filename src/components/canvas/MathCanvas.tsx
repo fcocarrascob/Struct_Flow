@@ -5,6 +5,7 @@ import WorksheetPrint from './WorksheetPrint';
 import VariablePanel from './VariablePanel';
 import CatalogoMenu from './CatalogoMenu';
 import { usePaginacion } from './usePaginacion';
+import { useHistorial } from './useHistorial';
 import { evaluateSheet, type Region, type RegionKind } from '../../lib/worksheet';
 import { TEMPLATES, type Template } from '../../lib/worksheet-templates';
 import {
@@ -223,6 +224,14 @@ export default function MathCanvas() {
   }, [regions]);
 
   const results = useMemo(() => evaluateSheet(regionsEval), [regionsEval]);
+
+  // Al deshacer se sale de edición y se limpia la selección: los ids que
+  // hubiera seleccionados pueden no existir en el estado que se restaura.
+  const trasRestaurar = useCallback(() => {
+    setActiveId(null);
+    setSelected(new Set());
+  }, []);
+  const historial = useHistorial(regions, setRegions, trasRestaurar);
 
   // Dónde cae cada corte de A4 al imprimir. Se mide el documento de impresión,
   // que es lineal y distinto de este plano 2D: por eso el corte se anuncia
@@ -588,6 +597,22 @@ export default function MathCanvas() {
       // Con un menú o el cuadro de pegado abiertos, el teclado es de ellos.
       if (templatesOpen || imageMenuOpen || pasteOpen) return;
 
+      // Deshacer / rehacer. Va antes que nada: es la salida de cualquier otra
+      // tecla que haya hecho un estropicio.
+      if ((e.ctrlKey || e.metaKey) && !e.altKey) {
+        const k = e.key.toLowerCase();
+        if (k === 'z' && !e.shiftKey) {
+          e.preventDefault();
+          historial.deshacer();
+          return;
+        }
+        if (k === 'y' || (k === 'z' && e.shiftKey)) {
+          e.preventDefault();
+          historial.rehacer();
+          return;
+        }
+      }
+
       // Supr/Retroceso elimina la selección (fuera de edición).
       if (e.key === 'Delete' || e.key === 'Backspace') {
         if (selected.size === 0) return;
@@ -606,7 +631,7 @@ export default function MathCanvas() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selected, insertRegion, templatesOpen, imageMenuOpen, pasteOpen]);
+  }, [selected, insertRegion, templatesOpen, imageMenuOpen, pasteOpen, historial]);
 
   const insertSymbol = useCallback(
     (entry: SymbolEntry) => {
@@ -770,6 +795,25 @@ export default function MathCanvas() {
             e.target.value = '';
           }}
         />
+        <span className="mx-1 h-4 w-px bg-border" />
+        <button
+          className={`${toolBtn} disabled:opacity-40 disabled:hover:border-border disabled:hover:text-ink`}
+          onClick={historial.deshacer}
+          disabled={!historial.puedeDeshacer}
+          title="Deshacer (Ctrl+Z)"
+          aria-label="Deshacer"
+        >
+          ↶
+        </button>
+        <button
+          className={`${toolBtn} disabled:opacity-40 disabled:hover:border-border disabled:hover:text-ink`}
+          onClick={historial.rehacer}
+          disabled={!historial.puedeRehacer}
+          title="Rehacer (Ctrl+Y)"
+          aria-label="Rehacer"
+        >
+          ↷
+        </button>
         <span className="mx-1 h-4 w-px bg-border" />
         <div className="relative">
           <button
