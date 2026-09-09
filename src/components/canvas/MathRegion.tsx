@@ -228,7 +228,11 @@ function MathRegion({
         <input
           ref={registerInput}
           autoFocus
-          className={`min-w-32 bg-transparent text-sm text-ink outline-none ${isText ? '' : 'font-mono'}`}
+          className={`min-w-32 max-w-3xl bg-transparent text-sm text-ink outline-none ${isText ? '' : 'font-mono'}`}
+          // El ancho sigue al texto, pero con tope: un párrafo de 271 caracteres
+          // pedía un input de ~3.800 px. Y para una región de texto el `ch` se
+          // mide sobre una fuente proporcional, así que ni siquiera corresponde
+          // al texto; el tope de la clase lo acota de todos modos.
           style={{ width: `${Math.max(region.src.length + 2, 12)}ch` }}
           value={region.src}
           placeholder={isText ? 'texto…' : 'ej. M := F*L/4 = kN*m'}
@@ -244,7 +248,20 @@ function MathRegion({
           onPointerDown={(e) => e.stopPropagation()}
         />
       ) : isText ? (
-        <span className="whitespace-pre text-sm text-ink">{region.src}</span>
+        // `pre-wrap` y no `pre`: conserva los saltos y la sangría que escribió
+        // el autor, pero ajusta línea. Con `pre`, los párrafos largos de las
+        // planillas reales (hay uno de 271 caracteres) se dibujaban en una sola
+        // línea de ~1.900 px, sobre una hoja de 1.600: se salían de la hoja y
+        // había que arrastrar el scroll horizontal para leerlos.
+        //
+        // El tope de ancho está elegido midiendo, no a ojo: un párrafo que pasa
+        // a ocupar varias líneas puede pisar la región de abajo, porque el paso
+        // de inserción es fijo (48 px) y nadie mide la altura real. Con este
+        // ancho el corpus pasa de 5 a 6 pares de regiones solapadas; con uno más
+        // estrecho, a 8. El solapamiento de fondo es un pendiente aparte.
+        <span className="block max-w-3xl whitespace-pre-wrap break-words text-sm text-ink">
+          {region.src}
+        </span>
       ) : isProgram ? (
         <div>
           <div className="flex items-center gap-2">

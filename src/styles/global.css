@@ -88,6 +88,17 @@ body {
   gap: 0.5rem;
   margin: 0.25rem 0;
   break-inside: avoid;
+  /* Una ecuación más ancha que la caja de la A4 se recortaría en el margen
+     derecho, y la paginación no lo detectaría: solo mira alturas. Hoy ninguna
+     del corpus llega (la más ancha justo cabe), así que esto no cambia nada de
+     lo publicado; es la red para la que llegue. Envolver es preferible a
+     cortar: se pierde la línea, no el número. */
+  flex-wrap: wrap;
+}
+/* Que KaTeX pueda encogerse dentro de la caja en vez de desbordarla. */
+.worksheet-print .wp-eq > * {
+  min-width: 0;
+  max-width: 100%;
 }
 .worksheet-print .wp-raw {
   font-family: 'JetBrains Mono', monospace;

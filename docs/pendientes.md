@@ -68,20 +68,28 @@ come los clics de la otra.
 
 *Coste*: alto. Hay que medir alturas reales y propagarlas.
 
-## 4. Texto que desborda, en el canvas y en el PDF
+## 4. Texto y figuras que desbordaban — hecho
 
-Las regiones `text` usan `whitespace-pre` sin ancho máximo. Las planillas reales tienen
-párrafos de 271 caracteres (`ejemplo-torre-deformaciones-nch2369`): ~1.900 px en una sola
-línea, sobre una hoja de 1.600 y un visor de ~950. En edición es peor: el input se
-dimensiona en `ch` sobre una fuente proporcional, así que el ancho ni siquiera corresponde
-al texto.
+Medido antes de tocar nada, imponiendo al documento de impresión el ancho real de una A4
+(680 px), que es como lo mide `usePaginacion`:
 
-En el PDF el problema es otro: `.wp-eq` no acota el ancho ni permite salto, así que una
-ecuación larga con su resultado **se recorta** en el margen derecho. La paginación no lo
-detecta porque solo mira alturas.
+- **Las ecuaciones no se recortaban.** La auditoría lo daba por hecho, pero ninguna de las
+  6.000 del corpus excede su caja; la más ancha justo cabe. Aun así se blindó `.wp-eq` con
+  `flex-wrap` y `min-width: 0`, para que la que llegue envuelva en vez de cortarse.
+- **Las figuras sí.** Tres planillas (`anclajes-pedestal`, `mensula-puntal-tensor`,
+  `placa-base-rigidez-rotacional`) se salían del papel hasta 40 px. La causa: el
+  `max-width: 100%` de `global.css` alcanza al `<svg>` pero no al `div` que lo envuelve, que
+  llevaba el ancho de la región en píxeles. Ahora ese contenedor se acota y declara su
+  proporción, así que al estrecharse el alto la sigue.
+- **En el canvas, el texto.** `whitespace-pre` sin tope dibujaba un párrafo de 271
+  caracteres en una línea de 1.856 px sobre una hoja de 1.600. Ahora ajusta línea.
 
-*Coste*: bajo el ajuste de línea; encontrar el punto de corte de una fórmula LaTeX es
-intrínsecamente feo.
+Los cortes de página no se movieron: 271 páginas en el corpus antes y después.
+
+**El coste, medido:** un párrafo que pasa a ocupar varias líneas puede pisar la región de
+abajo, porque el paso de inserción es fijo y nadie mide la altura real (ver el punto 3). El
+corpus pasa de 5 a 6 pares de regiones solapadas. El tope de ancho se eligió por eso: con
+uno más estrecho eran 8.
 
 ## 5. Accesibilidad
 

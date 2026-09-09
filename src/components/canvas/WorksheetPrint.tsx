@@ -55,7 +55,24 @@ function EsquemaImpreso({
   }, [src, scope]);
   // El tamaño va reservado desde el principio: sin esto el bloque mide 0 hasta
   // que llega el SVG, y la paginación mediría una figura inexistente.
-  return <div ref={ref} style={{ width: w, height: h }} />;
+  //
+  // `maxWidth` no es decorativo: el `max-width:100%` de `global.css` alcanza al
+  // <svg> pero no a este contenedor, que llevaba el ancho de la región en px y
+  // se salía del papel. Un esquema de 720 px se recortaba 40 px en una A4.
+  // Con la proporción declarada, al acotarse el ancho el alto la sigue en vez
+  // de quedarse con el hueco reservado.
+  const proporcion = w && h ? `${w} / ${h}` : undefined;
+  return (
+    <div
+      ref={ref}
+      style={{
+        width: w,
+        maxWidth: '100%',
+        aspectRatio: proporcion,
+        height: proporcion ? undefined : h,
+      }}
+    />
+  );
 }
 
 /**
