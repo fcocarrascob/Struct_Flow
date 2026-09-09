@@ -7,6 +7,7 @@ import CatalogoMenu from './CatalogoMenu';
 import { usePaginacion } from './usePaginacion';
 import { useHistorial } from './useHistorial';
 import { evaluateSheet, type Region, type RegionKind } from '../../lib/worksheet';
+import { detectarSolapes, separarSolapes, mismoOrdenDeLectura } from '../../lib/solapes';
 import { TEMPLATES, type Template } from '../../lib/worksheet-templates';
 import {
   IMAGE_WARN_BYTES,
@@ -196,6 +197,11 @@ export default function MathCanvas() {
   // sin volver a suscribirse en cada pulsación.
   const insertRef = useRef(insertAt);
   const regionsRef = useRef(regions);
+  /** Espejo de las medidas: `nextSpot` se suscribe una vez y necesita las vigentes. */
+  const medidasRef = useRef<{ alto: Map<string, number>; ancho: Map<string, number> }>({
+    alto: new Map(),
+    ancho: new Map(),
+  });
   useEffect(() => {
     insertRef.current = insertAt;
   }, [insertAt]);
@@ -232,6 +238,60 @@ export default function MathCanvas() {
     setSelected(new Set());
   }, []);
   const historial = useHistorial(regions, setRegions, trasRestaurar);
+
+  /**
+   * Tamaño real de cada región, leído del DOM.
+   *
+   * Ninguna región lo declara —`w`/`h` solo existen para las imágenes—, pero un
+   * bloque de programa multilínea llega a 600 px y una región con error añade
+   * su mensaje debajo. Sin medirlos, el canvas apila bloques encima de otros.
+   *
+   * Se mide después de pintar y con una pausa, porque KaTeX compone en un
+   * efecto: leer antes daría la altura del hueco vacío.
+   */
+  const [medidas, setMedidas] = useState<{ alto: Map<string, number>; ancho: Map<string, number> }>(
+    () => ({ alto: new Map(), ancho: new Map() }),
+  );
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const hoja = sheetRef.current;
+      if (!hoja) return;
+      const alto = new Map<string, number>();
+      const ancho = new Map<string, number>();
+      for (const el of hoja.querySelectorAll<HTMLElement>('[data-region-id]')) {
+        const id = el.dataset.regionId!;
+        const caja = el.getBoundingClientRect();
+        alto.set(id, caja.height);
+        ancho.set(id, caja.width);
+      }
+      medidasRef.current = { alto, ancho };
+      setMedidas({ alto, ancho });
+    }, 250);
+    return () => clearTimeout(t);
+  }, [regions, results]);
+
+  const solapes = useMemo(
+    () => detectarSolapes(regions, medidas.alto, medidas.ancho),
+    [regions, medidas],
+  );
+
+  /** Ids de las regiones que quedan tapadas, para señalarlas en la hoja. */
+  const tapadas = useMemo(() => new Set(solapes.map((s) => s.id)), [solapes]);
+
+  /** Empuja hacia abajo lo justo para que nada se pise. Reversible con Ctrl+Z. */
+  const separar = useCallback(() => {
+    const nuevas = separarSolapes(regions, medidas.alto, medidas.ancho, GRID);
+    if (nuevas === regions) return;
+    // El orden de lectura resuelve el scope compartido: si cambiara, cambiarían
+    // los números de la hoja. `separarSolapes` solo empuja hacia abajo y en
+    // orden justamente para conservarlo, pero se comprueba antes de aplicar.
+    if (!mismoOrdenDeLectura(regions, nuevas)) {
+      alert('No se pudo separar sin alterar el orden de lectura de la hoja.');
+      return;
+    }
+    setRegions(nuevas);
+    setSelected(new Set());
+  }, [regions, medidas]);
 
   // Dónde cae cada corte de A4 al imprimir. Se mide el documento de impresión,
   // que es lineal y distinto de este plano 2D: por eso el corte se anuncia
@@ -442,10 +502,32 @@ export default function MathCanvas() {
    * escribe encima de lo que ya hay).
    */
   const nextSpot = useCallback((): { x: number; y: number } => {
-    if (insertRef.current) return insertRef.current;
     const rs = regionsRef.current;
-    const maxY = rs.length ? Math.max(...rs.map((r) => r.y + (r.h ?? 0))) : 0;
-    return { x: 32, y: snap(maxY + 48) };
+    const { alto, ancho } = medidasRef.current;
+    const altoDe = (r: Region) => alto.get(r.id) ?? r.h ?? 24;
+
+    let punto = insertRef.current;
+    if (!punto) {
+      const maxY = rs.length ? Math.max(...rs.map((r) => r.y + altoDe(r))) : 0;
+      punto = { x: 32, y: snap(maxY + 48) };
+    }
+
+    // Que el punto no caiga DENTRO de un bloque ya existente. El paso de
+    // inserción es fijo (48 px), pero una región no mide siempre lo mismo: un
+    // bloque de programa multilínea llega a 600 px. Encadenando bloques con el
+    // mismo botón, el nuevo aterrizaba encima del anterior.
+    let y = punto.y;
+    for (let vuelta = 0; vuelta < 50; vuelta++) {
+      const choca = rs.find((r) => {
+        const rAncho = ancho.get(r.id) ?? r.w ?? 120;
+        return (
+          y >= r.y && y < r.y + altoDe(r) && punto!.x < r.x + rAncho && r.x < punto!.x + 120
+        );
+      });
+      if (!choca) break;
+      y = snap(choca.y + altoDe(choca) + 8);
+    }
+    return { x: punto.x, y };
   }, []);
 
   /**
@@ -461,6 +543,9 @@ export default function MathCanvas() {
       setSelected(new Set());
       setActiveId(region.id);
       setInsertAt({ x: snap(x), y: snap(y) + (kind === 'program' ? 5 * GRID : 3 * GRID) });
+      // El punto de inserción vuelve a ajustarse cuando el bloque ya está
+      // medido: ver `avanzarPunto`. Aquí solo se reserva un hueco razonable
+      // para que el siguiente clic no caiga encima del que se acaba de crear.
     },
     [nextSpot],
   );
@@ -964,6 +1049,23 @@ export default function MathCanvas() {
         </div>
       )}
 
+      {solapes.length > 0 && (
+        <div className="flex items-center gap-2 border-b border-amber-300 bg-amber-50 px-3 py-1.5 text-xs text-amber-900">
+          <span>
+            ⚠ {solapes.length === 1 ? 'Un bloque queda' : `${solapes.length} bloques quedan`} tapados
+            por el de arriba. Suele pasar cuando un bloque de programa crece y el de abajo ya
+            estaba colocado.
+          </span>
+          <button
+            className="ml-auto shrink-0 rounded border border-amber-400 px-2 py-0.5 font-medium hover:bg-amber-100"
+            onClick={separar}
+            title="Empuja hacia abajo lo justo para que no se pisen. Se deshace con Ctrl+Z."
+          >
+            Separarlos
+          </button>
+        </div>
+      )}
+
       {storageWarn && (
         <div className="flex items-center gap-2 border-b border-amber-300 bg-amber-50 px-3 py-1.5 text-xs text-amber-900">
           <span>⚠ {storageWarn}</span>
@@ -1067,6 +1169,7 @@ export default function MathCanvas() {
                 result={results[r.id]}
                 active={activeId === r.id}
                 selected={selected.has(r.id)}
+                tapada={tapadas.has(r.id)}
                 onChange={(src) => updateRegion(r.id, { src })}
                 onCommit={commitActive}
                 onActivate={() => {

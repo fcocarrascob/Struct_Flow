@@ -15,6 +15,8 @@ interface Props {
   /** En edición: muestra el input de texto plano. */
   active: boolean;
   selected: boolean;
+  /** Queda debajo de otra región: se señala para poder encontrarla. */
+  tapada?: boolean;
   onChange: (src: string) => void;
   /** Sale de edición (Enter, Escape o blur). */
   onCommit: () => void;
@@ -92,6 +94,7 @@ function MathRegion({
   result,
   active,
   selected,
+  tapada,
   onChange,
   onCommit,
   onActivate,
@@ -160,9 +163,18 @@ function MathRegion({
           ? 'z-20 ring-1 ring-accent bg-white shadow-sm'
           : selected
             ? 'z-10 cursor-move ring-1 ring-accent/60 bg-accent/5'
-            : `cursor-move hover:ring-1 ${hasError ? 'ring-1 ring-red-300' : 'hover:ring-border'}`
+            : `cursor-move hover:ring-1 ${
+                hasError
+                  ? 'ring-1 ring-red-300'
+                  : tapada
+                    ? 'ring-1 ring-amber-400'
+                    : 'hover:ring-border'
+              }`
       }`}
       style={{ left: region.x, top: region.y }}
+      // Marca la región en el DOM: la usan la medición de alturas (para no
+      // apilar bloques encima de otros) y el salto del panel de variables.
+      data-region-id={region.id}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -331,5 +343,6 @@ export default memo(MathRegion, (a, b) => {
       x.w === y.w &&
       x.h === y.h &&
       x.pageBreak === y.pageBreak)
-  ) && a.result === b.result && a.active === b.active && a.selected === b.selected;
+  ) && a.result === b.result && a.active === b.active && a.selected === b.selected &&
+    a.tapada === b.tapada;
 });

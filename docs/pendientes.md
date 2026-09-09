@@ -56,17 +56,32 @@ no cambiaron: cada instantánea es un array de punteros, no una copia de la hoja
 Queda fuera: mientras se edita el texto de una región, `Ctrl+Z` es del input y no del
 canvas. Es lo esperable, pero conviene saberlo.
 
-## 3. Regiones que se solapan
+## 3. Regiones que se solapan — hecho, salvo el reparto de clics
 
-El punto de inserción avanza `3*GRID` = 48 px fijos, y ninguna región reporta su altura
-medida (`Region.h` solo existe para imágenes). Una región con error muestra un mensaje extra
-de dos líneas y pisa la de abajo; una fórmula con `\frac` mide 35-45 px más el relleno, al
-filo de los 48. En `anclajes-pedestal` y `columna-interaccion-esbeltez` hay pares de
-regiones separadas 16 px en la misma `x`. El `z-index` solo distingue activa y seleccionada,
-así que dos regiones inactivas superpuestas se pisan en orden de array y la de encima se
-come los clics de la otra.
+El diagnóstico, medido: los solapes del corpus están **todos en la misma columna**, y el
+culpable es siempre un bloque de programa alto —`gobierna := if…` mide 197 px, y hay uno de
+600— con las regiones siguientes colocadas 48 px más abajo, que es el paso de inserción
+fijo. El 2 % de las regiones del corpus (126 de 8.377) supera ese paso.
 
-*Coste*: alto. Hay que medir alturas reales y propagarlas.
+Tres piezas:
+
+- **Prevención.** El punto de inserción ya no cae dentro de un bloque existente: se miden
+  las alturas reales del DOM (`data-region-id`) y el punto baja hasta despejarse. Encadenar
+  tres fórmulas bajo un programa de 100 px ya no genera ningún solape.
+- **Aviso.** Los bloques tapados se marcan en ámbar y la barra dice cuántos son.
+- **Arreglo bajo demanda.** El botón «Separarlos» empuja hacia abajo lo justo. No se mueve
+  nada solo: las planillas publicadas conservan la geometría con la que se publicaron hasta
+  que alguien lo pide, y el `Ctrl+Z` lo revierte.
+
+`separarSolapes` solo empuja **hacia abajo y en orden**, y se comprueba con
+`mismoOrdenDeLectura` antes de aplicar. No es una precaución teórica: el orden de lectura
+resuelve el scope compartido, así que reordenar regiones cambiaría qué variable ve cada
+fórmula. Verificado sobre `viga-hss-flexion`: 5 solapes → 0, y los resultados de la hoja no
+cambian ni un carácter.
+
+**Lo que queda:** cuando dos regiones inactivas se pisan, la de encima sigue comiéndose los
+clics de la de abajo (el `z-index` solo distingue activa y seleccionada). Con el resaltado y
+el botón molesta mucho menos, pero el reparto de clics no está resuelto.
 
 ## 4. Texto y figuras que desbordaban — hecho
 
