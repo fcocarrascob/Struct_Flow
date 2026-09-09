@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import katex from 'katex';
 import type { Region, SheetResults } from '../../lib/worksheet';
 import { renderEsquema, ESQUEMAS_PREFIX } from '../../lib/esquema';
+import { useEsquema } from '../useEsquema';
 
 /** Render KaTeX imperativo (mismo enfoque que MathRegion). */
 function Katex({ tex }: { tex: string }) {
@@ -37,22 +38,18 @@ function EsquemaImpreso({
   h?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  // La descarga va por `useEsquema`, que cachea. Antes se hacía aquí dentro con
+  // `scope` en las dependencias, y `evaluateSheet` construye un scope nuevo en
+  // cada evaluación: el archivo se volvía a pedir en cada tecla.
+  const raw = useEsquema(src);
   useEffect(() => {
-    let cancelled = false;
-    fetch(src)
-      .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
-      .then((text) => {
-        if (!cancelled && ref.current) {
-          ref.current.innerHTML = renderEsquema(text, scope ?? {}).svg;
-        }
-      })
-      .catch(() => {
-        if (!cancelled && ref.current) ref.current.textContent = `[no se pudo cargar ${src}]`;
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [src, scope]);
+    if (!ref.current) return;
+    if (raw === null) {
+      ref.current.textContent = '';
+      return;
+    }
+    ref.current.innerHTML = renderEsquema(raw, scope ?? {}).svg;
+  }, [raw, scope]);
   // El tamaño va reservado desde el principio: sin esto el bloque mide 0 hasta
   // que llega el SVG, y la paginación mediría una figura inexistente.
   //

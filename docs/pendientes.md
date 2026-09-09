@@ -35,8 +35,10 @@ confirma, la vía es llevar el scope como `Map`, que es la estructura que math.j
 No se pudo comprobar en esta sesión porque math.js no se deja importar suelto desde el
 navegador para medirlo aislado; hay que instrumentarlo desde Node.
 
-Sigue pendiente aparte, y es barato: `EsquemaImpreso` rehace el `fetch` del SVG cada vez que
-cambia `scope`, que `evaluateSheet` construye como objeto nuevo en cada evaluación. Y
+~~Sigue pendiente aparte, y es barato: `EsquemaImpreso` rehace el `fetch` del SVG cada vez
+que cambia `scope`.~~ **Hecho** al montar el módulo de diseño: los tres consumidores de un
+esquema —la región del canvas, el documento de impresión y el visor del módulo— comparten
+`useEsquema`, que cachea la descarga por ruta. Y
 `usePaginacion` mide los ~250 nodos del documento impreso con `getBoundingClientRect`
 (layout síncrono forzado); como su temporizador se reinicia con cada tecla, durante una
 ráfaga de escritura la paginación **nunca** se actualiza y el contador de páginas queda
@@ -144,9 +146,10 @@ De fondo: la estructura del documento no debería estar codificada en un caráct
   la lista de ids; solo falta resaltarlos.
 - **Si el corte de página cae en el pie**, la línea no se dibuja (se busca por id de región
   y `__footer` no es una).
-- **`exportJson` revoca el blob de forma síncrona** tras el `click()`, sin añadir el enlace
-  al DOM. Funciona en Chromium; en Firefox es el fallo clásico de la descarga que no ocurre.
-  Importa porque es la vía de rescate cuando `localStorage` se llena.
+- ~~**`exportJson` revoca el blob de forma síncrona** tras el `click()`, sin añadir el
+  enlace al DOM.~~ **Hecho.** Ahora hay una sola implementación, `descargarHoja` de
+  `canvas-handoff.ts`, que añade el enlace al documento y revoca en el turno siguiente; la
+  usan el botón «Exportar» del canvas y el «Descargar .json» de los módulos de diseño.
 - **`importJson` no tiene `.catch`**: si la lectura del archivo falla, no hay ningún aviso.
 - **`pointercancel` deja el arrastre pegado** (no hay `onPointerCancel` ni
   `onLostPointerCapture`), y sin `touch-action: none` arrastrar en táctil hace scroll.

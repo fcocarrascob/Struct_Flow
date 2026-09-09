@@ -2,6 +2,7 @@ import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import katex from 'katex';
 import type { Region, RegionResult } from '../../lib/worksheet';
 import { renderEsquema, ESQUEMAS_PREFIX } from '../../lib/esquema';
+import { useEsquema } from '../useEsquema';
 
 export const GRID = 16;
 export const snap = (v: number) => Math.max(0, Math.round(v / GRID) * GRID);
@@ -29,9 +30,6 @@ interface Props {
   registerInput: (el: HTMLInputElement | HTMLTextAreaElement | null) => void;
 }
 
-/** Texto de cada esquema ya descargado, por ruta (no cambian en la sesión). */
-const esquemaCache = new Map<string, string>();
-
 /**
  * Esquema paramétrico: SVG de `/esquemas/` inyectado inline con los tokens
  * `{{expr}}` sustituidos contra el scope capturado por la región (solo rutas
@@ -48,26 +46,7 @@ function EsquemaInline({
   w?: number;
   h?: number;
 }) {
-  const [raw, setRaw] = useState<string | null>(esquemaCache.get(src) ?? null);
-
-  useEffect(() => {
-    if (esquemaCache.has(src)) {
-      setRaw(esquemaCache.get(src)!);
-      return;
-    }
-    let vivo = true;
-    fetch(src)
-      .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
-      .then((text) => {
-        esquemaCache.set(src, text);
-        if (vivo) setRaw(text);
-      })
-      .catch(() => vivo && setRaw(null));
-    return () => {
-      vivo = false;
-    };
-  }, [src]);
-
+  const raw = useEsquema(src);
   const html = useMemo(() => (raw ? renderEsquema(raw, scope ?? {}).svg : null), [raw, scope]);
 
   if (!html) return <div className="rounded-sm bg-surface" style={{ width: w, height: h }} />;
