@@ -1,8 +1,7 @@
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
-import katex from 'katex';
+import { memo, useRef } from 'react';
+import BloqueDoc from './BloqueDoc';
 import type { Region, RegionResult } from '../../lib/worksheet';
-import { renderEsquema, ESQUEMAS_PREFIX } from '../../lib/esquema';
-import { useEsquema } from '../useEsquema';
+import { A4_ANCHO_PX } from '../../lib/paginacion';
 
 export const GRID = 16;
 export const snap = (v: number) => Math.max(0, Math.round(v / GRID) * GRID);
@@ -26,6 +25,8 @@ interface Props {
   selected: boolean;
   /** Queda debajo de otra región: se señala para poder encontrarla. */
   tapada?: boolean;
+  /** Es la primera región de texto de la hoja: se dibuja como título. */
+  titulo?: boolean;
   onChange: (src: string) => void;
   /** Sale de edición (Enter, Escape o blur). */
   onCommit: () => void;
@@ -45,50 +46,13 @@ interface Props {
   registerInput: (el: HTMLInputElement | HTMLTextAreaElement | null) => void;
 }
 
-/**
- * Esquema paramétrico: SVG de `/esquemas/` inyectado inline con los tokens
- * `{{expr}}` sustituidos contra el scope capturado por la región (solo rutas
- * de autoría propia pasan por aquí; una imagen pegada va por `<img>`).
- */
-function EsquemaInline({
-  src,
-  scope,
-  w,
-  h,
-}: {
-  src: string;
-  scope?: Record<string, unknown>;
-  w?: number;
-  h?: number;
-}) {
-  const raw = useEsquema(src);
-  const html = useMemo(() => (raw ? renderEsquema(raw, scope ?? {}).svg : null), [raw, scope]);
-
-  if (!html) return <div className="rounded-sm bg-surface" style={{ width: w, height: h }} />;
-  return (
-    <div
-      className="[&>svg]:block [&>svg]:h-full [&>svg]:w-full"
-      style={{ width: w, height: h }}
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
-  );
-}
-
-/** Render KaTeX imperativo (sin dangerouslySetInnerHTML). */
-function Katex({ tex }: { tex: string }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  useEffect(() => {
-    if (ref.current) katex.render(tex, ref.current, { throwOnError: false });
-  }, [tex]);
-  return <span ref={ref} />;
-}
-
 function MathRegion({
   region,
   result,
   active,
   selected,
   tapada,
+  titulo,
   onChange,
   onCommit,
   onActivate,
@@ -164,7 +128,6 @@ function MathRegion({
     resize.current = null;
   };
 
-  const isText = region.kind === 'text';
   const isProgram = region.kind === 'program';
   const isImage = region.kind === 'image';
   const hasError = Boolean(result?.error) && !active;
@@ -175,11 +138,14 @@ function MathRegion({
 
   return (
     <div
-      className={`group absolute select-none rounded ${isImage ? 'p-0' : 'px-1.5 py-0.5'} ${
+      // Sin relleno: seis píxeles a la izquierda y dos hacia abajo son seis y
+      // dos de diferencia con el papel. El realce va en `ring`, que es una
+      // sombra y no ocupa sitio.
+      className={`group absolute select-none rounded ${
         active
-          ? 'z-20 ring-1 ring-accent bg-white shadow-sm'
+          ? 'z-20 bg-white shadow-sm ring-1 ring-accent'
           : selected
-            ? 'z-10 cursor-move ring-1 ring-accent/60 bg-accent/5'
+            ? 'z-10 cursor-move bg-accent/5 ring-1 ring-accent/60'
             : `cursor-move hover:ring-1 ${
                 hasError
                   ? 'ring-1 ring-red-300'
@@ -188,7 +154,17 @@ function MathRegion({
                     : 'hover:ring-border'
               }`
       }`}
-      style={{ left: region.x, top: region.y }}
+      style={{
+        left: region.x,
+        top: region.y,
+        // El ancho del papel, para que el bloque parta las líneas por donde las
+        // parte el PDF y mida exactamente lo mismo. Va sin restar `region.x`
+        // todavía: el corpus está en `x = 40` y el documento lineal mide sus
+        // 680 px enteros, así que restarlo desalinearía justo lo que se busca
+        // igualar. Cuando la migración lleve las hojas a `x = 0`, el ancho
+        // disponible pasa a ser `A4_ANCHO_PX - region.x`.
+        width: A4_ANCHO_PX,
+      }}
       // Marca la región en el DOM: la usan la medición de alturas (para no
       // apilar bloques encima de otros) y el salto del panel de variables.
       data-region-id={region.id}
@@ -202,36 +178,11 @@ function MathRegion({
         if (!isImage) onActivate(); // una imagen no tiene modo edición
       }}
     >
-      {isImage ? (
-        <>
-          {region.src.startsWith(ESQUEMAS_PREFIX) ? (
-            <EsquemaInline src={region.src} scope={result?.scope} w={region.w} h={region.h} />
-          ) : (
-            <img
-              src={region.src}
-              alt=""
-              draggable={false}
-              className="block max-w-none rounded-sm"
-              style={{ width: region.w, height: region.h }}
-            />
-          )}
-          {/* Tirador de esquina: siempre visible si la región está seleccionada,
-              y al pasar el cursor por encima para que se descubra sin clic. */}
-          <span
-            className={`absolute -bottom-1 -right-1 h-3 w-3 cursor-nwse-resize rounded-sm border border-accent bg-white ${
-              selected ? '' : 'hidden group-hover:block'
-            }`}
-            title="Arrastra para redimensionar (mantiene la proporción)"
-            onPointerDown={onResizeDown}
-            onPointerMove={onResizeMove}
-            onPointerUp={onResizeUp}
-          />
-        </>
-      ) : active && isProgram ? (
+      {active && isProgram ? (
         <textarea
           ref={registerInput}
           autoFocus
-          className="resize-none bg-transparent font-mono text-sm leading-snug text-ink outline-none"
+          className="resize-none bg-transparent font-mono text-[9.5pt] leading-snug text-ink outline-none"
           style={{ width: `${progCols + 2}ch` }}
           rows={progRows}
           value={region.src}
@@ -259,14 +210,14 @@ function MathRegion({
         <input
           ref={registerInput}
           autoFocus
-          className={`min-w-32 max-w-3xl bg-transparent text-sm text-ink outline-none ${isText ? '' : 'font-mono'}`}
-          // El ancho sigue al texto, pero con tope: un párrafo de 271 caracteres
-          // pedía un input de ~3.800 px. Y para una región de texto el `ch` se
-          // mide sobre una fuente proporcional, así que ni siquiera corresponde
-          // al texto; el tope de la clase lo acota de todos modos.
-          style={{ width: `${Math.max(region.src.length + 2, 12)}ch` }}
+          // Las métricas son las del papel, no las de la interfaz: si el input
+          // midiera distinto que el bloque, el texto saltaría al entrar y salir
+          // de edición.
+          className={`w-full bg-transparent text-ink outline-none ${
+            region.kind === 'text' ? 'text-[9.5pt]' : 'font-mono text-[10.5pt]'
+          }`}
           value={region.src}
-          placeholder={isText ? 'texto…' : 'ej. M := F*L/4 = kN*m'}
+          placeholder={region.kind === 'text' ? 'texto…' : 'ej. M := F*L/4 = kN*m'}
           onChange={(e) => onChange(e.target.value)}
           onBlur={onCommit}
           onKeyDown={(e) => {
@@ -278,59 +229,25 @@ function MathRegion({
           }}
           onPointerDown={(e) => e.stopPropagation()}
         />
-      ) : isText ? (
-        // `pre-wrap` y no `pre`: conserva los saltos y la sangría que escribió
-        // el autor, pero ajusta línea. Con `pre`, los párrafos largos de las
-        // planillas reales (hay uno de 271 caracteres) se dibujaban en una sola
-        // línea de ~1.900 px, sobre una hoja de 1.600: se salían de la hoja y
-        // había que arrastrar el scroll horizontal para leerlos.
-        //
-        // El tope de ancho está elegido midiendo, no a ojo: un párrafo que pasa
-        // a ocupar varias líneas puede pisar la región de abajo, porque el paso
-        // de inserción es fijo (48 px) y nadie mide la altura real. Con este
-        // ancho el corpus pasa de 5 a 6 pares de regiones solapadas; con uno más
-        // estrecho, a 8. El solapamiento de fondo es un pendiente aparte.
-        <span className="block max-w-3xl whitespace-pre-wrap break-words text-sm text-ink">
-          {region.src}
-        </span>
-      ) : isProgram ? (
-        <div>
-          <div className="flex items-center gap-2">
-            <pre className="whitespace-pre border-l-2 border-accent pl-2 font-mono text-sm leading-snug text-ink">
-              {region.src}
-            </pre>
-            {result?.tex && (
-              <span className="flex items-center gap-1">
-                <span className="text-muted">→</span>
-                <Katex tex={result.tex} />
-              </span>
-            )}
-            {result?.defined && (
-              <span className="text-xs italic text-muted">{result.defined} definida</span>
-            )}
-          </div>
-          {hasError && <div className="max-w-64 text-xs text-red-600">{result?.error}</div>}
-        </div>
       ) : (
-        <div>
-          {result?.bool !== undefined ? (
-            <div className="flex items-center gap-2">
-              {result.tex && <Katex tex={result.tex} />}
-              <span
-                className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-sm font-bold ${
-                  result.bool ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                }`}
-              >
-                {result.bool ? '✓' : '✗'}
-              </span>
-            </div>
-          ) : result?.tex ? (
-            <Katex tex={result.tex} />
-          ) : (
-            <span className="font-mono text-sm text-ink">{region.src}</span>
-          )}
-          {hasError && <div className="max-w-64 text-xs text-red-600">{result?.error}</div>}
-        </div>
+        <BloqueDoc region={region} result={result} titulo={titulo} />
+      )}
+
+      {/* Tirador de esquina: siempre visible si la región está seleccionada, y
+          al pasar el cursor por encima para que se descubra sin clic. */}
+      {isImage && (
+        <span
+          className={`absolute -bottom-1 h-3 w-3 cursor-nwse-resize rounded-sm border border-accent bg-white ${
+            selected ? '' : 'hidden group-hover:block'
+          }`}
+          // El bloque ocupa el ancho del papel, así que la esquina de la caja no
+          // es la esquina de la figura: el tirador se pega al borde de la imagen.
+          style={{ left: (region.w ?? MIN_IMAGE_W) - 4 }}
+          title="Arrastra para redimensionar (mantiene la proporción)"
+          onPointerDown={onResizeDown}
+          onPointerMove={onResizeMove}
+          onPointerUp={onResizeUp}
+        />
       )}
     </div>
   );
@@ -363,5 +280,5 @@ export default memo(MathRegion, (a, b) => {
       x.h === y.h &&
       x.pageBreak === y.pageBreak)
   ) && a.result === b.result && a.active === b.active && a.selected === b.selected &&
-    a.tapada === b.tapada;
+    a.tapada === b.tapada && a.titulo === b.titulo;
 });

@@ -71,11 +71,23 @@ resultado puede no ser válido, y por eso no vota en el CUMPLE / NO CUMPLE.
 
 **Capa UI** (`src/components/canvas/`, React):
 - `MathCanvas.tsx` — raíz: mantiene el estado `Region[]`, autoguarda en `localStorage`
-  (clave `structpad.worksheet.v1`, debounce 300 ms), gestiona clic-para-crear, arrastre,
-  selección múltiple, borrado, importación/exportación JSON y el menú de plantillas. Las
-  regiones vacías son transitorias: se descartan al perder el foco, nunca se persisten.
-- `MathRegion.tsx` — una región arrastrable; renderiza KaTeX o el input de edición y pinta
-  el veredicto ✓/✗ de los resultados booleanos. Exporta `GRID` y `snap()`.
+  (clave `structpad.worksheet.v1`, debounce 300 ms), gestiona clic-para-crear, el marco de
+  selección sobre el fondo, el arrastre en grupo, el portapapeles de regiones, borrado,
+  importación/exportación JSON y el menú de plantillas. Las regiones vacías son
+  transitorias: se descartan al perder el foco, nunca se persisten.
+- `BloqueDoc.tsx` — **cómo se dibuja un bloque, en un solo sitio.** Lo usan la hoja y el
+  documento de impresión, y el aspecto está en `global.css` bajo `.doc-papel`, que llevan los
+  dos raíces. Antes eran dos renderizados —el canvas con `text-sm` (14 px) y el documento con
+  `11pt` e interlineado propio—, así que un mismo bloque no medía lo mismo en pantalla y en el
+  papel. Con el papel dentro del canvas eso es imposible: lo que se ve tiene que **ser** lo
+  que sale, no parecerse.
+- `MathRegion.tsx` — el chrome de una región: arrastre, anillo de selección, tirador de la
+  imagen y el input de edición. El contenido lo pinta `BloqueDoc`. Exporta `GRID`, `snap()` y
+  `UMBRAL_ARRASTRE`. **No calcula a dónde va al arrastrarla**: emite el desplazamiento crudo
+  del puntero (`onDragStart` / `onDrag` / `onDragEnd`) y es el canvas quien resuelve el grupo,
+  porque es el único que sabe qué más está seleccionado. Y **no lleva relleno**: seis píxeles
+  de `padding` son seis píxeles de diferencia con el papel; el realce va en `ring`, que es una
+  sombra y no ocupa sitio.
 - `SymbolPalette.tsx` — paleta lateral de símbolos y fragmentos insertables.
 - `WorksheetPrint.tsx` — el documento de impresión: un portal en `<body>` que refluye las
   regiones a un documento **lineal** (orden de lectura). **No** es el layout del canvas: no
@@ -116,10 +128,14 @@ motor, extiende los módulos puros y mantén los componentes React delgados.
 
 ## Invariantes que cuestan caro romper
 
-- **Los estilos de impresión van FUERA de `@media print`** en `global.css`; el media query
-  solo decide visibilidad. `usePaginacion` mide ese documento **en pantalla**, y unas reglas
-  dentro de una consulta print-only no aplicarían ahí: mediría un documento sin estilar y
-  anunciaría cortes falsos.
+- **Los estilos del bloque van FUERA de `@media print`** en `global.css`; el media query solo
+  decide visibilidad. Ya no es una sutileza de medición: `.doc-papel` es el estilo **de la
+  hoja**, y el canvas lo usa en pantalla todo el tiempo. Dentro del media query el canvas se
+  quedaría sin él.
+- **Los márgenes de `.wp-*` van bajo `.worksheet-print`, no bajo `.doc-papel`.** Un margen
+  separa bloques que van uno detrás de otro; en el canvas cada bloque está posicionado, y ahí
+  un margen no separa nada: desplaza el bloque respecto de la caja que se mide, y con eso lo
+  que se ve deja de caer donde dice su `y`.
 - **`#root` es hijo directo de `<body>`.** La regla `body > :not(.worksheet-print)` es un
   selector de hijo directo; con un envoltorio de por medio, la UI no se oculta al imprimir.
 - **No envolver en `React.StrictMode`.** El doble montaje de desarrollo dispara dos veces

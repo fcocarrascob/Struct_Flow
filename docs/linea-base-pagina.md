@@ -110,3 +110,77 @@ de que llegue el scope de la evaluación, el navegador se queja de los atributos
 siguiente lo corrige. No afecta a las alturas —la figura reserva su tamaño con `aspectRatio`
 desde el principio— ni a lo que se imprime. Queda anotado porque es ruido que confunde al
 depurar, no porque haya que arreglarlo ahora.
+
+---
+
+# Después de la fase 3 (renderizado unificado)
+
+El canvas y el papel pasan a dibujar el mismo marcado con el mismo CSS
+(`BloqueDoc.tsx` + `.doc-papel`). Medido con `/calibrar` sobre el mismo Chromium.
+
+## Paridad de alturas: exacta
+
+Comparando bloque a bloque el alto en el lienzo contra el alto en el documento de impresión,
+con tolerancia de 0,5 px:
+
+| Planilla | Bloques | Con alto distinto |
+|---|---:|---:|
+| viga-flexion-corte | 218 | 0 |
+| zapata-aislada | 255 | 0 |
+| losa-unidireccional | 601 | 0 |
+
+Era el objetivo de la fase: hasta aquí el canvas dibujaba con `text-sm` (14 px) y el documento
+con `11pt` (14,67 px) e interlineado propio, así que un mismo bloque no medía lo mismo en un
+sitio y en otro.
+
+## Lo que cambia en el papel: 271 → 287 páginas
+
+Volcando el documento de impresión a texto y diferenciándolo contra el estado anterior, las
+únicas diferencias son las dos que la fase se propuso resolver, y **ninguna otra**:
+
+| Planilla | Líneas de diferencia | De ellas |
+|---|---:|---|
+| viga-flexion-corte | 6 sobre 216 | 1 el título, 2 bloques de programa |
+| zapata-aislada | 6 sobre 255 | 1 el título, 2 bloques de programa |
+| muro-flexocompresion | 58 sobre 646 | 1 el título, 28 bloques de programa |
+
+1. **El título deja de mudarse.** El bloque `__header` que el documento fabricaba aparte pasa
+   a ser la propia región de texto (`r000`), con el mismo contenido, dibujada donde el autor
+   la puso. Antes la misma región estaba en un sitio del canvas y en otro del papel.
+2. **Un bloque de programa imprime su código.** Antes el papel enseñaba solo el resultado, y
+   una función se despachaba con «X — función definida»: el algoritmo, que es justo lo que
+   hay que poder auditar en una memoria, no salía. Ahora sale el mismo `pre` que se ve en la
+   hoja.
+
+Eso cuesta **16 páginas sobre 271** (+5,9 %), repartidas en 10 de las 33 planillas. Las 10
+son todas de las 23 que tienen bloques de programa; **ninguna planilla sin programas cambió
+de paginación**, que es la comprobación que descarta que se haya movido algo por otro motivo.
+
+| Planilla | Antes | Ahora | |
+|---|---:|---:|---:|
+| anclajes-pedestal | 9 | 10 | +1 |
+| chevron-nch2369 | 10 | 12 | +2 |
+| columna-interaccion-esbeltez | 9 | 11 | +2 |
+| diagonal-hss-traccion | 9 | 10 | +1 |
+| gusset-simple-apernado | 6 | 7 | +1 |
+| losa-punzonamiento-momento | 14 | 15 | +1 |
+| losa-unidireccional | 17 | 20 | +3 |
+| muro-flexocompresion | 19 | 22 | +3 |
+| viga-carrilera-puente-grua | 12 | 13 | +1 |
+| viga-hss-flexion | 16 | 17 | +1 |
+| **Total** | **271** | **287** | **+16** |
+
+## Consecuencia esperada: aparecen solapes en el canvas
+
+El bloque del título pasa de 24 px a **90 px**: ahora es el `<h1>` a 15 pt —que en 680 px de
+ancho ocupa dos líneas— más la línea de fecha y la regla. En el papel siempre midió eso; lo
+que ha cambiado es que el canvas ya no miente.
+
+Las planillas del corpus dejan 48 px entre el título y lo siguiente, que era de sobra para un
+título de 24 px y no lo es para uno de 90. Por eso el canvas empieza a avisar de bloques
+tapados —uno en `viga-flexion-corte`, tres en `muro-flexocompresion`— donde antes no avisaba
+de ninguno.
+
+**No es una regresión: es el aviso funcionando.** El botón «Separarlos» lo resuelve en un
+clic y es reversible con Ctrl+Z, y la migración de la fase 6 recoloca las 33 con las alturas
+de papel, que es cuando deja de hacer falta.

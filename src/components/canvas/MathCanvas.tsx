@@ -191,21 +191,60 @@ export default function MathCanvas() {
     () => ({ alto: new Map(), ancho: new Map() }),
   );
   useEffect(() => {
-    const t = setTimeout(() => {
-      const hoja = sheetRef.current;
-      if (!hoja) return;
+    const hoja = sheetRef.current;
+    if (!hoja) return;
+
+    let pedido = 0;
+    const leer = () => {
+      pedido = 0;
       const alto = new Map<string, number>();
       const ancho = new Map<string, number>();
       for (const el of hoja.querySelectorAll<HTMLElement>('[data-region-id]')) {
-        const id = el.dataset.regionId!;
         const caja = el.getBoundingClientRect();
-        alto.set(id, caja.height);
-        ancho.set(id, caja.width);
+        alto.set(el.dataset.regionId!, caja.height);
+        ancho.set(el.dataset.regionId!, caja.width);
       }
       medidasRef.current = { alto, ancho };
       setMedidas({ alto, ancho });
-    }, 250);
-    return () => clearTimeout(t);
+    };
+    // Una sola lectura por cuadro aunque el observador avise de cuarenta
+    // bloques: sin coalescer, una hoja de 646 regiones dispara 646 medidas
+    // completas seguidas.
+    const pedir = () => {
+      if (pedido) return;
+      pedido = requestAnimationFrame(leer);
+    };
+
+    // Un observador y no un `setTimeout`: el alto de un bloque cambia cuando
+    // KaTeX termina de componer, cuando llega el SVG de un esquema y cuando el
+    // resultado de la evaluación cambia de ancho, y ninguna de las tres cosas
+    // avisa. Con el temporizador la medida iba 250 ms por detrás, que se notaba
+    // poco mientras solo servía para no apilar bloques — y se va a notar mucho
+    // cuando de ella dependa dónde se dibuja el corte de página.
+    const obs = new ResizeObserver(pedir);
+    const mirar = () => {
+      obs.disconnect();
+      for (const el of hoja.querySelectorAll<HTMLElement>('[data-region-id]')) obs.observe(el);
+      pedir();
+    };
+    mirar();
+
+    // Las tipografías cambian el alto del texto: medir antes de que carguen da
+    // una hoja que se recoloca sola un segundo después.
+    let vivo = true;
+    const listas = document.fonts?.ready ?? Promise.resolve();
+    void listas.then(() => vivo && pedir());
+
+    // Los bloques que entran y salen: el observador no los ve aparecer.
+    const mut = new MutationObserver(mirar);
+    mut.observe(hoja, { childList: true });
+
+    return () => {
+      vivo = false;
+      if (pedido) cancelAnimationFrame(pedido);
+      obs.disconnect();
+      mut.disconnect();
+    };
   }, [regions, results]);
 
   const solapes = useMemo(
@@ -229,6 +268,21 @@ export default function MathCanvas() {
       .forEach((r, i) => m.set(r.id, i + 1));
     return m;
   }, [regions, showOrden]);
+
+  /**
+   * La primera región de texto en orden de lectura: la hoja la dibuja como
+   * título. La misma regla que aplica `WorksheetPrint`, y por eso se calcula
+   * igual — si las dos discreparan, el título estaría en un sitio en pantalla y
+   * en otro en el papel, que es justo lo que se acaba de arreglar.
+   */
+  const idTitulo = useMemo(
+    () =>
+      [...regions]
+        .filter((r) => r.src.trim() !== '')
+        .sort((a, b) => a.y - b.y || a.x - b.x)
+        .find((r) => r.kind === 'text')?.id,
+    [regions],
+  );
 
   /** Ids de las regiones que quedan tapadas, para señalarlas en la hoja. */
   const tapadas = useMemo(() => new Set(solapes.map((s) => s.id)), [solapes]);
@@ -1202,7 +1256,9 @@ export default function MathCanvas() {
             // `select-none`: sin esto, arrastrar un marco sobre el fondo empieza
             // también una selección de texto del navegador y la hoja se pinta de
             // azul por debajo del marco.
-            className={`relative cursor-crosshair select-none ${dropping ? 'ring-2 ring-inset ring-accent' : ''}`}
+            // `doc-papel`: la hoja adopta la tipografía del papel, que es lo
+            // que hace que un bloque mida en pantalla lo que va a medir impreso.
+            className={`doc-papel relative cursor-crosshair select-none ${dropping ? 'ring-2 ring-inset ring-accent' : ''}`}
             style={{
               minWidth: '100%',
               minHeight: '100%',
@@ -1320,6 +1376,7 @@ export default function MathCanvas() {
                 active={activeId === r.id}
                 selected={selected.has(r.id)}
                 tapada={tapadas.has(r.id)}
+                titulo={r.id === idTitulo}
                 onChange={(src) => updateRegion(r.id, { src })}
                 onCommit={commitActive}
                 onActivate={() => {
