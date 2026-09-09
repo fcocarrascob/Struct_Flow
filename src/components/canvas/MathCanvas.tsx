@@ -15,8 +15,9 @@ import {
   fitToSheet,
   isImageFile,
 } from '../../lib/canvas-image';
-
-const STORAGE_KEY = 'structpad.worksheet.v1';
+import { STORAGE_KEY, hayTrabajoGuardado } from '../../lib/hoja-guardada';
+import { descargarHoja } from '../../lib/canvas-handoff';
+import Enlace from '../Enlace';
 
 /** Hoja de ejemplo para la primera visita (se reemplaza al editar). */
 const DEMO: Region[] = [
@@ -63,28 +64,6 @@ function limpiarDeepLink(param: string): void {
   if (!url.searchParams.has(param)) return;
   url.searchParams.delete(param);
   window.history.replaceState(null, '', url.pathname + url.search + url.hash);
-}
-
-/**
- * ¿Hay trabajo guardado que un deep-link estaría a punto de pisar? Se consulta
- * el `localStorage` y no el estado, porque los deep-links corren en el primer
- * render, antes de que el usuario haya tocado nada.
- *
- * La hoja de ejemplo no cuenta. El autoguardado la persiste a los 300 ms de
- * montar, antes de que el `fetch` del deep-link llegue hasta aquí, así que sin
- * esta salvedad el diálogo de reemplazo salía SIEMPRE — incluso en una hoja que
- * el usuario no había tocado, que es justo lo que se quería evitar.
- */
-function hasStoredWork(): boolean {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const data = raw ? JSON.parse(raw) : null;
-    if (!Array.isArray(data?.regions)) return false;
-    if (data.demo) return false;
-    return data.regions.some((r: Region) => r.src?.trim());
-  } catch {
-    return false;
-  }
 }
 
 const KINDS: ReadonlySet<string> = new Set(['math', 'text', 'program', 'image']);
@@ -339,7 +318,7 @@ export default function MathCanvas() {
    * `hayTrabajo` es un parámetro y no una lectura fija del estado porque las vías
    * no coinciden en qué cuenta como «trabajo». Un deep-link corre en el primer
    * render, cuando `regions` ya trae la demo aunque el usuario no haya escrito
-   * nada: ahí lo que vale es `hasStoredWork()`. Una acción dentro de la app sí
+   * nada: ahí lo que vale es `hayTrabajoGuardado()`. Una acción dentro de la app sí
    * mira lo que hay en pantalla.
    */
   const cargarHoja = useCallback(
@@ -376,7 +355,7 @@ export default function MathCanvas() {
     if (!id) return;
     const tpl = TEMPLATES.find((t) => t.id === id);
     if (!tpl) return;
-    cargarHoja(tpl, { titulo: tpl.titulo, hayTrabajo: hasStoredWork() });
+    cargarHoja(tpl, { titulo: tpl.titulo, hayTrabajo: hayTrabajoGuardado() });
     limpiarDeepLink('plantilla');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -416,7 +395,7 @@ export default function MathCanvas() {
     const slug = new URLSearchParams(window.location.search).get('planilla');
     if (!slug) return;
     const señal = { cancelado: false };
-    cargarPlanilla(slug, { hayTrabajo: hasStoredWork(), señal });
+    cargarPlanilla(slug, { hayTrabajo: hayTrabajoGuardado(), señal });
     limpiarDeepLink('planilla');
     return () => {
       señal.cancelado = true;
@@ -435,7 +414,7 @@ export default function MathCanvas() {
         // Las regiones vacías son transitorias (se borran al salir de edición):
         // no se persisten por si la página se cierra con una a medio crear.
         const persistable = regions.filter((r) => r.src.trim() !== '');
-        // Se marca la hoja de ejemplo intacta para que `hasStoredWork` no la
+        // Se marca la hoja de ejemplo intacta para que `hayTrabajoGuardado` no la
         // confunda con trabajo del usuario (ver el comentario de esa función).
         const demo = regions === DEMO;
         localStorage.setItem(
@@ -757,17 +736,11 @@ export default function MathCanvas() {
     [activeId, updateRegion],
   );
 
-  const exportJson = () => {
-    const blob = new Blob([JSON.stringify({ version: 1, regions }, null, 2)], {
-      type: 'application/json',
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'hoja-calculo.json';
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  // Delega en `descargarHoja` en vez de repetir el baile del blob: esta copia
+  // llevaba el fallo clásico de Firefox —enlace fuera del DOM y `revokeObjectURL`
+  // síncrono— y con dos rutas de descarga en la aplicación, arreglar una sola
+  // habría sido peor que no arreglar ninguna.
+  const exportJson = () => descargarHoja({ version: 1, regions }, 'hoja-calculo.json');
 
   const loadTemplate = (tpl: Template) => {
     setTemplatesOpen(false);
@@ -810,6 +783,14 @@ export default function MathCanvas() {
     <>
     <div className="app-screen flex h-full w-full flex-col">
       <div className="flex flex-wrap items-center gap-2 border-b border-border bg-surface/80 px-3 py-2">
+        <Enlace
+          a={{ vista: 'inicio' }}
+          className={`${toolBtn} no-underline`}
+          title="Volver al menú"
+        >
+          ← Inicio
+        </Enlace>
+        <span className="mx-0.5 h-5 w-px bg-border" />
         <button
           className={toolBtn}
           onClick={() => insertRegion('math')}

@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "indice:planillas": "node scripts/indice-planillas.mjs",
     "verify:planilla": "node scripts/verify-planilla.mjs",
-    "verify:planillas": "node scripts/verify-planilla.mjs public/planillas"
+    "verify:planillas": "node scripts/verify-planilla.mjs public/planillas",
+    "verify:modulos": "node scripts/verify-modulos.mjs"
   },
   "dependencies": {
     "katex": "^0.17.0",

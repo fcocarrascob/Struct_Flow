@@ -1,8 +1,12 @@
-# Struct_Flow — canvas matemático
+# Struct_Flow — memorias de cálculo estructural
 
-Una hoja de cálculo estilo SMath para ingeniería estructural: haces clic en cualquier
-parte del lienzo y escribes expresiones con unidades, que se evalúan con
-[math.js](https://mathjs.org) y se renderizan con [KaTeX](https://katex.org).
+Dos formas de llegar a la misma memoria de cálculo:
+
+- **El canvas**, una hoja estilo SMath donde haces clic en cualquier parte del lienzo y
+  escribes expresiones con unidades, que se evalúan con [math.js](https://mathjs.org) y se
+  renderizan con [KaTeX](https://katex.org).
+- **Los módulos de diseño**, donde ingresas parámetros, ves el elemento redibujarse y los
+  factores de utilización moverse, y exportas la memoria cuando cuadra.
 
 - `nombre := valor` define una variable
 - un `=` final muestra el resultado
@@ -20,9 +24,42 @@ npm install
 npm run dev              # http://localhost:5173
 npm run build            # typecheck + build de producción
 npm run verify:planillas # evalúa las 33 planillas fuera del navegador
+npm run verify:modulos   # evalúa los módulos de diseño y sus memorias exportadas
 ```
 
 Requiere Node >= 22.12.0.
+
+### Las rutas
+
+| | |
+|---|---|
+| `/` | el menú |
+| `/planillas` | el catálogo de las 33 memorias publicadas |
+| `/canvas` | la hoja |
+| `/diseno` · `/diseno/<id>` | los módulos de diseño |
+
+La navegación es un micro-router propio (`src/lib/ruta.ts`, ~70 líneas): para cinco vistas
+no se justifica una dependencia más. Al servir la aplicación en producción hace falta el
+*fallback* de SPA —cualquier ruta devuelve `index.html`—, que `vite dev` y `vite preview`
+ya hacen solos.
+
+### Diseño de elementos
+
+Un módulo **no calcula por su cuenta**: declara qué parámetros pide y qué resultados
+enseña, y sabe armar con ellos una hoja del canvas. Quien calcula es `evaluateSheet`, el
+mismo motor que corre las 33 planillas. De una sola evaluación salen las tres cosas —los
+resultados en vivo, el esquema SVG y la memoria que se exporta—, así que lo que se ve
+mientras se diseña y lo que sale exportado no pueden divergir.
+
+Añadir un elemento son dos archivos: uno en `src/lib/diseno/` que implemente
+`ModuloDiseno` (`src/lib/diseno/tipos.ts`) y su SVG en `public/esquemas/`. El formulario,
+el visor, el panel de resultados y los botones de exportación son un armazón genérico.
+
+El piloto es `viga-hormigon`, la versión breve de `public/planillas/viga-flexion-corte.json`
+(ACI 318-25, Cap. 9). Su esquema es el primero del repo cuya **geometría** es paramétrica y
+no solo los rótulos: la sección se redibuja con `b_w`, `h`, el recubrimiento y el diámetro
+de las barras. Como SVG no tiene bucles y el número de barras es variable, se dibujan diez
+círculos y la hoja anula el radio de los que sobran.
 
 ### El catálogo
 
@@ -34,8 +71,12 @@ El botón **Ejemplos** abre el catálogo: las plantillas editables del bundle
 
 ### Deep-links
 
-- `/?plantilla=<id>` abre una plantilla de la galería
-- `/?planilla=<slug>` carga una planilla de `public/planillas/`
+- `/canvas?plantilla=<id>` abre una plantilla de la galería
+- `/canvas?planilla=<slug>` carga una planilla de `public/planillas/`
+
+Las formas antiguas, `/?planilla=…` y `/?plantilla=…`, son de cuando el canvas era la raíz;
+se reescriben a `/canvas` antes del primer render (`redirigirDeepLinkAntiguo`), así que los
+enlaces ya publicados siguen funcionando.
 
 ## De dónde viene
 
@@ -86,13 +127,16 @@ El snapshot se contrastó contra el original, no solo se dio por bueno:
 
 ```
 src/
-├── main.tsx, App.tsx        andamiaje y chrome de la página
-├── components/canvas/       UI React (5 archivos)
-├── lib/                     motor puro, sin React (9 archivos)
+├── main.tsx, App.tsx        andamiaje y conmutador de vistas
+├── components/              landing, catálogo, enlaces y hooks compartidos
+│   ├── canvas/              la hoja (8 archivos)
+│   └── diseno/              el armazón de un módulo (4 archivos)
+├── lib/                     puro, sin React
+│   └── diseno/              contrato de módulo, registro y módulos
 └── styles/global.css        tokens Tailwind + documento de impresión
 public/
 ├── planillas/               33 planillas de diseño + ESQUEMA.md (el contrato)
-└── esquemas/                27 esquemas SVG paramétricos
-scripts/                     verify-planilla.mjs + lib/motor.mjs
+└── esquemas/                28 esquemas SVG paramétricos
+scripts/                     verify-planilla.mjs, verify-modulos.mjs, lib/motor.mjs
 docs/                        ESQUEMA-PLANILLA.md, canvas-planillas-roadmap.md
 ```

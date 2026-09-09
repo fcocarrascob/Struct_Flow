@@ -1,6 +1,12 @@
 import { createRoot } from 'react-dom/client';
 import App from './App';
+import { redirigirDeepLinkAntiguo } from './lib/ruta';
 import './styles/global.css';
+
+// Antes del primer render: los deep-links publicados apuntan a `/?planilla=…`,
+// de cuando el canvas era la raíz. Si se reescriben después, la landing llega a
+// pintarse y el usuario ve un parpadeo antes de aterrizar en el canvas.
+redirigirDeepLinkAntiguo();
 
 // Sin `React.StrictMode`, a propósito.
 //

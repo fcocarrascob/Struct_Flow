@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 548" font-family="Segoe UI, Arial, sans-serif">
+  <!--
+    Esquema del módulo de diseño «viga de hormigón armado».
+
+    A diferencia de los esquemas del corpus, aquí la GEOMETRÍA es paramétrica y
+    no solo los rótulos: la sección se redibuja con b_w, h, el recubrimiento y
+    el diámetro de las barras. El mapeo unidad→píxel (x_0, y_0, esc, bw_px…) lo
+    define la hoja; acá solo se consumen píxeles, con el modificador `:svg`, que
+    es obligatorio dentro de un atributo.
+
+    Las barras son un número variable y SVG no tiene bucles: se dibujan diez
+    círculos y la hoja anula el radio de los que sobran (`r_barra(i)` devuelve 0
+    para i > n_b). Un círculo de radio 0 no se ve.
+  -->
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#555"/>
+    </marker>
+  </defs>
+  <rect width="840" height="548" fill="#ffffff"/>
+
+  <text x="420" y="26" font-size="15" text-anchor="middle" fill="#222" font-weight="bold">Viga {{b_w:cm}}×{{h:cm}} cm · {{n_b}}φ{{d_b:mm}} · estribo φ{{d_v:mm}} de {{n_r}} ramas @ {{s:cm}} cm</text>
+  <text x="420" y="44" font-size="11" text-anchor="middle" fill="#666">ACI 318-25 (edición SI) — f’c = {{f_c:kgf/cm^2}} kgf/cm², f_y = {{f_y:kgf/cm^2}} kgf/cm², luz {{L:m}} m</text>
+
+  <!-- =================== SECCIÓN TRANSVERSAL =================== -->
+  <text x="90" y="62" font-size="11.5" fill="#1a63a8" font-weight="bold">Sección transversal</text>
+
+  <!-- Hormigón -->
+  <rect x="{{x_0:svg}}" y="{{y_0:svg}}" width="{{bw_px:svg}}" height="{{h_px:svg}}"
+        fill="#f3f5f8" stroke="#333" stroke-width="1.6"/>
+
+  <!-- Estribo: el rectángulo interior, a un recubrimiento de la cara -->
+  <rect x="{{x_0 + rec_px:svg}}" y="{{y_0 + rec_px:svg}}"
+        width="{{max(bw_px - 2*rec_px, 0):svg}}" height="{{max(h_px - 2*rec_px, 0):svg}}"
+        rx="{{max(2*dv_px, 1):svg}}"
+        fill="none" stroke="#1a63a8" stroke-width="{{max(dv_px, 1):svg}}" opacity="0.75"/>
+
+  <!-- Barras longitudinales: diez círculos, los que sobran con radio 0 -->
+  <g fill="#c0392b">
+    <circle cx="{{x_barra(1):svg}}" cy="{{y_b:svg}}" r="{{r_barra(1):svg}}"/>
+    <circle cx="{{x_barra(2):svg}}" cy="{{y_b:svg}}" r="{{r_barra(2):svg}}"/>
+    <circle cx="{{x_barra(3):svg}}" cy="{{y_b:svg}}" r="{{r_barra(3):svg}}"/>
+    <circle cx="{{x_barra(4):svg}}" cy="{{y_b:svg}}" r="{{r_barra(4):svg}}"/>
+    <circle cx="{{x_barra(5):svg}}" cy="{{y_b:svg}}" r="{{r_barra(5):svg}}"/>
+    <circle cx="{{x_barra(6):svg}}" cy="{{y_b:svg}}" r="{{r_barra(6):svg}}"/>
+    <circle cx="{{x_barra(7):svg}}" cy="{{y_b:svg}}" r="{{r_barra(7):svg}}"/>
+    <circle cx="{{x_barra(8):svg}}" cy="{{y_b:svg}}" r="{{r_barra(8):svg}}"/>
+    <circle cx="{{x_barra(9):svg}}" cy="{{y_b:svg}}" r="{{r_barra(9):svg}}"/>
+    <circle cx="{{x_barra(10):svg}}" cy="{{y_b:svg}}" r="{{r_barra(10):svg}}"/>
+  </g>
+
+  <!-- Cota de b_w, debajo de la sección -->
+  <line x1="{{x_0:svg}}" y1="{{y_0 + h_px + 26:svg}}" x2="{{x_0 + bw_px:svg}}" y2="{{y_0 + h_px + 26:svg}}"
+        stroke="#555" stroke-width="1" marker-start="url(#ar)" marker-end="url(#ar)"/>
+  <text x="{{x_0 + bw_px/2:svg}}" y="{{y_0 + h_px + 44:svg}}" font-size="11.5" text-anchor="middle" fill="#555">b_w = {{b_w:cm}} cm</text>
+
+  <!-- Cota de h, a la izquierda -->
+  <line x1="{{x_0 - 26:svg}}" y1="{{y_0:svg}}" x2="{{x_0 - 26:svg}}" y2="{{y_0 + h_px:svg}}"
+        stroke="#555" stroke-width="1" marker-start="url(#ar)" marker-end="url(#ar)"/>
+  <text x="{{x_0 - 34:svg}}" y="{{y_0 + h_px/2:svg}}" font-size="11.5" text-anchor="middle" fill="#555"
+        transform="rotate(-90 {{x_0 - 34:svg}},{{y_0 + h_px/2:svg}})">h = {{h:cm}} cm</text>
+
+  <!-- Cota de la altura útil d, a la derecha: de la fibra superior al centro de las barras -->
+  <line x1="{{x_0 + bw_px + 26:svg}}" y1="{{y_0:svg}}" x2="{{x_0 + bw_px + 26:svg}}" y2="{{y_b:svg}}"
+        stroke="#1a63a8" stroke-width="1" marker-start="url(#ar)" marker-end="url(#ar)"/>
+  <line x1="{{x_0 + bw_px:svg}}" y1="{{y_b:svg}}" x2="{{x_0 + bw_px + 32:svg}}" y2="{{y_b:svg}}"
+        stroke="#1a63a8" stroke-width="0.7" stroke-dasharray="3 2"/>
+  <text x="{{x_0 + bw_px + 36:svg}}" y="{{y_0 + (y_b - y_0)/2:svg}}" font-size="11.5" fill="#1a63a8"
+        transform="rotate(-90 {{x_0 + bw_px + 36:svg}},{{y_0 + (y_b - y_0)/2:svg}})" text-anchor="middle">d = {{d:cm}} cm</text>
+
+  <!-- Recubrimiento -->
+  <text x="{{x_0 + bw_px/2:svg}}" y="{{y_0 + h_px + 60:svg}}" font-size="10.5" text-anchor="middle" fill="#888">recubrimiento libre {{rec:mm}} mm · separación libre entre barras {{s_libre:mm}} mm</text>
+
+  <!-- =================== PANEL DE RESULTADOS =================== -->
+  <text x="430" y="62" font-size="11.5" fill="#1a63a8" font-weight="bold">Verificaciones</text>
+  <line x1="430" y1="70" x2="810" y2="70" stroke="#d1d5db" stroke-width="1"/>
+
+  <text x="430" y="92" font-size="11.5" fill="#333">Altura útil derivada</text>
+  <text x="810" y="92" font-size="11.5" text-anchor="end" fill="#333" font-weight="bold">d = {{d:cm}} cm</text>
+
+  <text x="430" y="112" font-size="11.5" fill="#333">Acero provisto / mínimo (9.6.1.2)</text>
+  <text x="810" y="112" font-size="11.5" text-anchor="end" fill="{{v_Asmin ? '#15803d' : '#b91c1c'}}" font-weight="bold">{{A_s:cm^2}} / {{A_smin:cm^2}} cm² {{v_Asmin}}</text>
+
+  <text x="430" y="132" font-size="11.5" fill="#333">Controlada por tracción (9.3.3.1)</text>
+  <text x="810" y="132" font-size="11.5" text-anchor="end" fill="{{v_duct ? '#15803d' : '#b91c1c'}}" font-weight="bold">ε_t = {{eps_t}} {{v_duct}}</text>
+
+  <text x="430" y="152" font-size="11.5" fill="#333">Separación de estribos (Tabla 9.7.6.2.2)</text>
+  <text x="810" y="152" font-size="11.5" text-anchor="end" fill="{{v_s ? '#15803d' : '#b91c1c'}}" font-weight="bold">{{s:cm}} ≤ {{s_gob:cm}} cm {{v_s}}</text>
+
+  <text x="430" y="172" font-size="11.5" fill="#333">Separación libre entre barras (25.2.1)</text>
+  <text x="810" y="172" font-size="11.5" text-anchor="end" fill="{{v_sep ? '#15803d' : '#b91c1c'}}" font-weight="bold">{{v_sep}}</text>
+
+  <!-- Flexión -->
+  <line x1="430" y1="196" x2="810" y2="196" stroke="#d1d5db" stroke-width="1"/>
+  <text x="430" y="218" font-size="11.5" fill="#333" font-weight="bold">Flexión — 22.3.1 y 9.5.1.1(a)</text>
+  <text x="430" y="238" font-size="11.5" fill="#666">M_u = {{M_u:tonf*m}} tonf·m · φM_n = {{Rd_M:tonf*m}} tonf·m</text>
+  <rect x="430" y="248" width="240" height="12" fill="#eef2f7" stroke="#d1d5db" stroke-width="0.8"/>
+  <rect x="430" y="248" width="{{min(u_M, 1.5)*160:svg}}" height="12" fill="{{u_M <= 1 ? '#15803d' : '#b91c1c'}}" opacity="0.85"/>
+  <line x1="590" y1="244" x2="590" y2="264" stroke="#333" stroke-width="1"/>
+  <text x="810" y="259" font-size="12" text-anchor="end" fill="{{u_M <= 1 ? '#15803d' : '#b91c1c'}}" font-weight="bold">FU = {{u_M}}</text>
+
+  <!-- Corte -->
+  <text x="430" y="292" font-size="11.5" fill="#333" font-weight="bold">Corte — 22.5.8 y 9.4.3.2</text>
+  <text x="430" y="312" font-size="11.5" fill="#666">V_u@d = {{V_ud:tonf}} tonf · φV_n = {{Rd_V:tonf}} tonf</text>
+  <rect x="430" y="322" width="240" height="12" fill="#eef2f7" stroke="#d1d5db" stroke-width="0.8"/>
+  <rect x="430" y="322" width="{{min(u_V, 1.5)*160:svg}}" height="12" fill="{{u_V <= 1 ? '#15803d' : '#b91c1c'}}" opacity="0.85"/>
+  <line x1="590" y1="318" x2="590" y2="338" stroke="#333" stroke-width="1"/>
+  <text x="810" y="333" font-size="12" text-anchor="end" fill="{{u_V <= 1 ? '#15803d' : '#b91c1c'}}" font-weight="bold">FU = {{u_V}}</text>
+
+  <!-- Biela -->
+  <text x="430" y="366" font-size="11.5" fill="#333" font-weight="bold">Biela comprimida del alma — 22.5.1.2</text>
+  <text x="430" y="386" font-size="11.5" fill="#666">V_s,req = {{V_sreq:tonf}} tonf · tope 0,66λ√f’c·b_w·d = {{V_stop:tonf}} tonf</text>
+  <rect x="430" y="396" width="240" height="12" fill="#eef2f7" stroke="#d1d5db" stroke-width="0.8"/>
+  <rect x="430" y="396" width="{{min(max(u_biela, 0), 1.5)*160:svg}}" height="12" fill="{{v_biela ? '#15803d' : '#b91c1c'}}" opacity="0.85"/>
+  <line x1="590" y1="392" x2="590" y2="412" stroke="#333" stroke-width="1"/>
+  <text x="810" y="407" font-size="12" text-anchor="end" fill="{{v_biela ? '#15803d' : '#b91c1c'}}" font-weight="bold">FU = {{u_biela}}</text>
+
+  <!-- Veredicto -->
+  <line x1="430" y1="432" x2="810" y2="432" stroke="#d1d5db" stroke-width="1"/>
+  <text x="430" y="456" font-size="12.5" fill="{{u_max <= 1 ? '#15803d' : '#b91c1c'}}" font-weight="bold">{{u_max <= 1 ? 'CUMPLE' : 'NO CUMPLE'}} — FU máximo {{u_max}}</text>
+  <text x="430" y="476" font-size="11.5" fill="#666">Gobierna: {{gobierna}}</text>
+  <text x="430" y="496" font-size="10.5" fill="#888">Altura mínima Tabla 9.3.1.1: h_mín = {{h_min:cm}} cm (FU {{u_h}})</text>
+
+  <text x="420" y="530" font-size="10" text-anchor="middle" fill="#999">Los valores se recalculan con el mismo motor que evalúa la memoria exportada.</text>
+</svg>

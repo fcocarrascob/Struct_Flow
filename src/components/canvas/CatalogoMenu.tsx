@@ -1,13 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Template } from '../../lib/worksheet-templates';
-
-/** Una planilla publicada, tal como la describe `public/planillas-indice.json`. */
-export interface EntradaIndice {
-  slug: string;
-  titulo: string;
-  disciplina: string;
-  regiones: number;
-}
+import { TITULOS, agruparPorDisciplina } from '../../lib/catalogo';
+import { useIndice } from '../useIndice';
 
 interface Props {
   plantillas: readonly Template[];
@@ -16,54 +10,24 @@ interface Props {
   onCerrar: () => void;
 }
 
-/** Nombres de sección; los del índice vienen en minúscula y sin tilde. */
-const TITULOS: Record<string, string> = {
-  hormigon: 'Hormigón',
-  acero: 'Acero',
-  geotecnia: 'Geotecnia',
-  apuntes: 'Apuntes',
-  otros: 'Otros',
-};
-
-/** Orden de las disciplinas; lo que no esté aquí va al final, alfabético. */
-const ORDEN = ['hormigon', 'acero', 'geotecnia', 'apuntes', 'otros'];
-
-/**
- * El índice, descargado una vez por sesión. Vive fuera del componente para que
- * cerrar y reabrir el menú no vuelva a pedirlo.
- */
-let indiceCache: EntradaIndice[] | null = null;
-
 /**
  * El catálogo: las plantillas editables del bundle y las planillas publicadas.
  *
  * Son cosas distintas y por eso van separadas. Una **plantilla** es un punto de
  * partida pensado para editarse; una **planilla** es una memoria de cálculo
- * completa y ya resuelta, la misma que acompaña al post. Hasta ahora las
- * planillas solo se abrían escribiendo su slug en la URL, así que el corpus
- * entero era invisible desde la aplicación.
+ * completa y ya resuelta, la misma que acompaña al post.
+ *
+ * Este desplegable se conserva aunque exista la página `/planillas`: estando
+ * dentro del canvas, abrir un ejemplo sin salir de la hoja es justo lo cómodo.
+ * Lo que dejó de ser es el único acceso al corpus.
  */
 export default function CatalogoMenu({ plantillas, onPlantilla, onPlanilla, onCerrar }: Props) {
-  const [indice, setIndice] = useState<EntradaIndice[] | null>(indiceCache);
-  const [error, setError] = useState(false);
+  const { indice, error } = useIndice();
   const [filtro, setFiltro] = useState('');
   const buscador = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     buscador.current?.focus();
-    if (indiceCache) return;
-    let vivo = true;
-    fetch('/planillas-indice.json')
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then((d) => {
-        if (!Array.isArray(d?.planillas)) throw new Error('índice inválido');
-        indiceCache = d.planillas as EntradaIndice[];
-        if (vivo) setIndice(indiceCache);
-      })
-      .catch(() => vivo && setError(true));
-    return () => {
-      vivo = false;
-    };
   }, []);
 
   const q = filtro.trim().toLowerCase();
@@ -74,20 +38,10 @@ export default function CatalogoMenu({ plantillas, onPlantilla, onPlanilla, onCe
     [plantillas, q],
   );
 
-  const grupos = useMemo(() => {
-    const visibles = (indice ?? []).filter((e) => coincide(`${e.titulo} ${e.slug}`));
-    const porDisciplina = new Map<string, EntradaIndice[]>();
-    for (const e of visibles) {
-      const lista = porDisciplina.get(e.disciplina) ?? [];
-      lista.push(e);
-      porDisciplina.set(e.disciplina, lista);
-    }
-    return [...porDisciplina.entries()].sort(([a], [b]) => {
-      const ia = ORDEN.indexOf(a);
-      const ib = ORDEN.indexOf(b);
-      return (ia < 0 ? ORDEN.length : ia) - (ib < 0 ? ORDEN.length : ib) || a.localeCompare(b);
-    });
-  }, [indice, q]);
+  const grupos = useMemo(
+    () => agruparPorDisciplina((indice ?? []).filter((e) => coincide(`${e.titulo} ${e.slug}`))),
+    [indice, q],
+  );
 
   const nada = plantillasVisibles.length === 0 && grupos.length === 0;
 

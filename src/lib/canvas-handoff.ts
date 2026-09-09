@@ -15,8 +15,7 @@
 
 import type { Item } from './worksheet-layout';
 import type { Region } from './worksheet';
-
-const STORAGE_KEY = 'structpad.worksheet.v1';
+import { STORAGE_KEY, hayTrabajoGuardado } from './hoja-guardada';
 
 /** El formato que leen el canvas, el import/export y `verify:planilla`. */
 export interface HojaCanvas {
@@ -25,10 +24,28 @@ export interface HojaCanvas {
   regions: Region[];
 }
 
-/** Funciones y constantes que el motor del canvas ya trae en su scope. */
+/**
+ * Funciones, constantes y unidades que el motor del canvas ya trae en su scope.
+ *
+ * Esta lista es la parte frágil del guardián: lo que falte se denuncia como
+ * símbolo indefinido y el generador no arranca. Por eso incluye las tres
+ * funciones de diseño que `worksheet.ts` importa en TODA hoja (`beta1`,
+ * `sqrtfc`, `phiFlexion`) y el vocabulario de unidades de la práctica local, no
+ * solo el mínimo del SI.
+ */
 const INTRINSECOS = new Set([
-  'pi', 'e', 'sqrt', 'abs', 'min', 'max', 'sin', 'cos', 'tan', 'log', 'exp',
-  'kgf', 'cm', 'tonf', 'tf', 'm', 'mm', 'kg', 'N', 'kN', 'MPa', 'Pa',
+  // Constantes y funciones de mathjs de uso corriente en una memoria.
+  'pi', 'e', 'true', 'false',
+  'sqrt', 'abs', 'min', 'max', 'round', 'floor', 'ceil', 'fix', 'sign',
+  'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'atan2', 'log', 'log10', 'exp',
+  'pow', 'sum', 'mean', 'concat', 'size', 'range', 'number', 'unit', 'end',
+  // Las tres funciones de diseño que el motor importa en toda hoja.
+  'beta1', 'sqrtfc', 'phiFlexion',
+  // Unidades: `tonf` y `tf` las registra worksheet.ts, el resto son de mathjs.
+  'm', 'cm', 'mm', 'km', 'inch', 'ft',
+  'kg', 'g', 'ton', 'N', 'kN', 'MN', 'kgf', 'tonf', 'tf', 'lbf', 'kip',
+  'Pa', 'kPa', 'MPa', 'GPa', 'psi', 'ksi',
+  'rad', 'deg', 's', 'min', 'h',
 ]);
 
 /**
@@ -39,9 +56,16 @@ const INTRINSECOS = new Set([
  * `parseMathRegion`.
  */
 function simbolos(src: string): { define: string | null; usa: string[] } {
-  const def = src.match(/^\s*([A-Za-z_]\w*)\s*:=/);
+  // La cabecera admite `nombre :=` y también `nombre(a, b) :=`; los parámetros
+  // de la segunda forma son locales y no cuentan como símbolos usados.
+  const def = src.match(/^\s*([A-Za-z_]\w*)\s*(?:\(([^)]*)\))?\s*:=/);
+  const locales = new Set(
+    (def?.[2] ?? '').split(',').map((p) => p.trim()).filter(Boolean),
+  );
   const cuerpo = def ? src.slice(src.indexOf(':=') + 2) : src;
-  const usa = (cuerpo.match(/[A-Za-z_]\w*/g) ?? []).filter((s) => !INTRINSECOS.has(s));
+  const usa = (cuerpo.match(/[A-Za-z_]\w*/g) ?? []).filter(
+    (s) => !INTRINSECOS.has(s) && !locales.has(s),
+  );
   return { define: def ? def[1] : null, usa };
 }
 
@@ -55,10 +79,20 @@ export function verificarSimbolos(items: Item[]): void {
   const definidos = new Set<string>();
   const faltantes: string[] = [];
   for (const it of items) {
-    if (it.kind === 'text') continue;
+    // `text` no se evalúa, e `image` tampoco: su `src` es una ruta como
+    // `/esquemas/viga.svg`, que este analizador leería como una ristra de
+    // símbolos indefinidos.
+    if (it.kind === 'text' || it.kind === 'image') continue;
     const { define, usa } = simbolos(it.src);
-    for (const s of usa) {
-      if (!definidos.has(s)) faltantes.push(`«${s}» en la fila \`${it.src}\``);
+    // De un bloque de programa solo se registra lo que EXPORTA. Su cuerpo
+    // declara variables locales y de bucle que un análisis léxico no sabe
+    // distinguir de una referencia externa; darlas por indefinidas sería peor
+    // que no mirarlas. Los cuerpos los cubre `verify:modulos`, que corre el
+    // motor de verdad.
+    if (it.kind !== 'program') {
+      for (const s of usa) {
+        if (!definidos.has(s)) faltantes.push(`«${s}» en la fila \`${it.src}\``);
+      }
     }
     if (define) definidos.add(define);
   }
@@ -71,19 +105,25 @@ export function verificarSimbolos(items: Item[]): void {
 }
 
 /**
- * Escribe la hoja en el slot del canvas y navega. `loadInitial()` de MathCanvas
- * lee esa clave al montar, así que la hoja aparece cargada.
+ * Escribe la hoja en el slot del canvas y navega a `/canvas`. `loadInitial()`
+ * de MathCanvas lee esa clave al montar, así que la hoja aparece cargada.
+ *
+ * Se navega con `location.href` y no con el router de la aplicación: la recarga
+ * completa es lo que garantiza que `MathCanvas` monte de cero y vuelva a leer
+ * el slot.
  */
 export function abrirEnCanvas(hoja: { regions: Region[] }): void {
   if (typeof window === 'undefined') return;
   try {
-    const previo = window.localStorage.getItem(STORAGE_KEY);
-    if (previo) {
-      const data = JSON.parse(previo) as { regions?: unknown[] };
-      const hayTrabajo = Array.isArray(data.regions) && data.regions.length > 0;
-      if (hayTrabajo && !window.confirm('El canvas tiene una hoja guardada. ¿Reemplazarla por esta?')) {
-        return;
-      }
+    // `hayTrabajoGuardado` y no un `regions.length > 0`: la hoja de ejemplo se
+    // autoguarda a los 300 ms de la primera visita, así que contarla haría
+    // salir el diálogo de reemplazo en la primera exportación de todo usuario
+    // nuevo, sobre una hoja que nunca tocó.
+    if (
+      hayTrabajoGuardado() &&
+      !window.confirm('El canvas tiene una hoja guardada. ¿Reemplazarla por esta?')
+    ) {
+      return;
     }
     window.localStorage.setItem(
       STORAGE_KEY,
@@ -93,10 +133,18 @@ export function abrirEnCanvas(hoja: { regions: Region[] }): void {
     window.alert('No se pudo escribir en el almacenamiento local del navegador.');
     return;
   }
-  window.location.href = '/';
+  window.location.href = '/canvas';
 }
 
-/** Descarga la hoja como .json — el mismo formato que `verify:planilla` lee. */
+/**
+ * Descarga la hoja como .json — el mismo formato que `verify:planilla` lee.
+ *
+ * El enlace se añade al documento antes de pulsarlo y el blob se revoca en el
+ * siguiente turno: Firefox ignora el clic de un `<a>` que no está en el DOM, y
+ * revocar de forma síncrona corta la descarga antes de que empiece. En
+ * Chromium las dos cosas funcionan igual sin la precaución, que es justo por lo
+ * que el fallo pasa desapercibido.
+ */
 export function descargarHoja(hoja: unknown, nombreArchivo: string): void {
   if (typeof window === 'undefined') return;
   const blob = new Blob([JSON.stringify(hoja, null, 2)], { type: 'application/json' });
@@ -104,6 +152,9 @@ export function descargarHoja(hoja: unknown, nombreArchivo: string): void {
   const a = document.createElement('a');
   a.href = url;
   a.download = nombreArchivo;
+  a.style.display = 'none';
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }
