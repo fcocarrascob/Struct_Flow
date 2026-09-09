@@ -6,11 +6,13 @@ import type { Entradas, ModuloDiseno } from './tipos';
 import { vigaHormigon } from './viga-hormigon';
 import { seccionAceroI } from './seccion-acero-i';
 import { losaFundacion } from './losa-fundacion';
+import { zapataAislada } from './zapata-aislada';
 
 export const MODULOS: ModuloDiseno<Entradas>[] = [
   vigaHormigon as ModuloDiseno<Entradas>,
   seccionAceroI as ModuloDiseno<Entradas>,
   losaFundacion as ModuloDiseno<Entradas>,
+  zapataAislada as ModuloDiseno<Entradas>,
 ];
 
 export function moduloPorId(id: string): ModuloDiseno<Entradas> | undefined {

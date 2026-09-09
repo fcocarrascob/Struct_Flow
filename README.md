@@ -55,7 +55,7 @@ Añadir un elemento son dos archivos: uno en `src/lib/diseno/` que implemente
 `ModuloDiseno` (`src/lib/diseno/tipos.ts`) y su SVG en `public/esquemas/`. El formulario,
 el visor, el panel de resultados y los botones de exportación son un armazón genérico.
 
-Hay tres módulos:
+Hay cuatro módulos:
 
 - **`viga-hormigon`** — viga de hormigón armado a flexión y corte, la versión breve de
   `public/planillas/viga-flexion-corte.json` (ACI 318-25, Cap. 9). Su esquema es el primero
@@ -82,6 +82,16 @@ Hay tres módulos:
   esquema dibuja una figura que cambia de **topología**: el perímetro crítico es cerrado en
   una columna interior, una U en una de borde y una L en una de esquina, y las tres salen
   de una polilínea que la hoja arma como matriz.
+- **`zapata-aislada`** — zapata rectangular bajo columna, con momento uniaxial (ACI 318-25,
+  Cap. 13 y Cap. 8): área en planta con cargas de servicio (13.3.1.1), corte en una
+  dirección y flexión en **las dos direcciones**, punzonamiento, mínimos, el reparto en la
+  banda central de 13.3.3.3 y el desarrollo de la barra. Su esquema tiene el primer
+  **diagrama de presiones** del repo: al subir el momento el rectángulo se vuelve trapecio, y
+  al salirse la resultante del núcleo central la base se despega y salta un aviso. Contrasta
+  contra `zapata-aislada.json` —35 valores idénticos y 11 con tolerancia declarada, porque
+  cada dirección se verifica con su propia altura útil y esa planilla usa la promediada— y
+  contra `losa-punzonamiento-momento.json` para la cadena de v_c, que en la primera está
+  escrita con el álgebra de ACI 318-14.
 
 Un módulo declara qué queda **fuera de su alcance** y lo señala en pantalla en vez de
 devolver un número de aspecto válido fuera de su dominio. Esa clase de aviso es distinta de
