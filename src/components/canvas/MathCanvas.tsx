@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import MathRegion, { GRID, snap } from './MathRegion';
+import MathRegion, { GRID, UMBRAL_ARRASTRE, snap } from './MathRegion';
 import SymbolPalette, { type SymbolEntry } from './SymbolPalette';
 import WorksheetPrint from './WorksheetPrint';
 import VariablePanel from './VariablePanel';
@@ -8,6 +8,18 @@ import { usePaginacion } from './usePaginacion';
 import { useHistorial } from './useHistorial';
 import { evaluateSheet, type Region, type RegionKind } from '../../lib/worksheet';
 import { detectarSolapes, separarSolapes, mismoOrdenDeLectura } from '../../lib/solapes';
+import { esHoja, newId, parsearHoja, sanearRegiones } from '../../lib/hoja-json';
+import {
+  anclar,
+  aplicarArrastre,
+  deltaDeArrastre,
+  duplicar,
+  enRectangulo,
+  rectEntre,
+  type Anclaje,
+  type Rect,
+} from '../../lib/seleccion';
+import { aFragmento, desdeFragmento, parsearFragmento } from '../../lib/fragmento';
 import { TEMPLATES, type Template } from '../../lib/worksheet-templates';
 import {
   IMAGE_WARN_BYTES,
@@ -50,8 +62,6 @@ function loadInitial(): Region[] {
   return DEMO;
 }
 
-const newId = () => `r${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-
 /**
  * Quita el parámetro de deep-link de la URL, ya consumido.
  *
@@ -64,76 +74,6 @@ function limpiarDeepLink(param: string): void {
   if (!url.searchParams.has(param)) return;
   url.searchParams.delete(param);
   window.history.replaceState(null, '', url.pathname + url.search + url.hash);
-}
-
-const KINDS: ReadonlySet<string> = new Set(['math', 'text', 'program', 'image']);
-
-/**
- * ¿Es una región utilizable? Hay que comprobarlo de verdad, región por región:
- * el motor NO delata las malformadas con un error en su región, como se creía.
- * `evaluateSheet` hace `region.src.trim()` sin red, así que una entrada sin
- * `src` lanza dentro del `useMemo` de render y, sin ErrorBoundary, React
- * desmonta la raíz y deja la pantalla en blanco. Y la vía principal de entrada
- * es pegar el JSON que acaba de escribir un chat.
- */
-function esRegion(r: unknown): r is Region {
-  if (!r || typeof r !== 'object') return false;
-  const c = r as Partial<Region>;
-  return (
-    typeof c.src === 'string' &&
-    typeof c.kind === 'string' &&
-    KINDS.has(c.kind) &&
-    Number.isFinite(c.x) &&
-    Number.isFinite(c.y)
-  );
-}
-
-/**
- * ¿Tiene forma de hoja del canvas? Se exige un `regions` que sea array y que
- * al menos una de sus entradas sea una región válida; las inservibles se
- * descartan luego en `sanearRegiones`. Rechazar el archivo entero por una
- * región mala sería peor que perder esa región.
- */
-function esHoja(data: unknown): data is { regions: unknown[]; meta?: { titulo?: string } } {
-  const regions = (data as { regions?: unknown } | null)?.regions;
-  return Array.isArray(regions) && (regions.length === 0 || regions.some(esRegion));
-}
-
-/**
- * Deja una lista de regiones utilizable: descarta las malformadas y **reasigna
- * los ids**.
- *
- * Los ids repetidos son frecuentes en el JSON que genera un chat, y comparten
- * entrada en `results` (que es un Record por id): las dos regiones muestran el
- * mismo resultado, comparten `key` de React y `updateRegion` las edita a la vez.
- */
-function sanearRegiones(regions: unknown[]): Region[] {
-  const vistos = new Set<string>();
-  return regions.filter(esRegion).map((r) => {
-    const id = r.id && !vistos.has(r.id) ? r.id : newId();
-    vistos.add(id);
-    return { ...r, id };
-  });
-}
-
-/**
- * Parsea el texto de una hoja —de un archivo o del portapapeles— y devuelve null
- * si no tiene forma de hoja.
- *
- * Tolera la valla de código porque la vía principal es pegar desde un chat, y ahí
- * los ```json vienen pegados al JSON más veces de las que no. Rechazarlo por eso
- * sería un no gratuito.
- */
-function parsearHoja(text: string): { regions: unknown[]; meta?: { titulo?: string } } | null {
-  let limpio = text.trim();
-  const valla = /^```[a-z]*\s*\n([\s\S]*?)\n?\s*```$/i.exec(limpio);
-  if (valla) limpio = valla[1].trim();
-  try {
-    const data: unknown = JSON.parse(limpio);
-    return esHoja(data) ? data : null;
-  } catch {
-    return null;
-  }
 }
 
 const toolBtn =
@@ -163,6 +103,10 @@ export default function MathCanvas() {
   const [dropping, setDropping] = useState(false);
   /** Panel de inspección de variables abierto. */
   const [showVars, setShowVars] = useState(false);
+  /** Rectángulo de selección en curso, en coordenadas de la hoja. */
+  const [marco, setMarco] = useState<Rect | null>(null);
+  /** Capa que numera el orden de lectura sobre cada bloque. */
+  const [showOrden, setShowOrden] = useState(false);
 
   const sheetRef = useRef<HTMLDivElement>(null);
   /** El contenedor con scroll; lo necesita el panel de variables para saltar. */
@@ -176,6 +120,12 @@ export default function MathCanvas() {
   // sin volver a suscribirse en cada pulsación.
   const insertRef = useRef(insertAt);
   const regionsRef = useRef(regions);
+  /**
+   * Espejo de la selección. El arrastre en grupo la necesita **síncrona**: el
+   * grupo se congela dentro del primer `pointermove`, y el `selected` del estado
+   * de React todavía sería el del render anterior.
+   */
+  const selectedRef = useRef(selected);
   /** Espejo de las medidas: `nextSpot` se suscribe una vez y necesita las vigentes. */
   const medidasRef = useRef<{ alto: Map<string, number>; ancho: Map<string, number> }>({
     alto: new Map(),
@@ -187,6 +137,15 @@ export default function MathCanvas() {
   useEffect(() => {
     regionsRef.current = regions;
   }, [regions]);
+  useEffect(() => {
+    selectedRef.current = selected;
+  }, [selected]);
+
+  /** Cambia la selección manteniendo el espejo al día. */
+  const seleccionar = useCallback((ids: Set<string>) => {
+    selectedRef.current = ids;
+    setSelected(ids);
+  }, []);
 
   /**
    * Las regiones sobre las que se evalúa, un paso por detrás de las que se
@@ -214,8 +173,8 @@ export default function MathCanvas() {
   // hubiera seleccionados pueden no existir en el estado que se restaura.
   const trasRestaurar = useCallback(() => {
     setActiveId(null);
-    setSelected(new Set());
-  }, []);
+    seleccionar(new Set());
+  }, [seleccionar]);
   const historial = useHistorial(regions, setRegions, trasRestaurar);
 
   /**
@@ -254,6 +213,23 @@ export default function MathCanvas() {
     [regions, medidas],
   );
 
+  /**
+   * El orden en que el motor lee la hoja, para poder verlo por encima.
+   *
+   * Numera solo lo que `evaluateSheet` ordena de verdad: las regiones de texto
+   * quedan fuera del orden de lectura (`worksheet.ts`), y numerarlas prometería
+   * una posición en la cadena de cálculo que no tienen.
+   */
+  const ordenDeLectura = useMemo(() => {
+    if (!showOrden) return null;
+    const m = new Map<string, number>();
+    [...regions]
+      .filter((r) => r.kind !== 'text')
+      .sort((a, b) => a.y - b.y || a.x - b.x)
+      .forEach((r, i) => m.set(r.id, i + 1));
+    return m;
+  }, [regions, showOrden]);
+
   /** Ids de las regiones que quedan tapadas, para señalarlas en la hoja. */
   const tapadas = useMemo(() => new Set(solapes.map((s) => s.id)), [solapes]);
 
@@ -269,8 +245,8 @@ export default function MathCanvas() {
       return;
     }
     setRegions(nuevas);
-    setSelected(new Set());
-  }, [regions, medidas]);
+    seleccionar(new Set());
+  }, [regions, medidas, seleccionar]);
 
   // Dónde cae cada corte de A4 al imprimir. Se mide el documento de impresión,
   // que es lineal y distinto de este plano 2D: por eso el corte se anuncia
@@ -341,12 +317,12 @@ export default function MathCanvas() {
       // compartido y editarla en la hoja no debe mutarlo), descarta las
       // malformadas y reasigna los ids repetidos.
       setRegions(sanearRegiones(data.regions));
-      setSelected(new Set());
+      seleccionar(new Set());
       setActiveId(null);
       setInsertAt(null);
       return true;
     },
-    [],
+    [seleccionar],
   );
 
   // Deep-link: /herramientas/canvas?plantilla=<id> abre esa plantilla al entrar.
@@ -452,9 +428,9 @@ export default function MathCanvas() {
       left: Math.max(0, region.x - cont.clientWidth / 2),
       behavior: 'smooth',
     });
-    setSelected(new Set([id]));
+    seleccionar(new Set([id]));
     setActiveId(null);
-  }, []);
+  }, [seleccionar]);
 
   const updateRegion = useCallback((id: string, patch: Partial<Region>) => {
     setRegions((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
@@ -519,14 +495,142 @@ export default function MathCanvas() {
       const { x, y } = nextSpot();
       const region: Region = { id: newId(), kind, x: snap(x), y: snap(y), src };
       setRegions((prev) => [...prev, region]);
-      setSelected(new Set());
+      seleccionar(new Set());
       setActiveId(region.id);
       setInsertAt({ x: snap(x), y: snap(y) + (kind === 'program' ? 5 * GRID : 3 * GRID) });
       // El punto de inserción vuelve a ajustarse cuando el bloque ya está
       // medido: ver `avanzarPunto`. Aquí solo se reserva un hueco razonable
       // para que el siguiente clic no caiga encima del que se acaba de crear.
     },
-    [nextSpot],
+    [nextSpot, seleccionar],
+  );
+
+  // ── Selección: marco sobre el fondo, arrastre en grupo, portapapeles ────────
+
+  /** El gesto que hay sobre el fondo, hasta saber si es un clic o un marco. */
+  const gesto = useRef<{
+    x0: number;
+    y0: number;
+    px: number;
+    py: number;
+    base: Set<string>;
+    marcando: boolean;
+  } | null>(null);
+  /** El grupo congelado del arrastre en curso. */
+  const arrastre = useRef<Anclaje | null>(null);
+
+  const onHojaPointerDown = (e: React.PointerEvent) => {
+    // Solo el fondo: las regiones detienen la propagación en su `pointerdown`,
+    // y los adornos (cortes, cursor de inserción) son `pointer-events-none`.
+    if (e.target !== e.currentTarget || e.button !== 0) return;
+    const p = sheetPoint(e);
+    gesto.current = {
+      x0: p.x,
+      y0: p.y,
+      px: e.clientX,
+      py: e.clientY,
+      // Con Ctrl o Mayús el marco SUMA a lo que ya había seleccionado.
+      base: e.ctrlKey || e.shiftKey ? new Set(selectedRef.current) : new Set(),
+      marcando: false,
+    };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const onHojaPointerMove = (e: React.PointerEvent) => {
+    const g = gesto.current;
+    if (!g) return;
+    if (!g.marcando) {
+      if (Math.hypot(e.clientX - g.px, e.clientY - g.py) < UMBRAL_ARRASTRE) return;
+      g.marcando = true;
+    }
+    const rect = rectEntre({ x: g.x0, y: g.y0 }, sheetPoint(e));
+    setMarco(rect);
+    const { alto, ancho } = medidasRef.current;
+    seleccionar(new Set([...g.base, ...enRectangulo(regionsRef.current, alto, ancho, rect)]));
+  };
+
+  const onHojaPointerUp = () => {
+    const g = gesto.current;
+    gesto.current = null;
+    setMarco(null);
+    // Un clic sin arrastre no selecciona: solo fija el punto de inserción, que es
+    // el comportamiento de siempre. Va en el `pointerup` y no en el `click` para
+    // no dispararse también al soltar un marco.
+    if (!g || g.marcando) return;
+    seleccionar(new Set());
+    setInsertAt({ x: snap(g.x0), y: snap(g.y0 - GRID / 2) });
+  };
+
+  /**
+   * Congela el grupo que se va a mover.
+   *
+   * Si la región agarrada ya estaba seleccionada, se mueve la selección entera;
+   * si no, pasa a ser la selección (o se suma a ella con Ctrl/Mayús). Es el
+   * comportamiento de SMath, y evita el desconcierto de arrastrar un bloque que
+   * parecía suelto y ver moverse otros cinco.
+   */
+  const empezarArrastre = useCallback(
+    (id: string, additive: boolean) => {
+      const prev = selectedRef.current;
+      const grupo = prev.has(id) ? prev : new Set(additive ? [...prev, id] : [id]);
+      if (grupo !== prev) seleccionar(grupo);
+      arrastre.current = anclar(regionsRef.current, grupo, id);
+    },
+    [seleccionar],
+  );
+
+  const moverArrastre = useCallback((dx: number, dy: number) => {
+    const a = arrastre.current;
+    if (!a) return;
+    const d = deltaDeArrastre(a, dx, dy, snap);
+    setRegions((prev) => aplicarArrastre(prev, a, d.dx, d.dy));
+  }, []);
+
+  const terminarArrastre = useCallback(() => {
+    arrastre.current = null;
+  }, []);
+
+  /** Copia la selección al portapapeles como fragmento de hoja. */
+  const copiarSeleccion = useCallback((ids: ReadonlySet<string>) => {
+    if (ids.size === 0) return;
+    const frag = aFragmento(regionsRef.current, ids);
+    if (frag.regions.length === 0) return; // la selección ya no existe
+    const texto = JSON.stringify(frag, null, 2);
+    navigator.clipboard?.writeText(texto).catch(() => {
+      alert(
+        'El navegador no dejó escribir en el portapapeles. Copia la hoja entera con «Exportar».',
+      );
+    });
+  }, []);
+
+  /** Pega un fragmento en el punto de inserción. Devuelve si el texto lo era. */
+  const pegarFragmento = useCallback(
+    (texto: string): boolean => {
+      const frag = parsearFragmento(texto);
+      if (!frag) return false;
+      const at = insertRef.current ?? nextSpot();
+      const nuevas = desdeFragmento(frag, at, newId);
+      setRegions((prev) => [...prev, ...nuevas]);
+      seleccionar(new Set(nuevas.map((r) => r.id)));
+      setActiveId(null);
+      // El punto de inserción baja por debajo de lo pegado: sin esto, pegar dos
+      // veces seguidas deja la segunda copia exactamente encima de la primera.
+      const fondo = Math.max(...frag.regions.map((r) => r.y + (r.h ?? 0)));
+      setInsertAt({ x: at.x, y: snap(at.y + fondo + 3 * GRID) });
+      return true;
+    },
+    [nextSpot, seleccionar],
+  );
+
+  /** Duplica la selección un paso de cuadrícula abajo y a la derecha. */
+  const duplicarSeleccion = useCallback(
+    (ids: ReadonlySet<string>) => {
+      if (ids.size === 0) return;
+      const nuevas = duplicar(regionsRef.current, ids, GRID, GRID, newId);
+      setRegions((prev) => [...prev, ...nuevas]);
+      seleccionar(new Set(nuevas.map((r) => r.id)));
+    },
+    [seleccionar],
   );
 
   /**
@@ -558,7 +662,7 @@ export default function MathCanvas() {
         };
         setRegions((prev) => [...prev, region]);
         setActiveId(null);
-        setSelected(new Set([region.id]));
+        seleccionar(new Set([region.id]));
         y += h + GRID;
       } catch {
         alert(`No se pudo leer «${file.name}» como imagen.`);
@@ -576,7 +680,7 @@ export default function MathCanvas() {
       );
     }
     },
-    [nextSpot],
+    [nextSpot, seleccionar],
   );
 
   /**
@@ -628,11 +732,20 @@ export default function MathCanvas() {
         return;
       }
 
+      const texto = e.clipboardData?.getData('text/plain');
+      if (!texto) return;
+
+      // Un trozo de hoja copiado con Ctrl+C. Va ANTES que la hoja completa: un
+      // fragmento también parsea como hoja, y cargarlo como tal borraría la
+      // planilla en la que se está pegando. Lo distingue su marca `fragmento`.
+      if (pegarFragmento(texto)) {
+        e.preventDefault();
+        return;
+      }
+
       // Una planilla recién salida de un chat. Solo se intercepta si el texto de
       // verdad parsea como hoja: cualquier otro pegado sigue su camino, y así
       // esto no le roba el Ctrl+V a nada.
-      const texto = e.clipboardData?.getData('text/plain');
-      if (!texto) return;
       const data = parsearHoja(texto);
       if (!data) return;
       e.preventDefault();
@@ -640,19 +753,7 @@ export default function MathCanvas() {
     };
     window.addEventListener('paste', onPaste);
     return () => window.removeEventListener('paste', onPaste);
-  }, [addImages, cargarHoja]);
-
-  /**
-   * Clic izquierdo en la hoja: solo fija el punto de inserción. No crea nada,
-   * para poder elegir el sitio primero y el tipo de bloque después (con los
-   * botones de la barra, tecleando, o con doble clic para una fórmula).
-   */
-  const onSheetClick = (e: React.MouseEvent) => {
-    if (e.target !== e.currentTarget) return;
-    setSelected(new Set());
-    const p = sheetPoint(e);
-    setInsertAt({ x: snap(p.x), y: snap(p.y - GRID / 2) });
-  };
+  }, [addImages, cargarHoja, pegarFragmento]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -675,6 +776,25 @@ export default function MathCanvas() {
           historial.rehacer();
           return;
         }
+        if (k === 'a') {
+          e.preventDefault();
+          seleccionar(new Set(regionsRef.current.map((r) => r.id)));
+          return;
+        }
+        if ((k === 'c' || k === 'x') && selected.size > 0) {
+          e.preventDefault();
+          copiarSeleccion(selected);
+          if (k === 'x') {
+            setRegions((prev) => prev.filter((r) => !selected.has(r.id)));
+            seleccionar(new Set());
+          }
+          return;
+        }
+        if (k === 'd' && selected.size > 0) {
+          e.preventDefault();
+          duplicarSeleccion(selected);
+          return;
+        }
       }
 
       // Supr/Retroceso elimina la selección (fuera de edición).
@@ -682,7 +802,7 @@ export default function MathCanvas() {
         if (selected.size === 0) return;
         e.preventDefault();
         setRegions((prev) => prev.filter((r) => !selected.has(r.id)));
-        setSelected(new Set());
+        seleccionar(new Set());
         return;
       }
 
@@ -695,7 +815,17 @@ export default function MathCanvas() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selected, insertRegion, templatesOpen, imageMenuOpen, pasteOpen, historial]);
+  }, [
+    selected,
+    insertRegion,
+    templatesOpen,
+    imageMenuOpen,
+    pasteOpen,
+    historial,
+    seleccionar,
+    copiarSeleccion,
+    duplicarSeleccion,
+  ]);
 
   const insertSymbol = useCallback(
     (entry: SymbolEntry) => {
@@ -926,6 +1056,14 @@ export default function MathCanvas() {
           )}
         </button>
         <button
+          className={`${toolBtn} ${showOrden ? 'bg-ink/10' : ''}`}
+          onClick={() => setShowOrden((v) => !v)}
+          aria-pressed={showOrden}
+          title="Numera los bloques en el orden en que el motor los evalúa (arriba→abajo, luego izquierda→derecha). Las regiones de texto no cuentan."
+        >
+          ① Orden de lectura
+        </button>
+        <button
           className={`${toolBtn} ${showVars ? 'bg-ink/10' : ''}`}
           onClick={() => setShowVars((v) => !v)}
           aria-pressed={showVars}
@@ -965,7 +1103,7 @@ export default function MathCanvas() {
           onClick={() => {
             if (confirm('¿Vaciar toda la hoja?')) {
               setRegions([]);
-              setSelected(new Set());
+              seleccionar(new Set());
               setActiveId(null);
               setInsertAt(null);
             }
@@ -974,7 +1112,8 @@ export default function MathCanvas() {
           Limpiar
         </button>
         <span className="ml-auto hidden text-xs text-muted sm:block">
-          Clic: fija el punto · doble clic: fórmula · Ctrl+V: imagen o planilla · Supr: borrar
+          Clic: fija el punto · arrastrar el fondo: seleccionar · doble clic: fórmula ·
+          Ctrl+C/V: copiar bloques · Supr: borrar
         </span>
       </div>
 
@@ -1060,7 +1199,10 @@ export default function MathCanvas() {
         <div ref={scrollRef} className="relative flex-1 overflow-auto bg-white">
           <div
             ref={sheetRef}
-            className={`relative cursor-crosshair ${dropping ? 'ring-2 ring-inset ring-accent' : ''}`}
+            // `select-none`: sin esto, arrastrar un marco sobre el fondo empieza
+            // también una selección de texto del navegador y la hoja se pinta de
+            // azul por debajo del marco.
+            className={`relative cursor-crosshair select-none ${dropping ? 'ring-2 ring-inset ring-accent' : ''}`}
             style={{
               minWidth: '100%',
               minHeight: '100%',
@@ -1076,7 +1218,10 @@ export default function MathCanvas() {
                 'linear-gradient(to bottom, rgba(100,116,139,0.12) 1px, transparent 1px)',
               backgroundSize: `${GRID}px ${GRID}px`,
             }}
-            onClick={onSheetClick}
+            onPointerDown={onHojaPointerDown}
+            onPointerMove={onHojaPointerMove}
+            onPointerUp={onHojaPointerUp}
+            onPointerCancel={onHojaPointerUp}
             onDoubleClick={(e) => {
               // Camino rápido al bloque más frecuente. El `click` previo ya dejó
               // el punto de inserción justo aquí.
@@ -1129,6 +1274,30 @@ export default function MathCanvas() {
               </div>
             ))}
 
+            {/* Orden de lectura: el número que le toca a cada bloque en la
+                cadena de cálculo, para poder comprobar de un vistazo una
+                disposición a dos columnas antes de confiar en ella. */}
+            {ordenDeLectura &&
+              regions.map((r) =>
+                ordenDeLectura.has(r.id) ? (
+                  <span
+                    key={`orden-${r.id}`}
+                    className="pointer-events-none absolute z-30 -translate-x-full rounded-sm bg-accent/15 px-1 text-[10px] leading-tight text-accent"
+                    style={{ left: r.x - 4, top: r.y }}
+                  >
+                    {ordenDeLectura.get(r.id)}
+                  </span>
+                ) : null,
+              )}
+
+            {/* Marco de selección: lo que toque queda seleccionado al soltar. */}
+            {marco && (
+              <div
+                className="pointer-events-none absolute z-30 border border-accent bg-accent/10"
+                style={{ left: marco.x, top: marco.y, width: marco.w, height: marco.h }}
+              />
+            )}
+
             {/* Punto de inserción: barra tipo cursor de texto. Se esconde
                 mientras se edita una región, donde solo sería ruido. */}
             {insertAt && !activeId && (
@@ -1154,18 +1323,19 @@ export default function MathCanvas() {
                 onChange={(src) => updateRegion(r.id, { src })}
                 onCommit={commitActive}
                 onActivate={() => {
-                  setSelected(new Set());
+                  seleccionar(new Set());
                   setActiveId(r.id);
                 }}
-                onSelect={(additive) =>
-                  setSelected((prev) => {
-                    const next = new Set(additive ? prev : []);
-                    if (additive && prev.has(r.id)) next.delete(r.id);
-                    else next.add(r.id);
-                    return next;
-                  })
-                }
-                onMove={(x, y) => updateRegion(r.id, { x, y })}
+                onSelect={(additive) => {
+                  const prev = selectedRef.current;
+                  const next = new Set(additive ? prev : []);
+                  if (additive && prev.has(r.id)) next.delete(r.id);
+                  else next.add(r.id);
+                  seleccionar(next);
+                }}
+                onDragStart={(additive) => empezarArrastre(r.id, additive)}
+                onDrag={moverArrastre}
+                onDragEnd={terminarArrastre}
                 onResize={(w, h) => updateRegion(r.id, { w, h })}
                 registerInput={(el) => {
                   // Solo registrar montajes; insertSymbol ya valida que haya

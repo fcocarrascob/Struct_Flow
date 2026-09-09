@@ -7,6 +7,14 @@ import { useEsquema } from '../useEsquema';
 export const GRID = 16;
 export const snap = (v: number) => Math.max(0, Math.round(v / GRID) * GRID);
 
+/**
+ * Cuánto hay que mover el puntero para que deje de ser un clic y pase a ser un
+ * arrastre. Lo comparte el marco de selección del canvas: si cada uno usara el
+ * suyo, habría un rango de píxeles en el que un gesto es arrastre para la región
+ * y clic para la hoja.
+ */
+export const UMBRAL_ARRASTRE = 4;
+
 /** Ancho mínimo de una imagen al redimensionar (px). */
 const MIN_IMAGE_W = GRID * 3;
 
@@ -23,7 +31,14 @@ interface Props {
   onCommit: () => void;
   onActivate: () => void;
   onSelect: (additive: boolean) => void;
-  onMove: (x: number, y: number) => void;
+  /**
+   * Empieza un arrastre. El canvas decide aquí qué grupo se moverá y toma la
+   * instantánea de sus posiciones.
+   */
+  onDragStart: (additive: boolean) => void;
+  /** Desplazamiento acumulado desde el origen del arrastre, en px y sin ajustar. */
+  onDrag: (dx: number, dy: number) => void;
+  onDragEnd: () => void;
   /** Solo `image`: nuevo tamaño tras arrastrar el tirador de la esquina. */
   onResize: (w: number, h: number) => void;
   /** Registra el input/textarea activo para que la paleta inserte símbolos. */
@@ -78,17 +93,23 @@ function MathRegion({
   onCommit,
   onActivate,
   onSelect,
-  onMove,
+  onDragStart,
+  onDrag,
+  onDragEnd,
   onResize,
   registerInput,
 }: Props) {
-  const drag = useRef<{ px: number; py: number; rx: number; ry: number; moved: boolean } | null>(null);
+  // Solo el origen del puntero: la posición de destino la calcula el canvas, que
+  // es el único que sabe qué más se está moviendo. Guardar aquí `region.x/y`
+  // ataba el arrastre a una sola región.
+  const drag = useRef<{ px: number; py: number; moved: boolean } | null>(null);
   const resize = useRef<{ px: number; w0: number; ratio: number } | null>(null);
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (active) return; // en edición no se arrastra
+    if (e.button !== 0) return;
     e.stopPropagation();
-    drag.current = { px: e.clientX, py: e.clientY, rx: region.x, ry: region.y, moved: false };
+    drag.current = { px: e.clientX, py: e.clientY, moved: false };
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
   const onPointerMove = (e: React.PointerEvent) => {
@@ -96,14 +117,31 @@ function MathRegion({
     if (!d) return;
     const dx = e.clientX - d.px;
     const dy = e.clientY - d.py;
-    if (!d.moved && Math.hypot(dx, dy) < 4) return;
-    d.moved = true;
-    onMove(snap(d.rx + dx), snap(d.ry + dy));
+    if (!d.moved) {
+      if (Math.hypot(dx, dy) < UMBRAL_ARRASTRE) return;
+      d.moved = true;
+      // El grupo se fija al empezar a MOVER, no al pulsar. Fijarlo en el
+      // `pointerdown` destruiría la selección múltiple con solo tocar uno de sus
+      // bloques, que es justo el gesto con el que se la va a arrastrar.
+      onDragStart(e.ctrlKey || e.shiftKey);
+    }
+    onDrag(dx, dy);
   };
   const onPointerUp = (e: React.PointerEvent) => {
     const d = drag.current;
     drag.current = null;
-    if (d && !d.moved) onSelect(e.ctrlKey || e.shiftKey);
+    if (!d) return;
+    if (d.moved) onDragEnd();
+    else onSelect(e.ctrlKey || e.shiftKey);
+  };
+  // El puntero se puede perder sin `pointerup`: el navegador que se lleva el
+  // gesto como desplazamiento táctil, el foco que se va, un lápiz que se levanta
+  // fuera. Sin esto el arrastre quedaba abierto y la región seguía a un puntero
+  // que ya no la agarraba. No selecciona: un gesto cancelado no es un clic.
+  const onPointerCancel = () => {
+    const d = drag.current;
+    drag.current = null;
+    if (d?.moved) onDragEnd();
   };
 
   // Redimensión de una imagen desde la esquina, con el aspecto bloqueado: solo
@@ -157,6 +195,8 @@ function MathRegion({
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
+      onLostPointerCapture={onPointerCancel}
       onDoubleClick={(e) => {
         e.stopPropagation();
         if (!isImage) onActivate(); // una imagen no tiene modo edición

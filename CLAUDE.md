@@ -97,6 +97,15 @@ testeable y portable):
   píxeles enteros, y usar el teórico adelanta un corte cada varias páginas.
 - `esquema.ts` — esquemas SVG paramétricos: sustituye tokens `{{expr:unidad}}` contra el
   scope de la hoja.
+- `hoja-json.ts` — el contrato JSON de una hoja: `esRegion`, `esHoja`, `sanearRegiones`,
+  `parsearHoja`. Salió de `MathCanvas.tsx` cuando el portapapeles de fragmentos pasó a
+  necesitar las mismas comprobaciones: tenerlas dos veces sería tener dos contratos.
+- `seleccion.ts` — la caja de una región, qué toca el marco de selección, y el anclaje del
+  arrastre en grupo. El delta se ajusta a la cuadrícula y se acota **una sola vez, sobre la
+  región agarrada**; hacerlo región por región deforma el grupo.
+- `fragmento.ts` — el trozo de hoja que viaja por el portapapeles. Lleva la marca
+  `fragmento: true` porque un fragmento también parsea como hoja, y sin ella el Ctrl+V que
+  carga una planilla completa borraría la hoja en la que se está pegando.
 
 Tres tipos de región: `math`, `text`, `program` (más `image`). Al añadir funcionalidad al
 motor, extiende los módulos puros y mantén los componentes React delgados.

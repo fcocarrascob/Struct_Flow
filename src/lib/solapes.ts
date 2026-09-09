@@ -24,15 +24,24 @@ export interface Solape {
   px: number;
 }
 
-/** Alto de cada región, medido en el DOM. Sin entrada, se supone `porDefecto`. */
-export type Alturas = ReadonlyMap<string, number>;
+/** Alto —o ancho— de cada región, medido en el DOM, por id. */
+export type Medidas = ReadonlyMap<string, number>;
 
-function alto(r: Region, alturas: Alturas, porDefecto: number): number {
+/**
+ * Lo que se supone que mide una región de la que aún no hay medida. Se exportan
+ * porque la caja que dibuja el rectángulo de selección (`seleccion.ts`) tiene
+ * que ser la misma que la que mira este detector: si divergieran, el marco
+ * atraparía bloques que aquí no se pisan.
+ */
+export const ALTO_POR_DEFECTO = 24;
+export const ANCHO_POR_DEFECTO = 120;
+
+function alto(r: Region, alturas: Medidas, porDefecto: number): number {
   return alturas.get(r.id) ?? r.h ?? porDefecto;
 }
 
 /** Ancho de una región. Solo las imágenes lo declaran; el resto se estima. */
-function ancho(r: Region, anchos: Alturas, porDefecto: number): number {
+function ancho(r: Region, anchos: Medidas, porDefecto: number): number {
   return anchos.get(r.id) ?? r.w ?? porDefecto;
 }
 
@@ -44,10 +53,10 @@ function ancho(r: Region, anchos: Alturas, porDefecto: number): number {
  */
 export function detectarSolapes(
   regions: readonly Region[],
-  alturas: Alturas,
-  anchos: Alturas,
-  altoPorDefecto = 24,
-  anchoPorDefecto = 120,
+  alturas: Medidas,
+  anchos: Medidas,
+  altoPorDefecto = ALTO_POR_DEFECTO,
+  anchoPorDefecto = ANCHO_POR_DEFECTO,
 ): Solape[] {
   const orden = [...regions].sort((a, b) => a.y - b.y || a.x - b.x);
   const fuera: Solape[] = [];
@@ -81,11 +90,11 @@ export function detectarSolapes(
  */
 export function separarSolapes(
   regions: readonly Region[],
-  alturas: Alturas,
-  anchos: Alturas,
+  alturas: Medidas,
+  anchos: Medidas,
   grid = 16,
-  altoPorDefecto = 24,
-  anchoPorDefecto = 120,
+  altoPorDefecto = ALTO_POR_DEFECTO,
+  anchoPorDefecto = ANCHO_POR_DEFECTO,
 ): Region[] {
   const orden = [...regions].sort((a, b) => a.y - b.y || a.x - b.x);
   const nuevaY = new Map<string, number>();
