@@ -56,7 +56,10 @@ Tres reglas al escribir uno. **Las expresiones se copian de una planilla publica
 declaran en `contraste`, para que `verify:modulos` exija que sigan dando lo mismo; cuando el
 módulo y la planilla llegan al mismo número por caminos distintos —el módulo derivando las
 propiedades de la geometría y la planilla declarándolas del catálogo del perfil—, el valor
-lleva una `tolerancia` declarada en vez de exigir identidad. **Nada se declara que se pueda
+lleva una `tolerancia` declarada en vez de exigir identidad. `contraste` admite una **lista**
+para el módulo que cruza dos cuerpos de norma que ninguna planilla sola cubre: la losa de
+fundación saca el punzonamiento de `losa-punzonamiento-momento` y el corte de
+`zapata-aislada`, cada uno con sus propias `entradas`. **Nada se declara que se pueda
 derivar**: una propiedad escrita a mano es un número que hay que creer, y el punto de una
 memoria es poder auditarla de arriba abajo. Y **lo que el módulo no cubre se declara**, con
 un veredicto marcado `aviso` que lo señale en pantalla. Un aviso no es un incumplimiento: no dice que la sección falle, dice que el

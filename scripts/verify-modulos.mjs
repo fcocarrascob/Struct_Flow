@@ -137,8 +137,11 @@ for (const modulo of modulos) {
     }
   }
 
-  if (modulo.contraste) {
-    const { planilla, valores, entradas } = modulo.contraste;
+  // `contraste` admite un objeto suelto o una lista: un módulo que cruza dos
+  // cuerpos de norma no tiene por qué encontrar UNA planilla que los cubra los
+  // dos, y sin la lista habría que escribir uno de los bloques sin red.
+  for (const contraste of [modulo.contraste ?? []].flat()) {
+    const { planilla, valores, entradas } = contraste;
     const discrepan = [];
     let exactos = 0;
     let conTolerancia = 0;

@@ -4,8 +4,8 @@
 // Las expresiones y los coeficientes no se inventaron acá: salen de
 // `public/planillas/viga-flexion-corte.json`, la memoria de 218 regiones que ya
 // pasa `verify:planillas`. Esta es su versión breve —lo que gobierna, sin los
-// contrastes contra el post ni las equivalencias entre ediciones—, para que
-// quepa en el orden de las 50 regiones y se pueda reevaluar en cada tecla.
+// contrastes ni las equivalencias entre ediciones—, para que quepa en el orden
+// de las 50 regiones y se pueda reevaluar en cada tecla.
 //
 // Si alguna vez discrepan, manda la planilla: es la que está verificada.
 // ─────────────────────────────────────────────────────────────────────────────

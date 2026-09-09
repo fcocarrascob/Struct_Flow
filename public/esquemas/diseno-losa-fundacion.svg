@@ -1,0 +1,177 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 548" font-family="Segoe UI, Arial, sans-serif">
+  <!--
+    Esquema del módulo de diseño «losa de fundación».
+
+    Dos dibujos y un panel. Arriba a la izquierda, la PLANTA del perímetro
+    crítico de punzonamiento; abajo, la SECCIÓN de la franja de un metro con sus
+    dos mallas. El mapeo unidad→píxel lo define la hoja y acá solo se consumen
+    píxeles, con el modificador `:svg`, que es obligatorio dentro de un atributo.
+
+    El perímetro crítico cambia de FORMA con la posición de la columna —cerrado
+    si es interior, una U si es de borde, una L si es de esquina— y eso no se
+    resuelve con tres dibujos y visibilidades conmutadas: la hoja arma la
+    polilínea como una matriz Nx2 y `formatSvg` la vuelca como lista de puntos.
+    Un solo elemento SVG para los tres casos.
+
+    Las barras son un número variable y SVG no tiene bucles: se dibujan ocho por
+    cara y la hoja anula el radio de las que sobran (`r_bi(i)` devuelve 0 para
+    i > n_inf). Un círculo de radio 0 no se ve. Con separaciones muy chicas se
+    dibujan las ocho primeras y no la fila entera: es una muestra de la malla, no
+    un despiece.
+  -->
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#555"/>
+    </marker>
+    <pattern id="suelo" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#c8cdd4" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="840" height="548" fill="#ffffff"/>
+
+  <text x="420" y="24" font-size="15" text-anchor="middle" fill="#222" font-weight="bold">Losa de fundación h = {{h:cm}} cm · malla inf. φ{{d_b_inf:mm}}@{{s_inf:cm}} · malla sup. φ{{d_b_sup:mm}}@{{s_sup:cm}}</text>
+  <text x="420" y="42" font-size="11" text-anchor="middle" fill="#666">ACI 318-25 (edición SI) — f’c = {{f_c:kgf/cm^2}} kgf/cm², f_y = {{f_y:kgf/cm^2}} kgf/cm² · columna {{c_1:cm}}×{{c_2:cm}} cm, P_u = {{P_u:tonf}} tonf</text>
+
+  <!-- =================== PLANTA · PERÍMETRO CRÍTICO =================== -->
+  <text x="30" y="64" font-size="11.5" fill="#1a63a8" font-weight="bold">Planta — perímetro crítico a d/2 de la cara (22.6.4.1)</text>
+
+  <!-- Los bordes libres de la losa, si los hay: en una columna interior este
+       token trae un segmento nulo fuera del lienzo y no dibuja nada. -->
+  <polyline points="{{pts_libre:svg}}" fill="none" stroke="#7a848f" stroke-width="3" stroke-linecap="square"/>
+
+  <!-- El perímetro crítico -->
+  <polyline points="{{pts_per:svg}}" fill="none" stroke="#c0392b" stroke-width="1.8" stroke-dasharray="7 4"/>
+
+  <!-- La columna -->
+  <rect x="{{x_col_i:svg}}" y="{{y_col_s:svg}}" width="{{c2_px:svg}}" height="{{c1_px:svg}}"
+        fill="#dfe6ee" stroke="#333" stroke-width="1.4"/>
+  <text x="{{cx_p:svg}}" y="{{cy_p + 4:svg}}" font-size="10" text-anchor="middle" fill="#444">{{c_1:cm}}×{{c_2:cm}}</text>
+
+  <!-- La cota de d/2 va al lado IZQUIERDO: es el único que está desplazado d/2
+       en las tres posiciones. A la derecha, en una columna de esquina, no hay
+       perímetro sino borde libre, y la cota apuntaría a nada. Su rótulo vive en
+       la línea de abajo, que no se puede salir del lienzo. -->
+  <line x1="{{xl:svg}}" y1="{{cy_p:svg}}" x2="{{x_col_i:svg}}" y2="{{cy_p:svg}}"
+        stroke="#c0392b" stroke-width="1" marker-start="url(#ar)" marker-end="url(#ar)"/>
+
+  <text x="30" y="300" font-size="11" fill="#555">b_0 = {{b_o:cm}} cm · α_s = {{alfa_s}} · β_c = {{beta_c}} · d = {{d_p:cm}} cm · d/2 = {{d_p/2:cm}} cm</text>
+
+  <!-- =================== SECCIÓN DE LA FRANJA =================== -->
+  <text x="30" y="312" font-size="11.5" fill="#1a63a8" font-weight="bold">Sección de la franja de 1 m</text>
+
+  <rect x="{{x_s0:svg}}" y="{{y_s0:svg}}" width="{{anc_s:svg}}" height="{{h_s:svg}}"
+        fill="#f3f5f8" stroke="#333" stroke-width="1.6"/>
+  <!-- El suelo, debajo -->
+  <rect x="{{x_s0:svg}}" y="{{y_s0 + h_s:svg}}" width="{{anc_s:svg}}" height="14" fill="url(#suelo)"/>
+
+  <!-- Malla superior: ocho barras, las que sobran con radio 0 -->
+  <g fill="#1a63a8">
+    <circle cx="{{x_bs(1):svg}}" cy="{{y_bs:svg}}" r="{{r_bs(1):svg}}"/>
+    <circle cx="{{x_bs(2):svg}}" cy="{{y_bs:svg}}" r="{{r_bs(2):svg}}"/>
+    <circle cx="{{x_bs(3):svg}}" cy="{{y_bs:svg}}" r="{{r_bs(3):svg}}"/>
+    <circle cx="{{x_bs(4):svg}}" cy="{{y_bs:svg}}" r="{{r_bs(4):svg}}"/>
+    <circle cx="{{x_bs(5):svg}}" cy="{{y_bs:svg}}" r="{{r_bs(5):svg}}"/>
+    <circle cx="{{x_bs(6):svg}}" cy="{{y_bs:svg}}" r="{{r_bs(6):svg}}"/>
+    <circle cx="{{x_bs(7):svg}}" cy="{{y_bs:svg}}" r="{{r_bs(7):svg}}"/>
+    <circle cx="{{x_bs(8):svg}}" cy="{{y_bs:svg}}" r="{{r_bs(8):svg}}"/>
+  </g>
+
+  <!-- Malla inferior -->
+  <g fill="#c0392b">
+    <circle cx="{{x_bi(1):svg}}" cy="{{y_bi:svg}}" r="{{r_bi(1):svg}}"/>
+    <circle cx="{{x_bi(2):svg}}" cy="{{y_bi:svg}}" r="{{r_bi(2):svg}}"/>
+    <circle cx="{{x_bi(3):svg}}" cy="{{y_bi:svg}}" r="{{r_bi(3):svg}}"/>
+    <circle cx="{{x_bi(4):svg}}" cy="{{y_bi:svg}}" r="{{r_bi(4):svg}}"/>
+    <circle cx="{{x_bi(5):svg}}" cy="{{y_bi:svg}}" r="{{r_bi(5):svg}}"/>
+    <circle cx="{{x_bi(6):svg}}" cy="{{y_bi:svg}}" r="{{r_bi(6):svg}}"/>
+    <circle cx="{{x_bi(7):svg}}" cy="{{y_bi:svg}}" r="{{r_bi(7):svg}}"/>
+    <circle cx="{{x_bi(8):svg}}" cy="{{y_bi:svg}}" r="{{r_bi(8):svg}}"/>
+  </g>
+
+  <!-- Cota de h, a la izquierda -->
+  <line x1="{{x_s0 - 22:svg}}" y1="{{y_s0:svg}}" x2="{{x_s0 - 22:svg}}" y2="{{y_s0 + h_s:svg}}"
+        stroke="#555" stroke-width="1" marker-start="url(#ar)" marker-end="url(#ar)"/>
+  <text x="{{x_s0 - 30:svg}}" y="{{y_s0 + h_s/2:svg}}" font-size="11" text-anchor="middle" fill="#555"
+        transform="rotate(-90 {{x_s0 - 30:svg}},{{y_s0 + h_s/2:svg}})">h = {{h:cm}} cm</text>
+
+  <!-- Cota de d_inf, de la fibra superior al centro de la malla inferior -->
+  <line x1="{{x_s0 + anc_s + 20:svg}}" y1="{{y_s0:svg}}" x2="{{x_s0 + anc_s + 20:svg}}" y2="{{y_bi:svg}}"
+        stroke="#c0392b" stroke-width="1" marker-start="url(#ar)" marker-end="url(#ar)"/>
+  <line x1="{{x_s0 + anc_s:svg}}" y1="{{y_bi:svg}}" x2="{{x_s0 + anc_s + 26:svg}}" y2="{{y_bi:svg}}"
+        stroke="#c0392b" stroke-width="0.7" stroke-dasharray="3 2"/>
+  <text x="{{x_s0 + anc_s + 30:svg}}" y="{{y_s0 + (y_bi - y_s0)/2:svg}}" font-size="11" fill="#c0392b"
+        transform="rotate(-90 {{x_s0 + anc_s + 30:svg}},{{y_s0 + (y_bi - y_s0)/2:svg}})" text-anchor="middle">d = {{d_inf:cm}} cm</text>
+
+  <text x="30" y="478" font-size="10.5" fill="#666">Malla inf. {{A_s_inf:cm^2}} · sup. {{A_s_sup:cm^2}} cm²/m · recub. {{rec_inf:mm}}/{{rec_sup:mm}} mm</text>
+  <text x="30" y="494" font-size="10.5" fill="#888">Sobre la columna la tracción está abajo: losa plana invertida.</text>
+
+  <!-- =================== PANEL DE RESULTADOS =================== -->
+  <text x="430" y="64" font-size="11.5" fill="#1a63a8" font-weight="bold">Verificaciones</text>
+  <line x1="430" y1="72" x2="810" y2="72" stroke="#d1d5db" stroke-width="1"/>
+
+  <text x="430" y="92" font-size="11" fill="#333">Altura útil ≥ 150 mm (13.3.1.2)</text>
+  <text x="810" y="92" font-size="11" text-anchor="end" fill="{{v_d_min ? '#15803d' : '#b91c1c'}}" font-weight="bold">d = {{d_inf:cm}} cm {{v_d_min}}</text>
+
+  <text x="430" y="111" font-size="11" fill="#333">Armadura mínima 0,0018·A_g (8.6.1.1)</text>
+  <text x="810" y="111" font-size="11" text-anchor="end" fill="{{v_As ? '#15803d' : '#b91c1c'}}" font-weight="bold">{{A_s_min:cm^2}} cm²/m {{v_As}}</text>
+
+  <text x="430" y="130" font-size="11" fill="#333">Separación ≤ mín(2h, 450 mm) (8.7.2.2)</text>
+  <text x="810" y="130" font-size="11" text-anchor="end" fill="{{v_s_inf and v_s_sup ? '#15803d' : '#b91c1c'}}" font-weight="bold">s_máx = {{s_max:cm}} cm {{v_s_inf and v_s_sup}}</text>
+
+  <text x="430" y="149" font-size="11" fill="#333">Controlada por tracción (Tabla 21.2.2)</text>
+  <text x="810" y="149" font-size="11" text-anchor="end" fill="{{v_duct ? '#15803d' : '#b91c1c'}}" font-weight="bold">ε_t = {{min(eps_t_inf, eps_t_sup)}} {{v_duct}}</text>
+
+  <text x="430" y="168" font-size="11" fill="#333">√f’c ≤ 8,3 MPa en punzonamiento (22.6.3.1)</text>
+  <text x="810" y="168" font-size="11" text-anchor="end" fill="{{v_rfc ? '#15803d' : '#b91c1c'}}" font-weight="bold">{{v_rfc}}</text>
+
+  <text x="430" y="187" font-size="11" fill="#333">Mínimo en b_slab = {{b_sl:cm}} cm (8.6.1.2)</text>
+  <text x="810" y="187" font-size="11" text-anchor="end" fill="{{v_A_min ? '#15803d' : '#b91c1c'}}" font-weight="bold">{{A_s_sl:cm^2}} / {{A_min_gob:cm^2}} cm² {{v_A_min}}</text>
+
+  <line x1="430" y1="199" x2="810" y2="199" stroke="#d1d5db" stroke-width="1"/>
+
+  <!-- Punzonamiento -->
+  <text x="430" y="220" font-size="11" fill="#333" font-weight="bold">Punzonamiento — v_u = {{v_uv:kgf/cm^2}} · φv_c = {{Rd_v:kgf/cm^2}} kgf/cm²</text>
+  <text x="810" y="220" font-size="11" text-anchor="end" fill="{{v_p ? '#15803d' : '#b91c1c'}}" font-weight="bold">FU = {{u_p}}</text>
+  <rect x="430" y="226" width="380" height="10" fill="#eef2f7" stroke="#d1d5db" stroke-width="0.8"/>
+  <rect x="430" y="226" width="{{min(u_p, 1.5)*253.3:svg}}" height="10" fill="{{v_p ? '#15803d' : '#b91c1c'}}" opacity="0.85"/>
+  <line x1="683.3" y1="223" x2="683.3" y2="239" stroke="#333" stroke-width="1"/>
+
+  <!-- Corte en una dirección -->
+  <text x="430" y="262" font-size="11" fill="#333" font-weight="bold">Corte en una dirección — V_u = {{V_u:tonf}} · φV_c = {{Rd_V:tonf}} tonf/m</text>
+  <text x="810" y="262" font-size="11" text-anchor="end" fill="{{v_V ? '#15803d' : '#b91c1c'}}" font-weight="bold">FU = {{u_V}}</text>
+  <rect x="430" y="268" width="380" height="10" fill="#eef2f7" stroke="#d1d5db" stroke-width="0.8"/>
+  <rect x="430" y="268" width="{{min(u_V, 1.5)*253.3:svg}}" height="10" fill="{{v_V ? '#15803d' : '#b91c1c'}}" opacity="0.85"/>
+  <line x1="683.3" y1="265" x2="683.3" y2="281" stroke="#333" stroke-width="1"/>
+
+  <!-- Flexión, cara inferior -->
+  <text x="430" y="304" font-size="11" fill="#333" font-weight="bold">Flexión, cara inferior — φM_n = {{Rd_M_inf:tonf*m}} tonf·m/m</text>
+  <text x="810" y="304" font-size="11" text-anchor="end" fill="{{v_M_inf ? '#15803d' : '#b91c1c'}}" font-weight="bold">FU = {{u_M_inf}}</text>
+  <rect x="430" y="310" width="380" height="10" fill="#eef2f7" stroke="#d1d5db" stroke-width="0.8"/>
+  <rect x="430" y="310" width="{{min(u_M_inf, 1.5)*253.3:svg}}" height="10" fill="{{v_M_inf ? '#15803d' : '#b91c1c'}}" opacity="0.85"/>
+  <line x1="683.3" y1="307" x2="683.3" y2="323" stroke="#333" stroke-width="1"/>
+
+  <!-- Flexión, cara superior -->
+  <text x="430" y="346" font-size="11" fill="#333" font-weight="bold">Flexión, cara superior — φM_n = {{Rd_M_sup:tonf*m}} tonf·m/m</text>
+  <text x="810" y="346" font-size="11" text-anchor="end" fill="{{v_M_sup ? '#15803d' : '#b91c1c'}}" font-weight="bold">FU = {{u_M_sup}}</text>
+  <rect x="430" y="352" width="380" height="10" fill="#eef2f7" stroke="#d1d5db" stroke-width="0.8"/>
+  <rect x="430" y="352" width="{{min(u_M_sup, 1.5)*253.3:svg}}" height="10" fill="{{v_M_sup ? '#15803d' : '#b91c1c'}}" opacity="0.85"/>
+  <line x1="683.3" y1="349" x2="683.3" y2="365" stroke="#333" stroke-width="1"/>
+
+  <!-- Armadura mínima -->
+  <text x="430" y="388" font-size="11" fill="#333" font-weight="bold">Armadura mínima — de losa (8.6.1.1) y de b_slab (8.6.1.2)</text>
+  <text x="810" y="388" font-size="11" text-anchor="end" fill="{{v_As and v_A_min ? '#15803d' : '#b91c1c'}}" font-weight="bold">FU = {{max(u_As, u_min)}}</text>
+  <rect x="430" y="394" width="380" height="10" fill="#eef2f7" stroke="#d1d5db" stroke-width="0.8"/>
+  <rect x="430" y="394" width="{{min(max(u_As, u_min), 1.5)*253.3:svg}}" height="10" fill="{{v_As and v_A_min ? '#15803d' : '#b91c1c'}}" opacity="0.85"/>
+  <line x1="683.3" y1="391" x2="683.3" y2="407" stroke="#333" stroke-width="1"/>
+
+  <!-- Veredicto -->
+  <line x1="430" y1="424" x2="810" y2="424" stroke="#d1d5db" stroke-width="1"/>
+  <text x="430" y="447" font-size="12.5" fill="{{v_cumple ? '#15803d' : '#b91c1c'}}" font-weight="bold">{{v_cumple ? 'CUMPLE' : 'NO CUMPLE'}} — FU máximo {{u_max}}</text>
+  <text x="430" y="466" font-size="11" fill="#666">Gobierna: {{gobierna}}</text>
+  <text x="430" y="484" font-size="10.5" fill="#888">V_c por {{via == 1 ? '13.2.6.2 (fundación rígida)' : 'Tabla 22.5.5.1(c)'}} · las dos vías difieren {{caida*100}} %</text>
+
+  <text x="430" y="504" font-size="10.5" fill="#b45309">{{v_rigida ? '' : '⚠ Relajación de 13.2.6.2 invocada (R13.2.6.2: puede no aplicar).'}}</text>
+  <text x="430" y="521" font-size="10.5" fill="#b45309">{{v_mom ? '' : '⚠ Momento desbalanceado no transferido: falta γ_v·M_sc (8.4.4.2).'}}</text>
+
+  <text x="420" y="540" font-size="10" text-anchor="middle" fill="#999">Los valores se recalculan con el mismo motor que evalúa la memoria exportada.</text>
+</svg>

@@ -55,7 +55,7 @@ Añadir un elemento son dos archivos: uno en `src/lib/diseno/` que implemente
 `ModuloDiseno` (`src/lib/diseno/tipos.ts`) y su SVG en `public/esquemas/`. El formulario,
 el visor, el panel de resultados y los botones de exportación son un armazón genérico.
 
-Hay dos módulos:
+Hay tres módulos:
 
 - **`viga-hormigon`** — viga de hormigón armado a flexión y corte, la versión breve de
   `public/planillas/viga-flexion-corte.json` (ACI 318-25, Cap. 9). Su esquema es el primero
@@ -71,6 +71,17 @@ Hay dos módulos:
   las uniones ala-alma, lo que en un laminado deja `A_g` y `Z_x` un 2 % bajos y `J` un 8 %
   bajo — del lado seguro. Su esquema dibuja la sección y la recta de `L_b` con `L_p` y `L_r`
   marcados, que es el Capítulo F en una figura.
+- **`losa-fundacion`** — losa de fundación (ACI 318-25, Cap. 13 y Cap. 8): la franja de
+  1 m a flexión en sus dos caras, corte en una dirección, los mínimos de losa (8.6.1.1 y
+  8.6.1.2) y el punzonamiento concéntrico de una columna interior, de borde o de esquina.
+  **Los esfuerzos son dato**: una losa de fundación se analiza sobre resortes en elementos
+  finitos, y ningún modelo de franja continua reproduce eso — el módulo verifica la
+  sección, no resuelve el modelo. Es el primero con **dos contrastes**, porque cruza dos
+  cuerpos de norma que ninguna planilla sola cubre: el punzonamiento sale de
+  `losa-punzonamiento-momento.json` y el corte de `zapata-aislada.json`. Y el primero cuyo
+  esquema dibuja una figura que cambia de **topología**: el perímetro crítico es cerrado en
+  una columna interior, una U en una de borde y una L en una de esquina, y las tres salen
+  de una polilínea que la hoja arma como matriz.
 
 Un módulo declara qué queda **fuera de su alcance** y lo señala en pantalla en vez de
 devolver un número de aspecto válido fuera de su dominio. Esa clase de aviso es distinta de

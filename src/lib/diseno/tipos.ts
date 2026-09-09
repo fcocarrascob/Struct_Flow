@@ -101,6 +101,42 @@ export interface CasoPrueba<E extends Entradas> {
   entradas: E;
 }
 
+/**
+ * Contraste contra una planilla publicada: con las entradas indicadas, estos
+ * símbolos tienen que dar lo mismo que da esa planilla.
+ *
+ * Es la comprobación que impide que la versión breve se despegue en silencio de
+ * la memoria completa de la que salió — un coeficiente que se corrige en una y
+ * no en la otra, un `d` que deja de derivarse igual. Misma idea que el bloque
+ * «CONTRASTE CON EL POST» que llevan las planillas del corpus.
+ */
+export interface ContrasteDef<E extends Entradas = Entradas> {
+  /** Slug en `public/planillas/`. */
+  planilla: string;
+  /**
+   * Entradas con las que correr el contraste. Sin ellas se usa `porDefecto`.
+   *
+   * Existe porque el caso que reproduce una planilla publicada no tiene por qué
+   * ser el que uno quiere ver al abrir el módulo: la planilla fija un perfil
+   * concreto, sus propiedades de catálogo y sus factores, y eso son datos de ese
+   * ejemplo, no un buen punto de partida.
+   */
+  entradas?: E;
+  /**
+   * Los símbolos que tienen que coincidir. Una cadena cuando ambas hojas lo
+   * llaman igual; la forma larga cuando no —una planilla que compara dos casos
+   * sufija los suyos (`Rd_PA`), y ese sufijo es de su relato, no del cálculo—.
+   *
+   * `tolerancia` es el desvío relativo admitido. Sin ella se exige identidad
+   * (1e-9), que es lo normal. Sirve para el caso en que las dos hojas calculan
+   * lo mismo por caminos que no tienen por qué dar el mismo dígito: un módulo
+   * que deriva las propiedades de la geometría contra una planilla que las
+   * declara del catálogo del perfil difiere en lo que pesan las uniones, y ahí
+   * exigir identidad sería exigir que el desvío no exista.
+   */
+  valores: (string | { mio: string; suyo?: string; tolerancia?: number })[];
+}
+
 export interface ModuloDiseno<E extends Entradas = Entradas> {
   /** Va en la URL: `/diseno/<id>`. Mismo alfabeto que el slug de una planilla. */
   id: string;
@@ -124,39 +160,14 @@ export interface ModuloDiseno<E extends Entradas = Entradas> {
   construirHoja(e: E): Item[];
   casos: CasoPrueba<E>[];
   /**
-   * Contraste contra una planilla publicada: con `porDefecto`, estos símbolos
-   * tienen que dar lo mismo que da esa planilla.
+   * Contra qué planilla —o planillas— se contrasta este módulo.
    *
-   * Es la comprobación que impide que la versión breve se despegue en silencio
-   * de la memoria completa de la que salió — un coeficiente que se corrige en
-   * una y no en la otra, un `d` que deja de derivarse igual. Misma idea que el
-   * bloque «CONTRASTE CON EL POST» que llevan las planillas del corpus.
+   * La lista existe porque un módulo puede cruzar dos cuerpos de norma que
+   * ninguna planilla sola cubre entera: la losa de fundación saca el
+   * punzonamiento de `losa-punzonamiento-momento` y el corte en una dirección
+   * de `zapata-aislada`. Con un solo contraste habría que escribir uno de los
+   * dos bloques directo de la norma y sin red, que es justo lo que el contraste
+   * existe para evitar.
    */
-  contraste?: {
-    /** Slug en `public/planillas/`. */
-    planilla: string;
-    /**
-     * Entradas con las que correr el contraste. Sin ellas se usa `porDefecto`.
-     *
-     * Existe porque el caso que reproduce una planilla publicada no tiene por
-     * qué ser el que uno quiere ver al abrir el módulo: la planilla fija un
-     * perfil concreto, sus propiedades de catálogo y sus factores, y eso son
-     * datos de ese ejemplo, no un buen punto de partida.
-     */
-    entradas?: E;
-    /**
-     * Los símbolos que tienen que coincidir. Una cadena cuando ambas hojas lo
-     * llaman igual; la forma larga cuando no —una planilla que compara dos
-     * casos sufija los suyos (`Rd_PA`), y ese sufijo es de su relato, no del
-     * cálculo—.
-     *
-     * `tolerancia` es el desvío relativo admitido. Sin ella se exige identidad
-     * (1e-9), que es lo normal. Sirve para el caso en que las dos hojas
-     * calculan lo mismo por caminos que no tienen por qué dar el mismo dígito:
-     * un módulo que deriva las propiedades de la geometría contra una planilla
-     * que las declara del catálogo del perfil difiere en lo que pesan las
-     * uniones, y ahí exigir identidad sería exigir que el desvío no exista.
-     */
-    valores: (string | { mio: string; suyo?: string; tolerancia?: number })[];
-  };
+  contraste?: ContrasteDef<E> | ContrasteDef<E>[];
 }
