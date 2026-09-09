@@ -18,6 +18,12 @@
 
 import type { Item } from '../worksheet-layout';
 
+/** Una opción de un selector, cuando el número por sí solo no dice nada. */
+export interface OpcionCampo {
+  valor: number;
+  etiqueta: string;
+}
+
 /** Un parámetro de entrada. `nombre` es el símbolo con el que entra a la hoja. */
 export interface CampoDef {
   nombre: string;
@@ -28,9 +34,28 @@ export interface CampoDef {
   min?: number;
   max?: number;
   paso?: number;
-  /** Valores discretos (diámetros comerciales de barra, número de ramas…). */
-  opciones?: number[];
+  /**
+   * Valores discretos: diámetros comerciales de barra, grados de acero…
+   *
+   * La forma con etiqueta existe porque hay listas que el número no explica: un
+   * selector que ofrece «2530 / 3520» es críptico donde debería decir «ASTM A36»
+   * y «ASTM A992 / A572 Gr. 50».
+   */
+  opciones?: number[] | OpcionCampo[];
+  /**
+   * El campo admite `0`, y entonces la hoja usa un valor derivado en su lugar.
+   *
+   * El formulario los agrupa aparte y plegados: las nueve propiedades de
+   * catálogo de un perfil de acero no deben tapar a las cuatro dimensiones que
+   * de verdad definen la sección.
+   */
+  opcional?: boolean;
   ayuda?: string;
+}
+
+/** Las opciones de un campo, siempre con etiqueta. */
+export function normalizarOpciones(opciones: number[] | OpcionCampo[]): OpcionCampo[] {
+  return opciones.map((o) => (typeof o === 'number' ? { valor: o, etiqueta: String(o) } : o));
 }
 
 /**
@@ -47,6 +72,26 @@ export interface SalidaDef {
   etiqueta: string;
   unidad?: string;
   tipo: TipoSalida;
+  /**
+   * Un `veredicto` que, en ✗, es una advertencia sobre la VALIDEZ del
+   * resultado y no un incumplimiento de la norma.
+   *
+   * La distinción no es cosmética: «el alma es esbelta y este módulo no cubre
+   * E7» o «las propiedades de catálogo no cuadran con las planchas» no dicen
+   * que la sección falle, dicen que el número de al lado puede no significar lo
+   * que parece. Meterlos en el veredicto CUMPLE / NO CUMPLE los confunde con un
+   * factor de utilización mayor que 1, que es otra cosa.
+   */
+  aviso?: boolean;
+  /**
+   * Cómo se enuncia un `aviso` cuando salta.
+   *
+   * Hacen falta las dos formas: la fila de veredictos lleva un ✓ al lado y por
+   * eso su etiqueta tiene que estar en positivo («Dentro del alcance»), y el
+   * recuadro de advertencias enuncia el problema («La sección sale del
+   * alcance»). Con una sola, una de las dos se lee al revés.
+   */
+  avisoTexto?: string;
   ayuda?: string;
 }
 
@@ -98,6 +143,20 @@ export interface ModuloDiseno<E extends Entradas = Entradas> {
   contraste?: {
     /** Slug en `public/planillas/`. */
     planilla: string;
-    valores: string[];
+    /**
+     * Entradas con las que correr el contraste. Sin ellas se usa `porDefecto`.
+     *
+     * Existe porque el caso que reproduce una planilla publicada no tiene por
+     * qué ser el que uno quiere ver al abrir el módulo: la planilla fija un
+     * perfil concreto, sus propiedades de catálogo y sus factores, y eso son
+     * datos de ese ejemplo, no un buen punto de partida.
+     */
+    entradas?: E;
+    /**
+     * Los símbolos que tienen que coincidir. Una cadena cuando ambas hojas lo
+     * llaman igual; el par cuando no —una planilla que compara dos casos sufija
+     * los suyos (`Rd_PA`), y ese sufijo es de su relato, no del cálculo—.
+     */
+    valores: (string | { mio: string; suyo: string })[];
   };
 }

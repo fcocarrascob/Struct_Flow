@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 548" font-family="Segoe UI, Arial, sans-serif">
+  <!--
+    Esquema del módulo «sección de acero, perfil I».
+
+    Primer dibujo paramétrico de un perfil I del repo: el corpus solo tiene la
+    sección del tubo rectangular, y el verificador de struct_pad no dibuja nada.
+    Las tres planchas —ala superior, ala inferior y alma centrada— se redibujan
+    con d, b_f, t_f y t_w.
+
+    El mapeo unidad→píxel (x_0, y_0, esc, xb…) lo define la hoja; acá solo se
+    consumen píxeles, con el modificador `:svg`, obligatorio dentro de un
+    atributo.
+
+    El panel de abajo a la izquierda es la recta de L_b con L_p y L_r marcados:
+    es el Capítulo F entero en una figura, y es lo que se mueve al arrastrar el
+    deslizador de la separación entre arriostres.
+  -->
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#555"/>
+    </marker>
+  </defs>
+  <rect width="840" height="548" fill="#ffffff"/>
+
+  <text x="420" y="26" font-size="15" text-anchor="middle" fill="#222" font-weight="bold">Perfil I {{d:cm}}×{{b_f:cm}} cm · alas {{t_f:cm}} cm · alma {{t_w:cm}} cm · A_g = {{A_g:cm^2}} cm²</text>
+  <text x="420" y="44" font-size="11" text-anchor="middle" fill="#666">AISC 360-22 (LRFD) — F_y = {{F_y:kgf/cm^2}} kgf/cm² · P_u = {{P_u:tonf}} tonf · M_ux = {{M_ux:tonf*m}} tonf·m · V_u = {{V_u:tonf}} tonf</text>
+
+  <!-- =================== SECCIÓN TRANSVERSAL =================== -->
+  <text x="60" y="64" font-size="11.5" fill="#1a63a8" font-weight="bold">Sección transversal</text>
+
+  <!-- Ala superior -->
+  <rect x="{{x_0:svg}}" y="{{y_0:svg}}" width="{{bf_px:svg}}" height="{{tf_px:svg}}"
+        fill="#dfe6ee" stroke="#333" stroke-width="1.4"/>
+  <!-- Ala inferior -->
+  <rect x="{{x_0:svg}}" y="{{y_0 + d_px - tf_px:svg}}" width="{{bf_px:svg}}" height="{{tf_px:svg}}"
+        fill="#dfe6ee" stroke="#333" stroke-width="1.4"/>
+  <!-- Alma -->
+  <rect x="{{xw:svg}}" y="{{y_0 + tf_px:svg}}" width="{{tw_px:svg}}" height="{{max(d_px - 2*tf_px, 0):svg}}"
+        fill="#dfe6ee" stroke="#333" stroke-width="1.4"/>
+
+  <!-- Cota de b_f, debajo -->
+  <line x1="{{x_0:svg}}" y1="{{y_0 + d_px + 24:svg}}" x2="{{x_0 + bf_px:svg}}" y2="{{y_0 + d_px + 24:svg}}"
+        stroke="#555" stroke-width="1" marker-start="url(#ar)" marker-end="url(#ar)"/>
+  <text x="{{x_0 + bf_px/2:svg}}" y="{{y_0 + d_px + 42:svg}}" font-size="11.5" text-anchor="middle" fill="#555">b_f = {{b_f:cm}} cm</text>
+
+  <!-- Cota de d, a la izquierda -->
+  <line x1="{{x_0 - 26:svg}}" y1="{{y_0:svg}}" x2="{{x_0 - 26:svg}}" y2="{{y_0 + d_px:svg}}"
+        stroke="#555" stroke-width="1" marker-start="url(#ar)" marker-end="url(#ar)"/>
+  <text x="{{x_0 - 34:svg}}" y="{{y_0 + d_px/2:svg}}" font-size="11.5" text-anchor="middle" fill="#555"
+        transform="rotate(-90 {{x_0 - 34:svg}},{{y_0 + d_px/2:svg}})">d = {{d:cm}} cm</text>
+
+  <!-- Espesores -->
+  <line x1="{{x_0 + bf_px + 8:svg}}" y1="{{y_0:svg}}" x2="{{x_0 + bf_px + 8:svg}}" y2="{{y_0 + tf_px:svg}}"
+        stroke="#1a63a8" stroke-width="1"/>
+  <text x="{{x_0 + bf_px + 14:svg}}" y="{{y_0 + tf_px + 4:svg}}" font-size="10.5" fill="#1a63a8">t_f = {{t_f:cm}} cm</text>
+  <text x="{{x_0 + bf_px + 14:svg}}" y="{{y_0 + d_px/2:svg}}" font-size="10.5" fill="#1a63a8">t_w = {{t_w:cm}} cm</text>
+  <line x1="{{xw + tw_px:svg}}" y1="{{y_0 + d_px/2 - 4:svg}}" x2="{{x_0 + bf_px + 11:svg}}" y2="{{y_0 + d_px/2 - 4:svg}}"
+        stroke="#1a63a8" stroke-width="0.7" stroke-dasharray="3 2"/>
+
+  <!-- =================== LA RECTA DE L_b =================== -->
+  <text x="60" y="410" font-size="11.5" fill="#1a63a8" font-weight="bold">Las tres zonas del Cap. F2, sobre L_b</text>
+
+  <!-- Zona 1: fluencia (hasta L_p) -->
+  <rect x="{{xb_0:svg}}" y="424" width="{{max(xLp - xb_0, 0):svg}}" height="14" fill="#15803d" opacity="0.75"/>
+  <!-- Zona 2: LTB inelástico (L_p a L_r) -->
+  <rect x="{{xLp:svg}}" y="424" width="{{max(xLr - xLp, 0):svg}}" height="14" fill="#b45309" opacity="0.7"/>
+  <!-- Zona 3: LTB elástico (más allá de L_r) -->
+  <rect x="{{xLr:svg}}" y="424" width="{{max(xb_1 - xLr, 0):svg}}" height="14" fill="#b91c1c" opacity="0.65"/>
+  <line x1="{{xb_0:svg}}" y1="438" x2="{{xb_1:svg}}" y2="438" stroke="#555" stroke-width="1"/>
+
+  <!-- Marcas de L_p y L_r -->
+  <line x1="{{xLp:svg}}" y1="420" x2="{{xLp:svg}}" y2="446" stroke="#333" stroke-width="1"/>
+  <text x="{{xLp:svg}}" y="458" font-size="10" text-anchor="middle" fill="#333">L_p = {{L_p:m}} m</text>
+  <line x1="{{xLr:svg}}" y1="420" x2="{{xLr:svg}}" y2="446" stroke="#333" stroke-width="1"/>
+  <text x="{{xLr:svg}}" y="458" font-size="10" text-anchor="middle" fill="#333">L_r = {{L_r:m}} m</text>
+
+  <!-- El L_b pedido -->
+  <path d="M{{xLb:svg}},416 l-5,-9 l10,0 z" fill="#1a63a8"/>
+  <line x1="{{xLb:svg}}" y1="416" x2="{{xLb:svg}}" y2="424" stroke="#1a63a8" stroke-width="1.6"/>
+  <text x="{{xLb:svg}}" y="402" font-size="11" text-anchor="middle" fill="#1a63a8" font-weight="bold">L_b = {{L_b:m}} m</text>
+  <!-- Tres líneas cortas y no una larga: la columna izquierda acaba en x = 430,
+       donde empieza el panel de verificaciones. -->
+  <text x="60" y="478" font-size="10.5" fill="#666">{{zona}}</text>
+  <text x="60" y="494" font-size="10.5" fill="#666">φM_n = {{Rd_M:tonf*m}} · tope plástico φM_p = {{Rd_Mp:tonf*m}} tonf·m</text>
+  <text x="60" y="510" font-size="10.5" fill="#888">C_b = {{C_b}} · B_1 = {{B_1}} · M_r = {{M_r:tonf*m}} tonf·m</text>
+
+  <!-- =================== PANEL DE VERIFICACIONES =================== -->
+  <text x="440" y="64" font-size="11.5" fill="#1a63a8" font-weight="bold">Verificaciones</text>
+  <line x1="440" y1="72" x2="810" y2="72" stroke="#d1d5db" stroke-width="1"/>
+
+  <text x="440" y="92" font-size="11" fill="#333">Ala b_f/2t_f = {{bt_ala}}</text>
+  <text x="810" y="92" font-size="11" text-anchor="end" fill="{{v_alaF ? '#15803d' : '#b91c1c'}}" font-weight="bold">λ_p = {{lam_pf}} · λ_r = {{lam_rf}} {{v_alaF}}</text>
+  <text x="440" y="110" font-size="11" fill="#333">Alma h/t_w = {{ht_alma}}</text>
+  <text x="810" y="110" font-size="11" text-anchor="end" fill="{{v_almaF ? '#15803d' : '#b91c1c'}}" font-weight="bold">λ_p = {{lam_pw}} · λ_r = {{lam_rw}} {{v_almaF}}</text>
+  <text x="440" y="128" font-size="11" fill="#333">Esbeltez L_c/r = {{lam}} ≤ 200</text>
+  <text x="810" y="128" font-size="11" text-anchor="end" fill="{{v_esb ? '#15803d' : '#b91c1c'}}" font-weight="bold">{{v_esb}}</text>
+
+  <!-- Compresión -->
+  <line x1="440" y1="144" x2="810" y2="144" stroke="#d1d5db" stroke-width="1"/>
+  <text x="440" y="164" font-size="11.5" fill="#333" font-weight="bold">Compresión — Cap. E</text>
+  <text x="440" y="180" font-size="10.5" fill="#666">F_e = {{F_e:kgf/cm^2}} kgf/cm² · F_n = {{F_n:kgf/cm^2}} · φP_n = {{Rd_P:tonf}} tonf</text>
+  <rect x="440" y="188" width="240" height="11" fill="#eef2f7" stroke="#d1d5db" stroke-width="0.8"/>
+  <rect x="440" y="188" width="{{min(max(u_P, 0), 1.5)*160:svg}}" height="11" fill="{{u_P <= 1 ? '#15803d' : '#b91c1c'}}" opacity="0.85"/>
+  <line x1="600" y1="185" x2="600" y2="202" stroke="#333" stroke-width="1"/>
+  <text x="810" y="198" font-size="11.5" text-anchor="end" fill="{{u_P <= 1 ? '#15803d' : '#b91c1c'}}" font-weight="bold">FU = {{u_P}}</text>
+
+  <!-- Flexión -->
+  <text x="440" y="228" font-size="11.5" fill="#333" font-weight="bold">Flexión eje fuerte — Cap. F2</text>
+  <text x="440" y="244" font-size="10.5" fill="#666">M_r = {{M_r:tonf*m}} tonf·m · φM_n = {{Rd_M:tonf*m}} tonf·m</text>
+  <rect x="440" y="252" width="240" height="11" fill="#eef2f7" stroke="#d1d5db" stroke-width="0.8"/>
+  <rect x="440" y="252" width="{{min(max(u_M, 0), 1.5)*160:svg}}" height="11" fill="{{u_M <= 1 ? '#15803d' : '#b91c1c'}}" opacity="0.85"/>
+  <line x1="600" y1="249" x2="600" y2="266" stroke="#333" stroke-width="1"/>
+  <text x="810" y="262" font-size="11.5" text-anchor="end" fill="{{u_M <= 1 ? '#15803d' : '#b91c1c'}}" font-weight="bold">FU = {{u_M}}</text>
+
+  <!-- Corte -->
+  <text x="440" y="292" font-size="11.5" fill="#333" font-weight="bold">Corte del alma — Sec. G2.1</text>
+  <text x="440" y="308" font-size="10.5" fill="#666">φ_v = {{phi_v}} · C_v1 = {{C_v1}} · φV_n = {{Rd_V:tonf}} tonf</text>
+  <rect x="440" y="316" width="240" height="11" fill="#eef2f7" stroke="#d1d5db" stroke-width="0.8"/>
+  <rect x="440" y="316" width="{{min(max(u_V, 0), 1.5)*160:svg}}" height="11" fill="{{u_V <= 1 ? '#15803d' : '#b91c1c'}}" opacity="0.85"/>
+  <line x1="600" y1="313" x2="600" y2="330" stroke="#333" stroke-width="1"/>
+  <text x="810" y="326" font-size="11.5" text-anchor="end" fill="{{u_V <= 1 ? '#15803d' : '#b91c1c'}}" font-weight="bold">FU = {{u_V}}</text>
+
+  <!-- Interacción -->
+  <text x="440" y="356" font-size="11.5" fill="#333" font-weight="bold">Interacción — Sec. H1.1</text>
+  <text x="440" y="372" font-size="10.5" fill="#666">{{v_rama ? 'Ec. H1-1a: u_P + (8/9)·u_M' : 'Ec. H1-1b: u_P/2 + u_M'}}</text>
+  <rect x="440" y="380" width="240" height="11" fill="#eef2f7" stroke="#d1d5db" stroke-width="0.8"/>
+  <rect x="440" y="380" width="{{min(max(u_int, 0), 1.5)*160:svg}}" height="11" fill="{{u_int <= 1 ? '#15803d' : '#b91c1c'}}" opacity="0.85"/>
+  <line x1="600" y1="377" x2="600" y2="394" stroke="#333" stroke-width="1"/>
+  <text x="810" y="390" font-size="11.5" text-anchor="end" fill="{{u_int <= 1 ? '#15803d' : '#b91c1c'}}" font-weight="bold">FU = {{u_int}}</text>
+
+  <!-- Veredicto -->
+  <line x1="440" y1="412" x2="810" y2="412" stroke="#d1d5db" stroke-width="1"/>
+  <!-- `v_cumple` y no `u_max <= 1`: el veredicto tiene que decir lo mismo que el
+       panel de resultados, e incluye los límites de esbeltez de la norma. -->
+  <text x="440" y="436" font-size="12.5" fill="{{v_cumple ? '#15803d' : '#b91c1c'}}" font-weight="bold">{{v_cumple ? 'CUMPLE' : 'NO CUMPLE'}} — FU máximo {{u_max}}</text>
+  <text x="440" y="454" font-size="11" fill="#666">Gobierna: {{gobierna}}</text>
+  <text x="440" y="476" font-size="10.5" fill="{{v_alcance ? '#888' : '#b45309'}}" font-weight="{{v_alcance ? 'normal' : 'bold'}}">{{v_alcance ? 'Compacta en flexion y no esbelta en compresion: dentro del alcance.' : 'AVISO: fuera del alcance del modulo; harian falta F3 o E7.'}}</text>
+  <text x="440" y="494" font-size="10.5" fill="{{v_prop ? '#888' : '#b45309'}}" font-weight="{{v_prop ? 'normal' : 'bold'}}">{{v_prop ? 'Planchas y catalogo concuerdan dentro de tolerancia.' : 'AVISO: el catalogo se aparta de las planchas mas de lo tolerado.'}}</text>
+
+  <text x="420" y="538" font-size="10" text-anchor="middle" fill="#999">Los valores se recalculan con el mismo motor que evalúa la memoria exportada. El corte (G2.1) es el único bloque sin contraste publicado.</text>
+</svg>

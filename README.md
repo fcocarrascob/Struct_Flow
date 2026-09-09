@@ -55,11 +55,25 @@ Añadir un elemento son dos archivos: uno en `src/lib/diseno/` que implemente
 `ModuloDiseno` (`src/lib/diseno/tipos.ts`) y su SVG en `public/esquemas/`. El formulario,
 el visor, el panel de resultados y los botones de exportación son un armazón genérico.
 
-El piloto es `viga-hormigon`, la versión breve de `public/planillas/viga-flexion-corte.json`
-(ACI 318-25, Cap. 9). Su esquema es el primero del repo cuya **geometría** es paramétrica y
-no solo los rótulos: la sección se redibuja con `b_w`, `h`, el recubrimiento y el diámetro
-de las barras. Como SVG no tiene bucles y el número de barras es variable, se dibujan diez
-círculos y la hoja anula el radio de los que sobran.
+Hay dos módulos:
+
+- **`viga-hormigon`** — viga de hormigón armado a flexión y corte, la versión breve de
+  `public/planillas/viga-flexion-corte.json` (ACI 318-25, Cap. 9). Su esquema es el primero
+  del repo cuya **geometría** es paramétrica y no solo los rótulos: la sección se redibuja
+  con `b_w`, `h`, el recubrimiento y el diámetro de las barras. Como SVG no tiene bucles y
+  el número de barras es variable, se dibujan diez círculos y la hoja anula el radio de los
+  que sobran.
+- **`seccion-acero-i`** — perfil I doblemente simétrico: compresión (E3 y E4), flexión en el
+  eje fuerte con pandeo lateral-torsional (F2), corte del alma (G2.1) e interacción (H1.1),
+  contra `public/planillas/viga-columna.json`. Las propiedades se derivan de las cuatro
+  planchas y se pueden anular escribiendo las de catálogo; el módulo compara las dos y avisa
+  si se apartan más de la tolerancia por uniones ala-alma. Su esquema dibuja la sección y la
+  recta de `L_b` con `L_p` y `L_r` marcados, que es el Capítulo F en una figura.
+
+Un módulo declara qué queda **fuera de su alcance** y lo señala en pantalla en vez de
+devolver un número de aspecto válido fuera de su dominio. Esa clase de aviso es distinta de
+un incumplimiento —`SalidaDef.aviso`—: no dice que la sección falle, dice que el número de
+al lado puede no significar lo que parece.
 
 ### El catálogo
 

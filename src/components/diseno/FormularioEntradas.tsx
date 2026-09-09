@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import type { CampoDef, Entradas } from '../../lib/diseno/tipos';
+import { useMemo, useState, type ReactNode } from 'react';
+import { normalizarOpciones, type CampoDef, type Entradas } from '../../lib/diseno/tipos';
 
 interface Props {
   campos: CampoDef[];
@@ -20,6 +20,41 @@ function porGrupos(campos: CampoDef[]): [string, CampoDef[]][] {
 
 const acotar = (v: number, c: CampoDef) =>
   Math.min(c.max ?? Infinity, Math.max(c.min ?? -Infinity, v));
+
+/**
+ * Un grupo cuyos campos son todos opcionales se pinta plegado. Es lo que
+ * mantiene un formulario legible cuando a las cuatro dimensiones que definen
+ * una sección se le suman nueve propiedades de catálogo que casi nunca se
+ * tocan.
+ */
+function Grupo({
+  titulo,
+  plegado,
+  children,
+}: {
+  titulo: string;
+  plegado: boolean;
+  children: ReactNode;
+}) {
+  if (!plegado) {
+    return (
+      <fieldset>
+        <legend className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted">
+          {titulo}
+        </legend>
+        <div className="space-y-2.5">{children}</div>
+      </fieldset>
+    );
+  }
+  return (
+    <details className="rounded border border-border bg-white/60 px-2.5 py-2">
+      <summary className="cursor-pointer text-[10px] font-semibold uppercase tracking-wide text-muted">
+        {titulo}
+      </summary>
+      <div className="mt-2.5 space-y-2.5">{children}</div>
+    </details>
+  );
+}
 
 /**
  * El formulario de un módulo, generado a partir de su declaración de entradas.
@@ -56,12 +91,8 @@ export default function FormularioEntradas({ campos, valores, onCambio }: Props)
   return (
     <div className="space-y-4">
       {grupos.map(([grupo, lista]) => (
-        <fieldset key={grupo}>
-          <legend className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted">
-            {grupo}
-          </legend>
-          <div className="space-y-2.5">
-            {lista.map((campo) => {
+        <Grupo key={grupo} titulo={grupo} plegado={lista.every((c) => c.opcional)}>
+          {lista.map((campo) => {
               const valor = valores[campo.nombre];
               const texto = borradores[campo.nombre] ?? String(valor);
               const id = `campo-${campo.nombre}`;
@@ -83,9 +114,9 @@ export default function FormularioEntradas({ campos, valores, onCambio }: Props)
                       onChange={(e) => onCambio(campo.nombre, Number(e.target.value))}
                       className="mt-1 w-full rounded border border-border bg-white px-2 py-1 font-mono text-xs text-ink outline-none focus:border-accent"
                     >
-                      {campo.opciones.map((o) => (
-                        <option key={o} value={o}>
-                          {o}
+                      {normalizarOpciones(campo.opciones).map((o) => (
+                        <option key={o.valor} value={o.valor}>
+                          {o.etiqueta}
                         </option>
                       ))}
                     </select>
@@ -124,9 +155,8 @@ export default function FormularioEntradas({ campos, valores, onCambio }: Props)
                   {campo.ayuda && <p className="mt-0.5 text-[10px] text-muted">{campo.ayuda}</p>}
                 </div>
               );
-            })}
-          </div>
-        </fieldset>
+          })}
+        </Grupo>
       ))}
     </div>
   );

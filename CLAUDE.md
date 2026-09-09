@@ -52,6 +52,12 @@ evaluación, que es lo que impide que diverjan. `evaluar.ts` tiene esos pasos po
 comparten la pantalla y `verify:modulos`; si el verificador los reprodujera, comprobaría su
 propia copia. Añadir un elemento son dos archivos: el módulo y su SVG.
 
+Dos reglas al escribir uno: **las expresiones se copian de una planilla publicada** y se
+declaran en `contraste`, para que `verify:modulos` exija que sigan dando lo mismo; y **lo
+que el módulo no cubre se declara**, con un veredicto marcado `aviso` que lo señale en
+pantalla. Un aviso no es un incumplimiento: no dice que la sección falle, dice que el
+resultado puede no ser válido, y por eso no vota en el CUMPLE / NO CUMPLE.
+
 **Capa UI** (`src/components/canvas/`, React):
 - `MathCanvas.tsx` — raíz: mantiene el estado `Region[]`, autoguarda en `localStorage`
   (clave `structpad.worksheet.v1`, debounce 300 ms), gestiona clic-para-crear, arrastre,

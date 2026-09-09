@@ -57,8 +57,11 @@ export default function PanelResultados({ salidas, scope, errores }: Props) {
   const resto = salidas.filter((s) => s.tipo !== 'uso');
   const numeros = usos.map((s) => uso(scope[s.nombre])).filter((v): v is number => v !== null);
   const maximo = numeros.length ? Math.max(...numeros) : null;
+  // Un veredicto marcado como aviso no vota en el CUMPLE / NO CUMPLE: dice que
+  // el resultado puede no ser válido, no que la sección incumpla.
   const veredictos = salidas.filter((s) => s.tipo === 'veredicto');
-  const incumple = veredictos.some((s) => scope[s.nombre] === false);
+  const incumple = veredictos.some((s) => !s.aviso && scope[s.nombre] === false);
+  const avisos = veredictos.filter((s) => s.aviso && scope[s.nombre] === false);
 
   return (
     <div className="space-y-4">
@@ -95,9 +98,26 @@ export default function PanelResultados({ salidas, scope, errores }: Props) {
             {maximo <= 1 && !incumple ? 'CUMPLE' : 'NO CUMPLE'}
           </p>
           <p className="text-[11px] text-muted">
-            Factor de utilización máximo {maximo.toFixed(2)}
+            Factor de utilización máximo {maximo.toFixed(2).replace('.', ',')}
             {incumple && ' · hay verificaciones de detallado sin cumplir'}
           </p>
+        </div>
+      )}
+
+      {avisos.length > 0 && (
+        <div className="rounded border border-[#b45309]/40 bg-[#b45309]/5 p-2">
+          <p className="text-xs font-semibold text-[#b45309]">
+            {avisos.length === 1 ? 'Una advertencia' : `${avisos.length} advertencias`} sobre la
+            validez del resultado
+          </p>
+          <ul className="mt-1 space-y-1">
+            {avisos.map((s) => (
+              <li key={s.nombre} className="text-[11px] leading-snug text-[#b45309]">
+                {s.avisoTexto ?? s.etiqueta}
+                {s.ayuda && <span className="text-muted"> — {s.ayuda}</span>}
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 
@@ -140,6 +160,21 @@ export default function PanelResultados({ salidas, scope, errores }: Props) {
               const v = scope[s.nombre];
               const esVeredicto = s.tipo === 'veredicto';
               const cumple = v === true;
+              // Una salida de texto —qué estado límite gobierna, en qué zona
+              // cae— es una frase, no un número: en dos columnas le queda un
+              // canal de tres palabras y la etiqueta se parte en vertical.
+              if (s.tipo === 'texto') {
+                return (
+                  <div key={s.nombre} data-salida={s.nombre}>
+                    <dt className="text-xs text-ink" title={s.ayuda}>
+                      {s.etiqueta}
+                    </dt>
+                    <dd className="font-mono text-[11px] leading-snug text-muted">
+                      {v === undefined ? '—' : formatValor(v)}
+                    </dd>
+                  </div>
+                );
+              }
               return (
                 <div
                   key={s.nombre}

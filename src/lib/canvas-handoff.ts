@@ -34,6 +34,9 @@ export interface HojaCanvas {
  * solo el mínimo del SI.
  */
 const INTRINSECOS = new Set([
+  // Operadores de mathjs que se escriben con letras. Sin ellos, `a and b` se
+  // lee como una referencia a un simbolo llamado «and».
+  'and', 'or', 'not', 'xor', 'mod', 'to', 'in',
   // Constantes y funciones de mathjs de uso corriente en una memoria.
   'pi', 'e', 'true', 'false',
   'sqrt', 'abs', 'min', 'max', 'round', 'floor', 'ceil', 'fix', 'sign',
@@ -63,7 +66,11 @@ function simbolos(src: string): { define: string | null; usa: string[] } {
     (def?.[2] ?? '').split(',').map((p) => p.trim()).filter(Boolean),
   );
   const cuerpo = def ? src.slice(src.indexOf(':=') + 2) : src;
-  const usa = (cuerpo.match(/[A-Za-z_]\w*/g) ?? []).filter(
+  // Quitar antes los numeros, o el exponente de `2.04e6` se lee como un simbolo
+  // llamado «e6». El lookbehind es lo que distingue ese `6` suelto del `1` de
+  // `B_1`, que es parte del nombre y tiene que sobrevivir.
+  const sinNumeros = cuerpo.replace(/(?<![A-Za-z_0-9])\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/g, ' ');
+  const usa = (sinNumeros.match(/[A-Za-z_]\w*/g) ?? []).filter(
     (s) => !INTRINSECOS.has(s) && !locales.has(s),
   );
   return { define: def ? def[1] : null, usa };

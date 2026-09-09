@@ -138,16 +138,23 @@ for (const modulo of modulos) {
   }
 
   if (modulo.contraste) {
-    const { planilla, valores } = modulo.contraste;
+    const { planilla, valores, entradas } = modulo.contraste;
     const discrepan = [];
     try {
-      const mio = evaluarModulo(modulo, modulo.porDefecto).scope;
+      // El caso que reproduce una planilla publicada casi nunca son los valores
+      // por defecto del módulo: la planilla fija su perfil, sus propiedades y
+      // sus factores, que son datos de ese ejemplo.
+      const mio = evaluarModulo(modulo, entradas ?? modulo.porDefecto).scope;
       const suyo = await scopeDePlanilla(planilla);
-      for (const nombre of valores) {
-        if (!(nombre in suyo)) discrepan.push(`«${nombre}» no existe en la planilla ${planilla}`);
-        else if (!(nombre in mio)) discrepan.push(`«${nombre}» no existe en el módulo`);
-        else if (!coincide(mio[nombre], suyo[nombre])) {
-          discrepan.push(`${nombre}: módulo ${mio[nombre]} ≠ planilla ${suyo[nombre]}`);
+      for (const v of valores) {
+        // Una cadena cuando las dos hojas lo llaman igual; el par cuando no.
+        const aca = typeof v === 'string' ? v : v.mio;
+        const alla = typeof v === 'string' ? v : v.suyo;
+        const rotulo = aca === alla ? aca : `${aca} (allá ${alla})`;
+        if (!(alla in suyo)) discrepan.push(`«${alla}» no existe en la planilla ${planilla}`);
+        else if (!(aca in mio)) discrepan.push(`«${aca}» no existe en el módulo`);
+        else if (!coincide(mio[aca], suyo[alla])) {
+          discrepan.push(`${rotulo}: módulo ${mio[aca]} ≠ planilla ${suyo[alla]}`);
         }
       }
     } catch (err) {
