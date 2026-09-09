@@ -52,10 +52,14 @@ evaluación, que es lo que impide que diverjan. `evaluar.ts` tiene esos pasos po
 comparten la pantalla y `verify:modulos`; si el verificador los reprodujera, comprobaría su
 propia copia. Añadir un elemento son dos archivos: el módulo y su SVG.
 
-Dos reglas al escribir uno: **las expresiones se copian de una planilla publicada** y se
-declaran en `contraste`, para que `verify:modulos` exija que sigan dando lo mismo; y **lo
-que el módulo no cubre se declara**, con un veredicto marcado `aviso` que lo señale en
-pantalla. Un aviso no es un incumplimiento: no dice que la sección falle, dice que el
+Tres reglas al escribir uno. **Las expresiones se copian de una planilla publicada** y se
+declaran en `contraste`, para que `verify:modulos` exija que sigan dando lo mismo; cuando el
+módulo y la planilla llegan al mismo número por caminos distintos —el módulo derivando las
+propiedades de la geometría y la planilla declarándolas del catálogo del perfil—, el valor
+lleva una `tolerancia` declarada en vez de exigir identidad. **Nada se declara que se pueda
+derivar**: una propiedad escrita a mano es un número que hay que creer, y el punto de una
+memoria es poder auditarla de arriba abajo. Y **lo que el módulo no cubre se declara**, con
+un veredicto marcado `aviso` que lo señale en pantalla. Un aviso no es un incumplimiento: no dice que la sección falle, dice que el
 resultado puede no ser válido, y por eso no vota en el CUMPLE / NO CUMPLE.
 
 **Capa UI** (`src/components/canvas/`, React):

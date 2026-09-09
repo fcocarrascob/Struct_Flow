@@ -140,6 +140,9 @@ for (const modulo of modulos) {
   if (modulo.contraste) {
     const { planilla, valores, entradas } = modulo.contraste;
     const discrepan = [];
+    let exactos = 0;
+    let conTolerancia = 0;
+    let peorDesvio = 0;
     try {
       // El caso que reproduce una planilla publicada casi nunca son los valores
       // por defecto del módulo: la planilla fija su perfil, sus propiedades y
@@ -147,14 +150,23 @@ for (const modulo of modulos) {
       const mio = evaluarModulo(modulo, entradas ?? modulo.porDefecto).scope;
       const suyo = await scopeDePlanilla(planilla);
       for (const v of valores) {
-        // Una cadena cuando las dos hojas lo llaman igual; el par cuando no.
+        // Una cadena cuando las dos hojas lo llaman igual; la forma larga si no.
         const aca = typeof v === 'string' ? v : v.mio;
-        const alla = typeof v === 'string' ? v : v.suyo;
+        const alla = typeof v === 'string' ? v : (v.suyo ?? v.mio);
+        const tol = typeof v === 'string' ? 0 : (v.tolerancia ?? 0);
         const rotulo = aca === alla ? aca : `${aca} (allá ${alla})`;
+        if (tol > 0) conTolerancia++;
+        else exactos++;
         if (!(alla in suyo)) discrepan.push(`«${alla}» no existe en la planilla ${planilla}`);
         else if (!(aca in mio)) discrepan.push(`«${aca}» no existe en el módulo`);
-        else if (!coincide(mio[aca], suyo[alla])) {
-          discrepan.push(`${rotulo}: módulo ${mio[aca]} ≠ planilla ${suyo[alla]}`);
+        else if (!coincide(mio[aca], suyo[alla], tol)) {
+          const desvio = desvioRelativo(mio[aca], suyo[alla]);
+          const cuanto = desvio === null ? '' : ` (${(desvio * 100).toFixed(2)} %`
+            + (tol ? `, se admite ${(tol * 100).toFixed(1)} %)` : ')');
+          discrepan.push(`${rotulo}: módulo ${mio[aca]} ≠ planilla ${suyo[alla]}${cuanto}`);
+        } else {
+          const desvio = desvioRelativo(mio[aca], suyo[alla]);
+          if (desvio !== null && desvio > peorDesvio) peorDesvio = desvio;
         }
       }
     } catch (err) {
@@ -166,9 +178,13 @@ for (const modulo of modulos) {
       console.log(`  [ERROR] contraste con la planilla ${planilla}`);
       for (const d of discrepan) console.log(`          ${d}`);
     } else {
-      console.log(
-        `  [ OK  ] contraste con la planilla ${planilla} — ${valores.length} valores idénticos`,
-      );
+      // El informe distingue las dos cosas a propósito: decir «idénticos» de
+      // un valor que solo entra dentro de una tolerancia sería mentir sobre la
+      // fuerza de la red.
+      const detalle = conTolerancia
+        ? `${exactos} idénticos y ${conTolerancia} dentro de tolerancia (desvío máximo ${(peorDesvio * 100).toFixed(2)} %)`
+        : `${exactos} valores idénticos`;
+      console.log(`  [ OK  ] contraste con la planilla ${planilla} — ${detalle}`);
     }
   }
 }
@@ -205,15 +221,21 @@ function magnitud(v) {
   return null;
 }
 
-function coincide(a, b) {
+/** El desvío relativo entre dos magnitudes, o `null` si no son comparables. */
+function desvioRelativo(a, b) {
   const na = magnitud(a);
   const nb = magnitud(b);
-  if (na !== null && nb !== null) {
-    if (na === nb) return true;
-    const escala = Math.max(Math.abs(na), Math.abs(nb));
-    return escala === 0 ? false : Math.abs(na - nb) / escala < 1e-9;
-  }
-  return String(a) === String(b);
+  if (na === null || nb === null) return null;
+  if (na === nb) return 0;
+  const escala = Math.max(Math.abs(na), Math.abs(nb));
+  return escala === 0 ? Infinity : Math.abs(na - nb) / escala;
+}
+
+/** `tolerancia` es el desvío relativo admitido; 0 significa identidad. */
+function coincide(a, b, tolerancia = 0) {
+  const desvio = desvioRelativo(a, b);
+  if (desvio === null) return String(a) === String(b);
+  return desvio <= Math.max(tolerancia, 1e-9);
 }
 
 /** Evalúa una planilla publicada y devuelve el scope de su figura (el final). */

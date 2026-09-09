@@ -65,10 +65,12 @@ Hay dos módulos:
   que sobran.
 - **`seccion-acero-i`** — perfil I doblemente simétrico: compresión (E3 y E4), flexión en el
   eje fuerte con pandeo lateral-torsional (F2), corte del alma (G2.1) e interacción (H1.1),
-  contra `public/planillas/viga-columna.json`. Las propiedades se derivan de las cuatro
-  planchas y se pueden anular escribiendo las de catálogo; el módulo compara las dos y avisa
-  si se apartan más de la tolerancia por uniones ala-alma. Su esquema dibuja la sección y la
-  recta de `L_b` con `L_p` y `L_r` marcados, que es el Capítulo F en una figura.
+  contra `public/planillas/viga-columna.json`. **Ninguna propiedad se declara**: `A_g`, `I_x`,
+  `Z_x`, `J`… se derivan de `d`, `b_f`, `t_f` y `t_w`, de modo que la cadena entera es
+  auditable y no hay un solo número que haya que creer. El modelo de cuatro planchas ignora
+  las uniones ala-alma, lo que en un laminado deja `A_g` y `Z_x` un 2 % bajos y `J` un 8 %
+  bajo — del lado seguro. Su esquema dibuja la sección y la recta de `L_b` con `L_p` y `L_r`
+  marcados, que es el Capítulo F en una figura.
 
 Un módulo declara qué queda **fuera de su alcance** y lo señala en pantalla en vez de
 devolver un número de aspecto válido fuera de su dominio. Esa clase de aviso es distinta de

@@ -21,38 +21,14 @@ function porGrupos(campos: CampoDef[]): [string, CampoDef[]][] {
 const acotar = (v: number, c: CampoDef) =>
   Math.min(c.max ?? Infinity, Math.max(c.min ?? -Infinity, v));
 
-/**
- * Un grupo cuyos campos son todos opcionales se pinta plegado. Es lo que
- * mantiene un formulario legible cuando a las cuatro dimensiones que definen
- * una sección se le suman nueve propiedades de catálogo que casi nunca se
- * tocan.
- */
-function Grupo({
-  titulo,
-  plegado,
-  children,
-}: {
-  titulo: string;
-  plegado: boolean;
-  children: ReactNode;
-}) {
-  if (!plegado) {
-    return (
-      <fieldset>
-        <legend className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted">
-          {titulo}
-        </legend>
-        <div className="space-y-2.5">{children}</div>
-      </fieldset>
-    );
-  }
+function Grupo({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
-    <details className="rounded border border-border bg-white/60 px-2.5 py-2">
-      <summary className="cursor-pointer text-[10px] font-semibold uppercase tracking-wide text-muted">
+    <fieldset>
+      <legend className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted">
         {titulo}
-      </summary>
-      <div className="mt-2.5 space-y-2.5">{children}</div>
-    </details>
+      </legend>
+      <div className="space-y-2.5">{children}</div>
+    </fieldset>
   );
 }
 
@@ -91,7 +67,7 @@ export default function FormularioEntradas({ campos, valores, onCambio }: Props)
   return (
     <div className="space-y-4">
       {grupos.map(([grupo, lista]) => (
-        <Grupo key={grupo} titulo={grupo} plegado={lista.every((c) => c.opcional)}>
+        <Grupo key={grupo} titulo={grupo}>
           {lista.map((campo) => {
               const valor = valores[campo.nombre];
               const texto = borradores[campo.nombre] ?? String(valor);

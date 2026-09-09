@@ -34,30 +34,9 @@ export type EntradasAceroI = {
   V_u: number;
   C_b: number;
   B_1: number;
-  // Propiedades de catálogo. `0` significa «usa la derivada de las planchas».
-  A_gc: number;
-  I_xc: number;
-  I_yc: number;
-  S_xc: number;
-  Z_xc: number;
-  r_xc: number;
-  r_yc: number;
-  r_tsc: number;
-  J_c: number;
-  h_oc: number;
 };
 
 const n = (v: number): string => (Number.isFinite(v) ? String(Number(v.toPrecision(12))) : '0');
-
-/** Una propiedad de catálogo: mismo campo, misma ayuda, misma unidad. */
-const catalogo = (nombre: string, etiqueta: string, unidad: string): CampoDef => ({
-  nombre,
-  etiqueta,
-  unidad,
-  grupo: 'Propiedades de catálogo (0 = derivada)',
-  min: 0,
-  opcional: true,
-});
 
 const ENTRADAS: CampoDef[] = [
   {
@@ -131,16 +110,6 @@ const ENTRADAS: CampoDef[] = [
     ayuda: 'Apéndice 8, efecto P-δ. Tomar 1 solo si el análisis ya es de segundo orden.',
   },
 
-  catalogo('A_gc', 'Área A_g', 'cm^2'),
-  catalogo('I_xc', 'Inercia I_x', 'cm^4'),
-  catalogo('I_yc', 'Inercia I_y', 'cm^4'),
-  catalogo('S_xc', 'Módulo elástico S_x', 'cm^3'),
-  catalogo('Z_xc', 'Módulo plástico Z_x', 'cm^3'),
-  catalogo('r_xc', 'Radio de giro r_x', 'cm'),
-  catalogo('r_yc', 'Radio de giro r_y', 'cm'),
-  catalogo('r_tsc', 'Radio efectivo r_ts', 'cm'),
-  catalogo('J_c', 'Constante torsional J', 'cm^4'),
-  catalogo('h_oc', 'Distancia entre centros de ala h_o', 'cm'),
 ];
 
 const SALIDAS: SalidaDef[] = [
@@ -174,14 +143,6 @@ const SALIDAS: SalidaDef[] = [
   { nombre: 'v_alaF', etiqueta: 'Ala compacta en flexión', tipo: 'veredicto', ayuda: 'Tabla B4.1b, caso 10' },
   { nombre: 'v_almaF', etiqueta: 'Alma compacta en flexión', tipo: 'veredicto', ayuda: 'Tabla B4.1b, caso 15' },
   { nombre: 'v_tor', etiqueta: 'El pandeo torsional no gobierna', tipo: 'veredicto', ayuda: 'Ec. E4-2' },
-  {
-    nombre: 'v_prop',
-    etiqueta: 'Planchas y catálogo concuerdan',
-    tipo: 'veredicto',
-    aviso: true,
-    avisoTexto: 'Las propiedades de catálogo no cuadran con las planchas',
-    ayuda: 'Se apartan de las derivadas más de la tolerancia por uniones ala-alma.',
-  },
 ];
 
 function construirHoja(e: EntradasAceroI): Item[] {
@@ -213,62 +174,30 @@ function construirHoja(e: EntradasAceroI): Item[] {
     m(`t_f := ${n(e.t_f)} cm`),
     m(`t_w := ${n(e.t_w)} cm`),
     m('v_geom := d > 2*t_f ='),
-    t('El modelo de cuatro planchas ignora las uniones ala-alma: en un perfil laminado eso'),
-    t('deja A_g y Z_x algo bajos —del lado seguro— y h algo alto, también conservador.'),
-    m('h_pl := d - 2*t_f = cm'),
-    m('A_pl := 2*b_f*t_f + h_pl*t_w = cm^2'),
-    m('I_xpl := (b_f*d^3 - (b_f - t_w)*h_pl^3)/12 = cm^4'),
-    m('S_xpl := I_xpl/(d/2) = cm^3'),
-    m('Z_xpl := b_f*t_f*(d - t_f) + t_w*h_pl^2/4 = cm^3'),
-    m('I_ypl := (2*t_f*b_f^3 + h_pl*t_w^3)/12 = cm^4'),
-    m('r_xpl := sqrt(I_xpl/A_pl) = cm'),
-    m('r_ypl := sqrt(I_ypl/A_pl) = cm'),
-    m('h_opl := d - t_f = cm'),
-    m('J_pl := (2*b_f*t_f^3 + (d - t_f)*t_w^3)/3 = cm^4'),
-    m('rts_pl := sqrt(I_ypl*h_opl/(2*S_xpl)) = cm'),
-    t('Los dos ratios que alimentan la Tabla B4.1 salen SIEMPRE de las dimensiones,'),
-    t('nunca de catálogo: es la convención que comparten las cuatro planillas de acero.'),
-    m('bt_ala := b_f/(2*t_f) ='),
-    m('ht_alma := h_pl/t_w ='),
 
-    t('━━ DATOS · PROPIEDADES DE CATÁLOGO (0 = usa la derivada) ━━'),
-    m(`A_gc := ${n(e.A_gc)} cm^2`),
-    m(`I_xc := ${n(e.I_xc)} cm^4`),
-    m(`I_yc := ${n(e.I_yc)} cm^4`),
-    m(`S_xc := ${n(e.S_xc)} cm^3`),
-    m(`Z_xc := ${n(e.Z_xc)} cm^3`),
-    m(`r_xc := ${n(e.r_xc)} cm`),
-    m(`r_yc := ${n(e.r_yc)} cm`),
-    m(`r_tsc := ${n(e.r_tsc)} cm`),
-    m(`J_c := ${n(e.J_c)} cm^4`),
-    m(`h_oc := ${n(e.h_oc)} cm`),
-
-    t('━━ PROPIEDADES USADAS ━━'),
-    m('A_g := A_gc > 0 cm^2 ? A_gc : A_pl = cm^2'),
-    m('I_x := I_xc > 0 cm^4 ? I_xc : I_xpl = cm^4'),
-    m('S_x := S_xc > 0 cm^3 ? S_xc : S_xpl = cm^3'),
-    m('Z_x := Z_xc > 0 cm^3 ? Z_xc : Z_xpl = cm^3'),
-    m('r_x := r_xc > 0 cm ? r_xc : r_xpl = cm'),
-    m('r_y := r_yc > 0 cm ? r_yc : r_ypl = cm'),
-    m('r_ts := r_tsc > 0 cm ? r_tsc : rts_pl = cm'),
-    m('J := J_c > 0 cm^4 ? J_c : J_pl = cm^4'),
-    m('h_o := h_oc > 0 cm ? h_oc : h_opl = cm'),
-    t('I_y se reconstruye de A_g y r_y, que es como la tabla del perfil la deja disponible;'),
-    t('sin catálogo, A_g·r_y² devuelve exactamente el I_y de las planchas.'),
-    m('I_y := I_yc > 0 cm^4 ? I_yc : A_g*r_y^2 = cm^4'),
+    t('━━ PROPIEDADES DE LA SECCIÓN ━━'),
+    t('Todas se derivan de las cuatro planchas, ninguna se declara: así la cadena entera es'),
+    t('auditable desde d, b_f, t_f y t_w, sin un solo número que haya que creer.'),
+    t('El modelo ignora las uniones ala-alma. En un perfil laminado eso deja A_g y Z_x un 2 %'),
+    t('bajos y J hasta un 8 % bajo —del lado seguro—, y h algo alta, que también lo es.'),
+    m('h_w := d - 2*t_f = cm'),
+    m('A_g := 2*b_f*t_f + h_w*t_w = cm^2'),
+    m('I_x := (b_f*d^3 - (b_f - t_w)*h_w^3)/12 = cm^4'),
+    m('S_x := I_x/(d/2) = cm^3'),
+    m('Z_x := b_f*t_f*(d - t_f) + t_w*h_w^2/4 = cm^3'),
+    m('I_y := (2*t_f*b_f^3 + h_w*t_w^3)/12 = cm^4'),
+    m('r_x := sqrt(I_x/A_g) = cm'),
+    m('r_y := sqrt(I_y/A_g) = cm'),
+    m('h_o := d - t_f = cm'),
+    m('J := (2*b_f*t_f^3 + (d - t_f)*t_w^3)/3 = cm^4'),
+    t('Ec. F2-8a con C_w = I_y·h_o²/4, que es la User Note de F2 para el doblemente simétrico.'),
+    m('r_ts := sqrt(I_y*h_o/(2*S_x)) = cm'),
     m('C_w := I_y*h_o^2/4 = cm^6'),
     t('F2-8b: c = 1 para un perfil I doblemente simétrico.'),
     m('c := 1'),
-    t('Planchas contra catálogo. Las tolerancias son las de las planillas publicadas: 2 % en'),
-    t('áreas y módulos, 1-2 % en radios, y 10 % en J, que es lo más sensible a las uniones.'),
-    m('v_ap := abs(A_pl/A_g - 1) <= 0.02 ='),
-    m('v_zxp := abs(Z_xpl/Z_x - 1) <= 0.02 ='),
-    m('v_sxp := abs(S_xpl/S_x - 1) <= 0.02 ='),
-    m('v_rxp := abs(r_xpl/r_x - 1) <= 0.02 ='),
-    m('v_ryp := abs(r_ypl/r_y - 1) <= 0.02 ='),
-    m('v_rtsp := abs(rts_pl/r_ts - 1) <= 0.02 ='),
-    m('v_jp := abs(J_pl/J - 1) <= 0.10 ='),
-    m('v_prop := v_ap and v_zxp and v_sxp and v_rxp and v_ryp and v_rtsp and v_jp ='),
+    t('Los dos ratios que alimentan la Tabla B4.1:'),
+    m('bt_ala := b_f/(2*t_f) ='),
+    m('ht_alma := h_w/t_w ='),
 
     t('━━ DATOS · LONGITUDES Y CARGAS ━━'),
     m(`L_cx := ${n(e.L_cx)} m`),
@@ -455,23 +384,13 @@ export const seccionAceroI: ModuloDiseno<EntradasAceroI> = {
     V_u: 5,
     C_b: 1,
     B_1: 1,
-    A_gc: 0,
-    I_xc: 0,
-    I_yc: 0,
-    S_xc: 0,
-    Z_xc: 0,
-    r_xc: 0,
-    r_yc: 0,
-    r_tsc: 0,
-    J_c: 0,
-    h_oc: 0,
   },
   construirHoja,
-  // El W250x58 de `viga-columna.json`, cadena A: sus nueve propiedades de
-  // catálogo y los dos factores que aquella planilla CALCULA —C_b por la Ec.
-  // F1-1 sobre su diagrama de momentos, B_1 por la Ec. A-8-3— y que aquí son
-  // dato. Van como literales a propósito: si esa planilla cambia, el contraste
-  // falla, que es exactamente lo que se quiere de él.
+  // El W250x58 de `viga-columna.json`, cadena A: sus dimensiones y los dos
+  // factores que aquella planilla CALCULA —C_b por la Ec. F1-1 sobre su
+  // diagrama de momentos, B_1 por la Ec. A-8-3— y que aqui son dato. Van como
+  // literales a proposito: si esa planilla cambia, el contraste falla, que es
+  // exactamente lo que se quiere de el.
   contraste: {
     planilla: 'viga-columna',
     entradas: {
@@ -489,35 +408,54 @@ export const seccionAceroI: ModuloDiseno<EntradasAceroI> = {
       V_u: 0,
       C_b: 1.298701298701299,
       B_1: 1.336472371548623,
-      A_gc: 74.2,
-      I_xc: 8700,
-      I_yc: 0,
-      S_xc: 690,
-      Z_xc: 767,
-      r_xc: 10.8,
-      r_yc: 5.03,
-      r_tsc: 5.69,
-      J_c: 40.6,
-      h_oc: 23.9,
     },
     valores: [
-      // Geometría de planchas y clasificación: mismos nombres en las dos hojas.
-      'h_pl', 'A_pl', 'I_xpl', 'S_xpl', 'Z_xpl', 'I_ypl', 'r_xpl', 'r_ypl', 'h_opl', 'J_pl',
-      'rts_pl', 'bt_ala', 'ht_alma',
-      'lam_rf', 'lam_rw', 'lam_pf', 'lam_pw', 'lam_lim', 'lam_x',
-      // Propiedades resueltas y derivadas de ellas.
-      'A_g', 'I_x', 'S_x', 'Z_x', 'r_x', 'r_y', 'r_ts', 'J', 'h_o', 'I_y', 'C_w', 'I_s',
-      // Capacidades. La planilla las nombra con el sufijo de su cadena A.
-      { mio: 'F_ef', suyo: 'F_eA' },
-      { mio: 'F_n', suyo: 'F_nA' },
-      { mio: 'Rd_P', suyo: 'Rd_PA' },
-      { mio: 'u_P', suyo: 'u_PA' },
-      'M_p', 'L_p', 'L_r', 'rz', 'M_07', 'dM',
-      { mio: 'M_n', suyo: 'M_nA' },
-      { mio: 'Rd_M', suyo: 'Rd_MA' },
-      { mio: 'M_r', suyo: 'M_r' },
-      { mio: 'u_M', suyo: 'u_MA' },
-      { mio: 'u_int', suyo: 'u_A' },
+      // EXACTO. Esa planilla tambien calcula el modelo de cuatro planchas, bajo
+      // los nombres con sufijo `_pl`, y ahi las dos hojas hacen lo mismo con la
+      // misma formula. Los limites de esbeltez solo dependen de E y F_y.
+      { mio: 'h_w', suyo: 'h_pl' },
+      { mio: 'A_g', suyo: 'A_pl' },
+      { mio: 'I_x', suyo: 'I_xpl' },
+      { mio: 'S_x', suyo: 'S_xpl' },
+      { mio: 'Z_x', suyo: 'Z_xpl' },
+      { mio: 'I_y', suyo: 'I_ypl' },
+      { mio: 'r_x', suyo: 'r_xpl' },
+      { mio: 'r_y', suyo: 'r_ypl' },
+      { mio: 'h_o', suyo: 'h_opl' },
+      { mio: 'J', suyo: 'J_pl' },
+      { mio: 'r_ts', suyo: 'rts_pl' },
+      'bt_ala', 'ht_alma',
+      'lam_rf', 'lam_rw', 'lam_pf', 'lam_pw', 'lam_lim',
+      'M_r',
+
+      // CON TOLERANCIA. De aqui en adelante las dos hojas ya no calculan lo
+      // mismo: la planilla alimenta las ecuaciones de norma con las propiedades
+      // TABULADAS del perfil y este modulo con las derivadas, y entre unas y
+      // otras esta el material de las uniones ala-alma. El desvio medido es de
+      // 1-2 % en las capacidades y llega al 8 % en J, que arrastra a rz.
+      //
+      // Sigue siendo una red util: si alguien rompe la rama de E3 o una zona de
+      // F2, eso se mueve mucho mas que un 3 %.
+      { mio: 'C_w', tolerancia: 0.03 },
+      { mio: 'I_s', tolerancia: 0.03 },
+      { mio: 'lam_x', tolerancia: 0.03 },
+      { mio: 'M_p', tolerancia: 0.03 },
+      { mio: 'M_07', tolerancia: 0.03 },
+      { mio: 'dM', tolerancia: 0.03 },
+      { mio: 'L_p', tolerancia: 0.03 },
+      { mio: 'L_r', tolerancia: 0.03 },
+      // rz = J·c/(S_x·h_o) es el que mas se desvia (6,35 %) porque arrastra el
+      // J de planchas, que es lo mas sensible a las uniones. Su efecto en L_r
+      // queda en 0,95 %: entra bajo raiz y sumado a otro termino.
+      { mio: 'rz', tolerancia: 0.08 },
+      { mio: 'F_ef', suyo: 'F_eA', tolerancia: 0.03 },
+      { mio: 'F_n', suyo: 'F_nA', tolerancia: 0.03 },
+      { mio: 'Rd_P', suyo: 'Rd_PA', tolerancia: 0.03 },
+      { mio: 'u_P', suyo: 'u_PA', tolerancia: 0.03 },
+      { mio: 'M_n', suyo: 'M_nA', tolerancia: 0.03 },
+      { mio: 'Rd_M', suyo: 'Rd_MA', tolerancia: 0.03 },
+      { mio: 'u_M', suyo: 'u_MA', tolerancia: 0.03 },
+      { mio: 'u_int', suyo: 'u_A', tolerancia: 0.03 },
     ],
   },
   casos: [
@@ -527,43 +465,38 @@ export const seccionAceroI: ModuloDiseno<EntradasAceroI> = {
         F_y: 3520, d: 25.3, b_f: 25.4, t_f: 1.42, t_w: 0.86,
         L_cx: 7.5, L_cy: 3.75, L_cz: 3.75, L_b: 3.75,
         P_u: 65, M_ux: 5, V_u: 5, C_b: 1, B_1: 1,
-        A_gc: 0, I_xc: 0, I_yc: 0, S_xc: 0, Z_xc: 0, r_xc: 0, r_yc: 0, r_tsc: 0, J_c: 0, h_oc: 0,
       },
     },
     {
-      nombre: 'mínimos de cada campo',
+      nombre: 'minimos de cada campo',
       entradas: {
         F_y: 2530, d: 15, b_f: 8, t_f: 0.4, t_w: 0.3,
         L_cx: 0.5, L_cy: 0.5, L_cz: 0.5, L_b: 0.25,
         P_u: 0, M_ux: 0, V_u: 0, C_b: 1, B_1: 1,
-        A_gc: 0, I_xc: 0, I_yc: 0, S_xc: 0, Z_xc: 0, r_xc: 0, r_yc: 0, r_tsc: 0, J_c: 0, h_oc: 0,
       },
     },
     {
-      nombre: 'máximos de cada campo',
+      nombre: 'maximos de cada campo',
       entradas: {
         F_y: 3520, d: 120, b_f: 50, t_f: 5, t_w: 4,
         L_cx: 30, L_cy: 30, L_cz: 30, L_b: 30,
         P_u: 2000, M_ux: 500, V_u: 500, C_b: 3, B_1: 3,
-        A_gc: 0, I_xc: 0, I_yc: 0, S_xc: 0, Z_xc: 0, r_xc: 0, r_yc: 0, r_tsc: 0, J_c: 0, h_oc: 0,
       },
     },
     {
-      nombre: 'L_b más allá de L_r: pandeo elástico (F2-3)',
+      nombre: 'L_b mas alla de L_r: pandeo elastico (F2-3)',
       entradas: {
         F_y: 3520, d: 25.3, b_f: 25.4, t_f: 1.42, t_w: 0.86,
         L_cx: 7.5, L_cy: 3.75, L_cz: 3.75, L_b: 20,
         P_u: 20, M_ux: 5, V_u: 5, C_b: 1, B_1: 1,
-        A_gc: 0, I_xc: 0, I_yc: 0, S_xc: 0, Z_xc: 0, r_xc: 0, r_yc: 0, r_tsc: 0, J_c: 0, h_oc: 0,
       },
     },
     {
-      nombre: 'axial baja: la interacción cambia a H1-1b',
+      nombre: 'axial baja: la interaccion cambia a H1-1b',
       entradas: {
         F_y: 3520, d: 25.3, b_f: 25.4, t_f: 1.42, t_w: 0.86,
         L_cx: 7.5, L_cy: 3.75, L_cz: 3.75, L_b: 3.75,
         P_u: 2, M_ux: 10, V_u: 5, C_b: 1, B_1: 1,
-        A_gc: 0, I_xc: 0, I_yc: 0, S_xc: 0, Z_xc: 0, r_xc: 0, r_yc: 0, r_tsc: 0, J_c: 0, h_oc: 0,
       },
     },
     {
@@ -572,26 +505,14 @@ export const seccionAceroI: ModuloDiseno<EntradasAceroI> = {
         F_y: 2530, d: 30, b_f: 12, t_f: 0.8, t_w: 0.5,
         L_cx: 8, L_cy: 8, L_cz: 8, L_b: 8,
         P_u: 60, M_ux: 30, V_u: 40, C_b: 1, B_1: 1.4,
-        A_gc: 0, I_xc: 0, I_yc: 0, S_xc: 0, Z_xc: 0, r_xc: 0, r_yc: 0, r_tsc: 0, J_c: 0, h_oc: 0,
       },
     },
     {
-      nombre: 'alma esbelta: fuera del alcance del módulo',
+      nombre: 'alma esbelta: fuera del alcance del modulo',
       entradas: {
         F_y: 3520, d: 100, b_f: 25, t_f: 1.2, t_w: 0.4,
         L_cx: 6, L_cy: 3, L_cz: 3, L_b: 3,
         P_u: 20, M_ux: 40, V_u: 20, C_b: 1, B_1: 1,
-        A_gc: 0, I_xc: 0, I_yc: 0, S_xc: 0, Z_xc: 0, r_xc: 0, r_yc: 0, r_tsc: 0, J_c: 0, h_oc: 0,
-      },
-    },
-    {
-      nombre: 'con propiedades de catálogo (el W250x58 de viga-columna)',
-      entradas: {
-        F_y: 3520, d: 25.2, b_f: 20.3, t_f: 1.35, t_w: 0.8,
-        L_cx: 7, L_cy: 3.5, L_cz: 3.5, L_b: 3.5,
-        P_u: 90, M_ux: 7.99925, V_u: 5, C_b: 1.2987, B_1: 1.3365,
-        A_gc: 74.2, I_xc: 8700, I_yc: 0, S_xc: 690, Z_xc: 767,
-        r_xc: 10.8, r_yc: 5.03, r_tsc: 5.69, J_c: 40.6, h_oc: 23.9,
       },
     },
   ],

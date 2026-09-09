@@ -42,14 +42,6 @@ export interface CampoDef {
    * y «ASTM A992 / A572 Gr. 50».
    */
   opciones?: number[] | OpcionCampo[];
-  /**
-   * El campo admite `0`, y entonces la hoja usa un valor derivado en su lugar.
-   *
-   * El formulario los agrupa aparte y plegados: las nueve propiedades de
-   * catálogo de un perfil de acero no deben tapar a las cuatro dimensiones que
-   * de verdad definen la sección.
-   */
-  opcional?: boolean;
   ayuda?: string;
 }
 
@@ -154,9 +146,17 @@ export interface ModuloDiseno<E extends Entradas = Entradas> {
     entradas?: E;
     /**
      * Los símbolos que tienen que coincidir. Una cadena cuando ambas hojas lo
-     * llaman igual; el par cuando no —una planilla que compara dos casos sufija
-     * los suyos (`Rd_PA`), y ese sufijo es de su relato, no del cálculo—.
+     * llaman igual; la forma larga cuando no —una planilla que compara dos
+     * casos sufija los suyos (`Rd_PA`), y ese sufijo es de su relato, no del
+     * cálculo—.
+     *
+     * `tolerancia` es el desvío relativo admitido. Sin ella se exige identidad
+     * (1e-9), que es lo normal. Sirve para el caso en que las dos hojas
+     * calculan lo mismo por caminos que no tienen por qué dar el mismo dígito:
+     * un módulo que deriva las propiedades de la geometría contra una planilla
+     * que las declara del catálogo del perfil difiere en lo que pesan las
+     * uniones, y ahí exigir identidad sería exigir que el desvío no exista.
      */
-    valores: (string | { mio: string; suyo: string })[];
+    valores: (string | { mio: string; suyo?: string; tolerancia?: number })[];
   };
 }
