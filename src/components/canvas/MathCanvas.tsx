@@ -203,6 +203,10 @@ export default function MathCanvas() {
   const selectedRef = useRef(selected);
   /** Espejo de la región en edición: lo necesita el guardado al desmontar. */
   const activeIdRef = useRef(activeId);
+  /** El autoguardado está en pausa porque otra pestaña escribió la hoja. */
+  const enPausaRef = useRef(false);
+  /** Lo último que esta pestaña escribió en `localStorage`. */
+  const escritoRef = useRef<string | null>(null);
   /** Espejo de las medidas: `nextSpot` se suscribe una vez y necesita las vigentes. */
   const medidasRef = useRef<{ alto: Map<string, number>; ancho: Map<string, number> }>({
     alto: new Map(),
@@ -538,6 +542,10 @@ export default function MathCanvas() {
    * escriba se perdería al recargar sin que nada lo indique.
    */
   const guardarHoja = useCallback((rs: Region[], editando: string | null) => {
+    // Otra pestaña escribió la hoja y el usuario todavía no ha elegido cuál se
+    // queda: escribir ahora pisaría su trabajo sin preguntar (ver el efecto de
+    // `storage` más abajo).
+    if (enPausaRef.current) return;
     try {
       // Solo se descarta la región EN EDICIÓN si está vacía: es la que puede
       // quedar a medio crear si se cierra la pestaña.
@@ -550,10 +558,9 @@ export default function MathCanvas() {
       // Se marca la hoja de ejemplo intacta para que `hayTrabajoGuardado` no la
       // confunda con trabajo del usuario (ver el comentario de esa función).
       const demo = rs === DEMO;
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({ version: 1, regions: persistable, ...(demo ? { demo: true } : {}) }),
-      );
+      const texto = JSON.stringify({ version: 1, regions: persistable, ...(demo ? { demo: true } : {}) });
+      localStorage.setItem(STORAGE_KEY, texto);
+      escritoRef.current = texto;
       setStorageWarn(null);
     } catch (err) {
       const quota =
@@ -585,6 +592,90 @@ export default function MathCanvas() {
     return () => guardarHoja(regionsRef.current, activeIdRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Y al cerrar la pestaña, recargar o pasar a otra, que tampoco desmontan: React
+  // no se entera de que la página se va. Como el debounce se reinicia en cada
+  // tecla, lo que se perdía no eran 300 ms sino la ráfaga entera desde la última
+  // pausa — escribir un párrafo sin parar y pulsar F5 se lo llevaba completo.
+  // `visibilitychange` es la señal fiable en móvil, donde `pagehide` a veces no
+  // llega; se escuchan las dos porque guardar dos veces lo mismo no cuesta nada.
+  useEffect(() => {
+    const vaciar = () => guardarHoja(regionsRef.current, activeIdRef.current);
+    const alOcultar = () => {
+      if (document.visibilityState === 'hidden') vaciar();
+    };
+    window.addEventListener('pagehide', vaciar);
+    document.addEventListener('visibilitychange', alOcultar);
+    return () => {
+      window.removeEventListener('pagehide', vaciar);
+      document.removeEventListener('visibilitychange', alOcultar);
+    };
+  }, [guardarHoja]);
+
+  /**
+   * Otra pestaña escribió la hoja guardada.
+   *
+   * Hay una sola clave para la hoja y cada pestaña guarda su copia en memoria
+   * sobre ella: con dos abiertas, basta con volver a la vieja y entrar y salir de
+   * un bloque para que su autoguardado escriba encima de todo lo hecho en la
+   * otra. Ahora esta pestaña se pone en pausa —no escribe— y pregunta cuál de las
+   * dos se queda.
+   *
+   * No se compara contra lo escrito por la propia pestaña: el evento `storage`
+   * solo llega a las DEMÁS, así que cualquiera que se reciba es de fuera. Sí se
+   * ignora el que trae exactamente lo que esta pestaña ya tiene, que es lo que
+   * pasa cuando otra acaba de abrir la misma hoja y la guarda sin tocarla.
+   */
+  const [otraPestana, setOtraPestana] = useState(false);
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== STORAGE_KEY || e.storageArea !== window.localStorage) return;
+      if (e.newValue !== null && e.newValue === escritoRef.current) return;
+      enPausaRef.current = true;
+      setOtraPestana(true);
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
+  // Un archivo soltado FUERA de la hoja —sobre la barra, la paleta, un panel o
+  // un aviso— lo abría el navegador, que abandonaba la aplicación con lo que
+  // no se hubiera guardado. La hoja atiende su propio soltado y marca el evento;
+  // lo que llega aquí sin marcar cayó en otro sitio.
+  useEffect(() => {
+    const conArchivos = (e: DragEvent) => e.dataTransfer?.types.includes('Files') ?? false;
+    const onDragOver = (e: DragEvent) => {
+      if (conArchivos(e)) e.preventDefault();
+    };
+    const onDrop = (e: DragEvent) => {
+      if (e.defaultPrevented || !conArchivos(e)) return;
+      e.preventDefault();
+      setAviso({ texto: 'Suelta el archivo sobre la hoja para insertarlo.' });
+    };
+    window.addEventListener('dragover', onDragOver);
+    window.addEventListener('drop', onDrop);
+    return () => {
+      window.removeEventListener('dragover', onDragOver);
+      window.removeEventListener('drop', onDrop);
+    };
+  }, []);
+
+  /** Trae la hoja que dejó la otra pestaña y reanuda el autoguardado. */
+  const cargarDeOtraPestana = useCallback(() => {
+    enPausaRef.current = false;
+    setOtraPestana(false);
+    const { regions: rs } = loadInitial();
+    setActiveId(null);
+    seleccionar(new Set());
+    setRegions(rs);
+  }, [seleccionar]);
+
+  /** Se queda con la de esta pestaña: reanuda y la escribe encima, en el acto. */
+  const quedarmeConEsta = useCallback(() => {
+    enPausaRef.current = false;
+    setOtraPestana(false);
+    guardarHoja(regionsRef.current, activeIdRef.current);
+  }, [guardarHoja]);
 
   // El acuse se retira solo: es información de un momento, y una banda que se
   // queda obliga a cerrarla. El fallo dura más porque hay que llegar a leerlo.
@@ -785,8 +876,8 @@ export default function MathCanvas() {
       y0: p.y,
       px: e.clientX,
       py: e.clientY,
-      // Con Ctrl o Mayús el marco SUMA a lo que ya había seleccionado.
-      base: e.ctrlKey || e.shiftKey ? new Set(selectedRef.current) : new Set(),
+      // Con Ctrl (⌘ en Mac) o Mayús el marco SUMA a lo que ya había seleccionado.
+      base: e.ctrlKey || e.metaKey || e.shiftKey ? new Set(selectedRef.current) : new Set(),
       marcando: false,
     };
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -1040,10 +1131,37 @@ export default function MathCanvas() {
     descargarHoja({ version: 1, regions }, 'hoja-calculo.json');
   }, [regions]);
 
+  // Ctrl+S: el reflejo de cualquiera en una herramienta de planillas. Sin
+  // interceptarlo, el navegador abre su «Guardar página» y deja un .html que no
+  // sirve para nada.
+  //
+  // Va aparte y en fase de CAPTURA porque tiene que funcionar justo cuando más se
+  // usa, que es con una fórmula en edición: el editor de la región detiene la
+  // propagación de sus teclas y el manejador de abajo, además, cede el teclado a
+  // los campos y a los menús. No sale de edición; la hoja exportada ya lleva lo
+  // que se está escribiendo.
+  useEffect(() => {
+    const onGuardar = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.altKey || e.key.toLowerCase() !== 's') return;
+      e.preventDefault();
+      e.stopPropagation();
+      exportJson();
+    };
+    window.addEventListener('keydown', onGuardar, true);
+    return () => window.removeEventListener('keydown', onGuardar, true);
+  }, [exportJson]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const el = document.activeElement;
       const enCampo = el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement;
+      // Con el foco en un control, Enter y Espacio son suyos: son las dos teclas
+      // con las que se activa un botón o se sigue un enlace.
+      const enControl =
+        el instanceof HTMLButtonElement ||
+        el instanceof HTMLSelectElement ||
+        el instanceof HTMLAnchorElement ||
+        (el instanceof HTMLElement && el.isContentEditable);
 
       // Escape va ANTES de cualquier guard, porque es la salida de todos ellos:
       // estaba interceptado por el de los campos y por el de los menús, así que
@@ -1083,15 +1201,6 @@ export default function MathCanvas() {
       if (enCampo) return;
       // Con un menú o el cuadro de pegado abiertos, el teclado es de ellos.
       if (templatesOpen || imageMenuOpen || pasteOpen) return;
-
-      // Ctrl+S: el reflejo de cualquiera en una herramienta de planillas. Sin
-      // interceptarlo, el navegador abre su «Guardar página» y deja un .html
-      // que no sirve para nada.
-      if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 's') {
-        e.preventDefault();
-        exportJson();
-        return;
-      }
 
       // Deshacer / rehacer. Va antes que nada: es la salida de cualquier otra
       // tecla que haya hecho un estropicio.
@@ -1169,8 +1278,13 @@ export default function MathCanvas() {
       //
       // Solo con el punto fijado: sin él no hay dónde abrir el hueco, y hacerlo
       // «al final de la hoja» no es lo que nadie espera de un Enter.
+      //
+      // Nunca con el foco en un control: el `preventDefault` anulaba el clic que
+      // Enter produce sobre un botón, así que tras usar cualquier botón de la
+      // barra con el ratón —se queda con el foco— Enter no lo repetía y abría un
+      // hueco de 16 px en la hoja.
       if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
-        if (!insertRef.current) return;
+        if (!insertRef.current || enControl) return;
         e.preventDefault();
         insertarEspacio();
         return;
@@ -1179,21 +1293,19 @@ export default function MathCanvas() {
       // Teclear sin nada en edición abre una fórmula en el punto de inserción
       // con ese primer carácter: es el camino rápido al bloque más frecuente,
       // ahora que el clic ya no crea uno por sí solo.
-      if (e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1) return;
+      //
+      // AltGr no cuenta como modificador. En Windows llega como Ctrl+Alt, y en un
+      // teclado español es la tecla de `[`, `{`, `#`, `@`, `\` y `|`: sin esta
+      // excepción no había forma de empezar una fórmula con una matriz.
+      const altGr = e.getModifierState?.('AltGraph');
+      if ((!altGr && (e.ctrlKey || e.metaKey || e.altKey)) || e.key.length !== 1) return;
       // ...salvo con el foco en un control, donde el teclado es suyo. El caso
       // que importa es el Espacio: mide un carácter, así que pulsarlo sobre un
       // botón de la barra al que se llegó con Tab no lo activaba — insertaba un
       // bloque con un espacio dentro, y la barra quedaba inoperable desde el
       // teclado. El guard va AQUÍ y no arriba para que Ctrl+Z, Supr y compañía
       // sigan funcionando con el foco en un botón, que es lo esperable.
-      if (
-        el instanceof HTMLButtonElement ||
-        el instanceof HTMLSelectElement ||
-        el instanceof HTMLAnchorElement ||
-        (el instanceof HTMLElement && el.isContentEditable)
-      ) {
-        return;
-      }
+      if (enControl) return;
       e.preventDefault();
       insertRegion('math', e.key);
     };
@@ -1209,7 +1321,6 @@ export default function MathCanvas() {
     seleccionar,
     copiarSeleccion,
     duplicarSeleccion,
-    exportJson,
     insertarEspacio,
     showOrden,
     showVars,
@@ -1615,6 +1726,31 @@ export default function MathCanvas() {
               </div>
             )}
 
+            {otraPestana && (
+              <div className={`${tarjetaAviso} border-amber-300 bg-amber-50 text-amber-900`}>
+                <span>
+                  ⚠ La hoja guardada <strong>cambió en otra pestaña</strong>. Esta dejó de
+                  autoguardarse para no pisarla: elige con cuál te quedas.
+                </span>
+                <span className="mt-1.5 flex justify-end gap-2">
+                  <button
+                    className="rounded border border-amber-400 px-2 py-0.5 font-medium hover:bg-amber-100"
+                    onClick={cargarDeOtraPestana}
+                    title="Reemplaza esta hoja por la de la otra pestaña. Se deshace con Ctrl+Z."
+                  >
+                    Cargar la de la otra pestaña
+                  </button>
+                  <button
+                    className="rounded border border-amber-400 px-2 py-0.5 font-medium hover:bg-amber-100"
+                    onClick={quedarmeConEsta}
+                    title="Guarda esta hoja encima de la de la otra pestaña."
+                  >
+                    Quedarme con esta
+                  </button>
+                </span>
+              </div>
+            )}
+
             {apartada && (
               <div className={`${tarjetaAviso} border-amber-300 bg-amber-50 text-amber-900`}>
                 <span>
@@ -1701,7 +1837,25 @@ export default function MathCanvas() {
               onDrop={(e) => {
                 e.preventDefault();
                 setDropping(false);
-                void addImages(Array.from(e.dataTransfer.files), sheetPoint(e));
+                const archivos = Array.from(e.dataTransfer.files);
+                // Una hoja exportada se abre como con «Importar»: soltarla
+                // mostraba el realce de la zona y luego no pasaba nada, porque
+                // aquí solo se aceptaban imágenes.
+                const hoja = archivos.find(
+                  (f) => f.name.toLowerCase().endsWith('.json') || f.type === 'application/json',
+                );
+                if (hoja) {
+                  importJson(hoja);
+                  return;
+                }
+                if (!archivos.some(isImageFile)) {
+                  setAviso({
+                    texto: 'Solo se pueden soltar imágenes o una hoja exportada (.json).',
+                    malo: true,
+                  });
+                  return;
+                }
+                void addImages(archivos, sheetPoint(e));
               }}
             >
               {/* El papel: dónde está la hoja, dónde su margen y dónde parte la

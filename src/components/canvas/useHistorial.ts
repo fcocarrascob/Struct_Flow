@@ -97,30 +97,64 @@ export function useHistorial(
     return () => clearTimeout(t);
   }, [regions]);
 
+  const restaurar = useCallback(
+    (estado: Region[]) => {
+      restaurando.current = true;
+      setRegions(sinTransitorias(estado));
+      alRestaurar?.();
+      revisar((n) => n + 1);
+    },
+    [setRegions, alRestaurar],
+  );
+
   const deshacer = useCallback(() => {
+    // Con un cambio todavía sin asentar —menos de 400 ms desde la última
+    // tecla o el último arrastre—, deshacer es volver al estado asentado, no al
+    // anterior a él. Saltar directamente a `pasado` se llevaba dos pasos de
+    // golpe: mover A, esperar, mover B y pulsar Ctrl+Z en el acto devolvía los
+    // dos bloques, y el paso intermedio desaparecía del historial.
+    if (actual.current !== asentado.current) {
+      futuro.current = [actual.current];
+      restaurar(asentado.current);
+      return;
+    }
     const anterior = pasado.current.pop();
     if (!anterior) return;
     futuro.current.push(actual.current);
-    restaurando.current = true;
-    setRegions(anterior);
-    alRestaurar?.();
-    revisar((n) => n + 1);
-  }, [setRegions, alRestaurar]);
+    restaurar(anterior);
+  }, [restaurar]);
 
   const rehacer = useCallback(() => {
+    // Un cambio sin asentar es una edición nueva, y una edición nueva descarta el
+    // futuro: rehacer encima de ella mezclaría dos ramas del historial.
+    if (actual.current !== asentado.current) return;
     const siguiente = futuro.current.pop();
     if (!siguiente) return;
     pasado.current.push(actual.current);
-    restaurando.current = true;
-    setRegions(siguiente);
-    alRestaurar?.();
-    revisar((n) => n + 1);
-  }, [setRegions, alRestaurar]);
+    restaurar(siguiente);
+  }, [restaurar]);
 
+  const pendiente = actual.current !== asentado.current;
   return {
     deshacer,
     rehacer,
-    puedeDeshacer: pasado.current.length > 0,
-    puedeRehacer: futuro.current.length > 0,
+    // Un cambio pendiente también se puede deshacer: el botón ↶ se quedaba
+    // deshabilitado 400 ms tras el primer cambio de la sesión.
+    puedeDeshacer: pasado.current.length > 0 || pendiente,
+    puedeRehacer: futuro.current.length > 0 && !pendiente,
   };
+}
+
+/**
+ * Quita las fórmulas y los programas vacíos de un estado que se restaura.
+ *
+ * Son bloques a medio crear: una fórmula recién pedida con el botón, antes de
+ * teclear nada. Si pasaba la pausa del historial, quedaba registrada, y al
+ * deshacer volvía FUERA de edición — un bloque sin contenido que mide cero de
+ * ancho, al que no se puede ni hacer clic y que el autoguardado ya no descarta.
+ * Un texto vacío sí se conserva: es un espaciador, y ocupa sitio a propósito.
+ */
+function sinTransitorias(estado: Region[]): Region[] {
+  const limpio = estado.filter((r) => r.kind === 'text' || r.kind === 'image' || r.src.trim() !== '');
+  return limpio.length === estado.length ? estado : limpio;
 }

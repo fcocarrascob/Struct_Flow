@@ -93,7 +93,12 @@ function MathRegion({
   // El texto con el que se entró en edición, para poder revertirlo con Escape.
   // Se toma en el render en que `active` pasa a ser cierto: un efecto llegaría
   // después de que el primer `onChange` ya hubiera pisado el valor.
-  const srcAlEntrar = useRef(region.src);
+  //
+  // Una región que se MONTA ya en edición es una recién creada, y lo que había
+  // antes de ella es nada. Tomar su `src` inicial no servía: al teclear sobre la
+  // hoja, la fórmula nace con el primer carácter dentro, y Escape «revertía» a
+  // esa letra —dejaba un bloque `F` en rojo— en vez de cancelar la creación.
+  const srcAlEntrar = useRef(active ? '' : region.src);
   const estabaActivo = useRef(active);
   if (active && !estabaActivo.current) srcAlEntrar.current = region.src;
   estabaActivo.current = active;
@@ -110,6 +115,23 @@ function MathRegion({
     if (region.src !== srcAlEntrar.current) onChange(srcAlEntrar.current);
     onCommit();
   };
+
+  /**
+   * Confirma al perder el foco, salvo que lo que se vaya sea la VENTANA.
+   *
+   * El `blur` también llega al pasar a otra aplicación con Alt+Tab, al abrir las
+   * herramientas del navegador o al pulsar en la barra de direcciones. Ir a
+   * consultar la norma en el PDF y volver cerraba la edición —o eliminaba la
+   * región, si aún estaba vacía—, y lo siguiente que se tecleaba creaba otra
+   * fórmula en otro sitio. Al volver, el navegador devuelve el foco al campo.
+   */
+  const alPerderFoco = () => {
+    if (!document.hasFocus()) return;
+    onCommit();
+  };
+
+  /** Enter a mitad de una composición (una tecla muerta, un IME) no es un Enter. */
+  const componiendo = (e: React.KeyboardEvent) => e.nativeEvent.isComposing || e.keyCode === 229;
 
   /**
    * El editor de un texto crece con su contenido.
@@ -147,7 +169,7 @@ function MathRegion({
       // El grupo se fija al empezar a MOVER, no al pulsar. Fijarlo en el
       // `pointerdown` destruiría la selección múltiple con solo tocar uno de sus
       // bloques, que es justo el gesto con el que se la va a arrastrar.
-      onDragStart(e.ctrlKey || e.shiftKey);
+      onDragStart(e.ctrlKey || e.metaKey || e.shiftKey);
     }
     onDrag(dx, dy);
   };
@@ -156,7 +178,7 @@ function MathRegion({
     drag.current = null;
     if (!d) return;
     if (d.moved) onDragEnd();
-    else onSelect(e.ctrlKey || e.shiftKey);
+    else onSelect(e.ctrlKey || e.metaKey || e.shiftKey);
   };
   // El puntero se puede perder sin `pointerup`: el navegador que se lleva el
   // gesto como desplazamiento táctil, el foco que se va, un lápiz que se levanta
@@ -311,7 +333,7 @@ function MathRegion({
             value={region.src}
             placeholder={'S :=\n    s := 0\n    for i in 1:10\n        s := s + i\n    return s'}
             onChange={(e) => onChange(e.target.value)}
-            onBlur={() => onCommit()}
+            onBlur={alPerderFoco}
             onKeyDown={(e) => {
               // Enter inserta línea; Ctrl/⌘+Enter confirma y Escape descarta.
               //
@@ -319,12 +341,27 @@ function MathRegion({
               // («Enter sale del bloque»), y no por descuido: su contenido son
               // líneas indentadas, y escribir veinte de ellas con Shift+Enter
               // sería pelear con el editor en cada una.
-              if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+              if (componiendo(e)) {
+                // La tecla es de la composición en curso, no del editor.
+              } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
                 e.preventDefault();
                 onCommit(true);
               } else if (e.key === 'Escape') {
                 e.preventDefault();
                 cancelarEdicion();
+              } else if (e.key === 'Tab' && e.shiftKey) {
+                // Shift+Tab quita un nivel de sangría a la línea del cursor, que
+                // es lo que hace cualquier editor; antes insertaba otros cuatro
+                // espacios y la única forma de desanidar era borrarlos a mano.
+                e.preventDefault();
+                const ta = e.currentTarget;
+                const s = ta.selectionStart;
+                const ini = ta.value.lastIndexOf('\n', s - 1) + 1;
+                const quita = /^ {1,4}/.exec(ta.value.slice(ini))?.[0].length ?? 0;
+                if (quita === 0) return;
+                onChange(ta.value.slice(0, ini) + ta.value.slice(ini + quita));
+                const pos = Math.max(ini, s - quita);
+                requestAnimationFrame(() => ta.setSelectionRange(pos, pos));
               } else if (e.key === 'Tab') {
                 e.preventDefault();
                 const ta = e.currentTarget;
@@ -360,11 +397,11 @@ function MathRegion({
             value={region.src}
             placeholder="texto…  ·  ## para una sección  ·  Shift+Enter para otra línea"
             onChange={(e) => onChange(e.target.value)}
-            onBlur={() => onCommit()}
+            onBlur={alPerderFoco}
             onKeyDown={(e) => {
               // Enter sale y avanza; Shift/Alt+Enter dejan pasar el salto de
               // línea al navegador, que ya sabe insertarlo donde está el cursor.
-              if (e.key === 'Enter' && !e.shiftKey && !e.altKey) {
+              if (e.key === 'Enter' && !e.shiftKey && !e.altKey && !componiendo(e)) {
                 e.preventDefault();
                 onCommit(true);
               } else if (e.key === 'Escape') {
@@ -386,9 +423,9 @@ function MathRegion({
             value={region.src}
             placeholder="ej. M := F*L/4 = kN*m"
             onChange={(e) => onChange(e.target.value)}
-            onBlur={() => onCommit()}
+            onBlur={alPerderFoco}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') {
+              if (e.key === 'Enter' && !componiendo(e)) {
                 e.preventDefault();
                 onCommit(true);
               } else if (e.key === 'Escape') {
