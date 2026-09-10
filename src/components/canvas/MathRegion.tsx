@@ -2,6 +2,8 @@ import { memo, useLayoutEffect, useRef } from 'react';
 import BloqueDoc, { esEspaciador, nivelEncabezado } from './BloqueDoc';
 import type { Region, RegionResult } from '../../lib/worksheet';
 import { A4_ANCHO_PX } from '../../lib/paginacion';
+import type { Sugerencia } from '../../lib/autocompletar';
+import { useAutocompletado } from './Autocompletado';
 
 export const GRID = 16;
 export const snap = (v: number) => Math.max(0, Math.round(v / GRID) * GRID);
@@ -65,6 +67,12 @@ interface Props {
   onResize: (w: number, h: number) => void;
   /** Registra el input/textarea activo para que la paleta inserte símbolos. */
   registerInput: (el: HTMLInputElement | HTMLTextAreaElement | null) => void;
+  /**
+   * Los nombres que la hoja define por encima de esta región, para el
+   * autocompletado. Solo lo recibe la región en edición: a las demás les llega
+   * `undefined`, siempre el mismo, y la memoización no se entera.
+   */
+  sugerencias?: readonly Sugerencia[];
 }
 
 function MathRegion({
@@ -83,6 +91,7 @@ function MathRegion({
   onDragEnd,
   onResize,
   registerInput,
+  sugerencias,
 }: Props) {
   // Solo el origen del puntero: la posición de destino la calcula el canvas, que
   // es el único que sabe qué más se está moviendo. Guardar aquí `region.x/y`
@@ -221,6 +230,15 @@ function MathRegion({
   };
 
   const isProgram = region.kind === 'program';
+
+  // Solo la región en edición recibe sugerencias; para las demás el
+  // autocompletado está apagado y no cuesta nada.
+  const auto = useAutocompletado({
+    sugerencias: active && region.kind !== 'text' ? sugerencias : undefined,
+    valor: region.src,
+    esPrograma: isProgram,
+    onChange,
+  });
   const isText = region.kind === 'text';
   const isImage = region.kind === 'image';
   const hasError = Boolean(result?.error) && !active;
@@ -273,6 +291,9 @@ function MathRegion({
       {/* El aviso va al margen, fuera del papel y en posición absoluta: no es
           parte de la memoria (no sale al imprimir, lo pinta el chrome y no
           `BloqueDoc`) y no puede cambiar el alto que se mide. */}
+      {/* La lista del autocompletado, contra esta misma caja: es la posicionada,
+          y va absoluta, así que tampoco cambia lo que se mide. */}
+      {active && auto.lista}
       {result?.aviso && !active && (
         <span
           className="pointer-events-auto absolute top-0 -left-5 cursor-help select-none text-[13px] leading-5 text-amber-600"
@@ -325,16 +346,27 @@ function MathRegion({
       >
         {active && isProgram ? (
           <textarea
-            ref={registerInput}
+            ref={(el) => {
+              registerInput(el);
+              auto.registrar(el);
+            }}
             autoFocus
             className="resize-none bg-transparent font-mono text-[9.5pt] leading-snug text-ink outline-none"
             style={{ width: `${progCols + 2}ch` }}
             rows={progRows}
             value={region.src}
             placeholder={'S :=\n    s := 0\n    for i in 1:10\n        s := s + i\n    return s'}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) => {
+              onChange(e.target.value);
+              auto.onInput(e);
+            }}
+            onSelect={auto.onSelect}
             onBlur={alPerderFoco}
             onKeyDown={(e) => {
+              if (auto.onKeyDown(e)) {
+                e.stopPropagation();
+                return;
+              }
               // Enter inserta línea; Ctrl/⌘+Enter confirma y Escape descarta.
               //
               // Un programa es la excepción a la regla del resto de la hoja
@@ -414,7 +446,10 @@ function MathRegion({
           />
         ) : active ? (
           <input
-            ref={registerInput}
+            ref={(el) => {
+              registerInput(el);
+              auto.registrar(el);
+            }}
             autoFocus
             // Las métricas son las del papel, no las de la interfaz: si el input
             // midiera distinto que el bloque, el texto saltaría al entrar y salir
@@ -422,9 +457,17 @@ function MathRegion({
             className="w-full bg-transparent font-mono text-[10.5pt] text-ink outline-none"
             value={region.src}
             placeholder="ej. M := F*L/4 = kN*m"
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) => {
+              onChange(e.target.value);
+              auto.onInput(e);
+            }}
+            onSelect={auto.onSelect}
             onBlur={alPerderFoco}
             onKeyDown={(e) => {
+              if (auto.onKeyDown(e)) {
+                e.stopPropagation();
+                return;
+              }
               if (e.key === 'Enter' && !componiendo(e)) {
                 e.preventDefault();
                 onCommit(true);
@@ -491,5 +534,5 @@ export default memo(MathRegion, (a, b) => {
       x.h === y.h &&
       x.pageBreak === y.pageBreak)
   ) && a.result === b.result && a.active === b.active && a.selected === b.selected &&
-    a.tapada === b.tapada && a.titulo === b.titulo;
+    a.tapada === b.tapada && a.titulo === b.titulo && a.sugerencias === b.sugerencias;
 });

@@ -17,6 +17,7 @@ import CatalogoMenu from './CatalogoMenu';
 import { usePaginacion } from './usePaginacion';
 import { useHistorial } from './useHistorial';
 import { evaluateSheet, type Region, type RegionKind } from '../../lib/worksheet';
+import { FUNCIONES_BASE, variablesVisibles } from '../../lib/autocompletar';
 import {
   detectarSolapes,
   separarSolapes,
@@ -252,6 +253,21 @@ export default function MathCanvas() {
   }, [regions]);
 
   const results = useMemo(() => evaluateSheet(regionsEval), [regionsEval]);
+
+  /**
+   * Lo que el autocompletado ofrece en la región en edición: lo que la hoja
+   * define por encima de ella, y las funciones de siempre.
+   *
+   * Las posiciones salen de `regions` y no de `regionsEval`: una fórmula recién
+   * creada todavía no está en la hoja evaluada, y sin su posición no se sabe qué
+   * queda por encima. Se rehace en cada tecla y no importa: es ordenar unos
+   * cientos de regiones, y el array nuevo solo llega a la región activa, que se
+   * vuelve a pintar de todos modos porque cambió su texto.
+   */
+  const sugerencias = useMemo(
+    () => (activeId ? [...variablesVisibles(regions, results, activeId), ...FUNCIONES_BASE] : undefined),
+    [activeId, regions, results],
+  );
 
   // Al deshacer se sale de edición y se limpia la selección: los ids que
   // hubiera seleccionados pueden no existir en el estado que se restaura.
@@ -1956,6 +1972,7 @@ export default function MathCanvas() {
                     // región activa, así que una referencia obsoleta es inocua.
                     if (el) activeInputRef.current = el;
                   }}
+                  sugerencias={activeId === r.id ? sugerencias : undefined}
                 />
               ))}
             </div>
