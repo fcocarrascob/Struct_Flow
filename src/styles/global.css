@@ -62,12 +62,35 @@ body {
   color: #6b7280;
   margin: 0.2rem 0 0;
 }
+/* Los tres niveles de sección (`#`, `##`, `###` — ver `nivelEncabezado` en
+   BloqueDoc.tsx). Se distinguen por peso y por regla, no por color: una memoria
+   de cálculo se imprime en blanco y negro.
+
+   El tercero NO lleva regla horizontal a propósito, y de eso depende algo más
+   que el aspecto: `MathRegion` da ancho completo solo a los bloques cuya regla
+   tiene que cruzar la página, así que un `###` se ciñe a su texto y deja pasar
+   el clic en el vacío de su derecha, que es el gesto que fija el punto de
+   inserción. Si algún día se le pone borde, hay que dárselo también allí. */
+.doc-papel .wp-h1 {
+  font-size: 13pt;
+  font-weight: 700;
+  color: #1a1a1a;
+  border-bottom: 1.5px solid #9ca3af;
+  padding-bottom: 0.2rem;
+  break-after: avoid;
+}
 .doc-papel .wp-h2 {
   font-size: 11.5pt;
   font-weight: 700;
   color: #1a1a1a;
   border-bottom: 1px solid #d1d5db;
   padding-bottom: 0.15rem;
+  break-after: avoid;
+}
+.doc-papel .wp-h3 {
+  font-size: 10.5pt;
+  font-weight: 700;
+  color: #374151;
   break-after: avoid;
 }
 /* Un espaciador: una región de texto vacía, que existe solo para abrir hueco.
@@ -171,8 +194,14 @@ body {
 .worksheet-print .wp-header {
   margin-bottom: 1rem;
 }
+.worksheet-print .wp-h1 {
+  margin: 1.4rem 0 0.6rem;
+}
 .worksheet-print .wp-h2 {
   margin: 1.1rem 0 0.5rem;
+}
+.worksheet-print .wp-h3 {
+  margin: 0.8rem 0 0.35rem;
 }
 .worksheet-print .wp-label {
   margin: 0.5rem 0 0.15rem;

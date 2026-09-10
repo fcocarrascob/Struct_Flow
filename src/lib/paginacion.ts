@@ -27,6 +27,15 @@ export const A4_ANCHO_PX = (A4.ancho - 2 * A4.margen) * PX_POR_MM;
 export const A4_ALTO_PX = (A4.alto - 2 * A4.margen) * PX_POR_MM;
 
 /**
+ * La hoja ENTERA, márgenes incluidos. Solo la usa la silueta que el canvas
+ * dibuja detrás de los bloques: nada de la paginación depende de estas cifras,
+ * que son las de la hoja física y no las de la caja que se llena.
+ */
+export const A4_HOJA_ANCHO_PX = A4.ancho * PX_POR_MM;
+export const A4_HOJA_ALTO_PX = A4.alto * PX_POR_MM;
+export const A4_MARGEN_PX = A4.margen * PX_POR_MM;
+
+/**
  * El alto que se puede llenar de verdad: Chromium arma la caja de página en
  * píxeles CSS enteros, así que 267 mm no son los 1009.134 px de la cuenta sino
  * 1010.

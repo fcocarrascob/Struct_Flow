@@ -1,10 +1,23 @@
-import { memo, useRef } from 'react';
-import BloqueDoc, { esEncabezado, esEspaciador } from './BloqueDoc';
+import { memo, useLayoutEffect, useRef } from 'react';
+import BloqueDoc, { esEspaciador, nivelEncabezado } from './BloqueDoc';
 import type { Region, RegionResult } from '../../lib/worksheet';
 import { A4_ANCHO_PX } from '../../lib/paginacion';
 
 export const GRID = 16;
 export const snap = (v: number) => Math.max(0, Math.round(v / GRID) * GRID);
+
+/**
+ * El aire que queda bajo un bloque al salir de él con Enter, antes de ajustar el
+ * resultado a la cuadrícula.
+ *
+ * La cifra está elegida para reproducir el corpus, no al gusto: una fórmula
+ * mide 21 px y una línea de texto 24, así que 24 de aire y el ajuste a la
+ * rejilla dejan la siguiente **48 px más abajo**, que es exactamente el salto
+ * con el que están escritas 7.471 de las 8.344 separaciones publicadas. Un
+ * bloque de programa de 197 px deja la siguiente en 224, que es lo que el paso
+ * fijo de 48 px no sabía hacer y por lo que un bloque acababa encima de otro.
+ */
+export const AIRE_TRAS_BLOQUE = 24;
 
 /**
  * Cuánto hay que mover el puntero para que deje de ser un clic y pase a ser un
@@ -28,8 +41,16 @@ interface Props {
   /** Es la primera región de texto de la hoja: se dibuja como título. */
   titulo?: boolean;
   onChange: (src: string) => void;
-  /** Sale de edición confirmando (Enter, Ctrl+Enter o blur). Escape descarta. */
-  onCommit: () => void;
+  /**
+   * Sale de edición confirmando (Enter, Ctrl+Enter o blur). Escape descarta.
+   *
+   * `avanzar` pide además que el punto de inserción baje por debajo de este
+   * bloque, con su alto REAL: es lo que hace que Enter encadene bloques sin
+   * tocar el ratón. Lo piden solo las teclas que significan «he terminado con
+   * este, sigo abajo»; un blur no, porque el clic que se lleva el foco fija su
+   * propio punto, y un Escape tampoco, porque cancelar no es avanzar.
+   */
+  onCommit: (avanzar?: boolean) => void;
   onActivate: () => void;
   onSelect: (additive: boolean) => void;
   /**
@@ -89,6 +110,24 @@ function MathRegion({
     if (region.src !== srcAlEntrar.current) onChange(srcAlEntrar.current);
     onCommit();
   };
+
+  /**
+   * El editor de un texto crece con su contenido.
+   *
+   * `rows` no basta: cuenta los saltos que escribió el autor, no las líneas que
+   * salen al envolver contra el ancho del papel, así que un párrafo largo de una
+   * sola línea se quedaba con una barra de scroll dentro del bloque. El alto se
+   * toma del `scrollHeight`, que es la única medida que conoce el envoltorio
+   * real. Y va en un efecto de disposición para que la corrección entre en el
+   * mismo pintado: con `useEffect` el bloque parpadearía de alto en cada tecla.
+   */
+  const textoRef = useRef<HTMLTextAreaElement | null>(null);
+  useLayoutEffect(() => {
+    const ta = textoRef.current;
+    if (!ta) return;
+    ta.style.height = 'auto';
+    ta.style.height = `${ta.scrollHeight}px`;
+  }, [region.src, active]);
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (active) return; // en edición no se arrastra
@@ -160,6 +199,7 @@ function MathRegion({
   };
 
   const isProgram = region.kind === 'program';
+  const isText = region.kind === 'text';
   const isImage = region.kind === 'image';
   const hasError = Boolean(result?.error) && !active;
 
@@ -167,14 +207,19 @@ function MathRegion({
   const progRows = Math.max(lines.length, 2);
   const progCols = Math.max(...lines.map((l) => l.length), 24);
 
-  // Un encabezado —el título de la hoja o un «━━ … ━━»— lleva una regla
+  // Un encabezado de nivel 1 o 2 —y el título de la hoja— lleva una regla
   // horizontal que tiene que cruzar la página entera, así que se queda a ancho
-  // completo. El resto se ciñe a su contenido (ver el comentario de abajo).
+  // completo. El resto se ciñe a su contenido (ver el comentario de abajo), y
+  // eso incluye a un `###`, que no lleva regla: darle los 680 px del papel le
+  // haría comerse el clic en el vacío de su derecha, que es el gesto que fija
+  // el punto de inserción.
   //
-  // Y un espaciador también, aunque no dibuje nada: `fit-content` sobre un
-  // bloque sin contenido mide CERO de ancho, y entonces no habría forma de
-  // seleccionarlo, ni de verlo al pasar el cursor, ni de borrarlo.
-  const anchoCompleto = Boolean(titulo) || esEncabezado(region) || esEspaciador(region);
+  // Y un espaciador también va a ancho completo, aunque no dibuje nada:
+  // `fit-content` sobre un bloque sin contenido mide CERO de ancho, y entonces
+  // no habría forma de seleccionarlo, ni de verlo al pasar el cursor, ni de
+  // borrarlo.
+  const nivel = nivelEncabezado(region);
+  const anchoCompleto = Boolean(titulo) || nivel === 1 || nivel === 2 || esEspaciador(region);
 
   return (
     <div
@@ -253,12 +298,17 @@ function MathRegion({
             value={region.src}
             placeholder={'S :=\n    s := 0\n    for i in 1:10\n        s := s + i\n    return s'}
             onChange={(e) => onChange(e.target.value)}
-            onBlur={onCommit}
+            onBlur={() => onCommit()}
             onKeyDown={(e) => {
               // Enter inserta línea; Ctrl/⌘+Enter confirma y Escape descarta.
+              //
+              // Un programa es la excepción a la regla del resto de la hoja
+              // («Enter sale del bloque»), y no por descuido: su contenido son
+              // líneas indentadas, y escribir veinte de ellas con Shift+Enter
+              // sería pelear con el editor en cada una.
               if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
                 e.preventDefault();
-                onCommit();
+                onCommit(true);
               } else if (e.key === 'Escape') {
                 e.preventDefault();
                 cancelarEdicion();
@@ -274,6 +324,44 @@ function MathRegion({
             }}
             onPointerDown={(e) => e.stopPropagation()}
           />
+        ) : active && isText ? (
+          <textarea
+            ref={(el) => {
+              textoRef.current = el;
+              registerInput(el);
+            }}
+            autoFocus
+            // Un `<textarea>` y no un `<input>`, que es lo que había: un párrafo
+            // de una memoria de cálculo lleva saltos de línea, y `.wp-label` ya
+            // los dibuja (`white-space: pre-wrap`) desde hace tiempo. Lo que
+            // faltaba era poder teclearlos.
+            //
+            // Las métricas son las del papel, no las de la interfaz —9,5 pt y el
+            // interlineado heredado de `.doc-papel`—: si el editor midiera
+            // distinto que el bloque, el texto saltaría al entrar y salir de
+            // edición. Sin `font-mono` y sin ancho en `ch`, al revés que el de
+            // un programa: aquí el ancho lo da el papel y la línea envuelve
+            // donde envuelve el párrafo.
+            className="w-full resize-none overflow-hidden bg-transparent text-[9.5pt] text-ink outline-none"
+            rows={Math.max(lines.length, 1)}
+            value={region.src}
+            placeholder="texto…  ·  ## para una sección  ·  Shift+Enter para otra línea"
+            onChange={(e) => onChange(e.target.value)}
+            onBlur={() => onCommit()}
+            onKeyDown={(e) => {
+              // Enter sale y avanza; Shift/Alt+Enter dejan pasar el salto de
+              // línea al navegador, que ya sabe insertarlo donde está el cursor.
+              if (e.key === 'Enter' && !e.shiftKey && !e.altKey) {
+                e.preventDefault();
+                onCommit(true);
+              } else if (e.key === 'Escape') {
+                e.preventDefault();
+                cancelarEdicion();
+              }
+              e.stopPropagation();
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+          />
         ) : active ? (
           <input
             ref={registerInput}
@@ -281,17 +369,15 @@ function MathRegion({
             // Las métricas son las del papel, no las de la interfaz: si el input
             // midiera distinto que el bloque, el texto saltaría al entrar y salir
             // de edición.
-            className={`w-full bg-transparent text-ink outline-none ${
-              region.kind === 'text' ? 'text-[9.5pt]' : 'font-mono text-[10.5pt]'
-            }`}
+            className="w-full bg-transparent font-mono text-[10.5pt] text-ink outline-none"
             value={region.src}
-            placeholder={region.kind === 'text' ? 'texto…' : 'ej. M := F*L/4 = kN*m'}
+            placeholder="ej. M := F*L/4 = kN*m"
             onChange={(e) => onChange(e.target.value)}
-            onBlur={onCommit}
+            onBlur={() => onCommit()}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
-                onCommit();
+                onCommit(true);
               } else if (e.key === 'Escape') {
                 e.preventDefault();
                 cancelarEdicion();

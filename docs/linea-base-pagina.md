@@ -227,3 +227,42 @@ Comparando bloque a bloque el alto en el lienzo antes y después, con tolerancia
 | Cualquier otra diferencia | **0** |
 
 Las cinco pasan de 0 a 16 px. Es exactamente el cambio buscado y ninguno más.
+
+---
+
+# Después de los encabezados markdown (2026-09-09)
+
+`nivelEncabezado` sustituye al `src.includes('━')`: tres niveles explícitos (`# `, `## `,
+`### `) y la raya como alias de `##`, ahora aceptada **pesada (U+2501) o ligera (U+2500)**.
+
+Las 19 regiones del corpus escritas con la raya ligera —8 en `anclajes-pedestal`, 11 en
+`pedestal-anclaje-nch2369`— pasan de `<p class="wp-label">` a `<h2 class="wp-h2">`: cambian
+de tipografía, de márgenes y ganan el `break-after: avoid` que les faltaba, que era el fallo
+silencioso del punto 6 de `docs/pendientes.md`.
+
+## Lo que cambia en el papel: 289 → 290 páginas
+
+| Planilla | Antes | Ahora | | Regiones con `─` |
+|---|---:|---:|---:|---:|
+| pedestal-anclaje-nch2369 | 14 | 15 | +1 | 11 |
+| anclajes-pedestal | 10 | 10 | — | 8 |
+| **Total del corpus** | **289** | **290** | **+1** | **19** |
+
+**La comprobación que descarta otra causa:** de las 33 planillas, la única que cambia de
+paginación es una de las **dos** que tienen regiones con la raya ligera. Las 31 restantes se
+quedan donde estaban, así que el detector nuevo no está capturando nada que antes no fuera
+un encabezado. Que `anclajes-pedestal` no gane página con 8 y `pedestal-anclaje-nch2369` sí
+con 11 depende de lo cerca que estuviera cada corte del filo de la hoja, igual que pasó con
+los espaciadores.
+
+El reporte de `verify-planilla.mjs` sigue idéntico byte a byte (2.728 líneas, md5
+`17613b2b9ba8e2369e21e76507b21726`), que es lo esperado: se construye del orden de lectura y
+de los valores, nunca del marcado.
+
+## El paso de inserción, medido
+
+Enter deja el punto de inserción bajo el bloque con su **alto real** (`AIRE_TRAS_BLOQUE`, 24
+px, ajustado a la cuadrícula) en lugar del paso fijo de 48/80 px. Encadenando tres fórmulas
+en el canvas los saltos salen de **48 px**, que es el paso con el que están escritas 7.471 de
+las 8.344 separaciones del corpus; un texto de tres líneas deja el siguiente 80 px más abajo,
+y un bloque de programa, por debajo de sí mismo en vez de encima.

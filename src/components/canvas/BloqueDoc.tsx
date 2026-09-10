@@ -98,16 +98,50 @@ function Esquema({
 }
 
 /**
- * Convención de la hoja: un texto con «━» es un encabezado de sección.
+ * Nivel de un encabezado de sección: 1, 2 o 3, y 0 si no lo es.
  *
- * Se exporta porque `MathRegion` la necesita para decidir qué bloques ocupan el
- * ancho entero del papel —un encabezado lleva una regla horizontal que tiene que
- * cruzar la página— y cuáles se ciñen a su contenido. Con la comprobación
- * duplicada, un cambio en el carácter dejaría el aspecto y la caja de
- * interacción diciendo cosas distintas.
+ * **Es la única autoridad sobre qué es un encabezado**, igual que `nombreTex` lo
+ * es sobre nombre → LaTeX. La usan el marcado de aquí, el ancho de la caja de
+ * interacción (`MathRegion`) y el panel de secciones; con la comprobación
+ * repetida, un cambio en la sintaxis dejaría a los tres diciendo cosas
+ * distintas.
+ *
+ * Dos sintaxis, y por qué conviven:
+ *
+ * - **`# `, `## `, `### `** — la buena. El nivel es explícito y se escribe igual
+ *   siempre. El espacio y el carácter que le sigue son obligatorios, de modo que
+ *   un texto como «#3 barras» sigue siendo un párrafo.
+ * - **Una raya horizontal, como `━━ TÍTULO ━━`** — la heredada, que vale por
+ *   `##`. No se retira porque la usan 439 regiones en 31 de las 33 planillas
+ *   publicadas, y romperlas para ganar sintaxis no compensa.
+ *
+ * La raya se acepta **pesada (U+2501) o ligera (U+2500)**. Antes solo contaba la
+ * pesada, y las 19 regiones que se escribieron con la ligera —8 en
+ * `anclajes-pedestal`, 11 en `pedestal-anclaje-nch2369`— salían como párrafo
+ * gris: perdían el `break-after: avoid` y la paginación las dejaba colgando al
+ * pie de página. Un fallo invisible hasta ver el PDF, que es exactamente lo que
+ * pasa cuando la estructura del documento depende de qué carácter se pegó del
+ * portapapeles.
  */
+export function nivelEncabezado(region: Region): 0 | 1 | 2 | 3 {
+  if (region.kind !== 'text') return 0;
+  const m = /^(#{1,3})\s+\S/.exec(region.src.trim());
+  if (m) return m[1].length as 1 | 2 | 3;
+  return region.src.includes('━') || region.src.includes('─') ? 2 : 0;
+}
+
+/** El texto de un encabezado, sin el prefijo `#` ni las rayas. */
+export function textoEncabezado(region: Region): string {
+  return region.src
+    .trim()
+    .replace(/^#{1,3}\s+/, '')
+    .replace(/[━─]/g, '')
+    .trim();
+}
+
+/** Derivada de `nivelEncabezado`, para quien solo necesita el sí o el no. */
 export function esEncabezado(region: Region): boolean {
-  return region.kind === 'text' && region.src.includes('━');
+  return nivelEncabezado(region) > 0;
 }
 
 /**
@@ -152,7 +186,9 @@ export default function BloqueDoc({ region, result, titulo, className = '', wpId
     });
     return (
       <div className={clase('wp-header')} {...rest}>
-        <h1>{region.src}</h1>
+        {/* Si el autor escribió el título como «# Algo», el prefijo se retira:
+            el título ya se dibuja como título, y el `#` impreso sería ruido. */}
+        <h1>{esEncabezado(region) ? textoEncabezado(region) : region.src}</h1>
         <p className="wp-meta">Memoria de cálculo · struct/pad · {fecha}</p>
       </div>
     );
@@ -176,11 +212,15 @@ export default function BloqueDoc({ region, result, titulo, className = '', wpId
     if (esEspaciador(region)) {
       return <p className={clase('wp-space')} {...rest} />;
     }
-    if (esEncabezado(region)) {
+    // Los tres niveles salen del mismo sitio: `wp-h1`, `wp-h2` y `wp-h3` son la
+    // misma estructura con distinto peso, así que elegir la clase basta.
+    const nivel = nivelEncabezado(region);
+    if (nivel > 0) {
+      const Etiqueta = (['h1', 'h2', 'h3'] as const)[nivel - 1];
       return (
-        <h2 className={clase('wp-h2')} {...rest}>
-          {region.src.replace(/━/g, '').trim()}
-        </h2>
+        <Etiqueta className={clase(`wp-h${nivel}`)} {...rest}>
+          {textoEncabezado(region)}
+        </Etiqueta>
       );
     }
     return (

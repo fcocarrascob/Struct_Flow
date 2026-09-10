@@ -94,15 +94,33 @@ resultado puede no ser válido, y por eso no vota en el CUMPLE / NO CUMPLE.
   selección sobre el fondo, el arrastre en grupo, el portapapeles de regiones, borrado,
   importación/exportación JSON y el menú de plantillas. Las regiones vacías son
   transitorias: se descartan al perder el foco, nunca se persisten.
-- `BloqueDoc.tsx` — **cómo se dibuja un bloque, en un solo sitio.** Lo usan la hoja y el
+- `BloqueDoc.tsx` — **cómo se dibuja un bloque, y qué es una sección, en un solo sitio.**
+  `nivelEncabezado` es la única autoridad sobre lo segundo: `# `, `## ` y `### ` al principio
+  de un bloque de texto dan los tres niveles —con el espacio obligatorio, para que un
+  «#3 barras» siga siendo un párrafo—, y una raya horizontal **pesada (U+2501) o ligera
+  (U+2500)** vale por `##`. La raya no se retira porque la usan 439 regiones en 31 de las 33
+  planillas publicadas. Lo usan el marcado, el ancho de la caja de interacción y el panel de
+  secciones; con la comprobación repetida, los tres acabarían discrepando — que es justo lo
+  que pasaba cuando solo contaba la raya pesada y 19 subtítulos escritos con la ligera salían
+  como párrafo gris, sin `break-after: avoid` y colgando al pie de página. Lo usan la hoja y el
   documento de impresión, y el aspecto está en `global.css` bajo `.doc-papel`, que llevan los
   dos raíces. Antes eran dos renderizados —el canvas con `text-sm` (14 px) y el documento con
   `11pt` e interlineado propio—, así que un mismo bloque no medía lo mismo en pantalla y en el
   papel. Con el papel dentro del canvas eso es imposible: lo que se ve tiene que **ser** lo
   que sale, no parecerse.
 - `MathRegion.tsx` — el chrome de una región: arrastre, anillo de selección, tirador de la
-  imagen y el input de edición. El contenido lo pinta `BloqueDoc`. Exporta `GRID`, `snap()` y
-  `UMBRAL_ARRASTRE`. **No calcula a dónde va al arrastrarla**: emite el desplazamiento crudo
+  imagen y el editor. El contenido lo pinta `BloqueDoc`. Exporta `GRID`, `snap()`,
+  `AIRE_TRAS_BLOQUE` y `UMBRAL_ARRASTRE`.
+
+  **Enter sale del bloque y deja el punto de inserción debajo**, con el alto **real** del
+  bloque más `AIRE_TRAS_BLOQUE` ajustado a la cuadrícula — 48 px de salto para una fórmula,
+  que es el paso con el que está escrito el corpus, y por debajo de sí mismo para un programa
+  de 200 px, que es lo que el paso fijo anterior no sabía hacer. En un texto, `Shift+Enter` y
+  `Alt+Enter` insertan un salto de línea (por eso es un `<textarea>` que crece con su
+  contenido, y no el `<input>` de una fórmula). **Un programa es la excepción**: Enter inserta
+  línea y `Ctrl+Enter` sale y avanza, porque su contenido son líneas indentadas y escribirlas
+  con Shift+Enter sería pelear con el editor en cada una. Quien avanza el punto es
+  `commitActive(avanzar)` del canvas; un blur y un Escape **no** avanzan. **No calcula a dónde va al arrastrarla**: emite el desplazamiento crudo
   del puntero (`onDragStart` / `onDrag` / `onDragEnd`) y es el canvas quien resuelve el grupo,
   porque es el único que sabe qué más está seleccionado. Y **no lleva relleno**: seis píxeles
   de `padding` son seis píxeles de diferencia con el papel; el realce va en `ring`, que es una
@@ -121,6 +139,19 @@ resultado puede no ser válido, y por eso no vota en el CUMPLE / NO CUMPLE.
   completo, porque su regla horizontal tiene que cruzar la página; la condición la decide
   `esEncabezado` de `BloqueDoc.tsx`, que es el único sitio donde vive.
 - `SymbolPalette.tsx` — paleta lateral de símbolos y fragmentos insertables.
+- `SeccionesPanel.tsx` — el índice de la hoja: sus encabezados en orden de lectura, con la
+  sangría de su nivel y un clic para saltar. Mismo armazón que `VariablePanel` y el mismo
+  `irARegion`; los niveles salen de `nivelEncabezado`, nunca de un detector propio.
+- `SiluetaPapel.tsx` — el papel dibujado bajo los bloques, y la cuadrícula, que ya no cubre
+  el lienzo entero. **En horizontal la geometría es literal** —210 mm de hoja y 180 de caja de
+  contenido, y esos 180 son los `A4_ANCHO_PX` que mide cada región—, **pero en vertical no
+  puede serlo y no lo finge**: la `y` del lienzo no es lineal con la página impresa, porque
+  `WorksheetPrint` refluye a un documento con sus propios márgenes. Las fronteras son los
+  cortes **medidos**, así que una hoja dibujada mide lo que ocupa en el lienzo (unos 1.650 px
+  para una A4 del corpus, porque el canvas separa los bloques más que el papel) y no los
+  1.122 px de una A4. Apilar rectángulos de alto fijo daría una proporción bonita y cortes
+  que el PDF no tiene. El origen es la constante `ORIGEN_PAPEL_X = 40`, que es donde está el
+  100 % del corpus; anclarlo al contenido haría saltar la hoja al mover un bloque.
 
 **Los avisos flotan, no empujan.** Las cinco bandas —bloques largos, bloques tapados, fallo de
 autoguardado, hoja apartada y el acuse efímero— van en una pila `absolute` sobre el visor del

@@ -167,7 +167,7 @@ El snapshot se contrastó contra el original, no solo se dio por bueno:
 src/
 ├── main.tsx, App.tsx        andamiaje y conmutador de vistas
 ├── components/              landing, catálogo, enlaces y hooks compartidos
-│   ├── canvas/              la hoja (8 archivos)
+│   ├── canvas/              la hoja (11 archivos)
 │   └── diseno/              el armazón de un módulo (4 archivos)
 ├── lib/                     puro, sin React
 │   └── diseno/              contrato de módulo, registro y módulos

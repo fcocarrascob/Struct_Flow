@@ -1,9 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import MathRegion, { GRID, UMBRAL_ARRASTRE, snap } from './MathRegion';
+import MathRegion, { AIRE_TRAS_BLOQUE, GRID, UMBRAL_ARRASTRE, snap } from './MathRegion';
 import { ALTO_ESPACIADOR } from './BloqueDoc';
 import SymbolPalette, { type SymbolEntry } from './SymbolPalette';
 import WorksheetPrint from './WorksheetPrint';
 import VariablePanel from './VariablePanel';
+import SeccionesPanel from './SeccionesPanel';
+import SiluetaPapel, {
+  ANCHO_HOJA,
+  DESPLAZAMIENTO_LIENZO,
+  IZQUIERDA_HOJA,
+  ORIGEN_PAPEL_X,
+  ORIGEN_PAPEL_Y,
+  bordesDePagina,
+} from './SiluetaPapel';
 import CatalogoMenu from './CatalogoMenu';
 import { usePaginacion } from './usePaginacion';
 import { useHistorial } from './useHistorial';
@@ -40,11 +49,11 @@ import Enlace from '../Enlace';
 
 /** Hoja de ejemplo para la primera visita (se reemplaza al editar). */
 const DEMO: Region[] = [
-  { id: 'demo-t', kind: 'text', x: 32, y: 32, src: 'Ejemplo: momento máximo de una viga biapoyada' },
-  { id: 'demo-1', kind: 'math', x: 32, y: 80, src: 'F := 30 kN' },
-  { id: 'demo-2', kind: 'math', x: 32, y: 128, src: 'L := 6 m' },
-  { id: 'demo-3', kind: 'math', x: 32, y: 176, src: 'M := F*L/4 = kN*m' },
-  { id: 'demo-4', kind: 'math', x: 32, y: 224, src: 'M <= 60 kN*m =' },
+  { id: 'demo-t', kind: 'text', x: ORIGEN_PAPEL_X, y: ORIGEN_PAPEL_Y, src: 'Ejemplo: momento máximo de una viga biapoyada' },
+  { id: 'demo-1', kind: 'math', x: ORIGEN_PAPEL_X, y: 144, src: 'F := 30 kN' },
+  { id: 'demo-2', kind: 'math', x: ORIGEN_PAPEL_X, y: 192, src: 'L := 6 m' },
+  { id: 'demo-3', kind: 'math', x: ORIGEN_PAPEL_X, y: 240, src: 'M := F*L/4 = kN*m' },
+  { id: 'demo-4', kind: 'math', x: ORIGEN_PAPEL_X, y: 288, src: 'M <= 60 kN*m =' },
 ];
 
 /** Dónde se aparta una hoja guardada que no se pudo leer. */
@@ -167,6 +176,8 @@ export default function MathCanvas() {
   const [dropping, setDropping] = useState(false);
   /** Panel de inspección de variables abierto. */
   const [showVars, setShowVars] = useState(false);
+  /** Panel con el índice de secciones de la hoja abierto. */
+  const [showSecciones, setShowSecciones] = useState(false);
   /** Rectángulo de selección en curso, en coordenadas de la hoja. */
   const [marco, setMarco] = useState<Rect | null>(null);
   /** Capa que numera el orden de lectura sobre cada bloque. */
@@ -401,6 +412,12 @@ export default function MathCanvas() {
       .filter((m): m is { pagina: number; y: number; forzado: boolean } => m !== null);
   }, [paginacion.cortes, regions]);
 
+  /** El pie de la última hoja dibujada: hasta ahí tiene que llegar el lienzo. */
+  const fondoDelPapel = useMemo(() => {
+    const bordes = bordesDePagina(marcasDeCorte, fondoDeLaHoja);
+    return bordes[bordes.length - 1];
+  }, [marcasDeCorte, fondoDeLaHoja]);
+
   /** Marca (o desmarca) las regiones seleccionadas como inicio de página. */
   const toggleSalto = useCallback(() => {
     setRegions((prev) => {
@@ -601,18 +618,57 @@ export default function MathCanvas() {
     setRegions((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
   }, []);
 
-  const commitActive = useCallback(() => {
-    if (activeId) {
-      // Una región que queda vacía al salir de edición se elimina.
-      setRegions((prev) => prev.filter((r) => r.id !== activeId || r.src.trim() !== ''));
-    }
-    setActiveId(null);
-  }, [activeId]);
+  /**
+   * Sale de edición. Con `avanzar`, además baja el punto de inserción por debajo
+   * del bloque que se acaba de confirmar, para poder seguir escribiendo el
+   * siguiente sin tocar el ratón.
+   *
+   * El alto se mide del DOM en vez de suponerse: el paso de inserción de
+   * `insertRegion` es fijo (48 px, u 80 para un programa) y una región no mide
+   * siempre lo mismo —en el corpus las hay de 600 px—, así que encadenar con un
+   * paso fijo acababa metiendo un bloque encima del anterior. Esto es lo que un
+   * comentario de `insertRegion` llevaba tiempo prometiendo bajo el nombre
+   * `avanzarPunto`, que nunca llegó a existir.
+   *
+   * **Dos `requestAnimationFrame`, y hacen falta los dos.** El primero espera al
+   * repintado que sustituye el editor por el bloque; el segundo, a que KaTeX
+   * haya compuesto la fórmula, que ocurre en un efecto pasivo de `BloqueDoc` y
+   * por tanto puede llegar después del primero. Midiendo antes se obtiene el
+   * alto del `<input>`, que es una línea, y no el de la ecuación.
+   */
+  const commitActive = useCallback(
+    (avanzar = false) => {
+      const id = activeId;
+      if (id) {
+        // Una región que queda vacía al salir de edición se elimina.
+        setRegions((prev) => prev.filter((r) => r.id !== id || r.src.trim() !== ''));
+      }
+      setActiveId(null);
+      if (!avanzar || !id) return;
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          // Si la región se eliminó por quedar vacía, no hay nada bajo lo que
+          // ponerse: el punto se queda donde estaba, que es cancelar la
+          // creación y no avanzar sobre un bloque que ya no existe.
+          const r = regionsRef.current.find((x) => x.id === id);
+          if (!r) return;
+          const nodo = document.querySelector(`[data-region-id="${id}"]`);
+          const alto =
+            nodo?.getBoundingClientRect().height ||
+            medidasRef.current.alto.get(id) ||
+            ALTO_POR_DEFECTO;
+          setInsertAt({ x: r.x, y: snap(r.y + alto + AIRE_TRAS_BLOQUE) });
+        });
+      });
+    },
+    [activeId],
+  );
 
   /** Coordenadas del puntero relativas a la hoja. */
   const sheetPoint = (e: { clientX: number; clientY: number }) => {
     const rect = sheetRef.current?.getBoundingClientRect();
-    if (!rect) return { x: 32, y: 32 };
+    if (!rect) return { x: ORIGEN_PAPEL_X, y: ORIGEN_PAPEL_Y };
     return { x: e.clientX - rect.left, y: e.clientY - rect.top };
   };
 
@@ -629,7 +685,7 @@ export default function MathCanvas() {
     let punto = insertRef.current;
     if (!punto) {
       const maxY = rs.length ? Math.max(...rs.map((r) => r.y + altoDe(r))) : 0;
-      punto = { x: 32, y: snap(maxY + 48) };
+      punto = { x: ORIGEN_PAPEL_X, y: snap(maxY + AIRE_TRAS_BLOQUE) };
     }
 
     // Que el punto no caiga DENTRO de un bloque ya existente. El paso de
@@ -663,9 +719,10 @@ export default function MathCanvas() {
       seleccionar(new Set());
       setActiveId(region.id);
       setInsertAt({ x: snap(x), y: snap(y) + (kind === 'program' ? 5 * GRID : 3 * GRID) });
-      // Aquí solo se reserva un hueco razonable para que el siguiente clic no
-      // caiga encima del que se acaba de crear; no es el alto real del bloque,
-      // que todavía no está medido.
+      // Una reserva provisional, no el alto real: el bloque acaba de nacer y
+      // todavía no está medido. Y no llega a verse, porque el punto no se dibuja
+      // mientras hay algo en edición. Al confirmar con Enter, `commitActive`
+      // mide el bloque ya renderizado y corrige esta cifra.
     },
     [nextSpot, seleccionar],
   );
@@ -1017,6 +1074,7 @@ export default function MathCanvas() {
         e.preventDefault();
         if (showOrden) setShowOrden(false);
         else if (showVars) setShowVars(false);
+        else if (showSecciones) setShowSecciones(false);
         else if (selected.size > 0) seleccionar(new Set());
         else setInsertAt(null);
         return;
@@ -1155,6 +1213,7 @@ export default function MathCanvas() {
     insertarEspacio,
     showOrden,
     showVars,
+    showSecciones,
   ]);
 
   const insertSymbol = useCallback(
@@ -1397,6 +1456,14 @@ export default function MathCanvas() {
           ① Orden de lectura
         </button>
         <button
+          className={`${toolBtn} ${showSecciones ? 'bg-ink/10' : ''}`}
+          onClick={() => setShowSecciones((v) => !v)}
+          aria-pressed={showSecciones}
+          title="Índice de la hoja: sus encabezados («# », «## », «### » al principio de un bloque de texto); al pulsar uno, salta a esa sección"
+        >
+          ☰ Secciones
+        </button>
+        <button
           className={`${toolBtn} ${showVars ? 'bg-ink/10' : ''}`}
           onClick={() => setShowVars((v) => !v)}
           aria-pressed={showVars}
@@ -1520,9 +1587,14 @@ export default function MathCanvas() {
             {solapes.length > 0 && (
               <div className={`${tarjetaAviso} border-amber-300 bg-amber-50 text-amber-900`}>
                 <span>
-                  ⚠ {solapes.length === 1 ? 'Un bloque queda' : `${solapes.length} bloques quedan`}{' '}
-                  tapados por el de arriba. Suele pasar cuando un bloque de programa crece y el de
-                  abajo ya estaba colocado.
+                  {/* La concordancia va entera en el ternario: partida, el plural
+                      se colaba en el singular («Un bloque queda tapados»). */}
+                  ⚠{' '}
+                  {solapes.length === 1
+                    ? 'Un bloque queda tapado por el de arriba.'
+                    : `${solapes.length} bloques quedan tapados por los de arriba.`}{' '}
+                  Suele pasar cuando un bloque de programa crece y el de abajo ya estaba
+                  colocado.
                 </span>
                 <button
                   className="mt-1.5 self-end rounded border border-amber-400 px-2 py-0.5 font-medium hover:bg-amber-100"
@@ -1572,7 +1644,9 @@ export default function MathCanvas() {
             )}
           </div>
 
-          <div ref={scrollRef} className="relative flex-1 overflow-auto bg-white">
+          {/* El fondo deja de ser blanco: el blanco pasa a ser el papel, que es
+              lo que lo hace legible como papel y no como un plano infinito. */}
+          <div ref={scrollRef} className="relative flex-1 overflow-auto bg-slate-100">
             <div
               ref={sheetRef}
               // `select-none`: sin esto, arrastrar un marco sobre el fondo empieza
@@ -1585,17 +1659,25 @@ export default function MathCanvas() {
                 minWidth: '100%',
                 minHeight: '100%',
                 width: 1600,
+                // Sitio para el margen izquierdo del papel, que cae en `x`
+                // negativa: el área útil está en 40 y el borde de la hoja 56,7
+                // px más a la izquierda. `sheetPoint()` mide contra este mismo
+                // elemento, así que correrlo no desalinea el mapeo del clic.
+                marginLeft: DESPLAZAMIENTO_LIENZO,
                 // Crece para acomodar plantillas largas (deja margen tras la
                 // última región). Un bloque ocupa hacia abajo su ALTO MEDIDO, no
                 // solo su `y`: con `r.h` —que solo declaran las imágenes— un
                 // bloque de programa al final de la hoja se quedaba fuera del
                 // lienzo y el scroll no llegaba a él. En el corpus los hay de
                 // 600 px, y el margen de 240 no los cubre.
-                height: Math.max(1400, fondoDeLaHoja + 240),
-                backgroundImage:
-                  'linear-gradient(to right, rgba(100,116,139,0.12) 1px, transparent 1px), ' +
-                  'linear-gradient(to bottom, rgba(100,116,139,0.12) 1px, transparent 1px)',
-                backgroundSize: `${GRID}px ${GRID}px`,
+                // El lienzo llega hasta el pie de la última hoja dibujada, más
+                // un respiro. Si se quedara en el último bloque, el scroll no
+                // alcanzaría el resto de la página en la que se está
+                // escribiendo.
+                height: Math.max(1400, fondoDelPapel + 120),
+                // La cuadrícula ya no cubre el lienzo entero: se dibuja dentro
+                // del área útil del papel (`SiluetaPapel`), que es donde dice
+                // algo. Fuera del papel solo era textura.
               }}
               onPointerDown={onHojaPointerDown}
               onPointerMove={onHojaPointerMove}
@@ -1622,6 +1704,10 @@ export default function MathCanvas() {
                 void addImages(Array.from(e.dataTransfer.files), sheetPoint(e));
               }}
             >
+              {/* El papel: dónde está la hoja, dónde su margen y dónde parte la
+                  página. Va la primera y en `z-0`, por debajo de todo lo demás. */}
+              <SiluetaPapel marcas={marcasDeCorte} fondo={fondoDeLaHoja} />
+
               {/* Cortes de página A4: dónde parte la hoja al imprimir. Van bajo
                   las regiones (z-0) para no estorbar el clic ni tapar nada. El
                   salto forzado por el autor se dibuja lleno; el automático,
@@ -1630,26 +1716,20 @@ export default function MathCanvas() {
               {marcasDeCorte.map((m) => (
                 <div
                   key={`corte-${m.pagina}`}
-                  className="pointer-events-none absolute left-0 right-0 z-0 flex items-center gap-2"
-                  style={{ top: m.y - 10 }}
+                  className="pointer-events-none absolute z-0 flex items-center gap-2"
+                  // La línea cruza el papel de lado a lado y el rótulo queda
+                  // fuera, a su derecha: dentro taparía la primera línea de la
+                  // página que anuncia, que es contenido.
+                  style={{ top: m.y - 10, left: IZQUIERDA_HOJA, width: ANCHO_HOJA + 110 }}
                 >
-                  {/* El rótulo va a la izquierda, no centrado: la hoja mide 1600
-                      px de ancho y el contenido vive en el primer tercio, así
-                      que un rótulo al medio queda fuera de lo que se está
-                      mirando. */}
                   <span
-                    className={`ml-3 h-px w-4 ${
+                    className={`h-px flex-1 ${
                       m.forzado ? 'bg-accent/60' : 'border-t border-dashed border-accent/50'
                     }`}
                   />
                   <span className="whitespace-nowrap rounded-sm bg-accent/10 px-1.5 py-px text-[10px] leading-tight text-accent/80">
                     {m.forzado ? '⇱ ' : ''}página {m.pagina}
                   </span>
-                  <span
-                    className={`h-px flex-1 ${
-                      m.forzado ? 'bg-accent/60' : 'border-t border-dashed border-accent/50'
-                    }`}
-                  />
                 </div>
               ))}
 
@@ -1727,6 +1807,9 @@ export default function MathCanvas() {
             </div>
           </div>
         </div>
+        {showSecciones && (
+          <SeccionesPanel regions={regions} idTitulo={idTitulo} onIr={irARegion} />
+        )}
         {showVars && (
           <VariablePanel regions={regions} results={results} onIr={irARegion} />
         )}

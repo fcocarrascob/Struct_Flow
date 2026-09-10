@@ -164,7 +164,31 @@ es una pregunta con una respuesta obvia que hoy no tiene.
 
 *Coste*: medio en conjunto, pero cada pieza es barata por separado.
 
-## 6. Encabezados detectados por un carácter mágico
+## 6. Encabezados detectados por un carácter mágico — hecho
+
+**2026-09-09.** `nivelEncabezado` (`BloqueDoc.tsx`) sustituye al `src.includes('━')` y es la
+única autoridad sobre qué es un encabezado. Tres niveles explícitos —`# `, `## `, `### `, con
+el espacio obligatorio para que un «#3 barras» siga siendo un párrafo— y la raya como alias
+de `##`, ahora **pesada o ligera**: las 19 regiones escritas con la ligera (8 en
+`anclajes-pedestal`, 11 en `pedestal-anclaje-nch2369`) ya salen como `<h2>` con su
+`break-after: avoid`, que era el fallo silencioso de abajo. Cuesta **1 página sobre 289**, y
+solo en una planilla; el detalle está en `docs/linea-base-pagina.md`.
+
+El corpus **no se migró**, y no hace falta: la raya sigue valiendo.
+
+Con ellos llega el panel **☰ Secciones**, que es el índice de la hoja —los encabezados en
+orden de lectura, con la sangría de su nivel y un clic para saltar—, hecho sobre el mismo
+armazón que el de variables y reutilizando `irARegion`.
+
+**Y el `Shift+Enter` que faltaba, también.** El texto se edita con un `<textarea>` que crece
+con su contenido: Enter sale del bloque y deja el punto de inserción debajo, `Shift+Enter` (o
+`Alt+Enter`) inserta el salto. En una fórmula, Enter sale y avanza igual. Un programa es la
+excepción declarada —Enter sigue insertando línea y `Ctrl+Enter` sale y avanza—, porque su
+contenido son líneas indentadas.
+
+El texto de abajo se conserva como el diagnóstico que llevó hasta aquí.
+
+### El diagnóstico original
 
 `WorksheetPrint` decide qué es un encabezado de sección con `r.src.includes('━')` (la raya
 pesada, U+2501). En el corpus 420 regiones la usan, pero `anclajes-pedestal` tiene 8
@@ -317,10 +341,15 @@ estilos en línea, y el `ResizeObserver` remide el canvas— más una evaluació
 - **La clase `app-screen`** (`MathCanvas.tsx`, el `div` raíz) **no está definida en ninguna
   hoja de estilos.** Solo aparece en el bundle compilado. Es inerte: la altura la da `h-full`.
   Tiene toda la pinta de ser significativa, y no lo es.
-- **El comentario de `insertRegion` apuntaba a un `avanzarPunto`** que reajustaría el punto de
-  inserción con el alto ya medido del bloque. **Esa función nunca existió.** El comentario está
-  corregido; lo que describía sigue sin hacerse, y por eso el punto de inserción reserva un
-  hueco fijo (48 px, u 80 para un programa) en vez del alto real.
+- ~~**El comentario de `insertRegion` apuntaba a un `avanzarPunto`** que reajustaría el punto
+  de inserción con el alto ya medido del bloque. **Esa función nunca existió.**~~ **Hecho**
+  (2026-09-09), aunque no donde lo prometía el comentario: lo hace `commitActive(avanzar)` al
+  confirmar con Enter, que es cuando hay un bloque renderizado que medir. La reserva fija de
+  `insertRegion` (48 px, u 80 para un programa) se queda como provisional mientras se edita
+  —el punto ni siquiera se dibuja entonces— y el alto real la corrige al salir. El alto se
+  lee del DOM tras **dos** `requestAnimationFrame`: el primero espera al repintado que
+  sustituye el editor por el bloque, y el segundo a que KaTeX componga, que ocurre en un
+  efecto pasivo y puede llegar después.
 
 ## 9. De la sesión del 2026-09-09 (segunda tanda)
 
@@ -349,3 +378,29 @@ propias regiones vacías.
 **Lo que queda pendiente de esto:** un espaciador solo se ve al pasar el cursor por encima (el
 anillo de `hover`); no hay ninguna marca permanente que diga «aquí hay un hueco deliberado».
 En una hoja con varios seguidos cuesta saber cuántos son sin seleccionarlos.
+
+## 10. De la sesión del 2026-09-09 (tercera tanda)
+
+Tres cosas, y las tres están contadas donde toca: el Enter que avanza y los encabezados
+markdown cierran el punto 6 y la nota de `avanzarPunto` del punto 8; las medidas están en
+`docs/linea-base-pagina.md`. Queda por escribir aquí lo que **no** resuelven.
+
+**La silueta del papel dibuja páginas más largas que una A4, y eso es correcto.** Una página
+del corpus ocupa unos 1.650 px de lienzo y no los 1.122 de una A4, porque el canvas separa
+los bloques 48 px y el papel 8. La alternativa —apilar rectángulos de alto fijo desde un
+origen— daría la proporción correcta y cortes que el PDF no tiene, que es peor. Con la hoja
+de flujo lineal el papel pasa a ser un contenedor de verdad y la pregunta desaparece.
+
+**El origen del papel es una constante (`ORIGEN_PAPEL_X`/`_Y` = 40)**, no el contenido. Un
+bloque colocado fuera de ella se dibuja sobre el gris, y no pasa nada: al imprimir se refluye
+igual, porque el documento lineal no mira la posición de nadie. La silueta es una guía, no
+una restricción. **Muere con el cambio de modelo.**
+
+**El aviso de solape del título sigue ahí.** El `<h1>` mide 90 px y las planillas dejan 48
+entre el título y lo siguiente (ver la nota de la fase 3 en `docs/linea-base-pagina.md`), así
+que varias planillas abren con la banda ámbar. La hoja de ejemplo del canvas sí se separó,
+que era lo barato; el corpus se recoloca con la migración.
+
+**Y el `<textarea>` de un texto no mide exactamente lo mismo que el `<p>` que lo sustituye**
+mientras se edita. No mueve los cortes de página —esos se miden sobre `WorksheetPrint`, no
+sobre el canvas—, pero sí puede hacer parpadear el detector de solapes durante la edición.
