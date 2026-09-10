@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import katex from 'katex';
 import type { Region, RegionResult } from '../../lib/worksheet';
-import { renderEsquema, ESQUEMAS_PREFIX } from '../../lib/esquema';
+import { renderEsquema, esRutaDeEsquema } from '../../lib/esquema';
 import { useEsquema } from '../useEsquema';
 
 /**
@@ -197,7 +197,7 @@ export default function BloqueDoc({ region, result, titulo, className = '', wpId
   if (region.kind === 'image') {
     return (
       <figure className={clase('wp-fig')} {...rest}>
-        {region.src.startsWith(ESQUEMAS_PREFIX) ? (
+        {esRutaDeEsquema(region.src) ? (
           <Esquema src={region.src} scope={result?.scope} w={region.w} h={region.h} />
         ) : (
           <img src={region.src} alt="" draggable={false} width={region.w} height={region.h} />

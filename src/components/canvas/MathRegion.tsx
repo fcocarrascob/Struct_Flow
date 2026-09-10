@@ -248,6 +248,19 @@ function MathRegion({
       }}
       data-region-id={region.id}
     >
+      {/* El aviso va al margen, fuera del papel y en posición absoluta: no es
+          parte de la memoria (no sale al imprimir, lo pinta el chrome y no
+          `BloqueDoc`) y no puede cambiar el alto que se mide. */}
+      {result?.aviso && !active && (
+        <span
+          className="pointer-events-auto absolute top-0 -left-5 cursor-help select-none text-[13px] leading-5 text-amber-600"
+          title={result.aviso}
+          aria-label={`Aviso: ${result.aviso}`}
+          role="img"
+        >
+          ⚠
+        </span>
+      )}
       <div
         // LA CAJA DE INTERACCIÓN Y REALCE. `fit-content` acotado al ancho del
         // papel: el ancho disponible sigue siendo el mismo, así que el salto de

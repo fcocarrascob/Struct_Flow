@@ -40,12 +40,35 @@ export interface ProgramContext {
   evaluate: (expr: string, scope: Record<string, unknown>) => unknown;
   /** Tope de iteraciones acumuladas (anti-bucle-infinito). */
   maxIters: number;
+  /**
+   * El contador de la evaluación en curso. Lo renueva `evaluateSheet` al empezar
+   * cada región, y lo comparten los bucles de esa región y los de todas las
+   * funciones de usuario a las que llame, a cualquier profundidad.
+   *
+   * Vive aquí y no en un argumento porque una función de usuario es un closure
+   * que math.js invoca por su cuenta: cuando cada llamada estrenaba su propio
+   * contador, un bucle de 30 vueltas que llamaba a una función de 60.000 daba
+   * 1,8 millones de vueltas con el tope de 100.000 mirando.
+   */
+  guard: Guard;
 }
 
-/** Contador mutable de iteraciones, compartido por toda una ejecución. */
+/** Contador mutable de una evaluación: vueltas y llamadas, y anidamiento. */
 export interface Guard {
   n: number;
+  /** Llamadas a funciones de usuario abiertas ahora mismo (recursión). */
+  profundidad: number;
 }
+
+export const nuevoGuard = (): Guard => ({ n: 0, profundidad: 0 });
+
+/**
+ * Llamadas anidadas a funciones de usuario antes de dar la recursión por
+ * desbocada. Cada nivel apila decenas de marcos de math.js, así que la pila de
+ * JavaScript se agota bastante antes de lo que parece: con este tope el error
+ * llega con un mensaje propio y no como un «Maximum call stack size exceeded».
+ */
+export const MAX_PROFUNDIDAD = 100;
 
 // --- Señales de control de flujo (excepciones internas) ---------------------
 class BreakSignal {}
@@ -76,9 +99,14 @@ function tokenize(lines: string[], startLine: number): Tok[] {
   const toks: Tok[] = [];
   lines.forEach((raw, i) => {
     const expanded = raw.replace(/\t/g, TAB);
-    if (expanded.trim() === '') return; // las líneas en blanco no cuentan
+    // Las líneas en blanco no cuentan, y las de solo comentario tampoco: como
+    // sentencia, math.js evalúa `# …` a `undefined`, así que una al final
+    // borraba el valor del programa, y una entre el cuerpo de un `if` y su
+    // `else` cerraba el `if` y dejaba el `else` huérfano.
+    const texto = expanded.trim();
+    if (texto === '' || texto.startsWith('#')) return;
     const indent = expanded.length - expanded.trimStart().length;
-    toks.push({ indent, text: expanded.trim(), line: startLine + i });
+    toks.push({ indent, text: texto, line: startLine + i });
   });
   return toks;
 }
@@ -98,8 +126,26 @@ export function parseProgram(src: string): ParsedProgram {
     const params = header[2] !== undefined ? splitParams(header[2]) : undefined;
     const inlineBody = header[3].trim();
     if (inlineBody !== '') {
-      // Forma de una línea: `f(x) := x^2`.
-      return { name, params, body: [stmtFromLine(inlineBody, headIdx + 1)] };
+      const siguen = lines.slice(headIdx + 1).some((l) => {
+        const t = l.trim();
+        return t !== '' && !t.startsWith('#');
+      });
+      if (!siguen) {
+        // Forma de una línea: `f(x) := x^2`, `r := 5`.
+        return { name, params, body: [stmtFromLine(inlineBody, headIdx + 1)] };
+      }
+      // Con más líneas detrás, la primera no era una cabecera. Tomarla por una
+      // de una línea descartaba todo lo demás EN SILENCIO: `total := 0` y un
+      // bucle debajo daban `total = 0`, sin un error que avisara.
+      if (params !== undefined) {
+        throw new Error(
+          `«${headLine.trim()}» es una función de una línea y lleva más líneas debajo: ` +
+            `deja la cabecera sola («${name}(${params.join(', ')}) :=») y el cuerpo indentado debajo`,
+        );
+      }
+      // Sin parámetros es un programa anónimo que empieza asignando.
+      const toks = tokenize(lines, 1);
+      return { body: parseBlock(toks, { i: 0 }, toks[0]?.indent ?? 0) };
     }
     const toks = tokenize(lines.slice(headIdx + 1), headIdx + 2);
     return { name, params, body: parseBlock(toks, { i: 0 }, toks[0]?.indent ?? 0) };
@@ -207,14 +253,9 @@ function stmtFromLine(text: string, line: number): Stmt {
 // --- Ejecución --------------------------------------------------------------
 
 /** Ejecuta un programa ya parseado y devuelve su valor de retorno. */
-export function runProgram(
-  body: Stmt[],
-  scope: Record<string, unknown>,
-  ctx: ProgramContext,
-  guard: Guard,
-): unknown {
+export function runProgram(body: Stmt[], scope: Record<string, unknown>, ctx: ProgramContext): unknown {
   try {
-    return execBlock(body, scope, ctx, guard);
+    return execBlock(body, scope, ctx);
   } catch (e) {
     if (e instanceof ReturnSignal) return e.value;
     if (e instanceof BreakSignal || e instanceof ContinueSignal) {
@@ -224,8 +265,30 @@ export function runProgram(
   }
 }
 
+/**
+ * Ejecuta una función de usuario: cuenta la llamada contra el tope y vigila la
+ * profundidad.
+ *
+ * La llamada cuenta como una vuelta porque una recursión no necesita bucles
+ * para desbocarse: `fib(40)` son cientos de millones de llamadas sin un solo
+ * `for`, y con el contador mirando solo los bucles colgaba la pestaña.
+ */
+export function runFunction(body: Stmt[], scope: Record<string, unknown>, ctx: ProgramContext): unknown {
+  const g = ctx.guard;
+  if (++g.n > ctx.maxIters) throw iterLimit();
+  if (g.profundidad >= MAX_PROFUNDIDAD) {
+    throw new Error(`Recursión demasiado profunda (más de ${MAX_PROFUNDIDAD} llamadas anidadas)`);
+  }
+  g.profundidad++;
+  try {
+    return runProgram(body, scope, ctx);
+  } finally {
+    g.profundidad--;
+  }
+}
+
 /** Ejecuta sentencias en orden; devuelve el valor de la última expresión suelta. */
-function execBlock(stmts: Stmt[], scope: Record<string, unknown>, ctx: ProgramContext, guard: Guard): unknown {
+function execBlock(stmts: Stmt[], scope: Record<string, unknown>, ctx: ProgramContext): unknown {
   let last: unknown = undefined;
   for (const s of stmts) {
     switch (s.t) {
@@ -242,9 +305,17 @@ function execBlock(stmts: Stmt[], scope: Record<string, unknown>, ctx: ProgramCo
       case 'continue':
         throw new ContinueSignal();
       case 'if': {
+        // El valor del `if` es el de la rama que se tomó: un `if/else` como
+        // última sentencia es la forma natural de escribir «devuelve A o B», y
+        // descartarlo dejaba el programa sin valor. Un `if` sin rama tomada
+        // deja `last` en `undefined`, igual que una sentencia sin valor.
+        //
+        // Los bucles NO dan valor, a propósito: la última vuelta de un `for`
+        // no es un resultado que nadie espere ver.
+        last = undefined;
         for (const br of s.branches) {
           if (br.cond === undefined || truthy(ctx.evaluate(br.cond, scope))) {
-            execBlock(br.body, scope, ctx, guard);
+            last = execBlock(br.body, scope, ctx);
             break;
           }
         }
@@ -261,10 +332,10 @@ function execBlock(stmts: Stmt[], scope: Record<string, unknown>, ctx: ProgramCo
         if (n !== null && n > ctx.maxIters) throw iterLimit();
         const items = toIterable(evaluarIterador(s.iter, scope, ctx), ctx.maxIters);
         for (const item of items) {
-          if (++guard.n > ctx.maxIters) throw iterLimit();
+          if (++ctx.guard.n > ctx.maxIters) throw iterLimit();
           scope[s.varName] = item;
           try {
-            execBlock(s.body, scope, ctx, guard);
+            execBlock(s.body, scope, ctx);
           } catch (e) {
             if (e instanceof ContinueSignal) continue;
             if (e instanceof BreakSignal) break;
@@ -275,9 +346,9 @@ function execBlock(stmts: Stmt[], scope: Record<string, unknown>, ctx: ProgramCo
       }
       case 'while': {
         while (truthy(ctx.evaluate(s.cond, scope))) {
-          if (++guard.n > ctx.maxIters) throw iterLimit();
+          if (++ctx.guard.n > ctx.maxIters) throw iterLimit();
           try {
-            execBlock(s.body, scope, ctx, guard);
+            execBlock(s.body, scope, ctx);
           } catch (e) {
             if (e instanceof ContinueSignal) continue;
             if (e instanceof BreakSignal) break;
@@ -295,9 +366,33 @@ function iterLimit(): Error {
   return new Error('Límite de iteraciones excedido (posible bucle infinito)');
 }
 
+/**
+ * El valor de verdad de una condición.
+ *
+ * `Boolean(v)` daba por cierto cualquier objeto, y eso tomaba la rama
+ * equivocada en silencio en los tres casos que salen de verdad en una hoja: una
+ * comparación entre vectores (`v > 0` da una matriz de booleanos), una cantidad
+ * con unidad (`0 m` es un objeto, luego «verdadero») y un `NaN` (que no es `0`).
+ * La cantidad se juzga por su valor; la matriz y el NaN no tienen una respuesta
+ * correcta, así que son un error que lo dice.
+ */
 function truthy(v: unknown): boolean {
   if (typeof v === 'boolean') return v;
-  if (typeof v === 'number') return v !== 0;
+  if (typeof v === 'number') {
+    if (Number.isNaN(v)) throw new Error('La condición dio NaN: revisa la expresión (¿una división 0/0?)');
+    return v !== 0;
+  }
+  if (Array.isArray(v) || (v && typeof (v as { toArray?: unknown }).toArray === 'function')) {
+    throw new Error(
+      'La condición dio una matriz, no un sí o un no: compara elemento a elemento, o usa min()/max() sobre ella',
+    );
+  }
+  const cantidad = v as { units?: unknown; value?: unknown } | null;
+  if (cantidad && typeof cantidad === 'object' && cantidad.units && typeof cantidad.value === 'number') {
+    const valor = cantidad.value;
+    if (Number.isNaN(valor)) throw new Error('La condición dio NaN: revisa la expresión (¿una división 0/0?)');
+    return valor !== 0;
+  }
   return Boolean(v);
 }
 
@@ -383,7 +478,10 @@ function evaluarIterador(iter: string, scope: Record<string, unknown>, ctx: Prog
   try {
     return ctx.evaluate(iter, scope);
   } catch (e) {
-    if (e instanceof RangeError) throw iterLimit();
+    // Solo el desbordamiento del array. Traducir CUALQUIER `RangeError` metía
+    // aquí también el de la pila de JavaScript, y una recursión desbocada dentro
+    // del iterador salía como «límite de iteraciones».
+    if (e instanceof RangeError && /array length/i.test(e.message)) throw iterLimit();
     throw e;
   }
 }
@@ -391,16 +489,26 @@ function evaluarIterador(iter: string, scope: Record<string, unknown>, ctx: Prog
 /**
  * Normaliza un rango (1:n) o lista de math.js a un array iterable, con el tope
  * aplicado al TAMAÑO y no solo a las vueltas ya dadas.
+ *
+ * Un vector se recorre por ELEMENTOS aunque venga como matriz de una fila o de
+ * una columna. `[1:3]` es una matriz 1×3 y `M[:, 1]` una n×1: recorrerlas por
+ * filas daba una sola vuelta con el vector entero, o n vueltas con un `[x]` en
+ * vez de un número, y la suma de un bucle salía como una matriz.
  */
 function toIterable(v: unknown, maxIters: number): unknown[] {
+  let arr: unknown[];
   if (v && typeof (v as { toArray?: unknown }).toArray === 'function') {
-    const arr = (v as { toArray: () => unknown[] }).toArray();
-    if (arr.length > maxIters) throw iterLimit();
-    return arr;
+    arr = (v as { toArray: () => unknown[] }).toArray();
+  } else if (Array.isArray(v)) {
+    arr = v;
+  } else {
+    throw new Error("'for ... in' espera un rango (p. ej. 1:n) o una lista [..]");
   }
-  if (Array.isArray(v)) {
-    if (v.length > maxIters) throw iterLimit();
-    return v;
+  if (arr.length === 1 && Array.isArray(arr[0])) {
+    arr = arr[0];
+  } else if (arr.length > 0 && arr.every((fila) => Array.isArray(fila) && fila.length === 1)) {
+    arr = arr.map((fila) => (fila as unknown[])[0]);
   }
-  throw new Error("'for ... in' espera un rango (p. ej. 1:n) o una lista [..]");
+  if (arr.length > maxIters) throw iterLimit();
+  return arr;
 }

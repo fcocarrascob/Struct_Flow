@@ -13,7 +13,7 @@
 // resuelven en orden de lectura: arriba→abajo, izquierda→derecha (como SMath).
 
 import { create, all, type MathNode } from 'mathjs';
-import { parseProgram, runProgram, type ProgramContext } from './program';
+import { nuevoGuard, parseProgram, runFunction, runProgram, type ProgramContext } from './program';
 
 const math = create(all, {});
 
@@ -56,8 +56,17 @@ math.import(
   { override: false },
 );
 
-/** Tope de iteraciones por programa (anti-bucle-infinito; evita colgar la pestaña). */
-const MAX_ITERS = 100_000;
+/**
+ * Tope de iteraciones por región (anti-bucle-infinito; evita colgar la pestaña).
+ * Cuenta las vueltas de todos los bucles y las llamadas a funciones de usuario
+ * que desencadena la región, estén donde estén.
+ *
+ * Medido el 2026-09-10: la región más cara del corpus (el diagrama de
+ * interacción de `muro-flexocompresion`) da 58.590; la siguiente, 2.812. Con
+ * 500.000 hay un margen de 8,5× para una planilla más fina, y un bucle o una
+ * recursión desbocados se cortan en un par de segundos.
+ */
+const MAX_ITERS = 500_000;
 
 /**
  * Expresiones ya parseadas, por texto.
@@ -76,15 +85,76 @@ const nodeCache = new Map<string, MathNode>();
 /** Tope de la caché: una hoja tiene pocas expresiones distintas, pero al teclear se generan variantes. */
 const NODE_CACHE_MAX = 5_000;
 
-/** Evalúa una expresión reutilizando su árbol ya parseado. */
-function evalCached(expr: string, scope: Record<string, unknown>): unknown {
+/** El árbol de una expresión, de la caché o recién parseado. */
+function parsear(expr: string): MathNode {
   let node = nodeCache.get(expr);
   if (!node) {
     node = math.parse(expr) as MathNode;
     if (nodeCache.size >= NODE_CACHE_MAX) nodeCache.clear();
     nodeCache.set(expr, node);
   }
+  return node;
+}
+
+/** Evalúa una expresión reutilizando su árbol ya parseado. */
+function evalCached(expr: string, scope: Record<string, unknown>): unknown {
+  const node = parsear(expr);
+  copiarAntesDeEscribir(node, scope);
   return node.evaluate(scope);
+}
+
+/**
+ * Parámetros de una llamada que todavía apuntan al valor del que llama. Una
+ * matriz llega por referencia, así que se copian la primera vez que la función
+ * escribe en ellos y no antes: copiar cada argumento en cada llamada se pagaría
+ * en los bucles que llaman miles de veces a una función que solo lee.
+ */
+const prestados = new WeakMap<object, Set<string>>();
+
+/**
+ * Copia en el scope local la matriz que una asignación indexada va a modificar,
+ * si esa matriz no es suya.
+ *
+ * El scope de un programa hereda del de la hoja por prototipo, y `A[1] = 99`
+ * escribe DENTRO del objeto matriz, no en la variable: sin esta copia, un
+ * programa o una función cambiaba la `A` de la hoja, y lo de más abajo leía la
+ * versión alterada. Solo mira la raíz del árbol, que es donde va la asignación
+ * de una sentencia de programa.
+ */
+function copiarAntesDeEscribir(node: MathNode, scope: Record<string, unknown>): void {
+  const n = node as unknown as { type: string; index?: unknown; object?: { type: string; name?: string } };
+  if (n.type !== 'AssignmentNode' || !n.index || n.object?.type !== 'SymbolNode') return;
+  const nombre = n.object.name!;
+  const pres = prestados.get(scope);
+  const ajena = !Object.prototype.hasOwnProperty.call(scope, nombre) && nombre in scope;
+  if (ajena || pres?.has(nombre)) {
+    scope[nombre] = math.clone(scope[nombre] as never);
+    pres?.delete(nombre);
+  }
+}
+
+/**
+ * El contexto de los programas. Uno solo para el módulo, porque las funciones de
+ * usuario son closures que siguen vivos después de `evaluateSheet` —el esquema
+ * los llama al resolver sus tokens— y tienen que encontrar un contador válido:
+ * `evaluateSheet` lo renueva al empezar cada región, y `evalExpr` en cada token.
+ */
+const ctx: ProgramContext = {
+  evaluate: (expr, s) => evalCached(expr, s),
+  maxIters: MAX_ITERS,
+  guard: nuevoGuard(),
+};
+
+/**
+ * Nombres que no pueden ser variables: el scope es un objeto plano, y definir
+ * `__proto__` o `toString` pisaba la maquinaria del propio objeto. Con
+ * `__proto__` todas las regiones siguientes fallaban con un error de math.js que
+ * no decía nada.
+ */
+function comprobarNombre(nombre: string): void {
+  if (nombre in Object.prototype) {
+    throw new Error(`El nombre «${nombre}» está reservado: usa otro para la variable`);
+  }
 }
 
 export type RegionKind = 'math' | 'text' | 'program' | 'image';
@@ -141,6 +211,13 @@ export interface RegionResult {
    * `verify-planilla.mjs` y `planilla-engine.ts` no se enteran.
    */
   define?: { nombre: string; valor: string; esFuncion?: boolean };
+  /**
+   * Algo que no es un error pero conviene que el autor vea: hoy, una variable de
+   * la hoja que tapa una unidad del mismo nombre (`s := 20 cm` y luego
+   * `3 m/s`). No invalida el resultado ni cuenta en `verify:planillas`; el
+   * canvas lo señala al margen y no sale en el papel.
+   */
+  aviso?: string;
   /**
    * Solo `image`: instantánea del scope en la posición de lectura de la región.
    * Es lo que consume el esquema paramétrico (`esquema.ts`): la imagen ve las
@@ -231,7 +308,9 @@ const GREEK_ALIAS: Record<string, string> = {
 /** La cabeza de un nombre, como comando LaTeX si es una griega. */
 function cabezaTex(head: string): string {
   if (GREEK.has(head)) return `\\${head}`;
-  const alias = GREEK_ALIAS[head];
+  // `hasOwn`: sin él, `toString` o `constructor` encontraban el método heredado
+  // del objeto y lo volcaban al LaTeX como `\function toString() {…}`.
+  const alias = Object.hasOwn(GREEK_ALIAS, head) ? GREEK_ALIAS[head] : undefined;
   return alias ? `\\${alias}` : head;
 }
 
@@ -267,14 +346,56 @@ function symbolTex(name: string): string {
 function exprToTex(expr: string, vars: ReadonlySet<string>): string {
   const tex = math.parse(expr).toTex({
     parenthesis: 'auto',
-    handler: (node: { type: string; name?: string }) => {
+    handler: (node: { type: string; name?: string; value?: unknown }) => {
       if (node.type === 'SymbolNode' && node.name && vars.has(node.name)) {
         return symbolTex(node.name);
+      }
+      if (node.type === 'ConstantNode' && typeof node.value === 'string') {
+        return textoTex(node.value);
       }
       return undefined;
     },
   });
-  return fixPlusExponent(fixSubscripts(fixNombresDeFuncion(tex.trim())));
+  return fueraDeTexto(tex.trim(), (t) => fixPlusExponent(fixSubscripts(fixNombresDeFuncion(t))));
+}
+
+/**
+ * Una cadena como texto de LaTeX: `\text{"…"}`, con los caracteres especiales
+ * escapados.
+ *
+ * mathjs volcaba la cadena en modo matemático, y ahí nada es texto: los espacios
+ * desaparecían, `_md` se volvía un subíndice, una tilde salía como acento suelto
+ * (`aˊrea`) y un `%` abría un comentario que se comía el resto de la línea. Las
+ * funciones del estilo de `gobierna`, que devuelven el nombre del estado límite
+ * que manda, salían ilegibles; con un `&` o un `#`, directamente en rojo.
+ */
+function textoTex(s: string): string {
+  const esc = s.replace(/[\\{}%&#_$^~]/g, (c) =>
+    c === '\\'
+      ? '\\textbackslash{}'
+      : c === '^'
+        ? '\\textasciicircum{}'
+        : c === '~'
+          ? '\\textasciitilde{}'
+          : `\\${c}`,
+  );
+  return `\\text{"${esc}"}`;
+}
+
+/** Un `\text{…}` completo, con los escapes de `textoTex` dentro. */
+const TEXTO_RE = /\\text\{(?:\\[a-zA-Z]+\{\}|\\.|[^{}\\])*\}/g;
+
+/**
+ * Aplica `fn` al LaTeX salvo a los `\text{…}`, que se reservan y se devuelven
+ * intactos. Los arreglos de nombres reescriben `\_x` como subíndice, y dentro de
+ * un texto ese `\_` es un guion bajo literal que tiene que quedarse como está.
+ */
+function fueraDeTexto(tex: string, fn: (t: string) => string): string {
+  const reservados: string[] = [];
+  // El marcador es un carácter de uso privado: no aparece en ningún LaTeX, y los
+  // arreglos de nombres no lo reconocen como letra ni como dígito.
+  const marcado = tex.replace(TEXTO_RE, (m) => `\uE000${reservados.push(m) - 1}\uE001`);
+  return fn(marcado).replace(/\uE000(\d+)\uE001/g, (_m, i: string) => reservados[Number(i)]);
 }
 
 /**
@@ -340,6 +461,7 @@ function matrizResumen(value: unknown): string | undefined {
 
 /** LaTeX del valor calculado: número (con exponente) + unidad en redonda. */
 function resultToTex(value: unknown): string {
+  if (typeof value === 'string') return textoTex(value);
   const resumen = matrizResumen(value);
   if (resumen) return resumen;
   const formatted = math.format(value, { precision: 5 });
@@ -370,12 +492,11 @@ export function evaluateSheet(regions: Region[]): SheetResults {
     .filter((r) => r.kind !== 'text')
     .sort((a, b) => a.y - b.y || a.x - b.x);
 
-  const ctx: ProgramContext = {
-    evaluate: (expr, s) => evalCached(expr, s),
-    maxIters: MAX_ITERS,
-  };
-
   for (const region of ordered) {
+    // Cada región estrena contador: el tope es por región, y cubre todo lo que
+    // ella desencadene —sus bucles y los de las funciones a las que llame—.
+    ctx.guard = nuevoGuard();
+
     if (region.kind === 'image') {
       results[region.id] = { scope: { ...scope } };
       continue;
@@ -387,7 +508,7 @@ export function evaluateSheet(regions: Region[]): SheetResults {
     }
 
     if (region.kind === 'program') {
-      results[region.id] = evalProgramRegion(region.src, scope, ctx);
+      results[region.id] = evalProgramRegion(region.src, scope);
       continue;
     }
 
@@ -409,8 +530,17 @@ export function evaluateSheet(regions: Region[]): SheetResults {
       continue;
     }
 
+    let aviso: string | undefined;
     try {
-      let value = evalCached(parsed.expr, scope);
+      if (parsed.varName) comprobarNombre(parsed.varName);
+      const node = parsear(parsed.expr);
+      if (esAsignacion(node)) {
+        throw new Error(
+          'Para definir una variable usa «:=» (por ejemplo «x := 5»); un «=» al final solo muestra el resultado',
+        );
+      }
+      aviso = avisoUnidadTapada(node, scope);
+      let value = node.evaluate(scope);
       if (parsed.targetUnit) {
         if (!math.isUnit(value)) throw new Error(`El resultado no tiene unidades, no se puede convertir a ${parsed.targetUnit}`);
         value = value.to(parsed.targetUnit);
@@ -427,19 +557,105 @@ export function evaluateSheet(regions: Region[]): SheetResults {
       const isBool = typeof value === 'boolean';
       if (isBool && parsed.showResult) {
         // `tex` es la comparación renderizada; el veredicto ✓/✗ lo pinta MathRegion.
-        results[region.id] = { tex, bool: value as boolean, define };
+        results[region.id] = { tex, bool: value as boolean, define, aviso };
       } else {
         if (!isBool && parsed.showResult && tex !== undefined) {
           tex += `=${resultToTex(value)}`;
         }
-        results[region.id] = { tex, define };
+        results[region.id] = { tex, define, aviso };
       }
     } catch (err) {
-      results[region.id] = { tex, error: errMsg(err) };
+      // Una definición que falla RETIRA la variable. Conservar la anterior hacía
+      // que lo de abajo calculara con un valor que la hoja ya no dice: con
+      // `a := 1` y luego `a := 1 kN + 2 m` en rojo, `b := a*10` daba 10 sin
+      // quejarse. Así el error se propaga a todo lo que depende de ella.
+      if (parsed.varName && Object.hasOwn(scope, parsed.varName)) delete scope[parsed.varName];
+      results[region.id] = { tex, error: errMsg(err), aviso };
     }
   }
 
   return results;
+}
+
+/** ¿Es una asignación de math.js (`x = 5`, `f(x) = x^2`, `A[1] = 3`)? */
+function esAsignacion(node: MathNode): boolean {
+  return node.type === 'AssignmentNode' || node.type === 'FunctionAssignmentNode';
+}
+
+/** ¿Es `nombre` una unidad de math.js (con prefijo o sin él)? */
+function esUnidad(nombre: string): boolean {
+  try {
+    return math.Unit.isValuelessUnit(nombre);
+  } catch {
+    return false;
+  }
+}
+
+type NodoOp = { type: string; op?: string; fn?: string; implicit?: boolean; args?: MathNode[]; name?: string; content?: MathNode };
+
+/** El símbolo de `u` o de `u^n`, si tiene nombre de unidad. */
+function simboloDeUnidad(nodo: MathNode): string | undefined {
+  const n = nodo as unknown as NodoOp;
+  if (n.type === 'SymbolNode' && n.name && esUnidad(n.name)) return n.name;
+  if (n.type === 'OperatorNode' && n.op === '^' && n.args) return simboloDeUnidad(n.args[0]);
+  return undefined;
+}
+
+/**
+ * ¿Es una cantidad escrita como literal: `10 kN`, `3 m/s`, `2 kN*m`?
+ *
+ * Un paréntesis corta la cadena a propósito: `(26 cm)/h` dice que la cantidad
+ * termina en el paréntesis y que lo de detrás es otra cosa, que es la forma de
+ * escribir «entre la variable `h`» sin que salte el aviso.
+ */
+function esCantidadLiteral(nodo: MathNode): boolean {
+  const n = nodo as unknown as NodoOp;
+  if (n.type !== 'OperatorNode' || !n.args || n.args.length !== 2) return false;
+  const [izq, der] = n.args;
+  if (!simboloDeUnidad(der)) return false;
+  if (n.implicit && n.op === '*') return izq.type === 'ConstantNode';
+  return (n.op === '*' || n.op === '/') && esCantidadLiteral(izq);
+}
+
+/**
+ * Avisa si la expresión escribe una unidad cuyo nombre es a la vez una variable
+ * de la hoja.
+ *
+ * math.js busca cada símbolo en el scope ANTES que entre las unidades, así que
+ * con `s := 20 cm` definido, `3 m/s` deja de ser una velocidad y da `15` sin
+ * unidades, y con `N := 500 kN`, `10 N` son 5 MN. No es un error —la expresión
+ * es válida—, pero casi nunca es lo que se quería, y `s`, `N`, `h`, `t`, `m` o
+ * `g` son nombres de variable muy comunes en cálculo estructural.
+ *
+ * Solo se mira la posición de unidad —detrás de un número (`10 N`) o
+ * encadenada a una cantidad así (`3 m/s`)—: `b*h` o `L/h` con `h` definida es
+ * lo que el autor quiere, y avisar ahí sería ruido en cada hoja.
+ */
+function avisoUnidadTapada(node: MathNode, scope: Record<string, unknown>): string | undefined {
+  // Por nombre, cómo se escribe la variable sin ambigüedad en ese sitio.
+  const tapadas = new Map<string, string>();
+  node.traverse((nodo) => {
+    const n = nodo as unknown as NodoOp;
+    if (n.type !== 'OperatorNode' || !n.args || n.args.length !== 2) return;
+    if (n.op !== '*' && n.op !== '/') return;
+    const [izq, der] = n.args;
+    const unidad = simboloDeUnidad(der);
+    if (!unidad || !Object.hasOwn(scope, unidad) || tapadas.has(unidad)) return;
+    if (n.implicit && n.op === '*') {
+      if (izq.type === 'ConstantNode') tapadas.set(unidad, `con «*» delante (${izq.toString()}*${unidad})`);
+    } else if (esCantidadLiteral(izq)) {
+      tapadas.set(unidad, `con la cantidad entre paréntesis ((${izq.toString()})${n.op}${unidad})`);
+    }
+  });
+  if (tapadas.size === 0) return undefined;
+  return [...tapadas]
+    .map(
+      ([u, forma]) =>
+        `«${u}» es una variable de la hoja (${formatValor(scope[u])}) y tapa la unidad del mismo ` +
+        `nombre: aquí vale la variable. Si querías la unidad, cambia el nombre de la variable; ` +
+        `si querías la variable, escríbela ${forma}.`,
+    )
+    .join(' ');
 }
 
 /**
@@ -448,14 +664,24 @@ export function evaluateSheet(regions: Region[]): SheetResults {
  * ejecuta en una copia del scope (sus variables internas no contaminan la hoja)
  * y exporta su valor de retorno bajo el nombre de la cabecera, si lo hay.
  */
-function evalProgramRegion(
-  src: string,
-  scope: Record<string, unknown>,
-  ctx: ProgramContext,
-): RegionResult {
+function evalProgramRegion(src: string, scope: Record<string, unknown>): RegionResult {
+  // Como en una región math: si el programa que define un nombre falla, el
+  // nombre se retira del scope en vez de dejar vivo su valor anterior.
+  const retirar = (nombre: string | undefined) => {
+    if (nombre && Object.hasOwn(scope, nombre)) delete scope[nombre];
+  };
+
   let prog;
   try {
     prog = parseProgram(src);
+  } catch (err) {
+    retirar(/^\s*([\p{L}_][\p{L}\p{N}_]*)\s*(?:\([^)]*\))?\s*:=/u.exec(src)?.[1]);
+    return { error: errMsg(err) };
+  }
+
+  try {
+    if (prog.name) comprobarNombre(prog.name);
+    prog.params?.forEach(comprobarNombre);
   } catch (err) {
     return { error: errMsg(err) };
   }
@@ -477,7 +703,10 @@ function evalProgramRegion(
       params.forEach((p, i) => {
         local[p] = args[i];
       });
-      return runProgram(body, local, ctx, { n: 0 });
+      // Los argumentos llegan por referencia: se copian si la función escribe
+      // en ellos (ver `copiarAntesDeEscribir`).
+      prestados.set(local, new Set(params));
+      return runFunction(body, local, ctx);
     };
     const firma = `${name}(${params.join(', ')})`;
     return { defined: firma, define: { nombre: name, valor: firma, esFuncion: true } };
@@ -485,9 +714,7 @@ function evalProgramRegion(
 
   try {
     // Igual que en el closure de arriba: hereda del scope en vez de copiarlo.
-    const value = runProgram(prog.body, Object.create(scope) as Record<string, unknown>, ctx, {
-      n: 0,
-    });
+    const value = runProgram(prog.body, Object.create(scope) as Record<string, unknown>, ctx);
     if (prog.name) scope[prog.name] = value;
     let tex: string | undefined;
     if (value !== undefined) {
@@ -499,11 +726,17 @@ function evalProgramRegion(
       define: prog.name ? { nombre: prog.name, valor: formatValor(value) } : undefined,
     };
   } catch (err) {
+    retirar(prog.name);
     return { error: errMsg(err) };
   }
 }
 
 function errMsg(err: unknown): string {
+  // La pila de JavaScript agotada, que el tope de profundidad no llegó a ver
+  // (una recursión dentro de una función de math.js, por ejemplo).
+  if (err instanceof RangeError && /call stack/i.test(err.message)) {
+    return 'Recursión demasiado profunda: la pila de llamadas se agotó';
+  }
   return err instanceof Error ? err.message : String(err);
 }
 
@@ -513,6 +746,9 @@ function errMsg(err: unknown): string {
  * mismas unidades de la hoja).
  */
 export function evalExpr(expr: string, scope: Record<string, unknown>): unknown {
+  // Un token puede llamar a una función de usuario, que cuenta contra el tope:
+  // que estrene contador, y no herede el de la última región de la hoja.
+  ctx.guard = nuevoGuard();
   return math.evaluate(expr, { ...scope });
 }
 

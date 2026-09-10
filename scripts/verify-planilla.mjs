@@ -186,6 +186,7 @@ for (const { id, frag, nombre } of unidadesEclipsadas(regions)) {
   });
 }
 const verdictos = [];
+const avisos = [];
 const filas = [];
 let n = 0;
 let figuras = 0;
@@ -222,6 +223,10 @@ for (const r of ordenadas) {
     continue;
   }
   const res = results[r.id] ?? {};
+  // Un aviso no es un error (la expresión es válida), pero se enseña: hoy, una
+  // variable que tapa una unidad en posición de unidad (ver `avisoUnidadTapada`
+  // en el motor). No hace fallar la planilla.
+  if (res.aviso) avisos.push({ src: r.src, aviso: res.aviso });
   if (res.error) {
     errores.push({ id: r.id, src: r.src, error: res.error });
     filas.push({ tipo: 'error', src: r.src, error: res.error });
@@ -271,6 +276,10 @@ for (const d of desalineados) {
 for (const e of errores) {
   console.log(`  [ERROR] ${e.src}`);
   console.log(`          ${e.error}`);
+}
+for (const a of avisos) {
+  console.log(`  [AVISO] ${a.src}`);
+  console.log(`          ${a.aviso}`);
 }
 
 const inesperados = [];

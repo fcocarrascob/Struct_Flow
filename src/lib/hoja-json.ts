@@ -8,9 +8,21 @@
 
 import type { Region } from './worksheet';
 
-/** Id nuevo para una región. Colisiona con probabilidad despreciable. */
+/** Ids pedidos en esta sesión: lo que distingue a dos del mismo milisegundo. */
+let secuencia = 0;
+
+/**
+ * Id nuevo para una región.
+ *
+ * El contador es lo que lo hace único dentro de la sesión. Antes solo había
+ * tiempo y cuatro caracteres al azar, y duplicar 650 bloques de golpe los pide
+ * todos en el mismo milisegundo: con 1,7 millones de combinaciones, la paradoja
+ * del cumpleaños daba un 12 % de probabilidad de repetir uno, y dos regiones
+ * con el mismo id se mueven, se editan y se borran juntas. El azar se queda
+ * para que no coincidan los de dos pestañas.
+ */
 export const newId = (): string =>
-  `r${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+  `r${Date.now().toString(36)}${(secuencia++).toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
 const KINDS: ReadonlySet<string> = new Set(['math', 'text', 'program', 'image']);
 
@@ -62,7 +74,9 @@ export function esHoja(data: unknown): data is HojaSuelta {
 export function sanearRegiones(regions: unknown[]): Region[] {
   const vistos = new Set<string>();
   return regions.filter(esRegion).map((r) => {
-    const id = r.id && !vistos.has(r.id) ? r.id : newId();
+    // Un id que no es texto (`{}`, un número) se convierte en clave de `results`
+    // por su `String()`: dos `{}` compartirían «[object Object]».
+    const id = typeof r.id === 'string' && r.id && !vistos.has(r.id) ? r.id : newId();
     vistos.add(id);
     return { ...r, id };
   });

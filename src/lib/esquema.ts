@@ -34,6 +34,15 @@ import { evalExpr, formatSvg, formatValor } from './worksheet';
 /** Prefijo de ruta desde el que se permite render inline con tokens. */
 export const ESQUEMAS_PREFIX = '/esquemas/';
 
+/**
+ * ¿Es la ruta de un esquema propio, que se puede inyectar como SVG? El prefijo
+ * solo no basta: `/esquemas/../loquesea` empieza igual y sale de la carpeta, y
+ * lo que devuelva se inyecta con `innerHTML`.
+ */
+export function esRutaDeEsquema(src: string): boolean {
+  return src.startsWith(ESQUEMAS_PREFIX) && !src.includes('..') && !src.includes('\\');
+}
+
 const TOKEN_RE = /\{\{([^{}]+)\}\}/g;
 // Cola de unidad: identificadores combinados con * / ^ y dígitos (mismo
 // criterio que el `= unidad` de una región math).
