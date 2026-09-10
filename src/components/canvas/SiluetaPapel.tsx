@@ -70,87 +70,74 @@ interface Props {
  * Los bordes horizontales del papel: el tope, cada corte de página medido, y el
  * cierre de la última hoja.
  *
- * Esa última se dibuja **entera** —`A4_ALTO_UTIL_PX` desde su corte—, y no
+ * La última página se cuenta **entera** —`A4_ALTO_UTIL_PX` desde su corte—, y no
  * ceñida al último bloque: lo que queda por debajo de lo escrito es sitio donde
  * todavía cabe algo, que es justamente lo que se quiere ver. Y si el contenido
  * del lienzo se estira más allá (el canvas y el papel no separan los bloques
  * igual), manda el contenido, para que ningún bloque acabe sobre el gris.
  *
- * Se ordenan y se quitan los repetidos porque un corte puede caer sobre el mismo
- * píxel que el tope, cuando la primera región de la hoja abre página.
- *
- * Lo exporta porque el lienzo tiene que crecer al menos hasta el último de estos
- * bordes: si se quedara corto, el scroll no llegaría al pie de la última hoja.
+ * Lo exporta porque el lienzo tiene que crecer hasta aquí: si se quedara corto,
+ * el scroll no llegaría al pie de la hoja.
  */
-export function bordesDePagina(marcas: { y: number }[], fondo: number): number[] {
+export function pieDelPapel(marcas: { y: number }[], fondo: number): number {
   const ultimoCorte = marcas.length ? Math.max(...marcas.map((m) => m.y)) : ORIGEN_PAPEL_Y;
-  return [
-    ORIGEN_PAPEL_Y,
-    ...marcas.map((m) => m.y),
-    Math.max(fondo + A4_MARGEN_PX, ultimoCorte + A4_ALTO_UTIL_PX),
-  ]
-    .filter((y, i, todos) => todos.indexOf(y) === i)
-    .sort((a, b) => a - b);
+  return Math.max(fondo + A4_MARGEN_PX, ultimoCorte + A4_ALTO_UTIL_PX);
 }
 
 export default function SiluetaPapel({ marcas, fondo }: Props) {
   const derechaUtil = ORIGEN_PAPEL_X + A4_ANCHO_PX;
-  const bordes = bordesDePagina(marcas, fondo);
-
-  const paginas = bordes.slice(0, -1).map((arriba, i) => ({
-    arriba,
-    alto: bordes[i + 1] - arriba,
-  }));
+  const pie = pieDelPapel(marcas, fondo);
+  const topeHoja = ORIGEN_PAPEL_Y - A4_MARGEN_PX;
+  const altoHoja = pie + A4_MARGEN_PX - topeHoja;
 
   return (
     <div className="pointer-events-none absolute inset-0 z-0" aria-hidden>
-      {paginas.map((p) => (
-        <div
-          key={`hoja-${p.arriba}`}
-          className="absolute border border-slate-300 bg-white shadow-sm"
-          style={{
-            left: IZQUIERDA_HOJA,
-            top: p.arriba - A4_MARGEN_PX,
-            width: ANCHO_HOJA,
-            height: p.alto,
-          }}
-        />
-      ))}
+      {/* **Una sola banda de papel, no una hoja por página.**
+
+          Dibujando un rectángulo por página aparecían dos artefactos entre cada
+          par: sus dos bordes horizontales pegados, y una franja de 57 px sin
+          cuadrícula —el margen inferior de una más el superior de la siguiente—
+          que se leía como un borde grueso en medio del texto. Ninguno de los dos
+          decía nada: el papel del canvas es continuo, porque los bloques lo son.
+
+          Dónde parte la página lo dice la línea «página N» del canvas, que va
+          sobre el corte medido. Con eso basta, y es una marca en vez de un hueco. */}
+      <div
+        className="absolute border border-slate-300 bg-white shadow-sm"
+        style={{
+          left: IZQUIERDA_HOJA,
+          top: topeHoja,
+          width: ANCHO_HOJA,
+          height: altoHoja,
+        }}
+      />
 
       {/* Las dos líneas de margen, continuas de arriba abajo: son el borde que
-          de verdad importa al escribir, y partirlas por página las volvería un
-          adorno intermitente. */}
+          de verdad importa al escribir. */}
       {[ORIGEN_PAPEL_X, derechaUtil].map((x) => (
         <div
           key={`margen-${x}`}
           className="absolute border-l border-dashed border-slate-300"
-          style={{
-            left: x,
-            top: ORIGEN_PAPEL_Y - A4_MARGEN_PX,
-            height: Math.max(0, bordes[bordes.length - 1] - ORIGEN_PAPEL_Y + A4_MARGEN_PX),
-          }}
+          style={{ left: x, top: topeHoja, height: altoHoja }}
         />
       ))}
 
       {/* La cuadrícula, que antes cubría los 1600 px del lienzo entero. Dentro
           del área útil dice algo —a qué paso se ajusta lo que se coloca—; fuera
           solo era textura. */}
-      {paginas.map((p) => (
-        <div
-          key={`rejilla-${p.arriba}`}
-          className="absolute"
-          style={{
-            left: ORIGEN_PAPEL_X,
-            top: p.arriba,
-            width: A4_ANCHO_PX,
-            height: Math.max(0, p.alto - A4_MARGEN_PX),
-            backgroundImage:
-              'linear-gradient(to right, rgba(100,116,139,0.10) 1px, transparent 1px), ' +
-              'linear-gradient(to bottom, rgba(100,116,139,0.10) 1px, transparent 1px)',
-            backgroundSize: `${GRID}px ${GRID}px`,
-          }}
-        />
-      ))}
+      <div
+        className="absolute"
+        style={{
+          left: ORIGEN_PAPEL_X,
+          top: ORIGEN_PAPEL_Y,
+          width: A4_ANCHO_PX,
+          height: Math.max(0, pie - ORIGEN_PAPEL_Y),
+          backgroundImage:
+            'linear-gradient(to right, rgba(100,116,139,0.10) 1px, transparent 1px), ' +
+            'linear-gradient(to bottom, rgba(100,116,139,0.10) 1px, transparent 1px)',
+          backgroundSize: `${GRID}px ${GRID}px`,
+        }}
+      />
     </div>
   );
 }

@@ -146,12 +146,19 @@ resultado puede no ser válido, y por eso no vota en el CUMPLE / NO CUMPLE.
   el lienzo entero. **En horizontal la geometría es literal** —210 mm de hoja y 180 de caja de
   contenido, y esos 180 son los `A4_ANCHO_PX` que mide cada región—, **pero en vertical no
   puede serlo y no lo finge**: la `y` del lienzo no es lineal con la página impresa, porque
-  `WorksheetPrint` refluye a un documento con sus propios márgenes. Las fronteras son los
-  cortes **medidos**, así que una hoja dibujada mide lo que ocupa en el lienzo (unos 1.650 px
-  para una A4 del corpus, porque el canvas separa los bloques más que el papel) y no los
-  1.122 px de una A4. Apilar rectángulos de alto fijo daría una proporción bonita y cortes
-  que el PDF no tiene. El origen es la constante `ORIGEN_PAPEL_X = 40`, que es donde está el
-  100 % del corpus; anclarlo al contenido haría saltar la hoja al mover un bloque.
+  `WorksheetPrint` refluye a un documento con sus propios márgenes. Una A4 del corpus ocupa
+  unos 1.650 px de lienzo y no los 1.122 de una A4, porque el canvas separa los bloques 48 px
+  y el papel 8.
+
+  Por eso el papel es **una sola banda continua** y no una hoja por página: dónde parte lo
+  dice la línea «página N», que va sobre el corte **medido**. Dibujar un rectángulo por
+  página metía entre cada par sus dos bordes horizontales pegados y una franja de 57 px sin
+  cuadrícula —el margen inferior de una más el superior de la siguiente—, que se leía como un
+  borde grueso en mitad del texto sin decir nada: el papel del canvas es continuo porque los
+  bloques lo son. Apilar rectángulos de alto fijo, además, daría cortes que el PDF no tiene.
+
+  El origen es la constante `ORIGEN_PAPEL_X = 40`, que es donde está el 100 % del corpus;
+  anclarlo al contenido haría saltar la hoja al mover un bloque.
 
 **Los avisos flotan, no empujan.** Las cinco bandas —bloques largos, bloques tapados, fallo de
 autoguardado, hoja apartada y el acuse efímero— van en una pila `absolute` sobre el visor del

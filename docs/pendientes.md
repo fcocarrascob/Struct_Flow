@@ -385,11 +385,13 @@ Tres cosas, y las tres están contadas donde toca: el Enter que avanza y los enc
 markdown cierran el punto 6 y la nota de `avanzarPunto` del punto 8; las medidas están en
 `docs/linea-base-pagina.md`. Queda por escribir aquí lo que **no** resuelven.
 
-**La silueta del papel dibuja páginas más largas que una A4, y eso es correcto.** Una página
-del corpus ocupa unos 1.650 px de lienzo y no los 1.122 de una A4, porque el canvas separa
-los bloques 48 px y el papel 8. La alternativa —apilar rectángulos de alto fijo desde un
-origen— daría la proporción correcta y cortes que el PDF no tiene, que es peor. Con la hoja
-de flujo lineal el papel pasa a ser un contenedor de verdad y la pregunta desaparece.
+**El papel del canvas no tiene la proporción de una A4, y eso es correcto.** Una página del
+corpus ocupa unos 1.650 px de lienzo y no los 1.122 de una A4, porque el canvas separa los
+bloques 48 px y el papel 8. La alternativa —apilar rectángulos de alto fijo desde un origen—
+daría la proporción correcta y cortes que el PDF no tiene, que es peor. Por eso el papel se
+dibuja como **una banda continua** y el corte es una marca: la línea «página N» sobre el
+corte medido. Con la hoja de flujo lineal el papel pasa a ser un contenedor de verdad y la
+pregunta desaparece.
 
 **El origen del papel es una constante (`ORIGEN_PAPEL_X`/`_Y` = 40)**, no el contenido. Un
 bloque colocado fuera de ella se dibuja sobre el gris, y no pasa nada: al imprimir se refluye

@@ -11,7 +11,7 @@ import SiluetaPapel, {
   IZQUIERDA_HOJA,
   ORIGEN_PAPEL_X,
   ORIGEN_PAPEL_Y,
-  bordesDePagina,
+  pieDelPapel,
 } from './SiluetaPapel';
 import CatalogoMenu from './CatalogoMenu';
 import { usePaginacion } from './usePaginacion';
@@ -412,11 +412,11 @@ export default function MathCanvas() {
       .filter((m): m is { pagina: number; y: number; forzado: boolean } => m !== null);
   }, [paginacion.cortes, regions]);
 
-  /** El pie de la última hoja dibujada: hasta ahí tiene que llegar el lienzo. */
-  const fondoDelPapel = useMemo(() => {
-    const bordes = bordesDePagina(marcasDeCorte, fondoDeLaHoja);
-    return bordes[bordes.length - 1];
-  }, [marcasDeCorte, fondoDeLaHoja]);
+  /** El pie del papel: hasta ahí tiene que llegar el lienzo. */
+  const fondoDelPapel = useMemo(
+    () => pieDelPapel(marcasDeCorte, fondoDeLaHoja),
+    [marcasDeCorte, fondoDeLaHoja],
+  );
 
   /** Marca (o desmarca) las regiones seleccionadas como inicio de página. */
   const toggleSalto = useCallback(() => {
