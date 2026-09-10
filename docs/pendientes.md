@@ -406,3 +406,85 @@ que era lo barato; el corpus se recoloca con la migración.
 **Y el `<textarea>` de un texto no mide exactamente lo mismo que el `<p>` que lo sustituye**
 mientras se edita. No mueve los cortes de página —esos se miden sobre `WorksheetPrint`, no
 sobre el canvas—, pero sí puede hacer parpadear el detector de solapes durante la edición.
+
+
+## 11. De la auditoría del 2026-09-10
+
+Tres revisiones en paralelo —motor, canvas, y módulos de diseño con rutas e impresión— dieron
+unos 45 hallazgos que no estaban en este documento. Se abordaron el motor, el canvas y, como
+funcionalidad nueva, el autocompletado; el detalle está en los tres commits de ese día. Lo
+que importa dejar escrito aquí es lo que **no** se tocó.
+
+**Lo que se arregló, en una línea cada cosa.** En el motor, lo que daba un número equivocado
+sin error: el programa que se comía su cuerpo, el `if` final sin valor, las condiciones con
+matrices, NaN o unidades, el tope de iteraciones que se reiniciaba en cada llamada (ahora es
+por región, cuenta llamadas y está en 500.000), las funciones que alteraban matrices de la
+hoja, la redefinición fallida que dejaba viva la anterior, `x = 5` que asignaba en silencio,
+los nombres de `Object.prototype` y los textos en modo matemático. Cada caso vive en
+`npm run verify:motor`. En el canvas: dos pestañas que se pisaban, la ráfaga perdida al
+cerrar, el Ctrl+Z que retrocedía dos pasos, las fórmulas vacías que resucitaban, Enter y
+Escape, Alt+Tab, Ctrl+S en edición, AltGr, IME, ⌘+clic, Shift+Tab y el soltado de archivos.
+
+**Una variable que tapa una unidad ahora avisa.** `s := 20 cm` y luego `3 m/s` dan 15, sin
+unidades, porque math.js busca antes en el scope que entre las unidades. Es un aviso y no un
+error —la expresión es válida— y solo en posición de unidad: `b*h` con `h` definida no avisa.
+Un paréntesis expresa la intención: `(26 cm)/h` es «entre la variable» y no avisa. En el corpus
+no salta ninguno.
+
+**Un hallazgo que resultó no serlo:** «al vaciar la hoja, la paginación queda congelada». El
+pie del documento de impresión es un bloque medido, así que la lista nunca está vacía y la
+paginación sí se recalcula; una hoja vacía ocupa, con razón, una página.
+
+### Módulos de diseño — sin tocar, con la decisión tomada
+
+Se corrigen **módulo y planilla juntos**, para que `verify:modulos` siga contrastando lo mismo.
+Ordenados por gravedad:
+
+- **Zapata, longitud de desarrollo** (`zapata-aislada.ts`, `k_ld`): usa 2,1 para cualquier
+  diámetro, y la Tabla 25.4.2.3 lo reserva a barras No. 19 o menores; de 22 mm en adelante es
+  1,7. El selector ofrece 22 a 32 mm, así que para esas barras `l_d` sale un 19 % corta y puede
+  dar ✓ lo que es ✗. Además: el mínimo de 300 mm (`v_ld300`) se calcula pero no vota, y ψ_g
+  queda en 1 también con f_y = 5000 kgf/cm², donde corresponde al menos 1,15.
+- **Zapata, punzonamiento** (`V_u2`): resta la reacción del suelo dentro del perímetro con
+  `q_u_max`, que es conservador en flexión pero no aquí. Con el momento por defecto `V_u2` sale
+  un 3,6 % corto, y un 9 % con el momento dentro del núcleo. El contraste no lo ve porque se
+  hace con M = 0.
+- **El CUMPLE ignora lo que no se calculó** (`PanelResultados.tsx`): un uso NaN o infinito se
+  descarta del máximo en silencio, un veredicto `undefined` no cuenta como incumplimiento, y
+  puede salir el recuadro rojo de «regiones que no evaluaron» junto a un CUMPLE verde.
+- **Los avisos que invalidan el número no apagan el CUMPLE.** En la zapata, con e > B/6 la
+  presión máxima se subestima (hasta un 24 % con valores plausibles); en la losa, `v_mom` dice
+  en su propio texto que `v_u` está subestimado. Los dos dan CUMPLE verde.
+- **Viga**: `h_min = L/16` sin el factor (0,4 + f_y/700) de la nota de la Tabla 9.3.1.1, que
+  con f_y = 5000 vale 1,10; y `u_V` sale negativo en vigas cortas (d > L/2) con la barra verde,
+  sin un aviso de viga de gran altura.
+- **Zapata**: se comprueba la separación máxima de barras y no la libre mínima.
+- **Formulario**: acepta `n_b = 3,5` barras (nada redondea al `paso`), evalúa negativos
+  mientras se escribe, y con `type="number"` una coma decimal deja ver «2,5» y calcular con 2.
+- **Acero**: la clasificación de esbeltez vota, así que una sección no compacta —que AISC
+  permite— sale NO CUMPLE; y φ_v = 1,0 es de perfiles laminados, cuando el módulo arma uno
+  soldado (0,90).
+- **`verify:modulos` no mira signo ni finitud de los usos**, solo que existan; un módulo con
+  `casos: []` pasa sin evaluar nada.
+- Las entradas de un módulo no se guardan: F5 las devuelve a los valores por defecto.
+- **Ctrl+P fuera del canvas imprime en blanco**: la regla de impresión oculta todo lo que no
+  sea `.worksheet-print`, que solo existe en `/canvas`.
+
+### Motor — sin tocar
+
+- **math.js simplifica las unidades al mostrarlas**: `5 kN * 2 m =` sale `10 kJ`, un momento
+  escrito como energía. Solo se evita con `= kN*m`. Cambiarlo toca miles de resultados del
+  corpus y la paginación, así que necesita su propia medición antes de decidir nada.
+- Un esquema que llama a una función de usuario la evalúa con el scope **final** de la hoja,
+  no con el de su posición.
+- NaN, infinitos y complejos se formatean mal (`Infinity` en cursiva, `1e+6i`).
+
+### Canvas — sin tocar
+
+- No hay desplazamiento automático al arrastrar cerca del borde del visor: llevar un bloque de
+  la página 1 a la 3 son varios arrastres.
+- El `ResizeObserver` de las medidas se reconecta con cada cambio de `regions`, así que un
+  arrastre remide las ~650 regiones en **cada** `pointermove`, no solo en cada pausa. Matiza el
+  punto de los cuatro debounces (sección 8). **Muere con el cambio de modelo.**
+- Pegar un fragmento no evita solapes: usa el punto de inserción tal cual. **Muere con el
+  cambio de modelo.**

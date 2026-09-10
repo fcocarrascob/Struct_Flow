@@ -17,9 +17,15 @@ npm run build            # tsc --noEmit && vite build
 npm run verify:planillas # evalúa las 33 planillas de public/planillas/
 npm run verify:planilla -- <archivo.json> [--md]
 npm run verify:modulos   # evalúa los módulos de diseño y sus memorias exportadas
+npm run verify:motor     # casos de regresión del motor: hojas mínimas con su resultado
 ```
 
-**No hay tests unitarios.** La red de seguridad son los dos verificadores.
+**No hay tests unitarios.** La red de seguridad son los tres verificadores.
+
+`verify:motor` cubre lo que el corpus no ejercita: formas de escribir que ninguna planilla
+usa y que daban un número equivocado **sin error**. Cada caso es una hoja mínima y lo que
+tiene que dar, y además exige que todo el LaTeX emitido componga en KaTeX. Un arreglo del
+motor empieza por escribir su caso y verlo fallar.
 
 `verify:planillas` ejecuta cada planilla publicada con el mismo motor que corre en el
 navegador y falla si alguna región tiene error (sintaxis, variable indefinida, unidades que
@@ -139,6 +145,13 @@ resultado puede no ser válido, y por eso no vota en el CUMPLE / NO CUMPLE.
   completo, porque su regla horizontal tiene que cruzar la página; la condición la decide
   `esEncabezado` de `BloqueDoc.tsx`, que es el único sitio donde vive.
 - `SymbolPalette.tsx` — paleta lateral de símbolos y fragmentos insertables.
+- `Autocompletado.tsx` — el desplegable de nombres al escribir una fórmula o un programa,
+  como el de SMath. La lógica es pura y está en `src/lib/autocompletar.ts`: ofrece lo que la
+  hoja define **por encima** de la región (lo único que el motor le deja ver), lo más cercano
+  primero, y nunca unidades. Con la lista abierta, Enter y Escape son suyos; cerrada, las
+  teclas del editor hacen lo de siempre. Solo la región activa recibe `sugerencias`, y la
+  comparación del `memo` de `MathRegion` las incluye: si llegaran a todas, se perdería la
+  memoización de las ~650 regiones.
 - `SeccionesPanel.tsx` — el índice de la hoja: sus encabezados en orden de lectura, con la
   sangría de su nivel y un clic para saltar. Mismo armazón que `VariablePanel` y el mismo
   `irARegion`; los niveles salen de `nivelEncabezado`, nunca de un detector propio.
@@ -190,11 +203,18 @@ testeable y portable):
   lo definido más arriba/izquierda es visible más abajo/derecha (semántica SMath). Gramática
   del campo `src`: `nombre := expr` define, un `=` final muestra, `= unidad` convierte con
   chequeo dimensional. Registra la unidad local `tonf` (= 1000 kgf, alias `tf`).
+  Una definición que falla **retira** la variable del scope, para que el error se propague
+  en vez de dejar a lo de abajo calculando con el valor anterior. Y una variable que tapa una
+  unidad del mismo nombre en posición de unidad (`s := 20 cm` y luego `3 m/s`) deja un
+  `aviso` en el resultado: no es error ni cuenta en `verify:planillas`, y el canvas lo marca
+  al margen sin imprimirlo.
 - `program.ts` — intérprete **imperativo** mínimo para las regiones `program`, porque mathjs
   no tiene control de flujo. Bloques definidos por **indentación** estilo Python (`if` /
   `else if` / `else`, `for … in range/list`, `while`, `break`/`continue`, `return`),
-  delegando cada expresión a mathjs. Protegido por `MAX_ITERS` (100k) contra bucles
-  infinitos.
+  delegando cada expresión a mathjs. Protegido por `MAX_ITERS` (500k) contra bucles
+  infinitos: el contador es **por región** y cuenta las vueltas y las llamadas a funciones de
+  usuario que la región desencadena, a cualquier profundidad (con un tope de recursión
+  aparte). La región más cara del corpus llega a 58.590; no bajar el tope sin medirlo.
 - `paginacion.ts` — el modelo de saltos de página A4. **No "simplificar" las reglas de
   margen ni `A4_ALTO_UTIL_PX` sin volver a contrastar contra un PDF real**: el valor es
   1010 px y no los 1009.134 de la cuenta teórica porque Chromium arma la caja de página en
