@@ -169,6 +169,11 @@ Resistencia a flexión:  φMn ≥ Mu
 Corte de diseño a distancia d de la cara del apoyo (Sec. 9.4.3.2)
 ```
 
+**Con el `src` vacío es un espaciador:** un hueco deliberado de 16 px que ocupa lo mismo en la
+hoja y en el PDF. Es el único caso en que una región sin contenido es válida y se conserva —
+una `math` o una `program` vacía se descarta al guardar, porque esa es un bloque a medio
+escribir. En el canvas lo inserta `Enter` con el punto de inserción puesto.
+
 ## 6. Regiones `program`
 
 Un intérprete imperativo mínimo (`program.ts`), porque mathjs no tiene control de flujo. **Los

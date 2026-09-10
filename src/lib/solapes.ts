@@ -48,8 +48,15 @@ function ancho(r: Region, anchos: Medidas, porDefecto: number): number {
 /**
  * Los pares que se pisan, en orden de lectura.
  *
- * Dos regiones chocan solo si se solapan en los dos ejes: dos columnas contiguas
- * conviven sin problema, y una planilla puede querer justamente eso.
+ * Dos regiones chocan solo si se solapan en los dos ejes. Eso permitía dos
+ * columnas contiguas... hasta que el renderizado unificado le dio a TODA región
+ * el ancho del papel (`MathRegion.tsx`, `A4_ANCHO_PX`): como el ancho se lee del
+ * DOM, hoy vale 680 px para todas, así que dos bloques que compartan banda
+ * vertical se declaran solapados aunque no se toquen.
+ *
+ * Queda dicho y no arreglado a propósito: la hoja va camino de ser una lista
+ * ordenada, y ahí el solape es imposible por construcción y este módulo entero
+ * sobra. Arreglar el ancho ahora sería afinar algo que se va a retirar.
  */
 export function detectarSolapes(
   regions: readonly Region[],
@@ -135,4 +142,31 @@ export function mismoOrdenDeLectura(antes: readonly Region[], después: readonly
       .map((r) => r.id)
       .join(',');
   return clave(antes) === clave(después);
+}
+
+/**
+ * Abre un hueco: baja `px` todo lo que empiece en `desdeY` o más abajo.
+ *
+ * Es lo que necesita «Enter abre una línea de espacio». `separarSolapes` no
+ * sirve para esto: solo reacciona a colisiones que ya existen y nunca separa lo
+ * que no se pisa, y `aplicarArrastre` mueve únicamente el grupo anclado.
+ *
+ * El orden de lectura se conserva por construcción —lo de arriba no se mueve y
+ * lo de abajo se desplaza TODO lo mismo, así que ningún bloque adelanta a otro—,
+ * pero quien la use debe pasar el resultado por `mismoOrdenDeLectura` de todos
+ * modos: ese orden resuelve el scope compartido, y ahí no se confía en un
+ * razonamiento cuando comprobarlo cuesta una comparación de cadenas.
+ *
+ * Devuelve el mismo array si no movió nada, igual que `separarSolapes` y
+ * `aplicarArrastre`, para no disparar una reevaluación de la hoja de balde.
+ */
+export function abrirHueco(regions: readonly Region[], desdeY: number, px: number): Region[] {
+  if (px <= 0) return regions as Region[];
+  let tocado = false;
+  const salida = regions.map((r) => {
+    if (r.y < desdeY) return r;
+    tocado = true;
+    return { ...r, y: r.y + px };
+  });
+  return tocado ? salida : (regions as Region[]);
 }

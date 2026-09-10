@@ -251,7 +251,15 @@ function execBlock(stmts: Stmt[], scope: Record<string, unknown>, ctx: ProgramCo
         break;
       }
       case 'for': {
-        const items = toIterable(ctx.evaluate(s.iter, scope));
+        // El tope se comprueba ANTES de evaluar el iterador, no después.
+        //
+        // math.js materializa un rango dentro de su propio `evaluate`: con
+        // `for i in 1:1e9` la pestaña moría construyendo un array de mil
+        // millones de elementos sin que el guard llegara a contar una sola
+        // vuelta, y con el límite de 100.000 iteraciones mirando.
+        const n = tamanoDeRango(s.iter, scope, ctx);
+        if (n !== null && n > ctx.maxIters) throw iterLimit();
+        const items = toIterable(evaluarIterador(s.iter, scope, ctx), ctx.maxIters);
         for (const item of items) {
           if (++guard.n > ctx.maxIters) throw iterLimit();
           scope[s.varName] = item;
@@ -293,11 +301,106 @@ function truthy(v: unknown): boolean {
   return Boolean(v);
 }
 
-/** Normaliza un rango (1:n) o lista de math.js a un array iterable. */
-function toIterable(v: unknown): unknown[] {
-  if (v && typeof (v as { toArray?: unknown }).toArray === 'function') {
-    return (v as { toArray: () => unknown[] }).toArray();
+/**
+ * Corta la expresión por los `:` de NIVEL SUPERIOR.
+ *
+ * Se salta lo que va dentro de paréntesis, corchetes, llaves o comillas, para
+ * no partir `f(a:b)` ni una cadena que contenga dos puntos.
+ */
+function partirEnNivelCero(expr: string): string[] {
+  const partes: string[] = [];
+  let hondo = 0;
+  let comilla: string | null = null;
+  let ini = 0;
+  for (let i = 0; i < expr.length; i++) {
+    const c = expr[i];
+    if (comilla) {
+      if (c === '\\') i++;
+      else if (c === comilla) comilla = null;
+      continue;
+    }
+    if (c === '"' || c === "'") comilla = c;
+    else if (c === '(' || c === '[' || c === '{') hondo++;
+    else if (c === ')' || c === ']' || c === '}') hondo--;
+    else if (c === ':' && hondo === 0) {
+      partes.push(expr.slice(ini, i));
+      ini = i + 1;
+    }
   }
-  if (Array.isArray(v)) return v;
+  partes.push(expr.slice(ini));
+  return partes;
+}
+
+/**
+ * Cuántos elementos tendría el iterador si es un rango `a:b` o `a:b:c`.
+ * `null` si no lo es (una lista, una matriz, una llamada a función).
+ *
+ * Los extremos se evalúan SUELTOS: son escalares y no cuesta nada, mientras que
+ * evaluar el rango entero es justo lo que hay que evitar. Si algo no cuadra
+ * —una unidad, un símbolo raro— devuelve `null` y el camino normal se encarga,
+ * que es lo que había antes de esta comprobación.
+ */
+function tamanoDeRango(
+  iter: string,
+  scope: Record<string, unknown>,
+  ctx: ProgramContext,
+): number | null {
+  const partes = partirEnNivelCero(iter);
+  if (partes.length !== 2 && partes.length !== 3) return null;
+
+  const num = (s: string): number | null => {
+    try {
+      const v = ctx.evaluate(s.trim(), scope);
+      return typeof v === 'number' && Number.isFinite(v) ? v : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const desde = num(partes[0]);
+  // math.js escribe `a:paso:b`, con el paso EN MEDIO.
+  const paso = partes.length === 3 ? num(partes[1]) : 1;
+  const hasta = num(partes[partes.length - 1]);
+  if (desde === null || hasta === null || paso === null || paso === 0) return null;
+
+  return Math.max(0, Math.floor((hasta - desde) / paso) + 1);
+}
+
+/**
+ * Evalúa el iterador traduciendo el desbordamiento de math.js.
+ *
+ * `tamanoDeRango` ataja el caso que se da de verdad —`1:1e9`, que es `1:1e2`
+ * mal tecleado—, pero no cubre lo que no es un rango literal. Ahí math.js
+ * revienta con «Invalid array length», que no le dice nada a quien escribió el
+ * bucle.
+ *
+ * Lo que sigue SIN cubrir, y a sabiendas: una expresión que reserve la memoria
+ * de golpe (`ones(20000, 20000)`) agota el montón dentro de math.js, y eso no
+ * es un error que se pueda atrapar. Tampoco es propio del `for`: una región
+ * `math` con esa misma expresión hace exactamente lo mismo.
+ */
+function evaluarIterador(iter: string, scope: Record<string, unknown>, ctx: ProgramContext): unknown {
+  try {
+    return ctx.evaluate(iter, scope);
+  } catch (e) {
+    if (e instanceof RangeError) throw iterLimit();
+    throw e;
+  }
+}
+
+/**
+ * Normaliza un rango (1:n) o lista de math.js a un array iterable, con el tope
+ * aplicado al TAMAÑO y no solo a las vueltas ya dadas.
+ */
+function toIterable(v: unknown, maxIters: number): unknown[] {
+  if (v && typeof (v as { toArray?: unknown }).toArray === 'function') {
+    const arr = (v as { toArray: () => unknown[] }).toArray();
+    if (arr.length > maxIters) throw iterLimit();
+    return arr;
+  }
+  if (Array.isArray(v)) {
+    if (v.length > maxIters) throw iterLimit();
+    return v;
+  }
   throw new Error("'for ... in' espera un rango (p. ej. 1:n) o una lista [..]");
 }

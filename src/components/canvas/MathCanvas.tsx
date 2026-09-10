@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import MathRegion, { GRID, UMBRAL_ARRASTRE, snap } from './MathRegion';
+import { ALTO_ESPACIADOR } from './BloqueDoc';
 import SymbolPalette, { type SymbolEntry } from './SymbolPalette';
 import WorksheetPrint from './WorksheetPrint';
 import VariablePanel from './VariablePanel';
@@ -7,7 +8,13 @@ import CatalogoMenu from './CatalogoMenu';
 import { usePaginacion } from './usePaginacion';
 import { useHistorial } from './useHistorial';
 import { evaluateSheet, type Region, type RegionKind } from '../../lib/worksheet';
-import { detectarSolapes, separarSolapes, mismoOrdenDeLectura } from '../../lib/solapes';
+import {
+  detectarSolapes,
+  separarSolapes,
+  mismoOrdenDeLectura,
+  abrirHueco,
+  ALTO_POR_DEFECTO,
+} from '../../lib/solapes';
 import { esHoja, newId, parsearHoja, sanearRegiones } from '../../lib/hoja-json';
 import {
   anclar,
@@ -40,26 +47,55 @@ const DEMO: Region[] = [
   { id: 'demo-4', kind: 'math', x: 32, y: 224, src: 'M <= 60 kN*m =' },
 ];
 
-function loadInitial(): Region[] {
-  if (typeof window === 'undefined') return DEMO;
+/** Dónde se aparta una hoja guardada que no se pudo leer. */
+export const CLAVE_APARTADA = `${STORAGE_KEY}.apartada`;
+
+interface Arranque {
+  regions: Region[];
+  /** Había algo guardado, no se pudo leer como hoja, y se apartó. */
+  apartada: boolean;
+}
+
+function loadInitial(): Arranque {
+  if (typeof window === 'undefined') return { regions: DEMO, apartada: false };
+  let raw: string | null = null;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const data = JSON.parse(raw);
       // Si lo guardado es la hoja de ejemplo sin tocar, se devuelve DEMO por
       // referencia: así el autoguardado la sigue reconociendo y no empieza a
       // contarla como trabajo del usuario a partir de la segunda visita.
-      if (data?.demo) return DEMO;
+      if (data?.demo) return { regions: DEMO, apartada: false };
       if (Array.isArray(data?.regions)) {
         // Saneadas también aquí: el localStorage puede traer una hoja escrita
         // por una versión anterior, o a medio escribir.
-        return sanearRegiones(data.regions).filter((r) => r.src.trim() !== '');
+        //
+        // Sin filtrar las vacías: una región vacía que llegó a guardarse es
+        // DELIBERADA —39 del corpus se usan como espaciador, 16 de ellas en
+        // `anclajes-pedestal`—, y las transitorias no llegan aquí porque el
+        // autoguardado descarta la que está en edición. Filtrarlas hacía que la
+        // hoja se recolocara sola en el primer F5.
+        return { regions: sanearRegiones(data.regions), apartada: false };
       }
     }
   } catch {
-    // JSON corrupto: arrancar con la demo
+    // Cae abajo: había algo y no se pudo leer.
   }
-  return DEMO;
+
+  // Había algo guardado que no se lee como hoja —un JSON truncado, que es lo
+  // típico cuando una escritura anterior chocó con la cuota— y en 300 ms el
+  // autoguardado va a escribir la demo encima. Se aparta ANTES, porque una vez
+  // sobrescrito no hay de dónde recuperarlo.
+  if (raw) {
+    try {
+      localStorage.setItem(CLAVE_APARTADA, raw);
+      return { regions: DEMO, apartada: true };
+    } catch {
+      // Si no cabe la copia, no hay nada mejor que hacer que seguir.
+    }
+  }
+  return { regions: DEMO, apartada: false };
 }
 
 /**
@@ -79,8 +115,20 @@ function limpiarDeepLink(param: string): void {
 const toolBtn =
   'whitespace-nowrap rounded border border-border bg-white px-2.5 py-1 text-xs font-medium text-ink hover:border-accent hover:text-accent';
 
+/**
+ * Una tarjeta de la pila de avisos, que flota sobre el visor del lienzo.
+ *
+ * `pointer-events-auto` la repone: su contenedor los tiene apagados para que el
+ * hueco entre tarjetas deje pasar el clic que fija el punto de inserción.
+ * `shadow-sm` no es adorno — es lo que la despega del papel y avisa de que está
+ * por encima y no dentro de la hoja.
+ */
+const tarjetaAviso =
+  'pointer-events-auto flex flex-col rounded border px-3 py-2 text-xs shadow-sm';
+
 export default function MathCanvas() {
-  const [regions, setRegions] = useState<Region[]>(loadInitial);
+  const [arranque] = useState(loadInitial);
+  const [regions, setRegions] = useState<Region[]>(arranque.regions);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   /**
@@ -99,6 +147,22 @@ export default function MathCanvas() {
   const [pasteError, setPasteError] = useState<string | null>(null);
   /** Aviso del autoguardado (cuota llena, storage deshabilitado). */
   const [storageWarn, setStorageWarn] = useState<string | null>(null);
+  /**
+   * Acuse de una acción que no deja rastro en la hoja.
+   *
+   * Copiar al portapapeles funcionaba y fallaba con el mismo aspecto: ninguno.
+   * `malo` distingue el acuse del fallo, porque un «no se copió» hay que verlo.
+   */
+  const [aviso, setAviso] = useState<{ texto: string; malo?: boolean } | null>(null);
+  /**
+   * Al arrancar había una hoja guardada ilegible y se apartó.
+   *
+   * Tiene su propio estado y no comparte el de `storageWarn`: ese es del
+   * autoguardado, que lo limpia en cuanto consigue escribir —o sea 300 ms
+   * después—, y este aviso apunta a datos recuperables, así que tiene que
+   * quedarse hasta que alguien lo cierre.
+   */
+  const [apartada, setApartada] = useState(() => arranque.apartada);
   /** Hay un archivo sobrevolando la hoja (realce de la zona de soltado). */
   const [dropping, setDropping] = useState(false);
   /** Panel de inspección de variables abierto. */
@@ -126,6 +190,8 @@ export default function MathCanvas() {
    * de React todavía sería el del render anterior.
    */
   const selectedRef = useRef(selected);
+  /** Espejo de la región en edición: lo necesita el guardado al desmontar. */
+  const activeIdRef = useRef(activeId);
   /** Espejo de las medidas: `nextSpot` se suscribe una vez y necesita las vigentes. */
   const medidasRef = useRef<{ alto: Map<string, number>; ancho: Map<string, number> }>({
     alto: new Map(),
@@ -140,6 +206,9 @@ export default function MathCanvas() {
   useEffect(() => {
     selectedRef.current = selected;
   }, [selected]);
+  useEffect(() => {
+    activeIdRef.current = activeId;
+  }, [activeId]);
 
   /** Cambia la selección manteniendo el espejo al día. */
   const seleccionar = useCallback((ids: Set<string>) => {
@@ -287,6 +356,16 @@ export default function MathCanvas() {
   /** Ids de las regiones que quedan tapadas, para señalarlas en la hoja. */
   const tapadas = useMemo(() => new Set(solapes.map((s) => s.id)), [solapes]);
 
+  /** Hasta dónde llega el bloque más bajo, con su alto real. */
+  const fondoDeLaHoja = useMemo(
+    () =>
+      regions.reduce(
+        (max, r) => Math.max(max, r.y + (medidas.alto.get(r.id) ?? r.h ?? ALTO_POR_DEFECTO)),
+        0,
+      ),
+    [regions, medidas.alto],
+  );
+
   /** Empuja hacia abajo lo justo para que nada se pise. Reversible con Ctrl+Z. */
   const separar = useCallback(() => {
     const nuevas = separarSolapes(regions, medidas.alto, medidas.ancho, GRID);
@@ -433,38 +512,70 @@ export default function MathCanvas() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /**
+   * Escribe la hoja en `localStorage`. Una sola implementación, porque la usan
+   * el autoguardado con debounce y el vaciado al desmontar.
+   *
+   * El fallo NO es silencioso: una hoja con imágenes pegadas puede superar la
+   * cuota de `localStorage` (~5 MB), y a partir de ahí todo lo que el usuario
+   * escriba se perdería al recargar sin que nada lo indique.
+   */
+  const guardarHoja = useCallback((rs: Region[], editando: string | null) => {
+    try {
+      // Solo se descarta la región EN EDICIÓN si está vacía: es la que puede
+      // quedar a medio crear si se cierra la pestaña.
+      //
+      // Antes se descartaban todas las vacías, y eso borraba los espaciadores
+      // —39 en el corpus, 16 solo en `anclajes-pedestal`— en el primer
+      // autoguardado: la hoja se recolocaba sola tras un F5. Una región vacía
+      // que no se está editando es una decisión del autor.
+      const persistable = rs.filter((r) => r.id !== editando || r.src.trim() !== '');
+      // Se marca la hoja de ejemplo intacta para que `hayTrabajoGuardado` no la
+      // confunda con trabajo del usuario (ver el comentario de esa función).
+      const demo = rs === DEMO;
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ version: 1, regions: persistable, ...(demo ? { demo: true } : {}) }),
+      );
+      setStorageWarn(null);
+    } catch (err) {
+      const quota =
+        err instanceof DOMException &&
+        (err.name === 'QuotaExceededError' || err.name === 'NS_ERROR_DOM_QUOTA_REACHED');
+      setStorageWarn(
+        quota
+          ? 'La hoja superó la cuota del navegador y dejó de autoguardarse. Exporta el JSON y borra alguna imagen.'
+          : 'No se pudo autoguardar la hoja en este navegador. Exporta el JSON para no perder el trabajo.',
+      );
+    }
+  }, []);
+
   // Autoguardado con debounce.
-  //
-  // El fallo NO es silencioso: una hoja con imágenes pegadas puede superar la
-  // cuota de `localStorage` (~5 MB), y a partir de ahí todo lo que el usuario
-  // escriba se perdería al recargar sin que nada lo indique.
   useEffect(() => {
-    const t = setTimeout(() => {
-      try {
-        // Las regiones vacías son transitorias (se borran al salir de edición):
-        // no se persisten por si la página se cierra con una a medio crear.
-        const persistable = regions.filter((r) => r.src.trim() !== '');
-        // Se marca la hoja de ejemplo intacta para que `hayTrabajoGuardado` no la
-        // confunda con trabajo del usuario (ver el comentario de esa función).
-        const demo = regions === DEMO;
-        localStorage.setItem(
-          STORAGE_KEY,
-          JSON.stringify({ version: 1, regions: persistable, ...(demo ? { demo: true } : {}) }),
-        );
-        setStorageWarn(null);
-      } catch (err) {
-        const quota =
-          err instanceof DOMException &&
-          (err.name === 'QuotaExceededError' || err.name === 'NS_ERROR_DOM_QUOTA_REACHED');
-        setStorageWarn(
-          quota
-            ? 'La hoja superó la cuota del navegador y dejó de autoguardarse. Exporta el JSON y borra alguna imagen.'
-            : 'No se pudo autoguardar la hoja en este navegador. Exporta el JSON para no perder el trabajo.',
-        );
-      }
-    }, 300);
+    const t = setTimeout(() => guardarHoja(regions, activeId), 300);
     return () => clearTimeout(t);
-  }, [regions]);
+  }, [regions, activeId, guardarHoja]);
+
+  // Y un guardado al desmontar, que el debounce por sí solo no da: su `cleanup`
+  // cancela el temporizador pendiente, así que teclear y pulsar «← Inicio»
+  // dentro de los 300 ms perdía lo último escrito sin que nada lo indicara.
+  //
+  // Va en su propio efecto con dependencias vacías —y leyendo de los espejos—
+  // para que corra SOLO al desmontar: en el efecto de arriba, el `cleanup`
+  // también se dispara en cada pulsación y guardaría de forma síncrona en cada
+  // tecla, que es justo lo que el debounce evita.
+  useEffect(() => {
+    return () => guardarHoja(regionsRef.current, activeIdRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // El acuse se retira solo: es información de un momento, y una banda que se
+  // queda obliga a cerrarla. El fallo dura más porque hay que llegar a leerlo.
+  useEffect(() => {
+    if (!aviso) return;
+    const t = setTimeout(() => setAviso(null), aviso.malo ? 8000 : 2500);
+    return () => clearTimeout(t);
+  }, [aviso]);
 
   /**
    * Desplaza la hoja hasta una región y la deja seleccionada.
@@ -552,12 +663,46 @@ export default function MathCanvas() {
       seleccionar(new Set());
       setActiveId(region.id);
       setInsertAt({ x: snap(x), y: snap(y) + (kind === 'program' ? 5 * GRID : 3 * GRID) });
-      // El punto de inserción vuelve a ajustarse cuando el bloque ya está
-      // medido: ver `avanzarPunto`. Aquí solo se reserva un hueco razonable
-      // para que el siguiente clic no caiga encima del que se acaba de crear.
+      // Aquí solo se reserva un hueco razonable para que el siguiente clic no
+      // caiga encima del que se acaba de crear; no es el alto real del bloque,
+      // que todavía no está medido.
     },
     [nextSpot, seleccionar],
   );
+
+  /**
+   * Abre una línea de espacio en el punto de inserción.
+   *
+   * Inserta un espaciador —una región de texto vacía— y baja lo que haya de ahí
+   * para abajo, de modo que el hueco se abre de verdad en vez de meter el bloque
+   * encima del siguiente. El punto de inserción baja con él, así que pulsar
+   * Enter varias veces apila espacio en lugar de insertar siempre en el mismo
+   * sitio.
+   *
+   * El espaciador ocupa el mismo alto en la hoja y en el papel, así que el hueco
+   * que se ve es el que se imprime.
+   */
+  const insertarEspacio = useCallback(() => {
+    const punto = insertRef.current;
+    if (!punto) return;
+    const y = snap(punto.y);
+    const region: Region = { id: newId(), kind: 'text', x: snap(punto.x), y, src: '' };
+
+    setRegions((prev) => {
+      const corridas = abrirHueco(prev, y, ALTO_ESPACIADOR);
+      // Lo que se comprueba es que el empujón no reordene las regiones QUE YA
+      // ESTABAN; la nueva no tenía posición antes, así que meterla en la
+      // comparación no diría nada. El orden de lectura resuelve el scope
+      // compartido, y aunque un desplazamiento uniforme no pueda alterarlo,
+      // comprobarlo cuesta una comparación de cadenas.
+      if (!mismoOrdenDeLectura(prev, corridas)) return prev;
+      return [...corridas, region];
+    });
+
+    seleccionar(new Set());
+    setActiveId(null);
+    setInsertAt({ x: snap(punto.x), y: y + ALTO_ESPACIADOR });
+  }, [seleccionar]);
 
   // ── Selección: marco sobre el fondo, arrastre en grupo, portapapeles ────────
 
@@ -644,17 +789,30 @@ export default function MathCanvas() {
     arrastre.current = null;
   }, []);
 
-  /** Copia la selección al portapapeles como fragmento de hoja. */
-  const copiarSeleccion = useCallback((ids: ReadonlySet<string>) => {
-    if (ids.size === 0) return;
+  /**
+   * Copia la selección al portapapeles como fragmento de hoja. Devuelve cuántos
+   * bloques se escribieron, o `null` si no se pudo escribir.
+   *
+   * El valor de retorno no es un adorno: es lo que deja que Ctrl+X borre
+   * **después** de confirmar la copia. Antes esto era
+   * `navigator.clipboard?.writeText(t).catch(...)`, y el `?.` cortocircuita la
+   * cadena entera —el `.catch` incluido—, así que en un contexto no seguro
+   * (`http://` a una IP de la red local, que es como se abre desde otro equipo)
+   * no se copiaba nada, no saltaba ningún aviso, y el corte ya había borrado.
+   */
+  const copiarSeleccion = useCallback(async (ids: ReadonlySet<string>): Promise<number | null> => {
+    if (ids.size === 0) return null;
     const frag = aFragmento(regionsRef.current, ids);
-    if (frag.regions.length === 0) return; // la selección ya no existe
+    if (frag.regions.length === 0) return null; // la selección ya no existe
     const texto = JSON.stringify(frag, null, 2);
-    navigator.clipboard?.writeText(texto).catch(() => {
-      alert(
-        'El navegador no dejó escribir en el portapapeles. Copia la hoja entera con «Exportar».',
-      );
-    });
+    try {
+      // Sin `?.`: si no hay portapapeles hay que enterarse, no seguir de largo.
+      if (!navigator.clipboard) return null;
+      await navigator.clipboard.writeText(texto);
+      return frag.regions.length;
+    } catch {
+      return null;
+    }
   }, []);
 
   /** Pega un fragmento en el punto de inserción. Devuelve si el texto lo era. */
@@ -809,12 +967,73 @@ export default function MathCanvas() {
     return () => window.removeEventListener('paste', onPaste);
   }, [addImages, cargarHoja, pegarFragmento]);
 
+  /**
+   * Descarga la hoja como JSON.
+   *
+   * Definido aquí arriba, y no junto al botón que lo usa, porque el manejador
+   * de teclado lo necesita para el Ctrl+S y no puede referirse a una `const`
+   * declarada más abajo.
+   *
+   * Delega en `descargarHoja` en vez de repetir el baile del blob: esa copia
+   * llevaba el fallo clásico de Firefox —enlace fuera del DOM y
+   * `revokeObjectURL` síncrono— y con dos rutas de descarga en la aplicación,
+   * arreglar una sola habría sido peor que no arreglar ninguna.
+   */
+  const exportJson = useCallback(() => {
+    descargarHoja({ version: 1, regions }, 'hoja-calculo.json');
+  }, [regions]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const el = document.activeElement;
-      if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) return;
+      const enCampo = el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement;
+
+      // Escape va ANTES de cualquier guard, porque es la salida de todos ellos:
+      // estaba interceptado por el de los campos y por el de los menús, así que
+      // no cerraba el cuadro de «Pegar JSON» —cuyo textarea tiene `autoFocus`—
+      // ni el menú de imagen, y había que llegar con el ratón hasta «Cancelar».
+      //
+      // El Escape de una región en edición NO llega hasta aquí: su `onKeyDown`
+      // lo detiene, y ahí descarta lo escrito.
+      if (e.key === 'Escape') {
+        if (pasteOpen) {
+          e.preventDefault();
+          setPasteOpen(false);
+          return;
+        }
+        if (imageMenuOpen) {
+          e.preventDefault();
+          setImageMenuOpen(false);
+          return;
+        }
+        if (templatesOpen) {
+          e.preventDefault();
+          setTemplatesOpen(false);
+          return;
+        }
+        if (enCampo) return;
+        // Y si no hay nada abierto, retira las capas y la selección, de la más
+        // superficial a la más de fondo: una pulsación, una cosa.
+        e.preventDefault();
+        if (showOrden) setShowOrden(false);
+        else if (showVars) setShowVars(false);
+        else if (selected.size > 0) seleccionar(new Set());
+        else setInsertAt(null);
+        return;
+      }
+
+      if (enCampo) return;
       // Con un menú o el cuadro de pegado abiertos, el teclado es de ellos.
       if (templatesOpen || imageMenuOpen || pasteOpen) return;
+
+      // Ctrl+S: el reflejo de cualquiera en una herramienta de planillas. Sin
+      // interceptarlo, el navegador abre su «Guardar página» y deja un .html
+      // que no sirve para nada.
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        exportJson();
+        return;
+      }
 
       // Deshacer / rehacer. Va antes que nada: es la salida de cualquier otra
       // tecla que haya hecho un estropicio.
@@ -837,11 +1056,32 @@ export default function MathCanvas() {
         }
         if ((k === 'c' || k === 'x') && selected.size > 0) {
           e.preventDefault();
-          copiarSeleccion(selected);
-          if (k === 'x') {
-            setRegions((prev) => prev.filter((r) => !selected.has(r.id)));
-            seleccionar(new Set());
-          }
+          // El corte espera a que la copia esté confirmada. `selected` se
+          // congela aquí porque el borrado ocurre un turno después.
+          const ids = new Set(selected);
+          const cortar = k === 'x';
+          void copiarSeleccion(ids).then((n) => {
+            if (n === null) {
+              setAviso({
+                texto: cortar
+                  ? 'No se pudo escribir en el portapapeles: no se cortó nada. Usa «Exportar» para llevarte la hoja.'
+                  : 'No se pudo escribir en el portapapeles. Usa «Exportar» para llevarte la hoja.',
+                malo: true,
+              });
+              return;
+            }
+            if (cortar) {
+              setRegions((prev) => prev.filter((r) => !ids.has(r.id)));
+              seleccionar(new Set());
+            }
+            const verbo = cortar ? 'cortado' : 'copiado';
+            setAviso({
+              texto:
+                n === 1
+                  ? `Un bloque ${verbo} al portapapeles.`
+                  : `${n} bloques ${verbo}s al portapapeles.`,
+            });
+          });
           return;
         }
         if (k === 'd' && selected.size > 0) {
@@ -853,10 +1093,28 @@ export default function MathCanvas() {
 
       // Supr/Retroceso elimina la selección (fuera de edición).
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        if (selected.size === 0) return;
+        // El `preventDefault` va aunque no haya nada que borrar: donde
+        // Retroceso todavía navegue hacia atrás, pulsarlo sin selección sacaba
+        // al usuario del canvas y se llevaba por delante lo no guardado.
         e.preventDefault();
+        if (selected.size === 0) return;
         setRegions((prev) => prev.filter((r) => !selected.has(r.id)));
         seleccionar(new Set());
+        return;
+      }
+
+      // Enter en el punto de inserción abre una línea de espacio.
+      //
+      // Va antes del guard de abajo porque ese descarta todo lo que no sea una
+      // tecla de un carácter, y `'Enter'.length` es 5: hasta ahora Enter sobre
+      // el lienzo no hacía absolutamente nada.
+      //
+      // Solo con el punto fijado: sin él no hay dónde abrir el hueco, y hacerlo
+      // «al final de la hoja» no es lo que nadie espera de un Enter.
+      if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+        if (!insertRef.current) return;
+        e.preventDefault();
+        insertarEspacio();
         return;
       }
 
@@ -864,6 +1122,20 @@ export default function MathCanvas() {
       // con ese primer carácter: es el camino rápido al bloque más frecuente,
       // ahora que el clic ya no crea uno por sí solo.
       if (e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1) return;
+      // ...salvo con el foco en un control, donde el teclado es suyo. El caso
+      // que importa es el Espacio: mide un carácter, así que pulsarlo sobre un
+      // botón de la barra al que se llegó con Tab no lo activaba — insertaba un
+      // bloque con un espacio dentro, y la barra quedaba inoperable desde el
+      // teclado. El guard va AQUÍ y no arriba para que Ctrl+Z, Supr y compañía
+      // sigan funcionando con el foco en un botón, que es lo esperable.
+      if (
+        el instanceof HTMLButtonElement ||
+        el instanceof HTMLSelectElement ||
+        el instanceof HTMLAnchorElement ||
+        (el instanceof HTMLElement && el.isContentEditable)
+      ) {
+        return;
+      }
       e.preventDefault();
       insertRegion('math', e.key);
     };
@@ -879,6 +1151,10 @@ export default function MathCanvas() {
     seleccionar,
     copiarSeleccion,
     duplicarSeleccion,
+    exportJson,
+    insertarEspacio,
+    showOrden,
+    showVars,
   ]);
 
   const insertSymbol = useCallback(
@@ -920,26 +1196,29 @@ export default function MathCanvas() {
     [activeId, updateRegion],
   );
 
-  // Delega en `descargarHoja` en vez de repetir el baile del blob: esta copia
-  // llevaba el fallo clásico de Firefox —enlace fuera del DOM y `revokeObjectURL`
-  // síncrono— y con dos rutas de descarga en la aplicación, arreglar una sola
-  // habría sido peor que no arreglar ninguna.
-  const exportJson = () => descargarHoja({ version: 1, regions }, 'hoja-calculo.json');
-
   const loadTemplate = (tpl: Template) => {
     setTemplatesOpen(false);
     cargarHoja(tpl, { titulo: tpl.titulo });
   };
 
   const importJson = (file: File) => {
-    file.text().then((text) => {
-      const data = parsearHoja(text);
-      if (!data) {
-        alert('El archivo no es una hoja de cálculo válida.');
-        return;
-      }
-      cargarHoja(data);
-    });
+    file
+      .text()
+      .then((text) => {
+        const data = parsearHoja(text);
+        if (!data) {
+          setAviso({ texto: `«${file.name}» no es una hoja de cálculo válida.`, malo: true });
+          return;
+        }
+        cargarHoja(data);
+      })
+      // Sin esto, un archivo que el navegador no puede leer —movido o borrado
+      // tras elegirlo en el diálogo, una unidad de red caída— dejaba una promesa
+      // rechazada y ningún mensaje: el diálogo se cerraba y no pasaba nada, así
+      // que parecía que la hoja se había importado vacía.
+      .catch(() => {
+        setAviso({ texto: `No se pudo leer «${file.name}».`, malo: true });
+      });
   };
 
   /**
@@ -1215,192 +1494,237 @@ export default function MathCanvas() {
         </div>
       )}
 
-      {paginacion.largos.length > 0 && (
-        <div className="border-b border-amber-300 bg-amber-50 px-3 py-1.5 text-xs text-amber-900">
-          ⚠ {paginacion.largos.length === 1 ? 'Un bloque es' : `${paginacion.largos.length} bloques son`}{' '}
-          más alto que una A4 completa: al imprimir se desborda de la página. Suele ser una
-          figura — achícala arrastrando su esquina.
-        </div>
-      )}
-
-      {solapes.length > 0 && (
-        <div className="flex items-center gap-2 border-b border-amber-300 bg-amber-50 px-3 py-1.5 text-xs text-amber-900">
-          <span>
-            ⚠ {solapes.length === 1 ? 'Un bloque queda' : `${solapes.length} bloques quedan`} tapados
-            por el de arriba. Suele pasar cuando un bloque de programa crece y el de abajo ya
-            estaba colocado.
-          </span>
-          <button
-            className="ml-auto shrink-0 rounded border border-amber-400 px-2 py-0.5 font-medium hover:bg-amber-100"
-            onClick={separar}
-            title="Empuja hacia abajo lo justo para que no se pisen. Se deshace con Ctrl+Z."
-          >
-            Separarlos
-          </button>
-        </div>
-      )}
-
-      {storageWarn && (
-        <div className="flex items-center gap-2 border-b border-amber-300 bg-amber-50 px-3 py-1.5 text-xs text-amber-900">
-          <span>⚠ {storageWarn}</span>
-          <button className="ml-auto underline" onClick={() => setStorageWarn(null)}>
-            Ocultar
-          </button>
-        </div>
-      )}
-
       <div className="flex min-h-0 flex-1">
-        <div ref={scrollRef} className="relative flex-1 overflow-auto bg-white">
-          <div
-            ref={sheetRef}
-            // `select-none`: sin esto, arrastrar un marco sobre el fondo empieza
-            // también una selección de texto del navegador y la hoja se pinta de
-            // azul por debajo del marco.
-            // `doc-papel`: la hoja adopta la tipografía del papel, que es lo
-            // que hace que un bloque mida en pantalla lo que va a medir impreso.
-            className={`doc-papel relative cursor-crosshair select-none ${dropping ? 'ring-2 ring-inset ring-accent' : ''}`}
-            style={{
-              minWidth: '100%',
-              minHeight: '100%',
-              width: 1600,
-              // Crece para acomodar plantillas largas (deja margen tras la última
-              // región). Una imagen ocupa hacia abajo su alto, no solo su `y`.
-              height: Math.max(
-                1400,
-                (regions.length ? Math.max(...regions.map((r) => r.y + (r.h ?? 0))) : 0) + 240,
-              ),
-              backgroundImage:
-                'linear-gradient(to right, rgba(100,116,139,0.12) 1px, transparent 1px), ' +
-                'linear-gradient(to bottom, rgba(100,116,139,0.12) 1px, transparent 1px)',
-              backgroundSize: `${GRID}px ${GRID}px`,
-            }}
-            onPointerDown={onHojaPointerDown}
-            onPointerMove={onHojaPointerMove}
-            onPointerUp={onHojaPointerUp}
-            onPointerCancel={onHojaPointerUp}
-            onDoubleClick={(e) => {
-              // Camino rápido al bloque más frecuente. El `click` previo ya dejó
-              // el punto de inserción justo aquí.
-              if (e.target !== e.currentTarget) return;
-              insertRegion('math');
-            }}
-            onDragOver={(e) => {
-              if (!e.dataTransfer.types.includes('Files')) return;
-              e.preventDefault();
-              setDropping(true);
-            }}
-            onDragLeave={(e) => {
-              if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
-              setDropping(false);
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              setDropping(false);
-              void addImages(Array.from(e.dataTransfer.files), sheetPoint(e));
-            }}
-          >
-            {/* Cortes de página A4: dónde parte la hoja al imprimir. Van bajo
-                las regiones (z-0) para no estorbar el clic ni tapar nada. El
-                salto forzado por el autor se dibuja lleno; el automático,
-                punteado — la diferencia importa, porque uno se respeta y el
-                otro se mueve solo al editar más arriba. */}
-            {marcasDeCorte.map((m) => (
-              <div
-                key={`corte-${m.pagina}`}
-                className="pointer-events-none absolute left-0 right-0 z-0 flex items-center gap-2"
-                style={{ top: m.y - 10 }}
-              >
-                {/* El rótulo va a la izquierda, no centrado: la hoja mide 1600
-                    px de ancho y el contenido vive en el primer tercio, así
-                    que un rótulo al medio queda fuera de lo que se está
-                    mirando. */}
-                <span
-                  className={`ml-3 h-px w-4 ${
-                    m.forzado ? 'bg-accent/60' : 'border-t border-dashed border-accent/50'
-                  }`}
-                />
-                <span className="whitespace-nowrap rounded-sm bg-accent/10 px-1.5 py-px text-[10px] leading-tight text-accent/80">
-                  {m.forzado ? '⇱ ' : ''}página {m.pagina}
-                </span>
-                <span
-                  className={`h-px flex-1 ${
-                    m.forzado ? 'bg-accent/60' : 'border-t border-dashed border-accent/50'
-                  }`}
-                />
+        {/* El ancla de los avisos. Existe para que la pila se posicione contra el
+            VISOR del lienzo: dentro del contenedor con scroll se desplazaría con
+            el contenido, y sobre la fila entera se metería debajo de la paleta. */}
+        <div className="relative flex min-w-0 flex-1">
+          {/* Los avisos flotan, no empujan.
+              Eran cinco franjas hermanas de esta fila, que es la única con
+              `flex-1`: cada una que se montaba le robaba alto al visor y el papel
+              daba un salto. Y la del acuse lo hacía DOS veces, al entrar y al
+              salir, porque se retira sola a los 2,5 s.
+              Flotan arriba a la derecha porque ahí no tapan nada: el papel ocupa
+              los primeros 680 px de un lienzo de 1600. La pila no recibe punteros
+              —el hueco entre tarjetas tiene que dejar pasar el clic que fija el
+              punto de inserción—; cada tarjeta sí. */}
+          <div className="pointer-events-none absolute right-3 top-3 z-40 flex w-[22rem] max-w-[calc(100%-1.5rem)] flex-col gap-1.5">
+            {paginacion.largos.length > 0 && (
+              <div className={`${tarjetaAviso} border-amber-300 bg-amber-50 text-amber-900`}>
+                ⚠ {paginacion.largos.length === 1 ? 'Un bloque es' : `${paginacion.largos.length} bloques son`}{' '}
+                más alto que una A4 completa: al imprimir se desborda de la página. Suele ser una
+                figura — achícala arrastrando su esquina.
               </div>
-            ))}
+            )}
 
-            {/* Orden de lectura: el número que le toca a cada bloque en la
-                cadena de cálculo, para poder comprobar de un vistazo una
-                disposición a dos columnas antes de confiar en ella. */}
-            {ordenDeLectura &&
-              regions.map((r) =>
-                ordenDeLectura.has(r.id) ? (
+            {solapes.length > 0 && (
+              <div className={`${tarjetaAviso} border-amber-300 bg-amber-50 text-amber-900`}>
+                <span>
+                  ⚠ {solapes.length === 1 ? 'Un bloque queda' : `${solapes.length} bloques quedan`}{' '}
+                  tapados por el de arriba. Suele pasar cuando un bloque de programa crece y el de
+                  abajo ya estaba colocado.
+                </span>
+                <button
+                  className="mt-1.5 self-end rounded border border-amber-400 px-2 py-0.5 font-medium hover:bg-amber-100"
+                  onClick={separar}
+                  title="Empuja hacia abajo lo justo para que no se pisen. Se deshace con Ctrl+Z."
+                >
+                  Separarlos
+                </button>
+              </div>
+            )}
+
+            {storageWarn && (
+              <div className={`${tarjetaAviso} border-amber-300 bg-amber-50 text-amber-900`}>
+                <span>⚠ {storageWarn}</span>
+                <button className="mt-1.5 self-end underline" onClick={() => setStorageWarn(null)}>
+                  Ocultar
+                </button>
+              </div>
+            )}
+
+            {apartada && (
+              <div className={`${tarjetaAviso} border-amber-300 bg-amber-50 text-amber-900`}>
+                <span>
+                  ⚠ La hoja que había guardada <strong>no se pudo leer</strong> y se abrió el
+                  ejemplo. La copia sin tocar quedó en <code>{CLAVE_APARTADA}</code> del
+                  almacenamiento local del navegador, por si hay algo que rescatar.
+                </span>
+                <button className="mt-1.5 self-end underline" onClick={() => setApartada(false)}>
+                  Entendido
+                </button>
+              </div>
+            )}
+
+            {aviso && (
+              <div
+                role="status"
+                aria-live="polite"
+                className={`${tarjetaAviso} ${
+                  aviso.malo
+                    ? 'border-red-300 bg-red-50 text-red-900'
+                    : 'border-border bg-surface text-muted'
+                }`}
+              >
+                {aviso.malo ? '⚠ ' : ''}
+                {aviso.texto}
+              </div>
+            )}
+          </div>
+
+          <div ref={scrollRef} className="relative flex-1 overflow-auto bg-white">
+            <div
+              ref={sheetRef}
+              // `select-none`: sin esto, arrastrar un marco sobre el fondo empieza
+              // también una selección de texto del navegador y la hoja se pinta de
+              // azul por debajo del marco.
+              // `doc-papel`: la hoja adopta la tipografía del papel, que es lo
+              // que hace que un bloque mida en pantalla lo que va a medir impreso.
+              className={`doc-papel relative cursor-crosshair select-none ${dropping ? 'ring-2 ring-inset ring-accent' : ''}`}
+              style={{
+                minWidth: '100%',
+                minHeight: '100%',
+                width: 1600,
+                // Crece para acomodar plantillas largas (deja margen tras la
+                // última región). Un bloque ocupa hacia abajo su ALTO MEDIDO, no
+                // solo su `y`: con `r.h` —que solo declaran las imágenes— un
+                // bloque de programa al final de la hoja se quedaba fuera del
+                // lienzo y el scroll no llegaba a él. En el corpus los hay de
+                // 600 px, y el margen de 240 no los cubre.
+                height: Math.max(1400, fondoDeLaHoja + 240),
+                backgroundImage:
+                  'linear-gradient(to right, rgba(100,116,139,0.12) 1px, transparent 1px), ' +
+                  'linear-gradient(to bottom, rgba(100,116,139,0.12) 1px, transparent 1px)',
+                backgroundSize: `${GRID}px ${GRID}px`,
+              }}
+              onPointerDown={onHojaPointerDown}
+              onPointerMove={onHojaPointerMove}
+              onPointerUp={onHojaPointerUp}
+              onPointerCancel={onHojaPointerUp}
+              onDoubleClick={(e) => {
+                // Camino rápido al bloque más frecuente. El `click` previo ya dejó
+                // el punto de inserción justo aquí.
+                if (e.target !== e.currentTarget) return;
+                insertRegion('math');
+              }}
+              onDragOver={(e) => {
+                if (!e.dataTransfer.types.includes('Files')) return;
+                e.preventDefault();
+                setDropping(true);
+              }}
+              onDragLeave={(e) => {
+                if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+                setDropping(false);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDropping(false);
+                void addImages(Array.from(e.dataTransfer.files), sheetPoint(e));
+              }}
+            >
+              {/* Cortes de página A4: dónde parte la hoja al imprimir. Van bajo
+                  las regiones (z-0) para no estorbar el clic ni tapar nada. El
+                  salto forzado por el autor se dibuja lleno; el automático,
+                  punteado — la diferencia importa, porque uno se respeta y el
+                  otro se mueve solo al editar más arriba. */}
+              {marcasDeCorte.map((m) => (
+                <div
+                  key={`corte-${m.pagina}`}
+                  className="pointer-events-none absolute left-0 right-0 z-0 flex items-center gap-2"
+                  style={{ top: m.y - 10 }}
+                >
+                  {/* El rótulo va a la izquierda, no centrado: la hoja mide 1600
+                      px de ancho y el contenido vive en el primer tercio, así
+                      que un rótulo al medio queda fuera de lo que se está
+                      mirando. */}
                   <span
-                    key={`orden-${r.id}`}
-                    className="pointer-events-none absolute z-30 -translate-x-full rounded-sm bg-accent/15 px-1 text-[10px] leading-tight text-accent"
-                    style={{ left: r.x - 4, top: r.y }}
-                  >
-                    {ordenDeLectura.get(r.id)}
+                    className={`ml-3 h-px w-4 ${
+                      m.forzado ? 'bg-accent/60' : 'border-t border-dashed border-accent/50'
+                    }`}
+                  />
+                  <span className="whitespace-nowrap rounded-sm bg-accent/10 px-1.5 py-px text-[10px] leading-tight text-accent/80">
+                    {m.forzado ? '⇱ ' : ''}página {m.pagina}
                   </span>
-                ) : null,
+                  <span
+                    className={`h-px flex-1 ${
+                      m.forzado ? 'bg-accent/60' : 'border-t border-dashed border-accent/50'
+                    }`}
+                  />
+                </div>
+              ))}
+
+              {/* Orden de lectura: el número que le toca a cada bloque en la
+                  cadena de cálculo, para poder comprobar de un vistazo una
+                  disposición a dos columnas antes de confiar en ella. */}
+              {ordenDeLectura &&
+                regions.map((r) =>
+                  ordenDeLectura.has(r.id) ? (
+                    <span
+                      key={`orden-${r.id}`}
+                      className="pointer-events-none absolute z-30 -translate-x-full rounded-sm bg-accent/15 px-1 text-[10px] leading-tight text-accent"
+                      style={{ left: r.x - 4, top: r.y }}
+                    >
+                      {ordenDeLectura.get(r.id)}
+                    </span>
+                  ) : null,
+                )}
+
+              {/* Marco de selección: lo que toque queda seleccionado al soltar. */}
+              {marco && (
+                <div
+                  className="pointer-events-none absolute z-30 border border-accent bg-accent/10"
+                  style={{ left: marco.x, top: marco.y, width: marco.w, height: marco.h }}
+                />
               )}
 
-            {/* Marco de selección: lo que toque queda seleccionado al soltar. */}
-            {marco && (
-              <div
-                className="pointer-events-none absolute z-30 border border-accent bg-accent/10"
-                style={{ left: marco.x, top: marco.y, width: marco.w, height: marco.h }}
-              />
-            )}
+              {/* Punto de inserción: barra tipo cursor de texto. Se esconde
+                  mientras se edita una región, donde solo sería ruido. */}
+              {insertAt && !activeId && (
+                <div
+                  className="pointer-events-none absolute flex items-center gap-1"
+                  style={{ left: insertAt.x, top: insertAt.y }}
+                >
+                  <span className="block h-6 w-0.5 animate-pulse bg-accent" />
+                  <span className="text-[10px] leading-none text-accent/60">
+                    teclea o elige un bloque
+                  </span>
+                </div>
+              )}
 
-            {/* Punto de inserción: barra tipo cursor de texto. Se esconde
-                mientras se edita una región, donde solo sería ruido. */}
-            {insertAt && !activeId && (
-              <div
-                className="pointer-events-none absolute flex items-center gap-1"
-                style={{ left: insertAt.x, top: insertAt.y }}
-              >
-                <span className="block h-6 w-0.5 animate-pulse bg-accent" />
-                <span className="text-[10px] leading-none text-accent/60">
-                  teclea o elige un bloque
-                </span>
-              </div>
-            )}
-
-            {regions.map((r) => (
-              <MathRegion
-                key={r.id}
-                region={r}
-                result={results[r.id]}
-                active={activeId === r.id}
-                selected={selected.has(r.id)}
-                tapada={tapadas.has(r.id)}
-                titulo={r.id === idTitulo}
-                onChange={(src) => updateRegion(r.id, { src })}
-                onCommit={commitActive}
-                onActivate={() => {
-                  seleccionar(new Set());
-                  setActiveId(r.id);
-                }}
-                onSelect={(additive) => {
-                  const prev = selectedRef.current;
-                  const next = new Set(additive ? prev : []);
-                  if (additive && prev.has(r.id)) next.delete(r.id);
-                  else next.add(r.id);
-                  seleccionar(next);
-                }}
-                onDragStart={(additive) => empezarArrastre(r.id, additive)}
-                onDrag={moverArrastre}
-                onDragEnd={terminarArrastre}
-                onResize={(w, h) => updateRegion(r.id, { w, h })}
-                registerInput={(el) => {
-                  // Solo registrar montajes; insertSymbol ya valida que haya
-                  // región activa, así que una referencia obsoleta es inocua.
-                  if (el) activeInputRef.current = el;
-                }}
-              />
-            ))}
+              {regions.map((r) => (
+                <MathRegion
+                  key={r.id}
+                  region={r}
+                  result={results[r.id]}
+                  active={activeId === r.id}
+                  selected={selected.has(r.id)}
+                  tapada={tapadas.has(r.id)}
+                  titulo={r.id === idTitulo}
+                  onChange={(src) => updateRegion(r.id, { src })}
+                  onCommit={commitActive}
+                  onActivate={() => {
+                    seleccionar(new Set());
+                    setActiveId(r.id);
+                  }}
+                  onSelect={(additive) => {
+                    const prev = selectedRef.current;
+                    const next = new Set(additive ? prev : []);
+                    if (additive && prev.has(r.id)) next.delete(r.id);
+                    else next.add(r.id);
+                    seleccionar(next);
+                  }}
+                  onDragStart={(additive) => empezarArrastre(r.id, additive)}
+                  onDrag={moverArrastre}
+                  onDragEnd={terminarArrastre}
+                  onResize={(w, h) => updateRegion(r.id, { w, h })}
+                  registerInput={(el) => {
+                    // Solo registrar montajes; insertSymbol ya valida que haya
+                    // región activa, así que una referencia obsoleta es inocua.
+                    if (el) activeInputRef.current = el;
+                  }}
+                />
+              ))}
+            </div>
           </div>
         </div>
         {showVars && (

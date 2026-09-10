@@ -184,3 +184,46 @@ de ninguno.
 **No es una regresión: es el aviso funcionando.** El botón «Separarlos» lo resuelve en un
 clic y es reversible con Ctrl+Z, y la migración de la fase 6 recoloca las 33 con las alturas
 de papel, que es cuando deja de hacer falta.
+
+---
+
+# Después del espaciador (2026-09-09)
+
+Una región de texto vacía deja de medir cero y pasa a ocupar **16 px**, un paso de la
+cuadrícula, en la hoja **y** en el papel: `.doc-papel .wp-space`, con `ALTO_ESPACIADOR` de
+`BloqueDoc.tsx` como su pareja en TypeScript. Es lo que hace que el Enter del canvas abra un
+hueco de verdad en vez de uno que solo se ve en pantalla.
+
+Hasta ahora `WorksheetPrint` descartaba todo lo que tuviera el `src` vacío, así que las **39
+regiones vacías** del corpus —16 solo en `anclajes-pedestal`— ocupaban sitio en el JSON y en
+el lienzo pero eran invisibles al imprimir. Sus autores las pusieron como espaciador; ahora lo
+son.
+
+## Lo que cambia en el papel: 287 → 289 páginas
+
+| Planilla | Antes | Ahora | | Regiones vacías |
+|---|---:|---:|---:|---:|
+| mensula-puntal-tensor | 10 | 11 | +1 | 5 |
+| zapata-aislada | 8 | 9 | +1 | 1 |
+| **Total del corpus** | **287** | **289** | **+2** | **39** |
+
+**La comprobación que descarta otra causa:** de las 33 planillas, las únicas que cambian de
+paginación son dos de las **ocho** que tienen regiones vacías. Ninguna de las 25 sin regiones
+vacías se movió.
+
+Que `anclajes-pedestal` no gane una página con 16 espaciadores (256 px) y `zapata-aislada` sí
+con uno solo (16 px) no es una anomalía: depende de lo cerca que estuviera cada corte del filo
+de la hoja.
+
+## Alturas: solo cambian las vacías
+
+Comparando bloque a bloque el alto en el lienzo antes y después, con tolerancia de 0,5 px:
+
+| | |
+|---|---:|
+| Bloques comparados (5 planillas) | 1.900 |
+| Con alto distinto | **5** |
+| De ellos, regiones vacías | **5 de 5** |
+| Cualquier otra diferencia | **0** |
+
+Las cinco pasan de 0 a 16 px. Es exactamente el cambio buscado y ninguno más.

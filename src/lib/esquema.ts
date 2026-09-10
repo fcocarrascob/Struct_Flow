@@ -21,8 +21,13 @@
 // `verify-planilla.mjs` falla si hay alguno, así el esquema queda bajo el
 // mismo contrato que los números.
 //
-// Seguridad: solo se inyecta SVG inline desde `/esquemas/` (mismo origen,
-// autoría propia). Una imagen pegada por el usuario nunca pasa por aquí.
+// Seguridad: la PLANTILLA solo se inyecta desde `/esquemas/` (mismo origen,
+// autoría propia), y una imagen pegada por el usuario nunca pasa por aquí. Pero
+// los VALORES que se sustituyen salen de la hoja, que sí puede venir de fuera
+// —pegar un JSON de una conversación es una vía de entrada declarada—, y el
+// resultado se inyecta con `dangerouslySetInnerHTML`. Por eso el rótulo se
+// escapa (ver `escaparXml`): `innerHTML` no ejecuta un `<script>`, pero el
+// `onerror` de un `<img>` sí.
 
 import { evalExpr, formatSvg, formatValor } from './worksheet';
 
@@ -62,6 +67,23 @@ function separarToken(crudo: string): { expr: string; unidad?: string } {
   return { expr: crudo };
 }
 
+/**
+ * Escapa un rótulo para que entre en el SVG como TEXTO y no como marcado.
+ *
+ * El valor sale de la hoja y el SVG resultante se inyecta con
+ * `dangerouslySetInnerHTML`, así que una hoja pegada de fuera que definiera la
+ * variable de un token con `"><img src=x onerror=…>` colaba HTML ejecutable.
+ * Se escapan también las comillas porque un token puede ir dentro de un atributo.
+ */
+function escaparXml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 /** Sustituye los tokens del SVG contra el scope. Nunca lanza. */
 export function renderEsquema(
   svgText: string,
@@ -77,10 +99,13 @@ export function renderEsquema(
     if (svg) ({ expr, unidad } = separarToken(expr));
     try {
       const v = evalExpr(expr, scope);
-      return svg ? formatSvg(v, unidad) : formatValor(v, unidad);
+      // `formatSvg` no se escapa, y no es un descuido: solo emite números y
+      // listas de números (lanza ante cualquier otra cosa), así que no hay nada
+      // que escapar y hacerlo rompería el `points` de una polilínea.
+      return svg ? formatSvg(v, unidad) : escaparXml(formatValor(v, unidad));
     } catch {
       faltantes.push(crudo);
-      return `¿${expr}?`;
+      return escaparXml(`¿${expr}?`);
     }
   });
   return { svg, tokens, faltantes };

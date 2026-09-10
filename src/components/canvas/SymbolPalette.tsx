@@ -128,14 +128,27 @@ interface Props {
 
 export default function SymbolPalette({ onInsert, activeKind }: Props) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  // Sin una región en edición no hay dónde insertar: `insertSymbol` sale por la
+  // puerta de atrás y no pasa nada. Antes eso era invisible —solo el grupo de
+  // programación se veía deshabilitado, y los otros seis parecían perfectamente
+  // usables—, así que setenta botones que no hacían nada eran lo primero que
+  // probaba quien llegaba nuevo.
+  const sinEdicion = !activeKind;
 
   return (
     <div className="flex h-full w-44 flex-col gap-1 overflow-y-auto border-l border-border bg-surface/80 p-2 backdrop-blur">
+      {sinEdicion && (
+        <p className="rounded border border-dashed border-border px-1.5 py-1 text-[10px] leading-tight text-muted">
+          Doble clic sobre un bloque para editarlo, y estos botones lo insertan donde esté el
+          cursor.
+        </p>
+      )}
       {GROUPS.map((group) => {
         const isCollapsed = collapsed[group.title];
         // Los bloques de programa solo tienen sentido en una región de programa:
         // se deshabilitan (con pista) mientras no se edita una.
-        const disabled = group.title === 'Programación' && activeKind !== 'program';
+        const disabled =
+          sinEdicion || (group.title === 'Programación' && activeKind !== 'program');
         return (
           <div key={group.title}>
             <button
@@ -147,7 +160,7 @@ export default function SymbolPalette({ onInsert, activeKind }: Props) {
             </button>
             {!isCollapsed && (
               <div className="mt-1 flex flex-wrap gap-1 pb-1">
-                {disabled && (
+                {disabled && !sinEdicion && (
                   <p className="w-full text-[10px] leading-tight text-muted">
                     Crea un bloque <span className="font-medium">ƒ Programa</span> para usar estos.
                   </p>

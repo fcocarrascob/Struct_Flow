@@ -97,6 +97,49 @@ function Esquema({
   );
 }
 
+/**
+ * Convención de la hoja: un texto con «━» es un encabezado de sección.
+ *
+ * Se exporta porque `MathRegion` la necesita para decidir qué bloques ocupan el
+ * ancho entero del papel —un encabezado lleva una regla horizontal que tiene que
+ * cruzar la página— y cuáles se ciñen a su contenido. Con la comprobación
+ * duplicada, un cambio en el carácter dejaría el aspecto y la caja de
+ * interacción diciendo cosas distintas.
+ */
+export function esEncabezado(region: Region): boolean {
+  return region.kind === 'text' && region.src.includes('━');
+}
+
+/**
+ * Alto de un espaciador, en píxeles CSS.
+ *
+ * **Tiene que coincidir con `.doc-papel .wp-space` de `global.css`**, igual que
+ * `A4` de `paginacion.ts` coincide con la regla `@page`: aquí lo necesita el
+ * canvas para saber cuánto empujar hacia abajo al abrir el hueco, y allí lo
+ * necesita el bloque para ocupar ese alto en la hoja y en el papel. Si
+ * divergieran, el empujón dejaría de cuadrar con lo que se ve.
+ *
+ * Un paso de la cuadrícula (`GRID`), y no una línea de texto entera, porque todo
+ * el canvas se ajusta a 16 px: así el hueco que se abre y el alto del bloque son
+ * el mismo número exacto, sin redondeos, y Enter se puede repetir para dosificar.
+ */
+export const ALTO_ESPACIADOR = 16;
+
+/**
+ * Un espaciador: una región de texto sin contenido.
+ *
+ * No es un tipo nuevo. Es lo que el corpus ya usa —39 regiones en 8 planillas,
+ * 16 solo en `anclajes-pedestal`— y lo que sus autores quisieron que fuera;
+ * hasta ahora no ocupaba nada en ninguna parte, porque un párrafo vacío mide
+ * cero y el documento de impresión las descartaba.
+ *
+ * Solo `text`: una `math` o una `program` vacía no es un espaciador, es un
+ * bloque a medio escribir.
+ */
+export function esEspaciador(region: Region): boolean {
+  return region.kind === 'text' && region.src.trim() === '';
+}
+
 export default function BloqueDoc({ region, result, titulo, className = '', wpId }: Props) {
   const clase = (base: string) => (className ? `${base} ${className}` : base);
   const rest = { 'data-wp-id': wpId };
@@ -128,8 +171,12 @@ export default function BloqueDoc({ region, result, titulo, className = '', wpId
   }
 
   if (region.kind === 'text') {
-    // Convención de la hoja: un texto con «━» es un encabezado de sección.
-    if (region.src.includes('━')) {
+    // Va antes que el encabezado y que el párrafo: un espaciador no lleva texto
+    // que mirar, solo alto.
+    if (esEspaciador(region)) {
+      return <p className={clase('wp-space')} {...rest} />;
+    }
+    if (esEncabezado(region)) {
       return (
         <h2 className={clase('wp-h2')} {...rest}>
           {region.src.replace(/━/g, '').trim()}

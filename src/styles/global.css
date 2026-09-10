@@ -70,6 +70,16 @@ body {
   padding-bottom: 0.15rem;
   break-after: avoid;
 }
+/* Un espaciador: una región de texto vacía, que existe solo para abrir hueco.
+   El alto tiene que coincidir con `ALTO_ESPACIADOR` de `BloqueDoc.tsx`, que es
+   lo que el canvas empuja hacia abajo al insertarlo.
+
+   NO lleva margen bajo `.worksheet-print`, al revés que los demás bloques: el
+   espaciador ES el hueco, y sumarle márgenes encima lo haría medir en el papel
+   más de lo que mide en la hoja. */
+.doc-papel .wp-space {
+  height: 16px;
+}
 .doc-papel .wp-label {
   font-size: 9.5pt;
   color: #4b5563;

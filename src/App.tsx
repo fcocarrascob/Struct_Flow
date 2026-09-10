@@ -18,6 +18,13 @@ import { moduloPorId } from './lib/diseno/registro';
  *
  * Cada vista se envuelve en su propio `ErrorBoundary`: si el canvas revienta
  * con una hoja corrupta, el menú tiene que seguir alcanzable para poder salir.
+ *
+ * De ahí la `key`, y no es cosmética. Sin ella, todas las vistas devuelven un
+ * `ErrorBoundary` en la misma posición del árbol, React lo reconcilia como el
+ * MISMO componente y `state.error` no se limpia nunca: si reventaba el catálogo,
+ * navegar a los módulos seguía enseñando la pantalla roja —rotulada «El canvas
+ * se detuvo»— y la única salida era recargar. Con una `key` distinta por vista,
+ * cambiar de vista monta un límite nuevo y limpio.
  */
 export default function App() {
   const ruta = useRuta();
@@ -25,7 +32,7 @@ export default function App() {
   switch (ruta.vista) {
     case 'planillas':
       return (
-        <ErrorBoundary>
+        <ErrorBoundary key="planillas">
           <CatalogoPagina />
         </ErrorBoundary>
       );
@@ -37,7 +44,7 @@ export default function App() {
         // definida. `#root` sigue siendo hijo directo de `<body>`, que es de lo
         // que depende la regla de impresión que oculta la interfaz.
         <div className="h-screen w-full overflow-hidden">
-          <ErrorBoundary>
+          <ErrorBoundary key="canvas">
             <MathCanvas />
           </ErrorBoundary>
         </div>
@@ -45,7 +52,7 @@ export default function App() {
 
     case 'diseno':
       return (
-        <ErrorBoundary>
+        <ErrorBoundary key="diseno">
           <IndiceDiseno />
         </ErrorBoundary>
       );
@@ -57,7 +64,7 @@ export default function App() {
     case 'calibrar':
       if (!import.meta.env.DEV) break;
       return (
-        <ErrorBoundary>
+        <ErrorBoundary key="calibrar">
           <Calibrar />
         </ErrorBoundary>
       );
@@ -66,7 +73,7 @@ export default function App() {
       const modulo = moduloPorId(ruta.id);
       if (!modulo) return <NoEncontrado id={ruta.id} />;
       return (
-        <ErrorBoundary>
+        <ErrorBoundary key={`modulo:${ruta.id}`}>
           <PaginaDiseno modulo={modulo} />
         </ErrorBoundary>
       );
@@ -75,7 +82,7 @@ export default function App() {
   }
 
   return (
-    <ErrorBoundary>
+    <ErrorBoundary key="inicio">
       <Landing />
     </ErrorBoundary>
   );

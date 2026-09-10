@@ -65,7 +65,7 @@ export function useHistorial(
     }
     if (regions === asentado.current) return;
 
-    const t = setTimeout(() => {
+    const registrar = () => {
       pasado.current.push(asentado.current);
       if (pasado.current.length > MAX) pasado.current.shift();
       // Una edición nueva descarta el futuro: no se puede rehacer sobre una
@@ -73,7 +73,27 @@ export function useHistorial(
       futuro.current = [];
       asentado.current = regions;
       revisar((n) => n + 1);
-    }, PAUSA_MS);
+    };
+
+    // Un BORRADO entra en el acto, sin esperar la pausa.
+    //
+    // Con la pausa para todo, seleccionar 300 bloques con el marco, pulsar Supr
+    // y pulsar Ctrl+Z al instante —que es lo que uno hace, en bastante menos de
+    // 400 ms— encontraba el historial vacío y el botón ↶ deshabilitado: el
+    // usuario concluía que no había deshacer. Y el autoguardado (300 ms) llegaba
+    // ANTES que el registro (400 ms), así que recargar en esa ventana volvía la
+    // pérdida irreversible.
+    //
+    // Solo al borrar, y no en cualquier cambio del número de regiones: crear un
+    // bloque y escribir dentro seguiría siendo un solo Ctrl+Z, que es lo que
+    // espera quien acaba de teclear una fórmula. Perder una creación no es una
+    // pérdida; perder 300 bloques sí.
+    if (regions.length < asentado.current.length) {
+      registrar();
+      return;
+    }
+
+    const t = setTimeout(registrar, PAUSA_MS);
     return () => clearTimeout(t);
   }, [regions]);
 

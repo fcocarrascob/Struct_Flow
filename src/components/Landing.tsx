@@ -105,6 +105,12 @@ export default function Landing() {
             borra. La hoja se guarda sola en el navegador.
           </p>
           <p>
+            <strong>Abrir espacio:</strong> con el punto de inserción puesto, <code>Enter</code>{' '}
+            mete una línea en blanco y empuja hacia abajo lo que haya debajo. Púlsalo varias veces
+            para separar más. El hueco es un bloque como cualquier otro —se selecciona y se borra
+            con Supr— y ocupa lo mismo en la hoja que en el PDF.
+          </p>
+          <p>
             <strong>Imágenes:</strong> pega una con <code>Ctrl+V</code>, arrastra el archivo a la
             hoja o elige el origen en <strong>▣ Imagen ▾</strong>. Va dentro de la hoja (se exporta
             en el JSON y sale en el PDF), así que conviene recortarla antes de pegarla.
@@ -112,8 +118,9 @@ export default function Landing() {
           <p>
             <strong>Programación:</strong> pulsa <strong>ƒ Programa</strong>. La{' '}
             <strong>indentación</strong> define el cuerpo, como en Python; <code>Enter</code> es
-            nueva línea, <code>Tab</code> indenta y <code>Esc</code> o <code>Ctrl+Enter</code>{' '}
-            confirma. <code>nombre :=</code> exporta el valor de <code>return</code> como variable;{' '}
+            nueva línea, <code>Tab</code> indenta, <code>Ctrl+Enter</code> confirma y{' '}
+            <code>Esc</code> descarta lo escrito. <code>nombre :=</code> exporta el valor de{' '}
+            <code>return</code> como variable;{' '}
             <code>nombre(args) :=</code> define una función llamable desde otras regiones.
           </p>
           <pre className="overflow-x-auto rounded border border-border bg-surface/60 p-2 font-mono text-ink">

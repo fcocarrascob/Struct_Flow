@@ -33,6 +33,25 @@ valores contra la planilla publicada de la que salió el módulo y pasa las memo
 exportadas por `verify-planilla.mjs`. Una verificación en ✗ **no** es un fallo aquí: un
 diseño que no cumple es un resultado legítimo, al revés que en una planilla publicada.
 
+## Hacia dónde va la hoja
+
+**El modelo de SMath está descartado.** Posición libre en un plano y bloque impreso en el
+sitio exacto: se implementó entero (rama `canvas-papel`, fases 4 y 5) y se revirtió, porque
+desordena las planillas y el objetivo del canvas es lo contrario. Las medidas que costó
+obtener están en `docs/impresion-absoluta-descartada.md`; la rama ya no existe.
+
+Lo decide el corpus: las **8.377** regiones publicadas están en `x = 40`, sin una sola
+excepción, y **7.471** de los 8.344 saltos verticales miden exactamente 48 px. Nadie usaba
+la libertad que costaba mantener — y desde el renderizado unificado toda región ocupa el
+ancho del papel, así que una disposición a dos columnas ya era imposible.
+
+El destino es una hoja de **flujo lineal**: `Region` pierde `x`/`y`, la hoja es una lista
+ordenada, arrastrar reordena en vez de reposicionar, y el orden de lectura pasa a ser el
+orden del array. Con eso desaparecen `solapes.ts`, la anticolisión del punto de inserción,
+el botón ① y buena parte de `MathCanvas.tsx`. **Todavía no está hecho.** Mientras tanto, al
+tocar el canvas conviene preguntarse si lo que se arregla sobrevive al cambio; lo que no,
+está marcado como tal en `docs/pendientes.md`.
+
 ## Arquitectura
 
 La separación es estricta y hay que mantenerla:
@@ -88,7 +107,38 @@ resultado puede no ser válido, y por eso no vota en el CUMPLE / NO CUMPLE.
   porque es el único que sabe qué más está seleccionado. Y **no lleva relleno**: seis píxeles
   de `padding` son seis píxeles de diferencia con el papel; el realce va en `ring`, que es una
   sombra y no ocupa sitio.
+
+  Son **dos cajas anidadas, y hay que mantenerlas separadas**. La exterior es la de
+  *medición*: ocupa `A4_ANCHO_PX`, lleva `data-region-id` —es la que miden `usePaginacion`,
+  `solapes.ts` y el salto del panel de variables— y va con `pointer-events: none`. La
+  interior es la de *interacción y realce*: `width: fit-content` acotado al ancho del papel,
+  y se lleva el cursor, el anillo y los manejadores de puntero. Cuando eran una sola, los
+  680 px se comían el clic en el vacío a la derecha de una fórmula de 60 px —que es el gesto
+  que fija el punto de inserción— y ofrecían mover un bloque desde media hoja de distancia.
+  `fit-content` no cambia el ancho *disponible*, así que el salto de línea y el alto siguen
+  siendo los del papel: comprobado sobre 1.900 bloques de cinco planillas, cero con altura
+  distinta. Los encabezados (el título y los `━━ … ━━`) son la excepción y se quedan a ancho
+  completo, porque su regla horizontal tiene que cruzar la página; la condición la decide
+  `esEncabezado` de `BloqueDoc.tsx`, que es el único sitio donde vive.
 - `SymbolPalette.tsx` — paleta lateral de símbolos y fragmentos insertables.
+
+**Los avisos flotan, no empujan.** Las cinco bandas —bloques largos, bloques tapados, fallo de
+autoguardado, hoja apartada y el acuse efímero— van en una pila `absolute` sobre el visor del
+lienzo, no como hermanas de la fila de trabajo. Ahí eran hijas del mismo flex en columna que
+el visor, que es el único con `flex-1`: cada una que se montaba le robaba alto y el papel daba
+un salto, y la del acuse lo hacía dos veces porque se retira sola. La pila va
+`pointer-events-none` y cada tarjeta `pointer-events-auto`, para que el hueco entre tarjetas
+deje pasar el clic que fija el punto de inserción. El cuadro «Pegar JSON» sigue en el flujo a
+propósito: lo abre el usuario.
+
+**Un espaciador es una región de texto vacía**, y ocupa `ALTO_ESPACIADOR` (16 px, un paso de
+la cuadrícula) **en la hoja y en el papel**. Ese número vive en dos sitios que tienen que
+coincidir —la constante de `BloqueDoc.tsx` y `.doc-papel .wp-space` de `global.css`—, igual
+que `A4` de `paginacion.ts` coincide con la regla `@page`: el canvas lo necesita para saber
+cuánto empujar al abrir el hueco, y el bloque para ocupar ese alto. `WorksheetPrint` conserva
+las vacías **solo si son de tipo texto**; una `math` o una `program` vacía no es un hueco, es
+un bloque a medio escribir. Y el título del papel las salta explícitamente, o el primer
+espaciador de la hoja se convertiría en el `<h1>`.
 - `WorksheetPrint.tsx` — el documento de impresión: un portal en `<body>` que refluye las
   regiones a un documento **lineal** (orden de lectura). **No** es el layout del canvas: no
   hay correspondencia geométrica entre dónde está una región en la hoja y dónde cae en el

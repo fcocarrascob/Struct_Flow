@@ -6,6 +6,17 @@ cada uno. Están ordenados por relación valor/esfuerzo, no por gravedad.
 Lo que sí se arregló ese día está en el historial: el generador de LaTeX (subíndices,
 nombres de función, griegas), la robustez al cargar hojas y el panel de variables.
 
+## El norte cambió: la hoja va hacia el flujo lineal
+
+**2026-09-09.** Se descartó el modelo de SMath —posición libre, impresión en el sitio
+exacto—: desordena las planillas, y el objetivo del canvas es ordenarlas. Ver
+`docs/impresion-absoluta-descartada.md`. La hoja pasará a ser una **lista ordenada** sin
+`x`/`y`.
+
+Eso cambia qué merece la pena arreglar. Varios puntos de este documento **desaparecen con
+el cambio de modelo**, y quedan marcados así: arreglarlos ahora sería afinar algo que se
+va a retirar.
+
 ## 1. Rendimiento — hecho en lo esencial, queda el motor
 
 **Resuelto** (medido sobre `muro-flexocompresion`, 646 regiones, la planilla más pesada):
@@ -58,6 +69,14 @@ no cambiaron: cada instantánea es un array de punteros, no una copia de la hoja
 Queda fuera: mientras se edita el texto de una región, `Ctrl+Z` es del input y no del
 canvas. Es lo esperable, pero conviene saberlo.
 
+**2026-09-09 — un borrado ya no espera la pausa.** Los 400 ms servían para agrupar una
+ráfaga de tecleo, pero convertían el caso grave en irreversible: seleccionar 300 bloques,
+pulsar `Supr` y pulsar `Ctrl+Z` al instante —en bastante menos de 400 ms— encontraba el
+historial vacío y el botón ↶ deshabilitado, así que parecía que no había deshacer. Y el
+autoguardado (300 ms) llegaba **antes** que el registro (400 ms): recargar en esa ventana
+consolidaba la pérdida. Ahora, cuando el número de regiones **baja**, la instantánea entra
+en el acto. Solo al bajar: crear un bloque y escribir dentro sigue siendo un solo `Ctrl+Z`.
+
 ## 3. Regiones que se solapan — hecho, salvo el reparto de clics
 
 El diagnóstico, medido: los solapes del corpus están **todos en la misma columna**, y el
@@ -81,9 +100,16 @@ resuelve el scope compartido, así que reordenar regiones cambiaría qué variab
 fórmula. Verificado sobre `viga-hss-flexion`: 5 solapes → 0, y los resultados de la hoja no
 cambian ni un carácter.
 
-**Lo que queda:** cuando dos regiones inactivas se pisan, la de encima sigue comiéndose los
-clics de la de abajo (el `z-index` solo distingue activa y seleccionada). Con el resaltado y
-el botón molesta mucho menos, pero el reparto de clics no está resuelto.
+**Lo que queda, y MUERE CON EL CAMBIO DE MODELO:** cuando dos regiones inactivas se pisan,
+la de encima sigue comiéndose los clics de la de abajo (el `z-index` solo distingue activa y
+seleccionada). En una lista ordenada el solape es imposible por construcción y `solapes.ts`
+entero sobra, con su aviso ámbar y su botón. No se toca.
+
+**Y hay un falso positivo que tampoco se arregla, por lo mismo.** Desde el renderizado
+unificado toda región mide el ancho del papel (`A4_ANCHO_PX`), y como `medidas.ancho` se lee
+del DOM, hoy vale 680 px para todas: dos bloques que compartan banda vertical se declaran
+solapados aunque no se toquen. El comentario de `solapes.ts` que decía lo contrario ya está
+corregido.
 
 ## 4. Texto y figuras que desbordaban — hecho
 
@@ -116,9 +142,25 @@ no hay flechas para desplazar la seleccionada. Los menús desplegables no cierra
 `Escape` (el manejador global lo intercepta antes) y su capa de cierre se come el primer
 clic. Las figuras van con `alt=""` y sin pie.
 
-Y un bug concreto: cualquier tecla de un carácter sin modificadores crea una fórmula, y el
+~~Y un bug concreto: cualquier tecla de un carácter sin modificadores crea una fórmula, y el
 espacio mide uno — así que pulsar **Espacio sobre un botón de la barra** crea un bloque
-basura en vez de activarlo. Basta excluir el caso en que el foco esté en un botón.
+basura en vez de activarlo.~~ **Hecho.** El guard va en la propia regla de «teclear crea una
+fórmula» y no al principio del manejador, para que `Ctrl+Z`, `Supr` y compañía sigan
+funcionando con el foco en un botón.
+
+~~Los menús desplegables no cierran con `Escape` (el manejador global lo intercepta antes).~~
+**Hecho**, junto con el resto del teclado: `Escape` va ahora **antes** de cualquier guard —era
+la salida de todos ellos— y cierra el cuadro de «Pegar JSON», el menú de imagen y el de
+plantillas; sin nada abierto, retira la capa de orden de lectura, luego el panel de variables,
+luego la selección y luego el punto de inserción, una cosa por pulsación. Además `Ctrl+S`
+exporta en vez de abrir el «Guardar página» del navegador, y `Retroceso` sin selección ya no
+puede navegar hacia atrás.
+
+**Lo que sigue pendiente:** no hay `tabIndex`, `role` ni `aria-` en las regiones, así que no
+se puede recorrerlas, seleccionarlas ni moverlas sin ratón, y los estados —seleccionada,
+tapada, con error— se comunican solo por color de anillo. Las figuras van con `alt=""` y sin
+pie. Conviene esperar al cambio de modelo: en una lista, «recorrer los bloques con el teclado»
+es una pregunta con una respuesta obvia que hoy no tiene.
 
 *Coste*: medio en conjunto, pero cada pieza es barata por separado.
 
@@ -132,16 +174,42 @@ invisible hasta ver el PDF.
 
 De fondo: la estructura del documento no debería estar codificada en un carácter.
 
+### El diseño, para cuando toque
+
+**Encabezados markdown.** `# `, `## ` y `### ` al principio de una región de texto dan tres
+niveles reales, donde hoy solo hay uno (`wp-h2`) más el título. Con eso el `##` de un
+subtítulo se escribe igual siempre y deja de depender de qué raya se pegó del portapapeles,
+que es el fallo de arriba.
+
+La convención `━` (U+2501) se queda como **alias de `##`**: la usan **420 regiones en 30 de
+las 33 planillas**, y romperlas para ganar sintaxis no compensa. Migrar el corpus es un paso
+aparte, y ni siquiera obligatorio.
+
+**Salto de línea en un bloque de texto.** El renderizado ya está listo: `.wp-label` lleva
+`white-space: pre-wrap` (`global.css`), así que un `\n` ya se dibuja igual en la hoja y en el
+papel. Lo que falta es el editor. Hoy el texto se edita con un `<input>` —el `<textarea>` está
+reservado a `program`— y `Shift+Enter` y `Alt+Enter` hacen exactamente lo mismo que Enter,
+porque el manejador no consulta los modificadores. Hay que cambiarlo a `<textarea>`: Enter
+confirma, `Shift/Alt+Enter` inserta el salto. Y hay que volver a medir: un texto de varias
+líneas es más alto, y de las alturas dependen los cortes de página.
+
+**Por qué va con el cambio de modelo.** En una hoja de flujo lineal el tipo de bloque es
+explícito en vez de deducirse del contenido, así que un nivel de encabezado pasa a ser un
+campo y no un prefijo que haya que adivinar. Hacerlo antes sería escribir dos veces el mismo
+detector.
+
 ## 7. Cosas menores ya localizadas
 
 - **La primera región de texto se convierte en `<h1>`** y desaparece del cuerpo del PDF. Si
   no es el título (una nota, un `━━ DATOS ━━`), el documento sale mal titulado y se pierde
   ese contenido. `meta.titulo` existe en el formato y sería mejor fuente.
-- **Las regiones vacías se pierden en la primera recarga**: `cargarHoja` las conserva pero
-  el autoguardado las filtra. `anclajes-pedestal` las usa como espaciador, así que la
-  geometría de la hoja cambia sola tras un F5.
-- **La paleta de símbolos no hace nada sin una región en edición**, y no lo indica: 70
-  botones que parecen rotos.
+- ~~**Las regiones vacías se pierden en la primera recarga**~~ **Hecho.** Eran 39 en 8
+  planillas (16 solo en `anclajes-pedestal`) y desaparecían en el primer autoguardado, así
+  que la hoja se recolocaba sola tras un F5. Ahora solo se descarta la región **en edición**
+  si está vacía, que es la única que puede quedar a medio crear; una vacía que llegó a
+  guardarse es una decisión del autor.
+- ~~**La paleta de símbolos no hace nada sin una región en edición**, y no lo indica: 70
+  botones que parecen rotos.~~ **Hecho:** sin edición se deshabilita entera y lo dice.
 - **El aviso de «bloques más altos que una A4» no dice cuáles.** `usePaginacion` ya calcula
   la lista de ids; solo falta resaltarlos.
 - **Si el corte de página cae en el pie**, la línea no se dibuja (se busca por id de región
@@ -150,15 +218,134 @@ De fondo: la estructura del documento no debería estar codificada en un caráct
   enlace al DOM.~~ **Hecho.** Ahora hay una sola implementación, `descargarHoja` de
   `canvas-handoff.ts`, que añade el enlace al documento y revoca en el turno siguiente; la
   usan el botón «Exportar» del canvas y el «Descargar .json» de los módulos de diseño.
-- **`importJson` no tiene `.catch`**: si la lectura del archivo falla, no hay ningún aviso.
-- **`pointercancel` deja el arrastre pegado** (no hay `onPointerCancel` ni
-  `onLostPointerCapture`), y sin `touch-action: none` arrastrar en táctil hace scroll.
+- ~~**`importJson` no tiene `.catch`**: si la lectura del archivo falla, no hay ningún aviso.~~
+  **Hecho**, por el canal de avisos nuevo (una banda que se retira sola) en vez de un `alert`.
+- ~~**`pointercancel` deja el arrastre pegado**~~ en el **tirador de la imagen**: **hecho**. El
+  arrastre de la región ya tenía su red; al tirador se le había olvidado, y un gesto cancelado
+  dejaba el redimensionado vivo, de modo que cualquier paso del ratón por encima sin botón
+  pulsado cambiaba el tamaño. Sigue pendiente el `touch-action: none`: sin él, arrastrar en
+  táctil hace scroll.
 - **Sin guardas de tamaño al leer imágenes**: se hace `readAsDataURL` y se descodifica la
   imagen entera *antes* de mirar `file.size`. Una foto de móvil de 50 MB se materializa en
   memoria antes de reescalarla. Los SVG entran sin límite ni reescalado.
-- **Multiselección casi inútil**: solo sirve para borrar y para el salto de página. No hay
-  mover en grupo, alinear, distribuir, duplicar ni selección por rectángulo.
+- **Multiselección**: ya hay marco, arrastre en grupo, copiar/cortar/pegar y duplicar.
+  Alinear y distribuir **mueren con el cambio de modelo**: no significan nada en una lista.
 - **No se puede copiar texto del canvas**: `select-none` está en la raíz de cada región
   (lo necesita el arrastre), así que un resultado calculado no se puede copiar a un informe.
 - **Diálogos nativos bloqueantes** (`confirm`/`alert`) en siete sitios; al soltar un lote de
   archivos puede salir un `alert` por cada uno que falle.
+
+## 8. De la auditoría del 2026-09-09
+
+Lo que se arregló ese día está repartido por los puntos de arriba y en el historial: el
+`Ctrl+X` que borraba sin copiar, las regiones vacías, el `localStorage` ilegible, el
+deshacer inmediato al borrar, la caja de arrastre de 680 px, el `ErrorBoundary` compartido,
+el bucle que colgaba la pestaña, el escape de los esquemas y el teclado.
+
+Lo que **no** se tocó:
+
+### Sin red de tests, y con reglas que nadie comprueba
+
+No hay un solo archivo de test, no hay ESLint instalado —pese a que `MathCanvas.tsx` lleva
+dos `// eslint-disable-next-line react-hooks/exhaustive-deps` que no verifica nadie— y el
+`build` solo corre `tsc --noEmit`. Los dos verificadores cubren el motor, que es lo que más
+importa; **de la capa de interfaz no comprueba nada nada.** Las pruebas de navegador de esta
+sesión se escribieron y se tiraron.
+
+### El deep-link puede pisar lo que se esté escribiendo
+
+`hayTrabajoGuardado()` se evalúa **al montar** y se le pasa congelada a `cargarHoja`. En un
+navegador limpio vale `false`. Si el `fetch` de la planilla tarda —una hoja grande, red
+lenta— y en ese rato el usuario empieza a teclear, al resolver no pregunta nada y reemplaza
+la hoja. `señal.cancelado` solo cubre el desmontaje, no la edición.
+
+### El contrato JSON acepta cosas que no debería
+
+- `esHoja` da por buena `{"regions": []}`, así que pegar eso vacía la hoja con un `confirm`
+  genérico que no dice que lo que viene está vacío. Convendría anunciar el recuento.
+- `sanearRegiones` solo comprueba que `x`/`y` sean finitos: una `y` negativa deja una región
+  que se evalúa y se imprime pero es inalcanzable en el canvas, y una `y` de `1e9` pide un
+  `<div>` de mil millones de píxeles. `w`/`h`/`pageBreak` no se validan.
+- `Math.max(...regions.map(...))` hace *spread* de un array de tamaño arbitrario: un pegado
+  con ~100k regiones revienta con «Maximum call stack size exceeded» dentro del render.
+- Si el navegador desactiva los diálogos («impedir que esta página cree más diálogos»),
+  `confirm` pasa a devolver `false` y los `alert` desaparecen: varios errores se vuelven
+  silenciosos. Quedan `alert`/`confirm` en varios sitios; el canal de avisos nuevo debería
+  absorberlos.
+
+### Cuatro debounces sobre el mismo `regions`, sin coordinar
+
+120 ms la evaluación, 300 ms el autoguardado, 400 ms el historial, 250 ms la paginación. La
+desalineación 300/400 ya se resolvió para el caso grave (ver el punto 2), pero siguen siendo
+cuatro relojes independientes. Y en cada pausa de tecleo se disparan **dos mediciones
+completas** —`usePaginacion` fuerza una relayout del documento de impresión entero mutando
+estilos en línea, y el `ResizeObserver` remide el canvas— más una evaluación de math.js.
+
+### Duplicación que sigue en pie
+
+- `STORAGE_KEY` está centralizada en `hoja-guardada.ts`… y repetida en `ErrorBoundary.tsx`.
+- La descarga de un blob está en `canvas-handoff.ts` y copiada en `ErrorBoundary.tsx`, pese
+  al comentario que explica por qué no debe duplicarse.
+- El comparador de orden de lectura `(a,b) => a.y-b.y || a.x-b.x` vive en **diez** sitios. Es
+  *el* invariante del motor: define el scope compartido. Se unifica con el cambio de modelo.
+- La elección del título («la primera región `text` en orden de lectura») está en
+  `MathCanvas.tsx` y en `WorksheetPrint.tsx`.
+- Tres criterios distintos sobre qué es una hoja válida guardada en `localStorage`.
+
+### Cosas menores localizadas
+
+- **Rutas profundas sin *fallback* de SPA.** `vite dev` y `vite preview` lo sirven, pero un
+  despliegue estático sin `try_files` devuelve 404 en cualquier recarga o enlace compartido
+  — que es justo el caso de uso de los deep-links `?planilla=`.
+- **Exportar pierde el título** (`meta.titulo` no se emite, aunque `cargarHoja` sí lo lee) y
+  el archivo siempre se llama igual. Y exporta las regiones vacías sin filtrar, al revés que
+  el autoguardado.
+- **Si el corte de página cae en el pie**, la marca no se dibuja: se busca por id de región y
+  `__footer` no es una. El contador dice 8 páginas y en la hoja hay 6 líneas.
+- **El textarea de un programa no tiene tope de ancho**: una línea de 400 caracteres pide
+  ~400ch y desborda la hoja.
+- **Deshacer descarta la selección** siempre, así que mover un grupo, verlo mal y reintentar
+  obliga a rehacer la selección. Solo hace falta limpiarla cuando los ids restaurados no
+  existen.
+- **Dos deep-links a la vez** (`?plantilla=…&planilla=…`) disparan dos cargas y dos
+  confirmaciones, y la segunda pisa a la primera.
+- **`ones(20000, 20000)` agota la memoria** dentro de math.js, y eso no es un error que se
+  pueda atrapar. No es propio del `for`: una región `math` con esa expresión hace lo mismo.
+
+### Dos que parecen algo y no lo son (2026-09-09)
+
+- **La clase `app-screen`** (`MathCanvas.tsx`, el `div` raíz) **no está definida en ninguna
+  hoja de estilos.** Solo aparece en el bundle compilado. Es inerte: la altura la da `h-full`.
+  Tiene toda la pinta de ser significativa, y no lo es.
+- **El comentario de `insertRegion` apuntaba a un `avanzarPunto`** que reajustaría el punto de
+  inserción con el alto ya medido del bloque. **Esa función nunca existió.** El comentario está
+  corregido; lo que describía sigue sin hacerse, y por eso el punto de inserción reserva un
+  hueco fijo (48 px, u 80 para un programa) en vez del alto real.
+
+## 9. De la sesión del 2026-09-09 (segunda tanda)
+
+**Los avisos dejaron de empujar el lienzo.** Eran cinco franjas hermanas de la fila de
+trabajo, que es la única con `flex-1`: cada una que se montaba le robaba alto al visor y el
+papel daba un salto — y la del acuse lo hacía dos veces, al entrar y al salir. Ahora flotan
+sobre el visor, arriba a la derecha, donde no tapan nada porque el papel ocupa los primeros
+680 px de un lienzo de 1600. Medido: el primer bloque se queda en el mismo píxel al aparecer
+y al retirarse el aviso.
+
+El cuadro «Pegar JSON» **no** se movió, a propósito: lo abre el usuario, y que el visor se
+acorte mientras está abierto es esperable, al revés que un aviso que sale solo.
+
+**Enter abre una línea de espacio.** Con el punto de inserción fijado, Enter mete un
+espaciador y baja lo que haya debajo. Un espaciador es una región de texto vacía —lo que el
+corpus ya usaba— que ahora ocupa 16 px, un paso de la cuadrícula, **en la hoja y en el papel**:
+`WorksheetPrint` dejó de descartar las vacías de tipo texto. Las `math` y `program` vacías se
+siguen descartando: esas no son un hueco, son un bloque a medio escribir.
+
+Coste medido en el corpus: las 39 regiones vacías pasan de ocupar cero a ocupar 16 px, y eso
+suma **2 páginas sobre 287** (`mensula-puntal-tensor` 10→11 y `zapata-aislada` 8→9). Ninguna
+planilla sin regiones vacías cambió de paginación, que es la comprobación que descarta otra
+causa. Y de 1.900 bloques medidos en cinco planillas, los únicos que cambiaron de alto son las
+propias regiones vacías.
+
+**Lo que queda pendiente de esto:** un espaciador solo se ve al pasar el cursor por encima (el
+anillo de `hover`); no hay ninguna marca permanente que diga «aquí hay un hueco deliberado».
+En una hoja con varios seguidos cuesta saber cuántos son sin seleccionarlos.
