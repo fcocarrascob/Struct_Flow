@@ -16,8 +16,11 @@ npm run dev              # servidor de desarrollo
 npm run build            # tsc --noEmit && vite build
 npm run verify:planillas # evalúa las 33 planillas de public/planillas/
 npm run verify:planilla -- <archivo.json> [--md]
-npm run verify:modulos   # evalúa los módulos de diseño y sus memorias exportadas
+npm run verify:modulos   # evalúa los módulos de diseño (TS y declarativos) y sus memorias exportadas
 npm run verify:motor     # casos de regresión del motor: hojas mínimas con su resultado
+npm run verify:biblioteca          # el contrato de genérica y los casos de public/biblioteca/
+npm run indice:planillas           # regenera los dos índices (lo corren dev y build)
+npm run render:planilla -- <json> --pdf <salida>
 ```
 
 **No hay tests unitarios.** La red de seguridad son los tres verificadores.
@@ -299,3 +302,32 @@ Tres cosas de la verificación que conviene saber:
 - `npm run render:planilla -- <json> --pdf <salida>` imprime el mismo papel que el
   canvas (`render-html.ts` emite las clases de `BloqueDoc.tsx`; `papel.css` es la hoja
   de estilos compartida) y se niega si la planilla no verifica.
+
+## Biblioteca
+
+Este repo es la **biblioteca canónica de planillas genéricas** de Struct_Harness, que lo
+declara como herramienta hermana en su `_herramientas.json`. Tres clases de hoja:
+
+| Clase | Dónde | Qué es |
+|---|---|---|
+| `generica` | `public/biblioteca/<disciplina>/<slug>.json` | Hoja reutilizable con entradas `in_<nombre>`, salidas `u_max` · `gobierna` · `v_global`, normas por clave y casos. Cero `c_*`, cero `esperadoFalso` |
+| `ejemplo` | `public/planillas/` | Las 33 del blog. Corpus de prueba del motor |
+| `instancia` | en los proyectos del harness, nunca aquí | Una genérica con sus entradas reescritas y `meta.origen` (slug, sha256, commit) |
+
+- **La fuente de verdad de una genérica es su JSON**, editado aquí. `npm run
+  verify:biblioteca` exige el contrato, evalúa cada caso instanciado y compara sus ✗ con
+  igualdad exacta. Los ✗ de un caso se registran corriendo (`--casos-escribir`), no a mano.
+- `scripts/indice-planillas.mjs` escribe `public/planillas-indice.json` (todo, para la
+  aplicación) y `public/biblioteca-indice.json` (solo genéricas, con su sha256: el harness
+  lo lee para instanciar y para detectar que una instancia quedó atrás).
+- **Una genérica promovible es un módulo de diseño sin código** (`src/lib/diseno/declarativo.ts`):
+  `/diseno/<slug>` arma el formulario del `meta`, evalúa la hoja con `instanciarRegiones`
+  —la misma operación que `harness.planilla instanciar`— y exporta una **instancia
+  estampada** (`clase`, `origen` con el sha256 del archivo y `VITE_COMMIT`). No se re-colocan
+  sus regiones: la memoria exportada es, región por región, la instancia del harness.
+  `verify:modulos` los cubre junto a los TS.
+- **El harness sella el motor.** Cada commit que toca `src/lib` o `scripts` cambia el hash
+  de árbol que su lint (E13) compara; tras el commit, en Struct_Harness:
+  `python -m harness.herramientas --sellar struct_flow` y un commit `[harness]`.
+- `public/biblioteca/README.md` guarda la doctrina (familia base de columna, fronteras,
+  pendientes, incluida la unificación de zapata/losa).
