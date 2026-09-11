@@ -17,6 +17,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { Item } from '../worksheet-layout';
+import type { MetaPlanilla } from '../biblioteca/contrato';
 
 /** Una opción de un selector, cuando el número por sí solo no dice nada. */
 export interface OpcionCampo {
@@ -145,10 +146,14 @@ export interface ModuloDiseno<E extends Entradas = Entradas> {
   resumen: string;
   disciplina: string;
   norma: string;
-  /** Ruta bajo `/esquemas/`; es lo único que `renderEsquema` acepta incrustar. */
-  esquema: string;
-  anchoEsquema: number;
-  altoEsquema: number;
+  /**
+   * Ruta bajo `/esquemas/`; es lo único que `renderEsquema` acepta incrustar.
+   * Los módulos escritos en TS la llevan siempre (`verify:modulos` lo exige);
+   * uno declarativo, solo si la genérica trae una figura paramétrica.
+   */
+  esquema?: string;
+  anchoEsquema?: number;
+  altoEsquema?: number;
   entradas: CampoDef[];
   porDefecto: E;
   salidas: SalidaDef[];
@@ -170,4 +175,13 @@ export interface ModuloDiseno<E extends Entradas = Entradas> {
    * existe para evitar.
    */
   contraste?: ContrasteDef<E> | ContrasteDef<E>[];
+  /**
+   * El módulo sale de una genérica de la biblioteca y no de un archivo TS (ver
+   * `declarativo.ts`). Cambia tres cosas: `construirHoja` devuelve las regiones
+   * ya colocadas de la genérica, el scope final lo captura un centinela y no la
+   * figura, y la memoria se exporta como instancia estampada.
+   */
+  declarativo?: boolean;
+  /** Solo declarativos: la genérica de la que sale, con el sha256 de su archivo. */
+  biblioteca?: { slug: string; sha256: string; meta: MetaPlanilla };
 }

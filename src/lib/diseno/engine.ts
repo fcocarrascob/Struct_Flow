@@ -12,6 +12,7 @@
 
 export { MODULOS, moduloPorId } from './registro';
 export { evaluarModulo, hojaDeModulo } from './evaluar';
+export { moduloDeBiblioteca, metaDeInstancia } from './declarativo';
 export { layout } from '../worksheet-layout';
 export { verificarSimbolos } from '../canvas-handoff';
 export { evaluateSheet } from '../worksheet';

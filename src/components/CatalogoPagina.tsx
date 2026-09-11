@@ -11,28 +11,40 @@ function textoBuscable(e: EntradaIndice): string {
 function Tarjeta({ e }: { e: EntradaIndice }) {
   const { nombre, detalle } = partirTitulo(e.titulo);
   const generica = e.clase === 'generica';
+  // En una genérica el resumen dice qué resuelve; el matiz del título, cómo.
+  const bajada = generica ? e.resumen ?? detalle : detalle;
   return (
-    <Enlace
-      a={{ vista: 'canvas' }}
-      busqueda={`?planilla=${e.slug}`}
-      title={e.titulo}
-      className="group flex h-full flex-col rounded border border-border bg-white p-3 no-underline hover:border-accent"
-    >
-      <span className="text-xs font-medium text-ink group-hover:text-accent">{nombre}</span>
-      {/* En una genérica el resumen dice qué resuelve; el matiz del título, cómo. */}
-      {(generica ? e.resumen ?? detalle : detalle) && (
-        <span className="mt-1 line-clamp-3 text-[11px] leading-snug text-muted">
-          {generica ? e.resumen ?? detalle : detalle}
+    // Dos enlaces hermanos y no uno dentro de otro: un <a> anidado es HTML
+    // inválido y el navegador lo saca fuera de la tarjeta.
+    <div className="flex h-full flex-col rounded border border-border bg-white hover:border-accent">
+      <Enlace
+        a={{ vista: 'canvas' }}
+        busqueda={`?planilla=${e.slug}`}
+        title={e.titulo}
+        className="group flex flex-1 flex-col p-3 no-underline"
+      >
+        <span className="text-xs font-medium text-ink group-hover:text-accent">{nombre}</span>
+        {bajada && (
+          <span className="mt-1 line-clamp-3 text-[11px] leading-snug text-muted">{bajada}</span>
+        )}
+        {generica && e.normas?.length > 0 && (
+          <span className="mt-1.5 font-mono text-[10px] text-ink/70">{e.normas.join(' · ')}</span>
+        )}
+        <span className="mt-2 font-mono text-[10px] text-muted">
+          {e.slug} · {e.regiones} bloques
+          {generica && ` · ${e.entradas} entradas`}
         </span>
+      </Enlace>
+      {e.promovible && (
+        <Enlace
+          a={{ vista: 'modulo', id: e.slug }}
+          title="Abrir como módulo de diseño: formulario, resultados en vivo y memoria exportable"
+          className="border-t border-border px-3 py-1.5 text-[11px] font-medium text-accent no-underline hover:bg-accent/5"
+        >
+          Diseñar →
+        </Enlace>
       )}
-      {generica && e.normas?.length > 0 && (
-        <span className="mt-1.5 font-mono text-[10px] text-ink/70">{e.normas.join(' · ')}</span>
-      )}
-      <span className="mt-2 font-mono text-[10px] text-muted">
-        {e.slug} · {e.regiones} bloques
-        {generica && ` · ${e.entradas} entradas`}
-      </span>
-    </Enlace>
+    </div>
   );
 }
 

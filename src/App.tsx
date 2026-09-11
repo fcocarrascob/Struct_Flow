@@ -4,7 +4,7 @@ import Landing from './components/Landing';
 import CatalogoPagina from './components/CatalogoPagina';
 import IndiceDiseno from './components/diseno/IndiceDiseno';
 import PaginaDiseno from './components/diseno/PaginaDiseno';
-import Enlace from './components/Enlace';
+import ModuloBiblioteca from './components/diseno/ModuloBiblioteca';
 import { useRuta } from './components/useRuta';
 import Calibrar from './components/dev/Calibrar';
 import { moduloPorId } from './lib/diseno/registro';
@@ -69,12 +69,13 @@ export default function App() {
         </ErrorBoundary>
       );
 
+    // Primero los módulos TS del registro; si no hay, una genérica promovible
+    // de la biblioteca (módulo declarativo, se descarga al abrirlo).
     case 'modulo': {
       const modulo = moduloPorId(ruta.id);
-      if (!modulo) return <NoEncontrado id={ruta.id} />;
       return (
         <ErrorBoundary key={`modulo:${ruta.id}`}>
-          <PaginaDiseno modulo={modulo} />
+          {modulo ? <PaginaDiseno modulo={modulo} /> : <ModuloBiblioteca id={ruta.id} />}
         </ErrorBoundary>
       );
     }
@@ -85,20 +86,5 @@ export default function App() {
     <ErrorBoundary key="inicio">
       <Landing />
     </ErrorBoundary>
-  );
-}
-
-function NoEncontrado({ id }: { id: string }) {
-  return (
-    <main className="mx-auto w-full max-w-2xl px-4 py-16">
-      <h1 className="text-xl font-semibold text-ink">No hay ningún módulo «{id}»</h1>
-      <p className="mt-2 text-sm text-muted">
-        Puede que el enlace sea de una versión anterior.{' '}
-        <Enlace a={{ vista: 'diseno' }} className="text-accent hover:underline">
-          Ver los módulos disponibles
-        </Enlace>
-        .
-      </p>
-    </main>
   );
 }

@@ -29,7 +29,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { cargarModulosDiseno, ROOT } from './lib/motor.mjs';
+import { cargarModulosDiseno, cargarModulosBiblioteca, ROOT } from './lib/motor.mjs';
 
 // Un solo bundle: motor y módulos comparten instancia de mathjs. Ver el
 // comentario de `src/lib/diseno/engine.ts`.
@@ -43,10 +43,16 @@ const {
   ESQUEMAS_PREFIX,
 } = await cargarModulosDiseno();
 
-const filtro = process.argv.slice(2);
-const modulos = filtro.length ? MODULOS.filter((m) => filtro.includes(m.id)) : MODULOS;
+// Los declarativos: uno por genérica promovible de `public/biblioteca/`. Salen
+// del mismo bundle (`moduloDeBiblioteca` vive en engine.ts), así que comparten
+// la instancia de mathjs con los TS.
+const biblioteca = await cargarModulosBiblioteca();
+const todos = [...MODULOS, ...biblioteca.modulos];
 
-if (modulos.length === 0) {
+const filtro = process.argv.slice(2);
+const modulos = filtro.length ? todos.filter((m) => filtro.includes(m.id)) : todos;
+
+if (modulos.length === 0 && biblioteca.fallas.length === 0) {
   console.error(
     filtro.length
       ? `No hay ningún módulo con id ${filtro.join(', ')}.`
@@ -65,13 +71,53 @@ function leerEsquema(src) {
 const fallidos = [];
 const exportadas = await mkdtemp(path.join(tmpdir(), 'structflow-export-'));
 
+// Una genérica que no arma módulo (contrato roto) es un fallo del verificador.
+for (const { archivo, error } of biblioteca.fallas) {
+  const rel = path.relative(ROOT, archivo);
+  fallidos.push(`${rel} no arma módulo`);
+  console.log(`\n[ERROR] ${rel}: no arma módulo declarativo — ${error}`);
+}
+
+/** Ids de las regiones en ✗, ordenados: lo que se compara con `esperadoFalso`. */
+function falsosDe(ev) {
+  return ev.regions
+    .filter((r) => ev.results[r.id]?.bool === false)
+    .map((r) => r.id)
+    .sort();
+}
+
 for (const modulo of modulos) {
-  console.log(`\n${modulo.titulo}  ·  /diseno/${modulo.id}`);
+  console.log(
+    `\n${modulo.titulo}  ·  /diseno/${modulo.id}${modulo.declarativo ? '  ·  declarativo' : ''}`,
+  );
   console.log(
     `${modulo.norma} · ${modulo.entradas.length} entradas · ${modulo.salidas.length} salidas`,
   );
 
-  for (const caso of modulo.casos) {
+  // Un declarativo abre con `porDefecto`, que es el ejemplo de referencia de la
+  // genérica: tiene que cerrar en verde y sin un solo ✗. Si no, el formulario
+  // arrancaría mostrando un NO CUMPLE que la biblioteca dice que no existe.
+  if (modulo.declarativo) {
+    const problemas = [];
+    try {
+      const ev = evaluarModulo(modulo, modulo.porDefecto);
+      for (const e of ev.errores) problemas.push(`región ${e.id} «${primeraLinea(e.src)}»: ${e.error}`);
+      if (ev.scope.v_global !== true) problemas.push(`v_global dio ${ev.scope.v_global}, y el ejemplo de referencia cumple`);
+      const falsos = falsosDe(ev);
+      if (falsos.length) problemas.push(`el ejemplo de referencia trae ✗: ${falsos.join(', ')}`);
+    } catch (err) {
+      problemas.push(err.message);
+    }
+    if (problemas.length) {
+      fallidos.push(`${modulo.id} / ejemplo de referencia`);
+      console.log('  [ERROR] ejemplo de referencia (porDefecto)');
+      for (const p of problemas) console.log(`          ${p}`);
+    } else {
+      console.log('  [ OK  ] ejemplo de referencia (porDefecto) — v_global ✓, sin ✗');
+    }
+  }
+
+  for (const [i, caso] of modulo.casos.entries()) {
     const problemas = [];
     let resumen = '';
 
@@ -83,7 +129,25 @@ for (const modulo of modulos) {
         problemas.push(`región ${e.id} «${primeraLinea(e.src)}»: ${e.error}`);
       }
 
-      if (!ev.figura || !String(ev.figura.src).startsWith(ESQUEMAS_PREFIX)) {
+      // El caso de la genérica dice qué tiene que dar: `cumple` y, con igualdad
+      // exacta, qué veredictos salen ✗. Lo mismo que exige verify:biblioteca,
+      // pero ahora sobre la hoja que arma el módulo y no sobre el archivo.
+      const esperado = modulo.declarativo ? modulo.biblioteca.meta.casos?.[i] : null;
+      if (esperado) {
+        if (ev.scope.v_global !== esperado.cumple) {
+          problemas.push(`v_global dio ${ev.scope.v_global} y el caso de la genérica declara cumple=${esperado.cumple}`);
+        }
+        const falsos = falsosDe(ev);
+        const declarados = [...(esperado.esperadoFalso ?? [])].sort();
+        if (JSON.stringify(falsos) !== JSON.stringify(declarados)) {
+          problemas.push(`los ✗ son [${falsos.join(', ')}] y el caso declara [${declarados.join(', ')}]`);
+        }
+      }
+
+      if (modulo.declarativo && !modulo.esquema) {
+        // Sin figura paramétrica en la genérica no hay esquema que comprobar.
+        resumen = 'sin esquema';
+      } else if (!ev.figura || !String(ev.figura.src).startsWith(ESQUEMAS_PREFIX)) {
         problemas.push(`la hoja no emite ninguna figura bajo ${ESQUEMAS_PREFIX}`);
       } else {
         if (ev.figura.src !== modulo.esquema) {

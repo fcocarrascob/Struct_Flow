@@ -37,6 +37,8 @@ function Tarjeta({
 export default function Landing() {
   const { indice } = useIndice();
   const continuar = hayTrabajoGuardado();
+  // Los módulos TS más las genéricas promovibles, que son módulos sin código.
+  const nModulos = MODULOS.length + (indice ?? []).filter((e) => e.promovible).length;
 
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-12">
@@ -72,7 +74,7 @@ export default function Landing() {
         <Tarjeta
           a={{ vista: 'diseno' }}
           titulo="Diseño de elementos"
-          cuenta={`${MODULOS.length} ${MODULOS.length === 1 ? 'módulo' : 'módulos'}`}
+          cuenta={`${nModulos} ${nModulos === 1 ? 'módulo' : 'módulos'}`}
         >
           Ingresa los parámetros y mira cómo se redibuja el elemento y cómo se mueven los factores
           de utilización. Cuando cuadre, exporta la memoria con el esquema dentro.
