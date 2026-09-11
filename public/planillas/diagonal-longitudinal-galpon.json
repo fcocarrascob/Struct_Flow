@@ -6,7 +6,10 @@
     "esperadoFalso": {
       "c_local_muro": "ES EL HALLAZGO DEL POST: la diagonal de muro de 100x100x4 pasa la esbeltez global (95,6 % del limite) y falla el pandeo local sismico por 22 %. Se resuelve con la iteracion a 5 mm (§6) o por la exencion (§5), que aca SI abre.",
       "c_puntal_a572": "Deliberado: muestra que cambiar el A36 por un A572 Gr. 50 —un acero MEJOR— deja al puntal fuera del lambda_md, porque el limite de la Tabla 9 va con Ry*Fy en el denominador. Con el A36 del proyecto el puntal SI cumple (ver c_local_puntal)."
-    }
+    },
+    "clase": "ejemplo",
+    "slug": "diagonal-longitudinal-galpon",
+    "disciplina": "acero"
   },
   "regions": [
     {

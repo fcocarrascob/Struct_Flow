@@ -6,7 +6,10 @@
     "esperadoFalso": {
       "v_wnote": "el atajo tabulado del User Note (0,62 t_p) queda 1,6 % del lado inseguro frente al cálculo explícito: es un hallazgo del ejemplo, no un defecto",
       "v_plena": "a capacidad plena (T_ye) el área efectiva requerida supera el área BRUTA del tubo: es el contraste que justifica la vía de 8.4.1"
-    }
+    },
+    "clase": "ejemplo",
+    "slug": "gusset-apice-chevron",
+    "disciplina": "acero"
   },
   "regions": [
     {

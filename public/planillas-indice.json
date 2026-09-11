@@ -1,203 +1,537 @@
 {
-  "version": 1,
+  "version": 2,
   "planillas": [
     {
       "slug": "anclajes-pedestal",
       "titulo": "Grupo de anclajes de una placa base en pedestal — el Cap. 17 de ACI 318-25 (edición SI)",
+      "clase": "ejemplo",
       "disciplina": "hormigon",
-      "regiones": 298
+      "ruta": "/planillas/anclajes-pedestal.json",
+      "regiones": 298,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "e9745d88337dd7a65755858c6f5c1f4895184b4ceab35bcaa4fe23294acb0d4f"
     },
     {
       "slug": "chevron-nch2369",
       "titulo": "El paño en V invertida: la viga que el análisis elástico no ve — el desequilibrio de 8.6.6, sus dos techos, y la diagonal que la ductilidad dimensiona (NCh2369:2025 8.3.1/8.6, Tabla 9)",
+      "clase": "ejemplo",
       "disciplina": "acero",
-      "regiones": 308
+      "ruta": "/planillas/chevron-nch2369.json",
+      "regiones": 308,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "136f707cd93440f43eae260f3269de335ff7000110718d4eb771023eb9da50a3"
     },
     {
       "slug": "columna-galpon-compresion",
       "titulo": "Columna de galpón a compresión — la longitud efectiva pesa más que el radio de giro: gobierna el eje fuerte (AISC 360-22 E2/E3/E4, Tabla B4.1a)",
+      "clase": "ejemplo",
       "disciplina": "acero",
-      "regiones": 158
+      "ruta": "/planillas/columna-galpon-compresion.json",
+      "regiones": 158,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "77c19716d7766786858b650a2913fee3954b93a8a1852ac421652577bcd213f7"
     },
     {
       "slug": "columna-interaccion-esbeltez",
       "titulo": "Columna de hormigón a flexocompresión — el diagrama P–M barrido, el φ variable con el tope de 21.2.2.3, y la esbeltez (ACI 318-25)",
+      "clase": "ejemplo",
       "disciplina": "hormigon",
-      "regiones": 266
+      "ruta": "/planillas/columna-interaccion-esbeltez.json",
+      "regiones": 266,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "ecdc96d54a33a38eb7c757828f624f17236cb14028b9e7fe9da05a989a9dc69a"
     },
     {
       "slug": "conexion-apernada-corte",
       "titulo": "Conexión apernada a corte (shear tab) — la cadena la gobierna la plancha y al perno lo gobierna la excentricidad (AISC 360-22 J3/J4)",
+      "clase": "ejemplo",
       "disciplina": "acero",
-      "regiones": 181
+      "ruta": "/planillas/conexion-apernada-corte.json",
+      "regiones": 181,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "6e209d2400ba8d1cd55ad33914a405847dd6f11dfec5faae538654f3532d1cb0"
     },
     {
       "slug": "conexion-doble-angulo",
       "titulo": "Conexión de corte: doble ángulo vs. shear tab — duplicar el plano de corte y el elemento, y qué queda escondido en la excentricidad (AISC 360-22 J3/J4)",
+      "clase": "ejemplo",
       "disciplina": "acero",
-      "regiones": 241
+      "ruta": "/planillas/conexion-doble-angulo.json",
+      "regiones": 241,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "f9a41b5f3b734b8645cd5f7a1b46ab7b2f1eacf3dee8207878f9e7f8212fe917"
     },
     {
       "slug": "conexion-momento-end-plate",
       "titulo": "Conexión de momento con placa de extremo extendida 4E — el momento se hace par y el efecto palanca mete el espesor de la placa en la resistencia de los pernos (AISC 360-22 J2, J3.7, J4, J10 + Manual Parte 9)",
+      "clase": "ejemplo",
       "disciplina": "acero",
-      "regiones": 169
+      "ruta": "/planillas/conexion-momento-end-plate.json",
+      "regiones": 169,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "f4e585ddbde69fd6c2d3a7b7c3a5ceb29cb9885b75ca940c5e594b1e42becd50"
     },
     {
       "slug": "conexion-momento-placas-ala",
       "titulo": "Conexión de momento con placas de ala (BFP) — la conexión pasa con usos 0.49–0.76 y la columna no: flexión local del ala 1.43, fluencia del alma 1.12 y zona panel 1.07 con el término axial de J10-10 (AISC 360-22 J3.7, J4, F13.1, J10)",
+      "clase": "ejemplo",
       "disciplina": "acero",
-      "regiones": 184
+      "ruta": "/planillas/conexion-momento-placas-ala.json",
+      "regiones": 184,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "324cfa5d7d3c86643da0d3a0a1c4e5e591ad41f9f98e1103cf0b6422652a8c3d"
     },
     {
       "slug": "diagonal-hss-traccion",
       "titulo": "Diagonal HSS en los dos sentidos: tracción y compresión por AISC 360-22 (D2, D3.1 Caso 5, E3) y la capa sismorresistente de NCh2369:2025 (8.6.3, 8.6.4, 8.6.8)",
+      "clase": "ejemplo",
       "disciplina": "acero",
-      "regiones": 283
+      "ruta": "/planillas/diagonal-hss-traccion.json",
+      "regiones": 283,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "130edb7d4fad0da7dc8e5f4bb89baa74c5529ef2bbfc3595f9e99febe43ae09c"
     },
     {
       "slug": "diagonal-longitudinal-galpon",
       "titulo": "Diagonales y puntal del galpón del altiplano — NCh2369:2025 8.6.3 / 8.8.4 / 12.2.2 + AISC 360-22",
+      "clase": "ejemplo",
       "disciplina": "acero",
-      "regiones": 112
+      "ruta": "/planillas/diagonal-longitudinal-galpon.json",
+      "regiones": 112,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "4820ac3293d22238abbcff1e34cf621da71cfe0447e2bf984c687c0b9e3b901b"
     },
     {
       "slug": "ejemplo-analisis-sismico-cepa-nch2369",
       "titulo": "Del corte modal al R₁ — la cadena §5.1.2 → §5.2.2 → Ec. (1a/1b) → banda §5.12–§5.13 → Ec. (14), y la deriva del Note final (NCh2369:2025)",
+      "clase": "ejemplo",
       "disciplina": "apuntes",
-      "regiones": 97
+      "ruta": "/planillas/ejemplo-analisis-sismico-cepa-nch2369.json",
+      "regiones": 97,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "ad7cebcd447ca0d94ad4bf3892a27227199319bfaddc03e6cb04845e522152fd"
     },
     {
       "slug": "ejemplo-torre-deformaciones-nch2369",
       "titulo": "La deriva que dimensiona — §6.1 a §6.4 sobre la torre mixta, y la cepa a mano (NCh2369:2025)",
+      "clase": "ejemplo",
       "disciplina": "apuntes",
-      "regiones": 82
+      "ruta": "/planillas/ejemplo-torre-deformaciones-nch2369.json",
+      "regiones": 82,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "57d5579d88f304081ed6c55eec1484656540cfcd1186a163f179249df3e4d172"
     },
     {
       "slug": "ejemplo-torre-sismica-nch2369",
       "titulo": "La torre mixta: mismo R de tabla, un R₁ por cada dirección — la cadena §5.1.2 → Ec. (1b) → banda §5.12–§5.13 → Ec. (14) (NCh2369:2025)",
+      "clase": "ejemplo",
       "disciplina": "apuntes",
-      "regiones": 59
+      "ruta": "/planillas/ejemplo-torre-sismica-nch2369.json",
+      "regiones": 59,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "154a55617352960882caea1b8325de9ac0aa61e8f544a7a449fa240574427f3c"
     },
     {
       "slug": "empalme-apernado-viga",
       "titulo": "Empalme apernado de viga — el empalme copia las fuerzas, no la sección; y pretensar no agrega resistencia, agrega una verificación (AISC 360-22 J3/J4/J6/F13)",
+      "clase": "ejemplo",
       "disciplina": "acero",
-      "regiones": 272
+      "ruta": "/planillas/empalme-apernado-viga.json",
+      "regiones": 272,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "2d7c6321d89f641e8d7fe14031ecea9d79a467c2840fc376fc44b83595626288"
     },
     {
       "slug": "galpon-altiplano-cargas-combinaciones",
       "titulo": "Estados y combinaciones del galpón del altiplano — NCh 3171 §9 y NCh 2369 §4.5",
+      "clase": "ejemplo",
       "disciplina": "apuntes",
-      "regiones": 68
+      "ruta": "/planillas/galpon-altiplano-cargas-combinaciones.json",
+      "regiones": 68,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "68289e5811aa32cd248899081c23ea105e03ff5a51e810f97948c9b9da4b575b"
     },
     {
       "slug": "galpon-altiplano-sismico-nch2369",
       "titulo": "El sísmico del galpón del altiplano — las dos rutas de la Tabla 7, NCh 2369:2025",
+      "clase": "ejemplo",
       "disciplina": "apuntes",
-      "regiones": 102
+      "ruta": "/planillas/galpon-altiplano-sismico-nch2369.json",
+      "regiones": 102,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "188e40ece0ce128c5a3bb3a4bdc5e38cfc3dcc17c4eda2efc0741bb655ec9548"
     },
     {
       "slug": "galpon-altiplano-viento-sitio-nch432",
       "titulo": "El sitio del galpón del altiplano — K_zt, K_e y el q_h por NCh 432:2025",
+      "clase": "ejemplo",
       "disciplina": "apuntes",
-      "regiones": 74
+      "ruta": "/planillas/galpon-altiplano-viento-sitio-nch432.json",
+      "regiones": 74,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "a6ce38fd7ac71f7ba6911ea2cf5abc37a6233902286716c44c80a2d4f658c0c5"
     },
     {
       "slug": "gusset-apice-chevron",
       "titulo": "Gusset del ápice de un paño en V invertida — diseño a capacidad (NCh2369 8.4.1 / 8.6.6 / 8.6.8)",
+      "clase": "ejemplo",
       "disciplina": "acero",
-      "regiones": 215
+      "ruta": "/planillas/gusset-apice-chevron.json",
+      "regiones": 215,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "65d7a7aa071056fce736b413f5b8eea977f9e62857b3ab0b1dd4b166ac4c8ad3"
     },
     {
       "slug": "gusset-esquina-apernado",
       "titulo": "Gusset apernado de esquina — el reparto entre viga y columna es indeterminado (NCh2369 8.4.1 + UFM derivado)",
+      "clase": "ejemplo",
       "disciplina": "acero",
-      "regiones": 284
+      "ruta": "/planillas/gusset-esquina-apernado.json",
+      "regiones": 284,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "0a46ea51066428c771c0d19464bcc558353b6a4c5523c43df59085d71e9b71d5"
     },
     {
       "slug": "gusset-simple-apernado",
       "titulo": "Gusset de un solo borde, apernado — dos anchos efectivos para la misma plancha y gobierna la compresión (NCh2369 8.4.1/8.6.8 + AISC 360-22)",
+      "clase": "ejemplo",
       "disciplina": "acero",
-      "regiones": 175
+      "ruta": "/planillas/gusset-simple-apernado.json",
+      "regiones": 175,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "537b245281cfaf48a64d4b92d61fc394eb0cddf63d6ce58a21d2880667c4149e"
     },
     {
       "slug": "gusset-simple-soldado",
       "titulo": "Gusset de un solo borde, soldado — el cordón abre la banda de Whitmore y el eslabón débil se muda al tubo (NCh2369 8.4.1/8.6.8 + AISC 360-22)",
+      "clase": "ejemplo",
       "disciplina": "acero",
-      "regiones": 154
+      "ruta": "/planillas/gusset-simple-soldado.json",
+      "regiones": 154,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "a47beb1cdfad994a781deb06361276c874af264eed8e61646744685ab8865c17"
     },
     {
       "slug": "losa-punzonamiento-momento",
       "titulo": "Losa plana: punzonamiento con momento desbalanceado — el marco resuelto en la hoja, la rampa y las dos salidas (ACI 318-25)",
+      "clase": "ejemplo",
       "disciplina": "hormigon",
-      "regiones": 454
+      "ruta": "/planillas/losa-punzonamiento-momento.json",
+      "regiones": 454,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "f1060676299326f46d7fe7a633da1d28e0075709f350dcb1d168cde101e7bdaf"
     },
     {
       "slug": "losa-unidireccional",
       "titulo": "Losa unidireccional continua — el marco elástico resuelto en la hoja y el espesor que lo fija el servicio (ACI 318-25)",
+      "clase": "ejemplo",
       "disciplina": "hormigon",
-      "regiones": 601
+      "ruta": "/planillas/losa-unidireccional.json",
+      "regiones": 601,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "7dbfb046ca3ea9772c65e0c8d555e8194ac5d1e23ffabb49c2078dc28bcb1e09"
     },
     {
       "slug": "mensula-puntal-tensor",
       "titulo": "Ménsula corta por puntal-tensor — el Cap. 23 con los cerrojos del Cap. 16 de ACI 318-25",
+      "clase": "ejemplo",
       "disciplina": "hormigon",
-      "regiones": 320
+      "ruta": "/planillas/mensula-puntal-tensor.json",
+      "regiones": 320,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "f3d30bfead5262320a149f6bb6bc2aa9fe12bf149e9de3195591f1796ab59d0c"
     },
     {
       "slug": "muro-flexocompresion",
       "titulo": "Muro de corte a flexocompresión con elementos de borde — la frontera P–M barrida, el corte amplificado por Ω_v·ω_v y las tres verificaciones de 18.10.6 (ACI 318-25)",
+      "clase": "ejemplo",
       "disciplina": "hormigon",
-      "regiones": 646
+      "ruta": "/planillas/muro-flexocompresion.json",
+      "regiones": 646,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "a7e9564c7db498597ac280a51ffb1fe9dffedd0f2c52c06554ffbea2c02a846b"
     },
     {
       "slug": "pedestal-anclaje-nch2369",
       "titulo": "El pedestal según NCh2369:2025 — 8.5 (anclajes) y 9.5 (pedestales)",
+      "clase": "ejemplo",
       "disciplina": "hormigon",
-      "regiones": 489
+      "ruta": "/planillas/pedestal-anclaje-nch2369.json",
+      "regiones": 489,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "9b928692c69f4bb0e35ffb63ddf8953b4d0a9d9bd175c612555dcd1e0eeb8a73"
     },
     {
       "slug": "placa-base-rigidez-rotacional",
       "titulo": "Rigidez rotacional de una base expuesta — las cuatro deformaciones de la Ec. C-5 y por qué la base del ejemplo no es ni empotrada ni rotulada (AISC Design Guide 1, 3.ª ed., Apéndice C)",
+      "clase": "ejemplo",
       "disciplina": "acero",
-      "regiones": 187
+      "ruta": "/planillas/placa-base-rigidez-rotacional.json",
+      "regiones": 187,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "5bd9640a162d8feb78247ef1b83ff3cb161667c0d04fc39615bfc035bdf980ff"
     },
     {
       "slug": "viga-carrilera-puente-grua",
       "titulo": "Viga carrilera de puente grúa 20 t — sección combinada W610×155 + canal C310×45 (AISC 360-22 Caps. F/G/H/J10 y Apéndice 3, cargas ASCE 7 §4.9, servicio AIST TR13)",
+      "clase": "ejemplo",
       "disciplina": "acero",
-      "regiones": 394
+      "ruta": "/planillas/viga-carrilera-puente-grua.json",
+      "regiones": 394,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "52ae94ef16a6d258a632d1075e0650da64328485246c354851bbc6eb63810682"
     },
     {
       "slug": "viga-columna",
       "titulo": "Viga-columna de fachada W250×58 — compresión y flexión combinadas: el presupuesto H1-1a y el momento amplificado B_1 (AISC 360-22 Cap. H, Cap. E, Cap. F, Apéndice 8)",
+      "clase": "ejemplo",
       "disciplina": "acero",
-      "regiones": 324
+      "ruta": "/planillas/viga-columna.json",
+      "regiones": 324,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "e7e3a28457915cf9b68cf6deae6977bb86990f9dafb3b050265b9102e77c60cc"
     },
     {
       "slug": "viga-flexion-corte",
       "titulo": "Viga de hormigón armado a flexión y corte — el Cap. 9 completo, con los coeficientes de la edición SI de ACI 318-25",
+      "clase": "ejemplo",
       "disciplina": "hormigon",
-      "regiones": 218
+      "ruta": "/planillas/viga-flexion-corte.json",
+      "regiones": 218,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "55adbc2eb720912d84a0c9ad89e03a495635ce954e8b00174a950d999ea7e5b0"
     },
     {
       "slug": "viga-hss-flexion",
       "titulo": "Viga de tubo HSS rectangular en flexión — el ancho de pared es el que diseña (AISC 360-22 F7, G4, Tabla B4.1b casos 17 y 19, B4.2)",
+      "clase": "ejemplo",
       "disciplina": "acero",
-      "regiones": 518
+      "ruta": "/planillas/viga-hss-flexion.json",
+      "regiones": 518,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "1057bc85dfd7cb47ed134037598a62550a167defc7f1c4080f5b6ffc4afed293"
     },
     {
       "slug": "viga-ltb",
       "titulo": "Viga laminada con pandeo lateral-torsional — la misma viga falla con L_b = 8 m y sobra con L_b = 4 m (AISC 360-22 F1/F2, Tabla B4.1b)",
+      "clase": "ejemplo",
       "disciplina": "acero",
-      "regiones": 189
+      "ruta": "/planillas/viga-ltb.json",
+      "regiones": 189,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "ed0f58a80222824957752e119ec96a9e97c2a7d528b6fe78a39afa629b45b974"
     },
     {
       "slug": "zapata-aislada",
       "titulo": "Zapata aislada bajo columna — el canto, el piso de 22.5.5.1.1 y los coeficientes de la edición SI (ACI 318-25)",
+      "clase": "ejemplo",
       "disciplina": "hormigon",
-      "regiones": 255
+      "ruta": "/planillas/zapata-aislada.json",
+      "regiones": 255,
+      "normas": [],
+      "entradas": 0,
+      "salidas": 0,
+      "promovible": false,
+      "sha256": "a391fee0fad8cff7cba39c5b37915c6741973c64502aa1ccd0c5bc007b2f57e5"
+    },
+    {
+      "slug": "llave-corte-generica",
+      "titulo": "Llave de corte bajo placa base — los siete estados límite, una chapa por dirección o dos paralelas",
+      "clase": "generica",
+      "disciplina": "acero",
+      "ruta": "/biblioteca/acero/llave-corte-generica.json",
+      "regiones": 174,
+      "normas": [
+        "US/AISC-DG1-3ed",
+        "US/ACI318-25-SI",
+        "US/AISC360-22"
+      ],
+      "entradas": 27,
+      "salidas": 29,
+      "promovible": true,
+      "sha256": "c4298d6db8e7ef75b47a6b5f89b99a89a4732df9b07e4e050371f748613b25ad",
+      "resumen": "Llave de corte soldada bajo la placa: aplastamiento del hormigón, breakout, flexión de la chapa, soldadura y flexión local de la placa, en las dos direcciones. Una chapa por dirección o dos paralelas desplazadas."
+    },
+    {
+      "slug": "placa-base-generica",
+      "titulo": "Placa base de columna con gran excentricidad — aplastamiento, equilibrio, pernos y espesor",
+      "clase": "generica",
+      "disciplina": "acero",
+      "ruta": "/biblioteca/acero/placa-base-generica.json",
+      "regiones": 109,
+      "normas": [
+        "US/AISC-DG1-3ed",
+        "US/AISC360-22",
+        "US/ACI318-25-SI"
+      ],
+      "entradas": 26,
+      "salidas": 16,
+      "promovible": true,
+      "sha256": "efb4b113633eb0d73e3bd5e304a178c55ceb472b73c5f5789728ea1a663e3686",
+      "resumen": "Placa lisa o rigidizada (hay_nervios) bajo columna con momento: aplastamiento en bloque, equilibrio iterativo, grupo de pernos y espesor de chapa. Entrega T_grupo e Yb_comp al resto de la base de columna."
+    },
+    {
+      "slug": "silla-anclaje-generica",
+      "titulo": "Silla de anclaje — el camino de carga completo: perno, chapa superior, nervios, ala (o ala extendida) y alma",
+      "clase": "generica",
+      "disciplina": "acero",
+      "ruta": "/biblioteca/acero/silla-anclaje-generica.json",
+      "regiones": 145,
+      "normas": [
+        "AR/CIRSOC-301-2018",
+        "US/AISC360-22"
+      ],
+      "entradas": 31,
+      "salidas": 21,
+      "promovible": true,
+      "sha256": "d238170734e49d47a6286628bf146b3b12954ad96140af2df78b54bc55d4103f",
+      "resumen": "Silla de anclaje de una placa base rigidizada: chapa superior, nervios, soldadura en L, extensión de ala y las tres condiciones geométricas del rigidizador. Recibe T_grupo e Yb_comp de placa-base-generica."
+    },
+    {
+      "slug": "viga-carrilera-generica",
+      "titulo": "Viga carrilera de puente grúa con canal-tapa — flexión biaxial, corte, fuerzas concentradas del rodado, deflexiones y fatiga",
+      "clase": "generica",
+      "disciplina": "acero",
+      "ruta": "/biblioteca/acero/viga-carrilera-generica.json",
+      "regiones": 236,
+      "normas": [
+        "US/AISC360-22"
+      ],
+      "entradas": 37,
+      "salidas": 29,
+      "promovible": true,
+      "sha256": "f3461a06560057ca9952913d7c268350ae3579c5e037594ff97e9361f6339709",
+      "resumen": "Viga de alma llena con canal-tapa bajo un puente grúa: sección compuesta, flexión por §F4, corte, alma bajo la rueda (§J10), interacción H1, deflexiones y fatiga del Apéndice 3."
+    },
+    {
+      "slug": "pedestal-generico",
+      "titulo": "Pedestal de hormigón armado — cuantías, extremos del diagrama P–M, corte, estribos y armadura de anclaje contable",
+      "clase": "generica",
+      "disciplina": "hormigon",
+      "ruta": "/biblioteca/hormigon/pedestal-generico.json",
+      "regiones": 129,
+      "normas": [
+        "US/ACI318-25-SI",
+        "AR/CIRSOC-103-P2-2005"
+      ],
+      "entradas": 27,
+      "salidas": 25,
+      "promovible": true,
+      "sha256": "f2cdeef6ab21c723a0f9448f391e2b58d55335efcc742a2ee2ebd74299cd2269",
+      "resumen": "Pedestal rectangular bajo placa base: cuantías, los tres extremos del diagrama P–M y puntos intermedios como dato, corte en las dos direcciones, estribos y la armadura de anclaje que puede contarse. Recibe T_grupo de placa-base-generica."
+    },
+    {
+      "slug": "zapata-generica",
+      "titulo": "Zapata rectangular aislada — flexión, corte en una dirección y punzonamiento, con reparto en banda",
+      "clase": "generica",
+      "disciplina": "hormigon",
+      "ruta": "/biblioteca/hormigon/zapata-generica.json",
+      "regiones": 153,
+      "normas": [
+        "US/ACI318-25-SI",
+        "AR/CIRSOC-103-P2-2005"
+      ],
+      "entradas": 22,
+      "salidas": 20,
+      "promovible": true,
+      "sha256": "dc0f8dbca3f33d6bc65bbd8d2aeaa6e372a900edd5c3f97bc6702e7e391d3364",
+      "resumen": "Zapata rectangular bajo pedestal con esfuerzos mayorados como dato: flexión con reparto en banda (§13.3.3.3), corte en una dirección en los dos sentidos, punzonamiento con momento, armadura superior por levantamiento y detallado en magnitudes continuas."
     }
   ]
 }

@@ -2,7 +2,10 @@
   "version": 1,
   "meta": {
     "titulo": "Rigidez rotacional de una base expuesta — las cuatro deformaciones de la Ec. C-5 y por qué la base del ejemplo no es ni empotrada ni rotulada (AISC Design Guide 1, 3.ª ed., Apéndice C)",
-    "ficha": "struct_pad/src/content/acero/placas-base-empotrada-o-rotulada.mdx"
+    "ficha": "struct_pad/src/content/acero/placas-base-empotrada-o-rotulada.mdx",
+    "clase": "ejemplo",
+    "slug": "placa-base-rigidez-rotacional",
+    "disciplina": "acero"
   },
   "regions": [
     {

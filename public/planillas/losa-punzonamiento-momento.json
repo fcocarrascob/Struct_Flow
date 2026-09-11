@@ -3,7 +3,10 @@
   "meta": {
     "titulo": "Losa plana: punzonamiento con momento desbalanceado — el marco resuelto en la hoja, la rampa y las dos salidas (ACI 318-25)",
     "ficha": "struct_pad/src/content/hormigon/ejemplo-losa-punzonamiento-momento.mdx",
-    "esperadoFalso": {}
+    "esperadoFalso": {},
+    "clase": "ejemplo",
+    "slug": "losa-punzonamiento-momento",
+    "disciplina": "hormigon"
   },
   "regions": [
     {

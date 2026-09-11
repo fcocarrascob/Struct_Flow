@@ -5,7 +5,10 @@
   "ficha": "struct_pad/src/content/acero/ejemplo-viga-ltb.mdx",
   "esperadoFalso": {
    "v_pasaA": "TESIS DEL EJEMPLO: con L_b = 8 m la viga NO pasa (uso 1,05). Es el punto del post — el LTB se lleva el 64 % de la capacidad de una seccion que sobra."
-  }
+  },
+  "clase": "ejemplo",
+  "slug": "viga-ltb",
+  "disciplina": "acero"
  },
  "regions": [
   {

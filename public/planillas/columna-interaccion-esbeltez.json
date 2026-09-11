@@ -15,7 +15,10 @@
    "c_RdM2": "HALLAZGO 2026-08-02: φM_n = 40,08 tonf·m para C2 contra 41,4. La causa principal es 21.2.2.3, que acota el φ de la Tabla 21.2.2 y en C2 lo baja de 0,90 a 0,874; sin ese tope y con los datos del post la planilla da 41,30.",
    "c_u2": "HALLAZGO 2026-08-02: el uso de C2 sube a 0,70 (0,68 publicado) al aplicar 21.2.2.3. La tesis del post no se toca: C2 queda MÁS cerca de la frontera, no menos.",
    "v007": "25.7.2.3(b): con 3 barras por cara en 50 cm la barra central queda a 162,5 mm libres de la de esquina, sobre los 150 mm, así que pide traba. El post declara la sección admisible mirando solo el mínimo de 4 barras de 10.7.3.1. HALLAZGO 2026-08-02: además el 0,80 de la Tabla 22.4.2.1(a) cuelga de 22.4.2.4, que remite a 25.7.2."
-  }
+  },
+  "clase": "ejemplo",
+  "slug": "columna-interaccion-esbeltez",
+  "disciplina": "hormigon"
  },
  "regions": [
   {

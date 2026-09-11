@@ -1,0 +1,1120 @@
+{
+ "version": 1,
+ "meta": {
+  "titulo": "Placa base de columna con gran excentricidad — aplastamiento, equilibrio, pernos y espesor",
+  "entradas": [
+   {
+    "nombre": "M_trac",
+    "etiqueta": "Momento de la combinación que más tracciona",
+    "unidad": "kN*m",
+    "grupo": "Solicitaciones mayoradas"
+   },
+   {
+    "nombre": "P_trac",
+    "etiqueta": "Axial concurrente (compresión positiva)",
+    "unidad": "kN",
+    "grupo": "Solicitaciones mayoradas",
+    "ayuda": "Negativo cuando tracciona la columna: es el caso que más tracciona el grupo"
+   },
+   {
+    "nombre": "M_comp",
+    "etiqueta": "Momento de la combinación que más aplasta",
+    "unidad": "kN*m",
+    "grupo": "Solicitaciones mayoradas"
+   },
+   {
+    "nombre": "P_comp",
+    "etiqueta": "Axial concurrente de compresión",
+    "unidad": "kN",
+    "grupo": "Solicitaciones mayoradas"
+   },
+   {
+    "nombre": "L_bp",
+    "etiqueta": "Lado de la placa en la dirección de la flexión",
+    "unidad": "m",
+    "grupo": "Geometría de la placa y la columna",
+    "min": 0.3,
+    "max": 3,
+    "paso": 0.05
+   },
+   {
+    "nombre": "B_bp",
+    "etiqueta": "Lado perpendicular de la placa",
+    "unidad": "m",
+    "grupo": "Geometría de la placa y la columna",
+    "min": 0.3,
+    "max": 3,
+    "paso": 0.05
+   },
+   {
+    "nombre": "t_bp",
+    "etiqueta": "Espesor de la placa",
+    "unidad": "mm",
+    "grupo": "Geometría de la placa y la columna",
+    "min": 10,
+    "max": 120,
+    "paso": 1
+   },
+   {
+    "nombre": "d_col",
+    "etiqueta": "Canto de la columna en la dirección de la flexión",
+    "unidad": "m",
+    "grupo": "Geometría de la placa y la columna"
+   },
+   {
+    "nombre": "PED_L",
+    "etiqueta": "Pedestal, lado paralelo a L_bp",
+    "unidad": "m",
+    "grupo": "Pedestal de apoyo",
+    "ayuda": "De los lados del pedestal sale el confinamiento raíz(A2/A1) del §J8"
+   },
+   {
+    "nombre": "PED_B",
+    "etiqueta": "Pedestal, lado paralelo a B_bp",
+    "unidad": "m",
+    "grupo": "Pedestal de apoyo"
+   },
+   {
+    "nombre": "n_col",
+    "etiqueta": "Pernos por fila",
+    "grupo": "Grupo de pernos",
+    "min": 2,
+    "max": 12,
+    "paso": 1
+   },
+   {
+    "nombre": "y_t",
+    "etiqueta": "Distancia de la fila traccionada al centro de la placa",
+    "unidad": "m",
+    "grupo": "Grupo de pernos"
+   },
+   {
+    "nombre": "x_ext",
+    "etiqueta": "Perno más alejado del centro, en la dirección perpendicular",
+    "unidad": "mm",
+    "grupo": "Grupo de pernos"
+   },
+   {
+    "nombre": "d_perno",
+    "etiqueta": "Diámetro nominal del perno",
+    "unidad": "mm",
+    "grupo": "Grupo de pernos"
+   },
+   {
+    "nombre": "Ase_perno",
+    "etiqueta": "Área efectiva a tracción por perno",
+    "unidad": "mm^2",
+    "grupo": "Grupo de pernos"
+   },
+   {
+    "nombre": "holgura",
+    "etiqueta": "Holgura del hueco sobre el diámetro nominal",
+    "unidad": "mm",
+    "grupo": "Grupo de pernos",
+    "ayuda": "Los huecos de la fila caen dentro del bloque comprimido cuando el momento invierte y hay que descontarlos"
+   },
+   {
+    "nombre": "hay_nervios",
+    "etiqueta": "Rigidización de la placa",
+    "grupo": "Rigidización de la placa",
+    "opciones": [
+     {
+      "valor": 0,
+      "etiqueta": "placa lisa"
+     },
+     {
+      "valor": 1,
+      "etiqueta": "silla de anclaje con nervios"
+     }
+    ]
+   },
+   {
+    "nombre": "sep_nerv",
+    "etiqueta": "Separación libre entre nervios",
+    "unidad": "mm",
+    "grupo": "Rigidización de la placa",
+    "ayuda": "Con placa lisa no se usa"
+   },
+   {
+    "nombre": "x_nerv_ext",
+    "etiqueta": "Cara externa del nervio de borde, desde el centro",
+    "unidad": "mm",
+    "grupo": "Rigidización de la placa",
+    "ayuda": "Con placa lisa no se usa"
+   },
+   {
+    "nombre": "Fy_ac",
+    "etiqueta": "Fluencia del acero de la placa",
+    "unidad": "MPa",
+    "grupo": "Materiales"
+   },
+   {
+    "nombre": "fpc",
+    "etiqueta": "f'c del hormigón del pedestal",
+    "unidad": "MPa",
+    "grupo": "Materiales"
+   },
+   {
+    "nombre": "futa",
+    "etiqueta": "Resistencia última a tracción del perno de anclaje",
+    "unidad": "MPa",
+    "grupo": "Materiales"
+   },
+   {
+    "nombre": "phi_b",
+    "etiqueta": "φ flexión de la chapa (AISC 360 §F1)",
+    "grupo": "Factores de resistencia"
+   },
+   {
+    "nombre": "phi_brg",
+    "etiqueta": "φ aplastamiento sobre hormigón (§J8)",
+    "grupo": "Factores de resistencia"
+   },
+   {
+    "nombre": "phi_sa",
+    "etiqueta": "φ acero del anclaje en tracción (ACI Tabla 17.5.3(a), anclaje dúctil)",
+    "grupo": "Factores de resistencia"
+   },
+   {
+    "nombre": "beta",
+    "etiqueta": "Coeficiente de placa β",
+    "grupo": "Coeficiente de placa beta",
+    "ayuda": "FRONTERA: entra medido por elementos finitos o de tabla de placas con la condición de borde declarada. La hoja chequea 0,0479 ≤ β ≤ 0,125"
+   }
+  ],
+  "slug": "placa-base-generica",
+  "clase": "generica",
+  "disciplina": "acero",
+  "resumen": "Placa lisa o rigidizada (hay_nervios) bajo columna con momento: aplastamiento en bloque, equilibrio iterativo, grupo de pernos y espesor de chapa. Entrega T_grupo e Yb_comp al resto de la base de columna.",
+  "normas": [
+   {
+    "clave": "US/AISC-DG1-3ed",
+    "rol": "procedimiento",
+    "articulos": [
+     "§4.3.7",
+     "§4.3.3"
+    ]
+   },
+   {
+    "clave": "US/AISC360-22",
+    "rol": "resistencia",
+    "articulos": [
+     "§J8",
+     "§J4.5",
+     "§F1"
+    ]
+   },
+   {
+    "clave": "US/ACI318-25-SI",
+    "rol": "anclaje",
+    "articulos": [
+     "§17.6.1",
+     "Tabla 17.5.3(a)"
+    ]
+   }
+  ],
+  "salidas": [
+   {
+    "nombre": "u_max",
+    "etiqueta": "Uso máximo",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "gobierna",
+    "etiqueta": "Estado límite que gobierna",
+    "tipo": "texto"
+   },
+   {
+    "nombre": "u_pernos",
+    "etiqueta": "Pernos en tracción",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_espesor",
+    "etiqueta": "Espesor por flexión de aplastamiento",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "T_grupo",
+    "etiqueta": "Tracción del grupo (entrega)",
+    "unidad": "kN",
+    "tipo": "valor"
+   },
+   {
+    "nombre": "Yb_comp",
+    "etiqueta": "Largo del bloque comprimido (entrega)",
+    "unidad": "mm",
+    "tipo": "valor"
+   },
+   {
+    "nombre": "t_req",
+    "etiqueta": "Espesor requerido de la chapa",
+    "unidad": "mm",
+    "tipo": "valor"
+   },
+   {
+    "nombre": "f_p",
+    "etiqueta": "Presión de aplastamiento admisible",
+    "unidad": "kPa",
+    "tipo": "valor"
+   },
+   {
+    "nombre": "v_global",
+    "etiqueta": "u_max ≤ 1",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_pernos",
+    "etiqueta": "Área de pernos provista ≥ requerida",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_espesor",
+    "etiqueta": "t_bp ≥ t_req",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_ancho",
+    "etiqueta": "B_bp ≥ ancho que pide el grupo",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_bloque",
+    "etiqueta": "El bloque comprimido cabe en el voladizo",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "El bloque comprimido excede el voladizo: el modelo de bloque de la DG1 §4.3.7 no aplica"
+   },
+   {
+    "nombre": "v_beta_inf",
+    "etiqueta": "β ≥ 0,0479",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "β por debajo del extremo de placa cuadrada: dato mal tomado"
+   },
+   {
+    "nombre": "v_beta_sup",
+    "etiqueta": "β ≤ 0,125",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "β por encima del extremo de viga: dato mal tomado"
+   },
+   {
+    "nombre": "v_conf_no_topa",
+    "etiqueta": "Confinamiento √(A2/A1) < 2",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "El confinamiento llega al tope 2,0 del §J8: manda el tope y no la geometría del pedestal"
+   }
+  ],
+  "fronteras": [
+   "β, el coeficiente de placa: entra medido por elementos finitos o de tabla, con la condición de borde declarada. La hoja sí comprueba que caiga entre 0,0479 y 0,125",
+   "La silla de anclaje (chapa superior, nervios, soldaduras): silla-anclaje-generica. Aquí solo entra la separación entre nervios",
+   "La llave de corte: llave-corte-generica. Cuando hay llave, el espesor de la placa lo suele fijar ella (t_bp ≥ t_sl, DG1 §4.3.3); el adoptado es el mayor de los dos"
+  ],
+  "hipotesis": [
+   "Placa rectangular sobre pedestal de hormigón",
+   "Una fila de pernos por lado, a un lado y otro del eje de flexión",
+   "Gran excentricidad: hay tracción en el grupo. Con excentricidad pequeña el equilibrio devuelve T = 0 y el resto sigue valiendo",
+   "Aplastamiento uniforme en bloque rectangular",
+   "Compresión positiva en el axial de la columna"
+  ],
+  "entrega": {
+   "T_grupo": [
+    "silla-anclaje-generica",
+    "pedestal-generico"
+   ],
+   "Yb_comp": [
+    "llave-corte-generica",
+    "silla-anclaje-generica"
+   ]
+  },
+  "casos": [
+   {
+    "nombre": "ejemplo de referencia",
+    "entradas": {},
+    "cumple": true
+   },
+   {
+    "nombre": "chapa de 20 mm: gobierna el espesor",
+    "entradas": {
+     "t_bp": 20
+    },
+    "cumple": false,
+    "esperadoFalso": [
+     "v_espesor",
+     "v_global"
+    ]
+   }
+  ]
+ },
+ "regions": [
+  {
+   "id": "r001",
+   "kind": "text",
+   "x": 40,
+   "y": 32,
+   "src": "PLANTILLA REUTILIZABLE. Todo lo editable esta en los siete bloques DATOS;\ndebajo no hay ningun numero de proyecto, solo ecuaciones de norma."
+  },
+  {
+   "id": "r002",
+   "kind": "text",
+   "x": 40,
+   "y": 104,
+   "src": "FRONTERA: la hoja NO calcula beta, NO dimensiona la silla de anclaje y NO\ndimensiona la llave de corte. Cuando hay llave, el espesor de la placa lo\nsuele fijar ELLA —regla t_bp >= t_sl de la DG1 §4.3.3 y flexion local de su\nexcentricidad—, no la flexion por aplastamiento que se calcula aqui."
+  },
+  {
+   "id": "r003",
+   "kind": "text",
+   "x": 40,
+   "y": 220,
+   "src": "CONVENCION DE SIGNO: compresion POSITIVA en el axial de la columna. La hoja\nacepta axial negativo, que es el caso que mas tracciona el grupo."
+  },
+  {
+   "id": "r004",
+   "kind": "text",
+   "x": 40,
+   "y": 292,
+   "src": "HIPOTESIS: placa rectangular sobre pedestal · UNA fila de pernos por lado ·\naplastamiento uniforme en bloque rectangular. Con excentricidad pequena el\nequilibrio devuelve T = 0 y el resto de la hoja sigue valiendo."
+  },
+  {
+   "id": "r005",
+   "kind": "text",
+   "x": 40,
+   "y": 386,
+   "src": "━━ DATOS · SOLICITACIONES MAYORADAS ━━"
+  },
+  {
+   "id": "r006",
+   "kind": "text",
+   "x": 40,
+   "y": 432,
+   "src": "Dos combinaciones distintas suelen gobernar: la que mas TRACCIONA el grupo\n—momento alto con axial baja o negativa— y la que mas APLASTA el hormigon\n—momento alto con axial de compresion—. No tienen por que ser la misma"
+  },
+  {
+   "id": "in_M_trac",
+   "kind": "math",
+   "x": 40,
+   "y": 526,
+   "src": "M_trac := 4353.7 kN*m"
+  },
+  {
+   "id": "in_P_trac",
+   "kind": "math",
+   "x": 40,
+   "y": 572,
+   "src": "P_trac := -320.8 kN"
+  },
+  {
+   "id": "in_M_comp",
+   "kind": "math",
+   "x": 40,
+   "y": 618,
+   "src": "M_comp := 4859.1 kN*m"
+  },
+  {
+   "id": "in_P_comp",
+   "kind": "math",
+   "x": 40,
+   "y": 664,
+   "src": "P_comp := 1269.4 kN"
+  },
+  {
+   "id": "r011",
+   "kind": "text",
+   "x": 40,
+   "y": 710,
+   "src": "━━ DATOS · GEOMETRIA DE LA PLACA Y LA COLUMNA ━━"
+  },
+  {
+   "id": "r012",
+   "kind": "text",
+   "x": 40,
+   "y": 756,
+   "src": "L_bp es el lado en la direccion de la flexion; B_bp el perpendicular.\nd_col es el canto de la columna en la direccion de la flexion"
+  },
+  {
+   "id": "in_L_bp",
+   "kind": "math",
+   "x": 40,
+   "y": 828,
+   "src": "L_bp := 1.700 m"
+  },
+  {
+   "id": "in_B_bp",
+   "kind": "math",
+   "x": 40,
+   "y": 874,
+   "src": "B_bp := 0.950 m"
+  },
+  {
+   "id": "in_t_bp",
+   "kind": "math",
+   "x": 40,
+   "y": 920,
+   "src": "t_bp := 45 mm"
+  },
+  {
+   "id": "in_d_col",
+   "kind": "math",
+   "x": 40,
+   "y": 966,
+   "src": "d_col := 1.000 m"
+  },
+  {
+   "id": "r017",
+   "kind": "text",
+   "x": 40,
+   "y": 1012,
+   "src": "━━ DATOS · PEDESTAL DE APOYO ━━"
+  },
+  {
+   "id": "r018",
+   "kind": "text",
+   "x": 40,
+   "y": 1058,
+   "src": "Lados del pedestal, en el mismo orden que los de la placa. De ellos sale el\nconfinamiento raiz(A2/A1) del §J8"
+  },
+  {
+   "id": "in_PED_L",
+   "kind": "math",
+   "x": 40,
+   "y": 1130,
+   "src": "PED_L := 1.950 m"
+  },
+  {
+   "id": "in_PED_B",
+   "kind": "math",
+   "x": 40,
+   "y": 1176,
+   "src": "PED_B := 1.500 m"
+  },
+  {
+   "id": "r021",
+   "kind": "text",
+   "x": 40,
+   "y": 1222,
+   "src": "━━ DATOS · GRUPO DE PERNOS ━━"
+  },
+  {
+   "id": "r022",
+   "kind": "text",
+   "x": 40,
+   "y": 1268,
+   "src": "y_t es la distancia del eje de la fila traccionada al centro de la placa.\nx_ext es la del perno mas alejado al centro, en la direccion perpendicular"
+  },
+  {
+   "id": "in_n_col",
+   "kind": "math",
+   "x": 40,
+   "y": 1340,
+   "src": "n_col := 5"
+  },
+  {
+   "id": "in_y_t",
+   "kind": "math",
+   "x": 40,
+   "y": 1386,
+   "src": "y_t := 0.767 m"
+  },
+  {
+   "id": "in_x_ext",
+   "kind": "math",
+   "x": 40,
+   "y": 1432,
+   "src": "x_ext := 384 mm"
+  },
+  {
+   "id": "in_d_perno",
+   "kind": "math",
+   "x": 40,
+   "y": 1478,
+   "src": "d_perno := 48 mm"
+  },
+  {
+   "id": "in_Ase_perno",
+   "kind": "math",
+   "x": 40,
+   "y": 1524,
+   "src": "Ase_perno := 1473 mm^2"
+  },
+  {
+   "id": "r028",
+   "kind": "text",
+   "x": 40,
+   "y": 1570,
+   "src": "Holgura del hueco sobre el diametro nominal. Los huecos de la fila caen\ndentro del bloque comprimido cuando el momento invierte y hay que descontarlos"
+  },
+  {
+   "id": "in_holgura",
+   "kind": "math",
+   "x": 40,
+   "y": 1642,
+   "src": "holgura := 12 mm"
+  },
+  {
+   "id": "r030",
+   "kind": "text",
+   "x": 40,
+   "y": 1688,
+   "src": "━━ DATOS · RIGIDIZACION DE LA PLACA ━━"
+  },
+  {
+   "id": "r031",
+   "kind": "text",
+   "x": 40,
+   "y": 1734,
+   "src": "hay_nervios := 1 con silla de anclaje y nervios; := 0 con placa lisa.\nsep_nerv es la separacion libre entre nervios y x_nerv_ext la posicion de la\ncara externa del nervio de borde, desde el centro. Con placa lisa no se usan"
+  },
+  {
+   "id": "in_hay_nervios",
+   "kind": "math",
+   "x": 40,
+   "y": 1828,
+   "src": "hay_nervios := 1"
+  },
+  {
+   "id": "in_sep_nerv",
+   "kind": "math",
+   "x": 40,
+   "y": 1874,
+   "src": "sep_nerv := 192 mm"
+  },
+  {
+   "id": "in_x_nerv_ext",
+   "kind": "math",
+   "x": 40,
+   "y": 1920,
+   "src": "x_nerv_ext := 460 mm"
+  },
+  {
+   "id": "r035",
+   "kind": "text",
+   "x": 40,
+   "y": 1966,
+   "src": "━━ DATOS · MATERIALES ━━"
+  },
+  {
+   "id": "in_Fy_ac",
+   "kind": "math",
+   "x": 40,
+   "y": 2012,
+   "src": "Fy_ac := 248.2 MPa"
+  },
+  {
+   "id": "in_fpc",
+   "kind": "math",
+   "x": 40,
+   "y": 2058,
+   "src": "fpc := 30 MPa"
+  },
+  {
+   "id": "r038",
+   "kind": "text",
+   "x": 40,
+   "y": 2104,
+   "src": "futa del perno de anclaje: resistencia ultima a traccion del material"
+  },
+  {
+   "id": "in_futa",
+   "kind": "math",
+   "x": 40,
+   "y": 2150,
+   "src": "futa := 862 MPa"
+  },
+  {
+   "id": "r040",
+   "kind": "text",
+   "x": 40,
+   "y": 2196,
+   "src": "━━ DATOS · FACTORES DE RESISTENCIA ━━"
+  },
+  {
+   "id": "r041",
+   "kind": "text",
+   "x": 40,
+   "y": 2242,
+   "src": "phi_b: flexion de la chapa, AISC 360 §F1 · phi_brg: aplastamiento sobre\nhormigon, §J8 · phi_sa: acero del anclaje en traccion, ACI Tabla 17.5.3(a)\npara anclaje ductil. Poner los de la norma del proyecto si difieren"
+  },
+  {
+   "id": "in_phi_b",
+   "kind": "math",
+   "x": 40,
+   "y": 2336,
+   "src": "phi_b := 0.90"
+  },
+  {
+   "id": "in_phi_brg",
+   "kind": "math",
+   "x": 40,
+   "y": 2382,
+   "src": "phi_brg := 0.65"
+  },
+  {
+   "id": "in_phi_sa",
+   "kind": "math",
+   "x": 40,
+   "y": 2428,
+   "src": "phi_sa := 0.75"
+  },
+  {
+   "id": "r045",
+   "kind": "text",
+   "x": 40,
+   "y": 2474,
+   "src": "━━ DATOS · COEFICIENTE DE PLACA beta ━━"
+  },
+  {
+   "id": "r046",
+   "kind": "text",
+   "x": 40,
+   "y": 2520,
+   "src": "FRONTERA: entra como dato con su procedencia, no lo calcula la hoja. El\nvalor de abajo se MIDIO por elementos finitos con la malla validada contra\nla serie de Navier. De tabla de placas tambien es admisible, siempre que se\ndeclare la condicion de borde con que se tabulo"
+  },
+  {
+   "id": "in_beta",
+   "kind": "math",
+   "x": 40,
+   "y": 2636,
+   "src": "beta := 0.0831"
+  },
+  {
+   "id": "r048",
+   "kind": "text",
+   "x": 40,
+   "y": 2682,
+   "src": "━━ 0 — CONTROL DEL DATO beta ━━",
+   "pageBreak": true
+  },
+  {
+   "id": "r049",
+   "kind": "text",
+   "x": 40,
+   "y": 2728,
+   "src": "Los dos extremos conocidos de la solucion de placa rectangular acotan a beta\ncualquiera sea la relacion de lados: 0,0479 en la placa cuadrada y 0,125 en\nla degeneracion en viga. Un beta fuera de ese rango es un dato mal tomado"
+  },
+  {
+   "id": "v_beta_inf",
+   "kind": "math",
+   "x": 40,
+   "y": 2822,
+   "src": "v_beta_inf := beta >= 0.0479 ="
+  },
+  {
+   "id": "v_beta_sup",
+   "kind": "math",
+   "x": 40,
+   "y": 2868,
+   "src": "v_beta_sup := beta <= 0.125 ="
+  },
+  {
+   "id": "r052",
+   "kind": "text",
+   "x": 40,
+   "y": 2914,
+   "src": "━━ 1 — CONFINAMIENTO Y PRESION ADMISIBLE · AISC 360 §J8 ━━"
+  },
+  {
+   "id": "r053",
+   "kind": "text",
+   "x": 40,
+   "y": 2960,
+   "src": "raiz(A2/A1) con A2 semejante y concentrica con A1, acotada por el pedestal.\nEl §J8 la topa en 2,0"
+  },
+  {
+   "id": "r054",
+   "kind": "math",
+   "x": 40,
+   "y": 3032,
+   "src": "conf := min(PED_L/L_bp, PED_B/B_bp, 2.0) ="
+  },
+  {
+   "id": "r055",
+   "kind": "text",
+   "x": 40,
+   "y": 3078,
+   "src": "Si el pedestal desborda tanto que el confinamiento llega al tope, el que\nmanda es el tope y no la geometria: conviene saberlo"
+  },
+  {
+   "id": "v_conf_no_topa",
+   "kind": "math",
+   "x": 40,
+   "y": 3150,
+   "src": "v_conf_no_topa := conf < 2.0 ="
+  },
+  {
+   "id": "r057",
+   "kind": "text",
+   "x": 40,
+   "y": 3196,
+   "src": "[J8-2]  f_p = phi*0,85*f'c*raiz(A2/A1)"
+  },
+  {
+   "id": "r058",
+   "kind": "math",
+   "x": 40,
+   "y": 3242,
+   "src": "f_p := phi_brg*0.85*fpc*conf = kPa"
+  },
+  {
+   "id": "r059",
+   "kind": "text",
+   "x": 40,
+   "y": 3288,
+   "src": "━━ 2 — EQUILIBRIO CON GRAN EXCENTRICIDAD · AISC DG1 §4.3.7 ━━",
+   "pageBreak": true
+  },
+  {
+   "id": "r060",
+   "kind": "math",
+   "x": 40,
+   "y": 3334,
+   "src": "volad := L_bp/2 - d_col/2 = mm"
+  },
+  {
+   "id": "r061",
+   "kind": "math",
+   "x": 40,
+   "y": 3380,
+   "src": "d_hueco := d_perno + holgura = mm"
+  },
+  {
+   "id": "r062",
+   "kind": "math",
+   "x": 40,
+   "y": 3426,
+   "src": "A_hueco := n_col*pi*d_hueco^2/4 = mm^2"
+  },
+  {
+   "id": "r063",
+   "kind": "text",
+   "x": 40,
+   "y": 3472,
+   "src": "El equilibrio es ITERATIVO: la longitud del bloque comprimido depende de la\ncompresion, y la compresion del equilibrio con la traccion. Va como region\nprogram, que es la unica forma de tener control de flujo en la hoja"
+  },
+  {
+   "id": "r064",
+   "kind": "program",
+   "x": 40,
+   "y": 3566,
+   "src": "equilibrio(M_ap, P_ap) :=\n    Mn := abs(M_ap)/(1 kN*m)\n    Pn := P_ap/(1 kN)\n    Lm := L_bp/(1 m)\n    Bm := B_bp/(1 m)\n    ytm := y_t/(1 m)\n    fpm := f_p/(1 kPa)\n    Ah := A_hueco/(1 m^2)\n    Tv := max(0, Mn/ytm - Pn)\n    for k in 1:200\n        Cv := max(Pn + Tv, 1)\n        Yb := Cv/(fpm*Bm)\n        if Lm/2 - ytm <= Yb\n            Yb := (Cv/fpm + Ah)/Bm\n        yc := Lm/2 - Yb/2\n        Tn := (Mn - Pn*yc)/(ytm + yc)\n        if abs(Tn - Tv) < 0.0001\n            Tv := Tn\n            break\n        Tv := Tn\n    return Tv"
+  },
+  {
+   "id": "r065",
+   "kind": "text",
+   "x": 40,
+   "y": 4056,
+   "src": "La traccion del grupo se toma de la combinacion que la gobierna, y el\naplastamiento de la otra: son dos estados distintos de la misma placa"
+  },
+  {
+   "id": "r066",
+   "kind": "math",
+   "x": 40,
+   "y": 4128,
+   "src": "T_grupo := equilibrio(M_trac, P_trac)*(1 kN) = kN"
+  },
+  {
+   "id": "r067",
+   "kind": "math",
+   "x": 40,
+   "y": 4174,
+   "src": "T_c := equilibrio(M_comp, P_comp)*(1 kN) = kN"
+  },
+  {
+   "id": "r068",
+   "kind": "math",
+   "x": 40,
+   "y": 4220,
+   "src": "C_max := T_c + P_comp = kN"
+  },
+  {
+   "id": "r069",
+   "kind": "math",
+   "x": 40,
+   "y": 4266,
+   "src": "Yb_comp := (C_max/f_p + A_hueco)/B_bp = mm"
+  },
+  {
+   "id": "r070",
+   "kind": "text",
+   "x": 40,
+   "y": 4312,
+   "src": "El bloque comprimido tiene que caber en el voladizo. Si no cabe, la placa\nesta cargando donde no tiene apoyo debajo y el modelo de bloque no vale"
+  },
+  {
+   "id": "v_bloque",
+   "kind": "math",
+   "x": 40,
+   "y": 4384,
+   "src": "v_bloque := Yb_comp <= volad ="
+  },
+  {
+   "id": "r072",
+   "kind": "text",
+   "x": 40,
+   "y": 4430,
+   "src": "Excentricidad equivalente, util para reconocer el regimen: si supera L/6 la\nresultante sale del nucleo central y el caso es de gran excentricidad"
+  },
+  {
+   "id": "r073",
+   "kind": "math",
+   "x": 40,
+   "y": 4502,
+   "src": "e_comp := M_comp/(C_max - T_c) = mm"
+  },
+  {
+   "id": "r074",
+   "kind": "text",
+   "x": 40,
+   "y": 4548,
+   "src": "━━ 3 — GRUPO DE PERNOS EN TRACCION · ACI 318-25 §17.6.1 ━━",
+   "pageBreak": true
+  },
+  {
+   "id": "r075",
+   "kind": "text",
+   "x": 40,
+   "y": 4594,
+   "src": "[17.6.1.2]  N_sa = A_se*f_uta. El phi de la Tabla 17.5.3(a) supone anclaje\nDUCTIL: si el perno no lo es, el factor baja y hay que cambiarlo en DATOS"
+  },
+  {
+   "id": "r076",
+   "kind": "math",
+   "x": 40,
+   "y": 4666,
+   "src": "Ase_req := T_grupo/(phi_sa*futa) = mm^2"
+  },
+  {
+   "id": "r077",
+   "kind": "math",
+   "x": 40,
+   "y": 4712,
+   "src": "Ase_prov := n_col*Ase_perno = mm^2"
+  },
+  {
+   "id": "r078",
+   "kind": "math",
+   "x": 40,
+   "y": 4758,
+   "src": "u_pernos := Ase_req/Ase_prov ="
+  },
+  {
+   "id": "r079",
+   "kind": "math",
+   "x": 40,
+   "y": 4804,
+   "src": "P_perno := T_grupo/n_col = kN"
+  },
+  {
+   "id": "v_pernos",
+   "kind": "math",
+   "x": 40,
+   "y": 4850,
+   "src": "v_pernos := Ase_prov >= Ase_req ="
+  },
+  {
+   "id": "r081",
+   "kind": "text",
+   "x": 40,
+   "y": 4896,
+   "src": "Geometria minima del grupo: paso 4*d y borde 1,5*d. Y el grupo entero tiene\nque caber en el ancho de la placa"
+  },
+  {
+   "id": "r082",
+   "kind": "math",
+   "x": 40,
+   "y": 4968,
+   "src": "paso_min := 4*d_perno = mm"
+  },
+  {
+   "id": "r083",
+   "kind": "math",
+   "x": 40,
+   "y": 5014,
+   "src": "borde_min := 1.5*d_perno = mm"
+  },
+  {
+   "id": "r084",
+   "kind": "math",
+   "x": 40,
+   "y": 5060,
+   "src": "ancho_req := 2*(x_ext + borde_min) = mm"
+  },
+  {
+   "id": "v_ancho",
+   "kind": "math",
+   "x": 40,
+   "y": 5106,
+   "src": "v_ancho := B_bp >= ancho_req ="
+  },
+  {
+   "id": "r086",
+   "kind": "text",
+   "x": 40,
+   "y": 5152,
+   "src": "━━ 4 — ESPESOR DE LA CHAPA · AISC 360 §J4.5 ━━",
+   "pageBreak": true
+  },
+  {
+   "id": "r087",
+   "kind": "text",
+   "x": 40,
+   "y": 5198,
+   "src": "Modulo plastico de una franja de ancho unitario Z = t^2/4, de donde\nt = raiz(4*M/(phi*Fy)). Se evaluan las tres formas de trabajar de la chapa"
+  },
+  {
+   "id": "r088",
+   "kind": "text",
+   "x": 40,
+   "y": 5270,
+   "src": "(a) VOLADIZO LIBRE — es la que gobierna la placa lisa"
+  },
+  {
+   "id": "r089",
+   "kind": "math",
+   "x": 40,
+   "y": 5316,
+   "src": "m_libre := f_p*volad^2/2 = kN*m/m"
+  },
+  {
+   "id": "r090",
+   "kind": "math",
+   "x": 40,
+   "y": 5362,
+   "src": "t_libre := sqrt(4*m_libre/(phi_b*Fy_ac)) = mm"
+  },
+  {
+   "id": "r091",
+   "kind": "text",
+   "x": 40,
+   "y": 5408,
+   "src": "(b) PANEL ENTRE NERVIOS — M = beta*f_p*a^2, con a el lado corto del panel"
+  },
+  {
+   "id": "r092",
+   "kind": "math",
+   "x": 40,
+   "y": 5454,
+   "src": "a_corto := min(volad, sep_nerv) = mm"
+  },
+  {
+   "id": "r093",
+   "kind": "math",
+   "x": 40,
+   "y": 5500,
+   "src": "m_panel := beta*f_p*a_corto^2 = kN*m/m"
+  },
+  {
+   "id": "r094",
+   "kind": "math",
+   "x": 40,
+   "y": 5546,
+   "src": "t_panel := sqrt(4*m_panel/(phi_b*Fy_ac)) = mm"
+  },
+  {
+   "id": "r095",
+   "kind": "text",
+   "x": 40,
+   "y": 5592,
+   "src": "(c) ESQUINA EN VOLADIZO desde la cara externa del nervio de borde. Si el\nnervio llega al canto de la placa esta esquina desaparece y da cero"
+  },
+  {
+   "id": "r096",
+   "kind": "math",
+   "x": 40,
+   "y": 5664,
+   "src": "vol_esq := max(B_bp/2 - x_nerv_ext, 0 mm) = mm"
+  },
+  {
+   "id": "r097",
+   "kind": "math",
+   "x": 40,
+   "y": 5710,
+   "src": "m_esq := f_p*vol_esq^2/2 = kN*m/m"
+  },
+  {
+   "id": "r098",
+   "kind": "math",
+   "x": 40,
+   "y": 5756,
+   "src": "t_esq := sqrt(4*m_esq/(phi_b*Fy_ac)) = mm"
+  },
+  {
+   "id": "r099",
+   "kind": "text",
+   "x": 40,
+   "y": 5802,
+   "src": "Con nervios manda el mayor entre panel y esquina; sin nervios, el voladizo\nlibre. La chapa no sabe de tipologias: sabe de cual es su luz"
+  },
+  {
+   "id": "r100",
+   "kind": "program",
+   "x": 40,
+   "y": 5874,
+   "src": "t_req :=\n    if hay_nervios == 1\n        return max(t_panel, t_esq)\n    else\n        return t_libre"
+  },
+  {
+   "id": "v_espesor",
+   "kind": "math",
+   "x": 40,
+   "y": 6012,
+   "src": "v_espesor := t_bp >= t_req ="
+  },
+  {
+   "id": "r102",
+   "kind": "math",
+   "x": 40,
+   "y": 6058,
+   "src": "u_espesor := t_req/t_bp ="
+  },
+  {
+   "id": "r103",
+   "kind": "text",
+   "x": 40,
+   "y": 6104,
+   "src": "Margen sobre el dato beta: hasta que valor se mantiene el espesor adoptado.\nEs la forma de saber si la hoja depende mucho o poco de esa medicion"
+  },
+  {
+   "id": "r104",
+   "kind": "math",
+   "x": 40,
+   "y": 6176,
+   "src": "beta_lim := beta*(t_bp/t_req)^2 ="
+  },
+  {
+   "id": "r105",
+   "kind": "text",
+   "x": 40,
+   "y": 6222,
+   "src": "━━ QUE GOBIERNA ━━"
+  },
+  {
+   "id": "r106",
+   "kind": "math",
+   "x": 40,
+   "y": 6268,
+   "src": "u_max := max(u_pernos, u_espesor) ="
+  },
+  {
+   "id": "r107",
+   "kind": "program",
+   "x": 40,
+   "y": 6314,
+   "src": "gobierna :=\n    if u_max == u_pernos\n        return \"area de los pernos en traccion\"\n    else\n        return \"espesor de la chapa por flexion de aplastamiento\""
+  },
+  {
+   "id": "v_global",
+   "kind": "math",
+   "x": 40,
+   "y": 6452,
+   "src": "v_global := u_max <= 1 ="
+  },
+  {
+   "id": "r109",
+   "kind": "text",
+   "x": 40,
+   "y": 6498,
+   "src": "RECORDATORIO DE FRONTERA: si el proyecto lleva llave de corte, comprobar\naparte que t_bp >= t_sl y la flexion local que la llave induce. Esta hoja no\nlo cubre, y en bases pesadas suele ser lo que fija el espesor."
+  }
+ ]
+}

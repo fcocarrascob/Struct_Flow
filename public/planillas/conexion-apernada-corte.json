@@ -5,7 +5,10 @@
     "ficha": "struct_pad/src/content/acero/ejemplo-conexion-apernada-corte.mdx",
     "esperadoFalso": {
       "v_exc": "La tesis del ejemplo: con el F_nv de la columna metrica de la Tabla J3.2 el perno extremo NO alcanza (uso 1,0002). Es el punto del post — la holgura de la cadena era aparente."
-    }
+    },
+    "clase": "ejemplo",
+    "slug": "conexion-apernada-corte",
+    "disciplina": "acero"
   },
   "regions": [
     {

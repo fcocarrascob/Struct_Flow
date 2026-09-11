@@ -3,7 +3,10 @@
   "meta": {
     "titulo": "Gusset de un solo borde, apernado — dos anchos efectivos para la misma plancha y gobierna la compresión (NCh2369 8.4.1/8.6.8 + AISC 360-22)",
     "ficha": "struct_pad/src/content/acero/ejemplo-gusset-simple-apernado.mdx",
-    "esperadoFalso": {}
+    "esperadoFalso": {},
+    "clase": "ejemplo",
+    "slug": "gusset-simple-apernado",
+    "disciplina": "acero"
   },
   "regions": [
     {

@@ -3,7 +3,10 @@
   "meta": {
     "titulo": "Losa unidireccional continua — el marco elástico resuelto en la hoja y el espesor que lo fija el servicio (ACI 318-25)",
     "ficha": "struct_pad/src/content/hormigon/ejemplo-losa-unidireccional.mdx",
-    "esperadoFalso": {}
+    "esperadoFalso": {},
+    "clase": "ejemplo",
+    "slug": "losa-unidireccional",
+    "disciplina": "hormigon"
   },
   "regions": [
     {

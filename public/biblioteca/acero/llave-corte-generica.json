@@ -1,0 +1,1611 @@
+{
+ "version": 1,
+ "meta": {
+  "titulo": "Llave de corte bajo placa base — los siete estados límite, una chapa por dirección o dos paralelas",
+  "entradas": [
+   {
+    "nombre": "V_ux",
+    "etiqueta": "V_ux",
+    "grupo": "Solicitaciones mayoradas",
+    "unidad": "kN"
+   },
+   {
+    "nombre": "V_uy",
+    "etiqueta": "V_uy",
+    "grupo": "Solicitaciones mayoradas",
+    "unidad": "kN"
+   },
+   {
+    "nombre": "P_ux",
+    "etiqueta": "P_ux",
+    "grupo": "Solicitaciones mayoradas",
+    "unidad": "kN"
+   },
+   {
+    "nombre": "P_uy",
+    "etiqueta": "P_uy",
+    "grupo": "Solicitaciones mayoradas",
+    "unidad": "kN"
+   },
+   {
+    "nombre": "t_sl",
+    "etiqueta": "t_sl",
+    "grupo": "Geometria de la llave y la placa",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "h_sl",
+    "etiqueta": "h_sl",
+    "grupo": "Geometria de la llave y la placa",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "bY_sl",
+    "etiqueta": "bY_sl",
+    "grupo": "Geometria de la llave y la placa",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "bX_sl",
+    "etiqueta": "bX_sl",
+    "grupo": "Geometria de la llave y la placa",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "t_bp",
+    "etiqueta": "t_bp",
+    "grupo": "Geometria de la llave y la placa",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "B_bp",
+    "etiqueta": "B_bp",
+    "grupo": "Geometria de la llave y la placa",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "t_gr",
+    "etiqueta": "t_gr",
+    "grupo": "Geometria de la llave y la placa",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "w_sold",
+    "etiqueta": "w_sold",
+    "grupo": "Geometria de la llave y la placa",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "PED_X",
+    "etiqueta": "PED_X",
+    "grupo": "Pedestal y anclajes",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "PED_Y",
+    "etiqueta": "PED_Y",
+    "grupo": "Pedestal y anclajes",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "H_PED",
+    "etiqueta": "H_PED",
+    "grupo": "Pedestal y anclajes",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "h_ef",
+    "etiqueta": "h_ef",
+    "grupo": "Pedestal y anclajes",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "csl_X",
+    "etiqueta": "csl_X",
+    "grupo": "Pedestal y anclajes",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "csl_Y",
+    "etiqueta": "csl_Y",
+    "grupo": "Pedestal y anclajes",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "n_chapas",
+    "etiqueta": "n_chapas",
+    "grupo": "Dos chapas paralelas",
+    "ayuda": "n_chapas := 2 cuando el corte de una direccion lo toman dos chapas paralelas desplazadas +-y_chapa del centro; := 1 en el caso corriente de una sola chapa centrada, y entonces el bloque 4b no aplica y y_chapa no se usa"
+   },
+   {
+    "nombre": "y_chapa",
+    "etiqueta": "y_chapa",
+    "grupo": "Dos chapas paralelas",
+    "unidad": "mm",
+    "ayuda": "n_chapas := 2 cuando el corte de una direccion lo toman dos chapas paralelas desplazadas +-y_chapa del centro; := 1 en el caso corriente de una sola chapa centrada, y entonces el bloque 4b no aplica y y_chapa no se usa"
+   },
+   {
+    "nombre": "Yb",
+    "etiqueta": "Yb",
+    "grupo": "De la placa base — vienen de placa-base-generica",
+    "unidad": "mm",
+    "ayuda": "Yb es la longitud del bloque comprimido bajo la placa. De ella sale el area sobre la que actua el axial en la expresion de psi_brg"
+   },
+   {
+    "nombre": "fpc",
+    "etiqueta": "fpc",
+    "grupo": "Materiales",
+    "unidad": "MPa"
+   },
+   {
+    "nombre": "Fy_ac",
+    "etiqueta": "Fy_ac",
+    "grupo": "Materiales",
+    "unidad": "MPa"
+   },
+   {
+    "nombre": "Fu_ac",
+    "etiqueta": "Fu_ac",
+    "grupo": "Materiales",
+    "unidad": "MPa"
+   },
+   {
+    "nombre": "FEXX",
+    "etiqueta": "FEXX",
+    "grupo": "Materiales",
+    "unidad": "MPa"
+   },
+   {
+    "nombre": "fy_arm",
+    "etiqueta": "fy_arm",
+    "grupo": "Materiales",
+    "unidad": "MPa"
+   },
+   {
+    "nombre": "lambda_a",
+    "etiqueta": "lambda_a",
+    "grupo": "Materiales"
+   }
+  ],
+  "slug": "llave-corte-generica",
+  "clase": "generica",
+  "disciplina": "acero",
+  "resumen": "Llave de corte soldada bajo la placa: aplastamiento del hormigón, breakout, flexión de la chapa, soldadura y flexión local de la placa, en las dos direcciones. Una chapa por dirección o dos paralelas desplazadas.",
+  "normas": [
+   {
+    "clave": "US/AISC-DG1-3ed",
+    "rol": "procedimiento",
+    "articulos": [
+     "§4.3.3",
+     "Ej. 4.7-5"
+    ]
+   },
+   {
+    "clave": "US/ACI318-25-SI",
+    "rol": "aplastamiento y breakout",
+    "articulos": [
+     "§17.11",
+     "§17.5.2.1.2"
+    ]
+   },
+   {
+    "clave": "US/AISC360-22",
+    "rol": "soldadura y chapa",
+    "articulos": [
+     "§J2",
+     "§J4.2",
+     "§J4.5"
+    ]
+   }
+  ],
+  "salidas": [
+   {
+    "nombre": "u_max",
+    "etiqueta": "Uso máximo",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "gobierna",
+    "etiqueta": "Estado límite que gobierna",
+    "tipo": "texto"
+   },
+   {
+    "nombre": "u_brgx",
+    "etiqueta": "Aplastamiento, dirección X",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_brgy",
+    "etiqueta": "Aplastamiento, dirección Y",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_cbx",
+    "etiqueta": "Breakout, dirección X",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_cby",
+    "etiqueta": "Breakout, dirección Y",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_flexslx",
+    "etiqueta": "Flexión de la chapa, X",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_flexsly",
+    "etiqueta": "Flexión de la chapa, Y",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_soldx",
+    "etiqueta": "Soldadura, X",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_soldy",
+    "etiqueta": "Soldadura, Y",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_bpx",
+    "etiqueta": "Flexión local de la placa, X",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_bpy",
+    "etiqueta": "Flexión local de la placa, Y",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "v_global",
+    "etiqueta": "u_max ≤ 1",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_regla_espesor",
+    "etiqueta": "t_bp ≥ t_sl (DG1 §4.3.3)",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_embebido",
+    "etiqueta": "Embebido suficiente",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_cabe_pedestal",
+    "etiqueta": "La llave cabe en el pedestal",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "La llave no cabe en el pedestal: la geometría de partida no es construible"
+   },
+   {
+    "nombre": "v_brgx",
+    "etiqueta": "Aplastamiento X",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_brgy",
+    "etiqueta": "Aplastamiento Y",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_cbx",
+    "etiqueta": "Breakout X",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_cby",
+    "etiqueta": "Breakout Y",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_aditividad",
+    "etiqueta": "Aditividad de las dos chapas",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "Las dos chapas no pueden sumarse como independientes: el §17.11.3.4 pide la envolvente como bloque único, que esta hoja no calcula"
+   },
+   {
+    "nombre": "v_flexslx",
+    "etiqueta": "Flexión de la chapa X",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_flexsly",
+    "etiqueta": "Flexión de la chapa Y",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_intx",
+    "etiqueta": "Interacción X",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_inty",
+    "etiqueta": "Interacción Y",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_soldx",
+    "etiqueta": "Soldadura X",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_soldy",
+    "etiqueta": "Soldadura Y",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_bpx",
+    "etiqueta": "Flexión local de la placa X",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_bpy",
+    "etiqueta": "Flexión local de la placa Y",
+    "tipo": "veredicto"
+   }
+  ],
+  "fronteras": [
+   "El equilibrio de la placa: Yb viene de placa-base-generica",
+   "El despiece de la armadura de anclaje del §17.5.2.1.2",
+   "La envolvente de breakout de dos chapas como bloque único, que el §17.11.3.4 sí pide"
+  ],
+  "hipotesis": [
+   "Chapa soldada bajo la placa, una por dirección o dos paralelas desplazadas",
+   "El breakout va con c_a1^1,5, o sea con el ancho del pedestal: es variable de la fundación, no de la placa"
+  ],
+  "entrega": {},
+  "casos": [
+   {
+    "nombre": "ejemplo de referencia",
+    "entradas": {},
+    "cumple": true
+   },
+   {
+    "nombre": "chapa de 8 mm",
+    "entradas": {
+     "t_sl": 8
+    },
+    "cumple": false,
+    "esperadoFalso": [
+     "v_flexslx",
+     "v_flexsly",
+     "v_global",
+     "v_intx",
+     "v_inty"
+    ]
+   }
+  ]
+ },
+ "regions": [
+  {
+   "id": "r001",
+   "kind": "text",
+   "x": 40,
+   "y": 32,
+   "src": "PLANTILLA REUTILIZABLE. Todo lo editable esta en los cinco bloques DATOS;\ndebajo no hay ningun numero de proyecto, solo ecuaciones de norma."
+  },
+  {
+   "id": "r002",
+   "kind": "text",
+   "x": 40,
+   "y": 104,
+   "src": "LOS SIETE ESTADOS LIMITE, y el orden en que suelen morder: regla de espesor\nt_bp >= t_sl · embebido minimo de los pernos · aplastamiento del hormigon ·\nBREAKOUT de corte del hormigon · flexion y corte de la chapa de la llave ·\nsoldadura llave-placa · flexion local de la placa base."
+  },
+  {
+   "id": "r003",
+   "kind": "text",
+   "x": 40,
+   "y": 220,
+   "src": "FRONTERA: la hoja NO resuelve el equilibrio de la placa base —Yb y el axial\nconcurrente entran como dato desde placa-base-generica—, NO disenia el\ndespiece de la armadura de anclaje y NO cubre la envolvente de breakout de\ndos chapas actuando como bloque unico (§17.11.3.4)."
+  },
+  {
+   "id": "r004",
+   "kind": "text",
+   "x": 40,
+   "y": 336,
+   "src": "EL BREAKOUT NO SE ARREGLA CON ACERO. Su resistencia va con c_a1^1,5, o sea\ncon el ANCHO DEL PEDESTAL: es variable de la fundacion, no de la placa. Si\nno cierra, las salidas son ensanchar el pedestal o acreditar armadura de\nanclaje por el §17.5.2.1.2, que es lo que dimensiona el bloque 8."
+  },
+  {
+   "id": "r005",
+   "kind": "text",
+   "x": 40,
+   "y": 452,
+   "src": "HIPOTESIS: llave de chapa rectangular soldada a la cara inferior de la placa\n· hormigon de peso normal · anclajes ya dimensionados a traccion aparte ·\ncorte transferido INTEGRAMENTE por la llave, sin contar friccion ni los\npernos. Si se quiere repartir con la friccion, hay que justificarlo aparte."
+  },
+  {
+   "id": "r006",
+   "kind": "text",
+   "x": 40,
+   "y": 568,
+   "src": "━━ DATOS · SOLICITACIONES MAYORADAS ━━"
+  },
+  {
+   "id": "r007",
+   "kind": "text",
+   "x": 40,
+   "y": 614,
+   "src": "Corte en las dos direcciones y el axial CONCURRENTE con cada uno,\ncompresion positiva. El axial entra en psi_brg: mas compresion, mas\naplastamiento admisible"
+  },
+  {
+   "id": "in_V_ux",
+   "kind": "math",
+   "x": 40,
+   "y": 708,
+   "src": "V_ux := 200 kN"
+  },
+  {
+   "id": "in_V_uy",
+   "kind": "math",
+   "x": 40,
+   "y": 754,
+   "src": "V_uy := 150 kN"
+  },
+  {
+   "id": "in_P_ux",
+   "kind": "math",
+   "x": 40,
+   "y": 800,
+   "src": "P_ux := 400 kN"
+  },
+  {
+   "id": "in_P_uy",
+   "kind": "math",
+   "x": 40,
+   "y": 846,
+   "src": "P_uy := 500 kN"
+  },
+  {
+   "id": "r012",
+   "kind": "text",
+   "x": 40,
+   "y": 892,
+   "src": "━━ DATOS · GEOMETRIA DE LA LLAVE Y LA PLACA ━━"
+  },
+  {
+   "id": "r013",
+   "kind": "text",
+   "x": 40,
+   "y": 938,
+   "src": "La chapa que resiste V_X es la orientada segun Y, y viceversa: b_slY es el\nancho de la chapa que toma el corte en X"
+  },
+  {
+   "id": "in_t_sl",
+   "kind": "math",
+   "x": 40,
+   "y": 1010,
+   "src": "t_sl := 25 mm"
+  },
+  {
+   "id": "in_h_sl",
+   "kind": "math",
+   "x": 40,
+   "y": 1056,
+   "src": "h_sl := 100 mm"
+  },
+  {
+   "id": "in_bY_sl",
+   "kind": "math",
+   "x": 40,
+   "y": 1102,
+   "src": "bY_sl := 400 mm"
+  },
+  {
+   "id": "in_bX_sl",
+   "kind": "math",
+   "x": 40,
+   "y": 1148,
+   "src": "bX_sl := 400 mm"
+  },
+  {
+   "id": "in_t_bp",
+   "kind": "math",
+   "x": 40,
+   "y": 1194,
+   "src": "t_bp := 32 mm"
+  },
+  {
+   "id": "in_B_bp",
+   "kind": "math",
+   "x": 40,
+   "y": 1240,
+   "src": "B_bp := 700 mm"
+  },
+  {
+   "id": "r020",
+   "kind": "text",
+   "x": 40,
+   "y": 1286,
+   "src": "Espesor del mortero de nivelacion: entra en la excentricidad del corte"
+  },
+  {
+   "id": "in_t_gr",
+   "kind": "math",
+   "x": 40,
+   "y": 1332,
+   "src": "t_gr := 40 mm"
+  },
+  {
+   "id": "in_w_sold",
+   "kind": "math",
+   "x": 40,
+   "y": 1378,
+   "src": "w_sold := 8 mm"
+  },
+  {
+   "id": "r023",
+   "kind": "text",
+   "x": 40,
+   "y": 1424,
+   "src": "━━ DATOS · PEDESTAL Y ANCLAJES ━━"
+  },
+  {
+   "id": "r024",
+   "kind": "text",
+   "x": 40,
+   "y": 1470,
+   "src": "Del ancho del pedestal sale c_a1, que es lo que gobierna el breakout"
+  },
+  {
+   "id": "in_PED_X",
+   "kind": "math",
+   "x": 40,
+   "y": 1516,
+   "src": "PED_X := 1200 mm"
+  },
+  {
+   "id": "in_PED_Y",
+   "kind": "math",
+   "x": 40,
+   "y": 1562,
+   "src": "PED_Y := 1200 mm"
+  },
+  {
+   "id": "in_H_PED",
+   "kind": "math",
+   "x": 40,
+   "y": 1608,
+   "src": "H_PED := 900 mm"
+  },
+  {
+   "id": "in_h_ef",
+   "kind": "math",
+   "x": 40,
+   "y": 1654,
+   "src": "h_ef := 700 mm"
+  },
+  {
+   "id": "r029",
+   "kind": "text",
+   "x": 40,
+   "y": 1700,
+   "src": "c_sl es la distancia del eje de los anclajes EN TRACCION al eje de la llave,\nmedida EN LA DIRECCION DEL CORTE — R17.11.1.1.8. Una lectura mas exigente de\nc_sl sube el embebido minimo y puede sacar al perno del pedestal"
+  },
+  {
+   "id": "in_csl_X",
+   "kind": "math",
+   "x": 40,
+   "y": 1794,
+   "src": "csl_X := 250 mm"
+  },
+  {
+   "id": "in_csl_Y",
+   "kind": "math",
+   "x": 40,
+   "y": 1840,
+   "src": "csl_Y := 250 mm"
+  },
+  {
+   "id": "r032",
+   "kind": "text",
+   "x": 40,
+   "y": 1886,
+   "src": "━━ DATOS · DOS CHAPAS PARALELAS ━━"
+  },
+  {
+   "id": "r033",
+   "kind": "text",
+   "x": 40,
+   "y": 1932,
+   "src": "n_chapas := 2 cuando el corte de una direccion lo toman dos chapas paralelas\ndesplazadas +-y_chapa del centro; := 1 en el caso corriente de una sola\nchapa centrada, y entonces el bloque 4b no aplica y y_chapa no se usa"
+  },
+  {
+   "id": "in_n_chapas",
+   "kind": "math",
+   "x": 40,
+   "y": 2026,
+   "src": "n_chapas := 1"
+  },
+  {
+   "id": "in_y_chapa",
+   "kind": "math",
+   "x": 40,
+   "y": 2072,
+   "src": "y_chapa := 0 mm"
+  },
+  {
+   "id": "r036",
+   "kind": "text",
+   "x": 40,
+   "y": 2118,
+   "src": "━━ DATOS · DE LA PLACA BASE — vienen de placa-base-generica ━━"
+  },
+  {
+   "id": "r037",
+   "kind": "text",
+   "x": 40,
+   "y": 2164,
+   "src": "Yb es la longitud del bloque comprimido bajo la placa. De ella sale el area\nsobre la que actua el axial en la expresion de psi_brg"
+  },
+  {
+   "id": "in_Yb",
+   "kind": "math",
+   "x": 40,
+   "y": 2236,
+   "src": "Yb := 200 mm"
+  },
+  {
+   "id": "r039",
+   "kind": "text",
+   "x": 40,
+   "y": 2282,
+   "src": "━━ DATOS · MATERIALES ━━"
+  },
+  {
+   "id": "in_fpc",
+   "kind": "math",
+   "x": 40,
+   "y": 2328,
+   "src": "fpc := 30 MPa"
+  },
+  {
+   "id": "in_Fy_ac",
+   "kind": "math",
+   "x": 40,
+   "y": 2374,
+   "src": "Fy_ac := 248.2 MPa"
+  },
+  {
+   "id": "in_Fu_ac",
+   "kind": "math",
+   "x": 40,
+   "y": 2420,
+   "src": "Fu_ac := 400 MPa"
+  },
+  {
+   "id": "in_FEXX",
+   "kind": "math",
+   "x": 40,
+   "y": 2466,
+   "src": "FEXX := 480 MPa"
+  },
+  {
+   "id": "in_fy_arm",
+   "kind": "math",
+   "x": 40,
+   "y": 2512,
+   "src": "fy_arm := 420 MPa"
+  },
+  {
+   "id": "r045",
+   "kind": "text",
+   "x": 40,
+   "y": 2558,
+   "src": "§19.2.4.2: lambda = 1 en hormigon de peso normal"
+  },
+  {
+   "id": "in_lambda_a",
+   "kind": "math",
+   "x": 40,
+   "y": 2604,
+   "src": "lambda_a := 1.00"
+  },
+  {
+   "id": "r047",
+   "kind": "text",
+   "x": 40,
+   "y": 2650,
+   "src": "El Cap. 17 esta escrito con f'c en MPa y longitudes en mm: se adimensiona"
+  },
+  {
+   "id": "r048",
+   "kind": "math",
+   "x": 40,
+   "y": 2696,
+   "src": "fpc_n := fpc/(1 MPa) ="
+  },
+  {
+   "id": "r049",
+   "kind": "math",
+   "x": 40,
+   "y": 2742,
+   "src": "raiz_fpc := sqrt(fpc_n) ="
+  },
+  {
+   "id": "r050",
+   "kind": "text",
+   "x": 40,
+   "y": 2788,
+   "src": "━━ 0 — REGLA DE LA GUIA · DG1 §4.3.3 consideracion 2 ━━",
+   "pageBreak": true
+  },
+  {
+   "id": "r051",
+   "kind": "text",
+   "x": 40,
+   "y": 2834,
+   "src": "«the base plate should be of equal or greater thickness than the shear lug».\nEs el estado limite que mas veces fija el espesor de la placa, y no se\ndescubre calculando la placa: hay que venir a buscarlo aca"
+  },
+  {
+   "id": "v_regla_espesor",
+   "kind": "math",
+   "x": 40,
+   "y": 2928,
+   "src": "v_regla_espesor := t_bp >= t_sl ="
+  },
+  {
+   "id": "r053",
+   "kind": "text",
+   "x": 40,
+   "y": 2974,
+   "src": "━━ 1 — EXCENTRICIDAD DEL CORTE · DG1 Ej. 4.7-5 paso 1 ━━"
+  },
+  {
+   "id": "r054",
+   "kind": "text",
+   "x": 40,
+   "y": 3020,
+   "src": "El aplastamiento no actua en toda la altura de la llave: el §17.11.2.1.1 topa\nel area efectiva a 2*t_sl de profundidad. Esa es la altura con que trabaja\nTODO el resto de la hoja, no h_sl"
+  },
+  {
+   "id": "r055",
+   "kind": "math",
+   "x": 40,
+   "y": 3114,
+   "src": "hef_sl := min(h_sl, 2*t_sl) = mm"
+  },
+  {
+   "id": "r056",
+   "kind": "math",
+   "x": 40,
+   "y": 3160,
+   "src": "perdida_h := 1 - hef_sl/h_sl ="
+  },
+  {
+   "id": "r057",
+   "kind": "text",
+   "x": 40,
+   "y": 3206,
+   "src": "La resultante de aplastamiento se ubica a media altura efectiva, y el mortero\nsuma brazo: el corte actua excentrico respecto de la cara de la placa"
+  },
+  {
+   "id": "r058",
+   "kind": "math",
+   "x": 40,
+   "y": 3278,
+   "src": "exc := t_gr + hef_sl/2 = mm"
+  },
+  {
+   "id": "r059",
+   "kind": "math",
+   "x": 40,
+   "y": 3324,
+   "src": "M_ux := V_ux*exc = kN*m"
+  },
+  {
+   "id": "r060",
+   "kind": "math",
+   "x": 40,
+   "y": 3370,
+   "src": "M_uy := V_uy*exc = kN*m"
+  },
+  {
+   "id": "r061",
+   "kind": "text",
+   "x": 40,
+   "y": 3416,
+   "src": "━━ 2 — EMBEBIDO MINIMO DE LOS PERNOS · ACI §17.11.1.1.8 ━━"
+  },
+  {
+   "id": "r062",
+   "kind": "text",
+   "x": 40,
+   "y": 3462,
+   "src": "Dos condiciones prescriptivas: (a) h_ef/h_sl >= 2,5 y (b) h_ef/c_sl >= 2,5"
+  },
+  {
+   "id": "r063",
+   "kind": "math",
+   "x": 40,
+   "y": 3508,
+   "src": "hef_min1 := 2.5*h_sl = mm"
+  },
+  {
+   "id": "r064",
+   "kind": "math",
+   "x": 40,
+   "y": 3554,
+   "src": "hef_minX := 2.5*csl_X = mm"
+  },
+  {
+   "id": "r065",
+   "kind": "math",
+   "x": 40,
+   "y": 3600,
+   "src": "hef_minY := 2.5*csl_Y = mm"
+  },
+  {
+   "id": "r066",
+   "kind": "math",
+   "x": 40,
+   "y": 3646,
+   "src": "hef_req := max(hef_min1, hef_minX, hef_minY) = mm"
+  },
+  {
+   "id": "v_embebido",
+   "kind": "math",
+   "x": 40,
+   "y": 3692,
+   "src": "v_embebido := h_ef >= hef_req ="
+  },
+  {
+   "id": "r068",
+   "kind": "text",
+   "x": 40,
+   "y": 3738,
+   "src": "Y tiene que caber en el pedestal: el perno se hormigona con el, y un embebido\nmayor que el canto obliga a bajar a la zapata o a alargar el pedestal"
+  },
+  {
+   "id": "v_cabe_pedestal",
+   "kind": "math",
+   "x": 40,
+   "y": 3810,
+   "src": "v_cabe_pedestal := h_ef <= H_PED ="
+  },
+  {
+   "id": "r070",
+   "kind": "text",
+   "x": 40,
+   "y": 3856,
+   "src": "━━ 3 — APLASTAMIENTO DEL HORMIGON · ACI §17.11.2.1 ━━",
+   "pageBreak": true
+  },
+  {
+   "id": "r071",
+   "kind": "text",
+   "x": 40,
+   "y": 3902,
+   "src": "phi*V_brg = phi*1,7*f'c*A_ef_sl*psi_brg. OJO con el 1,7: no es el 0,85 del\naplastamiento general del §J8, es otra expresion y otro coeficiente"
+  },
+  {
+   "id": "r072",
+   "kind": "math",
+   "x": 40,
+   "y": 3974,
+   "src": "phi_brg := 0.65"
+  },
+  {
+   "id": "r073",
+   "kind": "math",
+   "x": 40,
+   "y": 4020,
+   "src": "A_efx := bY_sl*hef_sl = mm^2"
+  },
+  {
+   "id": "r074",
+   "kind": "math",
+   "x": 40,
+   "y": 4066,
+   "src": "A_efy := bX_sl*hef_sl = mm^2"
+  },
+  {
+   "id": "r075",
+   "kind": "text",
+   "x": 40,
+   "y": 4112,
+   "src": "[17.11.2.2.1c] psi_brg = 1 + 4*P_u/(A_bp*f'c), topado en 2,0. A_bp es el area\ncomprimida bajo la placa, no el area total: por eso hace falta Yb"
+  },
+  {
+   "id": "r076",
+   "kind": "math",
+   "x": 40,
+   "y": 4184,
+   "src": "A_bp := Yb*B_bp = mm^2"
+  },
+  {
+   "id": "r077",
+   "kind": "math",
+   "x": 40,
+   "y": 4230,
+   "src": "psi_x := min(1 + 4*P_ux/(A_bp*fpc), 2.0) ="
+  },
+  {
+   "id": "r078",
+   "kind": "math",
+   "x": 40,
+   "y": 4276,
+   "src": "psi_y := min(1 + 4*P_uy/(A_bp*fpc), 2.0) ="
+  },
+  {
+   "id": "r079",
+   "kind": "math",
+   "x": 40,
+   "y": 4322,
+   "src": "phiVbrg_x := phi_brg*1.7*fpc*A_efx*psi_x = kN"
+  },
+  {
+   "id": "r080",
+   "kind": "math",
+   "x": 40,
+   "y": 4368,
+   "src": "phiVbrg_y := phi_brg*1.7*fpc*A_efy*psi_y = kN"
+  },
+  {
+   "id": "r081",
+   "kind": "math",
+   "x": 40,
+   "y": 4414,
+   "src": "u_brgx := V_ux/phiVbrg_x ="
+  },
+  {
+   "id": "r082",
+   "kind": "math",
+   "x": 40,
+   "y": 4460,
+   "src": "u_brgy := V_uy/phiVbrg_y ="
+  },
+  {
+   "id": "v_brgx",
+   "kind": "math",
+   "x": 40,
+   "y": 4506,
+   "src": "v_brgx := phiVbrg_x >= V_ux ="
+  },
+  {
+   "id": "v_brgy",
+   "kind": "math",
+   "x": 40,
+   "y": 4552,
+   "src": "v_brgy := phiVbrg_y >= V_uy ="
+  },
+  {
+   "id": "r085",
+   "kind": "text",
+   "x": 40,
+   "y": 4598,
+   "src": "━━ 4 — BREAKOUT DE CORTE DEL HORMIGON · ACI §17.11.3 ━━",
+   "pageBreak": true
+  },
+  {
+   "id": "r086",
+   "kind": "text",
+   "x": 40,
+   "y": 4644,
+   "src": "c_a1 se mide desde la superficie de aplastamiento al borde libre, EN LA\nDIRECCION DEL CORTE. Con dos chapas paralelas la mas cercana al borde es la\ncritica, y su c_a1 se acorta en y_chapa"
+  },
+  {
+   "id": "r087",
+   "kind": "math",
+   "x": 40,
+   "y": 4738,
+   "src": "ca1_x := (PED_X - t_sl)/2 = mm"
+  },
+  {
+   "id": "r088",
+   "kind": "math",
+   "x": 40,
+   "y": 4784,
+   "src": "ca1_y := (PED_Y - t_sl)/2 - y_chapa = mm"
+  },
+  {
+   "id": "r089",
+   "kind": "text",
+   "x": 40,
+   "y": 4830,
+   "src": "[17.11.3.1.1] A_Vc = (h_ef_sl + 1,5*c_a1)*(b_sl + 3*c_a1) - h_ef_sl*b_sl\ny A_Vco = 4,5*c_a1^2. Usa la profundidad TOPADA hef_sl, no h_sl"
+  },
+  {
+   "id": "r090",
+   "kind": "math",
+   "x": 40,
+   "y": 4902,
+   "src": "AVc_x := (hef_sl + 1.5*ca1_x)*(bY_sl + 3*ca1_x) - hef_sl*bY_sl = mm^2"
+  },
+  {
+   "id": "r091",
+   "kind": "math",
+   "x": 40,
+   "y": 4948,
+   "src": "AVco_x := 4.5*ca1_x^2 = mm^2"
+  },
+  {
+   "id": "r092",
+   "kind": "math",
+   "x": 40,
+   "y": 4994,
+   "src": "AVc_y := (hef_sl + 1.5*ca1_y)*(bX_sl + 3*ca1_y) - hef_sl*bX_sl = mm^2"
+  },
+  {
+   "id": "r093",
+   "kind": "math",
+   "x": 40,
+   "y": 5040,
+   "src": "AVco_y := 4.5*ca1_y^2 = mm^2"
+  },
+  {
+   "id": "r094",
+   "kind": "text",
+   "x": 40,
+   "y": 5086,
+   "src": "[17.7.2.2.1b] V_b = 3,7*lambda*sqrt(f'c)*c_a1^1,5, en newton con mm"
+  },
+  {
+   "id": "r095",
+   "kind": "math",
+   "x": 40,
+   "y": 5132,
+   "src": "ca1x_n := ca1_x/(1 mm) ="
+  },
+  {
+   "id": "r096",
+   "kind": "math",
+   "x": 40,
+   "y": 5178,
+   "src": "ca1y_n := ca1_y/(1 mm) ="
+  },
+  {
+   "id": "r097",
+   "kind": "math",
+   "x": 40,
+   "y": 5224,
+   "src": "Vb_x := 3.7*lambda_a*raiz_fpc*ca1x_n^1.5*(1 N) = kN"
+  },
+  {
+   "id": "r098",
+   "kind": "math",
+   "x": 40,
+   "y": 5270,
+   "src": "Vb_y := 3.7*lambda_a*raiz_fpc*ca1y_n^1.5*(1 N) = kN"
+  },
+  {
+   "id": "r099",
+   "kind": "math",
+   "x": 40,
+   "y": 5316,
+   "src": "phiVcb_x := phi_brg*(AVc_x/AVco_x)*Vb_x = kN"
+  },
+  {
+   "id": "r100",
+   "kind": "math",
+   "x": 40,
+   "y": 5362,
+   "src": "phiVcb_y := phi_brg*(AVc_y/AVco_y)*Vb_y = kN"
+  },
+  {
+   "id": "r101",
+   "kind": "math",
+   "x": 40,
+   "y": 5408,
+   "src": "u_cbx := V_ux/phiVcb_x ="
+  },
+  {
+   "id": "r102",
+   "kind": "math",
+   "x": 40,
+   "y": 5454,
+   "src": "u_cby := V_uy/phiVcb_y ="
+  },
+  {
+   "id": "v_cbx",
+   "kind": "math",
+   "x": 40,
+   "y": 5500,
+   "src": "v_cbx := phiVcb_x >= V_ux ="
+  },
+  {
+   "id": "v_cby",
+   "kind": "math",
+   "x": 40,
+   "y": 5546,
+   "src": "v_cby := phiVcb_y >= V_uy ="
+  },
+  {
+   "id": "r105",
+   "kind": "text",
+   "x": 40,
+   "y": 5592,
+   "src": "SI ALGUNO NO PASA: no es un problema de acero. Ensanchar el pedestal en la\ndireccion del corte, o acreditar armadura de anclaje — bloque 8"
+  },
+  {
+   "id": "r106",
+   "kind": "text",
+   "x": 40,
+   "y": 5664,
+   "src": "━━ 4b — DOS CHAPAS PARALELAS · ACI §17.11.2.4 ━━"
+  },
+  {
+   "id": "r107",
+   "kind": "text",
+   "x": 40,
+   "y": 5710,
+   "src": "El aplastamiento de dos llaves es ADITIVO solo si la tension de corte en el\nplano de hormigon que queda entre ellas no supera 0,2*f'c. Con n_chapas := 1\nla comprobacion no aplica y la hoja devuelve holgura plena"
+  },
+  {
+   "id": "r108",
+   "kind": "program",
+   "x": 40,
+   "y": 5804,
+   "src": "tau_plano :=\n    if n_chapas == 1\n        return 0 MPa\n    else\n        luz := 2*y_chapa - t_sl\n        return V_uy/(luz*bX_sl)"
+  },
+  {
+   "id": "r109",
+   "kind": "math",
+   "x": 40,
+   "y": 5964,
+   "src": "tau_lim := 0.2*fpc = MPa"
+  },
+  {
+   "id": "v_aditividad",
+   "kind": "math",
+   "x": 40,
+   "y": 6010,
+   "src": "v_aditividad := tau_lim >= tau_plano ="
+  },
+  {
+   "id": "r111",
+   "kind": "text",
+   "x": 40,
+   "y": 6056,
+   "src": "━━ 5 — ACERO DE LA CHAPA DE LA LLAVE · AISC 360 §J4.2 y §J4.5 ━━",
+   "pageBreak": true
+  },
+  {
+   "id": "r112",
+   "kind": "text",
+   "x": 40,
+   "y": 6102,
+   "src": "La chapa trabaja como voladizo empotrado en la placa, con el momento M = V*e\ndel bloque 1 y el corte V en su seccion de arranque"
+  },
+  {
+   "id": "r113",
+   "kind": "math",
+   "x": 40,
+   "y": 6174,
+   "src": "Z_slx := bY_sl*t_sl^2/4 = mm^3"
+  },
+  {
+   "id": "r114",
+   "kind": "math",
+   "x": 40,
+   "y": 6220,
+   "src": "Z_sly := bX_sl*t_sl^2/4 = mm^3"
+  },
+  {
+   "id": "r115",
+   "kind": "text",
+   "x": 40,
+   "y": 6266,
+   "src": "[J4-1] fluencia en flexion con phi = 0,90 y rotura con phi = 0,75: manda el menor"
+  },
+  {
+   "id": "r116",
+   "kind": "math",
+   "x": 40,
+   "y": 6312,
+   "src": "phiMn_slx := min(0.90*Fy_ac*Z_slx, 0.75*Fu_ac*Z_slx) = kN*m"
+  },
+  {
+   "id": "r117",
+   "kind": "math",
+   "x": 40,
+   "y": 6358,
+   "src": "phiMn_sly := min(0.90*Fy_ac*Z_sly, 0.75*Fu_ac*Z_sly) = kN*m"
+  },
+  {
+   "id": "r118",
+   "kind": "text",
+   "x": 40,
+   "y": 6404,
+   "src": "[J4-3] fluencia en corte: V_n = 0,60*F_y*A_gv con phi = 1,00"
+  },
+  {
+   "id": "r119",
+   "kind": "math",
+   "x": 40,
+   "y": 6450,
+   "src": "phiVn_slx := 1.00*0.60*Fy_ac*bY_sl*t_sl = kN"
+  },
+  {
+   "id": "r120",
+   "kind": "math",
+   "x": 40,
+   "y": 6496,
+   "src": "phiVn_sly := 1.00*0.60*Fy_ac*bX_sl*t_sl = kN"
+  },
+  {
+   "id": "r121",
+   "kind": "math",
+   "x": 40,
+   "y": 6542,
+   "src": "u_flexslx := M_ux/phiMn_slx ="
+  },
+  {
+   "id": "r122",
+   "kind": "math",
+   "x": 40,
+   "y": 6588,
+   "src": "u_flexsly := M_uy/phiMn_sly ="
+  },
+  {
+   "id": "v_flexslx",
+   "kind": "math",
+   "x": 40,
+   "y": 6634,
+   "src": "v_flexslx := phiMn_slx >= M_ux ="
+  },
+  {
+   "id": "v_flexsly",
+   "kind": "math",
+   "x": 40,
+   "y": 6680,
+   "src": "v_flexsly := phiMn_sly >= M_uy ="
+  },
+  {
+   "id": "r125",
+   "kind": "text",
+   "x": 40,
+   "y": 6726,
+   "src": "[Manual Ec. 9-1] interaccion M-V: M_r/M_c + (V_r/V_c)^4 <= 1,0"
+  },
+  {
+   "id": "r126",
+   "kind": "math",
+   "x": 40,
+   "y": 6772,
+   "src": "int_x := u_flexslx + (V_ux/phiVn_slx)^4 ="
+  },
+  {
+   "id": "r127",
+   "kind": "math",
+   "x": 40,
+   "y": 6818,
+   "src": "int_y := u_flexsly + (V_uy/phiVn_sly)^4 ="
+  },
+  {
+   "id": "v_intx",
+   "kind": "math",
+   "x": 40,
+   "y": 6864,
+   "src": "v_intx := int_x <= 1.0 ="
+  },
+  {
+   "id": "v_inty",
+   "kind": "math",
+   "x": 40,
+   "y": 6910,
+   "src": "v_inty := int_y <= 1.0 ="
+  },
+  {
+   "id": "r130",
+   "kind": "text",
+   "x": 40,
+   "y": 6956,
+   "src": "━━ 6 — SOLDADURA LLAVE-PLACA · AISC 360 §J2 ━━",
+   "pageBreak": true
+  },
+  {
+   "id": "r131",
+   "kind": "text",
+   "x": 40,
+   "y": 7002,
+   "src": "Dos cordones de filete, uno a cada cara. El momento se toma como par sobre\nsus centroides, separados a = t_sl + 2w/3"
+  },
+  {
+   "id": "r132",
+   "kind": "math",
+   "x": 40,
+   "y": 7074,
+   "src": "a_par := t_sl + 2*w_sold/3 = mm"
+  },
+  {
+   "id": "r133",
+   "kind": "text",
+   "x": 40,
+   "y": 7120,
+   "src": "[J2-5] incremento direccional k_ds = 1,0 + 0,50*sin(theta)^1,5, con theta = 90\ngrados porque la fuerza es perpendicular al eje del cordon"
+  },
+  {
+   "id": "r134",
+   "kind": "math",
+   "x": 40,
+   "y": 7192,
+   "src": "k_ds := 1.0 + 0.50*sin(90 deg)^1.5 ="
+  },
+  {
+   "id": "r135",
+   "kind": "math",
+   "x": 40,
+   "y": 7238,
+   "src": "r_adm := 0.75*0.60*FEXX*(w_sold/sqrt(2))*k_ds = kN/mm"
+  },
+  {
+   "id": "r136",
+   "kind": "math",
+   "x": 40,
+   "y": 7284,
+   "src": "ruv_x := V_ux/(2*bY_sl) = kN/mm"
+  },
+  {
+   "id": "r137",
+   "kind": "math",
+   "x": 40,
+   "y": 7330,
+   "src": "rum_x := M_ux/(a_par*bY_sl) = kN/mm"
+  },
+  {
+   "id": "r138",
+   "kind": "math",
+   "x": 40,
+   "y": 7376,
+   "src": "ru_x := sqrt(ruv_x^2 + rum_x^2) = kN/mm"
+  },
+  {
+   "id": "r139",
+   "kind": "math",
+   "x": 40,
+   "y": 7422,
+   "src": "ruv_y := V_uy/(2*bX_sl) = kN/mm"
+  },
+  {
+   "id": "r140",
+   "kind": "math",
+   "x": 40,
+   "y": 7468,
+   "src": "rum_y := M_uy/(a_par*bX_sl) = kN/mm"
+  },
+  {
+   "id": "r141",
+   "kind": "math",
+   "x": 40,
+   "y": 7514,
+   "src": "ru_y := sqrt(ruv_y^2 + rum_y^2) = kN/mm"
+  },
+  {
+   "id": "r142",
+   "kind": "math",
+   "x": 40,
+   "y": 7560,
+   "src": "u_soldx := ru_x/r_adm ="
+  },
+  {
+   "id": "r143",
+   "kind": "math",
+   "x": 40,
+   "y": 7606,
+   "src": "u_soldy := ru_y/r_adm ="
+  },
+  {
+   "id": "v_soldx",
+   "kind": "math",
+   "x": 40,
+   "y": 7652,
+   "src": "v_soldx := r_adm >= ru_x ="
+  },
+  {
+   "id": "v_soldy",
+   "kind": "math",
+   "x": 40,
+   "y": 7698,
+   "src": "v_soldy := r_adm >= ru_y ="
+  },
+  {
+   "id": "r146",
+   "kind": "text",
+   "x": 40,
+   "y": 7744,
+   "src": "━━ 7 — FLEXION LOCAL DE LA PLACA BASE · DG1 Ej. 4.7-5 paso 7 ━━",
+   "pageBreak": true
+  },
+  {
+   "id": "r147",
+   "kind": "text",
+   "x": 40,
+   "y": 7790,
+   "src": "El mismo M = V*e flexiona la PLACA, con el ancho de la llave como ancho\neficaz. Es la segunda via por la que la llave fija el espesor de la placa"
+  },
+  {
+   "id": "r148",
+   "kind": "math",
+   "x": 40,
+   "y": 7862,
+   "src": "Z_bpx := bY_sl*t_bp^2/4 = mm^3"
+  },
+  {
+   "id": "r149",
+   "kind": "math",
+   "x": 40,
+   "y": 7908,
+   "src": "Z_bpy := bX_sl*t_bp^2/4 = mm^3"
+  },
+  {
+   "id": "r150",
+   "kind": "math",
+   "x": 40,
+   "y": 7954,
+   "src": "phiMn_bpx := 0.90*Fy_ac*Z_bpx = kN*m"
+  },
+  {
+   "id": "r151",
+   "kind": "math",
+   "x": 40,
+   "y": 8000,
+   "src": "phiMn_bpy := 0.90*Fy_ac*Z_bpy = kN*m"
+  },
+  {
+   "id": "r152",
+   "kind": "math",
+   "x": 40,
+   "y": 8046,
+   "src": "u_bpx := M_ux/phiMn_bpx ="
+  },
+  {
+   "id": "r153",
+   "kind": "math",
+   "x": 40,
+   "y": 8092,
+   "src": "u_bpy := M_uy/phiMn_bpy ="
+  },
+  {
+   "id": "v_bpx",
+   "kind": "math",
+   "x": 40,
+   "y": 8138,
+   "src": "v_bpx := phiMn_bpx >= M_ux ="
+  },
+  {
+   "id": "v_bpy",
+   "kind": "math",
+   "x": 40,
+   "y": 8184,
+   "src": "v_bpy := phiMn_bpy >= M_uy ="
+  },
+  {
+   "id": "r156",
+   "kind": "text",
+   "x": 40,
+   "y": 8230,
+   "src": "Espesor de placa que pide la llave por esta via, para compararlo con el que\npide el aplastamiento en placa-base-generica: manda el mayor de los dos"
+  },
+  {
+   "id": "r157",
+   "kind": "math",
+   "x": 40,
+   "y": 8302,
+   "src": "tbp_req_x := sqrt(4*M_ux/(0.90*Fy_ac*bY_sl)) = mm"
+  },
+  {
+   "id": "r158",
+   "kind": "math",
+   "x": 40,
+   "y": 8348,
+   "src": "tbp_req_y := sqrt(4*M_uy/(0.90*Fy_ac*bX_sl)) = mm"
+  },
+  {
+   "id": "r159",
+   "kind": "math",
+   "x": 40,
+   "y": 8394,
+   "src": "tbp_req := max(tbp_req_x, tbp_req_y, t_sl) = mm"
+  },
+  {
+   "id": "r160",
+   "kind": "text",
+   "x": 40,
+   "y": 8440,
+   "src": "━━ 8 — SI EL BREAKOUT NO CIERRA · ACI §17.5.2.1.2 ━━",
+   "pageBreak": true
+  },
+  {
+   "id": "r161",
+   "kind": "text",
+   "x": 40,
+   "y": 8486,
+   "src": "La armadura de anclaje sustituye a la resistencia de breakout del hormigon:\nestribos horizontales proximos a la cara superior, dentro del cono de falla y\ndesarrollados a AMBOS lados de la superficie teorica. phi = 0,75"
+  },
+  {
+   "id": "r162",
+   "kind": "math",
+   "x": 40,
+   "y": 8580,
+   "src": "phi_arm := 0.75"
+  },
+  {
+   "id": "r163",
+   "kind": "math",
+   "x": 40,
+   "y": 8626,
+   "src": "As_reqx := V_ux/(phi_arm*fy_arm) = mm^2"
+  },
+  {
+   "id": "r164",
+   "kind": "math",
+   "x": 40,
+   "y": 8672,
+   "src": "As_reqy := V_uy/(phi_arm*fy_arm) = mm^2"
+  },
+  {
+   "id": "r165",
+   "kind": "text",
+   "x": 40,
+   "y": 8718,
+   "src": "Traducido a ramas de estribo, para dimensionar el despiece. El R17.5.2.1.2\npide diametro MENOR que el de la armadura longitudinal del pedestal"
+  },
+  {
+   "id": "r166",
+   "kind": "math",
+   "x": 40,
+   "y": 8790,
+   "src": "db_est := 12 mm"
+  },
+  {
+   "id": "r167",
+   "kind": "math",
+   "x": 40,
+   "y": 8836,
+   "src": "A_est := pi*db_est^2/4 = mm^2"
+  },
+  {
+   "id": "r168",
+   "kind": "math",
+   "x": 40,
+   "y": 8882,
+   "src": "n_ramas_x := ceil(As_reqx/A_est) ="
+  },
+  {
+   "id": "r169",
+   "kind": "math",
+   "x": 40,
+   "y": 8928,
+   "src": "n_ramas_y := ceil(As_reqy/A_est) ="
+  },
+  {
+   "id": "r170",
+   "kind": "text",
+   "x": 40,
+   "y": 8974,
+   "src": "ESTAS RAMAS COMPITEN POR EL ESPACIO QUE LA LLAVE YA OCUPA: van en los\nprimeros milimetros bajo la cara superior, que es justo donde penetra la\nllave. Las dos cosas se resuelven en el mismo plano de taller"
+  },
+  {
+   "id": "r171",
+   "kind": "text",
+   "x": 40,
+   "y": 9068,
+   "src": "━━ QUE GOBIERNA ━━"
+  },
+  {
+   "id": "r172",
+   "kind": "math",
+   "x": 40,
+   "y": 9114,
+   "src": "u_max := max(u_brgx, u_brgy, u_cbx, u_cby, int_x, int_y, u_soldx, u_soldy, u_bpx, u_bpy) ="
+  },
+  {
+   "id": "r173",
+   "kind": "program",
+   "x": 40,
+   "y": 9160,
+   "src": "gobierna :=\n    if u_max == u_cbx\n        return \"breakout de corte en X: depende del ancho del pedestal\"\n    else if u_max == u_cby\n        return \"breakout de corte en Y: depende del ancho del pedestal\"\n    else if u_max == int_x\n        return \"flexion de la chapa de la llave en X\"\n    else if u_max == int_y\n        return \"flexion de la chapa de la llave en Y\"\n    else if u_max == u_bpx\n        return \"flexion local de la placa base en X\"\n    else if u_max == u_bpy\n        return \"flexion local de la placa base en Y\"\n    else if u_max == u_soldx\n        return \"soldadura llave-placa en X\"\n    else if u_max == u_soldy\n        return \"soldadura llave-placa en Y\"\n    else\n        return \"aplastamiento del hormigon\""
+  },
+  {
+   "id": "v_global",
+   "kind": "math",
+   "x": 40,
+   "y": 9606,
+   "src": "v_global := u_max <= 1 ="
+  }
+ ]
+}

@@ -3,7 +3,10 @@
   "meta": {
     "titulo": "Muro de corte a flexocompresión con elementos de borde — la frontera P–M barrida, el corte amplificado por Ω_v·ω_v y las tres verificaciones de 18.10.6 (ACI 318-25)",
     "ficha": "struct_pad/src/content/hormigon/ejemplo-muro-flexocompresion.mdx",
-    "esperadoFalso": {}
+    "esperadoFalso": {},
+    "clase": "ejemplo",
+    "slug": "muro-flexocompresion",
+    "disciplina": "hormigon"
   },
   "regions": [
     {

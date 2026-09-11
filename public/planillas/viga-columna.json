@@ -6,7 +6,10 @@
   "esperadoFalso": {
    "v_pasaB": "TESIS DEL EJEMPLO: sin el puntal de media altura la columna NO pasa (uso 2,0). Es el punto del Note-tip — cada metro de arriostramiento trabaja para los dos sumandos del presupuesto.",
    "c_rdpakgf": "DIVERGENCIA ACEPTADA 2026-08-01: el post exhibe 164 947 kgf, que es 0,90·2470·74,2 con el F_n ya redondeado; la cadena a precisión completa da 164 939. Las dos redondean a 164,9 tonf, así que el número insignia no cambia. Se conserva a propósito: el fix de la auditoría del 2026-07-25 (hallazgo #7) pidió que la ecuación exhibiera el paso en kgf. Misma especie que el c_rdxkgf de la columna de galpón."
-  }
+  },
+  "clase": "ejemplo",
+  "slug": "viga-columna",
+  "disciplina": "acero"
  },
  "regions": [
   {

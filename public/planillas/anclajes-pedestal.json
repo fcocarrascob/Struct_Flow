@@ -3,7 +3,10 @@
  "meta": {
   "titulo": "Grupo de anclajes de una placa base en pedestal — el Cap. 17 de ACI 318-25 (edición SI)",
   "ficha": "struct_pad/src/content/hormigon/ejemplo-anclajes-pedestal.mdx",
-  "esperadoFalso": {}
+  "esperadoFalso": {},
+  "clase": "ejemplo",
+  "slug": "anclajes-pedestal",
+  "disciplina": "hormigon"
  },
  "regions": [
   {

@@ -8,7 +8,10 @@
       "v_exen": "La segunda puerta de 8.6.3 tampoco abre: con el sismo amplificado por 0,7R_1 la misma sección se va a uso 1,52. Las dos puertas cerradas son el argumento del §1.",
       "v_alma": "El alma de la H 600×300×138,5 queda NO compacta bajo el axial (69,5 contra 65,1), que es justo lo que obliga a ir por la Sec. F4 con R_pc en vez de M_p.",
       "v_vigaw": "La H 400×200×109,5 —la que uno elegiría mirando el modelo elástico— no da: uso 1,57. Es el punto del §5."
-    }
+    },
+    "clase": "ejemplo",
+    "slug": "chevron-nch2369",
+    "disciplina": "acero"
   },
   "regions": [
     {

@@ -3,7 +3,10 @@
   "meta": {
     "titulo": "Conexión de momento con placa de extremo extendida 4E — el momento se hace par y el efecto palanca mete el espesor de la placa en la resistencia de los pernos (AISC 360-22 J2, J3.7, J4, J10 + Manual Parte 9)",
     "ficha": "struct_pad/src/content/acero/ejemplo-conexion-momento-end-plate.mdx",
-    "esperadoFalso": {}
+    "esperadoFalso": {},
+    "clase": "ejemplo",
+    "slug": "conexion-momento-end-plate",
+    "disciplina": "acero"
   },
   "regions": [
     {

@@ -1,0 +1,1378 @@
+{
+ "version": 1,
+ "meta": {
+  "titulo": "Zapata rectangular aislada — flexión, corte en una dirección y punzonamiento, con reparto en banda",
+  "entradas": [
+   {
+    "nombre": "ZAP_X",
+    "etiqueta": "ZAP_X",
+    "grupo": "Geometria en planta y canto",
+    "unidad": "m"
+   },
+   {
+    "nombre": "ZAP_Y",
+    "etiqueta": "ZAP_Y",
+    "grupo": "Geometria en planta y canto",
+    "unidad": "m"
+   },
+   {
+    "nombre": "hzap",
+    "etiqueta": "hzap",
+    "grupo": "Geometria en planta y canto",
+    "unidad": "m"
+   },
+   {
+    "nombre": "PED_X",
+    "etiqueta": "PED_X",
+    "grupo": "Geometria en planta y canto",
+    "unidad": "m"
+   },
+   {
+    "nombre": "PED_Y",
+    "etiqueta": "PED_Y",
+    "grupo": "Geometria en planta y canto",
+    "unidad": "m"
+   },
+   {
+    "nombre": "fc",
+    "etiqueta": "fc",
+    "grupo": "Materiales",
+    "unidad": "MPa"
+   },
+   {
+    "nombre": "fy",
+    "etiqueta": "fy",
+    "grupo": "Materiales",
+    "unidad": "MPa"
+   },
+   {
+    "nombre": "lam",
+    "etiqueta": "lam",
+    "grupo": "Materiales",
+    "ayuda": "§19.2.4.2: lam = 1 en hormigon de peso normal"
+   },
+   {
+    "nombre": "d_agg",
+    "etiqueta": "d_agg",
+    "grupo": "Materiales",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "recub",
+    "etiqueta": "recub",
+    "grupo": "Detallado adoptado",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "db",
+    "etiqueta": "db",
+    "grupo": "Detallado adoptado",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "sep",
+    "etiqueta": "sep",
+    "grupo": "Detallado adoptado",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "db_sup",
+    "etiqueta": "db_sup",
+    "grupo": "Detallado adoptado",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "cuantia_sup",
+    "etiqueta": "cuantia_sup",
+    "grupo": "Detallado adoptado"
+   },
+   {
+    "nombre": "Mu_Y",
+    "etiqueta": "Mu_Y",
+    "grupo": "Esfuerzos mayorados",
+    "unidad": "kN*m"
+   },
+   {
+    "nombre": "Mu_X",
+    "etiqueta": "Mu_X",
+    "grupo": "Esfuerzos mayorados",
+    "unidad": "kN*m"
+   },
+   {
+    "nombre": "Vu_Y",
+    "etiqueta": "Vu_Y",
+    "grupo": "Esfuerzos mayorados",
+    "unidad": "kN"
+   },
+   {
+    "nombre": "Vu_X",
+    "etiqueta": "Vu_X",
+    "grupo": "Esfuerzos mayorados",
+    "unidad": "kN"
+   },
+   {
+    "nombre": "Vuv",
+    "etiqueta": "Vuv",
+    "grupo": "Esfuerzos mayorados",
+    "unidad": "kN",
+    "ayuda": "Mu y Vu, POR METRO de ancho, en la seccion critica de cada direccion. Vuv y Msc son TOTALES sobre el perimetro critico de punzonamiento. Con Msc_X := 0 kN*m el punzonamiento queda uniaxial."
+   },
+   {
+    "nombre": "Msc_Y",
+    "etiqueta": "Msc_Y",
+    "grupo": "Esfuerzos mayorados",
+    "unidad": "kN*m"
+   },
+   {
+    "nombre": "Msc_X",
+    "etiqueta": "Msc_X",
+    "grupo": "Esfuerzos mayorados",
+    "unidad": "kN*m",
+    "ayuda": "Mu y Vu, POR METRO de ancho, en la seccion critica de cada direccion. Vuv y Msc son TOTALES sobre el perimetro critico de punzonamiento. Con Msc_X := 0 kN*m el punzonamiento queda uniaxial."
+   },
+   {
+    "nombre": "alfa_s",
+    "etiqueta": "alfa_s",
+    "grupo": "Esfuerzos mayorados",
+    "ayuda": "§22.6.5.3: alfa_s = 40 apoyo interior, 30 de borde, 20 de esquina"
+   }
+  ],
+  "slug": "zapata-generica",
+  "clase": "generica",
+  "disciplina": "hormigon",
+  "resumen": "Zapata rectangular bajo pedestal con esfuerzos mayorados como dato: flexión con reparto en banda (§13.3.3.3), corte en una dirección en los dos sentidos, punzonamiento con momento, armadura superior por levantamiento y detallado en magnitudes continuas.",
+  "normas": [
+   {
+    "clave": "US/ACI318-25-SI",
+    "rol": "resistencia y detallado",
+    "articulos": [
+     "Cap. 8",
+     "Cap. 13",
+     "Cap. 21",
+     "Cap. 22",
+     "Cap. 25"
+    ]
+   },
+   {
+    "clave": "AR/CIRSOC-103-P2-2005",
+    "rol": "armadura mínima en proyecto argentino",
+    "articulos": [
+     "§6.4.3.2"
+    ]
+   }
+  ],
+  "salidas": [
+   {
+    "nombre": "u_max",
+    "etiqueta": "Uso máximo",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "gobierna",
+    "etiqueta": "Estado límite que gobierna",
+    "tipo": "texto"
+   },
+   {
+    "nombre": "u_flexion",
+    "etiqueta": "Flexión",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_corte_Y",
+    "etiqueta": "Corte en una dirección, Y",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_corte_X",
+    "etiqueta": "Corte en una dirección, X",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_punz",
+    "etiqueta": "Punzonamiento",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "v_global",
+    "etiqueta": "u_max ≤ 1",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_detallado",
+    "etiqueta": "Detallado (separaciones y armadura provista)",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_X_es_corta",
+    "etiqueta": "X es el lado corto",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "X no es el lado corto: el reparto en banda está escrito para el lado corto en X"
+   },
+   {
+    "nombre": "v_canto_min",
+    "etiqueta": "Canto ≥ mínimo",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_tracc",
+    "etiqueta": "Sección controlada por tracción",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_As_prov",
+    "etiqueta": "Armadura provista ≥ requerida",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_sep_max",
+    "etiqueta": "Separación ≤ máxima",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_sep_min",
+    "etiqueta": "Separación ≥ mínima",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_sep_banda",
+    "etiqueta": "Separación en la banda",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_sep_fuera",
+    "etiqueta": "Separación fuera de la banda",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_corte_Y",
+    "etiqueta": "Corte Y",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_corte_X",
+    "etiqueta": "Corte X",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_punz",
+    "etiqueta": "Punzonamiento",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_no_aplica_862",
+    "etiqueta": "No aplica la reducción del §8.6.2",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "Cae en el caso del §8.6.2 que esta hoja no cubre"
+   }
+  ],
+  "fronteras": [
+   "Los esfuerzos mayorados: vienen de la ménsula, de un FE o de la envolvente, y quien la usa declara el origen. Mu y Vu por metro de ancho; Vuv y Msc en total sobre el perímetro crítico"
+  ],
+  "hipotesis": [
+   "Apoyo interior",
+   "Sin armadura de corte",
+   "Nu = 0 en la ménsula",
+   "X es el lado corto (sí se chequea: v_X_es_corta), porque de ello depende el reparto en banda"
+  ],
+  "entrega": {},
+  "casos": [
+   {
+    "nombre": "ejemplo de referencia",
+    "entradas": {},
+    "cumple": true
+   },
+   {
+    "nombre": "canto reducido a 0,45 m",
+    "entradas": {
+     "hzap": 0.45
+    },
+    "cumple": false,
+    "esperadoFalso": [
+     "v_As_prov",
+     "v_corte_Y",
+     "v_detallado",
+     "v_global",
+     "v_punz"
+    ]
+   }
+  ]
+ },
+ "regions": [
+  {
+   "id": "r001",
+   "kind": "text",
+   "x": 40,
+   "y": 32,
+   "src": "PLANTILLA REUTILIZABLE. Todo lo editable esta en los cuatro bloques DATOS;\ndebajo no hay ningun numero de proyecto, solo ecuaciones de norma.\nLos esfuerzos mayorados son DATO —mensula, modelo FE o envolvente de ambos—\ny entran con su origen declarado por quien usa la plantilla."
+  },
+  {
+   "id": "r002",
+   "kind": "text",
+   "x": 40,
+   "y": 148,
+   "src": "HIPOTESIS que la plantilla asume, y que chequea abajo o declara aqui:\nzapata rectangular aislada sobre suelo · apoyo INTERIOR · sin armadura de\ncorte · sin traccion axial neta en la mensula (Nu = 0) · X es el lado corto.\nEjes: d_Y es el canto util de las barras paralelas a Y, capa inferior, que\nresisten Mu_Y, el momento del voladizo en la direccion Y."
+  },
+  {
+   "id": "r003",
+   "kind": "text",
+   "x": 40,
+   "y": 286,
+   "src": "━━ DATOS · GEOMETRIA EN PLANTA Y CANTO ━━"
+  },
+  {
+   "id": "in_ZAP_X",
+   "kind": "math",
+   "x": 40,
+   "y": 332,
+   "src": "ZAP_X := 4.00 m"
+  },
+  {
+   "id": "in_ZAP_Y",
+   "kind": "math",
+   "x": 40,
+   "y": 378,
+   "src": "ZAP_Y := 6.00 m"
+  },
+  {
+   "id": "in_hzap",
+   "kind": "math",
+   "x": 40,
+   "y": 424,
+   "src": "hzap := 1.00 m"
+  },
+  {
+   "id": "in_PED_X",
+   "kind": "math",
+   "x": 40,
+   "y": 470,
+   "src": "PED_X := 1.50 m"
+  },
+  {
+   "id": "in_PED_Y",
+   "kind": "math",
+   "x": 40,
+   "y": 516,
+   "src": "PED_Y := 1.95 m"
+  },
+  {
+   "id": "v_X_es_corta",
+   "kind": "math",
+   "x": 40,
+   "y": 562,
+   "src": "v_X_es_corta := ZAP_X <= ZAP_Y ="
+  },
+  {
+   "id": "r010",
+   "kind": "text",
+   "x": 40,
+   "y": 608,
+   "src": "━━ DATOS · MATERIALES ━━"
+  },
+  {
+   "id": "in_fc",
+   "kind": "math",
+   "x": 40,
+   "y": 654,
+   "src": "fc := 30 MPa"
+  },
+  {
+   "id": "in_fy",
+   "kind": "math",
+   "x": 40,
+   "y": 700,
+   "src": "fy := 420 MPa"
+  },
+  {
+   "id": "r013",
+   "kind": "text",
+   "x": 40,
+   "y": 746,
+   "src": "§19.2.4.2: lam = 1 en hormigon de peso normal"
+  },
+  {
+   "id": "in_lam",
+   "kind": "math",
+   "x": 40,
+   "y": 792,
+   "src": "lam := 1"
+  },
+  {
+   "id": "in_d_agg",
+   "kind": "math",
+   "x": 40,
+   "y": 838,
+   "src": "d_agg := 19 mm"
+  },
+  {
+   "id": "r016",
+   "kind": "text",
+   "x": 40,
+   "y": 884,
+   "src": "━━ DATOS · DETALLADO ADOPTADO ━━"
+  },
+  {
+   "id": "r017",
+   "kind": "text",
+   "x": 40,
+   "y": 930,
+   "src": "§20.5.1.3.1: recubrimiento 75 mm cuando se hormigona contra el suelo"
+  },
+  {
+   "id": "in_recub",
+   "kind": "math",
+   "x": 40,
+   "y": 976,
+   "src": "recub := 75 mm"
+  },
+  {
+   "id": "in_db",
+   "kind": "math",
+   "x": 40,
+   "y": 1022,
+   "src": "db := 25 mm"
+  },
+  {
+   "id": "in_sep",
+   "kind": "math",
+   "x": 40,
+   "y": 1068,
+   "src": "sep := 250 mm"
+  },
+  {
+   "id": "in_db_sup",
+   "kind": "math",
+   "x": 40,
+   "y": 1114,
+   "src": "db_sup := 20 mm"
+  },
+  {
+   "id": "in_cuantia_sup",
+   "kind": "math",
+   "x": 40,
+   "y": 1160,
+   "src": "cuantia_sup := 0.001"
+  },
+  {
+   "id": "r023",
+   "kind": "text",
+   "x": 40,
+   "y": 1206,
+   "src": "━━ DATOS · ESFUERZOS MAYORADOS ━━"
+  },
+  {
+   "id": "r024",
+   "kind": "text",
+   "x": 40,
+   "y": 1252,
+   "src": "Mu y Vu, POR METRO de ancho, en la seccion critica de cada direccion.\nVuv y Msc son TOTALES sobre el perimetro critico de punzonamiento.\nCon Msc_X := 0 kN*m el punzonamiento queda uniaxial."
+  },
+  {
+   "id": "in_Mu_Y",
+   "kind": "math",
+   "x": 40,
+   "y": 1346,
+   "src": "Mu_Y := 445.5 kN*m"
+  },
+  {
+   "id": "in_Mu_X",
+   "kind": "math",
+   "x": 40,
+   "y": 1392,
+   "src": "Mu_X := 197.3 kN*m"
+  },
+  {
+   "id": "in_Vu_Y",
+   "kind": "math",
+   "x": 40,
+   "y": 1438,
+   "src": "Vu_Y := 248.7 kN"
+  },
+  {
+   "id": "in_Vu_X",
+   "kind": "math",
+   "x": 40,
+   "y": 1484,
+   "src": "Vu_X := 91.6 kN"
+  },
+  {
+   "id": "in_Vuv",
+   "kind": "math",
+   "x": 40,
+   "y": 1530,
+   "src": "Vuv := 1652.6 kN"
+  },
+  {
+   "id": "in_Msc_Y",
+   "kind": "math",
+   "x": 40,
+   "y": 1576,
+   "src": "Msc_Y := 4859.1 kN*m"
+  },
+  {
+   "id": "in_Msc_X",
+   "kind": "math",
+   "x": 40,
+   "y": 1622,
+   "src": "Msc_X := 0 kN*m"
+  },
+  {
+   "id": "r032",
+   "kind": "text",
+   "x": 40,
+   "y": 1668,
+   "src": "§22.6.5.3: alfa_s = 40 apoyo interior, 30 de borde, 20 de esquina"
+  },
+  {
+   "id": "in_alfa_s",
+   "kind": "math",
+   "x": 40,
+   "y": 1714,
+   "src": "alfa_s := 40"
+  },
+  {
+   "id": "r034",
+   "kind": "text",
+   "x": 40,
+   "y": 1760,
+   "src": "━━ DERIVADOS · CANTOS Y SECCIONES CRITICAS ━━",
+   "pageBreak": true
+  },
+  {
+   "id": "r035",
+   "kind": "math",
+   "x": 40,
+   "y": 1806,
+   "src": "bw := 1000 mm"
+  },
+  {
+   "id": "r036",
+   "kind": "text",
+   "x": 40,
+   "y": 1852,
+   "src": "sqrt(f'c) no es dimensional: se adimensiona y se reconstituye con (1 MPa)"
+  },
+  {
+   "id": "r037",
+   "kind": "math",
+   "x": 40,
+   "y": 1898,
+   "src": "fc_n := fc/(1 MPa) ="
+  },
+  {
+   "id": "r038",
+   "kind": "math",
+   "x": 40,
+   "y": 1944,
+   "src": "fy_n := fy/(1 MPa) ="
+  },
+  {
+   "id": "r039",
+   "kind": "math",
+   "x": 40,
+   "y": 1990,
+   "src": "raiz_fc := sqrt(fc_n) ="
+  },
+  {
+   "id": "r040",
+   "kind": "math",
+   "x": 40,
+   "y": 2036,
+   "src": "d_Y := hzap - recub - db/2 = mm"
+  },
+  {
+   "id": "r041",
+   "kind": "math",
+   "x": 40,
+   "y": 2082,
+   "src": "d_X := hzap - recub - db - db/2 = mm"
+  },
+  {
+   "id": "r042",
+   "kind": "text",
+   "x": 40,
+   "y": 2128,
+   "src": "§13.3.1.2: 150 mm de canto util minimo sobre la armadura inferior"
+  },
+  {
+   "id": "v_canto_min",
+   "kind": "math",
+   "x": 40,
+   "y": 2174,
+   "src": "v_canto_min := d_Y >= 150 mm ="
+  },
+  {
+   "id": "r044",
+   "kind": "text",
+   "x": 40,
+   "y": 2220,
+   "src": "Tabla 13.2.7.1 fila Column or pedestal: momento en la CARA del pedestal.\n§13.2.7.2: corte en una direccion a d de la cara, punzonamiento a d/2"
+  },
+  {
+   "id": "r045",
+   "kind": "math",
+   "x": 40,
+   "y": 2292,
+   "src": "vol_Y := ZAP_Y/2 - PED_Y/2 = m"
+  },
+  {
+   "id": "r046",
+   "kind": "math",
+   "x": 40,
+   "y": 2338,
+   "src": "vol_X := ZAP_X/2 - PED_X/2 = m"
+  },
+  {
+   "id": "r047",
+   "kind": "math",
+   "x": 40,
+   "y": 2384,
+   "src": "sec_V_Y := PED_Y/2 + d_Y = m"
+  },
+  {
+   "id": "r048",
+   "kind": "math",
+   "x": 40,
+   "y": 2430,
+   "src": "sec_V_X := PED_X/2 + d_X = m"
+  },
+  {
+   "id": "r049",
+   "kind": "math",
+   "x": 40,
+   "y": 2476,
+   "src": "d_pun := (d_Y + d_X)/2 = mm"
+  },
+  {
+   "id": "r050",
+   "kind": "math",
+   "x": 40,
+   "y": 2522,
+   "src": "b1 := PED_Y + d_pun = mm"
+  },
+  {
+   "id": "r051",
+   "kind": "math",
+   "x": 40,
+   "y": 2568,
+   "src": "b2 := PED_X + d_pun = mm"
+  },
+  {
+   "id": "r052",
+   "kind": "math",
+   "x": 40,
+   "y": 2614,
+   "src": "bo := 2*b1 + 2*b2 = mm"
+  },
+  {
+   "id": "r053",
+   "kind": "text",
+   "x": 40,
+   "y": 2660,
+   "src": "━━ FLEXION · ARMADURA REQUERIDA ━━"
+  },
+  {
+   "id": "r054",
+   "kind": "text",
+   "x": 40,
+   "y": 2706,
+   "src": "Tabla 21.2.2: phi = 0,90 si la seccion es controlada por traccion, lo que\nse comprueba mas abajo con eps_t"
+  },
+  {
+   "id": "r055",
+   "kind": "math",
+   "x": 40,
+   "y": 2778,
+   "src": "phi_flex := 0.90"
+  },
+  {
+   "id": "r056",
+   "kind": "math",
+   "x": 40,
+   "y": 2824,
+   "src": "Rn_Y := Mu_Y/(phi_flex*bw*d_Y^2) = MPa"
+  },
+  {
+   "id": "r057",
+   "kind": "math",
+   "x": 40,
+   "y": 2870,
+   "src": "rho_Y := (0.85*fc_n/fy_n)*(1 - sqrt(1 - 2*(Rn_Y/(1 MPa))/(0.85*fc_n))) ="
+  },
+  {
+   "id": "r058",
+   "kind": "math",
+   "x": 40,
+   "y": 2916,
+   "src": "As_Y_req := rho_Y*bw*d_Y = mm^2"
+  },
+  {
+   "id": "r059",
+   "kind": "math",
+   "x": 40,
+   "y": 2962,
+   "src": "Rn_X := Mu_X/(phi_flex*bw*d_X^2) = MPa"
+  },
+  {
+   "id": "r060",
+   "kind": "math",
+   "x": 40,
+   "y": 3008,
+   "src": "rho_X := (0.85*fc_n/fy_n)*(1 - sqrt(1 - 2*(Rn_X/(1 MPa))/(0.85*fc_n))) ="
+  },
+  {
+   "id": "r061",
+   "kind": "math",
+   "x": 40,
+   "y": 3054,
+   "src": "As_X_req := rho_X*bw*d_X = mm^2"
+  },
+  {
+   "id": "r062",
+   "kind": "text",
+   "x": 40,
+   "y": 3100,
+   "src": "Tabla 8.6.1.1, a la que remite §13.3.3.1, sobre la seccion BRUTA (hzap)"
+  },
+  {
+   "id": "r063",
+   "kind": "program",
+   "x": 40,
+   "y": 3146,
+   "src": "rho_min :=\n    if fy_n < 420\n        return 0.0020\n    else\n        return max(0.0018*420/fy_n, 0.0014)"
+  },
+  {
+   "id": "r064",
+   "kind": "math",
+   "x": 40,
+   "y": 3284,
+   "src": "As_min := rho_min*bw*hzap = mm^2"
+  },
+  {
+   "id": "r065",
+   "kind": "math",
+   "x": 40,
+   "y": 3330,
+   "src": "As_Y := max(As_Y_req, As_min) = mm^2"
+  },
+  {
+   "id": "r066",
+   "kind": "math",
+   "x": 40,
+   "y": 3376,
+   "src": "As_X := max(As_X_req, As_min) = mm^2"
+  },
+  {
+   "id": "r067",
+   "kind": "text",
+   "x": 40,
+   "y": 3422,
+   "src": "Tabla 22.2.2.4.3 para beta1 y §21.2.2 para el limite: eps_t se juzga con la\ndireccion de menor canto y contra eps_ty + 0,003, con Es = 200.000 MPa"
+  },
+  {
+   "id": "r068",
+   "kind": "math",
+   "x": 40,
+   "y": 3494,
+   "src": "beta1 := max(0.65, min(0.85, 0.85 - 0.05*(fc_n - 28)/7)) ="
+  },
+  {
+   "id": "r069",
+   "kind": "math",
+   "x": 40,
+   "y": 3540,
+   "src": "a_blq := max(As_Y, As_X)*fy/(0.85*fc*bw) = mm"
+  },
+  {
+   "id": "r070",
+   "kind": "math",
+   "x": 40,
+   "y": 3586,
+   "src": "xn := a_blq/beta1 = mm"
+  },
+  {
+   "id": "r071",
+   "kind": "math",
+   "x": 40,
+   "y": 3632,
+   "src": "eps_t := 0.003*(d_X - xn)/xn ="
+  },
+  {
+   "id": "r072",
+   "kind": "math",
+   "x": 40,
+   "y": 3678,
+   "src": "eps_tl := fy_n/200000 + 0.003 ="
+  },
+  {
+   "id": "v_tracc",
+   "kind": "math",
+   "x": 40,
+   "y": 3724,
+   "src": "v_tracc := eps_t >= eps_tl ="
+  },
+  {
+   "id": "r074",
+   "kind": "text",
+   "x": 40,
+   "y": 3770,
+   "src": "━━ FLEXION · ARMADURA PROVISTA Y LIMITES DE DETALLADO ━━"
+  },
+  {
+   "id": "r075",
+   "kind": "math",
+   "x": 40,
+   "y": 3816,
+   "src": "As_prov := (pi/4*db^2)*(bw/sep) = mm^2"
+  },
+  {
+   "id": "v_As_prov",
+   "kind": "math",
+   "x": 40,
+   "y": 3862,
+   "src": "v_As_prov := As_prov >= max(As_Y, As_X) ="
+  },
+  {
+   "id": "r077",
+   "kind": "text",
+   "x": 40,
+   "y": 3908,
+   "src": "§8.7.2.2: separacion maxima, el menor de 3h y 450 mm"
+  },
+  {
+   "id": "r078",
+   "kind": "math",
+   "x": 40,
+   "y": 3954,
+   "src": "sep_max := min(3*hzap, 450 mm) = mm"
+  },
+  {
+   "id": "v_sep_max",
+   "kind": "math",
+   "x": 40,
+   "y": 4000,
+   "src": "v_sep_max := sep <= sep_max ="
+  },
+  {
+   "id": "r080",
+   "kind": "text",
+   "x": 40,
+   "y": 4046,
+   "src": "§25.2.1: separacion libre minima, la mayor de 25 mm, db y 4/3 del agregado"
+  },
+  {
+   "id": "r081",
+   "kind": "math",
+   "x": 40,
+   "y": 4092,
+   "src": "sep_libre := sep - db = mm"
+  },
+  {
+   "id": "r082",
+   "kind": "math",
+   "x": 40,
+   "y": 4138,
+   "src": "sep_libre_min := max(25 mm, db, (4/3)*d_agg) = mm"
+  },
+  {
+   "id": "v_sep_min",
+   "kind": "math",
+   "x": 40,
+   "y": 4184,
+   "src": "v_sep_min := sep_libre >= sep_libre_min ="
+  },
+  {
+   "id": "r084",
+   "kind": "math",
+   "x": 40,
+   "y": 4230,
+   "src": "u_flexion := max(As_Y, As_X)/As_prov ="
+  },
+  {
+   "id": "r085",
+   "kind": "text",
+   "x": 40,
+   "y": 4276,
+   "src": "━━ FLEXION · REPARTO EN BANDA · Eq. (13.3.3.3) ━━"
+  },
+  {
+   "id": "r086",
+   "kind": "text",
+   "x": 40,
+   "y": 4322,
+   "src": "La direccion CORTA no se reparte uniforme: gamma_s de las barras van en una\nbanda central de ancho igual al lado corto. Se resuelve en SEPARACIONES para\nque la plantilla no dependa de un redondeo. Zapata cuadrada: gamma_s = 1 y\nno hay barras fuera de la banda"
+  },
+  {
+   "id": "r087",
+   "kind": "math",
+   "x": 40,
+   "y": 4438,
+   "src": "beta_zap := ZAP_Y/ZAP_X ="
+  },
+  {
+   "id": "r088",
+   "kind": "math",
+   "x": 40,
+   "y": 4484,
+   "src": "gamma_s := 2/(beta_zap + 1) ="
+  },
+  {
+   "id": "r089",
+   "kind": "math",
+   "x": 40,
+   "y": 4530,
+   "src": "sep_banda := sep*ZAP_X/(gamma_s*ZAP_Y) = mm"
+  },
+  {
+   "id": "r090",
+   "kind": "math",
+   "x": 40,
+   "y": 4576,
+   "src": "sep_fuera := sep*(ZAP_Y - ZAP_X)/(max(1 - gamma_s, 0.000001)*ZAP_Y) = mm"
+  },
+  {
+   "id": "v_sep_banda",
+   "kind": "math",
+   "x": 40,
+   "y": 4622,
+   "src": "v_sep_banda := sep_banda <= sep_max ="
+  },
+  {
+   "id": "v_sep_fuera",
+   "kind": "math",
+   "x": 40,
+   "y": 4668,
+   "src": "v_sep_fuera := sep_fuera <= sep_max ="
+  },
+  {
+   "id": "r093",
+   "kind": "math",
+   "x": 40,
+   "y": 4714,
+   "src": "n_banda := ceil(ZAP_X/sep_banda) ="
+  },
+  {
+   "id": "r094",
+   "kind": "math",
+   "x": 40,
+   "y": 4760,
+   "src": "n_fuera := ceil((ZAP_Y - ZAP_X)/max(sep_fuera, 1 mm)) ="
+  },
+  {
+   "id": "r095",
+   "kind": "text",
+   "x": 40,
+   "y": 4806,
+   "src": "━━ ARMADURA SUPERIOR POR LEVANTAMIENTO ━━"
+  },
+  {
+   "id": "r096",
+   "kind": "text",
+   "x": 40,
+   "y": 4852,
+   "src": "INPRES-CIRSOC 103 P.II §6.4.3.2: exigida cuando actuan fuerzas de\nlevantamiento. Sustituir por la clausula equivalente fuera de Argentina;\ncon cuantia_sup := 0 el bloque queda anulado"
+  },
+  {
+   "id": "r097",
+   "kind": "math",
+   "x": 40,
+   "y": 4946,
+   "src": "As_sup_Y := cuantia_sup*ZAP_X*hzap = mm^2"
+  },
+  {
+   "id": "r098",
+   "kind": "math",
+   "x": 40,
+   "y": 4992,
+   "src": "As_sup_X := cuantia_sup*ZAP_Y*hzap = mm^2"
+  },
+  {
+   "id": "r099",
+   "kind": "math",
+   "x": 40,
+   "y": 5038,
+   "src": "n_sup_Y := ceil(As_sup_Y/(pi/4*db_sup^2)) ="
+  },
+  {
+   "id": "r100",
+   "kind": "math",
+   "x": 40,
+   "y": 5084,
+   "src": "n_sup_X := ceil(As_sup_X/(pi/4*db_sup^2)) ="
+  },
+  {
+   "id": "r101",
+   "kind": "text",
+   "x": 40,
+   "y": 5130,
+   "src": "━━ CORTE EN UNA DIRECCION · Tabla 22.5.5.1 ━━",
+   "pageBreak": true
+  },
+  {
+   "id": "r102",
+   "kind": "text",
+   "x": 40,
+   "y": 5176,
+   "src": "Sin armadura de corte, Av < Av,min: rige la ecuacion (c)"
+  },
+  {
+   "id": "r103",
+   "kind": "text",
+   "x": 40,
+   "y": 5222,
+   "src": "§22.5.5.1.3: efecto de tamano, lam_s = sqrt(2/(1 + d/250)) <= 1"
+  },
+  {
+   "id": "r104",
+   "kind": "math",
+   "x": 40,
+   "y": 5268,
+   "src": "lam_sY := min(1, sqrt(2/(1 + d_Y/(250 mm)))) ="
+  },
+  {
+   "id": "r105",
+   "kind": "math",
+   "x": 40,
+   "y": 5314,
+   "src": "lam_sX := min(1, sqrt(2/(1 + d_X/(250 mm)))) ="
+  },
+  {
+   "id": "r106",
+   "kind": "text",
+   "x": 40,
+   "y": 5360,
+   "src": "rho_w con la armadura MINIMA exigida: cota inferior, y no depende del\nreparto en banda"
+  },
+  {
+   "id": "r107",
+   "kind": "math",
+   "x": 40,
+   "y": 5432,
+   "src": "rho_wY := As_min/(bw*d_Y) ="
+  },
+  {
+   "id": "r108",
+   "kind": "math",
+   "x": 40,
+   "y": 5478,
+   "src": "rho_wX := As_min/(bw*d_X) ="
+  },
+  {
+   "id": "r109",
+   "kind": "math",
+   "x": 40,
+   "y": 5524,
+   "src": "Vc_ecc_Y := 0.66*lam_sY*lam*rho_wY^(1/3)*raiz_fc*(1 MPa)*bw*d_Y = kN"
+  },
+  {
+   "id": "r110",
+   "kind": "math",
+   "x": 40,
+   "y": 5570,
+   "src": "Vc_ecc_X := 0.66*lam_sX*lam*rho_wX^(1/3)*raiz_fc*(1 MPa)*bw*d_X = kN"
+  },
+  {
+   "id": "r111",
+   "kind": "text",
+   "x": 40,
+   "y": 5616,
+   "src": "§22.5.5.1.1: Vc no NECESITA tomarse menor que 0,083·lam·sqrt(f'c)·bw·d salvo\n(a) traccion axial neta o (b) §18.6.5.2 / §18.7.6.2.1, y no mayor que\n0,42·lam·sqrt(f'c)·bw·d. HIPOTESIS: la mensula no tiene traccion axial neta"
+  },
+  {
+   "id": "r112",
+   "kind": "math",
+   "x": 40,
+   "y": 5710,
+   "src": "Vc_piso_Y := 0.083*lam*raiz_fc*(1 MPa)*bw*d_Y = kN"
+  },
+  {
+   "id": "r113",
+   "kind": "math",
+   "x": 40,
+   "y": 5756,
+   "src": "Vc_piso_X := 0.083*lam*raiz_fc*(1 MPa)*bw*d_X = kN"
+  },
+  {
+   "id": "r114",
+   "kind": "math",
+   "x": 40,
+   "y": 5802,
+   "src": "Vc_techo_Y := 0.42*lam*raiz_fc*(1 MPa)*bw*d_Y = kN"
+  },
+  {
+   "id": "r115",
+   "kind": "math",
+   "x": 40,
+   "y": 5848,
+   "src": "Vc_techo_X := 0.42*lam*raiz_fc*(1 MPa)*bw*d_X = kN"
+  },
+  {
+   "id": "r116",
+   "kind": "math",
+   "x": 40,
+   "y": 5894,
+   "src": "Vc_Y := min(Vc_techo_Y, max(Vc_ecc_Y, Vc_piso_Y)) = kN"
+  },
+  {
+   "id": "r117",
+   "kind": "math",
+   "x": 40,
+   "y": 5940,
+   "src": "Vc_X := min(Vc_techo_X, max(Vc_ecc_X, Vc_piso_X)) = kN"
+  },
+  {
+   "id": "r118",
+   "kind": "program",
+   "x": 40,
+   "y": 5986,
+   "src": "rige_Vc_Y :=\n    if Vc_Y == Vc_techo_Y\n        return \"techo 0,42 del 22.5.5.1.1\"\n    else if Vc_piso_Y > Vc_ecc_Y\n        return \"piso 0,083 del 22.5.5.1.1\"\n    else\n        return \"ecuacion (c) de la Tabla 22.5.5.1\""
+  },
+  {
+   "id": "r119",
+   "kind": "text",
+   "x": 40,
+   "y": 6168,
+   "src": "Tabla 21.2.1 fila (e): corte, phi = 0,75"
+  },
+  {
+   "id": "r120",
+   "kind": "math",
+   "x": 40,
+   "y": 6214,
+   "src": "phi_corte := 0.75"
+  },
+  {
+   "id": "r121",
+   "kind": "math",
+   "x": 40,
+   "y": 6260,
+   "src": "u_corte_Y := Vu_Y/(phi_corte*Vc_Y) ="
+  },
+  {
+   "id": "r122",
+   "kind": "math",
+   "x": 40,
+   "y": 6306,
+   "src": "u_corte_X := Vu_X/(phi_corte*Vc_X) ="
+  },
+  {
+   "id": "v_corte_Y",
+   "kind": "math",
+   "x": 40,
+   "y": 6352,
+   "src": "v_corte_Y := u_corte_Y <= 1 ="
+  },
+  {
+   "id": "v_corte_X",
+   "kind": "math",
+   "x": 40,
+   "y": 6398,
+   "src": "v_corte_X := u_corte_X <= 1 ="
+  },
+  {
+   "id": "r125",
+   "kind": "text",
+   "x": 40,
+   "y": 6444,
+   "src": "━━ PUNZONAMIENTO · Tabla 22.6.5.2 ━━",
+   "pageBreak": true
+  },
+  {
+   "id": "r126",
+   "kind": "math",
+   "x": 40,
+   "y": 6490,
+   "src": "lam_sP := min(1, sqrt(2/(1 + d_pun/(250 mm)))) ="
+  },
+  {
+   "id": "r127",
+   "kind": "text",
+   "x": 40,
+   "y": 6536,
+   "src": "Nota (ii): beta es la relacion lado largo a lado corto del area cargada"
+  },
+  {
+   "id": "r128",
+   "kind": "math",
+   "x": 40,
+   "y": 6582,
+   "src": "beta_ped := max(PED_X, PED_Y)/min(PED_X, PED_Y) ="
+  },
+  {
+   "id": "r129",
+   "kind": "math",
+   "x": 40,
+   "y": 6628,
+   "src": "vc_a := 0.33*lam_sP*lam*raiz_fc*(1 MPa) = MPa"
+  },
+  {
+   "id": "r130",
+   "kind": "math",
+   "x": 40,
+   "y": 6674,
+   "src": "vc_b := (0.17 + 0.33/beta_ped)*lam_sP*lam*raiz_fc*(1 MPa) = MPa"
+  },
+  {
+   "id": "r131",
+   "kind": "math",
+   "x": 40,
+   "y": 6720,
+   "src": "vc_c := (0.17 + 0.083*alfa_s*d_pun/bo)*lam_sP*lam*raiz_fc*(1 MPa) = MPa"
+  },
+  {
+   "id": "r132",
+   "kind": "math",
+   "x": 40,
+   "y": 6766,
+   "src": "vc := min(vc_a, vc_b, vc_c) = MPa"
+  },
+  {
+   "id": "r133",
+   "kind": "math",
+   "x": 40,
+   "y": 6812,
+   "src": "phi_vc := phi_corte*vc = MPa"
+  },
+  {
+   "id": "r134",
+   "kind": "math",
+   "x": 40,
+   "y": 6858,
+   "src": "vuv := Vuv/(bo*d_pun) = MPa"
+  },
+  {
+   "id": "r135",
+   "kind": "text",
+   "x": 40,
+   "y": 6904,
+   "src": "§8.4.4.2.2: gamma_f = 1/(1 + (2/3)·sqrt(b1/b2)) con b1 en la direccion del\nmomento, y gamma_v = 1 - gamma_f va por corte excentrico. Las dos\ndirecciones se superponen en la esquina del perimetro, que es conservador"
+  },
+  {
+   "id": "r136",
+   "kind": "math",
+   "x": 40,
+   "y": 6998,
+   "src": "gamma_v_Y := 1 - 1/(1 + (2/3)*sqrt(b1/b2)) ="
+  },
+  {
+   "id": "r137",
+   "kind": "math",
+   "x": 40,
+   "y": 7044,
+   "src": "gamma_v_X := 1 - 1/(1 + (2/3)*sqrt(b2/b1)) ="
+  },
+  {
+   "id": "r138",
+   "kind": "math",
+   "x": 40,
+   "y": 7090,
+   "src": "Jc_Y := d_pun*b1^3/6 + b1*d_pun^3/6 + d_pun*b2*b1^2/2 = mm^4"
+  },
+  {
+   "id": "r139",
+   "kind": "math",
+   "x": 40,
+   "y": 7136,
+   "src": "Jc_X := d_pun*b2^3/6 + b2*d_pun^3/6 + d_pun*b1*b2^2/2 = mm^4"
+  },
+  {
+   "id": "r140",
+   "kind": "math",
+   "x": 40,
+   "y": 7182,
+   "src": "vum_Y := gamma_v_Y*Msc_Y*(b1/2)/Jc_Y = MPa"
+  },
+  {
+   "id": "r141",
+   "kind": "math",
+   "x": 40,
+   "y": 7228,
+   "src": "vum_X := gamma_v_X*Msc_X*(b2/2)/Jc_X = MPa"
+  },
+  {
+   "id": "r142",
+   "kind": "math",
+   "x": 40,
+   "y": 7274,
+   "src": "vu := vuv + vum_Y + vum_X = MPa"
+  },
+  {
+   "id": "r143",
+   "kind": "math",
+   "x": 40,
+   "y": 7320,
+   "src": "u_punz := vu/phi_vc ="
+  },
+  {
+   "id": "v_punz",
+   "kind": "math",
+   "x": 40,
+   "y": 7366,
+   "src": "v_punz := u_punz <= 1 ="
+  },
+  {
+   "id": "r145",
+   "kind": "text",
+   "x": 40,
+   "y": 7412,
+   "src": "§8.6.1.2: obliga a subir As_min si vuv pasa phi·0,17·lam_s·lam·sqrt(f'c)"
+  },
+  {
+   "id": "r146",
+   "kind": "math",
+   "x": 40,
+   "y": 7458,
+   "src": "umbral_862 := phi_corte*0.17*lam_sP*lam*raiz_fc*(1 MPa) = MPa"
+  },
+  {
+   "id": "v_no_aplica_862",
+   "kind": "math",
+   "x": 40,
+   "y": 7504,
+   "src": "v_no_aplica_862 := vuv <= umbral_862 ="
+  },
+  {
+   "id": "r148",
+   "kind": "text",
+   "x": 40,
+   "y": 7550,
+   "src": "━━ QUE GOBIERNA ━━"
+  },
+  {
+   "id": "r149",
+   "kind": "math",
+   "x": 40,
+   "y": 7596,
+   "src": "u_max := max(u_corte_Y, u_corte_X, u_punz) ="
+  },
+  {
+   "id": "r150",
+   "kind": "program",
+   "x": 40,
+   "y": 7642,
+   "src": "gobierna :=\n    if u_max == u_corte_Y\n        return \"corte en una direccion en Y\"\n    else if u_max == u_corte_X\n        return \"corte en una direccion en X\"\n    else\n        return \"punzonamiento del pedestal sobre la zapata\""
+  },
+  {
+   "id": "v_global",
+   "kind": "math",
+   "x": 40,
+   "y": 7824,
+   "src": "v_global := u_max <= 1 ="
+  },
+  {
+   "id": "r152",
+   "kind": "text",
+   "x": 40,
+   "y": 7870,
+   "src": "El uso de la armadura es de DETALLADO —provista contra exigida— y va aparte:\nno dice cuanto falta para agotar la seccion"
+  },
+  {
+   "id": "v_detallado",
+   "kind": "math",
+   "x": 40,
+   "y": 7942,
+   "src": "v_detallado := u_flexion <= 1 ="
+  }
+ ]
+}

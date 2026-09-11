@@ -5,7 +5,10 @@
   "ficha": "struct_pad/src/content/acero/ejemplo-columna-galpon-compresion.mdx",
   "esperadoFalso": {
    "c_rdxkgf": "DIVERGENCIA ACEPTADA 2026-08-01: el post exhibe 79 344 kgf, que es 0,90·950·92,8 con el F_n ya redondeado; la cadena a precisión completa da 79 309 kgf. Las dos redondean a 79,3 tonf, así que el número insignia no cambia. Se conserva a propósito: el fix de la auditoría del 2026-07-23 pidió que la ecuación exhibiera el producto literal de sus operandos."
-  }
+  },
+  "clase": "ejemplo",
+  "slug": "columna-galpon-compresion",
+  "disciplina": "acero"
  },
  "regions": [
   {

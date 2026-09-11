@@ -14,7 +14,10 @@
    "v_cbsl": "La tesis del §3.1: el cono de la llave da 1,23 y no depende del espesor ni del embebido, sino del ancho del pedestal. Se resuelve con los estribos de la zona de protección (C9.5.2).",
    "v008": "La `Note` del §3.1: 17.11.1.1.8(b) pide h_ef/c_sl ≥ 2,5 y el detalle da 1,60, así que se diseña por la vía de «métodos alternativos» que abre la 17.11.1.1.",
    "v022": "La tesis de §6: con R₁ = 2 los criterios de Cat. II y Cat. III–IV NO habrían convergido."
-  }
+  },
+  "clase": "ejemplo",
+  "slug": "pedestal-anclaje-nch2369",
+  "disciplina": "hormigon"
  },
  "regions": [
   {

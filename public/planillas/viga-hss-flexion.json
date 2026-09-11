@@ -7,7 +7,10 @@
       "v_pasaB": "TESIS DEL EJEMPLO: el □250×250×8 NO pasa, y por un 4 %. Es el número insignia — el mismo contorno con 2 mm menos de pared se cae.",
       "v_pasaC": "TESIS DEL EJEMPLO: el □250×250×6 NO pasa (uso 1,58). El ala esbelta le quita el 20 % de su M_p antes de empezar.",
       "v_pasaD": "TESIS DEL EJEMPLO: el □300×200×6 tampoco pasa (uso 1,31), pero con el MISMO acero que C rinde un 21 % más: el punto es la comparación."
-    }
+    },
+    "clase": "ejemplo",
+    "slug": "viga-hss-flexion",
+    "disciplina": "acero"
   },
   "regions": [
     {

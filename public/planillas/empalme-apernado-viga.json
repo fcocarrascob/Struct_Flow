@@ -5,7 +5,10 @@
     "ficha": "struct_pad/src/content/acero/ejemplo-empalme-apernado-viga.mdx",
     "esperadoFalso": {
       "v_d6A": "La tesis del ejemplo: con 6 pernos Clase A el empalme resiste sin romperse pero DESLIZA (uso 1,24). El false es el punto del post."
-    }
+    },
+    "clase": "ejemplo",
+    "slug": "empalme-apernado-viga",
+    "disciplina": "acero"
   },
   "regions": [
     {

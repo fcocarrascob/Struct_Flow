@@ -3,7 +3,10 @@
   "meta": {
     "titulo": "Viga de hormigón armado a flexión y corte — el Cap. 9 completo, con los coeficientes de la edición SI de ACI 318-25",
     "ficha": "struct_pad/src/content/hormigon/ejemplo-viga-flexion-corte.mdx",
-    "esperadoFalso": {}
+    "esperadoFalso": {},
+    "clase": "ejemplo",
+    "slug": "viga-flexion-corte",
+    "disciplina": "hormigon"
   },
   "regions": [
     {

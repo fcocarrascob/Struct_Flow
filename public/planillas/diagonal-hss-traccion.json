@@ -3,7 +3,10 @@
   "meta": {
     "titulo": "Diagonal HSS en los dos sentidos: tracción y compresión por AISC 360-22 (D2, D3.1 Caso 5, E3) y la capa sismorresistente de NCh2369:2025 (8.6.3, 8.6.4, 8.6.8)",
     "ficha": "struct_pad/src/content/acero/ejemplo-diagonal-hss-traccion.mdx",
-    "esperadoFalso": {}
+    "esperadoFalso": {},
+    "clase": "ejemplo",
+    "slug": "diagonal-hss-traccion",
+    "disciplina": "acero"
   },
   "regions": [
     {

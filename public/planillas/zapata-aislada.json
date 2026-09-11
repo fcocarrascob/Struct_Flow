@@ -3,7 +3,10 @@
   "meta": {
     "titulo": "Zapata aislada bajo columna — el canto, el piso de 22.5.5.1.1 y los coeficientes de la edición SI (ACI 318-25)",
     "ficha": "struct_pad/src/content/hormigon/ejemplo-zapata-aislada.mdx",
-    "esperadoFalso": {}
+    "esperadoFalso": {},
+    "clase": "ejemplo",
+    "slug": "zapata-aislada",
+    "disciplina": "hormigon"
   },
   "regions": [
     {

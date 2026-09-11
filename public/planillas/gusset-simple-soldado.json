@@ -3,7 +3,10 @@
   "meta": {
     "titulo": "Gusset de un solo borde, soldado — el cordón abre la banda de Whitmore y el eslabón débil se muda al tubo (NCh2369 8.4.1/8.6.8 + AISC 360-22)",
     "ficha": "struct_pad/src/content/acero/ejemplo-gusset-simple-soldado.mdx",
-    "esperadoFalso": {}
+    "esperadoFalso": {},
+    "clase": "ejemplo",
+    "slug": "gusset-simple-soldado",
+    "disciplina": "acero"
   },
   "regions": [
     {

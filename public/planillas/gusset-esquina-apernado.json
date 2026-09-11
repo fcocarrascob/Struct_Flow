@@ -5,7 +5,10 @@
     "ficha": "struct_pad/src/content/acero/ejemplo-gusset-esquina-apernado.mdx",
     "esperadoFalso": {
       "v_wnote": "el atajo tabulado del User Note (0,62 t_p) queda 1,6 % del lado inseguro frente al cálculo explícito: hallazgo, no defecto"
-    }
+    },
+    "clase": "ejemplo",
+    "slug": "gusset-esquina-apernado",
+    "disciplina": "acero"
   },
   "regions": [
     {

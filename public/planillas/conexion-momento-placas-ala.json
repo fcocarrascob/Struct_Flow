@@ -7,7 +7,10 @@
       "v_fla": "El post lo declara: la flexión local del ala de la columna FALLA (Ec. J10-1, uso 1.43); la resuelven los rigidizadores de continuidad de la sección 7.",
       "v_alm": "El post lo declara: la fluencia local del alma de la columna FALLA (Ec. J10-2, uso 1.12); la resuelven los rigidizadores de continuidad.",
       "v_pz": "El post lo declara: la zona panel FALLA (Ec. J10-10, uso 1.07) por el término axial 1.4 - Pr/Pc; la resuelve el doubler de 6 mm."
-    }
+    },
+    "clase": "ejemplo",
+    "slug": "conexion-momento-placas-ala",
+    "disciplina": "acero"
   },
   "regions": [
     {

@@ -334,7 +334,12 @@ export function validarMeta(metaCrudo: unknown, regions: readonly Region[]): Hal
     if (!meta.disciplina) error('generica.disciplina', 'una genérica declara `disciplina`');
     if (!Array.isArray(normas) || normas.length === 0) error('generica.normas', 'una genérica declara al menos una norma');
     if (!Array.isArray(entradas) || entradas.length === 0) error('generica.entradas', 'una genérica declara al menos una entrada');
-    for (const { nombre, tipo } of SALIDAS_DE_GENERICA) {
+    // Una hoja de ACCIONES (viento, nieve, cargas de grúa) no tiene estado
+    // límite que gobierne ni factor de uso: entrega cargas. Se le exige el
+    // veredicto global y nada más.
+    const exigidas =
+      meta.disciplina === 'acciones' ? SALIDAS_DE_GENERICA.filter((s) => s.nombre === 'v_global') : SALIDAS_DE_GENERICA;
+    for (const { nombre, tipo } of exigidas) {
       const s = porNombreSalida.get(nombre);
       if (!s) error('generica.salidas', `una genérica declara la salida «${nombre}» (${tipo})`);
       else if (s.tipo !== tipo) error('generica.salidas', `la salida «${nombre}» tiene que ser de tipo ${tipo}`);

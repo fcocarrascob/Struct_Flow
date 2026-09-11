@@ -1,0 +1,108 @@
+{
+  "version": 1,
+  "planillas": [
+    {
+      "slug": "llave-corte-generica",
+      "titulo": "Llave de corte bajo placa base — los siete estados límite, una chapa por dirección o dos paralelas",
+      "clase": "generica",
+      "disciplina": "acero",
+      "ruta": "/biblioteca/acero/llave-corte-generica.json",
+      "regiones": 174,
+      "normas": [
+        "US/AISC-DG1-3ed",
+        "US/ACI318-25-SI",
+        "US/AISC360-22"
+      ],
+      "entradas": 27,
+      "salidas": 29,
+      "promovible": true,
+      "sha256": "c4298d6db8e7ef75b47a6b5f89b99a89a4732df9b07e4e050371f748613b25ad",
+      "resumen": "Llave de corte soldada bajo la placa: aplastamiento del hormigón, breakout, flexión de la chapa, soldadura y flexión local de la placa, en las dos direcciones. Una chapa por dirección o dos paralelas desplazadas."
+    },
+    {
+      "slug": "placa-base-generica",
+      "titulo": "Placa base de columna con gran excentricidad — aplastamiento, equilibrio, pernos y espesor",
+      "clase": "generica",
+      "disciplina": "acero",
+      "ruta": "/biblioteca/acero/placa-base-generica.json",
+      "regiones": 109,
+      "normas": [
+        "US/AISC-DG1-3ed",
+        "US/AISC360-22",
+        "US/ACI318-25-SI"
+      ],
+      "entradas": 26,
+      "salidas": 16,
+      "promovible": true,
+      "sha256": "efb4b113633eb0d73e3bd5e304a178c55ceb472b73c5f5789728ea1a663e3686",
+      "resumen": "Placa lisa o rigidizada (hay_nervios) bajo columna con momento: aplastamiento en bloque, equilibrio iterativo, grupo de pernos y espesor de chapa. Entrega T_grupo e Yb_comp al resto de la base de columna."
+    },
+    {
+      "slug": "silla-anclaje-generica",
+      "titulo": "Silla de anclaje — el camino de carga completo: perno, chapa superior, nervios, ala (o ala extendida) y alma",
+      "clase": "generica",
+      "disciplina": "acero",
+      "ruta": "/biblioteca/acero/silla-anclaje-generica.json",
+      "regiones": 145,
+      "normas": [
+        "AR/CIRSOC-301-2018",
+        "US/AISC360-22"
+      ],
+      "entradas": 31,
+      "salidas": 21,
+      "promovible": true,
+      "sha256": "d238170734e49d47a6286628bf146b3b12954ad96140af2df78b54bc55d4103f",
+      "resumen": "Silla de anclaje de una placa base rigidizada: chapa superior, nervios, soldadura en L, extensión de ala y las tres condiciones geométricas del rigidizador. Recibe T_grupo e Yb_comp de placa-base-generica."
+    },
+    {
+      "slug": "viga-carrilera-generica",
+      "titulo": "Viga carrilera de puente grúa con canal-tapa — flexión biaxial, corte, fuerzas concentradas del rodado, deflexiones y fatiga",
+      "clase": "generica",
+      "disciplina": "acero",
+      "ruta": "/biblioteca/acero/viga-carrilera-generica.json",
+      "regiones": 236,
+      "normas": [
+        "US/AISC360-22"
+      ],
+      "entradas": 37,
+      "salidas": 29,
+      "promovible": true,
+      "sha256": "f3461a06560057ca9952913d7c268350ae3579c5e037594ff97e9361f6339709",
+      "resumen": "Viga de alma llena con canal-tapa bajo un puente grúa: sección compuesta, flexión por §F4, corte, alma bajo la rueda (§J10), interacción H1, deflexiones y fatiga del Apéndice 3."
+    },
+    {
+      "slug": "pedestal-generico",
+      "titulo": "Pedestal de hormigón armado — cuantías, extremos del diagrama P–M, corte, estribos y armadura de anclaje contable",
+      "clase": "generica",
+      "disciplina": "hormigon",
+      "ruta": "/biblioteca/hormigon/pedestal-generico.json",
+      "regiones": 129,
+      "normas": [
+        "US/ACI318-25-SI",
+        "AR/CIRSOC-103-P2-2005"
+      ],
+      "entradas": 27,
+      "salidas": 25,
+      "promovible": true,
+      "sha256": "f2cdeef6ab21c723a0f9448f391e2b58d55335efcc742a2ee2ebd74299cd2269",
+      "resumen": "Pedestal rectangular bajo placa base: cuantías, los tres extremos del diagrama P–M y puntos intermedios como dato, corte en las dos direcciones, estribos y la armadura de anclaje que puede contarse. Recibe T_grupo de placa-base-generica."
+    },
+    {
+      "slug": "zapata-generica",
+      "titulo": "Zapata rectangular aislada — flexión, corte en una dirección y punzonamiento, con reparto en banda",
+      "clase": "generica",
+      "disciplina": "hormigon",
+      "ruta": "/biblioteca/hormigon/zapata-generica.json",
+      "regiones": 153,
+      "normas": [
+        "US/ACI318-25-SI",
+        "AR/CIRSOC-103-P2-2005"
+      ],
+      "entradas": 22,
+      "salidas": 20,
+      "promovible": true,
+      "sha256": "dc0f8dbca3f33d6bc65bbd8d2aeaa6e372a900edd5c3f97bc6702e7e391d3364",
+      "resumen": "Zapata rectangular bajo pedestal con esfuerzos mayorados como dato: flexión con reparto en banda (§13.3.3.3), corte en una dirección en los dos sentidos, punzonamiento con momento, armadura superior por levantamiento y detallado en magnitudes continuas."
+    }
+  ]
+}

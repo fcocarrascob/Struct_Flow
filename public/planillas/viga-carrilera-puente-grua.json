@@ -6,7 +6,10 @@
   "esperadoFalso": {
    "v_h1d": "TESIS DEL EJEMPLO: sin el canal la interacción biaxial se pasa de 1,0. Es el punto del post — el canal no está para el LTB, está para el eje débil.",
    "c_sytop": "FILO DEL REDONDEO, no hallazgo: S_y,top = 12142,4/16,2 = 749,53 cm³, o sea 749,5 justo en la mitad del último dígito. El post trunca a 749 y la planilla redondearía a 750; no hay discrepancia de cálculo."
-  }
+  },
+  "clase": "ejemplo",
+  "slug": "viga-carrilera-puente-grua",
+  "disciplina": "acero"
  },
  "regions": [
   {

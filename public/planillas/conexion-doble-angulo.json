@@ -5,7 +5,10 @@
     "ficha": "struct_pad/src/content/acero/ejemplo-conexion-doble-angulo.mdx",
     "esperadoFalso": {
       "v_exct": "La tesis del ejemplo, heredada de la shear tab: con el F_nv de la columna metrica de la Tabla J3.2 el perno extremo de la tab NO alcanza (uso 1,0002). Es el punto del post."
-    }
+    },
+    "clase": "ejemplo",
+    "slug": "conexion-doble-angulo",
+    "disciplina": "acero"
   },
   "regions": [
     {

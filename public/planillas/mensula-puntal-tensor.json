@@ -3,7 +3,10 @@
   "meta": {
     "titulo": "Ménsula corta por puntal-tensor — el Cap. 23 con los cerrojos del Cap. 16 de ACI 318-25",
     "ficha": "struct_pad/src/content/hormigon/ejemplo-mensula-puntal-tensor.mdx",
-    "esperadoFalso": {}
+    "esperadoFalso": {},
+    "clase": "ejemplo",
+    "slug": "mensula-puntal-tensor",
+    "disciplina": "hormigon"
   },
   "regions": [
     {
