@@ -15,12 +15,18 @@
 
 import type { Item } from './worksheet-layout';
 import type { Region } from './worksheet';
+import type { MetaPlanilla } from './biblioteca/contrato';
 import { STORAGE_KEY, hayTrabajoGuardado } from './hoja-guardada';
 
-/** El formato que leen el canvas, el import/export y `verify:planilla`. */
+/**
+ * El formato que leen el canvas, el import/export y `verify:planilla`.
+ *
+ * `meta` es el contrato de `biblioteca/contrato.ts`: `titulo` obligatorio y
+ * todo lo demás opcional, de modo que `{ titulo }` a secas sigue valiendo.
+ */
 export interface HojaCanvas {
   version: 1;
-  meta: { titulo: string; esperadoFalso?: Record<string, string> };
+  meta: MetaPlanilla;
   regions: Region[];
 }
 
@@ -33,7 +39,7 @@ export interface HojaCanvas {
  * `sqrtfc`, `phiFlexion`) y el vocabulario de unidades de la práctica local, no
  * solo el mínimo del SI.
  */
-const INTRINSECOS = new Set([
+export const INTRINSECOS: ReadonlySet<string> = new Set([
   // Operadores de mathjs que se escriben con letras. Sin ellos, `a and b` se
   // lee como una referencia a un simbolo llamado «and».
   'and', 'or', 'not', 'xor', 'mod', 'to', 'in',

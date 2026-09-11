@@ -13,6 +13,7 @@
     "indice:planillas": "node scripts/indice-planillas.mjs",
     "verify:planilla": "node scripts/verify-planilla.mjs",
     "verify:planillas": "node scripts/verify-planilla.mjs public/planillas",
+    "render:planilla": "node scripts/render-planilla.mjs",
     "verify:modulos": "node scripts/verify-modulos.mjs",
     "verify:motor": "node scripts/verify-motor.mjs"
   },

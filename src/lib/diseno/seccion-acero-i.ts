@@ -17,6 +17,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { m, t, p, img, type Item } from '../worksheet-layout';
+import { n } from '../biblioteca/contrato';
 import type { CampoDef, ModuloDiseno, SalidaDef } from './tipos';
 
 export type EntradasAceroI = {
@@ -35,8 +36,6 @@ export type EntradasAceroI = {
   C_b: number;
   B_1: number;
 };
-
-const n = (v: number): string => (Number.isFinite(v) ? String(Number(v.toPrecision(12))) : '0');
 
 const ENTRADAS: CampoDef[] = [
   {

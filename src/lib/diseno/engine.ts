@@ -16,3 +16,12 @@ export { layout } from '../worksheet-layout';
 export { verificarSimbolos } from '../canvas-handoff';
 export { evaluateSheet } from '../worksheet';
 export { renderEsquema, ESQUEMAS_PREFIX } from '../esquema';
+export { ordenDeLectura } from '../orden-lectura';
+export {
+  validarMeta,
+  instanciarRegiones,
+  valoresDeEntradas,
+  RE_ENTRADA,
+  PREFIJO_ENTRADA,
+  n,
+} from '../biblioteca/contrato';

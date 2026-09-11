@@ -3,4 +3,19 @@
 // unidades locales como `tonf` y los objetos Unit del scope no sobreviven a dos
 // instancias distintas).
 export { evaluateSheet, parseMathRegion } from './worksheet';
-export { renderEsquema, ESQUEMAS_PREFIX } from './esquema';
+export { renderEsquema, ESQUEMAS_PREFIX, esRutaDeEsquema } from './esquema';
+export { ordenDeLectura, tienenPosicion } from './orden-lectura';
+export {
+  validarMeta,
+  instanciarRegiones,
+  valoresDeEntradas,
+  regionDeEntrada,
+  RE_ENTRADA,
+  RE_SLUG,
+  RE_CITA_PROHIBIDA,
+  PREFIJO_ENTRADA,
+  CLASES,
+  n,
+} from './biblioteca/contrato';
+export { nivelEncabezado, textoEncabezado, esEncabezado, esEspaciador } from './bloque';
+export { renderHtml, documentoHtml } from './render-html';

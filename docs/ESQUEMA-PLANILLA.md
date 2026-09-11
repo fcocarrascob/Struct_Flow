@@ -1,7 +1,7 @@
 # Esquema de una planilla del canvas
 
-Contrato para escribir una planilla de `/herramientas/canvas` **fuera del canvas** — desde
-una conversación, un script o a mano. Es la referencia única: todo lo que sigue está leído
+Contrato para escribir una planilla de `/canvas` **fuera del canvas** — desde una
+conversación, un script o a mano. Es la referencia única: todo lo que sigue está leído
 del código, no de memoria, y cada regla apunta a dónde vive.
 
 | Pieza | Archivo |
@@ -10,19 +10,34 @@ del código, no de memoria, y cada regla apunta a dónde vive.
 | Intérprete de `program` | `src/lib/program.ts` |
 | Constructores de layout | `src/lib/worksheet-layout.ts` |
 | Esquemas paramétricos | `src/lib/esquema.ts` |
-| Verificador | `scripts/verify-planilla.mjs` |
+| Contrato del `meta` | `src/lib/biblioteca/contrato.ts` |
+| Verificador | `scripts/verify-planilla.mjs` → `scripts/lib/planilla.mjs` |
+| Render a HTML/PDF | `scripts/render-planilla.mjs` → `src/lib/render-html.ts` |
 
 **Nada se da por bueno hasta que pasa el verificador:**
 
 ```bash
-npm run verify:planilla -- <archivo.json>        # una, o varias, o un directorio
-npm run verify:planilla -- <archivo.json> --md   # además, el desarrollo como tablas
-npm run verify:planillas                         # todas las de public/planillas/
+npm run verify:planilla -- <archivo.json>                  # una, o varias, o un directorio
+npm run verify:planilla -- <archivo.json> --md             # además, el desarrollo como tablas
+npm run verify:planilla -- <archivo.json> --md-out <ruta>  # y lo escribe como <slug>.eval.md, con sello
+npm run verify:planilla -- <archivo.json> --esquemas <dir> # busca los /esquemas/ también en <dir>
+npm run verify:planillas                                   # todas las de public/planillas/
+npm run render:planilla -- <archivo.json> --pdf <salida>   # el papel del canvas, por línea de comandos
 ```
 
 Sale con código 1 si alguna región tiene error, si una comparación da `false` sin estar
-declarada, o si una declarada como falsa ahora pasa. Ese es el contrato real; este
-documento solo explica cómo escribir algo que lo cumpla.
+declarada, si una declarada como falsa ahora pasa, o si el `meta` no cumple el contrato
+de su clase (§10). Ese es el contrato real; este documento solo explica cómo escribir algo
+que lo cumpla.
+
+El `.eval.md` que escribe `--md-out` abre con un **sello**:
+
+```
+<!-- planilla: <slug> · sha256: <hash del JSON> · struct_flow: <commit de este repo> · <fecha ISO> -->
+```
+
+Es lo que el harness compara para saber si un eval sigue describiendo la planilla que
+hay en disco — por hash y no por fecha, porque git no conserva fechas de archivo.
 
 ---
 
@@ -43,9 +58,10 @@ documento solo explica cómo escribir algo que lo cumpla.
 }
 ```
 
-`version` y `regions` son el formato de export/import del canvas. `meta` es opcional y solo
-lo entiende el verificador: el canvas lo ignora, salvo `meta.titulo`, que usa para preguntar
-antes de reemplazar la hoja (`MathCanvas.tsx:166`).
+`version` y `regions` son el formato de export/import del canvas. `meta` lo entiende el
+verificador; el canvas hoy solo usa `meta.titulo`, para preguntar antes de reemplazar la
+hoja. `titulo` es lo único obligatorio; el resto del `meta` —la clase, las normas, las
+entradas declaradas— está en §10.
 
 ## 2. La región
 
@@ -252,6 +268,98 @@ Cosas que no fallan: devuelven otro número en silencio.
 
 La galería de `worksheet-templates.ts` es otra cosa y **no** crece con cada ejemplo: son
 plantillas compiladas al bundle, no archivos sueltos.
+
+## 10. El `meta` extendido: clase, normas, entradas y salidas
+
+Definido en `src/lib/biblioteca/contrato.ts` (`MetaPlanilla`) y validado por
+`validarMeta`, que corre dentro de `verify:planilla`. Es **compatible hacia atrás**: una
+planilla con solo `meta.titulo` es de clase `ejemplo` y pasa igual que antes.
+
+```json
+"meta": {
+  "titulo": "Placa base de columna con gran excentricidad — aplastamiento, equilibrio, pernos y espesor",
+  "slug": "placa-base-generica",
+  "clase": "generica",
+  "disciplina": "acero",
+  "resumen": "Placa lisa o rigidizada bajo columna con momento. Entrega T_grupo e Yb al resto de la base.",
+  "normas": [
+    { "clave": "US/AISC-DG1-3ed", "rol": "procedimiento", "articulos": ["§4.3.7"] },
+    { "clave": "US/ACI318-25-SI", "rol": "anclaje", "articulos": ["§17.6.1"] }
+  ],
+  "entradas": [
+    { "nombre": "t_bp", "etiqueta": "Espesor de la placa", "unidad": "mm", "grupo": "Geometría", "min": 10, "max": 120, "paso": 1 },
+    { "nombre": "hay_nervios", "etiqueta": "Rigidización", "grupo": "Rigidización",
+      "opciones": [{ "valor": 0, "etiqueta": "placa lisa" }, { "valor": 1, "etiqueta": "silla con nervios" }] }
+  ],
+  "salidas": [
+    { "nombre": "u_max", "etiqueta": "Uso máximo", "tipo": "uso" },
+    { "nombre": "gobierna", "etiqueta": "Estado límite que gobierna", "tipo": "texto" },
+    { "nombre": "v_global", "etiqueta": "u_max ≤ 1", "tipo": "veredicto" }
+  ],
+  "fronteras": ["β entra medido o de tabla, con la condición de borde declarada"],
+  "hipotesis": ["Una fila de pernos por lado"],
+  "entrega": { "T_grupo": ["silla-anclaje-generica", "pedestal-generico"] },
+  "casos": [
+    { "nombre": "ejemplo de referencia", "entradas": {}, "cumple": true },
+    { "nombre": "chapa de 20 mm", "entradas": { "t_bp": 20 }, "cumple": false, "esperadoFalso": ["v_espesor", "v_global"] }
+  ]
+}
+```
+
+### Las tres clases
+
+| `clase` | Qué es | Vive en | Exige |
+|---|---|---|---|
+| `ejemplo` | Un ejemplo resuelto, ligado a un post. Lleva contrastes `c_*` contra los números publicados | `public/planillas/` | solo `titulo` |
+| `generica` | Una plantilla reutilizable: sin datos de proyecto fuera de las entradas, cargada con un ejemplo que cierra en verde | `public/biblioteca/<disciplina>/` | `slug`, `disciplina`, `normas`, `entradas`, las tres salidas `u_max` (uso) · `gobierna` (texto) · `v_global` (veredicto), al menos un caso con `cumple: true`, **cero** `c_*` y **cero** `esperadoFalso` |
+| `instancia` | Una genérica llevada a un proyecto: se cambian las entradas, se agregan los `c_*` contra el modelo y la memoria | el proyecto, fuera de este repo | `slug`, `normas`; `origen` con el `slug` y el `sha256` de la genérica si sale de una; `modelo` recomendado |
+
+### Las entradas: regiones `in_<nombre>`
+
+Una entrada es una región `math` cuyo **id** es `in_` + el nombre de la variable y cuyo
+`src` tiene exactamente la forma `nombre := número [unidad]` (`RE_ENTRADA`). Ni `2*pi`
+ni `sqrt(2) m`: una entrada es un dato que se reemplaza entero. Lo que necesite fórmula
+es derivación y va debajo del bloque DATOS.
+
+```json
+{ "id": "in_t_bp", "kind": "math", "x": 40, "y": 400, "src": "t_bp := 45 mm" }
+```
+
+La unidad del `src` y la de `entradas[i].unidad` tienen que coincidir: es la unidad con
+la que un formulario o el instanciador del harness reescriben el valor. Una entrada no
+puede llamarse como una unidad o función del motor (`m`, `s`, `min`, `e`…).
+
+`instanciarRegiones(regions, valores, entradas)` devuelve la copia con esas regiones
+reescritas; `valoresDeEntradas(regions, entradas)` lee los que la hoja trae. Es todo lo
+que hace falta para que una genérica sea un módulo de `/diseno` sin escribir código.
+
+### Las salidas y los veredictos
+
+Una salida es una variable del scope. Un `veredicto` es una **variable booleana** con
+nombre: `v_global := u_max <= 1 =`, no `u_max <= 1 =` a secas. Es como lo leen los
+módulos de diseño (`PanelResultados`) y como lo exige una genérica.
+
+### Las normas y la cita
+
+`normas[].clave` es la clave del catálogo del harness (`PAIS/NORMA-EDICION`), que es lo
+que permite comprobar que la norma está calibrada. En las regiones `text` la cita es **el
+artículo y nada más** —`§4.3.7`, `Tabla 22.5.5.1`, `Ec. (13)`—: la evidencia de lectura
+(`pdf 56 = impresa 51 · rasterizada 2026-08-20`) vive en el acta de lectura del harness,
+no en la hoja. El verificador avisa si una región de texto la trae.
+
+### `origen` y `modelo` de una instancia
+
+```json
+"origen": { "slug": "viga-carrilera-generica", "commit": "<HEAD de Struct_Flow>", "sha256": "<sha de la genérica>", "fecha": "2026-09-11",
+            "desvios": "Calcula el PNA; +86 regiones; sección como SVG embebido" },
+"modelo": { "archivo": "10_modelo/v38_CONEXIONES_2026-08-31.sdb", "barras": ["VC_A_*"], "patrones": ["CM_VIA", "CL_D"] },
+"decisiones": ["D-07", "D-36"],
+"figuras": [ { "region": "r006", "fuente": "20_calculo/figuras/viga-carrilera-seccion.svg" } ]
+```
+
+`origen.sha256` es lo que se compara después: si la genérica avanzó, la instancia quedó
+atrás y alguien tiene que mirar. Se compara por hash y no por ids porque una instancia
+puede reordenar y agregar regiones.
 
 ---
 

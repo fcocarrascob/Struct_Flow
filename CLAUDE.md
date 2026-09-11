@@ -281,6 +281,21 @@ motor, extiende los módulos puros y mantén los componentes React delgados.
 ## Planillas
 
 Las de `public/planillas/` son el corpus de prueba y la fuente de verdad de los ejemplos.
-El contrato del JSON está en `public/planillas/ESQUEMA.md`; el formato es el mismo
-`{version, regions}` de exportar/importar del canvas, más un `meta` opcional
-(`titulo`, `esperadoFalso`). Toda planilla nueva tiene que pasar `verify:planilla`.
+El contrato del JSON está en **`docs/ESQUEMA-PLANILLA.md`** (la copia que había en
+`public/planillas/` se retiró: divergía). El formato es el mismo `{version, regions}` de
+exportar/importar del canvas, más un `meta` cuyo contrato vive en
+`src/lib/biblioteca/contrato.ts`: `titulo` obligatorio y, para la biblioteca, `clase`,
+`normas` (claves del catálogo del harness), `entradas` (regiones `in_<nombre>`),
+`salidas`, `casos`. Toda planilla nueva tiene que pasar `verify:planilla`, que además
+valida esa forma.
+
+Tres cosas de la verificación que conviene saber:
+
+- La lógica está en `scripts/lib/planilla.mjs` (`verificarPlanilla`); la CLI, el render
+  y `verify:modulos` la comparten. No se reimplementa en ningún otro sitio.
+- `--md-out <ruta>` escribe el `.eval.md` con un **sello** en la primera línea (sha256
+  de la planilla y commit de este repo). El harness compara ese hash para saber si el
+  eval sigue describiendo la planilla que hay en disco.
+- `npm run render:planilla -- <json> --pdf <salida>` imprime el mismo papel que el
+  canvas (`render-html.ts` emite las clases de `BloqueDoc.tsx`; `papel.css` es la hoja
+  de estilos compartida) y se niega si la planilla no verifica.

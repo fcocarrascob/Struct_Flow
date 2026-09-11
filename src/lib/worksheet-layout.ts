@@ -13,6 +13,13 @@ export interface Item {
   /** Solo `image`: tamaño mostrado en píxeles. */
   w?: number;
   h?: number;
+  /**
+   * Id a conservar. Sin él, `layout()` asigna `<prefijo>-<i>`, que es lo que
+   * quieren los módulos escritos en TS. Un módulo que nace de una planilla de
+   * la biblioteca lo trae puesto: sus `in_*`, `v_*` y `c_*` son parte del
+   * contrato y tienen que sobrevivir a la instanciación.
+   */
+  id?: string;
 }
 
 export const m = (src: string): Item => ({ kind: 'math', src });
@@ -43,7 +50,7 @@ const PASO = 46;
 export function layout(idPrefix: string, x: number, y0: number, items: Item[]): Region[] {
   let y = y0;
   return items.map((it, i) => {
-    const region: Region = { id: `${idPrefix}-${i}`, kind: it.kind, x, y, src: it.src };
+    const region: Region = { id: it.id ?? `${idPrefix}-${i}`, kind: it.kind, x, y, src: it.src };
     if (it.kind === 'image') {
       if (it.w) region.w = it.w;
       if (it.h) region.h = it.h;

@@ -21,6 +21,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { m, t, p, img, type Item } from '../worksheet-layout';
+import { n } from '../biblioteca/contrato';
 import type { CampoDef, ModuloDiseno, SalidaDef } from './tipos';
 
 export type EntradasZapata = {
@@ -43,12 +44,6 @@ export type EntradasZapata = {
   M_L: number;
   via: number;
 };
-
-/**
- * Un número listo para el código fuente de una región: con punto decimal y sin
- * la cola binaria que arrastraría un `24.444444444444443 cm` a la vista.
- */
-const n = (v: number): string => (Number.isFinite(v) ? String(Number(v.toPrecision(12))) : '0');
 
 const DIAMETROS = [10, 12, 16, 18, 22, 25, 28, 32];
 

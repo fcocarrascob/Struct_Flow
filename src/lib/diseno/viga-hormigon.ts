@@ -11,6 +11,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { m, t, p, img, type Item } from '../worksheet-layout';
+import { n } from '../biblioteca/contrato';
 import type { CampoDef, ModuloDiseno, SalidaDef } from './tipos';
 
 export type EntradasViga = {
@@ -28,12 +29,6 @@ export type EntradasViga = {
   D: number;
   L_v: number;
 };
-
-/**
- * Un número listo para el código fuente de una región: con punto decimal y sin
- * la cola binaria que arrastraría un `30.000000000000004 cm` a la vista.
- */
-const n = (v: number): string => (Number.isFinite(v) ? String(Number(v.toPrecision(12))) : '0');
 
 const ENTRADAS: CampoDef[] = [
   {
