@@ -25,7 +25,9 @@ import {
   abrirHueco,
   ALTO_POR_DEFECTO,
 } from '../../lib/solapes';
-import { esHoja, newId, parsearHoja, sanearRegiones } from '../../lib/hoja-json';
+import { esHoja, metaDe, newId, parsearHoja, sanearRegiones } from '../../lib/hoja-json';
+import { RE_SLUG, type MetaPlanilla } from '../../lib/biblioteca/contrato';
+import { rutaDePlanilla } from '../../lib/catalogo';
 import {
   anclar,
   aplicarArrastre,
@@ -62,12 +64,14 @@ export const CLAVE_APARTADA = `${STORAGE_KEY}.apartada`;
 
 interface Arranque {
   regions: Region[];
+  /** El `meta` de la hoja guardada, si lo traía. */
+  meta: MetaPlanilla | null;
   /** Había algo guardado, no se pudo leer como hoja, y se apartó. */
   apartada: boolean;
 }
 
 function loadInitial(): Arranque {
-  if (typeof window === 'undefined') return { regions: DEMO, apartada: false };
+  if (typeof window === 'undefined') return { regions: DEMO, meta: null, apartada: false };
   let raw: string | null = null;
   try {
     raw = localStorage.getItem(STORAGE_KEY);
@@ -76,7 +80,7 @@ function loadInitial(): Arranque {
       // Si lo guardado es la hoja de ejemplo sin tocar, se devuelve DEMO por
       // referencia: así el autoguardado la sigue reconociendo y no empieza a
       // contarla como trabajo del usuario a partir de la segunda visita.
-      if (data?.demo) return { regions: DEMO, apartada: false };
+      if (data?.demo) return { regions: DEMO, meta: null, apartada: false };
       if (Array.isArray(data?.regions)) {
         // Saneadas también aquí: el localStorage puede traer una hoja escrita
         // por una versión anterior, o a medio escribir.
@@ -86,7 +90,7 @@ function loadInitial(): Arranque {
         // `anclajes-pedestal`—, y las transitorias no llegan aquí porque el
         // autoguardado descarta la que está en edición. Filtrarlas hacía que la
         // hoja se recolocara sola en el primer F5.
-        return { regions: sanearRegiones(data.regions), apartada: false };
+        return { regions: sanearRegiones(data.regions), meta: metaDe(data), apartada: false };
       }
     }
   } catch {
@@ -100,12 +104,12 @@ function loadInitial(): Arranque {
   if (raw) {
     try {
       localStorage.setItem(CLAVE_APARTADA, raw);
-      return { regions: DEMO, apartada: true };
+      return { regions: DEMO, meta: null, apartada: true };
     } catch {
       // Si no cabe la copia, no hay nada mejor que hacer que seguir.
     }
   }
-  return { regions: DEMO, apartada: false };
+  return { regions: DEMO, meta: null, apartada: false };
 }
 
 /**
@@ -139,6 +143,14 @@ const tarjetaAviso =
 export default function MathCanvas() {
   const [arranque] = useState(loadInitial);
   const [regions, setRegions] = useState<Region[]>(arranque.regions);
+  /**
+   * El `meta` de la hoja abierta: título, slug, clase, normas, entradas… Viaja
+   * con la hoja —al exportar y al autoguardar— pero no es estado de la vista:
+   * nada lo pinta y deshacer no lo toca, por eso es un ref y no un `useState`.
+   * Lo fija `cargarHoja`; una hoja sin `meta` (una plantilla, la demo) lo deja
+   * en `null`.
+   */
+  const metaRef = useRef<MetaPlanilla | null>(arranque.meta);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   /**
@@ -487,6 +499,7 @@ export default function MathCanvas() {
       // compartido y editarla en la hoja no debe mutarlo), descarta las
       // malformadas y reasigna los ids repetidos.
       setRegions(sanearRegiones(data.regions));
+      metaRef.current = metaDe(data);
       seleccionar(new Set());
       setActiveId(null);
       setInsertAt(null);
@@ -510,9 +523,14 @@ export default function MathCanvas() {
    * Descarga una planilla publicada y la abre.
    *
    * A diferencia de `?plantilla=`, que sirve la galería compilada en
-   * `worksheet-templates.ts`, estas viven como archivo suelto en
-   * `public/planillas/`: se acumulan sin tocar el bundle, se descargan como
-   * JSON y se verifican fuera del navegador con `npm run verify:planilla`.
+   * `worksheet-templates.ts`, estas viven como archivo suelto en `public/`: se
+   * acumulan sin tocar el bundle, se descargan como JSON y se verifican fuera
+   * del navegador con `npm run verify:planilla`.
+   *
+   * Dónde está el archivo lo dice el índice (`ruta`): las genéricas viven en
+   * `public/biblioteca/<disciplina>/` y los ejemplos en `public/planillas/`.
+   * Si el índice no carga o no conoce el slug, se prueba `/planillas/<slug>.json`,
+   * que es donde vivían todas.
    *
    * La usan el deep-link y el menú del catálogo, que necesitan exactamente lo
    * mismo. El slug se valida contra [a-z0-9-] para que no pueda apuntar a otra
@@ -520,8 +538,9 @@ export default function MathCanvas() {
    */
   const cargarPlanilla = useCallback(
     (slug: string, opts: { hayTrabajo?: boolean; señal?: { cancelado: boolean } } = {}) => {
-      if (!/^[a-z0-9-]+$/.test(slug)) return;
-      fetch(`/planillas/${slug}.json`)
+      if (!RE_SLUG.test(slug)) return;
+      rutaDePlanilla(slug)
+        .then((ruta) => fetch(ruta))
         .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
         .then((data) => {
           if (opts.señal?.cancelado) return;
@@ -574,7 +593,13 @@ export default function MathCanvas() {
       // Se marca la hoja de ejemplo intacta para que `hayTrabajoGuardado` no la
       // confunda con trabajo del usuario (ver el comentario de esa función).
       const demo = rs === DEMO;
-      const texto = JSON.stringify({ version: 1, regions: persistable, ...(demo ? { demo: true } : {}) });
+      const meta = metaRef.current;
+      const texto = JSON.stringify({
+        version: 1,
+        ...(meta ? { meta } : {}),
+        regions: persistable,
+        ...(demo ? { demo: true } : {}),
+      });
       localStorage.setItem(STORAGE_KEY, texto);
       escritoRef.current = texto;
       setStorageWarn(null);
@@ -680,7 +705,8 @@ export default function MathCanvas() {
   const cargarDeOtraPestana = useCallback(() => {
     enPausaRef.current = false;
     setOtraPestana(false);
-    const { regions: rs } = loadInitial();
+    const { regions: rs, meta } = loadInitial();
+    metaRef.current = meta;
     setActiveId(null);
     seleccionar(new Set());
     setRegions(rs);
@@ -1142,9 +1168,17 @@ export default function MathCanvas() {
    * llevaba el fallo clásico de Firefox —enlace fuera del DOM y
    * `revokeObjectURL` síncrono— y con dos rutas de descarga en la aplicación,
    * arreglar una sola habría sido peor que no arreglar ninguna.
+   *
+   * Sale con el `meta` que traía la hoja y con el nombre de su slug: una
+   * genérica abierta, retocada y exportada vuelve a ser `<slug>.json` con sus
+   * normas, entradas y casos, que es lo que `verify:biblioteca` y
+   * `harness.planilla` necesitan leer. Exportar solo `regions` la degradaba en
+   * silencio a un ejemplo sin contrato.
    */
   const exportJson = useCallback(() => {
-    descargarHoja({ version: 1, regions }, 'hoja-calculo.json');
+    const meta = metaRef.current;
+    const nombre = meta?.slug && RE_SLUG.test(meta.slug) ? meta.slug : 'hoja-calculo';
+    descargarHoja({ version: 1, ...(meta ? { meta } : {}), regions }, `${nombre}.json`);
   }, [regions]);
 
   // Ctrl+S: el reflejo de cualquiera en una herramienta de planillas. Sin

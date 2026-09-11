@@ -7,6 +7,7 @@
 // tenerlas en dos sitios sería tener dos contratos.
 
 import type { Region } from './worksheet';
+import type { MetaPlanilla } from './biblioteca/contrato';
 
 /** Ids pedidos en esta sesión: lo que distingue a dos del mismo milisegundo. */
 let secuencia = 0;
@@ -46,10 +47,26 @@ export function esRegion(r: unknown): r is Region {
   );
 }
 
-/** Lo que se acepta como hoja: `regions` y, opcionalmente, `meta.titulo`. */
+/**
+ * Lo que se acepta como hoja: `regions` y, opcionalmente, `meta`. Del `meta`
+ * solo se promete `titulo`; el resto es el contrato de `biblioteca/contrato.ts`
+ * y viaja tal cual, sin validar aquí (lo valida `verify:planilla`).
+ */
 export interface HojaSuelta {
   regions: unknown[];
-  meta?: { titulo?: string };
+  meta?: { titulo?: string; [clave: string]: unknown };
+}
+
+/**
+ * El `meta` que trae una hoja, si tiene forma de `meta`: un objeto con
+ * `titulo`. Es lo que el canvas conserva para exportarlo y autoguardarlo; sin
+ * esto, abrir una genérica y exportarla devolvía un JSON sin slug, sin normas y
+ * sin entradas declaradas — una hoja que `harness.planilla` ya no reconoce.
+ */
+export function metaDe(data: unknown): MetaPlanilla | null {
+  const meta = (data as { meta?: unknown } | null)?.meta;
+  if (!meta || typeof meta !== 'object' || Array.isArray(meta)) return null;
+  return typeof (meta as { titulo?: unknown }).titulo === 'string' ? (meta as MetaPlanilla) : null;
 }
 
 /**

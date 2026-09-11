@@ -49,7 +49,9 @@ export default function TablaDePaginas() {
 
   useEffect(() => {
     cargarIndice()
-      .then((idx) => setSlugs(idx.map((e) => e.slug)))
+      // Solo los ejemplos: la línea base de `docs/linea-base-pagina.md` es la de
+      // las 33 de `public/planillas/`, y es de ahí de donde se descargan abajo.
+      .then((idx) => setSlugs(idx.filter((e) => (e.clase ?? 'ejemplo') === 'ejemplo').map((e) => e.slug)))
       .catch(() => setError('No se pudo cargar public/planillas-indice.json'));
   }, []);
 

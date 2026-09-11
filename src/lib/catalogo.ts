@@ -7,12 +7,27 @@
 // disciplinas se comparten.
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Una planilla publicada, tal como la describe `public/planillas-indice.json`. */
+/**
+ * Una planilla publicada, tal como la describe `public/planillas-indice.json`
+ * (versión 2: ejemplos del blog y genéricas de la biblioteca en un solo índice).
+ */
 export interface EntradaIndice {
   slug: string;
   titulo: string;
+  /** `generica` (public/biblioteca/) o `ejemplo` (public/planillas/). */
+  clase: 'generica' | 'ejemplo';
   disciplina: string;
+  /** Ruta servida del JSON, con la barra inicial: `/biblioteca/acero/x.json`. */
+  ruta: string;
   regiones: number;
+  /** Claves del catálogo del harness (`US/AISC360-22`). */
+  normas: string[];
+  entradas: number;
+  salidas: number;
+  /** Genérica con entradas y salidas declaradas: se puede abrir en `/diseno/<slug>`. */
+  promovible: boolean;
+  sha256: string;
+  resumen?: string;
 }
 
 /** Nombres de sección; los del índice vienen en minúscula y sin tilde. */
@@ -20,12 +35,28 @@ export const TITULOS: Record<string, string> = {
   hormigon: 'Hormigón',
   acero: 'Acero',
   geotecnia: 'Geotecnia',
+  acciones: 'Acciones',
   apuntes: 'Apuntes',
   otros: 'Otros',
 };
 
 /** Orden de las disciplinas; lo que no esté aquí va al final, alfabético. */
-export const ORDEN = ['hormigon', 'acero', 'geotecnia', 'apuntes', 'otros'];
+export const ORDEN = ['hormigon', 'acero', 'geotecnia', 'acciones', 'apuntes', 'otros'];
+
+/** Nombre de cada clase en el catálogo, en el orden en que se muestran. */
+export const CLASES_CATALOGO: { clase: EntradaIndice['clase']; titulo: string; detalle: string }[] = [
+  {
+    clase: 'generica',
+    titulo: 'Biblioteca genérica',
+    detalle:
+      'Hojas con entradas declaradas y casos de prueba. Se instancian por proyecto; no se editan en sitio.',
+  },
+  {
+    clase: 'ejemplo',
+    titulo: 'Ejemplos resueltos',
+    detalle: 'Memorias completas que acompañan a un artículo del blog.',
+  },
+];
 
 /**
  * El índice, descargado una vez por sesión. La promesa se cachea, no el
@@ -49,6 +80,35 @@ export function cargarIndice(): Promise<EntradaIndice[]> {
       });
   }
   return pendiente;
+}
+
+/**
+ * Dónde se sirve una planilla: la `ruta` del índice y, si el índice no la trae
+ * o no carga, `/planillas/<slug>.json`, que es donde vivían todas antes de la
+ * biblioteca. El fallback mantiene vivos los deep-links publicados aunque el
+ * índice falle.
+ */
+export async function rutaDePlanilla(slug: string): Promise<string> {
+  const porDefecto = `/planillas/${slug}.json`;
+  try {
+    const e = (await cargarIndice()).find((x) => x.slug === slug);
+    // La ruta sale de un archivo servido por el propio sitio, pero igual se
+    // acota: tiene que ser un JSON bajo la raíz, sin subir de directorio.
+    return e?.ruta && /^\/[a-z0-9/-]+\.json$/.test(e.ruta) && !e.ruta.includes('..') ? e.ruta : porDefecto;
+  } catch {
+    return porDefecto;
+  }
+}
+
+/** Agrupa por clase en el orden de `CLASES_CATALOGO`; cada clase, por disciplina. */
+export function agruparPorClase(
+  entradas: EntradaIndice[],
+): { clase: EntradaIndice['clase']; titulo: string; detalle: string; grupos: [string, EntradaIndice[]][] }[] {
+  return CLASES_CATALOGO.map((c) => ({
+    ...c,
+    // Un índice v1 (sin `clase`) cae entero en los ejemplos, que es lo que era.
+    grupos: agruparPorDisciplina(entradas.filter((e) => (e.clase ?? 'ejemplo') === c.clase)),
+  })).filter((c) => c.grupos.length > 0);
 }
 
 /** Agrupa por disciplina en el orden de `ORDEN`. */

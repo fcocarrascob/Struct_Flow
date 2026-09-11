@@ -125,7 +125,7 @@ export function verificarSimbolos(items: Item[]): void {
  * completa es lo que garantiza que `MathCanvas` monte de cero y vuelva a leer
  * el slot.
  */
-export function abrirEnCanvas(hoja: { regions: Region[] }): void {
+export function abrirEnCanvas(hoja: { meta?: MetaPlanilla; regions: Region[] }): void {
   if (typeof window === 'undefined') return;
   try {
     // `hayTrabajoGuardado` y no un `regions.length > 0`: la hoja de ejemplo se
@@ -138,9 +138,11 @@ export function abrirEnCanvas(hoja: { regions: Region[] }): void {
     ) {
       return;
     }
+    // Con su `meta`: el canvas lo conserva y lo vuelve a exportar, y en la
+    // memoria de un módulo declarativo ahí va el sello de la instancia.
     window.localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ version: 1, regions: hoja.regions })
+      JSON.stringify({ version: 1, ...(hoja.meta ? { meta: hoja.meta } : {}), regions: hoja.regions })
     );
   } catch {
     window.alert('No se pudo escribir en el almacenamiento local del navegador.');

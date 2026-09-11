@@ -1,7 +1,40 @@
 import { useMemo, useState } from 'react';
-import { TITULOS, agruparPorDisciplina, partirTitulo } from '../lib/catalogo';
+import { TITULOS, agruparPorClase, partirTitulo, type EntradaIndice } from '../lib/catalogo';
 import Enlace from './Enlace';
 import { useIndice } from './useIndice';
+
+/** Lo que el buscador compara: título, slug, claves de norma y resumen. */
+function textoBuscable(e: EntradaIndice): string {
+  return `${e.titulo} ${e.slug} ${(e.normas ?? []).join(' ')} ${e.resumen ?? ''}`.toLowerCase();
+}
+
+function Tarjeta({ e }: { e: EntradaIndice }) {
+  const { nombre, detalle } = partirTitulo(e.titulo);
+  const generica = e.clase === 'generica';
+  return (
+    <Enlace
+      a={{ vista: 'canvas' }}
+      busqueda={`?planilla=${e.slug}`}
+      title={e.titulo}
+      className="group flex h-full flex-col rounded border border-border bg-white p-3 no-underline hover:border-accent"
+    >
+      <span className="text-xs font-medium text-ink group-hover:text-accent">{nombre}</span>
+      {/* En una genérica el resumen dice qué resuelve; el matiz del título, cómo. */}
+      {(generica ? e.resumen ?? detalle : detalle) && (
+        <span className="mt-1 line-clamp-3 text-[11px] leading-snug text-muted">
+          {generica ? e.resumen ?? detalle : detalle}
+        </span>
+      )}
+      {generica && e.normas?.length > 0 && (
+        <span className="mt-1.5 font-mono text-[10px] text-ink/70">{e.normas.join(' · ')}</span>
+      )}
+      <span className="mt-2 font-mono text-[10px] text-muted">
+        {e.slug} · {e.regiones} bloques
+        {generica && ` · ${e.entradas} entradas`}
+      </span>
+    </Enlace>
+  );
+}
 
 /**
  * El catálogo completo como página.
@@ -10,22 +43,24 @@ import { useIndice } from './useIndice';
  * sitio para respirar: los títulos del corpus llegan a 200 caracteres y en una
  * línea de menú salían truncados. Aquí se parten por el guion largo — antes, el
  * nombre; después, el matiz.
+ *
+ * Dos secciones porque son dos cosas: la **biblioteca genérica** es lo que el
+ * harness instancia en cada proyecto —con entradas declaradas y casos que la
+ * verifican—, y los **ejemplos** son memorias cerradas que acompañan a un post.
  */
 export default function CatalogoPagina() {
   const { indice, error } = useIndice();
   const [filtro, setFiltro] = useState('');
 
   const q = filtro.trim().toLowerCase();
-  const grupos = useMemo(
-    () =>
-      agruparPorDisciplina(
-        (indice ?? []).filter(
-          (e) => !q || `${e.titulo} ${e.slug}`.toLowerCase().includes(q),
-        ),
-      ),
+  const secciones = useMemo(
+    () => agruparPorClase((indice ?? []).filter((e) => !q || textoBuscable(e).includes(q))),
     [indice, q],
   );
-  const total = grupos.reduce((n, [, es]) => n + es.length, 0);
+  const total = secciones.reduce(
+    (n, s) => n + s.grupos.reduce((m, [, es]) => m + es.length, 0),
+    0,
+  );
 
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-10">
@@ -39,8 +74,8 @@ export default function CatalogoPagina() {
       <header className="mb-5">
         <h1 className="text-xl font-semibold text-ink">Planillas</h1>
         <p className="mt-1 text-sm text-muted">
-          Memorias de cálculo resueltas. Al abrir una se carga en el canvas, donde se puede editar,
-          recalcular con otros datos e imprimir.
+          La biblioteca de hojas genéricas y los ejemplos resueltos. Al abrir una se carga en el
+          canvas, donde se puede editar, recalcular con otros datos e imprimir.
         </p>
       </header>
 
@@ -64,39 +99,31 @@ export default function CatalogoPagina() {
         <p className="text-sm text-muted">Nada coincide con «{filtro.trim()}».</p>
       )}
 
-      <div className="space-y-8">
-        {grupos.map(([disciplina, entradas]) => (
-          <section key={disciplina}>
-            <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted">
-              {TITULOS[disciplina] ?? disciplina} · {entradas.length}
-            </h2>
-            <ul className="grid gap-2 sm:grid-cols-2">
-              {entradas.map((e) => {
-                const { nombre, detalle } = partirTitulo(e.titulo);
-                return (
-                  <li key={e.slug}>
-                    <Enlace
-                      a={{ vista: 'canvas' }}
-                      busqueda={`?planilla=${e.slug}`}
-                      title={e.titulo}
-                      className="group flex h-full flex-col rounded border border-border bg-white p-3 no-underline hover:border-accent"
-                    >
-                      <span className="text-xs font-medium text-ink group-hover:text-accent">
-                        {nombre}
-                      </span>
-                      {detalle && (
-                        <span className="mt-1 line-clamp-3 text-[11px] leading-snug text-muted">
-                          {detalle}
-                        </span>
-                      )}
-                      <span className="mt-2 font-mono text-[10px] text-muted">
-                        {e.slug} · {e.regiones} bloques
-                      </span>
-                    </Enlace>
-                  </li>
-                );
-              })}
-            </ul>
+      <div className="space-y-12">
+        {secciones.map((s) => (
+          <section key={s.clase} aria-labelledby={`clase-${s.clase}`}>
+            <header className="mb-4 border-b border-border pb-2">
+              <h2 id={`clase-${s.clase}`} className="text-base font-semibold text-ink">
+                {s.titulo}
+              </h2>
+              <p className="mt-0.5 text-xs text-muted">{s.detalle}</p>
+            </header>
+            <div className="space-y-8">
+              {s.grupos.map(([disciplina, entradas]) => (
+                <section key={disciplina}>
+                  <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted">
+                    {TITULOS[disciplina] ?? disciplina} · {entradas.length}
+                  </h3>
+                  <ul className="grid gap-2 sm:grid-cols-2">
+                    {entradas.map((e) => (
+                      <li key={e.slug}>
+                        <Tarjeta e={e} />
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ))}
+            </div>
           </section>
         ))}
       </div>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Template } from '../../lib/worksheet-templates';
-import { TITULOS, agruparPorDisciplina } from '../../lib/catalogo';
+import { TITULOS, agruparPorClase } from '../../lib/catalogo';
 import { useIndice } from '../useIndice';
 
 interface Props {
@@ -38,12 +38,12 @@ export default function CatalogoMenu({ plantillas, onPlantilla, onPlanilla, onCe
     [plantillas, q],
   );
 
-  const grupos = useMemo(
-    () => agruparPorDisciplina((indice ?? []).filter((e) => coincide(`${e.titulo} ${e.slug}`))),
+  const secciones = useMemo(
+    () => agruparPorClase((indice ?? []).filter((e) => coincide(`${e.titulo} ${e.slug}`))),
     [indice, q],
   );
 
-  const nada = plantillasVisibles.length === 0 && grupos.length === 0;
+  const nada = plantillasVisibles.length === 0 && secciones.length === 0;
 
   return (
     <>
@@ -82,23 +82,30 @@ export default function CatalogoMenu({ plantillas, onPlantilla, onPlanilla, onCe
             </>
           )}
 
-          {grupos.map(([disciplina, entradas]) => (
-            <div key={disciplina}>
-              <p className="px-3 pb-0.5 pt-2 text-[10px] font-semibold uppercase tracking-wide text-muted">
-                {TITULOS[disciplina] ?? disciplina}
+          {secciones.map((s) => (
+            <div key={s.clase}>
+              <p className="border-t border-border px-3 pb-0.5 pt-2 text-[10px] font-semibold uppercase tracking-wide text-ink">
+                {s.titulo}
               </p>
-              {entradas.map((e) => (
-                <button
-                  key={e.slug}
-                  className="block w-full px-3 py-1.5 text-left hover:bg-accent/10"
-                  onClick={() => onPlanilla(e.slug)}
-                  title={e.titulo}
-                >
-                  <span className="block truncate text-xs font-medium text-ink">{e.titulo}</span>
-                  <span className="block text-[10px] text-muted">
-                    {e.slug} · {e.regiones} bloques
-                  </span>
-                </button>
+              {s.grupos.map(([disciplina, entradas]) => (
+                <div key={disciplina}>
+                  <p className="px-3 pb-0.5 pt-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted">
+                    {TITULOS[disciplina] ?? disciplina}
+                  </p>
+                  {entradas.map((e) => (
+                    <button
+                      key={e.slug}
+                      className="block w-full px-3 py-1.5 text-left hover:bg-accent/10"
+                      onClick={() => onPlanilla(e.slug)}
+                      title={e.titulo}
+                    >
+                      <span className="block truncate text-xs font-medium text-ink">{e.titulo}</span>
+                      <span className="block text-[10px] text-muted">
+                        {e.slug} · {e.regiones} bloques
+                      </span>
+                    </button>
+                  ))}
+                </div>
               ))}
             </div>
           ))}
