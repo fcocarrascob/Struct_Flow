@@ -56,19 +56,19 @@
     },
     {
       "slug": "viga-carrilera-generica",
-      "titulo": "Viga carrilera de puente grúa con canal-tapa — flexión biaxial, corte, fuerzas concentradas del rodado, deflexiones y fatiga",
+      "titulo": "Viga carrilera de puente grua -- doble T monosimetrica, soldada o con canal-tapa: flexion biaxial, corte, fuerzas concentradas del rodado, pandeo lateral del alma, deflexiones y fatiga",
       "clase": "generica",
       "disciplina": "acero",
       "ruta": "/biblioteca/acero/viga-carrilera-generica.json",
-      "regiones": 236,
+      "regiones": 276,
       "normas": [
         "US/AISC360-22"
       ],
-      "entradas": 37,
-      "salidas": 29,
+      "entradas": 43,
+      "salidas": 34,
       "promovible": true,
-      "sha256": "f3461a06560057ca9952913d7c268350ae3579c5e037594ff97e9361f6339709",
-      "resumen": "Viga de alma llena con canal-tapa bajo un puente grúa: sección compuesta, flexión por §F4, corte, alma bajo la rueda (§J10), interacción H1, deflexiones y fatiga del Apéndice 3."
+      "sha256": "d3ed5e2ce90f87311be4b346c7828e4648def28f9959183a14f2bb55bb7a39c2",
+      "resumen": "Viga de alma llena bajo un puente grua, con el ala superior mas ancha o con canal-tapa: flexion por §F4, corte con el C_v1 de una seccion armada, alma bajo la rueda (§J10.2 a §J10.4), interaccion H1, deflexiones y fatiga del Apendice 3."
     },
     {
       "slug": "pedestal-generico",
