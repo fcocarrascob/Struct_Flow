@@ -38,7 +38,7 @@ ejemplo de referencia y un caso que falla a propósito.
 | `placa-base-generica` | Aplastamiento, equilibrio, grupo de pernos y espesor de chapa. Cubre placa **lisa** y **rigidizada** con la misma hoja (`hay_nervios`) | AISC DG1 3.ª §4.3.7 · AISC 360 §J8, §J4.5 · ACI 318-25 §17.6.1 | 26 |
 | `llave-corte-generica` | Los **siete** estados límite de la llave. Una chapa por dirección o dos paralelas desplazadas | AISC DG1 3.ª §4.3.3 y Ej. 4.7-5 · ACI 318-25 §17.11, §17.5.2.1.2 · AISC 360 §J2, §J4.2, §J4.5 | 27 |
 | `silla-anclaje-generica` | El **camino de carga** completo: perno → chapa superior → nervios → ala (o ala extendida) → alma | CIRSOC 301-18 §J.10.8 · AISC 360 §J2, §J4.2, §J4.5 | 31 |
-| `viga-carrilera-generica` | Flexión biaxial, corte, fuerzas concentradas del rodado, deflexiones y fatiga, con canal-tapa | AISC 360-22 §F4, §G2, §H1, §J10, Ap. 3 | 37 |
+| `viga-carrilera-generica` | Flexión biaxial, corte, fuerzas concentradas del rodado —incluido el pandeo lateral del alma—, deflexiones y fatiga. Cubre la doble T **monosimétrica** de las dos formas en que se construye: con canal-tapa (`hay_canal`) y **armada con el ala superior más ancha** (`es_soldada`) | AISC 360-22 §F4, §G2, §H1, §J10, Ap. 3 | 43 |
 
 ### `hormigon/`
 
@@ -93,7 +93,7 @@ aparte. Resumen:
 | `placa-base-generica` | **β** (entra medido o de tabla; la hoja lo acota entre 0,0479 y 0,125) · la silla · la llave | placa rectangular · una fila de pernos por lado · bloque rectangular |
 | `llave-corte-generica` | el equilibrio de la placa · el despiece de la armadura de anclaje · la envolvente de dos chapas como bloque único | — |
 | `silla-anclaje-generica` | el reparto de tracción entre pernos (uniforme) · el ancho eficaz de la chapa · el rigidizador a resistencia | extensión de ala con la lectura conservadora |
-| `viga-carrilera-generica` | las cargas de rueda (del fabricante) · la clasificación del ala · el eje neutro plástico (`R_pc = R_pt = 1,0`) · los límites de deflexión · el riel | dos ruedas iguales · canal continuo y colaborante · vano simple |
+| `viga-carrilera-generica` | las cargas de rueda (del fabricante) · la clasificación del **ala** —la del **alma** sí la calcula— · el eje neutro plástico (`R_pc = R_pt = 1,0`) · los límites de deflexión · el riel y su unión | dos ruedas iguales · canal continuo y colaborante · vano simple · el ala superior (más el canal) toma íntegramente la fuerza lateral |
 | `pedestal-generico` | los puntos intermedios del P–M (entran como pares) · los límites de cuantía | estribos cerrados · armadura simétrica · **detallado no sísmico** |
 | `zapata-generica` | los esfuerzos mayorados | apoyo interior · sin armadura de corte · `Nu = 0` · X es el lado corto (**sí** se chequea) |
 
@@ -175,6 +175,24 @@ mejor validación que puede tener una plantilla: llegar al mismo número por otr
 a la del proyecto. La anterior aplicaba el §F2 —*doubly symmetric*—, que no alcanza a una
 viga con canal-tapa; el que corresponde es el §F4, y con él aparece un cuarto estado
 límite, la fluencia del ala traccionada, que quedó a 3 puntos de gobernar.
+
+**Segunda pasada, 2026-09-11, desde el galpón simulado con puente grúa.** La hoja cubría
+la monosimetría **sólo por el canal-tapa**: con `hay_canal := 0` el eje neutro caía a media
+altura por construcción, `S_xc` y `S_xt` quedaban iguales y el §F4 se degradaba a un §F2
+disfrazado — justo lo que el párrafo de arriba dice que no hay que hacer. Una carrilera
+armada con el ala superior más ancha, que es la tipología que el §5.8.2 de AIST TR-13
+describe, no la representaba nadie. Cuatro cambios, y tres de ellos van del lado inseguro
+al seguro:
+
+1. `es_soldada` + `b_fb` y `t_fb`: la hoja deriva `A`, `I_x`, `I_y` y `J` de las tres chapas.
+2. **`C_v1` de verdad.** Estaba fijo en 1,0, que es el §G2.1(**a**) y vale **sólo para
+   almas de perfiles laminados**. Una armada cae en el (b), y en la viga que motivó el
+   cambio `C_v1` da 0,754: la resistencia al corte estaba **un 33 % sobrestimada**.
+3. **Alma compacta.** El §F4 se conforma con que no sea esbelta; el §5.8.2 de AIST TR-13
+   exige que el ala superior *y el alma* sean **compactas**. Son dos límites distintos.
+4. **§J10.4, pandeo lateral del alma**, que ese mismo §5.8.2 lista y la hoja no tenía. En
+   la mayoría de las vías no aplica, pero eso hay que **comprobarlo**, no suponerlo: el
+   criterio de aplicabilidad es una razón geométrica contra 2,3 o 1,7.
 
 Vivieron en `_plantillas/planillas/` de Struct_Harness hasta el 2026-09-11, generadas por
 `_gen/hoja.py` + `gen_*.py`; desde entonces la fuente de verdad es este JSON.
