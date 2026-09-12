@@ -322,7 +322,8 @@
   "entrega": {
    "T_grupo": [
     "silla-anclaje-generica",
-    "pedestal-generico"
+    "pedestal-generico",
+    "anclaje-hormigon-generica"
    ],
    "Yb_comp": [
     "llave-corte-generica",

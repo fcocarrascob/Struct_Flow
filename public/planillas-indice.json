@@ -463,7 +463,7 @@
       "entradas": 26,
       "salidas": 16,
       "promovible": true,
-      "sha256": "efb4b113633eb0d73e3bd5e304a178c55ceb472b73c5f5789728ea1a663e3686",
+      "sha256": "b6760761a48491e00af9a54ee275855d3c42d2f5ef7dd4935568a4b073f78483",
       "resumen": "Placa lisa o rigidizada (hay_nervios) bajo columna con momento: aplastamiento en bloque, equilibrio iterativo, grupo de pernos y espesor de chapa. Entrega T_grupo e Yb_comp al resto de la base de columna."
     },
     {
@@ -498,6 +498,22 @@
       "promovible": true,
       "sha256": "92a1994203d8da4adb13debc4d9fe42070a082125edd0850b9698c703e90f837",
       "resumen": "Viga de alma llena bajo un puente grua, con el ala superior mas ancha o con canal-tapa: flexion por §F4, corte con el C_v1 de una seccion armada, alma bajo la rueda (§J10.2 a §J10.4), interaccion H1, deflexiones y fatiga del Apendice 3."
+    },
+    {
+      "slug": "anclaje-hormigon-generica",
+      "titulo": "Anclaje al hormigon — grupo de pernos colados en traccion: acero, arrancamiento del cono, extraccion de la cabeza, descascaramiento lateral y armadura de anclaje",
+      "clase": "generica",
+      "disciplina": "hormigon",
+      "ruta": "/biblioteca/hormigon/anclaje-hormigon-generica.json",
+      "regiones": 137,
+      "normas": [
+        "US/ACI318-25-SI"
+      ],
+      "entradas": 27,
+      "salidas": 13,
+      "promovible": true,
+      "sha256": "b2c1c61e3591764be698279216e20f973197b0eb861e1e20883fbe0133abc297",
+      "resumen": "El Cap. 17 del ACI 318-25 en traccion para pernos colados, con los dos factores nuevos de la edicion 25 (psi_a y psi_cm,N). Recibe Nua_g de placa-base-generica y decide si hace falta armadura de anclaje."
     },
     {
       "slug": "pedestal-generico",
