@@ -445,7 +445,7 @@
       "entradas": 27,
       "salidas": 29,
       "promovible": true,
-      "sha256": "c4298d6db8e7ef75b47a6b5f89b99a89a4732df9b07e4e050371f748613b25ad",
+      "sha256": "75d4efd2df0d09aae9f0351abc3681e19c4c93be42f33deb8a87ada01e9b7c18",
       "resumen": "Llave de corte soldada bajo la placa: aplastamiento del hormigón, breakout, flexión de la chapa, soldadura y flexión local de la placa, en las dos direcciones. Una chapa por dirección o dos paralelas desplazadas."
     },
     {
@@ -512,7 +512,7 @@
       "entradas": 27,
       "salidas": 13,
       "promovible": true,
-      "sha256": "b2c1c61e3591764be698279216e20f973197b0eb861e1e20883fbe0133abc297",
+      "sha256": "6b92e14a79594f8000a16273fbd299f675d06eeeaf9db0d1308c57b410c65191",
       "resumen": "El Cap. 17 del ACI 318-25 en traccion para pernos colados, con los dos factores nuevos de la edicion 25 (psi_a y psi_cm,N). Recibe Nua_g de placa-base-generica y decide si hace falta armadura de anclaje."
     },
     {
@@ -529,7 +529,7 @@
       "entradas": 27,
       "salidas": 25,
       "promovible": true,
-      "sha256": "f2cdeef6ab21c723a0f9448f391e2b58d55335efcc742a2ee2ebd74299cd2269",
+      "sha256": "8f38f852c7e9d0b20ae2d17a2ab5a464c3e09ab290872a373c970d886b40bf43",
       "resumen": "Pedestal rectangular bajo placa base: cuantías, los tres extremos del diagrama P–M y puntos intermedios como dato, corte en las dos direcciones, estribos y la armadura de anclaje que puede contarse. Recibe T_grupo de placa-base-generica."
     },
     {
@@ -546,7 +546,7 @@
       "entradas": 22,
       "salidas": 20,
       "promovible": true,
-      "sha256": "dc0f8dbca3f33d6bc65bbd8d2aeaa6e372a900edd5c3f97bc6702e7e391d3364",
+      "sha256": "66c2575959901159d570e43f1912a3e2a6cb160cb618460a6f960880ae7f02c6",
       "resumen": "Zapata rectangular bajo pedestal con esfuerzos mayorados como dato: flexión con reparto en banda (§13.3.3.3), corte en una dirección en los dos sentidos, punzonamiento con momento, armadura superior por levantamiento y detallado en magnitudes continuas."
     }
   ]

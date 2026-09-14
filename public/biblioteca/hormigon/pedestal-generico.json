@@ -37,7 +37,7 @@
     "nombre": "lam",
     "etiqueta": "lam",
     "grupo": "Materiales",
-    "ayuda": "§19.2.4.2: lam = 1 en hormigon de peso normal"
+    "ayuda": "§19.2.4.3: lam = 1 en hormigon de peso normal"
    },
    {
     "nombre": "db_long",
@@ -431,7 +431,7 @@
    "kind": "text",
    "x": 40,
    "y": 752,
-   "src": "§19.2.4.2: lam = 1 en hormigon de peso normal"
+   "src": "§19.2.4.3: lam = 1 en hormigon de peso normal"
   },
   {
    "id": "in_lam",

@@ -49,7 +49,7 @@
     "nombre": "lam",
     "etiqueta": "lam",
     "grupo": "Materiales",
-    "ayuda": "§19.2.4.2: lam = 1 en hormigon de peso normal"
+    "ayuda": "§19.2.4.3: lam = 1 en hormigon de peso normal"
    },
    {
     "nombre": "d_agg",
@@ -389,7 +389,7 @@
    "kind": "text",
    "x": 40,
    "y": 746,
-   "src": "§19.2.4.2: lam = 1 en hormigon de peso normal"
+   "src": "§19.2.4.3: lam = 1 en hormigon de peso normal"
   },
   {
    "id": "in_lam",
@@ -733,14 +733,14 @@
    "kind": "text",
    "x": 40,
    "y": 3100,
-   "src": "Tabla 8.6.1.1, a la que remite §13.3.3.1, sobre la seccion BRUTA (hzap)"
+   "src": "§8.6.1.1, al que remite §13.3.3.1: A_s,min = 0,0018·Ag sobre la seccion BRUTA (hzap). En la edicion 25 no depende de fy"
   },
   {
    "id": "r063",
-   "kind": "program",
+   "kind": "math",
    "x": 40,
    "y": 3146,
-   "src": "rho_min :=\n    if fy_n < 420\n        return 0.0020\n    else\n        return max(0.0018*420/fy_n, 0.0014)"
+   "src": "rho_min := 0.0018 ="
   },
   {
    "id": "r064",
@@ -838,14 +838,14 @@
    "kind": "text",
    "x": 40,
    "y": 3908,
-   "src": "§8.7.2.2: separacion maxima, el menor de 3h y 450 mm"
+   "src": "§8.7.2.2: separacion maxima en la seccion critica, el menor de 2h y 450 mm"
   },
   {
    "id": "r078",
    "kind": "math",
    "x": 40,
    "y": 3954,
-   "src": "sep_max := min(3*hzap, 450 mm) = mm"
+   "src": "sep_max := min(2*hzap, 450 mm) = mm"
   },
   {
    "id": "v_sep_max",
