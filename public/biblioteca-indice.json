@@ -16,7 +16,7 @@
       "entradas": 27,
       "salidas": 29,
       "promovible": true,
-      "sha256": "75d4efd2df0d09aae9f0351abc3681e19c4c93be42f33deb8a87ada01e9b7c18",
+      "sha256": "64a92f3f82399e036c81be2ae92faa36118d18e8ee6be84b98a072c449a66875",
       "resumen": "Llave de corte soldada bajo la placa: aplastamiento del hormigón, breakout, flexión de la chapa, soldadura y flexión local de la placa, en las dos direcciones. Una chapa por dirección o dos paralelas desplazadas."
     },
     {
@@ -25,16 +25,16 @@
       "clase": "generica",
       "disciplina": "acero",
       "ruta": "/biblioteca/acero/placa-base-generica.json",
-      "regiones": 109,
+      "regiones": 117,
       "normas": [
         "US/AISC-DG1-3ed",
         "US/AISC360-22",
         "US/ACI318-25-SI"
       ],
-      "entradas": 26,
+      "entradas": 29,
       "salidas": 16,
       "promovible": true,
-      "sha256": "b6760761a48491e00af9a54ee275855d3c42d2f5ef7dd4935568a4b073f78483",
+      "sha256": "8f442679f318085e560fbae2f8282a43d701a647dc270f4033a4497c84866bff",
       "resumen": "Placa lisa o rigidizada (hay_nervios) bajo columna con momento: aplastamiento en bloque, equilibrio iterativo, grupo de pernos y espesor de chapa. Entrega T_grupo e Yb_comp al resto de la base de columna."
     },
     {
@@ -76,15 +76,15 @@
       "clase": "generica",
       "disciplina": "hormigon",
       "ruta": "/biblioteca/hormigon/anclaje-hormigon-generica.json",
-      "regiones": 137,
+      "regiones": 144,
       "normas": [
         "US/ACI318-25-SI"
       ],
-      "entradas": 27,
+      "entradas": 28,
       "salidas": 13,
       "promovible": true,
-      "sha256": "6b92e14a79594f8000a16273fbd299f675d06eeeaf9db0d1308c57b410c65191",
-      "resumen": "El Cap. 17 del ACI 318-25 en traccion para pernos colados, con los dos factores nuevos de la edicion 25 (psi_a y psi_cm,N). Recibe Nua_g de placa-base-generica y decide si hace falta armadura de anclaje."
+      "sha256": "041c4dcefb7d6b15e423feee1ef8d2e490bd896fd31ba595aa8e3251201f702d",
+      "resumen": "El Cap. 17 del ACI 318-25 en traccion para pernos colados, con los dos factores nuevos de la edicion 25 (psi_a y psi_cm,N) y el diseno sismico del §17.10 (opcion (d), factor 0,75 sobre los modos del hormigon). Recibe Nua_g de placa-base-generica y decide si hace falta armadura de anclaje."
     },
     {
       "slug": "pedestal-generico",
@@ -92,16 +92,16 @@
       "clase": "generica",
       "disciplina": "hormigon",
       "ruta": "/biblioteca/hormigon/pedestal-generico.json",
-      "regiones": 129,
+      "regiones": 145,
       "normas": [
         "US/ACI318-25-SI",
         "AR/CIRSOC-103-P2-2005"
       ],
-      "entradas": 27,
+      "entradas": 33,
       "salidas": 25,
       "promovible": true,
-      "sha256": "8f38f852c7e9d0b20ae2d17a2ab5a464c3e09ab290872a373c970d886b40bf43",
-      "resumen": "Pedestal rectangular bajo placa base: cuantías, los tres extremos del diagrama P–M y puntos intermedios como dato, corte en las dos direcciones, estribos y la armadura de anclaje que puede contarse. Recibe T_grupo de placa-base-generica."
+      "sha256": "caf985b82bc0b8309e62c314f2aed156ef62a9485890d10b8ddcf9dd51674f8b",
+      "resumen": "Pedestal rectangular bajo placa base: cuantías, los tres extremos del diagrama P–M y puntos intermedios como dato, flexión biaxial por contorno lineal, corte en las dos direcciones, estribos, la armadura de anclaje que puede contarse —por capacidad del perno— y el detallado del §18.13.2. Recibe T_grupo de placa-base-generica y As_req de anclaje-hormigon-generica."
     },
     {
       "slug": "zapata-generica",

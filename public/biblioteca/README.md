@@ -35,7 +35,7 @@ ejemplo de referencia y un caso que falla a propósito.
 
 | Plantilla | Qué verifica | Norma | Entradas |
 |---|---|---|---:|
-| `placa-base-generica` | Aplastamiento, equilibrio, grupo de pernos y espesor de chapa. Cubre placa **lisa** y **rigidizada** con la misma hoja (`hay_nervios`) | AISC DG1 3.ª §4.3.7 · AISC 360 §J8, §J4.5 · ACI 318-25 §17.6.1 | 26 |
+| `placa-base-generica` | Aplastamiento, equilibrio, grupo de pernos y espesor de chapa. Cubre placa **lisa** y **rigidizada** con la misma hoja (`hay_nervios`). Con llave de corte suma a la tracción el **par de la llave** (`hay_llave`) | AISC DG1 3.ª §4.3.7 · AISC 360 §J8, §J4.5 · ACI 318-25 §17.6.1, §17.5.3, §17.11.1.1.9 | 29 |
 | `llave-corte-generica` | Los **siete** estados límite de la llave. Una chapa por dirección o dos paralelas desplazadas | AISC DG1 3.ª §4.3.3 y Ej. 4.7-5 · ACI 318-25 §17.11, §17.5.2.1.2 · AISC 360 §J2, §J4.2, §J4.5 | 27 |
 | `silla-anclaje-generica` | El **camino de carga** completo: perno → chapa superior → nervios → ala (o ala extendida) → alma | CIRSOC 301-18 §J.10.8 · AISC 360 §J2, §J4.2, §J4.5 | 31 |
 | `viga-carrilera-generica` | Flexión biaxial, corte, fuerzas concentradas del rodado —incluido el pandeo lateral del alma—, deflexiones y fatiga. Cubre la doble T **monosimétrica** de las dos formas en que se construye: con canal-tapa (`hay_canal`) y **armada con el ala superior más ancha** (`es_soldada`) | AISC 360-22 §F4, §G2, §H1, §J10, Ap. 3 | 43 |
@@ -44,7 +44,8 @@ ejemplo de referencia y un caso que falla a propósito.
 
 | Plantilla | Qué verifica | Norma | Entradas |
 |---|---|---|---:|
-| `pedestal-generico` | Cuantías, extremos del diagrama P–M, corte, estribos y armadura de anclaje contable | ACI 318-25 SI Cap. 10, 17, 21, 22, 25 | 27 |
+| `anclaje-hormigon-generica` | Grupo de pernos colados en tracción: acero, cono, extracción, descascaramiento y armadura de anclaje **por capacidad del perno**. Con sismo, la opción (d) del §17.10.5.3 y el **0,75** del §17.10.5.4 sobre los modos del hormigón (`sismo`) | ACI 318-25 SI §17.5, §17.6, §17.9, §17.10, Tabla 21.2.1 | 28 |
+| `pedestal-generico` | Cuantías, extremos del diagrama P–M, **flexión biaxial** por contorno lineal, corte, estribos, armadura de anclaje contable (la mayor entre demanda y `As_req` por capacidad) y el detallado de la unión del §18.13.2 | ACI 318-25 SI Cap. 10, 17, 18, 21, 22, 25 | 33 |
 | `zapata-generica` | Flexión, corte en una dirección y punzonamiento, con reparto en banda | ACI 318-25 SI Cap. 8, 13, 21, 22, 25 | 22 |
 
 ### `acciones/`
@@ -67,7 +68,9 @@ llave-corte-generica  ───┘        (acero)               (hormigón)     
 
 | Entrega | Quién lo produce | Quién lo consume |
 |---|---|---|
-| `T_grupo` | `placa-base-generica` | `silla-anclaje-generica` · `pedestal-generico` |
+| `T_grupo` | `placa-base-generica` | `silla-anclaje-generica` · `anclaje-hormigon-generica` (como `Nua_g`) · `pedestal-generico` |
+| `As_req` | `anclaje-hormigon-generica` | `pedestal-generico` (como `As_req_anc`) |
+| `exc` | `llave-corte-generica` (mortero + mitad de la altura efectiva de la llave) | `placa-base-generica` (como `z_llave`, brazo del par del §17.11.1.1.9) |
 | `Yb_comp` | `placa-base-generica` | `llave-corte-generica` (como `Yb`; de ahí sale `ψ_brg`) · `silla-anclaje-generica` |
 | `t_bp` requerido | `placa-base-generica` **y** `llave-corte-generica` | manda **el mayor de los dos** |
 | Reacción de base | el modelo estructural | `zapata-generica` |
@@ -94,7 +97,8 @@ aparte. Resumen:
 | `llave-corte-generica` | el equilibrio de la placa · el despiece de la armadura de anclaje · la envolvente de dos chapas como bloque único | — |
 | `silla-anclaje-generica` | el reparto de tracción entre pernos (uniforme) · el ancho eficaz de la chapa · el rigidizador a resistencia | extensión de ala con la lectura conservadora |
 | `viga-carrilera-generica` | las cargas de rueda (del fabricante) · la clasificación del **ala** —la del **alma** sí la calcula— · el eje neutro plástico (`R_pc = R_pt = 1,0`) · los límites de deflexión · el riel y su unión | dos ruedas iguales · canal continuo y colaborante · vano simple · el ala superior (más el canal) toma íntegramente la fuerza lateral |
-| `pedestal-generico` | los puntos intermedios del P–M (entran como pares) · los límites de cuantía | estribos cerrados · armadura simétrica · **detallado no sísmico** |
+| `anclaje-hormigon-generica` | la tracción del grupo · el corte (va a la llave) · las opciones (a), (b) y (c) del §17.10.5.3 | pernos colados con cabeza · una fila traccionada · armadura conformada (§17.10.4) |
+| `pedestal-generico` | los puntos intermedios del P–M (entran como pares) · la φMn uniaxial de cada eje para la biaxial · los límites de cuantía | estribos cerrados · armadura simétrica · **detallado no sísmico** en el fuste · biaxial por suma lineal (cota superior) |
 | `zapata-generica` | los esfuerzos mayorados | apoyo interior · sin armadura de corte · `Nu = 0` · X es el lado corto (**sí** se chequea) |
 
 ## Lo que queda por afinar en el `meta`
