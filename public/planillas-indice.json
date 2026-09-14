@@ -436,16 +436,16 @@
       "clase": "generica",
       "disciplina": "acero",
       "ruta": "/biblioteca/acero/llave-corte-generica.json",
-      "regiones": 174,
+      "regiones": 180,
       "normas": [
         "US/AISC-DG1-3ed",
         "US/ACI318-25-SI",
         "US/AISC360-22"
       ],
-      "entradas": 27,
-      "salidas": 29,
+      "entradas": 29,
+      "salidas": 30,
       "promovible": true,
-      "sha256": "64a92f3f82399e036c81be2ae92faa36118d18e8ee6be84b98a072c449a66875",
+      "sha256": "f869970d57ec79c47accb302f08996cc5a1713509edd4bd76901e54d612d6144",
       "resumen": "Llave de corte soldada bajo la placa: aplastamiento del hormigón, breakout, flexión de la chapa, soldadura y flexión local de la placa, en las dos direcciones. Una chapa por dirección o dos paralelas desplazadas."
     },
     {
