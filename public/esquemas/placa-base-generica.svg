@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 600" font-family="Segoe UI, Arial, sans-serif">
+  <!--
+    Esquema A ESCALA de placa-base-generica. Ninguna pieza está dibujada a mano:
+    toda coordenada sale de hx() y vp() de la hoja, que llevan una distancia medida
+    desde el centro de la placa a píxeles. Si la geometría cambia, el dibujo cambia.
+    Los colores de las cotas son variables col_* de la hoja, que leen la misma
+    comparación que su v_*: una cota roja y un v_* en falso son el mismo número.
+    Lo único fijo es el marco: títulos, columna de chequeos y franja inferior.
+  -->
+  <rect width="840" height="600" fill="#ffffff"/>
+  <text x="420" y="24" font-size="15" text-anchor="middle" fill="#222" font-weight="bold">Placa base con gran excentricidad: {{n_col}} pernos por fila, placa {{L_bp:mm}} × {{B_bp:mm}} mm</text>
+
+  <!-- eje de la placa, común a las dos vistas -->
+  <line x1="290" y1="62" x2="290" y2="540" stroke="#9aa7b4" stroke-width="0.8" stroke-dasharray="10 3 2 3"/>
+
+  <!-- =============== ELEVACIÓN =============== -->
+  <text x="40" y="50" font-size="11.5" fill="#1a63a8" font-weight="bold">Elevación</text>
+
+  <!-- pedestal, cortado abajo -->
+  <rect data-pieza="pedestal-elevacion" x="{{hx(-PED_L/2):svg}}" y="170" width="{{PED_L/(1 m)*esc:svg}}" height="44" fill="#f4f7fb" stroke="#333" stroke-width="1.2"/>
+  <line x1="{{hx(-PED_L/2) - 6:svg}}" y1="214" x2="{{hx(PED_L/2) + 6:svg}}" y2="214" stroke="#ffffff" stroke-width="3" stroke-dasharray="14 6"/>
+
+  <!-- bloque comprimido de la combinación que aplasta -->
+  <rect data-pieza="bloque" x="{{hx(L_bp/2 - Yb_comp):svg}}" y="170" width="{{Yb_comp/(1 m)*esc:svg}}" height="22" fill="#eaf1fb" fill-opacity="0.85" stroke="{{col_bloque}}" stroke-width="1.4"/>
+
+  <!-- columna y placa -->
+  <rect x="{{hx(-d_col/2):svg}}" y="100" width="{{d_col/(1 m)*esc:svg}}" height="{{170 - tp_px - 100:svg}}" fill="#dfe5ec" stroke="#333" stroke-width="1.4"/>
+  <rect data-pieza="placa-elevacion" x="{{hx(-L_bp/2):svg}}" y="{{170 - tp_px:svg}}" width="{{L_bp/(1 m)*esc:svg}}" height="{{tp_px:svg}}" fill="#b8c2cc" stroke="#333" stroke-width="1.2"/>
+
+  <!-- pernos: fila traccionada a la izquierda, la otra a la derecha -->
+  <g stroke="#333" stroke-width="2">
+    <line x1="{{hx(-y_t):svg}}" y1="{{170 - tp_px - 12:svg}}" x2="{{hx(-y_t):svg}}" y2="210"/>
+    <line x1="{{hx(y_t):svg}}" y1="{{170 - tp_px - 12:svg}}" x2="{{hx(y_t):svg}}" y2="210"/>
+  </g>
+  <rect x="{{hx(-y_t) - 6:svg}}" y="{{170 - tp_px - 7:svg}}" width="12" height="7" fill="#333"/>
+  <rect x="{{hx(y_t) - 6:svg}}" y="{{170 - tp_px - 7:svg}}" width="12" height="7" fill="#333"/>
+
+  <!-- tracción del grupo -->
+  <line x1="{{hx(-y_t):svg}}" y1="{{170 - tp_px - 14:svg}}" x2="{{hx(-y_t):svg}}" y2="80" stroke="#c07a00" stroke-width="2.4"/>
+  <path d="M{{hx(-y_t) - 5:svg}},82 L{{hx(-y_t):svg}},72 L{{hx(-y_t) + 5:svg}},82 z" fill="#c07a00"/>
+  <text x="{{hx(-y_t):svg}}" y="66" font-size="10.5" text-anchor="middle" fill="#c07a00" font-weight="bold" stroke="#ffffff" stroke-width="3" paint-order="stroke">T = {{T_grupo:kN}} kN</text>
+
+  <!-- cotas de elevación -->
+  <g stroke="#555" stroke-width="0.9">
+    <line x1="{{hx(-y_t):svg}}" y1="232" x2="290" y2="232"/>
+    <line x1="{{hx(-y_t):svg}}" y1="227" x2="{{hx(-y_t):svg}}" y2="237"/>
+    <line x1="290" y1="227" x2="290" y2="237"/>
+  </g>
+  <text x="{{hx(-y_t/2):svg}}" y="248" font-size="10" text-anchor="middle" fill="#555">y_t = {{y_t:mm}}</text>
+  <g stroke="{{col_bloque}}" stroke-width="0.9">
+    <line x1="{{hx(d_col/2):svg}}" y1="232" x2="{{hx(L_bp/2):svg}}" y2="232"/>
+    <line x1="{{hx(d_col/2):svg}}" y1="150" x2="{{hx(d_col/2):svg}}" y2="237" stroke-dasharray="3 2"/>
+    <line x1="{{hx(L_bp/2):svg}}" y1="227" x2="{{hx(L_bp/2):svg}}" y2="237"/>
+  </g>
+  <text x="{{hx(d_col/2 + (L_bp - d_col)/4):svg}}" y="248" font-size="10" text-anchor="middle" fill="{{col_bloque}}">voladizo {{volad:mm}}</text>
+  <text x="{{hx(L_bp/2):svg}}" y="225" font-size="10" text-anchor="end" fill="{{col_bloque}}" font-weight="bold" stroke="#ffffff" stroke-width="3" paint-order="stroke">bloque Y = {{Yb_comp:mm}}</text>
+
+  <!-- =============== PLANTA =============== -->
+  <text x="40" y="266" font-size="11.5" fill="#1a63a8" font-weight="bold">Planta</text>
+
+  <rect data-pieza="pedestal-planta" x="{{hx(-PED_L/2):svg}}" y="{{vp(-PED_B/2):svg}}" width="{{PED_L/(1 m)*esc:svg}}" height="{{PED_B/(1 m)*esc:svg}}" fill="#f4f7fb" stroke="#333" stroke-width="1.2"/>
+  <rect data-pieza="placa-planta" x="{{hx(-L_bp/2):svg}}" y="{{vp(-B_bp/2):svg}}" width="{{L_bp/(1 m)*esc:svg}}" height="{{B_bp/(1 m)*esc:svg}}" fill="#dfe5ec" stroke="#333" stroke-width="1.4"/>
+
+  <!-- caras del fuste en la dirección de la flexión (el ancho del fuste no es dato) -->
+  <g stroke="{{col_fila}}" stroke-width="1.3" stroke-dasharray="6 3">
+    <line x1="{{hx(-d_col/2):svg}}" y1="{{vp(-B_bp/2) - 6:svg}}" x2="{{hx(-d_col/2):svg}}" y2="{{vp(B_bp/2) + 6:svg}}"/>
+    <line x1="{{hx(d_col/2):svg}}" y1="{{vp(-B_bp/2) - 6:svg}}" x2="{{hx(d_col/2):svg}}" y2="{{vp(B_bp/2) + 6:svg}}"/>
+  </g>
+  <text x="290" y="{{vp(0 m) + 4:svg}}" font-size="9" text-anchor="middle" fill="{{col_fila}}" stroke="#dfe5ec" stroke-width="3" paint-order="stroke">caras del fuste</text>
+
+  <!-- los agujeros: uno por fila de pernos_px -->
+  <circle data-pieza="agujero" data-repetir="pernos_px" cx="{{fila[1]:svg}}" cy="{{fila[2]:svg}}" r="{{r_hueco_px:svg}}" fill="#ffffff" stroke="#333" stroke-width="1.2"/>
+
+  <!-- (1) paso, en la fila traccionada, del lado de adentro de la placa -->
+  <g stroke="{{col_paso}}" stroke-width="1">
+    <line x1="{{hx(-y_t) + 14:svg}}" y1="{{vp(-x_ext):svg}}" x2="{{hx(-y_t) + 14:svg}}" y2="{{vp(-x_ext + paso_real):svg}}"/>
+    <line x1="{{hx(-y_t) + 9:svg}}" y1="{{vp(-x_ext):svg}}" x2="{{hx(-y_t) + 19:svg}}" y2="{{vp(-x_ext):svg}}"/>
+    <line x1="{{hx(-y_t) + 9:svg}}" y1="{{vp(-x_ext + paso_real):svg}}" x2="{{hx(-y_t) + 19:svg}}" y2="{{vp(-x_ext + paso_real):svg}}"/>
+  </g>
+  <text x="{{hx(-y_t) + 22:svg}}" y="{{vp(-x_ext + paso_real/2) + 4:svg}}" font-size="10" fill="{{col_paso}}" font-weight="bold" stroke="#dfe5ec" stroke-width="3" paint-order="stroke">s {{paso_real:mm}}</text>
+
+  <!-- (2) borde de chapa: en B, del último perno al canto; en L, de la fila al canto -->
+  <g stroke="{{col_ancho}}" stroke-width="1">
+    <line x1="{{hx(y_t) + 16:svg}}" y1="{{vp(x_ext):svg}}" x2="{{hx(y_t) + 16:svg}}" y2="{{vp(B_bp/2):svg}}"/>
+    <line x1="{{hx(y_t) + 11:svg}}" y1="{{vp(x_ext):svg}}" x2="{{hx(y_t) + 21:svg}}" y2="{{vp(x_ext):svg}}"/>
+  </g>
+  <text x="{{hx(y_t) + 20:svg}}" y="{{vp((x_ext + B_bp/2)/2) + 4:svg}}" font-size="10" fill="{{col_ancho}}" font-weight="bold" stroke="#ffffff" stroke-width="3" paint-order="stroke">{{borde_placa_B:mm}}</text>
+  <g stroke="{{col_largo}}" stroke-width="1">
+    <line x1="{{hx(y_t):svg}}" y1="{{vp(-B_bp/2) - 10:svg}}" x2="{{hx(L_bp/2):svg}}" y2="{{vp(-B_bp/2) - 10:svg}}"/>
+    <line x1="{{hx(y_t):svg}}" y1="{{vp(-B_bp/2) - 15:svg}}" x2="{{hx(y_t):svg}}" y2="{{vp(-B_bp/2) - 5:svg}}"/>
+  </g>
+  <text x="{{hx(y_t) - 3:svg}}" y="{{vp(-B_bp/2) - 7:svg}}" font-size="10" text-anchor="end" fill="{{col_largo}}" font-weight="bold" stroke="#ffffff" stroke-width="3" paint-order="stroke">{{borde_placa_L:mm}}</text>
+
+  <!-- (3) borde de hormigón: en L, de la fila al canto del pedestal; en B, del último perno al canto -->
+  <g stroke="{{col_horm_L}}" stroke-width="1">
+    <line x1="{{hx(y_t):svg}}" y1="{{vp(-PED_B/2) + 12:svg}}" x2="{{hx(PED_L/2):svg}}" y2="{{vp(-PED_B/2) + 12:svg}}"/>
+    <line x1="{{hx(y_t):svg}}" y1="{{vp(-PED_B/2) + 7:svg}}" x2="{{hx(y_t):svg}}" y2="{{vp(-PED_B/2) + 17:svg}}"/>
+  </g>
+  <text x="{{hx((y_t + PED_L/2)/2):svg}}" y="{{vp(-PED_B/2) + 9:svg}}" font-size="10" text-anchor="middle" fill="{{col_horm_L}}" font-weight="bold" stroke="#ffffff" stroke-width="3" paint-order="stroke">c {{borde_horm_L:mm}}</text>
+  <g stroke="{{col_horm_B}}" stroke-width="1">
+    <line x1="{{hx(-y_t):svg}}" y1="{{vp(x_ext) + r_hueco_px:svg}}" x2="{{hx(-y_t):svg}}" y2="{{vp(PED_B/2):svg}}"/>
+  </g>
+  <text x="{{hx(-y_t) + 4:svg}}" y="{{vp(PED_B/2) - 4:svg}}" font-size="10" fill="{{col_horm_B}}" font-weight="bold" stroke="#ffffff" stroke-width="3" paint-order="stroke">c {{borde_horm_B:mm}}</text>
+
+  <!-- =============== CHEQUEOS =============== -->
+  <line x1="566" y1="40" x2="566" y2="540" stroke="#e2e6ea" stroke-width="1"/>
+  <text x="582" y="50" font-size="11.5" fill="#1a63a8" font-weight="bold">Geometría mínima (mm)</text>
+  <g font-size="10">
+    <text x="582" y="74" fill="#333">(1) Paso entre pernos</text>
+    <text x="820" y="88" text-anchor="end" fill="{{col_paso}}" font-weight="bold">{{paso_real:mm}} ≥ {{paso_min:mm}}  {{v_paso}}</text>
+
+    <text x="582" y="110" fill="#333">(2) Borde de chapa, en B</text>
+    <text x="820" y="124" text-anchor="end" fill="{{col_ancho}}" font-weight="bold">{{borde_placa_B:mm}} ≥ {{borde_placa_min:mm}}  {{v_ancho}}</text>
+    <text x="582" y="146" fill="#333">(2) Borde de chapa, en L</text>
+    <text x="820" y="160" text-anchor="end" fill="{{col_largo}}" font-weight="bold">{{borde_placa_L:mm}} ≥ {{borde_placa_min:mm}}  {{v_largo}}</text>
+
+    <text x="582" y="182" fill="#333">(3) Borde de hormigón, en B</text>
+    <text x="820" y="196" text-anchor="end" fill="{{col_horm_B}}" font-weight="bold">{{borde_horm_B:mm}} ≥ {{borde_horm_min:mm}}  {{borde_horm_B >= borde_horm_min}}</text>
+    <text x="582" y="218" fill="#333">(3) Borde de hormigón, en L</text>
+    <text x="820" y="232" text-anchor="end" fill="{{col_horm_L}}" font-weight="bold">{{borde_horm_L:mm}} ≥ {{borde_horm_min:mm}}  {{borde_horm_L >= borde_horm_min}}</text>
+
+    <text x="582" y="254" fill="#333">Fila fuera del fuste, libre</text>
+    <text x="820" y="268" text-anchor="end" fill="{{col_fila}}" font-weight="bold">{{libre_col:mm}} ≥ 0  {{v_fila_libre}}</text>
+    <text x="582" y="290" fill="#333">Bloque comprimido en el voladizo</text>
+    <text x="820" y="304" text-anchor="end" fill="{{col_bloque}}" font-weight="bold">{{Yb_comp:mm}} ≤ {{volad:mm}}  {{v_bloque}}</text>
+  </g>
+
+  <text x="582" y="336" font-size="11.5" fill="#1a63a8" font-weight="bold">De dónde sale cada mínimo</text>
+  <g font-size="9.5" fill="#555">
+    <text x="582" y="354">(1) ACI 318-25 Tabla 17.9.2(a)</text>
+    <text x="582" y="368">(2) máx.(AISC 360-22 J3.4M + C₂, DG1 §4.5.3)</text>
+    <text x="582" y="382">(3) ACI Tablas 17.9.2(a) y 20.5.1.3.1,</text>
+    <text x="596" y="396">al centro del perno</text>
+  </g>
+  <g font-size="10" fill="#333">
+    <text x="582" y="422">torque {{torque}} · exposición {{exposicion}}</text>
+    <text x="582" y="438">recubrimiento {{recub:mm}} · agujero ⌀ {{d_hueco:mm}}</text>
+  </g>
+
+  <text x="582" y="470" font-size="11.5" fill="#1a63a8" font-weight="bold">Resistencia</text>
+  <g font-size="10" fill="#333">
+    <text x="582" y="490">Pernos en tracción: u = {{u_pernos}}</text>
+    <text x="582" y="506">Espesor de chapa: u = {{u_espesor}}</text>
+    <text x="582" y="522">f_p = {{f_p:MPa}} MPa</text>
+  </g>
+
+  <!-- =============== FRANJA =============== -->
+  <line x1="40" y1="552" x2="820" y2="552" stroke="#ccc" stroke-width="1"/>
+  <text x="40" y="570" font-size="10.5" fill="#333" font-weight="bold">Gobierna: {{gobierna}} — uso {{u_max}}</text>
+  <text x="40" y="588" font-size="9.5" fill="#555">Cotas en mm, a escala. Verde cumple, rojo no. El bloque comprimido es de la combinación que aplasta; T, de la que tracciona.</text>
+</svg>

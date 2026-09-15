@@ -20,7 +20,7 @@
 import katex from 'katex';
 import { cargarMotor } from './lib/motor.mjs';
 
-const { evaluateSheet } = await cargarMotor();
+const { evaluateSheet, renderEsquema } = await cargarMotor();
 
 /** Una hoja a partir de `[tipo, src]`, apiladas en orden de lectura. */
 function hoja(...filas) {
@@ -212,7 +212,122 @@ const CASOS = [
   },
 ];
 
+// --- Esquema paramétrico: `data-repetir` ------------------------------------
+//
+// Un esquema se dibuja contra el scope que captura su región `image`. Estos
+// casos cubren la repetición, que es lo único del esquema que decide CUÁNTAS
+// piezas se dibujan: un perno de menos se ve perfecto y es falso.
+
+/** El scope que ve un esquema puesto al final de la hoja. */
+function scopeDe(...filas) {
+  const regiones = hoja(...filas);
+  regiones.push({ id: 'img', kind: 'image', x: 40, y: 40 + regiones.length * 48, src: '/esquemas/x.svg' });
+  return evaluateSheet(regiones).img.scope;
+}
+const cuantas = (svg, patron) => (svg.match(patron) ?? []).length;
+const sinFaltantes = (e) => (e.faltantes.length ? `faltantes inesperados: ${e.faltantes.join(' · ')}` : null);
+const conFaltante = (patron) => (e) =>
+  e.faltantes.some((f) => patron.test(f)) ? null : `se esperaba un faltante ${patron}, hubo: [${e.faltantes.join(' · ')}]`;
+
+const CASOS_ESQUEMA = [
+  {
+    nombre: 'un elemento autocerrado se clona una vez por fila, cada uno con su fila',
+    scope: () => scopeDe(m('P := [10, 20; 30, 40; 50, 60]')),
+    svg: '<svg><circle data-repetir="P" cx="{{fila[1]:svg}}" cy="{{fila[2]:svg}}" r="2"/></svg>',
+    ok: (e) =>
+      sinFaltantes(e) ??
+      (cuantas(e.svg, /<circle /g) !== 3 ? `se esperaban 3 círculos: ${e.svg}` : null) ??
+      (!e.svg.includes('cx="30" cy="40"') ? `la fila 2 no llegó a su clon: ${e.svg}` : null),
+  },
+  {
+    nombre: 'el atributo data-repetir no queda en el SVG emitido',
+    scope: () => scopeDe(m('P := [1, 2]')),
+    svg: '<svg><circle data-repetir="P" cx="{{fila:svg}}" r="2"/></svg>',
+    ok: (e) => sinFaltantes(e) ?? (e.svg.includes('data-repetir') ? `quedó el atributo: ${e.svg}` : null),
+  },
+  {
+    nombre: 'sobre un vector, fila es el escalar',
+    scope: () => scopeDe(m('xs := [5, 15, 25]')),
+    svg: '<svg><line data-repetir="xs" x1="{{fila:svg}}" x2="{{fila:svg}}" y1="0" y2="9"/></svg>',
+    ok: (e) =>
+      sinFaltantes(e) ?? (cuantas(e.svg, /<line /g) !== 3 || !e.svg.includes('x1="15"') ? `mal repetido: ${e.svg}` : null),
+  },
+  {
+    nombre: 'una lista vacía dibuja cero clones y no es un faltante',
+    scope: () => scopeDe(m('P := []')),
+    svg: '<svg><circle data-repetir="P" cx="{{fila[1]:svg}}" r="2"/><rect width="1"/></svg>',
+    ok: (e) => sinFaltantes(e) ?? (cuantas(e.svg, /<circle /g) !== 0 || !e.svg.includes('<rect') ? `mal: ${e.svg}` : null),
+  },
+  {
+    nombre: 'una lista que no resuelve se lleva el elemento y cae en faltantes',
+    scope: () => scopeDe(m('a := 1')),
+    svg: '<svg><circle data-repetir="no_existe" cx="{{fila:svg}}" r="2"/></svg>',
+    ok: (e) => conFaltante(/no_existe/)(e) ?? (cuantas(e.svg, /<circle /g) !== 0 ? `quedó un círculo: ${e.svg}` : null),
+  },
+  {
+    nombre: 'un escalar donde se esperaba una lista cae en faltantes',
+    scope: () => scopeDe(m('n := 5')),
+    svg: '<svg><circle data-repetir="n" cx="{{fila:svg}}" r="2"/></svg>',
+    ok: conFaltante(/data-repetir="n"/),
+  },
+  {
+    nombre: 'un token roto dentro de un clon cae en faltantes, una vez por clon',
+    scope: () => scopeDe(m('P := [1; 2]')),
+    svg: '<svg><circle data-repetir="P" cx="{{fila[9]:svg}}" r="2"/></svg>',
+    ok: (e) => (e.faltantes.length === 2 ? null : `se esperaban 2 faltantes, hubo ${e.faltantes.length}`),
+  },
+  {
+    nombre: 'un <g> se clona entero, y un <g> interno no confunde su cierre',
+    scope: () => scopeDe(m('P := [1, 2]')),
+    svg: '<svg><g data-repetir="P"><g><circle cx="{{fila:svg}}" r="1"/></g><text>{{fila}}</text></g><rect width="1"/></svg>',
+    ok: (e) =>
+      sinFaltantes(e) ??
+      (cuantas(e.svg, /<circle /g) !== 2 || cuantas(e.svg, /<text>/g) !== 2 || cuantas(e.svg, /<rect /g) !== 1
+        ? `el grupo se cortó mal: ${e.svg}`
+        : null),
+  },
+  {
+    nombre: 'un «>» dentro de un atributo no corta la etiqueta de apertura',
+    scope: () => scopeDe(m('P := [1, 2]')),
+    svg: '<svg><circle data-repetir="P" data-nota="a > b" cx="{{fila:svg}}" r="1"/></svg>',
+    ok: (e) => sinFaltantes(e) ?? (cuantas(e.svg, /<circle /g) !== 2 ? `mal: ${e.svg}` : null),
+  },
+  {
+    nombre: 'un data-repetir anidado se rechaza en vez de multiplicar a ciegas',
+    scope: () => scopeDe(m('P := [1; 2]')),
+    svg: '<svg><g data-repetir="P"><circle data-repetir="P" cx="{{fila:svg}}" r="1"/></g></svg>',
+    ok: (e) => conFaltante(/anidado/)(e) ?? (cuantas(e.svg, /<circle /g) !== 0 ? `dibujó algo: ${e.svg}` : null),
+  },
+  {
+    nombre: '«data-repetir» en un texto no es un atributo',
+    scope: () => scopeDe(m('a := 1')),
+    svg: '<svg><text>usa data-repetir para repetir</text></svg>',
+    ok: (e) => sinFaltantes(e) ?? (!e.svg.includes('usa data-repetir para repetir') ? `tocó el texto: ${e.svg}` : null),
+  },
+  {
+    nombre: 'un color calculado como texto entra por el token normal',
+    scope: () => scopeDe(m('ok := 3 > 5'), m('color := ok ? "#111827" : "#dc2626"')),
+    svg: '<svg><line stroke="{{color}}" x1="0" x2="1" y1="0" y2="1"/></svg>',
+    ok: (e) => sinFaltantes(e) ?? (!e.svg.includes('stroke="#dc2626"') ? `el color no llegó: ${e.svg}` : null),
+  },
+];
+
 let fallos = 0;
+for (const caso of CASOS_ESQUEMA) {
+  let motivo;
+  try {
+    motivo = caso.ok(renderEsquema(caso.svg, caso.scope()));
+  } catch (e) {
+    motivo = `lanzó: ${e.message}`;
+  }
+  if (motivo) {
+    fallos++;
+    console.log(`  [FALLA] ${caso.nombre}\n          ${motivo}`);
+  } else {
+    console.log(`  [ OK  ] ${caso.nombre}`);
+  }
+}
+
 for (const caso of CASOS) {
   const t0 = performance.now();
   let motivo;
@@ -243,5 +358,6 @@ for (const caso of CASOS) {
   }
 }
 
-console.log(`\n${fallos ? 'FALLA' : 'OK'}: ${CASOS.length - fallos} de ${CASOS.length} casos.\n`);
+const total = CASOS.length + CASOS_ESQUEMA.length;
+console.log(`\n${fallos ? 'FALLA' : 'OK'}: ${total - fallos} de ${total} casos.\n`);
 process.exit(fallos ? 1 : 0);

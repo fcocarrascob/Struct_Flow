@@ -71,7 +71,9 @@ function simbolos(src: string): { define: string | null; usa: string[] } {
   const locales = new Set(
     (def?.[2] ?? '').split(',').map((p) => p.trim()).filter(Boolean),
   );
-  const cuerpo = def ? src.slice(src.indexOf(':=') + 2) : src;
+  // Quitar antes los textos entre comillas: `v ? "#1c7c3c" : "#c0392b"` no usa
+  // ningún símbolo, pero sin esto se leían «c7c3c» y «c0392b» como indefinidos.
+  const cuerpo = (def ? src.slice(src.indexOf(':=') + 2) : src).replace(/"(?:[^"\\]|\\.)*"/g, ' ');
   // Quitar antes los numeros, o el exponente de `2.04e6` se lee como un simbolo
   // llamado «e6». El lookbehind es lo que distingue ese `6` suelto del `1` de
   // `B_1`, que es parte del nombre y tiene que sobrevivir.
