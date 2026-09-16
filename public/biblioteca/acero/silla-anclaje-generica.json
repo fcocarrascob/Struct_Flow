@@ -1,214 +1,219 @@
 {
  "version": 1,
  "meta": {
-  "titulo": "Silla de anclaje — el camino de carga completo: perno, chapa superior, nervios, ala (o ala extendida) y alma",
+  "titulo": "Silla de anclaje — el camino de carga completo: perno, chapa superior, nervios, ala extendida y rigidizador",
+  "slug": "silla-anclaje-generica",
+  "clase": "generica",
+  "disciplina": "acero",
+  "resumen": "Silla de anclaje de una placa base rigidizada: chapa superior, nervios, soldadura en L, extensión de ala y las condiciones geométricas del rigidizador del §J10.8. Recibe T_grupo e Yb_comp de placa-base-generica.",
+  "normas": [
+   {
+    "clave": "US/AISC360-22",
+    "rol": "resistencia de las piezas, su soldadura y el rigidizador",
+    "articulos": [
+     "§J2",
+     "§J4.1",
+     "§J4.2",
+     "§J4.5",
+     "§J10.8"
+    ]
+   }
+  ],
   "entradas": [
    {
     "nombre": "T_grupo",
-    "etiqueta": "T_grupo",
-    "grupo": "Solicitacion",
-    "unidad": "kN"
+    "etiqueta": "Tracción del grupo de pernos",
+    "unidad": "kN",
+    "grupo": "Solicitación",
+    "ayuda": "Por equilibrio de la placa: sale de placa-base-generica"
    },
    {
     "nombre": "n_col",
-    "etiqueta": "n_col",
-    "grupo": "Solicitacion"
+    "etiqueta": "Pernos de la fila traccionada",
+    "grupo": "Solicitación"
    },
    {
     "nombre": "frac_nervio",
-    "etiqueta": "frac_nervio",
+    "etiqueta": "Pernos equivalentes sobre el nervio más cargado",
     "grupo": "Reparto entre nervios",
-    "ayuda": "frac_nervio es cuantos PERNOS EQUIVALENTES toma el nervio mas cargado. En la disposicion corriente —un perno a media luz entre dos nervios— cada perno reparte medio y medio, y un nervio interior recibe 0,5 + 0,5 = 1,0. Si las separaciones son desiguales, se reparte por INVERSA DE DISTANCIA: un perno a distancia a del nervio izquierdo y b del derecho entrega b/(a+b) al izquierdo y a/(a+b) al derecho. Sumar las contribuciones sobre cada nervio y poner aqui la mayor"
+    "ayuda": "Con un perno a media luz entre dos nervios, cada perno reparte medio y medio y un nervio interior recibe 1,0. Con separaciones desiguales se reparte por inversa de distancia y se pone aquí la mayor suma"
    },
    {
     "nombre": "COL_H",
-    "etiqueta": "COL_H",
-    "grupo": "Geometria de la columna y la silla",
-    "unidad": "mm"
+    "etiqueta": "Altura de la columna",
+    "unidad": "mm",
+    "grupo": "Geometría de la columna y la silla"
    },
    {
     "nombre": "COL_B",
-    "etiqueta": "COL_B",
-    "grupo": "Geometria de la columna y la silla",
-    "unidad": "mm"
+    "etiqueta": "Ancho del ala",
+    "unidad": "mm",
+    "grupo": "Geometría de la columna y la silla"
    },
    {
     "nombre": "COL_TF",
-    "etiqueta": "COL_TF",
-    "grupo": "Geometria de la columna y la silla",
-    "unidad": "mm"
+    "etiqueta": "Espesor del ala",
+    "unidad": "mm",
+    "grupo": "Geometría de la columna y la silla"
    },
    {
     "nombre": "COL_TW",
-    "etiqueta": "COL_TW",
-    "grupo": "Geometria de la columna y la silla",
-    "unidad": "mm"
+    "etiqueta": "Espesor del alma",
+    "unidad": "mm",
+    "grupo": "Geometría de la columna y la silla"
    },
    {
     "nombre": "hay_extension",
-    "etiqueta": "hay_extension",
-    "grupo": "Geometria de la columna y la silla",
-    "ayuda": "hay_extension := 1 si el ala se extiende con chapas a tope para que quepan los nervios exteriores; := 0 si los nervios caben en el ala original y entonces ALA_EXT debe valer COL_B"
+    "etiqueta": "El ala se extiende con chapas a tope",
+    "grupo": "Geometría de la columna y la silla",
+    "ayuda": "Con 0, los nervios caben en el ala original y ALA_EXT vale COL_B",
+    "opciones": [
+     {
+      "valor": 1,
+      "etiqueta": "sí, con junta a tope"
+     },
+     {
+      "valor": 0,
+      "etiqueta": "no"
+     }
+    ]
    },
    {
     "nombre": "ALA_EXT",
-    "etiqueta": "ALA_EXT",
-    "grupo": "Geometria de la columna y la silla",
+    "etiqueta": "Ancho del ala extendida",
     "unidad": "mm",
-    "ayuda": "hay_extension := 1 si el ala se extiende con chapas a tope para que quepan los nervios exteriores; := 0 si los nervios caben en el ala original y entonces ALA_EXT debe valer COL_B"
+    "grupo": "Geometría de la columna y la silla"
    },
    {
     "nombre": "NER_H",
-    "etiqueta": "NER_H",
-    "grupo": "Geometria de la columna y la silla",
-    "unidad": "mm"
+    "etiqueta": "Altura del nervio",
+    "unidad": "mm",
+    "grupo": "Geometría de la columna y la silla"
    },
    {
     "nombre": "NER_L",
-    "etiqueta": "NER_L",
-    "grupo": "Geometria de la columna y la silla",
-    "unidad": "mm"
+    "etiqueta": "Proyección del nervio desde la cara del ala",
+    "unidad": "mm",
+    "grupo": "Geometría de la columna y la silla"
    },
    {
     "nombre": "NER_T",
-    "etiqueta": "NER_T",
-    "grupo": "Geometria de la columna y la silla",
-    "unidad": "mm"
+    "etiqueta": "Espesor del nervio",
+    "unidad": "mm",
+    "grupo": "Geometría de la columna y la silla"
    },
    {
     "nombre": "CH_B",
-    "etiqueta": "CH_B",
-    "grupo": "Geometria de la columna y la silla",
-    "unidad": "mm"
+    "etiqueta": "Ancho de la chapa superior",
+    "unidad": "mm",
+    "grupo": "Geometría de la columna y la silla"
    },
    {
     "nombre": "CH_L",
-    "etiqueta": "CH_L",
-    "grupo": "Geometria de la columna y la silla",
-    "unidad": "mm"
+    "etiqueta": "Largo de la chapa superior",
+    "unidad": "mm",
+    "grupo": "Geometría de la columna y la silla"
    },
    {
     "nombre": "CH_T",
-    "etiqueta": "CH_T",
-    "grupo": "Geometria de la columna y la silla",
-    "unidad": "mm"
+    "etiqueta": "Espesor de la chapa superior",
+    "unidad": "mm",
+    "grupo": "Geometría de la columna y la silla"
    },
    {
     "nombre": "RIG_T",
-    "etiqueta": "RIG_T",
-    "grupo": "Geometria de la columna y la silla",
-    "unidad": "mm"
+    "etiqueta": "Espesor del rigidizador de alma",
+    "unidad": "mm",
+    "grupo": "Geometría de la columna y la silla"
    },
    {
     "nombre": "y_fila",
-    "etiqueta": "y_fila",
-    "grupo": "Geometria de la columna y la silla",
-    "unidad": "mm"
+    "etiqueta": "Distancia del eje de la fila al centro de la columna",
+    "unidad": "mm",
+    "grupo": "Geometría de la columna y la silla"
    },
    {
     "nombre": "luz_max",
-    "etiqueta": "luz_max",
-    "grupo": "Geometria de la columna y la silla",
-    "unidad": "mm"
+    "etiqueta": "Luz libre entre los nervios que flanquean el perno",
+    "unidad": "mm",
+    "grupo": "Geometría de la columna y la silla"
    },
    {
     "nombre": "w_sold",
-    "etiqueta": "w_sold",
-    "grupo": "Geometria de la columna y la silla",
-    "unidad": "mm"
+    "etiqueta": "Cateto del cordón en L",
+    "unidad": "mm",
+    "grupo": "Geometría de la columna y la silla"
    },
    {
     "nombre": "n_nerv_fuera",
-    "etiqueta": "n_nerv_fuera",
-    "grupo": "Extension de ala",
-    "ayuda": "n_nerv_fuera son los nervios de UN lado que caen fuera del ancho de ala original y cuya carga cruza la junta a tope. Con reparto por inversa de distancia la fraccion real puede ser menor; tomar el numero de nervios es la lectura CONSERVADORA y es la que la hoja usa por defecto"
+    "etiqueta": "Nervios de un lado fuera del ala original",
+    "grupo": "Extensión de ala",
+    "ayuda": "Su carga cruza la junta a tope. Tomar el número de nervios es la lectura conservadora"
    },
    {
     "nombre": "t_bp",
-    "etiqueta": "t_bp",
-    "grupo": "De la placa base — vienen de placa-base-generica",
-    "unidad": "mm"
+    "etiqueta": "Espesor de la placa base",
+    "unidad": "mm",
+    "grupo": "De la placa base — vienen de placa-base-generica"
    },
    {
     "nombre": "L_bp",
-    "etiqueta": "L_bp",
-    "grupo": "De la placa base — vienen de placa-base-generica",
-    "unidad": "mm"
+    "etiqueta": "Largo de la placa base",
+    "unidad": "mm",
+    "grupo": "De la placa base — vienen de placa-base-generica"
    },
    {
     "nombre": "Yb_comp",
-    "etiqueta": "Yb_comp",
-    "grupo": "De la placa base — vienen de placa-base-generica",
-    "unidad": "mm"
+    "etiqueta": "Longitud del bloque comprimido",
+    "unidad": "mm",
+    "grupo": "De la placa base — vienen de placa-base-generica"
    },
    {
     "nombre": "Ase_perno",
-    "etiqueta": "Ase_perno",
-    "grupo": "De la placa base — vienen de placa-base-generica",
-    "unidad": "mm^2"
+    "etiqueta": "Área efectiva de un perno",
+    "unidad": "mm^2",
+    "grupo": "De la placa base — vienen de placa-base-generica"
    },
    {
     "nombre": "t_mort",
-    "etiqueta": "t_mort",
-    "grupo": "De la placa base — vienen de placa-base-generica",
-    "unidad": "mm"
+    "etiqueta": "Espesor del mortero",
+    "unidad": "mm",
+    "grupo": "De la placa base — vienen de placa-base-generica"
    },
    {
     "nombre": "Fy_ac",
-    "etiqueta": "Fy_ac",
-    "grupo": "Materiales y factores",
-    "unidad": "MPa"
+    "etiqueta": "Fluencia del acero",
+    "unidad": "MPa",
+    "grupo": "Materiales y factores"
    },
    {
     "nombre": "FEXX",
-    "etiqueta": "FEXX",
-    "grupo": "Materiales y factores",
-    "unidad": "MPa"
+    "etiqueta": "Resistencia del electrodo",
+    "unidad": "MPa",
+    "grupo": "Materiales y factores"
    },
    {
     "nombre": "E_ac",
-    "etiqueta": "E_ac",
-    "grupo": "Materiales y factores",
-    "unidad": "MPa"
+    "etiqueta": "Módulo de elasticidad",
+    "unidad": "MPa",
+    "grupo": "Materiales y factores"
    },
    {
     "nombre": "phi_b",
-    "etiqueta": "phi_b",
+    "etiqueta": "φ de fluencia",
     "grupo": "Materiales y factores"
    },
    {
     "nombre": "phi_w",
-    "etiqueta": "phi_w",
+    "etiqueta": "φ de soldadura",
     "grupo": "Materiales y factores"
    },
    {
     "nombre": "b_eff",
-    "etiqueta": "b_eff",
+    "etiqueta": "Ancho eficaz de la chapa superior",
+    "unidad": "mm",
     "grupo": "Ancho eficaz de la chapa superior",
-    "unidad": "mm"
-   }
-  ],
-  "slug": "silla-anclaje-generica",
-  "clase": "generica",
-  "disciplina": "acero",
-  "resumen": "Silla de anclaje de una placa base rigidizada: chapa superior, nervios, soldadura en L, extensión de ala y las tres condiciones geométricas del rigidizador. Recibe T_grupo e Yb_comp de placa-base-generica.",
-  "normas": [
-   {
-    "clave": "AR/CIRSOC-301-2018",
-    "rol": "procedimiento",
-    "articulos": [
-     "§J.10.8",
-     "Cap. J"
-    ]
-   },
-   {
-    "clave": "US/AISC360-22",
-    "rol": "soldadura y chapa",
-    "articulos": [
-     "§J2",
-     "§J4.2",
-     "§J4.5"
-    ]
+    "ayuda": "Hipótesis declarada: el ancho con que se reparte la flexión que el perno induce. Gobierna el espesor de la chapa y debe confirmarse por líneas de fluencia con el detalle de taller"
    }
   ],
   "salidas": [
@@ -219,7 +224,7 @@
    },
    {
     "nombre": "gobierna",
-    "etiqueta": "Estado límite que gobierna",
+    "etiqueta": "Eslabón que gobierna",
     "tipo": "texto"
    },
    {
@@ -229,108 +234,99 @@
    },
    {
     "nombre": "u_ner",
-    "etiqueta": "Nervios",
+    "etiqueta": "Corte del nervio",
     "tipo": "uso"
    },
    {
     "nombre": "u_sold",
-    "etiqueta": "Soldadura",
+    "etiqueta": "Soldadura en L",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_ext",
+    "etiqueta": "Junta a tope de la extensión",
     "tipo": "uso"
    },
    {
     "nombre": "u_ala",
-    "etiqueta": "Ala de la columna",
+    "etiqueta": "Ala a tracción",
     "tipo": "uso"
    },
    {
     "nombre": "u_rig",
-    "etiqueta": "Rigidizador",
+    "etiqueta": "Esbeltez del rigidizador",
     "tipo": "uso"
    },
    {
+    "nombre": "theta_base",
+    "etiqueta": "Rotación de la base por alargamiento del perno",
+    "tipo": "valor"
+   },
+   {
     "nombre": "v_global",
-    "etiqueta": "u_max ≤ 1",
+    "etiqueta": "Cumple: resistencia y geometría",
     "tipo": "veredicto"
    },
    {
     "nombre": "v_frac_inf",
-    "etiqueta": "Fracción por nervio ≥ mínimo",
+    "etiqueta": "Reparto ≥ medio perno",
     "tipo": "veredicto",
     "aviso": true,
-    "avisoTexto": "La fracción de tracción por nervio queda fuera del rango razonable"
+    "avisoTexto": "Un nervio no puede tomar menos de medio perno: siempre tiene al menos un vecino"
    },
    {
     "nombre": "v_frac_sup",
-    "etiqueta": "Fracción por nervio ≤ máximo",
+    "etiqueta": "Reparto ≤ grupo entero",
     "tipo": "veredicto",
     "aviso": true,
-    "avisoTexto": "La fracción de tracción por nervio queda fuera del rango razonable"
+    "avisoTexto": "El reparto declarado supera la tracción del grupo entero"
    },
    {
     "nombre": "v_junta_admisible",
-    "etiqueta": "Junta admisible",
-    "tipo": "veredicto"
-   },
-   {
-    "nombre": "v_chapa",
-    "etiqueta": "Chapa superior",
-    "tipo": "veredicto"
+    "etiqueta": "Carga de la junta ≤ grupo entero",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "La fracción que cruza la junta supera el grupo entero"
    },
    {
     "nombre": "v_chapa_cubre",
-    "etiqueta": "La chapa cubre el grupo",
-    "tipo": "veredicto",
-    "aviso": true,
-    "avisoTexto": "La chapa superior no cubre el grupo de pernos: la geometría no es construible"
-   },
-   {
-    "nombre": "v_nervio",
-    "etiqueta": "Nervios",
-    "tipo": "veredicto"
-   },
-   {
-    "nombre": "v_soldadura",
-    "etiqueta": "Soldadura",
-    "tipo": "veredicto"
-   },
-   {
-    "nombre": "v_extension",
-    "etiqueta": "Extensión de ala",
-    "tipo": "veredicto"
-   },
-   {
-    "nombre": "v_ala",
-    "etiqueta": "Ala de la columna",
+    "etiqueta": "La chapa superior cubre el nervio",
     "tipo": "veredicto"
    },
    {
     "nombre": "v_rig1",
-    "etiqueta": "Rigidizador, condición 1",
+    "etiqueta": "Ancho del rigidizador (§J10.8(a))",
     "tipo": "veredicto"
    },
    {
     "nombre": "v_rig2a",
-    "etiqueta": "Rigidizador, condición 2a",
+    "etiqueta": "Espesor ≥ medio espesor del ala (§J10.8(b))",
     "tipo": "veredicto"
    },
    {
     "nombre": "v_rig2b",
-    "etiqueta": "Rigidizador, condición 2b",
+    "etiqueta": "Espesor ≥ medio espesor de la chapa (§J10.8(b))",
     "tipo": "veredicto"
    },
    {
     "nombre": "v_rig3",
-    "etiqueta": "Rigidizador, condición 3",
+    "etiqueta": "Espesor ≥ ancho/16 (§J10.8(b))",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_rig_largo",
+    "etiqueta": "Extensión ≥ media altura (§J10.8(c))",
     "tipo": "veredicto"
    }
   ],
   "fronteras": [
    "El reparto de tracción entre pernos: lo supone uniforme",
    "El ancho eficaz de flexión de la chapa superior: entra como dato (b_eff)",
-   "El rigidizador a resistencia: solo verifica sus tres condiciones geométricas"
+   "El rigidizador a resistencia: el §J10.8 remite al §J4.1 en tracción y al §J4.4 en compresión, y esta hoja solo verifica sus condiciones geométricas"
   ],
   "hipotesis": [
-   "En la extensión de ala toma la lectura conservadora: frac_junta = n_nerv_fuera · frac_nervio"
+   "En la extensión de ala toma la lectura conservadora: frac_junta = n_nerv_fuera · frac_nervio",
+   "Una fila de pernos por lado, nervios verticales soldados al ala y a la placa con cordón en L, y chapa superior apoyada sobre los nervios con el perno a media luz"
   ],
   "entrega": {},
   "casos": [
@@ -346,7 +342,6 @@
     },
     "cumple": false,
     "esperadoFalso": [
-     "v_chapa",
      "v_global"
     ]
    }
@@ -358,1021 +353,826 @@
    "kind": "text",
    "x": 40,
    "y": 32,
-   "src": "PLANTILLA REUTILIZABLE. Todo lo editable esta en los seis bloques DATOS;\ndebajo no hay ningun numero de proyecto, solo ecuaciones de norma."
+   "src": "EL CAMINO DE CARGA, eslabón por eslabón: perno → chapa superior → nervios → ala (o ala extendida) →\nalma. Un eslabón que no cierra invalida la cadena entera, por mucho que los otros sobren: la silla\nno es un conjunto de piezas, es un recorrido. Hipótesis: una fila de pernos por lado, nervios\nverticales soldados al ala y a la placa con cordón en L, y chapa superior apoyada sobre los nervios\ncon el perno a media luz entre dos de ellos. AISC 360-22."
   },
   {
    "id": "r002",
    "kind": "text",
    "x": 40,
-   "y": 104,
-   "src": "EL CAMINO DE CARGA, que es lo que esta hoja verifica eslabon por eslabon:\nperno -> chapa superior -> nervios -> ala o ala extendida -> alma.\nUn eslabon que no cierra invalida la cadena entera, por mucho que los otros\nsobren: la silla no es un conjunto de piezas, es un recorrido."
+   "y": 176,
+   "src": "FRONTERA: la hoja no deriva el reparto de tracción entre pernos —lo supone uniforme—, no deriva el\nancho eficaz de la chapa superior y no verifica el rigidizador de alma a resistencia: el §J10.8\nremite al §J4.1 en tracción y al §J4.4 en compresión, y aquí solo se comprueban sus condiciones\ngeométricas. Las tres son hipótesis declaradas y van a la tabla de salvedades de la memoria."
   },
   {
    "id": "r003",
    "kind": "text",
    "x": 40,
-   "y": 220,
-   "src": "FRONTERA: la hoja NO deriva el reparto de traccion entre pernos —lo supone\nuniforme—, NO deriva el ancho eficaz de la chapa superior y NO verifica el\nrigidizador de alma a resistencia. Las tres son hipotesis declaradas."
-  },
-  {
-   "id": "r004",
-   "kind": "text",
-   "x": 40,
-   "y": 314,
-   "src": "OJO CON EL §J.10.1: NO es el articulo del rigidizador. Cubre fuerzas\nconcentradas PERPENDICULARES al ala; aqui el nervio suelda a la CARA del ala\ny entrega la carga contenida en SU PLANO. El que se aplica, y por analogia,\nes el §J.10.8, y solo da condiciones GEOMETRICAS."
-  },
-  {
-   "id": "r005",
-   "kind": "text",
-   "x": 40,
-   "y": 430,
-   "src": "HIPOTESIS: una fila de pernos por lado · nervios verticales soldados al ala\ny a la placa con cordon en L · chapa superior apoyada sobre los nervios, con\nel perno a media luz entre dos de ellos."
-  },
-  {
-   "id": "r006",
-   "kind": "text",
-   "x": 40,
-   "y": 524,
-   "src": "━━ DATOS · SOLICITACION ━━"
-  },
-  {
-   "id": "r007",
-   "kind": "text",
-   "x": 40,
-   "y": 570,
-   "src": "Traccion del grupo de pernos, por equilibrio de la placa. Sale de\n`placa-base-generica`, bloque 2"
+   "y": 296,
+   "src": "━━ DATOS · SOLICITACIÓN Y REPARTO ━━"
   },
   {
    "id": "in_T_grupo",
    "kind": "math",
    "x": 40,
-   "y": 642,
+   "y": 344,
    "src": "T_grupo := 2995.9 kN"
   },
   {
    "id": "in_n_col",
    "kind": "math",
    "x": 40,
-   "y": 688,
+   "y": 392,
    "src": "n_col := 5"
-  },
-  {
-   "id": "r010",
-   "kind": "text",
-   "x": 40,
-   "y": 734,
-   "src": "HIPOTESIS 1, declarada: reparto uniforme de la traccion entre los pernos"
-  },
-  {
-   "id": "r011",
-   "kind": "math",
-   "x": 40,
-   "y": 780,
-   "src": "P_perno := T_grupo/n_col = kN"
-  },
-  {
-   "id": "r012",
-   "kind": "text",
-   "x": 40,
-   "y": 826,
-   "src": "━━ DATOS · REPARTO ENTRE NERVIOS ━━"
-  },
-  {
-   "id": "r013",
-   "kind": "text",
-   "x": 40,
-   "y": 872,
-   "src": "frac_nervio es cuantos PERNOS EQUIVALENTES toma el nervio mas cargado.\nEn la disposicion corriente —un perno a media luz entre dos nervios— cada\nperno reparte medio y medio, y un nervio interior recibe 0,5 + 0,5 = 1,0.\nSi las separaciones son desiguales, se reparte por INVERSA DE DISTANCIA:\nun perno a distancia a del nervio izquierdo y b del derecho entrega\nb/(a+b) al izquierdo y a/(a+b) al derecho. Sumar las contribuciones sobre\ncada nervio y poner aqui la mayor"
   },
   {
    "id": "in_frac_nervio",
    "kind": "math",
    "x": 40,
-   "y": 1054,
+   "y": 440,
    "src": "frac_nervio := 1.0"
   },
   {
-   "id": "r015",
-   "kind": "text",
-   "x": 40,
-   "y": 1100,
-   "src": "Control de admisibilidad: un nervio no puede tomar menos que medio perno\n—siempre tiene al menos un vecino— ni mas que el grupo entero"
-  },
-  {
-   "id": "v_frac_inf",
+   "id": "in_n_nerv_fuera",
    "kind": "math",
    "x": 40,
-   "y": 1172,
-   "src": "v_frac_inf := frac_nervio >= 0.5 ="
+   "y": 488,
+   "src": "n_nerv_fuera := 2"
   },
   {
-   "id": "v_frac_sup",
-   "kind": "math",
-   "x": 40,
-   "y": 1218,
-   "src": "v_frac_sup := frac_nervio <= n_col ="
-  },
-  {
-   "id": "r018",
+   "id": "r008",
    "kind": "text",
    "x": 40,
-   "y": 1264,
-   "src": "━━ DATOS · GEOMETRIA DE LA COLUMNA Y LA SILLA ━━"
+   "y": 536,
+   "src": "━━ DATOS · GEOMETRÍA DE LA COLUMNA Y LA SILLA ━━"
   },
   {
    "id": "in_COL_H",
    "kind": "math",
    "x": 40,
-   "y": 1310,
+   "y": 584,
    "src": "COL_H := 1000 mm"
   },
   {
    "id": "in_COL_B",
    "kind": "math",
    "x": 40,
-   "y": 1356,
+   "y": 632,
    "src": "COL_B := 550 mm"
   },
   {
    "id": "in_COL_TF",
    "kind": "math",
    "x": 40,
-   "y": 1402,
+   "y": 680,
    "src": "COL_TF := 45 mm"
   },
   {
    "id": "in_COL_TW",
    "kind": "math",
    "x": 40,
-   "y": 1448,
+   "y": 728,
    "src": "COL_TW := 14 mm"
-  },
-  {
-   "id": "r023",
-   "kind": "text",
-   "x": 40,
-   "y": 1494,
-   "src": "hay_extension := 1 si el ala se extiende con chapas a tope para que quepan\nlos nervios exteriores; := 0 si los nervios caben en el ala original y\nentonces ALA_EXT debe valer COL_B"
   },
   {
    "id": "in_hay_extension",
    "kind": "math",
    "x": 40,
-   "y": 1588,
+   "y": 776,
    "src": "hay_extension := 1"
   },
   {
    "id": "in_ALA_EXT",
    "kind": "math",
    "x": 40,
-   "y": 1634,
+   "y": 824,
    "src": "ALA_EXT := 950 mm"
-  },
-  {
-   "id": "r026",
-   "kind": "text",
-   "x": 40,
-   "y": 1680,
-   "src": "Nervio: altura, proyeccion desde la cara del ala y espesor"
   },
   {
    "id": "in_NER_H",
    "kind": "math",
    "x": 40,
-   "y": 1726,
+   "y": 872,
    "src": "NER_H := 400 mm"
   },
   {
    "id": "in_NER_L",
    "kind": "math",
    "x": 40,
-   "y": 1772,
+   "y": 920,
    "src": "NER_L := 350 mm"
   },
   {
    "id": "in_NER_T",
    "kind": "math",
    "x": 40,
-   "y": 1818,
+   "y": 968,
    "src": "NER_T := 20 mm"
-  },
-  {
-   "id": "r030",
-   "kind": "text",
-   "x": 40,
-   "y": 1864,
-   "src": "Chapa superior de la silla: ancho, largo y espesor adoptado"
   },
   {
    "id": "in_CH_B",
    "kind": "math",
    "x": 40,
-   "y": 1910,
+   "y": 1016,
    "src": "CH_B := 950 mm"
   },
   {
    "id": "in_CH_L",
    "kind": "math",
    "x": 40,
-   "y": 1956,
+   "y": 1064,
    "src": "CH_L := 350 mm"
   },
   {
    "id": "in_CH_T",
    "kind": "math",
    "x": 40,
-   "y": 2002,
+   "y": 1112,
    "src": "CH_T := 50 mm"
   },
   {
    "id": "in_RIG_T",
    "kind": "math",
    "x": 40,
-   "y": 2048,
+   "y": 1160,
    "src": "RIG_T := 30 mm"
-  },
-  {
-   "id": "r035",
-   "kind": "text",
-   "x": 40,
-   "y": 2094,
-   "src": "Distancia del eje de la fila de pernos al centro de la columna, y luz libre\nentre los dos nervios que flanquean al perno mas cargado"
   },
   {
    "id": "in_y_fila",
    "kind": "math",
    "x": 40,
-   "y": 2166,
+   "y": 1208,
    "src": "y_fila := 767 mm"
   },
   {
    "id": "in_luz_max",
    "kind": "math",
    "x": 40,
-   "y": 2212,
+   "y": 1256,
    "src": "luz_max := 192 mm"
   },
   {
    "id": "in_w_sold",
    "kind": "math",
    "x": 40,
-   "y": 2258,
+   "y": 1304,
    "src": "w_sold := 12 mm"
   },
   {
-   "id": "r039",
+   "id": "r025",
    "kind": "text",
    "x": 40,
-   "y": 2304,
-   "src": "━━ DATOS · EXTENSION DE ALA ━━"
+   "y": 1352,
+   "src": "━━ DATOS · DE LA PLACA BASE, MATERIALES Y ANCHO EFICAZ ━━"
   },
   {
-   "id": "r040",
+   "id": "r026",
    "kind": "text",
    "x": 40,
-   "y": 2350,
-   "src": "n_nerv_fuera son los nervios de UN lado que caen fuera del ancho de ala\noriginal y cuya carga cruza la junta a tope. Con reparto por inversa de\ndistancia la fraccion real puede ser menor; tomar el numero de nervios es\nla lectura CONSERVADORA y es la que la hoja usa por defecto"
-  },
-  {
-   "id": "in_n_nerv_fuera",
-   "kind": "math",
-   "x": 40,
-   "y": 2466,
-   "src": "n_nerv_fuera := 2"
-  },
-  {
-   "id": "r042",
-   "kind": "math",
-   "x": 40,
-   "y": 2512,
-   "src": "frac_junta := n_nerv_fuera*frac_nervio ="
-  },
-  {
-   "id": "v_junta_admisible",
-   "kind": "math",
-   "x": 40,
-   "y": 2558,
-   "src": "v_junta_admisible := frac_junta <= n_col ="
-  },
-  {
-   "id": "r044",
-   "kind": "text",
-   "x": 40,
-   "y": 2604,
-   "src": "━━ DATOS · DE LA PLACA BASE — vienen de placa-base-generica ━━"
+   "y": 1400,
+   "src": "b_eff es el ancho con que se reparte la flexión que el perno induce en la chapa superior. NO sale de\nuna fórmula: gobierna el espesor de esa chapa —que suele ser la pieza más gruesa de la silla— y hay\nque confirmarlo por líneas de fluencia con el detalle de taller. Un ancho eficaz mayor la adelgaza."
   },
   {
    "id": "in_t_bp",
    "kind": "math",
    "x": 40,
-   "y": 2650,
+   "y": 1496,
    "src": "t_bp := 45 mm"
   },
   {
    "id": "in_L_bp",
    "kind": "math",
    "x": 40,
-   "y": 2696,
+   "y": 1544,
    "src": "L_bp := 1700 mm"
   },
   {
    "id": "in_Yb_comp",
    "kind": "math",
    "x": 40,
-   "y": 2742,
+   "y": 1592,
    "src": "Yb_comp := 230 mm"
   },
   {
    "id": "in_Ase_perno",
    "kind": "math",
    "x": 40,
-   "y": 2788,
+   "y": 1640,
    "src": "Ase_perno := 1473 mm^2"
   },
   {
    "id": "in_t_mort",
    "kind": "math",
    "x": 40,
-   "y": 2834,
+   "y": 1688,
    "src": "t_mort := 50 mm"
-  },
-  {
-   "id": "r050",
-   "kind": "text",
-   "x": 40,
-   "y": 2880,
-   "src": "━━ DATOS · MATERIALES Y FACTORES ━━"
   },
   {
    "id": "in_Fy_ac",
    "kind": "math",
    "x": 40,
-   "y": 2926,
+   "y": 1736,
    "src": "Fy_ac := 248.2 MPa"
   },
   {
    "id": "in_FEXX",
    "kind": "math",
    "x": 40,
-   "y": 2972,
+   "y": 1784,
    "src": "FEXX := 480 MPa"
   },
   {
    "id": "in_E_ac",
    "kind": "math",
    "x": 40,
-   "y": 3018,
+   "y": 1832,
    "src": "E_ac := 200000 MPa"
   },
   {
    "id": "in_phi_b",
    "kind": "math",
    "x": 40,
-   "y": 3064,
+   "y": 1880,
    "src": "phi_b := 0.90"
   },
   {
    "id": "in_phi_w",
    "kind": "math",
    "x": 40,
-   "y": 3110,
+   "y": 1928,
    "src": "phi_w := 0.75"
-  },
-  {
-   "id": "r056",
-   "kind": "text",
-   "x": 40,
-   "y": 3156,
-   "src": "━━ DATOS · ANCHO EFICAZ DE LA CHAPA SUPERIOR ━━"
-  },
-  {
-   "id": "r057",
-   "kind": "text",
-   "x": 40,
-   "y": 3202,
-   "src": "HIPOTESIS 2, declarada: es el ancho con que se reparte la flexion que el\nperno induce en la chapa superior. NO sale de una formula. Gobierna el\nespesor de esa chapa, que suele ser la pieza mas gruesa de la silla, y debe\nconfirmarse por lineas de fluencia con el detalle de taller. Un ancho eficaz\nmayor la adelgaza"
   },
   {
    "id": "in_b_eff",
    "kind": "math",
    "x": 40,
-   "y": 3340,
+   "y": 1976,
    "src": "b_eff := 150 mm"
   },
   {
-   "id": "r059",
+   "id": "r039",
    "kind": "text",
    "x": 40,
-   "y": 3386,
-   "src": "━━ 1 — CHAPA SUPERIOR DE LA SILLA · AISC 360 §J4.5 ━━",
-   "pageBreak": true
+   "y": 2024,
+   "src": "━━ 1 — REPARTO Y CHAPA SUPERIOR · AISC 360-22 §J4.5 ━━"
   },
   {
-   "id": "r060",
+   "id": "r040",
    "kind": "text",
    "x": 40,
-   "y": 3432,
-   "src": "El perno tira a media luz entre dos nervios. Tomada como viga biempotrada,\nM = P*L/8. Biapoyada daria P*L/4, o sea el doble: la eleccion del esquema\nestatico vale un factor 2 y por eso se declara"
+   "y": 2072,
+   "src": "Reparto uniforme de la tracción entre los pernos, y un nervio no puede tomar menos que medio perno\n—siempre tiene al menos un vecino— ni más que el grupo entero. El perno tira a media luz entre dos\nnervios: tomada como viga biempotrada, M = P·L/8; biapoyada daría P·L/4, o sea el doble, así que la\nelección del esquema estático vale un factor 2 y por eso se declara. Con Z de una franja de ancho\nb_eff, el espesor exigido es t = √(4·M/(φ·F_y·b_eff))."
   },
   {
-   "id": "r061",
+   "id": "r041",
    "kind": "math",
    "x": 40,
-   "y": 3526,
+   "y": 2216,
+   "src": "P_perno := T_grupo/n_col = kN"
+  },
+  {
+   "id": "v_frac_inf",
+   "kind": "math",
+   "x": 40,
+   "y": 2264,
+   "src": "v_frac_inf := frac_nervio >= 0.5 ="
+  },
+  {
+   "id": "v_frac_sup",
+   "kind": "math",
+   "x": 40,
+   "y": 2312,
+   "src": "v_frac_sup := frac_nervio <= n_col ="
+  },
+  {
+   "id": "r044",
+   "kind": "math",
+   "x": 40,
+   "y": 2360,
    "src": "M_chapa := P_perno*luz_max/8 = kN*m"
   },
   {
-   "id": "r062",
-   "kind": "text",
-   "x": 40,
-   "y": 3572,
-   "src": "Z de una franja de ancho b_eff = b_eff*t^2/4  ->  t = sqrt(4*M/(phi*Fy*b_eff))"
-  },
-  {
-   "id": "r063",
+   "id": "r045",
    "kind": "math",
    "x": 40,
-   "y": 3618,
+   "y": 2408,
    "src": "t_chapa_req := sqrt(4*(M_chapa/(phi_b*Fy_ac))/b_eff) = mm"
   },
   {
-   "id": "r064",
+   "id": "r046",
    "kind": "math",
    "x": 40,
-   "y": 3664,
+   "y": 2456,
    "src": "u_chapa := t_chapa_req/CH_T ="
-  },
-  {
-   "id": "v_chapa",
-   "kind": "math",
-   "x": 40,
-   "y": 3710,
-   "src": "v_chapa := CH_T >= t_chapa_req ="
-  },
-  {
-   "id": "r066",
-   "kind": "text",
-   "x": 40,
-   "y": 3756,
-   "src": "La chapa superior tiene que cubrir la proyeccion del nervio, o el nervio\nqueda con su borde superior sin apoyo"
   },
   {
    "id": "v_chapa_cubre",
    "kind": "math",
    "x": 40,
-   "y": 3828,
+   "y": 2504,
    "src": "v_chapa_cubre := CH_L >= NER_L ="
   },
   {
-   "id": "r068",
+   "id": "r048",
    "kind": "text",
    "x": 40,
-   "y": 3874,
-   "src": "━━ 2 — NERVIO · corte en la seccion junto al ala · AISC 360 §J4.2 ━━",
-   "pageBreak": true
+   "y": 2552,
+   "src": "━━ 2 — NERVIO · corte junto al ala · AISC 360-22 §J4.2 ━━"
+  },
+  {
+   "id": "r049",
+   "kind": "text",
+   "x": 40,
+   "y": 2600,
+   "src": "[J4-3] fluencia en corte: 0,60·F_y. Se adopta φ = 0,90, el de fluencia; con la rotura del área neta\nregiría 0,75, pero el nervio no tiene perforaciones."
+  },
+  {
+   "id": "r050",
+   "kind": "math",
+   "x": 40,
+   "y": 2672,
+   "src": "P_nervio := frac_nervio*P_perno = kN"
+  },
+  {
+   "id": "r051",
+   "kind": "math",
+   "x": 40,
+   "y": 2720,
+   "src": "tau_ner := P_nervio/(NER_H*NER_T) = MPa"
+  },
+  {
+   "id": "r052",
+   "kind": "math",
+   "x": 40,
+   "y": 2768,
+   "src": "tau_adm := phi_b*0.60*Fy_ac = MPa"
+  },
+  {
+   "id": "r053",
+   "kind": "math",
+   "x": 40,
+   "y": 2816,
+   "src": "u_ner := tau_ner/tau_adm ="
+  },
+  {
+   "id": "r054",
+   "kind": "text",
+   "x": 40,
+   "y": 2864,
+   "src": "━━ 3 — SOLDADURA DEL NERVIO · cordón en L, método elástico vectorial · AISC 360-22 §J2 ━━"
+  },
+  {
+   "id": "r055",
+   "kind": "text",
+   "x": 40,
+   "y": 2912,
+   "src": "El nervio suelda por DOS bordes: el vertical al ala, de altura NER_H, y el horizontal a la placa\nbase, de largo NER_L. Con los dos, el momento P·e se resuelve como PAR sobre la altura y no como\nflexión del propio cordón; con un solo borde el cordón toma el momento con módulo proporcional a H²\ny ahí la altura del nervio deja de ser holgura de detalle y pasa a gobernar. I_x, I_y y J_p son de\nla LÍNEA de soldadura, no del área: salen en mm³, y el momento se toma respecto del CENTROIDE del\ngrupo, no de la cara del ala. El punto crítico es el extremo del cordón horizontal. [J2-4] la\nresistencia del metal de aporte es F_nw = 0,60·F_EXX con φ = 0,75."
+  },
+  {
+   "id": "r056",
+   "kind": "math",
+   "x": 40,
+   "y": 3104,
+   "src": "exc_n := y_fila - COL_H/2 = mm"
+  },
+  {
+   "id": "r057",
+   "kind": "math",
+   "x": 40,
+   "y": 3152,
+   "src": "H_n := NER_H/(1 mm) ="
+  },
+  {
+   "id": "r058",
+   "kind": "math",
+   "x": 40,
+   "y": 3200,
+   "src": "L_n := NER_L/(1 mm) ="
+  },
+  {
+   "id": "r059",
+   "kind": "math",
+   "x": 40,
+   "y": 3248,
+   "src": "Lt := H_n + L_n ="
+  },
+  {
+   "id": "r060",
+   "kind": "math",
+   "x": 40,
+   "y": 3296,
+   "src": "ub := L_n^2/(2*Lt) ="
+  },
+  {
+   "id": "r061",
+   "kind": "math",
+   "x": 40,
+   "y": 3344,
+   "src": "vb := H_n^2/(2*Lt) ="
+  },
+  {
+   "id": "r062",
+   "kind": "math",
+   "x": 40,
+   "y": 3392,
+   "src": "Ix := (H_n^3/12 + H_n*(H_n/2 - vb)^2) + L_n*vb^2 ="
+  },
+  {
+   "id": "r063",
+   "kind": "math",
+   "x": 40,
+   "y": 3440,
+   "src": "Iy := H_n*ub^2 + (L_n^3/12 + L_n*(L_n/2 - ub)^2) ="
+  },
+  {
+   "id": "r064",
+   "kind": "math",
+   "x": 40,
+   "y": 3488,
+   "src": "Jp := Ix + Iy ="
+  },
+  {
+   "id": "r065",
+   "kind": "math",
+   "x": 40,
+   "y": 3536,
+   "src": "M_cor := P_nervio*(exc_n - ub*(1 mm)) = kN*m"
+  },
+  {
+   "id": "r066",
+   "kind": "math",
+   "x": 40,
+   "y": 3584,
+   "src": "M_corn := M_cor/(1 kN*mm) ="
+  },
+  {
+   "id": "r067",
+   "kind": "math",
+   "x": 40,
+   "y": 3632,
+   "src": "P_nern := P_nervio/(1 kN) ="
+  },
+  {
+   "id": "r068",
+   "kind": "math",
+   "x": 40,
+   "y": 3680,
+   "src": "r_corn := sqrt((-M_corn*vb/Jp)^2 + (P_nern/Lt + M_corn*(L_n - ub)/Jp)^2) ="
   },
   {
    "id": "r069",
    "kind": "math",
    "x": 40,
-   "y": 3920,
-   "src": "P_nervio := frac_nervio*P_perno = kN"
+   "y": 3728,
+   "src": "sigma_cor := r_corn*(1 kN/mm)/(2*0.7071*w_sold) = MPa"
   },
   {
    "id": "r070",
    "kind": "math",
    "x": 40,
-   "y": 3966,
-   "src": "tau_ner := P_nervio/(NER_H*NER_T) = MPa"
+   "y": 3776,
+   "src": "sigma_adm := phi_w*0.60*FEXX = MPa"
   },
   {
    "id": "r071",
-   "kind": "text",
+   "kind": "math",
    "x": 40,
-   "y": 4012,
-   "src": "[J4-3] fluencia en corte: 0,60*Fy. Se adopta phi = 0,90 del estado de\nfluencia; con la rotura del area neta regiria phi = 0,75, pero el nervio no\ntiene perforaciones"
+   "y": 3824,
+   "src": "u_sold := sigma_cor/sigma_adm ="
   },
   {
    "id": "r072",
-   "kind": "math",
+   "kind": "text",
    "x": 40,
-   "y": 4106,
-   "src": "tau_adm := phi_b*0.60*Fy_ac = MPa"
+   "y": 3872,
+   "src": "━━ 4 — EXTENSIÓN DE ALA · junta a tope de penetración completa ━━"
   },
   {
    "id": "r073",
-   "kind": "math",
-   "x": 40,
-   "y": 4152,
-   "src": "u_ner := tau_ner/tau_adm ="
-  },
-  {
-   "id": "v_nervio",
-   "kind": "math",
-   "x": 40,
-   "y": 4198,
-   "src": "v_nervio := tau_adm >= tau_ner ="
-  },
-  {
-   "id": "r075",
    "kind": "text",
    "x": 40,
-   "y": 4244,
-   "src": "━━ 3 — SOLDADURA DEL NERVIO · cordon en L, metodo elastico vectorial ━━",
-   "pageBreak": true
+   "y": 3920,
+   "src": "Cuando los nervios exteriores caen fuera del ancho de ala original, la carga que recogen tiene que\ncruzar la junta a tope que une la chapa de extensión con el ala. La junta se especifica de\nPENETRACIÓN COMPLETA y pide ensayo no destructivo: no es un detalle de montaje. Con\nhay_extension := 0 el bloque no aplica y devuelve uso nulo."
+  },
+  {
+   "id": "r074",
+   "kind": "math",
+   "x": 40,
+   "y": 4040,
+   "src": "frac_junta := n_nerv_fuera*frac_nervio ="
+  },
+  {
+   "id": "v_junta_admisible",
+   "kind": "math",
+   "x": 40,
+   "y": 4088,
+   "src": "v_junta_admisible := frac_junta <= n_col ="
   },
   {
    "id": "r076",
-   "kind": "text",
+   "kind": "math",
    "x": 40,
-   "y": 4290,
-   "src": "El nervio suelda por DOS bordes: el vertical al ala, de altura NER_H, y el\nhorizontal a la placa base, de largo NER_L. Con los dos, el momento P*e se\nresuelve como PAR sobre la altura y no como flexion del propio cordon. Con un\nsolo borde el cordon toma el momento con modulo proporcional a H^2, y ahi la\naltura del nervio deja de ser holgura de detalle y pasa a gobernar"
+   "y": 4136,
+   "src": "ext_ancho := (ALA_EXT - COL_B)/2 = mm"
   },
   {
    "id": "r077",
    "kind": "math",
    "x": 40,
-   "y": 4428,
-   "src": "exc_n := y_fila - COL_H/2 = mm"
+   "y": 4184,
+   "src": "P_junta := frac_junta*P_perno = kN"
   },
   {
    "id": "r078",
-   "kind": "text",
+   "kind": "math",
    "x": 40,
-   "y": 4474,
-   "src": "Ix, Iy y Jp son de la LINEA de soldadura, no del area: salen en mm^3. Se\nadimensiona y se reconstituye al final"
+   "y": 4232,
+   "src": "phiPn_ext := hay_extension == 1 ? phi_b*Fy_ac*ext_ancho*COL_TF : 1 kN = kN"
   },
   {
    "id": "r079",
    "kind": "math",
    "x": 40,
-   "y": 4546,
-   "src": "H_n := NER_H/(1 mm) ="
+   "y": 4280,
+   "src": "u_ext := hay_extension == 1 ? P_junta/phiPn_ext : 0 ="
   },
   {
    "id": "r080",
-   "kind": "math",
+   "kind": "text",
    "x": 40,
-   "y": 4592,
-   "src": "L_n := NER_L/(1 mm) ="
+   "y": 4328,
+   "src": "━━ 5 — ALA A TRACCIÓN ━━"
   },
   {
    "id": "r081",
-   "kind": "math",
+   "kind": "text",
    "x": 40,
-   "y": 4638,
-   "src": "Lt := H_n + L_n ="
+   "y": 4376,
+   "src": "El ala completa —extendida o no— tiene que poder llevar la tracción del grupo."
   },
   {
    "id": "r082",
-   "kind": "text",
+   "kind": "math",
    "x": 40,
-   "y": 4684,
-   "src": "Centroide del grupo de cordones respecto de la esquina del angulo"
+   "y": 4424,
+   "src": "phiPn_ala := phi_b*Fy_ac*ALA_EXT*COL_TF = kN"
   },
   {
    "id": "r083",
    "kind": "math",
    "x": 40,
-   "y": 4730,
-   "src": "ub := L_n^2/(2*Lt) ="
+   "y": 4472,
+   "src": "u_ala := T_grupo/phiPn_ala ="
   },
   {
    "id": "r084",
-   "kind": "math",
+   "kind": "text",
    "x": 40,
-   "y": 4776,
-   "src": "vb := H_n^2/(2*Lt) ="
+   "y": 4520,
+   "src": "━━ 6 — RIGIDIZADOR DE ALMA · AISC 360-22 §J10.8 ━━"
   },
   {
    "id": "r085",
-   "kind": "math",
+   "kind": "text",
    "x": 40,
-   "y": 4822,
-   "src": "Ix := (H_n^3/12 + H_n*(H_n/2 - vb)^2) + L_n*vb^2 ="
+   "y": 4568,
+   "src": "El §J10.8 da tres condiciones geométricas para los rigidizadores transversales: (a) el ancho de cada\nuno más medio espesor del alma no baja de un tercio del ancho del ala o de la chapa de momento que\nentrega la fuerza; (b) el espesor no baja de la mitad del espesor de esa ala o chapa, ni del ancho\ndividido por 16; (c) se extienden al menos media altura del miembro. Cumplirlas NO verifica el\nrigidizador a resistencia: para eso el mismo artículo remite al §J4.1 en tracción y al §J4.4 en\ncompresión, y esta hoja no lo hace."
   },
   {
    "id": "r086",
    "kind": "math",
    "x": 40,
-   "y": 4868,
-   "src": "Iy := H_n*ub^2 + (L_n^3/12 + L_n*(L_n/2 - ub)^2) ="
+   "y": 4736,
+   "src": "rig_ancho := (ALA_EXT - COL_TW)/2 = mm"
   },
   {
    "id": "r087",
    "kind": "math",
    "x": 40,
-   "y": 4914,
-   "src": "Jp := Ix + Iy ="
-  },
-  {
-   "id": "r088",
-   "kind": "text",
-   "x": 40,
-   "y": 4960,
-   "src": "El momento se toma respecto del CENTROIDE del grupo, no de la cara del ala"
-  },
-  {
-   "id": "r089",
-   "kind": "math",
-   "x": 40,
-   "y": 5006,
-   "src": "M_cor := P_nervio*(exc_n - ub*(1 mm)) = kN*m"
-  },
-  {
-   "id": "r090",
-   "kind": "math",
-   "x": 40,
-   "y": 5052,
-   "src": "garganta := 2*0.7071*w_sold = mm"
-  },
-  {
-   "id": "r091",
-   "kind": "math",
-   "x": 40,
-   "y": 5098,
-   "src": "M_corn := M_cor/(1 kN*mm) ="
-  },
-  {
-   "id": "r092",
-   "kind": "math",
-   "x": 40,
-   "y": 5144,
-   "src": "P_nern := P_nervio/(1 kN) ="
-  },
-  {
-   "id": "r093",
-   "kind": "text",
-   "x": 40,
-   "y": 5190,
-   "src": "Punto critico: extremo del cordon horizontal, en u = L_n y v = 0"
-  },
-  {
-   "id": "r094",
-   "kind": "math",
-   "x": 40,
-   "y": 5236,
-   "src": "fu_pn := -M_corn*vb/Jp ="
-  },
-  {
-   "id": "r095",
-   "kind": "math",
-   "x": 40,
-   "y": 5282,
-   "src": "fv_pn := P_nern/Lt + M_corn*(L_n - ub)/Jp ="
-  },
-  {
-   "id": "r096",
-   "kind": "math",
-   "x": 40,
-   "y": 5328,
-   "src": "r_corn := sqrt(fu_pn^2 + fv_pn^2) ="
-  },
-  {
-   "id": "r097",
-   "kind": "math",
-   "x": 40,
-   "y": 5374,
-   "src": "sigma_cor := r_corn*(1 kN/mm)/garganta = MPa"
-  },
-  {
-   "id": "r098",
-   "kind": "text",
-   "x": 40,
-   "y": 5420,
-   "src": "[J2-4] F_nw = 0,60*F_EXX con phi = 0,75"
-  },
-  {
-   "id": "r099",
-   "kind": "math",
-   "x": 40,
-   "y": 5466,
-   "src": "sigma_adm := phi_w*0.60*FEXX = MPa"
-  },
-  {
-   "id": "r100",
-   "kind": "math",
-   "x": 40,
-   "y": 5512,
-   "src": "u_sold := sigma_cor/sigma_adm ="
-  },
-  {
-   "id": "v_soldadura",
-   "kind": "math",
-   "x": 40,
-   "y": 5558,
-   "src": "v_soldadura := sigma_adm >= sigma_cor ="
-  },
-  {
-   "id": "r102",
-   "kind": "text",
-   "x": 40,
-   "y": 5604,
-   "src": "━━ 4 — EXTENSION DE ALA · junta a tope de penetracion completa ━━",
-   "pageBreak": true
-  },
-  {
-   "id": "r103",
-   "kind": "text",
-   "x": 40,
-   "y": 5650,
-   "src": "Cuando los nervios exteriores caen fuera del ancho de ala original, la carga\nque recogen tiene que cruzar la junta a tope que une la chapa de extension\ncon el ala. La junta se especifica de PENETRACION COMPLETA y pide ensayo no\ndestructivo: no es un detalle de montaje"
-  },
-  {
-   "id": "r104",
-   "kind": "math",
-   "x": 40,
-   "y": 5766,
-   "src": "ext_ancho := (ALA_EXT - COL_B)/2 = mm"
-  },
-  {
-   "id": "r105",
-   "kind": "math",
-   "x": 40,
-   "y": 5812,
-   "src": "P_junta := frac_junta*P_perno = kN"
-  },
-  {
-   "id": "r106",
-   "kind": "text",
-   "x": 40,
-   "y": 5858,
-   "src": "Resistencia de la chapa de extension en su seccion junto a la junta"
-  },
-  {
-   "id": "r107",
-   "kind": "program",
-   "x": 40,
-   "y": 5904,
-   "src": "phiPn_ext :=\n    if hay_extension == 1\n        return phi_b*Fy_ac*ext_ancho*COL_TF\n    else\n        return 1 kN"
-  },
-  {
-   "id": "r108",
-   "kind": "program",
-   "x": 40,
-   "y": 6042,
-   "src": "u_ext :=\n    if hay_extension == 1\n        return P_junta/phiPn_ext\n    else\n        return 0"
-  },
-  {
-   "id": "v_extension",
-   "kind": "math",
-   "x": 40,
-   "y": 6180,
-   "src": "v_extension := u_ext <= 1 ="
-  },
-  {
-   "id": "r110",
-   "kind": "text",
-   "x": 40,
-   "y": 6226,
-   "src": "Si hay_extension := 0 este bloque no aplica y devuelve uso nulo"
-  },
-  {
-   "id": "r111",
-   "kind": "text",
-   "x": 40,
-   "y": 6272,
-   "src": "━━ 5 — ALA A TRACCION ━━"
-  },
-  {
-   "id": "r112",
-   "kind": "text",
-   "x": 40,
-   "y": 6318,
-   "src": "El ala completa —extendida o no— tiene que poder llevar la traccion del grupo"
-  },
-  {
-   "id": "r113",
-   "kind": "math",
-   "x": 40,
-   "y": 6364,
-   "src": "phiPn_ala0 := phi_b*Fy_ac*COL_B*COL_TF = kN"
-  },
-  {
-   "id": "r114",
-   "kind": "math",
-   "x": 40,
-   "y": 6410,
-   "src": "phiPn_ala := phi_b*Fy_ac*ALA_EXT*COL_TF = kN"
-  },
-  {
-   "id": "r115",
-   "kind": "math",
-   "x": 40,
-   "y": 6456,
-   "src": "u_ala := T_grupo/phiPn_ala ="
-  },
-  {
-   "id": "v_ala",
-   "kind": "math",
-   "x": 40,
-   "y": 6502,
-   "src": "v_ala := phiPn_ala >= T_grupo ="
-  },
-  {
-   "id": "r117",
-   "kind": "text",
-   "x": 40,
-   "y": 6548,
-   "src": "Cuanto compro la extension: si esta relacion es 1,00 la extension no era\nnecesaria por resistencia, y se pago acero por ESPACIO —para que quepan los\npernos y los nervios—, que es una razon legitima pero conviene saberla"
-  },
-  {
-   "id": "r118",
-   "kind": "math",
-   "x": 40,
-   "y": 6642,
-   "src": "ganancia_ext := phiPn_ala/phiPn_ala0 ="
-  },
-  {
-   "id": "r119",
-   "kind": "text",
-   "x": 40,
-   "y": 6688,
-   "src": "━━ 6 — RIGIDIZADOR DE ALMA · §J.10.8 aplicado por analogia ━━",
-   "pageBreak": true
-  },
-  {
-   "id": "r120",
-   "kind": "text",
-   "x": 40,
-   "y": 6734,
-   "src": "Leido rasterizado del CIRSOC 301-2018, pdf 232 = impresa Cap. J-178. En un\nproyecto que cite AISC 360 la disposicion equivalente es su §J10.8: hay que\nleerlo rasterizado antes de citarlo, no darlo por identico"
-  },
-  {
-   "id": "r121",
-   "kind": "text",
-   "x": 40,
-   "y": 6828,
-   "src": "SON CONDICIONES GEOMETRICAS. Cumplirlas no verifica el rigidizador a\nresistencia, y esta hoja no lo hace: queda declarado como pendiente"
-  },
-  {
-   "id": "r122",
-   "kind": "math",
-   "x": 40,
-   "y": 6900,
-   "src": "rig_ancho := (ALA_EXT - COL_TW)/2 = mm"
-  },
-  {
-   "id": "r123",
-   "kind": "math",
-   "x": 40,
-   "y": 6946,
+   "y": 4784,
    "src": "rig_largo := COL_H - 2*COL_TF = mm"
-  },
-  {
-   "id": "r124",
-   "kind": "text",
-   "x": 40,
-   "y": 6992,
-   "src": "(1) el ancho mas medio espesor de alma no baja de un tercio del ancho de la\nchapa de union"
   },
   {
    "id": "v_rig1",
    "kind": "math",
    "x": 40,
-   "y": 7064,
+   "y": 4832,
    "src": "v_rig1 := rig_ancho + COL_TW/2 >= CH_B/3 ="
-  },
-  {
-   "id": "r126",
-   "kind": "text",
-   "x": 40,
-   "y": 7110,
-   "src": "(2) el espesor no baja de la mitad del espesor del ala ni del de la chapa"
   },
   {
    "id": "v_rig2a",
    "kind": "math",
    "x": 40,
-   "y": 7156,
+   "y": 4880,
    "src": "v_rig2a := RIG_T >= COL_TF/2 ="
   },
   {
    "id": "v_rig2b",
    "kind": "math",
    "x": 40,
-   "y": 7202,
+   "y": 4928,
    "src": "v_rig2b := RIG_T >= CH_T/2 ="
   },
   {
-   "id": "r129",
-   "kind": "text",
-   "x": 40,
-   "y": 7248,
-   "src": "(2) segunda frase: la relacion ancho-espesor no supera 0,56*sqrt(E/Fy)"
-  },
-  {
-   "id": "r130",
+   "id": "r091",
    "kind": "math",
    "x": 40,
-   "y": 7294,
-   "src": "lim_bt := 0.56*sqrt(E_ac/Fy_ac) ="
-  },
-  {
-   "id": "r131",
-   "kind": "math",
-   "x": 40,
-   "y": 7340,
+   "y": 4976,
    "src": "bt_rig := rig_ancho/RIG_T ="
   },
   {
    "id": "v_rig3",
    "kind": "math",
    "x": 40,
-   "y": 7386,
-   "src": "v_rig3 := bt_rig <= lim_bt ="
+   "y": 5024,
+   "src": "v_rig3 := bt_rig <= 16 ="
   },
   {
-   "id": "r133",
+   "id": "v_rig_largo",
    "kind": "math",
    "x": 40,
-   "y": 7432,
-   "src": "u_rig := bt_rig/lim_bt ="
+   "y": 5072,
+   "src": "v_rig_largo := rig_largo >= COL_H/2 ="
   },
   {
-   "id": "r134",
-   "kind": "text",
-   "x": 40,
-   "y": 7478,
-   "src": "━━ 7 — FLEXIBILIDAD DE LA BASE · condicion de admisibilidad ━━",
-   "pageBreak": true
-  },
-  {
-   "id": "r135",
-   "kind": "text",
-   "x": 40,
-   "y": 7524,
-   "src": "La silla ELEVA el amarre del perno, y ese tramo libre alarga bajo carga. El\nmodelo estructural supone la base empotrada: la rotacion que sale de aqui es\nla condicion bajo la cual esa suposicion se sostiene. No es un resultado de\ndiseno, es una comprobacion de coherencia con el modelo"
-  },
-  {
-   "id": "r136",
+   "id": "r094",
    "kind": "math",
    "x": 40,
-   "y": 7640,
+   "y": 5120,
+   "src": "u_rig := bt_rig/16 ="
+  },
+  {
+   "id": "r095",
+   "kind": "text",
+   "x": 40,
+   "y": 5168,
+   "src": "━━ 7 — FLEXIBILIDAD DE LA BASE · condición de admisibilidad ━━"
+  },
+  {
+   "id": "r096",
+   "kind": "text",
+   "x": 40,
+   "y": 5216,
+   "src": "La silla ELEVA el amarre del perno, y ese tramo libre alarga bajo carga. El modelo estructural supone\nla base empotrada: la rotación que sale de aquí es la condición bajo la cual esa suposición se\nsostiene, y corresponde al nivel de solicitación con que se corrió el equilibrio de la placa. No es\nun resultado de diseño, es una comprobación de coherencia con el modelo."
+  },
+  {
+   "id": "r097",
+   "kind": "math",
+   "x": 40,
+   "y": 5336,
    "src": "z_libre := t_mort + t_bp + NER_H + CH_T = mm"
   },
   {
-   "id": "r137",
+   "id": "r098",
    "kind": "math",
    "x": 40,
-   "y": 7686,
+   "y": 5384,
    "src": "alarg := P_perno*z_libre/(Ase_perno*E_ac) = mm"
   },
   {
-   "id": "r138",
+   "id": "r099",
    "kind": "math",
    "x": 40,
-   "y": 7732,
+   "y": 5432,
    "src": "brazo_rot := y_fila + (L_bp/2 - Yb_comp/2) = mm"
   },
   {
-   "id": "r139",
+   "id": "r100",
    "kind": "math",
    "x": 40,
-   "y": 7778,
+   "y": 5480,
    "src": "theta_base := alarg/brazo_rot ="
   },
   {
-   "id": "r140",
+   "id": "r101",
    "kind": "text",
    "x": 40,
-   "y": 7824,
-   "src": "Corresponde al nivel de solicitacion con que se corrio el equilibrio de la\nplaca. Si ese nivel lleva sobrerresistencia, la rotacion tambien la lleva."
+   "y": 5528,
+   "src": "━━ RESUMEN ━━"
   },
   {
-   "id": "r141",
-   "kind": "text",
-   "x": 40,
-   "y": 7896,
-   "src": "━━ QUE GOBIERNA ━━"
-  },
-  {
-   "id": "r142",
+   "id": "r102",
    "kind": "math",
    "x": 40,
-   "y": 7942,
+   "y": 5576,
    "src": "u_max := max(u_chapa, u_ner, u_sold, u_ext, u_ala, u_rig) ="
   },
   {
-   "id": "r143",
+   "id": "r103",
    "kind": "program",
    "x": 40,
-   "y": 7988,
-   "src": "gobierna :=\n    if u_max == u_rig\n        return \"esbeltez del rigidizador de alma (condicion geometrica)\"\n    else if u_max == u_chapa\n        return \"espesor de la chapa superior — depende del ancho eficaz\"\n    else if u_max == u_sold\n        return \"soldadura en L del nervio\"\n    else if u_max == u_ner\n        return \"corte del nervio junto al ala\"\n    else if u_max == u_ext\n        return \"junta a tope de la extension de ala\"\n    else\n        return \"traccion del ala\""
+   "y": 5624,
+   "src": "gobierna :=\n    if u_max == u_rig\n        return \"esbeltez del rigidizador de alma\"\n    else if u_max == u_chapa\n        return \"espesor de la chapa superior — depende del ancho eficaz\"\n    else if u_max == u_sold\n        return \"soldadura en L del nervio\"\n    else if u_max == u_ner\n        return \"corte del nervio junto al ala\"\n    else if u_max == u_ext\n        return \"junta a tope de la extensión de ala\"\n    else\n        return \"tracción del ala\""
   },
   {
    "id": "v_global",
    "kind": "math",
    "x": 40,
-   "y": 8302,
-   "src": "v_global := u_max <= 1 ="
+   "y": 5960,
+   "src": "v_global := u_max <= 1 and v_chapa_cubre and v_rig1 and v_rig2a and v_rig2b and v_rig3 and v_rig_largo ="
   },
   {
-   "id": "r145",
+   "id": "r105",
    "kind": "text",
    "x": 40,
-   "y": 8348,
-   "src": "RECORDATORIO: los tres usos que dependen de una hipotesis y no de una\nformula son u_chapa —por el ancho eficaz—, todo el reparto —por frac_nervio—\ny el rigidizador, que aqui solo cumple geometria. Los tres van a la tabla de\nsalvedades de la memoria, no se dan por cerrados."
+   "y": 6008,
+   "src": "━━ ESQUEMA · MAPEO A PÍXELES ━━",
+   "imprimir": false
+  },
+  {
+   "id": "r106",
+   "kind": "text",
+   "x": 40,
+   "y": 6056,
+   "src": "ex y ey llevan a píxeles de la elevación lateral, con el origen en el eje de la columna y en la cara\nsuperior de la placa base; px y py hacen lo propio en la planta del ala. Este bloque no se imprime.",
+   "imprimir": false
+  },
+  {
+   "id": "r107",
+   "kind": "math",
+   "x": 40,
+   "y": 6128,
+   "src": "esc := min(230/((y_fila + 120 mm)/(1 mm)), 150/((NER_H + CH_T + t_bp + t_mort)/(1 mm)), 190/(ALA_EXT/(1 mm))) =",
+   "imprimir": false
+  },
+  {
+   "id": "r108",
+   "kind": "program",
+   "x": 40,
+   "y": 6176,
+   "src": "ex(u) := 210 + u/(1 mm)*esc",
+   "imprimir": false
+  },
+  {
+   "id": "r109",
+   "kind": "program",
+   "x": 40,
+   "y": 6224,
+   "src": "ey(w) := 210 + w/(1 mm)*esc",
+   "imprimir": false
+  },
+  {
+   "id": "r110",
+   "kind": "program",
+   "x": 40,
+   "y": 6272,
+   "src": "px(u) := 210 + u/(1 mm)*esc",
+   "imprimir": false
+  },
+  {
+   "id": "r111",
+   "kind": "program",
+   "x": 40,
+   "y": 6320,
+   "src": "py(v) := 430 + v/(1 mm)*esc",
+   "imprimir": false
+  },
+  {
+   "id": "r112",
+   "kind": "math",
+   "x": 40,
+   "y": 6368,
+   "src": "col_chapa := u_chapa <= 1 and v_chapa_cubre ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
+   "id": "r113",
+   "kind": "math",
+   "x": 40,
+   "y": 6416,
+   "src": "col_nervio := (u_ner <= 1 and u_sold <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
+   "id": "r114",
+   "kind": "math",
+   "x": 40,
+   "y": 6464,
+   "src": "col_ala := (u_ala <= 1 and u_ext <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
+   "id": "r115",
+   "kind": "math",
+   "x": 40,
+   "y": 6512,
+   "src": "col_rig := (v_rig1 and v_rig2a and v_rig2b and v_rig3 and v_rig_largo) ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
+   "id": "r116",
+   "kind": "math",
+   "x": 40,
+   "y": 6560,
+   "src": "col_global := v_global ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
+   "id": "esquema",
+   "kind": "image",
+   "x": 40,
+   "y": 6608,
+   "src": "/esquemas/silla-anclaje-generica.svg",
+   "w": 720,
+   "h": 480
   }
  ]
 }

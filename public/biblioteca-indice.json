@@ -39,20 +39,19 @@
     },
     {
       "slug": "silla-anclaje-generica",
-      "titulo": "Silla de anclaje — el camino de carga completo: perno, chapa superior, nervios, ala (o ala extendida) y alma",
+      "titulo": "Silla de anclaje — el camino de carga completo: perno, chapa superior, nervios, ala extendida y rigidizador",
       "clase": "generica",
       "disciplina": "acero",
       "ruta": "/biblioteca/acero/silla-anclaje-generica.json",
-      "regiones": 145,
+      "regiones": 116,
       "normas": [
-        "AR/CIRSOC-301-2018",
         "US/AISC360-22"
       ],
       "entradas": 31,
-      "salidas": 21,
+      "salidas": 19,
       "promovible": true,
-      "sha256": "d238170734e49d47a6286628bf146b3b12954ad96140af2df78b54bc55d4103f",
-      "resumen": "Silla de anclaje de una placa base rigidizada: chapa superior, nervios, soldadura en L, extensión de ala y las tres condiciones geométricas del rigidizador. Recibe T_grupo e Yb_comp de placa-base-generica."
+      "sha256": "e52b228c9717494d23ebcf5e327206ad344e880082740b9f97df025942c74672",
+      "resumen": "Silla de anclaje de una placa base rigidizada: chapa superior, nervios, soldadura en L, extensión de ala y las condiciones geométricas del rigidizador del §J10.8. Recibe T_grupo e Yb_comp de placa-base-generica."
     },
     {
       "slug": "viga-carrilera-generica",
