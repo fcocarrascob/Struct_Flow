@@ -1,9 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 560" font-family="system-ui, sans-serif">
-  <!-- Esquema paramétrico de `pedestal-generico`: sección con las barras en el
-       orden en que se colocan, elevación con los estribos y la profundidad del
-       perno, y la columna de usos. Cada color lee la misma comparación que su v_*. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 1050" font-family="system-ui, sans-serif">
+  <!-- Esquema paramétrico de `pedestal-generico`. Tres bandas:
+       ARRIBA   sección con las barras en el orden en que se colocan, elevación con la
+                zona de protección del §9.5.3 y sus estribos, y la columna de estados límite.
+       MEDIO    el detallado sísmico que rige, en dos columnas: NCh2369 §9.5 y ACI §18.7.
+       ABAJO    los dos diagramas de interacción P-M, uno por eje, con las dos ramas
+                (+M sólida, −M punteada), el tope del §22.4.2.1, la tracción pura y
+                las seis combinaciones. El segmento mide el margen de la que gobierna.
+       Cada color lee la misma comparación que su v_*. -->
 
-  <text x="420" y="24" font-size="15" text-anchor="middle" fill="#222" font-weight="bold">Pedestal de hormigón armado — sección y elevación a escala</text>
+  <rect width="840" height="1050" fill="#ffffff"/>
+  <text x="420" y="22" font-size="15" text-anchor="middle" fill="#222" font-weight="bold">Pedestal de hormigón armado — sección, detallado sísmico y diagramas de interacción</text>
 
   <!-- =============== SECCIÓN =============== -->
   <text x="40" y="52" font-size="12" fill="#555" font-weight="bold">SECCIÓN</text>
@@ -11,12 +17,17 @@
   <rect x="{{px(-PED_X/2):svg}}" y="{{py(-PED_Y/2):svg}}" width="{{PED_X/(1 mm)*esc:svg}}" height="{{PED_Y/(1 mm)*esc:svg}}"
         fill="#f4f6f8" stroke="#333" stroke-width="1.6"/>
 
+  <!-- Núcleo confinado, medido al exterior del estribo: es el A_ch de la Tabla 18.7.5.4 -->
+  <rect x="{{px(-b_c_X/2):svg}}" y="{{py(-b_c_Y/2):svg}}"
+        width="{{b_c_X/(1 mm)*esc:svg}}" height="{{b_c_Y/(1 mm)*esc:svg}}"
+        fill="none" stroke="#9aa3ab" stroke-width="0.8" stroke-dasharray="3 2"/>
+
   <!-- Estribo perimetral, al eje de las barras -->
   <rect x="{{px(-(PED_X/2 - recub_ped)):svg}}" y="{{py(-(PED_Y/2 - recub_ped)):svg}}"
         width="{{(PED_X - 2*recub_ped)/(1 mm)*esc:svg}}" height="{{(PED_Y - 2*recub_ped)/(1 mm)*esc:svg}}"
         fill="none" stroke="{{col_est}}" stroke-width="1.3"/>
 
-  <!-- Barras longitudinales, repartidas por el perímetro del núcleo -->
+  <!-- Barras longitudinales, de `barras_xy`: la misma disposición con la que se calculó el P-M -->
   <circle data-repetir="barras_px" cx="{{fila[1]:svg}}" cy="{{fila[2]:svg}}" r="{{r_barra_px:svg}}"
           fill="{{col_barras}}" stroke="none"/>
 
@@ -25,21 +36,20 @@
         stroke="#fff" stroke-width="3" paint-order="stroke">PED_X = {{PED_X:mm}} mm</text>
   <text x="{{px(-PED_X/2) - 10:svg}}" y="175" font-size="10.5" text-anchor="end" fill="#222"
         stroke="#fff" stroke-width="3" paint-order="stroke">PED_Y = {{PED_Y:mm}} mm</text>
-  <text x="{{px(PED_X/2) + 10:svg}}" y="{{py(-PED_Y/2) + 14:svg}}" font-size="10" fill="{{col_barras}}"
-        stroke="#fff" stroke-width="3" paint-order="stroke">{{n_barras}} ø{{db_long:mm}} · ρ = {{rho_long}}</text>
-  <text x="{{px(PED_X/2) + 10:svg}}" y="{{py(-PED_Y/2) + 32:svg}}" font-size="10" fill="{{col_est}}"
-        stroke="#fff" stroke-width="3" paint-order="stroke">estribo ø{{db_est:mm}} @ {{sep_est:mm}} · {{n_ramas}} ramas</text>
-  <text x="{{px(PED_X/2) + 10:svg}}" y="{{py(-PED_Y/2) + 50:svg}}" font-size="10" fill="#555"
-        stroke="#fff" stroke-width="3" paint-order="stroke">recubrimiento al eje {{recub_ped:mm}} mm</text>
+  <text x="{{px(PED_X/2) + 12:svg}}" y="{{py(-PED_Y/2) + 14:svg}}" font-size="10" fill="{{col_barras}}">{{n_barras}} ø{{db_long:mm}} · ρ = {{rho_long}}</text>
+  <text x="{{px(PED_X/2) + 12:svg}}" y="{{py(-PED_Y/2) + 32:svg}}" font-size="10" fill="{{col_est}}">estribo ø{{db_est:mm}} · {{n_ramas}} ramas por cara</text>
+  <text x="{{px(PED_X/2) + 12:svg}}" y="{{py(-PED_Y/2) + 50:svg}}" font-size="10" fill="#555">recubrimiento al eje {{recub_ped:mm}} mm</text>
+  <text x="{{px(PED_X/2) + 12:svg}}" y="{{py(-PED_Y/2) + 68:svg}}" font-size="10" fill="#555">núcleo A_ch = {{b_c_X:mm}} × {{b_c_Y:mm}} mm</text>
+  <text x="{{px(PED_X/2) + 12:svg}}" y="{{py(-PED_Y/2) + 86:svg}}" font-size="10" fill="#555">paso perimetral h_x = {{paso_barras:mm}} mm</text>
 
   <!-- El radio de conteo de la armadura de anclaje, a escala -->
-  <line x1="{{px(PED_X/2) + 14:svg}}" x2="{{px(PED_X/2) + 14 + radio_cono/(1 mm)*esc:svg}}"
+  <line x1="{{px(PED_X/2) + 16:svg}}" x2="{{px(PED_X/2) + 16 + radio_cono/(1 mm)*esc:svg}}"
         y1="{{py(PED_Y/2) - 18:svg}}" y2="{{py(PED_Y/2) - 18:svg}}" stroke="{{col_anc}}" stroke-width="1.4"/>
-  <line x1="{{px(PED_X/2) + 14:svg}}" x2="{{px(PED_X/2) + 14:svg}}" y1="{{py(PED_Y/2) - 23:svg}}" y2="{{py(PED_Y/2) - 13:svg}}" stroke="{{col_anc}}" stroke-width="1.4"/>
-  <line x1="{{px(PED_X/2) + 14 + radio_cono/(1 mm)*esc:svg}}" x2="{{px(PED_X/2) + 14 + radio_cono/(1 mm)*esc:svg}}"
+  <line x1="{{px(PED_X/2) + 16:svg}}" x2="{{px(PED_X/2) + 16:svg}}" y1="{{py(PED_Y/2) - 23:svg}}" y2="{{py(PED_Y/2) - 13:svg}}" stroke="{{col_anc}}" stroke-width="1.4"/>
+  <line x1="{{px(PED_X/2) + 16 + radio_cono/(1 mm)*esc:svg}}" x2="{{px(PED_X/2) + 16 + radio_cono/(1 mm)*esc:svg}}"
         y1="{{py(PED_Y/2) - 23:svg}}" y2="{{py(PED_Y/2) - 13:svg}}" stroke="{{col_anc}}" stroke-width="1.4"/>
-  <text x="{{px(PED_X/2) + 14:svg}}" y="{{py(PED_Y/2) - 26:svg}}" font-size="10" fill="{{col_anc}}">0,5·h_ef = {{radio_cono:mm}} mm</text>
-  <text x="{{px(PED_X/2) + 14:svg}}" y="{{py(PED_Y/2) + 2:svg}}" font-size="10" fill="{{col_anc}}">cuentan {{n_contables}} barras · hacen falta {{n_req}}</text>
+  <text x="{{px(PED_X/2) + 16:svg}}" y="{{py(PED_Y/2) - 26:svg}}" font-size="10" fill="{{col_anc}}">0,5·h_ef = {{radio_cono:mm}} mm</text>
+  <text x="{{px(PED_X/2) + 16:svg}}" y="{{py(PED_Y/2) + 2:svg}}" font-size="10" fill="{{col_anc}}">cuentan {{n_contables}} barras · hacen falta {{n_req}}</text>
 
   <!-- =============== ELEVACIÓN =============== -->
   <text x="40" y="{{ey(0 mm) - 32:svg}}" font-size="12" fill="#555" font-weight="bold">ELEVACIÓN</text>
@@ -51,70 +61,203 @@
   <rect x="{{px(-PED_X/2):svg}}" y="{{ey(0 mm):svg}}" width="{{PED_X/(1 mm)*esc:svg}}" height="{{PED_H/(1 mm)*esc:svg}}"
         fill="#f4f6f8" stroke="#333" stroke-width="1.6"/>
 
+  <!-- Zona de protección superior del §9.5.3 -->
+  <rect x="{{px(-PED_X/2):svg}}" y="{{ey(0 mm):svg}}" width="{{PED_X/(1 mm)*esc:svg}}" height="{{zp_ef/(1 mm)*esc:svg}}"
+        fill="{{col_zp}}" fill-opacity="0.10" stroke="none"/>
+  <line x1="{{px(-PED_X/2) - 8:svg}}" x2="{{px(PED_X/2) + 8:svg}}" y1="{{ey_zp:svg}}" y2="{{ey_zp:svg}}"
+        stroke="{{col_zp}}" stroke-width="1.1" stroke-dasharray="6 3"/>
+  <text x="{{px(PED_X/2) + 12:svg}}" y="{{ey(zp_ef/2) + 3:svg}}" font-size="9.5" fill="{{col_zp}}">zona de protección</text>
+  <text x="{{px(PED_X/2) + 12:svg}}" y="{{ey(zp_ef/2) + 15:svg}}" font-size="9.5" fill="{{col_zp}}">{{zp_ef:mm}} mm · estribos @ {{sep_est_zp:mm}}</text>
+
   <!-- Zapata bajo el pedestal, esquemática -->
   <rect x="{{px(-PED_X/2) - 26:svg}}" y="{{ey(PED_H):svg}}" width="{{PED_X/(1 mm)*esc + 52:svg}}" height="16"
         fill="#e7eaed" stroke="#888" stroke-width="1"/>
 
-  <!-- Estribos -->
+  <!-- Estribos: a sep_est_zp dentro de la zona de protección y a sep_est bajo ella -->
   <line data-repetir="estribos_px" x1="{{px(-(PED_X/2 - recub_ped)):svg}}" x2="{{px(PED_X/2 - recub_ped):svg}}"
         y1="{{fila[1]:svg}}" y2="{{fila[1]:svg}}" stroke="{{col_est}}" stroke-width="1"/>
 
-  <!-- Barras longitudinales de borde. Con sdc_def = 1 bajan con GANCHO A 90° y
-       el extremo libre hacia el eje del pedestal, que es lo que pide el
-       §18.13.2.3 y lo que el panel afirma; sin él se dibujaban rectas. -->
+  <!-- Barras longitudinales de borde. Con sdc_def = 1 bajan con GANCHO A 90° y el
+       extremo libre hacia el eje del pedestal, que es lo que pide el §18.13.2.3. -->
   <path d="M {{px(-(PED_X/2 - recub_ped)):svg}} {{ey(0 mm):svg}} V {{ey(PED_H) + 12:svg}} h {{sdc_def == 1 ? 16 : 0:svg}}"
         fill="none" stroke="{{col_barras}}" stroke-width="1.8"/>
   <path d="M {{px(PED_X/2 - recub_ped):svg}} {{ey(0 mm):svg}} V {{ey(PED_H) + 12:svg}} h {{sdc_def == 1 ? -16 : 0:svg}}"
         fill="none" stroke="{{col_barras}}" stroke-width="1.8"/>
-  <text x="{{px(-PED_X/2) - 26:svg}}" y="{{ey(PED_H) + 44:svg}}" font-size="9" fill="{{col_barras}}">{{sdc_def == 1 ? "ganchos a 90° hacia el eje (§18.13.2.3)" : "sin exigencia de gancho (SDC A, B o C)"}}</text>
   <line x1="{{px(-PED_X/2*0.55):svg}}" x2="{{px(-PED_X/2*0.55):svg}}" y1="{{ey(0 mm) - 8:svg}}" y2="{{ey(h_ef):svg}}" stroke="{{col_anc}}" stroke-width="2" stroke-dasharray="5 3"/>
   <line x1="{{px(PED_X/2*0.55):svg}}" x2="{{px(PED_X/2*0.55):svg}}" y1="{{ey(0 mm) - 8:svg}}" y2="{{ey(h_ef):svg}}" stroke="{{col_anc}}" stroke-width="2" stroke-dasharray="5 3"/>
 
   <!-- Cotas de elevación -->
   <text x="{{px(-PED_X/2) - 32:svg}}" y="{{ey(PED_H/2):svg}}" font-size="10.5" text-anchor="end" fill="#222"
         stroke="#fff" stroke-width="3" paint-order="stroke">PED_H = {{PED_H:mm}} mm</text>
-  <text x="{{px(PED_X/2) + 34:svg}}" y="{{ey(h_ef):svg}}" font-size="10" fill="{{col_anc}}"
+  <text x="{{px(-PED_X/2) - 32:svg}}" y="{{ey(h_ef):svg}}" font-size="10" text-anchor="end" fill="{{col_anc}}"
         stroke="#fff" stroke-width="3" paint-order="stroke">h_ef = {{h_ef:mm}} mm</text>
-  <text x="{{px(PED_X/2) + 34:svg}}" y="{{ey(PED_H) + 26:svg}}" font-size="10" fill="#777">zapata</text>
+  <text x="{{px(PED_X/2) + 12:svg}}" y="{{ey(PED_H) + 28:svg}}" font-size="10" fill="#777">zapata</text>
 
   <!-- =============== COLUMNA DE RESULTADOS =============== -->
-  <line x1="600" y1="60" x2="600" y2="520" stroke="#ddd" stroke-width="1"/>
+  <line x1="600" y1="60" x2="600" y2="516" stroke="#ddd" stroke-width="1"/>
   <text x="620" y="66" font-size="11.5" fill="#222" font-weight="bold">Estados límite</text>
 
-  <text x="620" y="92" font-size="10.5" fill="#333">Compresión axial</text>
-  <text x="830" y="92" font-size="10.5" text-anchor="end" fill="{{cu(u_comp)}}" font-weight="bold">{{u_comp}}</text>
-  <text x="620" y="112" font-size="10.5" fill="#333">Tracción axial</text>
-  <text x="830" y="112" font-size="10.5" text-anchor="end" fill="{{cu(u_trac)}}" font-weight="bold">{{u_trac}}</text>
-  <text x="620" y="132" font-size="10.5" fill="#333">Flexocompresión (peor punto)</text>
-  <text x="830" y="132" font-size="10.5" text-anchor="end" fill="{{cu(u_pm)}}" font-weight="bold">{{u_pm}}</text>
-  <text x="620" y="152" font-size="10.5" fill="#333">Flexión biaxial</text>
-  <text x="830" y="152" font-size="10.5" text-anchor="end" fill="{{cu(u_biax)}}" font-weight="bold">{{u_biax}}</text>
-  <text x="620" y="172" font-size="10.5" fill="#333">Corte en X</text>
-  <text x="830" y="172" font-size="10.5" text-anchor="end" fill="{{cu(u_corte_X)}}" font-weight="bold">{{u_corte_X}}</text>
-  <text x="620" y="192" font-size="10.5" fill="#333">Corte en Y</text>
-  <text x="830" y="192" font-size="10.5" text-anchor="end" fill="{{cu(u_corte_Y)}}" font-weight="bold">{{u_corte_Y}}</text>
-  <text x="620" y="212" font-size="10.5" fill="#333">Armadura de anclaje</text>
-  <text x="830" y="212" font-size="10.5" text-anchor="end" fill="{{cu(u_anclaje)}}" font-weight="bold">{{u_anclaje}}</text>
+  <text x="620" y="90" font-size="10.5" fill="#333">Compresión axial</text>
+  <text x="830" y="90" font-size="10.5" text-anchor="end" fill="{{cu(u_comp)}}" font-weight="bold">{{u_comp}}</text>
+  <text x="620" y="108" font-size="10.5" fill="#333">Tracción axial</text>
+  <text x="830" y="108" font-size="10.5" text-anchor="end" fill="{{cu(u_trac)}}" font-weight="bold">{{u_trac}}</text>
+  <text x="620" y="126" font-size="10.5" fill="#333">Flexocompresión uniaxial</text>
+  <text x="830" y="126" font-size="10.5" text-anchor="end" fill="{{cu(u_pm)}}" font-weight="bold">{{u_pm}}</text>
+  <text x="620" y="144" font-size="10.5" fill="#333">Flexión biaxial</text>
+  <text x="830" y="144" font-size="10.5" text-anchor="end" fill="{{cu(u_biax)}}" font-weight="bold">{{u_biax}}</text>
+  <text x="620" y="162" font-size="10.5" fill="#333">Corte en X</text>
+  <text x="830" y="162" font-size="10.5" text-anchor="end" fill="{{cu(u_corte_X)}}" font-weight="bold">{{u_corte_X}}</text>
+  <text x="620" y="180" font-size="10.5" fill="#333">Corte en Y</text>
+  <text x="830" y="180" font-size="10.5" text-anchor="end" fill="{{cu(u_corte_Y)}}" font-weight="bold">{{u_corte_Y}}</text>
+  <text x="620" y="198" font-size="10.5" fill="#333">Corte biaxial (§22.5.1.11)</text>
+  <text x="830" y="198" font-size="10.5" text-anchor="end" fill="{{cu(u_corte_biax)}}" font-weight="bold">{{u_corte_biax}}</text>
+  <text x="620" y="216" font-size="10.5" fill="#333">Confinamiento (§18.7.5.4)</text>
+  <text x="830" y="216" font-size="10.5" text-anchor="end" fill="{{cu(u_Ash)}}" font-weight="bold">{{u_Ash}}</text>
+  <text x="620" y="234" font-size="10.5" fill="#333">Capacidad esperada, tracción</text>
+  <text x="830" y="234" font-size="10.5" text-anchor="end" fill="{{cu(u_95T)}}" font-weight="bold">{{u_95T}}</text>
+  <text x="620" y="252" font-size="10.5" fill="#333">Capacidad esperada, corte</text>
+  <text x="830" y="252" font-size="10.5" text-anchor="end" fill="{{cu(u_95V)}}" font-weight="bold">{{u_95V}}</text>
+  <text x="620" y="270" font-size="10.5" fill="#333">Armadura de anclaje</text>
+  <text x="830" y="270" font-size="10.5" text-anchor="end" fill="{{cu(u_anclaje)}}" font-weight="bold">{{u_anclaje}}</text>
 
-  <text x="620" y="246" font-size="11.5" fill="#222" font-weight="bold">Cuantía y detallado</text>
-  <text x="620" y="270" font-size="10" fill="#555">A_st = {{Ast:mm^2}} mm² (0,01·Ag = {{As_min:mm^2}})</text>
-  <text x="620" y="288" font-size="10" fill="#555">cuantía entre 0,01 y 0,08</text>
-  <text x="830" y="288" font-size="10" text-anchor="end" fill="#333">{{v_cuantia_min and v_cuantia_max}}</text>
-  <text x="620" y="306" font-size="10" fill="#555">A_v ≥ mínima ({{Av_min:mm^2}} mm²)</text>
-  <text x="830" y="306" font-size="10" text-anchor="end" fill="#333">{{v_Av}}</text>
-  <text x="620" y="324" font-size="10" fill="#555">separación ≤ {{sep_est_max:mm}} mm</text>
-  <text x="830" y="324" font-size="10" text-anchor="end" fill="#333">{{v_sep_est}}</text>
-  <text x="620" y="342" font-size="10" fill="#555">diámetro de estribo mínimo</text>
-  <text x="830" y="342" font-size="10" text-anchor="end" fill="#333">{{v_db_est}}</text>
+  <text x="620" y="300" font-size="11.5" fill="#222" font-weight="bold">Cuantía y estribos del fuste</text>
+  <text x="620" y="322" font-size="10" fill="#555">A_st = {{Ast:mm^2}} mm² (0,01·Ag = {{As_min:mm^2}})</text>
+  <text x="620" y="338" font-size="10" fill="#555">cuantía entre 0,01 y {{sis_aci18 == 1 ? "0,06" : "0,08"}}</text>
+  <text x="830" y="338" font-size="10" text-anchor="end" fill="#333">{{v_cuantia_min and v_cuantia_max and v_rho_sismico}}</text>
+  <text x="620" y="354" font-size="10" fill="#555">A_v ≥ mínima ({{Av_min:mm^2}} mm²)</text>
+  <text x="830" y="354" font-size="10" text-anchor="end" fill="#333">{{v_Av}}</text>
+  <text x="620" y="370" font-size="10" fill="#555">separación del fuste ≤ {{sep_est_max:mm}} mm</text>
+  <text x="830" y="370" font-size="10" text-anchor="end" fill="#333">{{v_sep_est}}</text>
+  <text x="620" y="386" font-size="10" fill="#555">diámetro de estribo mínimo</text>
+  <text x="830" y="386" font-size="10" text-anchor="end" fill="#333">{{v_db_est}}</text>
+  <text x="620" y="402" font-size="10" fill="#555">confinamiento de los pernos (§10.7.6.1.5)</text>
+  <text x="830" y="402" font-size="10" text-anchor="end" fill="#333">{{v_confina_pernos}}</text>
 
-  <text x="620" y="376" font-size="11.5" fill="#222" font-weight="bold">Materiales y extremos P–M</text>
-  <text x="620" y="398" font-size="10" fill="#555">f'c = {{fc:MPa}} MPa · fy = {{fy:MPa}} MPa</text>
-  <text x="620" y="416" font-size="10" fill="#555">φP_n,max = {{phiPn_max:kN}} kN · φP_nt = {{phiPnt:kN}} kN</text>
-  <text x="620" y="434" font-size="10" fill="#555">{{sdc_def == 1 ? "rige §18.13.2 en la unión con la zapata" : "no rige §18.13.2 (SDC A, B o C)"}}</text>
+  <text x="620" y="430" font-size="11.5" fill="#222" font-weight="bold">Materiales y extremos P-M</text>
+  <text x="620" y="450" font-size="10" fill="#555">f'c = {{fc:MPa}} MPa · fy = {{fy:MPa}} · fyt = {{fyt:MPa}}</text>
+  <text x="620" y="466" font-size="10" fill="#555">φP_n,máx = {{phiPn_max:kN}} kN · φP_nt = {{phiPnt:kN}} kN</text>
+  <text x="620" y="482" font-size="10" fill="#555">β₁ = {{beta_1}} · ε_ty = {{eps_ty}} · ε_cu = 0,003</text>
+  <text x="620" y="498" font-size="10" fill="#555">V_s en X = {{Vs_ef_X:kN}} kN · en Y = {{Vs_ef_Y:kN}} kN</text>
 
-  <!-- Franja de cierre -->
-  <rect x="612" y="452" width="218" height="62" rx="4" fill="{{col_global}}" fill-opacity="0.10" stroke="{{col_global}}" stroke-width="1"/>
-  <text x="622" y="470" font-size="9.5" fill="#777">Gobierna</text>
-  <text x="622" y="486" font-size="9.5" fill="#333">{{gobierna}}</text>
-  <text x="622" y="505" font-size="12" fill="{{col_global}}" font-weight="bold">u_max = {{u_max}}</text>
+  <!-- =============== DETALLADO SÍSMICO =============== -->
+  <rect x="40" y="534" width="760" height="150" rx="5" fill="#f7f9fb" stroke="#ccd4dc"/>
+  <text x="54" y="554" font-size="11.5" fill="#222" font-weight="bold">Detallado sísmico</text>
+
+  <text x="54" y="576" font-size="10" fill="#1a63a8" font-weight="bold">NCh2369:2025 §9.5 — {{sis_nch2369 == 1 ? "rige" : "no rige"}}</text>
+  <text x="54" y="594" font-size="9.5" fill="#333">zona de protección {{zp_ef:mm}} mm ({{frac_zp}} % de la altura)</text>
+  <text x="54" y="610" font-size="9.5" fill="#333">s ≤ 0,4·b = {{s_todo:mm}} mm en toda la altura</text>
+  <text x="400" y="610" font-size="9.5" text-anchor="end" fill="#333">{{v_s_todo}}</text>
+  <text x="54" y="626" font-size="9.5" fill="#333">s ≤ 0,2·b = {{s_zp:mm}} mm en la zona de protección</text>
+  <text x="400" y="626" font-size="9.5" text-anchor="end" fill="#333">{{v_s_zp}}</text>
+  <text x="54" y="642" font-size="9.5" fill="#333">tres primeros estribos, libres ≤ 50 mm</text>
+  <text x="400" y="642" font-size="9.5" text-anchor="end" fill="#333">{{v_s_libre}}</text>
+  <text x="54" y="658" font-size="9.5" fill="#333">altura / lado menor = {{razon_hb}} ≤ 3 (C9.5)</text>
+  <text x="400" y="658" font-size="9.5" text-anchor="end" fill="#333">{{v_razon_hb}}</text>
+  <text x="54" y="674" font-size="9.5" fill="#333">malla de reparto superior (C9.5.3)</text>
+  <text x="400" y="674" font-size="9.5" text-anchor="end" fill="#333">{{v_malla_sup}}</text>
+
+  <text x="430" y="576" font-size="10" fill="#1a63a8" font-weight="bold">ACI 318-25 Cap. 18 — §18.7 {{sis_aci18 == 1 ? "rige" : "no rige"}}</text>
+  <text x="430" y="594" font-size="9.5" fill="#333">ℓo = {{lo_conf:mm}} mm desde cada extremo (§18.7.5.1)</text>
+  <text x="430" y="610" font-size="9.5" fill="#333">s en la zona ≤ {{sep_conf_max:mm}} mm (§18.7.5.3)</text>
+  <text x="786" y="610" font-size="9.5" text-anchor="end" fill="#333">{{v_sep_conf}}</text>
+  <text x="430" y="626" font-size="9.5" fill="#333">h_x = {{h_x:mm}} ≤ {{h_x_lim:mm}} mm (§18.7.5.2)</text>
+  <text x="786" y="626" font-size="9.5" text-anchor="end" fill="#333">{{v_hx}}</text>
+  <text x="430" y="642" font-size="9.5" fill="#333">A_sh ≥ {{Ash_X_req:mm^2}} mm² · provista {{Ash_prov:mm^2}} mm²</text>
+  <text x="786" y="642" font-size="9.5" text-anchor="end" fill="{{cu(u_Ash)}}" font-weight="bold">{{u_Ash}}</text>
+  <text x="430" y="658" font-size="9.5" fill="#333">{{anula_vc == 1 ? "V_c = 0 dentro de ℓo (§18.7.6.2.1)" : "V_c cuenta: el §18.7.6.2.1 no se dispara"}}</text>
+  <text x="430" y="674" font-size="9.5" fill="#333">{{sdc_def == 1 ? "§18.13.2: ganchos a 90° en la zapata" : "§18.13.2 no rige (SDC A, B o C)"}}</text>
+
+  <!-- =============== DIAGRAMAS DE INTERACCIÓN =============== -->
+  <text x="40" y="706" font-size="12" fill="#555" font-weight="bold">DIAGRAMAS DE INTERACCIÓN</text>
+  <text x="240" y="706" font-size="9.5" fill="#888">{{nX_pos}} puntos por rama · rama +M sólida, −M punteada · las seis combinaciones como puntos · el interior es admisible</text>
+
+  <!-- ---------- P-M en X ---------- -->
+  <text x="92" y="726" font-size="11" fill="#1a63a8" font-weight="bold">P-M en X (canto PED_X)</text>
+
+  <line x1="{{x0_X:svg}}" y1="{{y_pm_px(Rd_P_n):svg}}" x2="{{x0_X:svg}}" y2="{{y_pm_px(-Pnt_n):svg}}" stroke="#333" stroke-width="1.1"/>
+  <line x1="{{x0_X:svg}}" y1="{{y_pm_px(0):svg}}" x2="{{x0_X + w_dib:svg}}" y2="{{y_pm_px(0):svg}}" stroke="#333" stroke-width="1.1"/>
+
+  <line x1="{{x0_X - 4:svg}}" y1="{{y_pm_px(0):svg}}" x2="{{x0_X:svg}}" y2="{{y_pm_px(0):svg}}" stroke="#333"/>
+  <text x="{{x0_X - 7:svg}}" y="{{y_pm_px(0) + 3.5:svg}}" font-size="9" text-anchor="end" fill="#555">0</text>
+  <line x1="{{x0_X - 4:svg}}" y1="{{y_pm_px(0.25*Rd_P_n):svg}}" x2="{{x0_X:svg}}" y2="{{y_pm_px(0.25*Rd_P_n):svg}}" stroke="#333"/>
+  <text x="{{x0_X - 7:svg}}" y="{{y_pm_px(0.25*Rd_P_n) + 3.5:svg}}" font-size="9" text-anchor="end" fill="#555">{{0.25*Rd_P_n}}</text>
+  <line x1="{{x0_X - 4:svg}}" y1="{{y_pm_px(0.5*Rd_P_n):svg}}" x2="{{x0_X:svg}}" y2="{{y_pm_px(0.5*Rd_P_n):svg}}" stroke="#333"/>
+  <text x="{{x0_X - 7:svg}}" y="{{y_pm_px(0.5*Rd_P_n) + 3.5:svg}}" font-size="9" text-anchor="end" fill="#555">{{0.5*Rd_P_n}}</text>
+  <line x1="{{x0_X - 4:svg}}" y1="{{y_pm_px(0.75*Rd_P_n):svg}}" x2="{{x0_X:svg}}" y2="{{y_pm_px(0.75*Rd_P_n):svg}}" stroke="#333"/>
+  <text x="{{x0_X - 7:svg}}" y="{{y_pm_px(0.75*Rd_P_n) + 3.5:svg}}" font-size="9" text-anchor="end" fill="#555">{{0.75*Rd_P_n}}</text>
+  <text x="{{x0_X - 7:svg}}" y="{{y_pm_px(-Pnt_n) + 3.5:svg}}" font-size="9" text-anchor="end" fill="#8a5a00">−{{Pnt_n}}</text>
+  <text x="{{x0_X - 7:svg}}" y="{{y_pm_px(Rd_P_n) - 10:svg}}" font-size="9.5" text-anchor="end" fill="#333">φP_n</text>
+  <text x="{{x0_X - 7:svg}}" y="{{y_pm_px(Rd_P_n):svg}}" font-size="8.5" text-anchor="end" fill="#888">kN</text>
+
+  <line x1="{{xX_px(0.25*M_esc_X):svg}}" y1="{{y0_pm:svg}}" x2="{{xX_px(0.25*M_esc_X):svg}}" y2="{{y0_pm + 4:svg}}" stroke="#333"/>
+  <text x="{{xX_px(0.25*M_esc_X):svg}}" y="{{y0_pm + 15:svg}}" font-size="9" text-anchor="middle" fill="#555">{{0.25*M_esc_X}}</text>
+  <line x1="{{xX_px(0.5*M_esc_X):svg}}" y1="{{y0_pm:svg}}" x2="{{xX_px(0.5*M_esc_X):svg}}" y2="{{y0_pm + 4:svg}}" stroke="#333"/>
+  <text x="{{xX_px(0.5*M_esc_X):svg}}" y="{{y0_pm + 15:svg}}" font-size="9" text-anchor="middle" fill="#555">{{0.5*M_esc_X}}</text>
+  <line x1="{{xX_px(0.75*M_esc_X):svg}}" y1="{{y0_pm:svg}}" x2="{{xX_px(0.75*M_esc_X):svg}}" y2="{{y0_pm + 4:svg}}" stroke="#333"/>
+  <text x="{{xX_px(0.75*M_esc_X):svg}}" y="{{y0_pm + 15:svg}}" font-size="9" text-anchor="middle" fill="#555">{{0.75*M_esc_X}}</text>
+  <text x="{{x0_X + w_dib/2:svg}}" y="{{y0_pm + 30:svg}}" font-size="9.5" text-anchor="middle" fill="#555">φM_n [kN·m]</text>
+
+  <!-- tope del §22.4.2.1 y tracción pura -->
+  <line x1="{{x0_X:svg}}" y1="{{y_pm_px(Rd_P_n):svg}}" x2="{{x0_X + w_dib:svg}}" y2="{{y_pm_px(Rd_P_n):svg}}" stroke="#c07a00" stroke-width="1" stroke-dasharray="6 4"/>
+  <text x="{{x0_X + w_dib:svg}}" y="{{y_pm_px(Rd_P_n) - 5:svg}}" font-size="9" text-anchor="end" fill="#a56a00">φP_n,máx = 0,80·0,65·P_o = {{phiPn_max:kN}} kN</text>
+  <line x1="{{x0_X:svg}}" y1="{{y_pm_px(-Pnt_n):svg}}" x2="{{x0_X + w_dib:svg}}" y2="{{y_pm_px(-Pnt_n):svg}}" stroke="#c07a00" stroke-width="0.8" stroke-dasharray="4 4"/>
+  <text x="{{x0_X + w_dib:svg}}" y="{{y_pm_px(-Pnt_n) - 5:svg}}" font-size="9" text-anchor="end" fill="#a56a00">tracción pura, −φP_nt</text>
+
+  <polyline points="{{curva_X_neg_px:svg}}" fill="none" stroke="#1a63a8" stroke-width="1.1" stroke-dasharray="5 3" opacity="0.8"/>
+  <polyline points="{{curva_X_pos_px:svg}}" fill="none" stroke="#1a63a8" stroke-width="2.1"/>
+
+  <!-- margen de la combinación que gobierna -->
+  <line x1="{{xgX_px:svg}}" y1="{{yg_px:svg}}" x2="{{xfX_px:svg}}" y2="{{yg_px:svg}}" stroke="{{col_gob}}" stroke-width="1" stroke-dasharray="3 2"/>
+  <circle data-repetir="pts_dem_X_px" cx="{{fila[1]:svg}}" cy="{{fila[2]:svg}}" r="3.4" fill="{{cdem(fila[3])}}" stroke="#fff" stroke-width="0.7"/>
+  <circle cx="{{xgX_px:svg}}" cy="{{yg_px:svg}}" r="5.5" fill="none" stroke="{{col_gob}}" stroke-width="1.6"/>
+  <text x="{{xfX_px + 7:svg}}" y="{{yg_px - 14:svg}}" font-size="9" fill="{{col_gob}}">comb. {{comb_gob}} · M_u = {{Mux_gob:kN*m}} kN·m</text>
+  <text x="{{xfX_px + 7:svg}}" y="{{yg_px - 3:svg}}" font-size="9" fill="{{col_gob}}">φM_nX = {{phiMnX_gob:kN*m}} kN·m</text>
+
+  <!-- ---------- P-M en Y ---------- -->
+  <text x="482" y="726" font-size="11" fill="#1a63a8" font-weight="bold">P-M en Y (canto PED_Y)</text>
+
+  <line x1="{{x0_Y:svg}}" y1="{{y_pm_px(Rd_P_n):svg}}" x2="{{x0_Y:svg}}" y2="{{y_pm_px(-Pnt_n):svg}}" stroke="#333" stroke-width="1.1"/>
+  <line x1="{{x0_Y:svg}}" y1="{{y_pm_px(0):svg}}" x2="{{x0_Y + w_dib:svg}}" y2="{{y_pm_px(0):svg}}" stroke="#333" stroke-width="1.1"/>
+
+  <line x1="{{x0_Y - 4:svg}}" y1="{{y_pm_px(0):svg}}" x2="{{x0_Y:svg}}" y2="{{y_pm_px(0):svg}}" stroke="#333"/>
+  <text x="{{x0_Y - 7:svg}}" y="{{y_pm_px(0) + 3.5:svg}}" font-size="9" text-anchor="end" fill="#555">0</text>
+  <line x1="{{x0_Y - 4:svg}}" y1="{{y_pm_px(0.25*Rd_P_n):svg}}" x2="{{x0_Y:svg}}" y2="{{y_pm_px(0.25*Rd_P_n):svg}}" stroke="#333"/>
+  <text x="{{x0_Y - 7:svg}}" y="{{y_pm_px(0.25*Rd_P_n) + 3.5:svg}}" font-size="9" text-anchor="end" fill="#555">{{0.25*Rd_P_n}}</text>
+  <line x1="{{x0_Y - 4:svg}}" y1="{{y_pm_px(0.5*Rd_P_n):svg}}" x2="{{x0_Y:svg}}" y2="{{y_pm_px(0.5*Rd_P_n):svg}}" stroke="#333"/>
+  <text x="{{x0_Y - 7:svg}}" y="{{y_pm_px(0.5*Rd_P_n) + 3.5:svg}}" font-size="9" text-anchor="end" fill="#555">{{0.5*Rd_P_n}}</text>
+  <line x1="{{x0_Y - 4:svg}}" y1="{{y_pm_px(0.75*Rd_P_n):svg}}" x2="{{x0_Y:svg}}" y2="{{y_pm_px(0.75*Rd_P_n):svg}}" stroke="#333"/>
+  <text x="{{x0_Y - 7:svg}}" y="{{y_pm_px(0.75*Rd_P_n) + 3.5:svg}}" font-size="9" text-anchor="end" fill="#555">{{0.75*Rd_P_n}}</text>
+  <text x="{{x0_Y - 7:svg}}" y="{{y_pm_px(-Pnt_n) + 3.5:svg}}" font-size="9" text-anchor="end" fill="#8a5a00">−{{Pnt_n}}</text>
+  <text x="{{x0_Y - 7:svg}}" y="{{y_pm_px(Rd_P_n) - 10:svg}}" font-size="9.5" text-anchor="end" fill="#333">φP_n</text>
+  <text x="{{x0_Y - 7:svg}}" y="{{y_pm_px(Rd_P_n):svg}}" font-size="8.5" text-anchor="end" fill="#888">kN</text>
+
+  <line x1="{{xY_px(0.25*M_esc_Y):svg}}" y1="{{y0_pm:svg}}" x2="{{xY_px(0.25*M_esc_Y):svg}}" y2="{{y0_pm + 4:svg}}" stroke="#333"/>
+  <text x="{{xY_px(0.25*M_esc_Y):svg}}" y="{{y0_pm + 15:svg}}" font-size="9" text-anchor="middle" fill="#555">{{0.25*M_esc_Y}}</text>
+  <line x1="{{xY_px(0.5*M_esc_Y):svg}}" y1="{{y0_pm:svg}}" x2="{{xY_px(0.5*M_esc_Y):svg}}" y2="{{y0_pm + 4:svg}}" stroke="#333"/>
+  <text x="{{xY_px(0.5*M_esc_Y):svg}}" y="{{y0_pm + 15:svg}}" font-size="9" text-anchor="middle" fill="#555">{{0.5*M_esc_Y}}</text>
+  <line x1="{{xY_px(0.75*M_esc_Y):svg}}" y1="{{y0_pm:svg}}" x2="{{xY_px(0.75*M_esc_Y):svg}}" y2="{{y0_pm + 4:svg}}" stroke="#333"/>
+  <text x="{{xY_px(0.75*M_esc_Y):svg}}" y="{{y0_pm + 15:svg}}" font-size="9" text-anchor="middle" fill="#555">{{0.75*M_esc_Y}}</text>
+  <text x="{{x0_Y + w_dib/2:svg}}" y="{{y0_pm + 30:svg}}" font-size="9.5" text-anchor="middle" fill="#555">φM_n [kN·m]</text>
+
+  <line x1="{{x0_Y:svg}}" y1="{{y_pm_px(Rd_P_n):svg}}" x2="{{x0_Y + w_dib:svg}}" y2="{{y_pm_px(Rd_P_n):svg}}" stroke="#c07a00" stroke-width="1" stroke-dasharray="6 4"/>
+  <text x="{{x0_Y + w_dib:svg}}" y="{{y_pm_px(Rd_P_n) - 5:svg}}" font-size="9" text-anchor="end" fill="#a56a00">φP_n,máx = {{phiPn_max:kN}} kN (§22.4.2.1)</text>
+  <line x1="{{x0_Y:svg}}" y1="{{y_pm_px(-Pnt_n):svg}}" x2="{{x0_Y + w_dib:svg}}" y2="{{y_pm_px(-Pnt_n):svg}}" stroke="#c07a00" stroke-width="0.8" stroke-dasharray="4 4"/>
+  <text x="{{x0_Y + w_dib:svg}}" y="{{y_pm_px(-Pnt_n) - 5:svg}}" font-size="9" text-anchor="end" fill="#a56a00">tracción pura, −φP_nt</text>
+
+  <polyline points="{{curva_Y_neg_px:svg}}" fill="none" stroke="#1a63a8" stroke-width="1.1" stroke-dasharray="5 3" opacity="0.8"/>
+  <polyline points="{{curva_Y_pos_px:svg}}" fill="none" stroke="#1a63a8" stroke-width="2.1"/>
+
+  <line x1="{{xgY_px:svg}}" y1="{{yg_px:svg}}" x2="{{xfY_px:svg}}" y2="{{yg_px:svg}}" stroke="{{col_gob}}" stroke-width="1" stroke-dasharray="3 2"/>
+  <circle data-repetir="pts_dem_Y_px" cx="{{fila[1]:svg}}" cy="{{fila[2]:svg}}" r="3.4" fill="{{cdem(fila[3])}}" stroke="#fff" stroke-width="0.7"/>
+  <circle cx="{{xgY_px:svg}}" cy="{{yg_px:svg}}" r="5.5" fill="none" stroke="{{col_gob}}" stroke-width="1.6"/>
+  <text x="{{xfY_px + 7:svg}}" y="{{yg_px - 14:svg}}" font-size="9" fill="{{col_gob}}">comb. {{comb_gob}} · M_u = {{Muy_gob:kN*m}} kN·m</text>
+  <text x="{{xfY_px + 7:svg}}" y="{{yg_px - 3:svg}}" font-size="9" fill="{{col_gob}}">φM_nY = {{phiMnY_gob:kN*m}} kN·m</text>
+
+  <!-- =============== FRANJA DE CIERRE =============== -->
+  <rect x="40" y="1012" width="760" height="30" rx="4" fill="{{col_global}}" fill-opacity="0.10" stroke="{{col_global}}" stroke-width="1"/>
+  <text x="54" y="1024" font-size="9.5" fill="#777">Gobierna</text>
+  <text x="54" y="1037" font-size="10" fill="#333">{{gobierna}}</text>
+  <text x="420" y="1024" font-size="9.5" fill="#777">La combinación que manda la biaxial</text>
+  <text x="420" y="1037" font-size="10" fill="#333">nº {{comb_gob}}: P_u = {{Pu_gob:kN}} kN · M_X = {{Mux_gob:kN*m}} · M_Y = {{Muy_gob:kN*m}} kN·m</text>
+  <text x="786" y="1032" font-size="13" text-anchor="end" fill="{{col_global}}" font-weight="bold">u_max = {{u_max}}</text>
 </svg>

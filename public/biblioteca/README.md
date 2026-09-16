@@ -29,9 +29,12 @@ completo del `meta` está en `docs/ESQUEMA-PLANILLA.md` §10.
 ## Inventario
 
 Migradas el 2026-09-11 desde el harness. Las siete pasan `verify:biblioteca` con su
-ejemplo de referencia y un caso que falla a propósito. **Solo norma americana en SI**:
-AISC, ACI y ASCE. Las citas argentinas y chilenas que quedaban se reemplazaron el
-2026-09-15 por el artículo americano equivalente, leído antes de citarlo.
+ejemplo de referencia y un caso que falla a propósito. **Norma americana en SI** —AISC,
+ACI y ASCE— con una excepción declarada: el detallado sísmico del pedestal es de
+**NCh2369:2025 §9.5**, porque ninguna norma americana cubre el pedestal bajo placa base
+como zona singular y ACI §18.7 es el de otra cosa (una columna de pórtico especial de
+hormigón). El resto de las citas argentinas y chilenas se reemplazó el 2026-09-15 por el
+artículo americano equivalente, leído antes de citarlo.
 
 **Auditadas el 2026-09-15 y corregidas el 16.** Se releyó del PDF cada artículo que citan
 —102 páginas— y se juzgaron los siete esquemas sobre los PNG rendidos. Los dos informes,
@@ -55,7 +58,7 @@ rotura en corte del §J4.2 en la llave y la silla.
 | Plantilla | Qué verifica | Norma | Entradas |
 |---|---|---|---:|
 | `anclaje-hormigon-generica` | Grupo de pernos colados en tracción: acero, cono, extracción, descascaramiento y armadura de anclaje **por capacidad del perno**. Con sismo, la opción (d) del §17.10.5.3 y el **0,75** del §17.10.5.4 sobre los modos del hormigón (`sismo`) | ACI 318-25 SI §17.5, §17.6, §17.9, §17.10, Tabla 21.2.1 | 28 |
-| `pedestal-generico` | Cuantías del §10.6.1.1 (0,01·Ag a 0,08·Ag), extremos del diagrama P–M, **flexión biaxial** por contorno lineal, corte, estribos, armadura de anclaje contable (la mayor entre demanda y `As_req` por capacidad) y el detallado de la unión del §18.13.2 | ACI 318-25 SI §10.6, §10.7.6, §17.5.2.1, §18.13.2, §22.4, §22.5, §25.7.2 | 32 |
+| `pedestal-generico` | Cuantías del §10.6.1.1 y del §18.7.4.1, el **diagrama de interacción P–M calculado** por compatibilidad de deformaciones en los dos ejes y los dos sentidos, seis combinaciones `(P, M_X, M_Y)` leídas sobre él, **flexión biaxial** por contorno lineal, corte con `V_c` **y `V_s`**, estribos, armadura de anclaje contable y el **detallado sísmico** por NCh2369 §9.5 y por ACI §18.7, activables por separado | ACI 318-25 SI §10.6, §10.7.6, §17.5.2.1, §18.7, §18.13.2, §21.2.2, §22.2, §22.4, §22.5, §25.3.4, §25.7.2 · NCh2369:2025 §9.5 | 53 |
 | `zapata-generica` | Flexión, corte en una dirección y punzonamiento, con reparto en banda, más la armadura superior por levantamiento del §18.13.2.5 verificada a flexión | ACI 318-25 SI Cap. 7, 8, 13, 18, 21, 22, 25 | 23 |
 
 ### `acciones/`
@@ -111,13 +114,15 @@ aparte. Resumen:
 | `silla-anclaje-generica` | el reparto de tracción entre pernos (uniforme) · el ancho eficaz de la chapa · el rigidizador **a resistencia**, que el §J10.8 manda al §J4.1 en tracción y al §J4.4 en compresión | extensión de ala con la lectura conservadora |
 | `viga-carrilera-generica` | las cargas de rueda (del fabricante) · la clasificación del **ala** —la del **alma** sí la calcula— · los límites de deflexión · el riel y su unión · de la lista del §5.8.2 de TR-13: fuerzas axiales, carga concentrada **en los apoyos** y rigidizadores de apoyo | dos ruedas iguales · canal continuo y colaborante · vano simple · el ala superior (más el canal) toma íntegramente la fuerza lateral |
 | `anclaje-hormigon-generica` | la tracción del grupo · el corte (va a la llave) · las opciones (a), (b) y (c) del §17.10.5.3 | pernos colados con cabeza · una fila traccionada · armadura conformada (§17.10.4) |
-| `pedestal-generico` | los puntos intermedios del P–M (entran como pares, **sin su axial**: por eso el esquema todavía no dibuja el diagrama) · la φMn uniaxial de cada eje para la biaxial | estribos cerrados · armadura simétrica · **detallado no sísmico** en el fuste · biaxial por suma lineal (cota superior) |
+| `pedestal-generico` | los esfuerzos (seis ternas concurrentes, ya mayoradas y amplificadas por 0,7·R₁ donde NCh2369 lo pide) · el `V_e` por capacidad del §18.7.6.1 · la capacidad esperada del anclaje del §9.5.2 · la esbeltez, que con altura sobre lado menor ≤ 3 no aplica | estribos cerrados · reparto perimetral uniforme · cada barra amarrada por esquina de estribo o traba (de ahí `h_x` y `n_l`) · el cierre de la envolvente hacia la tracción pura es una recta · biaxial por suma lineal (cota superior) |
 | `zapata-generica` | los esfuerzos mayorados · el momento negativo de la cara superior (`Mu_sup`) | apoyo interior · sin armadura de corte · `Nu = 0` · X es el lado corto (**sí** se chequea) · **renuncia al §13.2.6.2** e impone el §18.13.2.5 fuera de SDC D-F, las dos del lado seguro |
 
 ## El esqueleto de una genérica
 
 Las siete tienen la misma forma desde el 2026-09-15, y una hoja nueva la copia. El
 objetivo es que la memoria impresa quepa en un anexo: entre 4 y 9 páginas por hoja.
+`pedestal-generico` se salió a 10 al pasar a calcular el diagrama P–M: el precio de
+calcular lo que antes entraba como dato, y el techo se sube una vez, no cada vez.
 
 1. **Alcance**, uno o dos párrafos: qué verifica, hipótesis y fronteras en prosa corta.
    Lo demás vive en `meta`, que es de donde lo lee la ficha de `/diseno`.

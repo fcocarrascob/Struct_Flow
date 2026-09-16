@@ -517,19 +517,20 @@
     },
     {
       "slug": "pedestal-generico",
-      "titulo": "Pedestal de hormigón armado — cuantías, extremos del diagrama P–M, corte, estribos y armadura de anclaje contable",
+      "titulo": "Pedestal de hormigón armado — diagrama de interacción P-M en las dos direcciones, corte con V_s, estribos, armadura de anclaje contable y detallado sísmico por NCh2369 §9.5 y ACI §18.7",
       "clase": "generica",
       "disciplina": "hormigon",
       "ruta": "/biblioteca/hormigon/pedestal-generico.json",
-      "regiones": 138,
+      "regiones": 313,
       "normas": [
-        "US/ACI318-25-SI"
+        "US/ACI318-25-SI",
+        "CL/NCh2369-2025"
       ],
-      "entradas": 32,
-      "salidas": 21,
+      "entradas": 53,
+      "salidas": 36,
       "promovible": true,
-      "sha256": "57a489c14c396019a873f3e2a5d4dc9d3e72846fa4b8b8ebcd801013efa3b091",
-      "resumen": "Pedestal rectangular bajo placa base: cuantías del §10.6.1.1, los tres extremos del diagrama P–M y puntos intermedios como dato, flexión biaxial por contorno lineal, corte en las dos direcciones, estribos, la armadura de anclaje que puede contarse —por capacidad del perno— y el detallado del §18.13.2. Recibe T_grupo de placa-base-generica y As_req de anclaje-hormigon-generica."
+      "sha256": "f57f2725488f99f301442888b1b7848f510e70751631cefa7a3c4f806b3af2e8",
+      "resumen": "Pedestal rectangular bajo placa base: cuantías del §10.6.1.1 y del §18.7.4.1, el diagrama de interacción P-M calculado por compatibilidad de deformaciones en los dos ejes y en los dos sentidos, seis combinaciones (P, M_X, M_Y) leídas sobre él, flexión biaxial por contorno lineal, corte con V_c y V_s en las dos direcciones, estribos, la armadura de anclaje que puede contarse y el detallado sísmico por NCh2369:2025 §9.5 y por ACI 318-25 §18.7. Recibe T_grupo de placa-base-generica y As_req de anclaje-hormigon-generica."
     },
     {
       "slug": "zapata-generica",

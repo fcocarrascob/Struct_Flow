@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useDeferredValue, useMemo, useState } from 'react';
 import type { MetaPlanilla } from '../../lib/biblioteca/contrato';
 import type { Entradas, ModuloDiseno } from '../../lib/diseno/tipos';
 import { evaluarModulo, hojaDeModulo } from '../../lib/diseno/evaluar';
@@ -76,21 +76,30 @@ export default function PaginaDiseno({ modulo }: Props) {
   const [entradas, setEntradas] = useState<Entradas>(modulo.porDefecto);
 
   /**
-   * Una evaluación por render, sin aplazarla.
+   * La evaluación va APLAZADA, y el formulario no.
    *
    * Medido: `evaluateSheet` cuesta 2,9 ms sobre las ~110 regiones del módulo de
-   * viga, y las genéricas de la biblioteca van de 3 a 8 ms de mediana (16 ms la
-   * peor, `llave-corte-generica`, con dos bloques de programa). El canvas sí
-   * aplaza (`MathCanvas`, 120 ms) porque allí una planilla con bloques de
-   * programa pesados llega a segundos; acá arrastrar un deslizador con los
-   * factores siguiendo al dedo vale más que ahorrar esos milisegundos. Si algún
-   * módulo futuro se acerca al presupuesto de los 16 ms por cuadro, aquí es
-   * donde toca aplazar.
+   * viga, y casi todas las genéricas de la biblioteca van de 3 a 8 ms. Con ese
+   * presupuesto no hacía falta aplazar nada, y no se aplazaba. `pedestal-generico`
+   * rompió el supuesto: barre cuatro envolventes del diagrama P–M punto a punto y
+   * cuesta **280 ms** con sus 120 puntos por rama —17 veces la peor de antes—, así
+   * que escribir en un campo se volvía pegajoso.
+   *
+   * `useDeferredValue` es lo que toca, y no un debounce con temporizador: React
+   * pinta primero con las entradas anteriores —el campo responde al instante— y
+   * recalcula después en una transición que la siguiente tecla puede interrumpir.
+   * Donde la hoja es barata no añade ni un milisegundo de espera, que es justo lo
+   * que un debounce fijo sí haría.
    */
-  const evaluacion = useMemo(() => evaluarModulo(modulo, entradas), [modulo, entradas]);
+  const entradasDiferidas = useDeferredValue(entradas);
+  const recalculando = entradasDiferidas !== entradas;
+  const evaluacion = useMemo(() => evaluarModulo(modulo, entradasDiferidas), [modulo, entradasDiferidas]);
   const { scope, errores, regions } = evaluacion;
 
-  const hoja = () => hojaDeModulo(modulo, evaluacion);
+  // La memoria se exporta con las entradas del FORMULARIO, no con las diferidas:
+  // lo descargado tiene que ser lo que está escrito, aunque el panel venga un
+  // cuadro por detrás. Cuesta una evaluación al pulsar el botón.
+  const hoja = () => hojaDeModulo(modulo, evaluarModulo(modulo, entradas));
 
   const cambiar = (nombre: string, valor: number) =>
     setEntradas((e) => (e[nombre] === valor ? e : { ...e, [nombre]: valor }));
@@ -150,7 +159,14 @@ export default function PaginaDiseno({ modulo }: Props) {
           <FormularioEntradas campos={modulo.entradas} valores={entradas} onCambio={cambiar} />
         </section>
 
-        <section aria-label={modulo.esquema ? 'Esquema' : 'Alcance de la hoja'}>
+        {/* El esquema y los resultados se atenúan mientras la evaluación viene
+            por detrás de las entradas: sin eso, una hoja cara enseña números
+            viejos sin decir que lo son. */}
+        <section
+          aria-label={modulo.esquema ? 'Esquema' : 'Alcance de la hoja'}
+          aria-busy={recalculando}
+          className={recalculando ? 'opacity-60 transition-opacity' : 'transition-opacity'}
+        >
           {modulo.esquema ? (
             <VisorEsquema
               src={modulo.esquema}
@@ -168,7 +184,11 @@ export default function PaginaDiseno({ modulo }: Props) {
           </p>
         </section>
 
-        <section aria-label="Resultados">
+        <section
+          aria-label="Resultados"
+          aria-busy={recalculando}
+          className={recalculando ? 'opacity-60 transition-opacity' : 'transition-opacity'}
+        >
           <PanelResultados salidas={modulo.salidas} scope={scope} errores={errores} />
         </section>
       </div>

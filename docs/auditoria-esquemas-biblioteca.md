@@ -7,6 +7,13 @@
 > **2026-09-16 — aplicado en parte.** La lista priorizada 1–6 está cerrada salvo F1, que
 > se paró por falta de un dato. El detalle está en **[Estado de aplicación](#estado-de-aplicación)**,
 > al final.
+>
+> **2026-09-16, más tarde — F1 cerrado.** La salida era la 1 de las dos que quedaron
+> anotadas, y resultó más barata de lo que parecía: en vez de recibir la axial de cada
+> punto, la hoja pasó a **calcular el diagrama entero** por compatibilidad de
+> deformaciones, con el álgebra que ya estaba escrita dos veces en el corpus
+> (`columna-interaccion-esbeltez` y `muro-flexocompresion`). Ver
+> [F1 — cómo se cerró](#f1--cómo-se-cerró).
 
 ## Cómo se obtuvieron las imágenes
 
@@ -443,7 +450,7 @@ antes y después, con el mismo `render-esquemas.mjs` que produjo los 14 PNG de e
 | **G1, G2, G4, G5** | aplicados | La nota de pernos sale del área `A_Nc`; `S_xc` y `S_xt` van cada uno junto a su fibra; `y_fila` baja al perno izquierdo; el rótulo de la llave deja de caer sobre el mortero |
 | **G6** | aplicado **donde el dato existe** | Trama de mortero en la silla y en la llave. En `placa-base` **no procede**: esa hoja no conoce el espesor del mortero, solo `z_llave` ya compuesto, y dibujarlo sería afirmar lo que la hoja no sabe — justo el defecto de la familia H |
 | **E5, E6, H1, H3** | aplicados | El panel del anclaje deja de dar armadura provista con `usa_arm = 0`; la elevación dibuja los `n_trac` pernos; la reacción del suelo pierde el perfil de cierre que afirmaba un reparto uniforme; y las barras del pedestal bajan con gancho a 90° cuando `sdc_def = 1`, que es lo que el panel afirmaba |
-| **F1** | **parado por falta de un dato** | Ver abajo |
+| **F1** | **cerrado**, en una sesión posterior del mismo día | La hoja pasó a calcular el diagrama y el esquema lo dibuja. Ver [F1 — cómo se cerró](#f1--cómo-se-cerró) |
 
 ### F1 — por qué se paró
 
@@ -461,6 +468,35 @@ Las dos salidas, para cuando se retome:
    también allí o el diagrama sale incoherente en silencio.
 2. **Diagrama parcial**: el eje P con los dos extremos calculados y la demanda axial marcada,
    más tres barras de uso por punto. No es la envolvente, pero no afirma ninguna axial.
+
+### F1 — cómo se cerró
+
+Se tomó la salida 1, y de camino apareció que la premisa de la que colgaba —«la φM_n de cada
+punto entra como dato»— tampoco hacía falta. **La hoja calcula ahora el diagrama entero**,
+por compatibilidad de deformaciones del §22.2: barre la profundidad del eje neutro, aplica la
+Tabla 21.2.2 y el §21.2.2.3 punto a punto, y corta en el tope del §22.4.2.1. No es álgebra
+nueva: es la que `columna-interaccion-esbeltez.json` y `muro-flexocompresion.json` ya tenían
+escrita, con las capas generalizadas al reparto perimetral de barras que el propio esquema
+dibujaba. Cuatro envolventes —los dos ejes por los dos sentidos, porque con un número impar
+de barras el reparto no es simétrico— y las **seis** ternas `(P, M_X, M_Y)` encima.
+
+Tres decisiones que conviene no perder:
+
+- **Las entradas `(Mu_i, φMn_i)` desaparecen.** La advertencia de la salida 1 sobre
+  `sap/demanda.py` sigue en pie y ahora es más grande: ese módulo emite `Mu_1..3` y pide un
+  callback `phiMn(Pu, eje)` que ya sobra. Hay que reescribirlo para que devuelva las seis
+  ternas; los datos ya los tiene (`filas_de_base` trae `P`, `Mf_b` y `Md_b` por combinación).
+- **La resistencia se lee INTERPOLANDO sobre la misma matriz que se dibuja**, y no con una
+  bisección aparte como hacen columna y muro. Con dos cálculos distintos, el número del panel
+  y la curva del dibujo pueden separarse; con uno solo, no.
+- **El barrido corre sin unidades.** Con cantidades de mathjs la hoja tardaba 0,62 s y el
+  visor de `/diseno` reevalúa en cada tecla. Lo que se pierde —la comprobación dimensional
+  dentro del bucle— lo cubre `v_pm_Po`, que compara el extremo del barrido contra el `P_o` del
+  §22.4.2.2 con unidades. Aun así 0,28 s era demasiado para el visor, y `PaginaDiseno` estrenó
+  `useDeferredValue`: el comentario de ese archivo ya decía que ahí era donde tocaría aplazar.
+
+**F7 sigue fuera** (el círculo de `0,5·h_ef` sobre la sección con las barras que cuentan
+resaltadas): la cota horizontal se mantiene como estaba.
 
 ### Lo que sigue fuera, por decisión
 
