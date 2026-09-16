@@ -209,12 +209,17 @@
     "clave": "US/ACI318-25-SI",
     "rol": "resistencia y detallado",
     "articulos": [
-     "Cap. 10",
-     "Cap. 17",
-     "Cap. 18",
-     "Cap. 21",
-     "Cap. 22",
-     "Cap. 25"
+     "§10.6.1.1",
+     "§10.6.2.2",
+     "§10.7.6.1",
+     "§17.5.2.1",
+     "§18.13.2",
+     "Tabla 21.2.1",
+     "Tabla 21.2.2",
+     "§22.4.2",
+     "§22.4.3",
+     "§22.5.5",
+     "§25.7.2"
     ]
    }
   ],
@@ -765,7 +770,7 @@
    "kind": "text",
    "x": 40,
    "y": 3104,
-   "src": "§22.4.2.2: P_o = 0,85·f'c·(Ag − A_st) + fy·A_st. §22.4.2.1 con estribos: φ·P_n,max = 0,80·φ·P_o,\ncon φ = 0,65 en sección controlada por compresión y φ = 0,90 en tracción pura."
+   "src": "§22.4.2.2: P_o = 0,85·f'c·(Ag − A_st) + fy·A_st. §22.4.2.1 con estribos: φ·P_n,max = 0,80·φ·P_o.\nLos dos φ salen de la Tabla 21.2.2 y no se afirman: 0,65 en sección controlada por compresión y 0,90\nen la controlada por tracción, que es el caso de la tracción pura del §22.4.3.1. El §21.2.2.1 fija\nε_ty = 0,002 para el Grado 420, que es la frontera entre las dos."
   },
   {
    "id": "r059",

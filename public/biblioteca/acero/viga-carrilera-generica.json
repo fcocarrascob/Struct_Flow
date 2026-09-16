@@ -325,6 +325,15 @@
      "§J10",
      "Ap. 3"
     ]
+   },
+   {
+    "clave": "US/AIST-TR13-2021",
+    "rol": "criterios de vía de grúa",
+    "articulos": [
+     "§5.8.2",
+     "§5.8.3",
+     "§5.8.4"
+    ]
    }
   ],
   "salidas": [
@@ -495,7 +504,10 @@
    "La clasificacion del ALA comprimida entra como dato (ala_compacta); la del ALMA la calcula la hoja",
    "El eje neutro plastico: adopta R_pc = R_pt = 1,0, limite inferior de F4-9a y por lo tanto conservador",
    "Los limites de deflexion no son de AISC: entran como denominadores (den_vert, den_lat), y en una via los fija la clase de edificio, que especifica el propietario",
-   "El riel y su union no se verifican: por el §5.8.2 de AIST TR-13 el momento torsor de la excentricidad del riel va a cargo de las GRAMPAS, y el analisis torsional exacto de la viga esta fuera del alcance de ese documento"
+   "El riel y su union no se verifican: por el §5.8.2 de AIST TR-13 el momento torsor de la excentricidad del riel va a cargo de las GRAMPAS, y el analisis torsional exacto de la viga esta fuera del alcance de ese documento",
+   "Las FUERZAS AXIALES que el §5.8.2 de AIST TR-13 lista entre los estados limite de una carrilera: la hoja resuelve la interaccion del §H1 con axial nulo, y una via con arriostramiento longitudinal que traiga carga axial queda fuera",
+   "Los EFECTOS DE CARGA CONCENTRADA EN LOS APOYOS del §5.8.2 (fluencia local y aplastamiento del alma en la reaccion): la hoja aplica el §J10.2 y el §J10.3 bajo la RUEDA, que es el caso movil, no en el apoyo",
+   "Los RIGIDIZADORES DE APOYO que el §5.8.3 exige «where required to transmit end reactions»: no se dimensionan ni se comprueba si hacen falta"
   ],
   "hipotesis": [
    "Dos ruedas iguales por viga",
@@ -595,7 +607,7 @@
    "kind": "text",
    "x": 40,
    "y": 224,
-   "src": "FRONTERAS: la hoja no calcula las cargas de rueda —entran del fabricante, ya amplificadas—, no\nclasifica el ala comprimida, no calcula el eje neutro plástico —toma R_pc = R_pt = 1,0, que es\nconservador—, no fija los límites de deflexión y no verifica el riel ni su unión a la ménsula.\nHIPÓTESIS: dos ruedas iguales por viga, canal-tapa soldado y colaborante, vano simplemente apoyado y\nel ala superior más el canal tomando ÍNTEGRAMENTE la fuerza lateral, que es lo que describe el\n§5.8.2 de AIST TR-13 y va del lado seguro."
+   "src": "FRONTERAS: la hoja no calcula las cargas de rueda —entran del fabricante, ya amplificadas—, no\nclasifica el ala comprimida, no calcula el eje neutro plástico —toma R_pc = R_pt = 1,0, que es\nconservador—, no fija los límites de deflexión y no verifica el riel ni su unión a la ménsula.\nDe la lista de estados límite del §5.8.2 de AIST TR-13 quedan además fuera tres: las FUERZAS AXIALES\n—la interacción del §H1 se resuelve con axial nulo—, los efectos de carga concentrada EN LOS APOYOS\n—el §J10.2 y el §J10.3 se aplican aquí bajo la rueda, que es el caso móvil— y los RIGIDIZADORES DE\nAPOYO que el §5.8.3 exige donde haya que transmitir la reacción de extremo.\nHIPÓTESIS: dos ruedas iguales por viga, canal-tapa soldado y colaborante, vano simplemente apoyado y\nel ala superior más el canal tomando ÍNTEGRAMENTE la fuerza lateral, que es lo que describe el\n§5.8.2 de AIST TR-13 y va del lado seguro."
   },
   {
    "id": "r003",
@@ -609,7 +621,7 @@
    "kind": "text",
    "x": 40,
    "y": 440,
-   "src": "φ_b = 0,90 en flexión. Para el CORTE, el §G1(a) fija φ_v = 0,90 «for all provisions in this chapter\nexcept Section G2.1(a)»: el 1,00 del §G2.1(a) es para almas de perfiles LAMINADOS, y con un canal\nsoldado encima el miembro ya es armado. §J10.2 fluencia local del alma: φ = 1,00; §J10.3\naplastamiento: φ = 0,75; §J10.4 pandeo lateral del alma: φ = 0,85. k_v es el coeficiente de pandeo\npor corte del §G2.1(b)(2): sin rigidizadores transversales vale 5,34. El §5.8.3 de AIST TR-13\nPROHÍBE la acción de campo diagonal del §G3 en vigas carrileras, así que esta hoja no la usa nunca."
+   "src": "φ_b = 0,90 en flexión. Para el CORTE, el §G1(a) fija φ_v = 0,90 «for all provisions in this chapter\nexcept Section G2.1(a)»: el 1,00 del §G2.1(a) es para almas de perfiles LAMINADOS, y con un canal\nsoldado encima el miembro ya es armado. §J10.2 fluencia local del alma: φ = 1,00; §J10.3\naplastamiento: φ = 0,75; §J10.4 pandeo lateral del alma: φ = 0,85. k_v es el coeficiente de pandeo\npor corte del §G2.1(b)(2): sin rigidizadores transversales vale 5,34. El §5.8.3 de AIST TR-13\nPROHÍBE la acción de campo diagonal en vigas carrileras, así que esta hoja no la usa nunca; su texto\nla cita como «§G3», que es la numeración de AISC 360-16, y en la edición 22 —la que declara esta\nhoja— el campo diagonal es el §G2.2 y el §G2.3, mientras que el §G3 son ángulos simples y tees."
   },
   {
    "id": "in_Fy",
@@ -1722,7 +1734,7 @@
    "kind": "text",
    "x": 40,
    "y": 9560,
-   "src": "El §5.8.2 de AIST TR-13 lo lista entre los estados límite de una carrilera, y una carrilera es su\ncaso de manual: carga de compresión concentrada sobre el ala superior, que además recorre el vano.\nAplica SOLO donde el movimiento lateral relativo entre el ala comprimida cargada y la traccionada no\nestá impedido, y lo primero es un criterio GEOMÉTRICO: por encima del umbral el estado límite no\nexiste. C_r = 6,6·10⁶ MPa cuando M_r < M_y en el punto de la fuerza y 3,3·10⁶ MPa cuando lo alcanza,\ncon α_s = 1,0 en LRFD; en una monosimétrica M_y se toma con el S menor, el de la fibra que primero\nfluye."
+   "src": "El §5.8.2 de AIST TR-13 lo lista entre los estados límite de una carrilera, y una carrilera es su\ncaso de manual: carga de compresión concentrada sobre el ala superior, que además recorre el vano.\nSon DOS filtros de aplicabilidad y la hoja solo resuelve el segundo. El primero es de disposición:\nel artículo aplica SOLO donde el movimiento lateral relativo entre el ala comprimida cargada y la\ntraccionada no está impedido en el punto de aplicación; con arriostramiento de respaldo en la vía\n(§5.8.2.1 de TR-13) el §J10.4 sencillamente no rige, y eso la hoja no lo comprueba: lo supone del\nlado seguro. El segundo es GEOMÉTRICO, y sí se calcula: por encima del umbral el estado límite no\nexiste. C_r = 6,6·10⁶ MPa cuando M_r < M_y en el punto de la fuerza y 3,3·10⁶ MPa cuando lo alcanza,\ncon α_s = 1,0 en LRFD; en una monosimétrica M_y se toma con el S menor, el de la fibra que primero\nfluye."
   },
   {
    "id": "r_wsb_razon",

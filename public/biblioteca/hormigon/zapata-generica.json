@@ -258,11 +258,11 @@
     "tipo": "veredicto"
    },
    {
-    "nombre": "v_no_aplica_862",
-    "etiqueta": "No aplica la reducción del §8.6.2",
+    "nombre": "v_no_aplica_8612",
+    "etiqueta": "No se dispara el mínimo del §8.6.1.2",
     "tipo": "veredicto",
     "aviso": true,
-    "avisoTexto": "Cae en el caso del §8.6.2 que esta hoja no cubre"
+    "avisoTexto": "v_uv supera φ·0,17·λ_s·λ·√f'c: el §8.6.1.2 exige subir A_s,min sobre b_slab, y esta hoja no lo hace"
    }
   ],
   "fronteras": [
@@ -273,7 +273,9 @@
    "Apoyo interior",
    "Sin armadura de corte",
    "Nu = 0 en la ménsula",
-   "X es el lado corto (sí se chequea: v_X_es_corta), porque de ello depende el reparto en banda"
+   "X es el lado corto (sí se chequea: v_X_es_corta), porque de ello depende el reparto en banda",
+   "Renuncia al §13.2.6.2: la hoja no toma el V_c = 0,17·λ·√f'c·bw·d ni el λ_s = 1,0 que ese artículo permite a una fundación superficial rígida apoyada de forma continua en el suelo. Vía conservadora y declarada; invocar el permiso levantaría un ✗ de corte sin cambiar la norma",
+   "Impone el §18.13.2.5 a toda zapata, cuando el §18.13.2.1 lo circunscribe a SDC D, E o F y a las combinaciones con levantamiento sísmico. Fuera de esas categorías, v_sup_min y v_sup_flexion no son un incumplimiento"
   ],
   "entrega": {},
   "casos": [
@@ -511,7 +513,7 @@
    "kind": "text",
    "x": 40,
    "y": 1544,
-   "src": "Tabla 13.2.7.1: el momento se toma en la CARA del pedestal; §13.2.7.2: el corte en una dirección\na d de la cara y el punzonamiento a d/2. Tabla 21.2.1: φ = 0,90 en tracción (a) y 0,75 en corte (e).\nd_Y es el canto útil de las barras paralelas a Y, que son las de la capa inferior y resisten Mu_Y."
+   "src": "Tabla 13.2.7.1: el momento se toma en la CARA del pedestal; §13.2.7.2: el corte en una dirección\na d de la cara y el punzonamiento a d/2. Tabla 21.2.1: φ = 0,90 en la fila (a) —momento y axial, con el\n0,90 de la Tabla 21.2.2 por ser sección controlada por tracción— y 0,75 en corte, que es la fila (b).\nd_Y es el canto útil de las barras paralelas a Y, que son las de la capa inferior y resisten Mu_Y."
   },
   {
    "id": "r032",
@@ -777,7 +779,7 @@
    "kind": "text",
    "x": 40,
    "y": 3560,
-   "src": "El §18.13.2.5 pide armadura de flexión en la cara superior para las combinaciones mayoradas en\nque el sismo produce levantamiento, y no menos que el mínimo de §7.6.1.1 (0,0018 del área bruta).\nSe verifica la cuantía adoptada contra el momento negativo del voladizo, que entra como dato."
+   "src": "El §18.13.2.5 pide armadura de flexión en la cara superior para las combinaciones mayoradas en\nque el sismo produce levantamiento, y no menos que el mínimo de §7.6.1.1 (0,0018 del área bruta).\nSe verifica la cuantía adoptada contra el momento negativo del voladizo, que entra como dato.\nAlcance del artículo: el §18.13.2.1 lo circunscribe a las categorías sísmicas D, E y F, y dentro de\nellas a las combinaciones en que el sismo levanta la zapata. Esta hoja lo exige SIEMPRE, sin\npreguntar la categoría: es del lado seguro y queda declarado, no derivado. En una categoría A, B o C\nlos dos veredictos de esta sección no son un incumplimiento de norma."
   },
   {
    "id": "r070",
@@ -833,7 +835,7 @@
    "kind": "text",
    "x": 40,
    "y": 3992,
-   "src": "Sin armadura de corte (Av < Av,min) rige la ecuación (c), con el efecto de tamaño λ_s del\n§22.5.5.1.3 y ρ_w calculado con la armadura mínima exigida, que es cota inferior y no depende del\nreparto en banda. El §22.5.5.1.1 pone piso 0,083·λ·√f'c·bw·d —salvo tracción axial neta, que la\nhipótesis descarta, o §18.6.5.2 / §18.7.6.2.1— y techo 0,42·λ·√f'c·bw·d."
+   "src": "Sin armadura de corte (Av < Av,min) rige la ecuación (c), con el efecto de tamaño λ_s del\n§22.5.5.1.3 y ρ_w calculado con la armadura mínima exigida, que es cota inferior y no depende del\nreparto en banda. El §22.5.5.1.1 pone piso 0,083·λ·√f'c·bw·d —salvo tracción axial neta, que la\nhipótesis descarta, o §18.6.5.2 / §18.7.6.2.1— y techo 0,42·λ·√f'c·bw·d.\nEsta hoja RENUNCIA al §13.2.6.2, que a una fundación superficial apoyada de forma continua en el\nsuelo y diseñada como rígida le permite tomar V_c = 0,17·λ·√f'c·bw·d en corte en una dirección y\nλ_s = 1,0 en punzonamiento. Es una decisión conservadora y declarada: quien instancie la hoja y\nacredite el supuesto de rigidez puede invocar el permiso, y con un canto de 700 mm el λ_s de 0,80\nque aquí se aplica deja el punzonamiento un 20 % por debajo del que la norma admitiría calcular."
   },
   {
    "id": "r078",
@@ -969,11 +971,11 @@
    "src": "u_punz := vu/(phi_corte*vc) ="
   },
   {
-   "id": "v_no_aplica_862",
+   "id": "v_no_aplica_8612",
    "kind": "math",
    "x": 40,
    "y": 5096,
-   "src": "v_no_aplica_862 := vuv <= phi_corte*0.17*lam_sP*lam*sqrt(fc_n)*(1 MPa) ="
+   "src": "v_no_aplica_8612 := vuv <= phi_corte*0.17*lam_sP*lam*sqrt(fc_n)*(1 MPa) ="
   },
   {
    "id": "r098",

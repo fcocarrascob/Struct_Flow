@@ -445,7 +445,7 @@
       "entradas": 30,
       "salidas": 22,
       "promovible": true,
-      "sha256": "6bf711fe40ec30526476082fd1053a5b34015ddffa25fbce835d6a7586a837bf",
+      "sha256": "c7e29d9293a72dce7dd6c1b887ef86783089cf3e4a549cee136de2dc6bb2045e",
       "resumen": "Chapa soldada bajo la placa base que transfiere el corte al hormigón: regla de espesor de la DG1, embebido mínimo de los pernos, aplastamiento, breakout de corte, acero de la chapa, soldadura y flexión local de la placa. Entrega exc y tbp_req a placa-base-generica y recibe Yb, n_trac y N_sa."
     },
     {
@@ -463,7 +463,7 @@
       "entradas": 31,
       "salidas": 20,
       "promovible": true,
-      "sha256": "746d8b7c2d55c26d79ed91ad6a2a29d773da9600f141bde2f6835dc2b30ceb4a",
+      "sha256": "68975d6b84a18abf8e447c257729a6c1ee74ec56b65c4d6997aa4270774edf00",
       "resumen": "Placa lisa o rigidizada (hay_nervios) bajo columna con momento: aplastamiento en bloque, equilibrio iterativo, grupo de pernos y espesor de chapa. Entrega T_grupo e Yb_comp al resto de la base de columna."
     },
     {
@@ -479,7 +479,7 @@
       "entradas": 31,
       "salidas": 19,
       "promovible": true,
-      "sha256": "f83ea6a37c5962aa3e81732a8b79067c9775a5b876066f5324de54e0ac84e906",
+      "sha256": "0f6b277e5edbe3dc1a6b159e323ec77ce0e217f8434c0e43b5f14595b43412d4",
       "resumen": "Silla de anclaje de una placa base rigidizada: chapa superior, nervios, soldadura en L, extensión de ala y las condiciones geométricas del rigidizador del §J10.8. Recibe T_grupo e Yb_comp de placa-base-generica."
     },
     {
@@ -490,12 +490,13 @@
       "ruta": "/biblioteca/acero/viga-carrilera-generica.json",
       "regiones": 210,
       "normas": [
-        "US/AISC360-22"
+        "US/AISC360-22",
+        "US/AIST-TR13-2021"
       ],
       "entradas": 44,
       "salidas": 27,
       "promovible": true,
-      "sha256": "129b444755ce47f3709ee88e0fb41f8fd799ce0a250966af90ae0465d287516a",
+      "sha256": "d239bdefa14710fbe2a1983b3e3e02a78277ce651e8da69fcaa8e69517897822",
       "resumen": "Viga de alma llena bajo un puente grúa, con el ala superior más ancha o con canal-tapa: flexión por §F4, corte con el C_v1 de una sección armada, alma bajo la rueda (§J10.2 a §J10.4), interacción H1, deflexiones y fatiga del Apéndice 3."
     },
     {
@@ -511,7 +512,7 @@
       "entradas": 28,
       "salidas": 14,
       "promovible": true,
-      "sha256": "c3cc147e6dc133b44f714b79b65de1cf601e7a36c8febe2d8b85acc5a9752c64",
+      "sha256": "e75429b700b79e7fc1099ee95c9d9cb24bd61d3b01f50019f617598f6e1e92bf",
       "resumen": "El Cap. 17 del ACI 318-25 en tracción para pernos colados, con los dos factores nuevos de la edición 25 (psi_a y psi_cm,N) y el diseño sísmico del §17.10 (opción (d), factor 0,75 sobre los modos del hormigón). Recibe Nua_g de placa-base-generica y decide si hace falta armadura de anclaje."
     },
     {
@@ -527,7 +528,7 @@
       "entradas": 31,
       "salidas": 19,
       "promovible": true,
-      "sha256": "3b44fb5a4a3d46c842111a4bc35b4857238abc98d717d4ca696ef46f37866d01",
+      "sha256": "90f71fe01fa92a917be2805517821d872b64586458e576fbab0d1752740419d6",
       "resumen": "Pedestal rectangular bajo placa base: cuantías del §10.6.1.1, los tres extremos del diagrama P–M y puntos intermedios como dato, flexión biaxial por contorno lineal, corte en las dos direcciones, estribos, la armadura de anclaje que puede contarse —por capacidad del perno— y el detallado del §18.13.2. Recibe T_grupo de placa-base-generica y As_req de anclaje-hormigon-generica."
     },
     {
@@ -543,7 +544,7 @@
       "entradas": 23,
       "salidas": 18,
       "promovible": true,
-      "sha256": "f856cd8a21ba29ca2b48ba21f826445b4506c695fb9fe6f2a26740563db18c12",
+      "sha256": "a853d72d05d6bcfab5af3d6ccdafdfd01d41d2b16b0cab491a650229c26a6799",
       "resumen": "Zapata rectangular bajo pedestal con esfuerzos mayorados como dato: flexión con reparto en banda (§13.3.3.3), corte en una dirección en los dos sentidos, punzonamiento con momento, armadura superior por levantamiento (§18.13.2.5) y detallado en magnitudes continuas."
     }
   ]

@@ -182,7 +182,7 @@
     "nombre": "omega",
     "etiqueta": "Sobrerresistencia del criterio de fusible",
     "grupo": "Armadura de anclaje",
-    "ayuda": "§17.10.5.3(a): la resistencia gobernada por el hormigón no baja de 1,2·N_sa"
+    "ayuda": "§17.10.5.3(a): para un perno aislado, la resistencia gobernada por el hormigón no baja de 1,2·N_sa. Para un GRUPO el artículo lo escribe como razón: la del perno más solicitado contra su resistencia de acero debe superar a la del grupo contra su resistencia gobernada por el hormigón, con el acero tomado como 1,2 veces el nominal. Con reparto uniforme —la hipótesis declarada— las dos formas coinciden"
    },
    {
     "nombre": "phi_sa",
@@ -312,7 +312,7 @@
   "fronteras": [
    "La tracción del grupo entra como dato: la produce el equilibrio de la placa",
    "Solo pernos COLADOS. Post-instalados y adhesivos cambian k_c, psi_c,N y psi_cp,N",
-   "No cubre el corte: pryout, breakout de borde e interacción 17.8 van en llave-corte-generica",
+   "El corte NO llega a los pernos: lo toma íntegro la llave (llave-corte-generica), que es donde van el pryout y el breakout de borde. Por eso no hay interacción tracción-corte del §17.8 que verificar aquí —y la R17.8.4 aclara además que esa interacción de acero no está pensada para llaves de corte—. Si en una instancia el corte se repartiera entre los pernos y la llave, el §17.8 volvería a aplicar y esta hoja no lo cubre",
    "Una sola fila de pernos traccionados",
    "psi_cm,N entra como dato con su procedencia: z no es geometría de esta hoja",
    "Sismo por la opción (d) de 17.10.5.3: Omega_0 viene en Nua_g. Los requisitos de ductilidad de la opción (a) no se verifican aquí"
@@ -367,7 +367,7 @@
    "kind": "text",
    "x": 40,
    "y": 200,
-   "src": "FRONTERA: la hoja no calcula la tracción del grupo —la produce el equilibrio de la placa y entra\npor Nua_g desde placa-base-generica— ni el CORTE, que va en llave-corte-generica junto con el\npryout y la interacción del §17.8. Tampoco cubre anclajes post-instalados ni adhesivos."
+   "src": "FRONTERA: la hoja no calcula la tracción del grupo —la produce el equilibrio de la placa y entra\npor Nua_g desde placa-base-generica— ni el CORTE, que lo toma íntegro la llave y va en\nllave-corte-generica junto con el pryout y el breakout de borde. Con el corte fuera de los pernos no\nqueda interacción del §17.8 que verificar; si en una instancia se repartiera entre pernos y llave,\nvolvería a aplicar y esta hoja no lo cubre. Tampoco cubre anclajes post-instalados ni adhesivos."
   },
   {
    "id": "r003",

@@ -38,7 +38,7 @@ AISC, ACI y ASCE. Las citas argentinas y chilenas que quedaban se reemplazaron e
 | Plantilla | Qué verifica | Norma | Entradas |
 |---|---|---|---:|
 | `placa-base-generica` | Aplastamiento, equilibrio, grupo de pernos y espesor de chapa. Cubre placa **lisa** y **rigidizada** con la misma hoja (`hay_nervios`). Con llave de corte suma a la tracción el **par de la llave** (`hay_llave`) | AISC DG1 3.ª §4.3.7 · AISC 360 §J8, §J4.5 · ACI 318-25 §17.6.1, §17.5.3, §17.11.1.1.9 | 31 |
-| `llave-corte-generica` | Los **siete** estados límite de la llave. Una chapa por dirección o dos paralelas desplazadas | AISC DG1 3.ª §4.3.3 y Ej. 4.7-5 · ACI 318-25 §17.11, §17.5.2.1.2 · AISC 360 §J2, §J4.2, §J4.5 | 30 |
+| `llave-corte-generica` | Los **siete** estados límite de la llave. Una chapa por dirección o dos paralelas desplazadas | AISC DG1 3.ª Ej. 4.7-5 · ACI 318-25 §17.11, §17.5.2.1.2 · AISC 360 §J2, §J4.2, §J4.5 | 30 |
 | `silla-anclaje-generica` | El **camino de carga** completo: perno → chapa superior → nervios → ala (o ala extendida) → alma | AISC 360-22 §J10.8 (las tres condiciones geométricas del rigidizador, incluido t ≥ b/16) · §J2, §J4.2, §J4.5 | 31 |
 | `viga-carrilera-generica` | Flexión biaxial, corte, fuerzas concentradas del rodado —incluido el pandeo lateral del alma—, deflexiones y fatiga. Cubre la doble T **monosimétrica** de las dos formas en que se construye: con canal-tapa (`hay_canal`) y **armada con el ala superior más ancha** (`es_soldada`) | AISC 360-22 §F4, §G2, §H1, §J10, Ap. 3 | 43 |
 
@@ -79,8 +79,10 @@ llave-corte-generica  ───┘        (acero)               (hormigón)     
 | Reacción de base | el modelo estructural | `zapata-generica` |
 
 > 🔴 **El espesor de la placa lo suele fijar la llave, no el panel entre nervios.** Por la
-> regla `t_bp ≥ t_sl` de la DG1 §4.3.3 y por la flexión local que induce su excentricidad.
-> Dimensionar la placa sin haber mirado la llave es el error fácil de esta familia.
+> regla `t_bp ≥ t_sl` —una **regla práctica de los autores** de la DG1, entre las
+> consideraciones que preceden al **Ejemplo 4.7-5**, no una prescripción del §4.3.3— y por la
+> flexión local que induce su excentricidad. Dimensionar la placa sin haber mirado la llave
+> es el error fácil de esta familia.
 
 > 🔴 **El *breakout* de la llave no se arregla con acero.** Va con `c_a1^1,5`, o sea con el
 > **ancho del pedestal**: es variable de la fundación, no de la placa. Las salidas son

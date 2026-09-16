@@ -11,7 +11,6 @@
     "clave": "US/AISC-DG1-3ed",
     "rol": "procedimiento de la llave de corte",
     "articulos": [
-     "§4.3.3",
      "Ej. 4.7-5"
     ]
    },
@@ -308,7 +307,7 @@
    },
    {
     "nombre": "v_regla_espesor",
-    "etiqueta": "t_bp ≥ t_sl (DG1 §4.3.3)",
+    "etiqueta": "t_bp ≥ t_sl (DG1, Ej. 4.7-5, regla práctica de los autores)",
     "tipo": "veredicto"
    },
    {
@@ -340,7 +339,8 @@
    "El equilibrio de la placa: Yb viene de placa-base-generica",
    "El despiece de la armadura de anclaje del §17.5.2.1.2",
    "La envolvente de breakout de dos chapas como bloque único, que el §17.11.3.4 sí pide",
-   "La N_sa y el numero de pernos traccionados vienen de anclaje-hormigon-generica"
+   "La N_sa y el numero de pernos traccionados vienen de anclaje-hormigon-generica",
+   "El reparto de corte del §17.11.1.1.3: los pernos son colados con cabeza y NO están soldados a la placa base. Con pernos soldados, ese artículo obliga a meter una parte del corte total en la interacción tracción-corte del §17.8, y esta hoja no la calcula"
   ],
   "hipotesis": [
    "Chapa soldada bajo la placa, una por dirección o dos paralelas desplazadas",
@@ -670,14 +670,14 @@
    "kind": "text",
    "x": 40,
    "y": 2264,
-   "src": "━━ 1 — REGLA DE ESPESOR Y EXCENTRICIDAD DEL CORTE · DG1 §4.3.3 y Ej. 4.7-5 ━━"
+   "src": "━━ 1 — REGLA DE ESPESOR Y EXCENTRICIDAD DEL CORTE · DG1, Ej. 4.7-5 ━━"
   },
   {
    "id": "r040",
    "kind": "text",
    "x": 40,
    "y": 2312,
-   "src": "«The base plate should be of equal or greater thickness than the shear lug»: es el estado límite que\nmás veces fija el espesor de la placa, y no se descubre calculando la placa. El aplastamiento no\nactúa en toda la altura de la llave —el §17.11.2.1.1 topa el área efectiva a 2·t_sl de profundidad—,\ny esa es la altura con la que trabaja el resto de la hoja. La resultante se ubica a media altura\nefectiva y el mortero suma brazo: el corte actúa excéntrico respecto de la cara de la placa."
+   "src": "«The base plate should be of equal or greater thickness than the shear lug»: es una REGLA PRÁCTICA\nde los autores de la DG1 —está entre las consideraciones adicionales que preceden al Ejemplo 4.7-5,\nno en el §4.3.3, que es el corte de los pernos y las tres vías de transferencia—, y no una\nprescripción. Se la hace votar en v_global porque es el criterio que más veces fija el espesor de la\nplaca y no se descubre calculando la placa; quien la instancie debe saber que un ✗ aquí es apartarse\nde una recomendación, no incumplir una norma. El aplastamiento no\nactúa en toda la altura de la llave —el §17.11.2.1.1 topa el área efectiva a 2·t_sl de profundidad—,\ny esa es la altura con la que trabaja el resto de la hoja. La resultante se ubica a media altura\nefectiva y el mortero suma brazo: el corte actúa excéntrico respecto de la cara de la placa."
   },
   {
    "id": "v_regla_espesor",
@@ -859,7 +859,7 @@
    "kind": "text",
    "x": 40,
    "y": 3848,
-   "src": "c_a1 se mide de la superficie de aplastamiento al borde libre, EN LA DIRECCIÓN DEL CORTE; con dos\nchapas paralelas la más cercana al borde es la crítica y su c_a1 se acorta en y_chapa.\n[17.11.3.1.1] A_Vc = (h_ef,sl + 1,5·c_a1)·(b_sl + 3·c_a1) − h_ef,sl·b_sl y A_Vco = 4,5·c_a1², con la\nprofundidad TOPADA. [17.7.2.2.1b] V_b = 3,7·λ·√f'c·c_a1^1,5, en newton con mm."
+   "src": "c_a1 se mide de la superficie de aplastamiento al borde libre, EN LA DIRECCIÓN DEL CORTE; con dos\nchapas paralelas la más cercana al borde es la crítica y su c_a1 se acorta en y_chapa.\n[17.11.3.1.1] A_Vc = (h_ef,sl + 1,5·c_a1)·(b_sl + 3·c_a1) − h_ef,sl·b_sl, con la profundidad TOPADA;\nel A_Vco = 4,5·c_a1² con el que se compara lo define el [17.7.2.1], al que el §17.11.3.1 remite. [17.7.2.2.1b] V_b = 3,7·λ·√f'c·c_a1^1,5, en newton con mm."
   },
   {
    "id": "r067",
@@ -971,7 +971,7 @@
    "kind": "text",
    "x": 40,
    "y": 4736,
-   "src": "La chapa trabaja como voladizo empotrado en la placa, con el momento M = V·e de la sección 1 y el\ncorte V en su sección de arranque. [J4-1] fluencia en flexión con φ = 0,90 y rotura con φ = 0,75:\nmanda el menor. [J4-3] fluencia en corte: V_n = 0,60·F_y·A_gv con φ = 1,00. La interacción M–V es la\nEc. 9-1 del Manual: M_r/M_c + (V_r/V_c)^4 ≤ 1,0, y es la que vota."
+   "src": "La chapa trabaja como voladizo empotrado en la placa, con el momento M = V·e de la sección 1 y el\ncorte V en su sección de arranque. La flexión de un elemento de conexión es el §J4.5, que no numera\necuaciones: fluencia con φ = 0,90 y rotura con φ = 0,75, y manda el menor. [J4-3] fluencia en corte:\nV_n = 0,60·F_y·A_gv con φ = 1,00. La interacción M–V es la\nEc. 9-1 del Manual: M_r/M_c + (V_r/V_c)^4 ≤ 1,0, y es la que vota."
   },
   {
    "id": "r083",

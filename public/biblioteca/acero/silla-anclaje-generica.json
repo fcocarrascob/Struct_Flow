@@ -14,6 +14,7 @@
      "§J2",
      "§J4.1",
      "§J4.2",
+     "§J4.4",
      "§J4.5",
      "§J10.8"
     ]
@@ -322,7 +323,7 @@
   "fronteras": [
    "El reparto de tracción entre pernos: lo supone uniforme",
    "El ancho eficaz de flexión de la chapa superior: entra como dato (b_eff)",
-   "El rigidizador a resistencia: el §J10.8 remite al §J4.1 en tracción y al §J4.4 en compresión, y esta hoja solo verifica sus condiciones geométricas"
+   "El rigidizador a resistencia: el §J10.8 remite al §J4.1 en tracción y al §J4.4 en compresión, y esta hoja solo verifica sus condiciones geométricas. El artículo no deja esa resistencia en el aire: para un rigidizador de apoyo de altura completa manda calcularlo como miembro comprimido por el §E6.2 y el §J4.4, con longitud efectiva 0,75·h y una sección formada por los DOS rigidizadores más una faja de alma de 25·t_w en un rigidizador interior o de 12·t_w en el extremo del miembro. Quien instancie la hoja tiene ahí escrito qué le toca calcular aparte"
   ],
   "hipotesis": [
    "En la extensión de ala toma la lectura conservadora: frac_junta = n_nerv_fuera · frac_nervio",
@@ -934,7 +935,7 @@
    "kind": "text",
    "x": 40,
    "y": 4568,
-   "src": "El §J10.8 da tres condiciones geométricas para los rigidizadores transversales: (a) el ancho de cada\nuno más medio espesor del alma no baja de un tercio del ancho del ala o de la chapa de momento que\nentrega la fuerza; (b) el espesor no baja de la mitad del espesor de esa ala o chapa, ni del ancho\ndividido por 16; (c) se extienden al menos media altura del miembro. Cumplirlas NO verifica el\nrigidizador a resistencia: para eso el mismo artículo remite al §J4.1 en tracción y al §J4.4 en\ncompresión, y esta hoja no lo hace."
+   "src": "El §J10.8 da tres condiciones geométricas para los rigidizadores transversales: (a) el ancho de cada\nuno más medio espesor del alma no baja de un tercio del ancho del ala o de la chapa de momento que\nentrega la fuerza; (b) el espesor no baja de la mitad del espesor de esa ala o chapa, ni del ancho\ndividido por 16; (c) se extienden al menos media altura del miembro, «salvo lo que exijan los §J10.3,\n§J10.5 y §J10.7», excepción que esta hoja no recoge y que solo puede pedir MÁS extensión.\nCumplirlas NO verifica el rigidizador a resistencia: para eso el mismo artículo remite al §J4.1 en\ntracción y al §J4.4 en compresión. Y para un rigidizador de apoyo de altura completa da la receta\ncompleta —miembro comprimido por el §E6.2, longitud efectiva 0,75·h, sección de dos rigidizadores\nmás 25·t_w de alma (12·t_w en el extremo)—, que esta hoja tampoco calcula."
   },
   {
    "id": "r086",

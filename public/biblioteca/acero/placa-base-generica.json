@@ -208,7 +208,7 @@
    },
    {
     "nombre": "phi_sa",
-    "etiqueta": "φ acero del anclaje en tracción (ACI Tabla 17.5.3(a), anclaje dúctil)",
+    "etiqueta": "φ acero del anclaje en tracción (ACI Tabla 21.2.1 (o), a la que remite el §17.5.3; anclaje dúctil)",
     "grupo": "Factores de resistencia"
    },
    {
@@ -965,7 +965,7 @@
    "kind": "text",
    "x": 40,
    "y": 4688,
-   "src": "Son tres distancias DISTINTAS y ninguna reemplaza a otra. (1) PASO entre pernos: [ACI 318-25\nTabla 17.9.2(a)] anclajes colados, 4·d_a sin torque y 6·d_a con torque. (2) BORDE DE LA CHAPA:\n[AISC 360-22 §J3.5 y Tabla J3.4M] del centro del agujero al canto, el valor de tabla hasta 36 mm y\n1,25·d por encima, más el incremento C2 de la Tabla C-J3.5 por la holgura del hueco; y la\nrecomendación del DG1 §4.5.3 de dejar 2 in de chapa libre entre el agujero y el canto. (3) BORDE DEL\nHORMIGÓN: [Tabla 17.9.2(a)] sin torque, el recubrimiento especificado del §20.5.1.3; con torque,\n6·d_a. La hoja mide c_a al CENTRO del perno y el recubrimiento a su superficie, así que suma d_a/2:\nes una lectura declarada, no una cita textual. Y la fila tiene que caer fuera de la huella del fuste,\nque es geometría y no norma."
+   "src": "Son tres distancias DISTINTAS y ninguna reemplaza a otra. (1) PASO entre pernos: [ACI 318-25\nTabla 17.9.2(a)] anclajes colados, 4·d_a sin torque y 6·d_a con torque. (2) BORDE DE LA CHAPA:\n[AISC 360-22 §J3.5 y Tabla J3.4M] del centro del agujero al canto, el valor de tabla hasta 36 mm y\n1,25·d por encima, más el incremento C2 de la Tabla J3.5M —que es normativa— por la holgura del hueco; y la\nrecomendación del DG1 §4.5.3 de dejar 2 in de chapa libre entre el agujero y el canto. (3) BORDE DEL\nHORMIGÓN: [Tabla 17.9.2(a)] sin torque, el recubrimiento especificado del §20.5.1.3; con torque,\n6·d_a. La hoja mide c_a al CENTRO del perno y el recubrimiento a su superficie, así que suma d_a/2:\nes una lectura declarada, no una cita textual. Y la fila tiene que caer fuera de la huella del fuste,\nque es geometría y no norma."
   },
   {
    "id": "r083",

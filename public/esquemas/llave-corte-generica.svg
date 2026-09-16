@@ -102,7 +102,7 @@
   <text x="830" y="172" font-size="10.5" text-anchor="end" fill="{{cu(max(u_bpx, u_bpy))}}" font-weight="bold">{{u_bpx}} · {{u_bpy}}</text>
 
   <text x="620" y="206" font-size="11.5" fill="#222" font-weight="bold">Geometría</text>
-  <text x="620" y="228" font-size="10" fill="#555">t_bp ≥ t_sl (DG1 §4.3.3)</text>
+  <text x="620" y="228" font-size="10" fill="#555">t_bp ≥ t_sl (DG1, regla práctica)</text>
   <text x="830" y="228" font-size="10" text-anchor="end" fill="#333">{{v_regla_espesor}}</text>
   <text x="620" y="246" font-size="10" fill="#555">embebido ≥ {{hef_req:mm}} mm</text>
   <text x="830" y="246" font-size="10" text-anchor="end" fill="#333">{{v_embebido}}</text>
