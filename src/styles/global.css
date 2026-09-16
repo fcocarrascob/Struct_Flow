@@ -33,3 +33,23 @@ body {
 .katex {
   font-size: 1em;
 }
+
+/* La mini hoja de una partida de carga, dentro del panel lateral del canvas de
+   obra. Es `.doc-papel` —el mismo estilo de bloque que la hoja y el papel, para
+   que una fórmula se vea igual en los tres sitios— con el cuerpo bajado: 11 pt
+   en un panel de 30rem parte cualquier expresión con tres factores.
+
+   Va acá y NO en `papel.css` porque aquel lo incrusta literal
+   `scripts/render-planilla.mjs` para el PDF, y esto no es del papel: es de una
+   pantalla que el papel no tiene. */
+.mini-hoja.doc-papel {
+  font-size: 9pt;
+  line-height: 1.4;
+}
+/* Una expresión más ancha que el panel se desplaza en su bloque en vez de
+   ensanchar el panel y empujar el lienzo. */
+.mini-hoja .wp-eq,
+.mini-hoja .wp-raw,
+.mini-hoja .wp-err {
+  overflow-x: auto;
+}

@@ -17,6 +17,8 @@ export type Ruta =
   /** Los proyectos del harness, servidos por `python -m harness.servidor`. */
   | { vista: 'proyectos' }
   | { vista: 'proyecto'; slug: string }
+  /** Una obra propia: canvas editable, guardado en este navegador. */
+  | { vista: 'obra'; id: string }
   /** Herramientas de calibración de la página. Solo se renderiza en desarrollo. */
   | { vista: 'calibrar' };
 
@@ -32,6 +34,9 @@ const ID_RE = /^[a-z0-9-]+$/;
  * venga en la URL se le pasa al servidor, y una ruta que acepte cualquier cosa
  * es la primera mitad de un path traversal (la segunda la cierra el servidor,
  * que resuelve y comprueba que no salga de `proyectos/`).
+ *
+ * El id de una obra local usa el mismo alfabeto, que es lo que garantiza
+ * `slugificar()` en `src/proyecto/obra/modelo.ts`.
  */
 const SLUG_PROYECTO_RE = /^[a-z0-9][a-z0-9-]*$/;
 
@@ -48,6 +53,9 @@ export function parsearRuta(pathname: string): Ruta {
   if (partes[0] === 'proyectos' && partes.length === 1) return { vista: 'proyectos' };
   if (partes[0] === 'proyecto' && partes.length === 2 && SLUG_PROYECTO_RE.test(partes[1])) {
     return { vista: 'proyecto', slug: partes[1] };
+  }
+  if (partes[0] === 'obra' && partes.length === 2 && SLUG_PROYECTO_RE.test(partes[1])) {
+    return { vista: 'obra', id: partes[1] };
   }
   // Una ruta desconocida cae en el inicio en vez de en una página en blanco.
   return { vista: 'inicio' };
@@ -69,6 +77,8 @@ export function href(ruta: Ruta): string {
       return '/proyectos';
     case 'proyecto':
       return `/proyecto/${ruta.slug}`;
+    case 'obra':
+      return `/obra/${ruta.id}`;
     case 'calibrar':
       return '/calibrar';
   }

@@ -33,11 +33,17 @@ const PASO_Y = ALTO + 22;
 const COLUMNAS: string[][] = [
   ['proyecto'],
   ['norma', 'hueco'],
-  ['accion'],
+  // `cargas` (el nodo de definiciones de una obra local) comparte columna con la
+  // acción: las dos son el origen de las cargas que vienen a su derecha.
+  ['accion', 'cargas'],
   ['carga'],
-  ['familia-combinacion'],
+  // `subcarga` es una partida del desglose de una carga permanente: cuelga de su
+  // carga, así que va a su derecha. El harness no emite este tipo.
+  ['familia-combinacion', 'subcarga'],
   ['modelo'],
-  ['hoja-de-valores', 'planilla'],
+  // `calculo` es un cálculo suelto de una obra local: una genérica de la
+  // biblioteca instanciada, que es lo mismo que una planilla del proyecto.
+  ['hoja-de-valores', 'planilla', 'calculo'],
   ['lectura'],
   ['documento'],
   ['decision', 'hallazgo'],

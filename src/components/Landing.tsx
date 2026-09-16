@@ -86,9 +86,9 @@ export default function Landing() {
         </Tarjeta>
 
         <Tarjeta a={{ vista: 'proyectos' }} titulo="Proyectos">
-          Los encargos del harness, cada uno como un grafo: normas, acciones, cargas,
-          combinaciones, modelo, planillas y documentos, con el color puesto en lo que no calza.
-          Necesita el servidor local del harness corriendo.
+          Tus obras como un grafo que se arma nodo a nodo —cargas, combinaciones, modelo,
+          planillas— y, debajo, los encargos del harness en solo lectura, con el color puesto en
+          lo que no calza.
         </Tarjeta>
       </div>
 
