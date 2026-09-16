@@ -1121,6 +1121,22 @@
    "imprimir": false
   },
   {
+   "id": "r_arm_si",
+   "kind": "program",
+   "x": 40,
+   "y": 6824,
+   "src": "arm_si :=\n    if usa_arm == 1\n        return zeros(1, 1)\n    return zeros(0, 1)",
+   "imprimir": false
+  },
+  {
+   "id": "r_arm_no",
+   "kind": "program",
+   "x": 40,
+   "y": 6872,
+   "src": "arm_no :=\n    if usa_arm == 1\n        return zeros(0, 1)\n    return zeros(1, 1)",
+   "imprimir": false
+  },
+  {
    "id": "r_cu",
    "kind": "program",
    "x": 40,

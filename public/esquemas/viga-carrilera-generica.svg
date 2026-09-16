@@ -27,8 +27,12 @@
   <text x="{{sx(b_f/2) + 22:svg}}" y="{{sy(d) + 4:svg}}" font-size="10" fill="{{col_flex}}">ala sup. {{b_f:mm}} × {{t_f:mm}}</text>
   <text x="{{sx(b_f/2) + 22:svg}}" y="{{sy(t_fb) + 4:svg}}" font-size="10" fill="{{col_flex}}">ala inf. {{b_fb:mm}} × {{t_fb:mm}}</text>
   <text x="{{sx(b_f/2) + 22:svg}}" y="{{sy(d/2) + 4:svg}}" font-size="10" fill="{{col_alma}}">alma {{t_w:mm}} mm · h/t_w = {{lam_w}}</text>
-  <text x="{{sx(-b_f/2) - 22:svg}}" y="{{sy(d/2) - 10:svg}}" font-size="10" text-anchor="end" fill="#555">S_xc = {{S_xc/(1000 mm^3)}} ·10³ mm³</text>
-  <text x="{{sx(-b_f/2) - 22:svg}}" y="{{sy(d/2) + 8:svg}}" font-size="10" text-anchor="end" fill="#555">S_xt = {{S_xt/(1000 mm^3)}} ·10³ mm³</text>
+  <!-- Cada módulo junto a la fibra a la que pertenece, no apilados sobre la cota
+       del eje neutro: ahí S_xc se leía como rótulo del eje. -->
+  <text x="{{sx(-b_f/2) - 22:svg}}" y="{{sy(d) + 18:svg}}" font-size="10" text-anchor="end" fill="#555">S_xc = {{S_xc/(1000 mm^3)}} ·10³ mm³</text>
+  <text x="{{sx(-b_f/2) - 22:svg}}" y="{{sy(d) + 31:svg}}" font-size="8.5" text-anchor="end" fill="#888">fibra comprimida</text>
+  <text x="{{sx(-b_f/2) - 22:svg}}" y="{{sy(t_fb) - 21:svg}}" font-size="10" text-anchor="end" fill="#555">S_xt = {{S_xt/(1000 mm^3)}} ·10³ mm³</text>
+  <text x="{{sx(-b_f/2) - 22:svg}}" y="{{sy(t_fb) - 8:svg}}" font-size="8.5" text-anchor="end" fill="#888">fibra traccionada</text>
 
   <!-- =============== ALZADO DEL VANO =============== -->
   <text x="40" y="408" font-size="12" fill="#555" font-weight="bold">ALZADO DEL VANO · dos ruedas en la posición crítica</text>

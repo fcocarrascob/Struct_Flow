@@ -59,9 +59,14 @@
   <line data-repetir="estribos_px" x1="{{px(-(PED_X/2 - recub_ped)):svg}}" x2="{{px(PED_X/2 - recub_ped):svg}}"
         y1="{{fila[1]:svg}}" y2="{{fila[1]:svg}}" stroke="{{col_est}}" stroke-width="1"/>
 
-  <!-- Barras longitudinales de borde y perno con su h_ef -->
-  <line x1="{{px(-(PED_X/2 - recub_ped)):svg}}" x2="{{px(-(PED_X/2 - recub_ped)):svg}}" y1="{{ey(0 mm):svg}}" y2="{{ey(PED_H) + 12:svg}}" stroke="{{col_barras}}" stroke-width="1.8"/>
-  <line x1="{{px(PED_X/2 - recub_ped):svg}}" x2="{{px(PED_X/2 - recub_ped):svg}}" y1="{{ey(0 mm):svg}}" y2="{{ey(PED_H) + 12:svg}}" stroke="{{col_barras}}" stroke-width="1.8"/>
+  <!-- Barras longitudinales de borde. Con sdc_def = 1 bajan con GANCHO A 90° y
+       el extremo libre hacia el eje del pedestal, que es lo que pide el
+       §18.13.2.3 y lo que el panel afirma; sin él se dibujaban rectas. -->
+  <path d="M {{px(-(PED_X/2 - recub_ped)):svg}} {{ey(0 mm):svg}} V {{ey(PED_H) + 12:svg}} h {{sdc_def == 1 ? 16 : 0:svg}}"
+        fill="none" stroke="{{col_barras}}" stroke-width="1.8"/>
+  <path d="M {{px(PED_X/2 - recub_ped):svg}} {{ey(0 mm):svg}} V {{ey(PED_H) + 12:svg}} h {{sdc_def == 1 ? -16 : 0:svg}}"
+        fill="none" stroke="{{col_barras}}" stroke-width="1.8"/>
+  <text x="{{px(-PED_X/2) - 26:svg}}" y="{{ey(PED_H) + 44:svg}}" font-size="9" fill="{{col_barras}}">{{sdc_def == 1 ? "ganchos a 90° hacia el eje (§18.13.2.3)" : "sin exigencia de gancho (SDC A, B o C)"}}</text>
   <line x1="{{px(-PED_X/2*0.55):svg}}" x2="{{px(-PED_X/2*0.55):svg}}" y1="{{ey(0 mm) - 8:svg}}" y2="{{ey(h_ef):svg}}" stroke="{{col_anc}}" stroke-width="2" stroke-dasharray="5 3"/>
   <line x1="{{px(PED_X/2*0.55):svg}}" x2="{{px(PED_X/2*0.55):svg}}" y1="{{ey(0 mm) - 8:svg}}" y2="{{ey(h_ef):svg}}" stroke="{{col_anc}}" stroke-width="2" stroke-dasharray="5 3"/>
 

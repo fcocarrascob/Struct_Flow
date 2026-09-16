@@ -71,16 +71,23 @@
   <line x1="{{px(-ZAP_Y/2) + 4:svg}}" x2="{{px(ZAP_Y/2) - 4:svg}}" y1="{{ey(0 m) + (recub + db_sup/2)/(1 m)*esc:svg}}" y2="{{ey(0 m) + (recub + db_sup/2)/(1 m)*esc:svg}}"
         stroke="{{col_sup}}" stroke-width="1.8" stroke-dasharray="6 3"/>
 
-  <!-- Presión del suelo -->
-  <g stroke="#1a63a8" stroke-width="1" fill="none">
-    <line x1="{{px(-ZAP_Y/2) + 12:svg}}" x2="{{px(-ZAP_Y/2) + 12:svg}}" y1="{{ey(hzap) + 22:svg}}" y2="{{ey(hzap) + 4:svg}}"/>
-    <line x1="{{px(-ZAP_Y/4):svg}}" x2="{{px(-ZAP_Y/4):svg}}" y1="{{ey(hzap) + 22:svg}}" y2="{{ey(hzap) + 4:svg}}"/>
-    <line x1="{{px(0*(1 m)):svg}}" x2="{{px(0*(1 m)):svg}}" y1="{{ey(hzap) + 22:svg}}" y2="{{ey(hzap) + 4:svg}}"/>
-    <line x1="{{px(ZAP_Y/4):svg}}" x2="{{px(ZAP_Y/4):svg}}" y1="{{ey(hzap) + 22:svg}}" y2="{{ey(hzap) + 4:svg}}"/>
-    <line x1="{{px(ZAP_Y/2) - 12:svg}}" x2="{{px(ZAP_Y/2) - 12:svg}}" y1="{{ey(hzap) + 22:svg}}" y2="{{ey(hzap) + 4:svg}}"/>
-    <line x1="{{px(-ZAP_Y/2) + 12:svg}}" x2="{{px(ZAP_Y/2) - 12:svg}}" y1="{{ey(hzap) + 22:svg}}" y2="{{ey(hzap) + 22:svg}}"/>
+  <!-- Reacción del suelo: flechas SIN perfil de cierre. La hoja recibe Mu y Vu
+       mayorados como dato y NO calcula la distribución de presiones; dibujar un
+       diagrama uniforme afirmaba un reparto que con excentricidad no es tal. -->
+  <defs>
+    <marker id="zap-punta" viewBox="0 0 8 8" refX="4" refY="7" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M 0 7 L 4 0 L 8 7 Z" fill="#1a63a8"/>
+    </marker>
+  </defs>
+  <g stroke="#1a63a8" stroke-width="1.2" fill="none" marker-end="url(#zap-punta)">
+    <line x1="{{px(-ZAP_Y/2) + 12:svg}}" x2="{{px(-ZAP_Y/2) + 12:svg}}" y1="{{ey(hzap) + 24:svg}}" y2="{{ey(hzap) + 5:svg}}"/>
+    <line x1="{{px(-ZAP_Y/4):svg}}" x2="{{px(-ZAP_Y/4):svg}}" y1="{{ey(hzap) + 24:svg}}" y2="{{ey(hzap) + 5:svg}}"/>
+    <line x1="{{px(0*(1 m)):svg}}" x2="{{px(0*(1 m)):svg}}" y1="{{ey(hzap) + 24:svg}}" y2="{{ey(hzap) + 5:svg}}"/>
+    <line x1="{{px(ZAP_Y/4):svg}}" x2="{{px(ZAP_Y/4):svg}}" y1="{{ey(hzap) + 24:svg}}" y2="{{ey(hzap) + 5:svg}}"/>
+    <line x1="{{px(ZAP_Y/2) - 12:svg}}" x2="{{px(ZAP_Y/2) - 12:svg}}" y1="{{ey(hzap) + 24:svg}}" y2="{{ey(hzap) + 5:svg}}"/>
   </g>
-  <text x="{{px(ZAP_Y/2) + 8:svg}}" y="{{ey(hzap) + 26:svg}}" font-size="9.5" fill="#1a63a8">reacción del suelo</text>
+  <text x="{{px(ZAP_Y/2) + 8:svg}}" y="{{ey(hzap) + 20:svg}}" font-size="9.5" fill="#1a63a8">reacción del suelo</text>
+  <text x="{{px(ZAP_Y/2) + 8:svg}}" y="{{ey(hzap) + 33:svg}}" font-size="9" fill="#777">reparto no calculado aquí</text>
 
   <!-- Cotas de elevación -->
   <text x="{{px(-ZAP_Y/2) - 8:svg}}" y="{{ey(hzap/2) + 4:svg}}" font-size="10.5" text-anchor="end" fill="#222"

@@ -8,10 +8,20 @@
   <!-- =============== ELEVACIÓN =============== -->
   <text x="40" y="52" font-size="12" fill="#555" font-weight="bold">ELEVACIÓN · el camino de carga</text>
 
-  <!-- Mortero y placa base -->
+  <defs>
+    <!-- Trama del mortero de nivelación: sin ella, placa y mortero eran dos
+         bandas grises iguales y el brazo que la llave entrega no se leía. -->
+    <pattern id="silla-mortero" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="6" height="6" fill="#e6dcc6"/>
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#a9997e" stroke-width="1.2"/>
+    </pattern>
+  </defs>
+
+  <!-- Mortero y placa base: acero gris, mortero tramado -->
   <rect x="{{ex(-L_bp/2):svg}}" y="{{ey(0 mm):svg}}" width="{{L_bp/(1 mm)*esc:svg}}" height="{{max(2, t_bp/(1 mm)*esc):svg}}" fill="#9aa3ab"/>
-  <rect x="{{ex(-L_bp/2):svg}}" y="{{ey(t_bp):svg}}" width="{{L_bp/(1 mm)*esc:svg}}" height="{{max(2, t_mort/(1 mm)*esc):svg}}" fill="#e7eaed" stroke="#bbb" stroke-width="0.7"/>
-  <text x="{{ex(L_bp/2) + 8:svg}}" y="{{ey(t_bp + t_mort) + 4:svg}}" font-size="9.5" fill="#777">placa {{t_bp:mm}} + mortero {{t_mort:mm}}</text>
+  <rect x="{{ex(-L_bp/2):svg}}" y="{{ey(t_bp):svg}}" width="{{L_bp/(1 mm)*esc:svg}}" height="{{max(3, t_mort/(1 mm)*esc):svg}}" fill="url(#silla-mortero)" stroke="#a9997e" stroke-width="0.8"/>
+  <text x="{{ex(L_bp/2) + 8:svg}}" y="{{ey(t_bp/2) + 4:svg}}" font-size="9.5" fill="#6d757d">placa base {{t_bp:mm}} mm</text>
+  <text x="{{ex(L_bp/2) + 8:svg}}" y="{{ey(t_bp + t_mort) + 4:svg}}" font-size="9.5" fill="#8a7a5e">mortero {{t_mort:mm}} mm</text>
 
   <!-- Ala de la columna (en corte) y alma -->
   <rect x="{{ex(-COL_B/2):svg}}" y="{{ey(-NER_H - CH_T - 60 mm):svg}}" width="{{COL_B/(1 mm)*esc:svg}}" height="{{max(2, COL_TF/(1 mm)*esc):svg}}" fill="{{col_ala}}"/>
@@ -33,7 +43,8 @@
   <line x1="{{ex(y_fila) - 8:svg}}" x2="{{ex(y_fila) + 8:svg}}" y1="{{ey(-NER_H - CH_T) - 5:svg}}" y2="{{ey(-NER_H - CH_T) - 5:svg}}" stroke="#1a63a8" stroke-width="4"/>
   <line x1="{{ex(-y_fila) - 8:svg}}" x2="{{ex(-y_fila) + 8:svg}}" y1="{{ey(-NER_H - CH_T) - 5:svg}}" y2="{{ey(-NER_H - CH_T) - 5:svg}}" stroke="#1a63a8" stroke-width="4"/>
   <text x="{{ex(y_fila) + 12:svg}}" y="{{ey(-NER_H - CH_T) - 10:svg}}" font-size="10" fill="#1a63a8">P por perno = {{P_perno:kN}} kN</text>
-  <text x="{{ex(y_fila) + 12:svg}}" y="{{ey(t_bp + t_mort + 70 mm):svg}}" font-size="10" fill="#555">y_fila = {{y_fila:mm}} mm</text>
+  <!-- La cota va bajo el perno IZQUIERDO: a la derecha tocaba «placa + mortero» -->
+  <text x="{{ex(-y_fila):svg}}" y="{{ey(t_bp + t_mort + 90 mm) + 16:svg}}" font-size="10" text-anchor="middle" fill="#555">y_fila = {{y_fila:mm}} mm</text>
 
   <!-- Cotas de la silla -->
   <text x="{{ex(COL_B/2 + NER_L) + 8:svg}}" y="{{ey(-NER_H - CH_T) + 4:svg}}" font-size="10" fill="{{col_chapa}}"

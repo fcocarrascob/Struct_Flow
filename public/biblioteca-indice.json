@@ -76,14 +76,14 @@
       "clase": "generica",
       "disciplina": "hormigon",
       "ruta": "/biblioteca/hormigon/anclaje-hormigon-generica.json",
-      "regiones": 115,
+      "regiones": 117,
       "normas": [
         "US/ACI318-25-SI"
       ],
       "entradas": 28,
       "salidas": 14,
       "promovible": true,
-      "sha256": "e75429b700b79e7fc1099ee95c9d9cb24bd61d3b01f50019f617598f6e1e92bf",
+      "sha256": "576eb6fd86ba1484fd584e47f56bba19a3dafd47d703a66070039ca7fe42b302",
       "resumen": "El Cap. 17 del ACI 318-25 en tracción para pernos colados, con los dos factores nuevos de la edición 25 (psi_a y psi_cm,N) y el diseño sísmico del §17.10 (opción (d), factor 0,75 sobre los modos del hormigón). Recibe Nua_g de placa-base-generica y decide si hace falta armadura de anclaje."
     },
     {
