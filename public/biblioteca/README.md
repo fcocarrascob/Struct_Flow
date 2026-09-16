@@ -33,21 +33,29 @@ ejemplo de referencia y un caso que falla a propósito. **Solo norma americana e
 AISC, ACI y ASCE. Las citas argentinas y chilenas que quedaban se reemplazaron el
 2026-09-15 por el artículo americano equivalente, leído antes de citarlo.
 
+**Auditadas el 2026-09-15 y corregidas el 16.** Se releyó del PDF cada artículo que citan
+—102 páginas— y se juzgaron los siete esquemas sobre los PNG rendidos. Los dos informes,
+con el estado de aplicación de cada hallazgo, están en `docs/auditoria-normativa-biblioteca.md`
+y `docs/auditoria-esquemas-biblioteca.md`. Lo que cambió números: el descascaramiento de
+grupo del anclaje, la interacción de corte biaxial y el confinamiento de la cabeza del
+pedestal, la compacidad del alma de la carrilera por el caso 16 y su `l_b` del §5.8.4, y la
+rotura en corte del §J4.2 en la llave y la silla.
+
 ### `acero/`
 
 | Plantilla | Qué verifica | Norma | Entradas |
 |---|---|---|---:|
 | `placa-base-generica` | Aplastamiento, equilibrio, grupo de pernos y espesor de chapa. Cubre placa **lisa** y **rigidizada** con la misma hoja (`hay_nervios`). Con llave de corte suma a la tracción el **par de la llave** (`hay_llave`) | AISC DG1 3.ª §4.3.7 · AISC 360 §J8, §J4.5 · ACI 318-25 §17.6.1, §17.5.3, §17.11.1.1.9 | 31 |
 | `llave-corte-generica` | Los **siete** estados límite de la llave. Una chapa por dirección o dos paralelas desplazadas | AISC DG1 3.ª Ej. 4.7-5 · ACI 318-25 §17.11, §17.5.2.1.2 · AISC 360 §J2, §J4.2, §J4.5 | 30 |
-| `silla-anclaje-generica` | El **camino de carga** completo: perno → chapa superior → nervios → ala (o ala extendida) → alma | AISC 360-22 §J10.8 (las tres condiciones geométricas del rigidizador, incluido t ≥ b/16) · §J2, §J4.2, §J4.5 | 31 |
-| `viga-carrilera-generica` | Flexión biaxial, corte, fuerzas concentradas del rodado —incluido el pandeo lateral del alma—, deflexiones y fatiga. Cubre la doble T **monosimétrica** de las dos formas en que se construye: con canal-tapa (`hay_canal`) y **armada con el ala superior más ancha** (`es_soldada`) | AISC 360-22 §F4, §G2, §H1, §J10, Ap. 3 | 43 |
+| `silla-anclaje-generica` | El **camino de carga** completo: perno → chapa superior → nervios → ala (o ala extendida) → alma | AISC 360-22 §J10.8 (las tres condiciones geométricas del rigidizador, incluido t ≥ b/16) · §J2, §J4.1, §J4.2, §J4.4, §J4.5 | 32 |
+| `viga-carrilera-generica` | Flexión biaxial, corte, fuerzas concentradas del rodado —incluido el pandeo lateral del alma—, deflexiones y fatiga. Cubre la doble T **monosimétrica** de las dos formas en que se construye: con canal-tapa (`hay_canal`) y **armada con el ala superior más ancha** (`es_soldada`) | AISC 360-22 Tabla B4.1b, §F4, §G2, §H1, §J10, Ap. 3 · AIST TR-13 §5.8.2 a §5.8.4 | 44 |
 
 ### `hormigon/`
 
 | Plantilla | Qué verifica | Norma | Entradas |
 |---|---|---|---:|
 | `anclaje-hormigon-generica` | Grupo de pernos colados en tracción: acero, cono, extracción, descascaramiento y armadura de anclaje **por capacidad del perno**. Con sismo, la opción (d) del §17.10.5.3 y el **0,75** del §17.10.5.4 sobre los modos del hormigón (`sismo`) | ACI 318-25 SI §17.5, §17.6, §17.9, §17.10, Tabla 21.2.1 | 28 |
-| `pedestal-generico` | Cuantías del §10.6.1.1 (0,01·Ag a 0,08·Ag), extremos del diagrama P–M, **flexión biaxial** por contorno lineal, corte, estribos, armadura de anclaje contable (la mayor entre demanda y `As_req` por capacidad) y el detallado de la unión del §18.13.2 | ACI 318-25 SI Cap. 10, 17, 18, 21, 22, 25 | 31 |
+| `pedestal-generico` | Cuantías del §10.6.1.1 (0,01·Ag a 0,08·Ag), extremos del diagrama P–M, **flexión biaxial** por contorno lineal, corte, estribos, armadura de anclaje contable (la mayor entre demanda y `As_req` por capacidad) y el detallado de la unión del §18.13.2 | ACI 318-25 SI §10.6, §10.7.6, §17.5.2.1, §18.13.2, §22.4, §22.5, §25.7.2 | 32 |
 | `zapata-generica` | Flexión, corte en una dirección y punzonamiento, con reparto en banda, más la armadura superior por levantamiento del §18.13.2.5 verificada a flexión | ACI 318-25 SI Cap. 7, 8, 13, 18, 21, 22, 25 | 23 |
 
 ### `acciones/`
@@ -103,8 +111,8 @@ aparte. Resumen:
 | `silla-anclaje-generica` | el reparto de tracción entre pernos (uniforme) · el ancho eficaz de la chapa · el rigidizador **a resistencia**, que el §J10.8 manda al §J4.1 en tracción y al §J4.4 en compresión | extensión de ala con la lectura conservadora |
 | `viga-carrilera-generica` | las cargas de rueda (del fabricante) · la clasificación del **ala** —la del **alma** sí la calcula— · los límites de deflexión · el riel y su unión · de la lista del §5.8.2 de TR-13: fuerzas axiales, carga concentrada **en los apoyos** y rigidizadores de apoyo | dos ruedas iguales · canal continuo y colaborante · vano simple · el ala superior (más el canal) toma íntegramente la fuerza lateral |
 | `anclaje-hormigon-generica` | la tracción del grupo · el corte (va a la llave) · las opciones (a), (b) y (c) del §17.10.5.3 | pernos colados con cabeza · una fila traccionada · armadura conformada (§17.10.4) |
-| `pedestal-generico` | los puntos intermedios del P–M (entran como pares) · la φMn uniaxial de cada eje para la biaxial | estribos cerrados · armadura simétrica · **detallado no sísmico** en el fuste · biaxial por suma lineal (cota superior) |
-| `zapata-generica` | los esfuerzos mayorados · el momento negativo de la cara superior (`Mu_sup`) | apoyo interior · sin armadura de corte · `Nu = 0` · X es el lado corto (**sí** se chequea) |
+| `pedestal-generico` | los puntos intermedios del P–M (entran como pares, **sin su axial**: por eso el esquema todavía no dibuja el diagrama) · la φMn uniaxial de cada eje para la biaxial | estribos cerrados · armadura simétrica · **detallado no sísmico** en el fuste · biaxial por suma lineal (cota superior) |
+| `zapata-generica` | los esfuerzos mayorados · el momento negativo de la cara superior (`Mu_sup`) | apoyo interior · sin armadura de corte · `Nu = 0` · X es el lado corto (**sí** se chequea) · **renuncia al §13.2.6.2** e impone el §18.13.2.5 fuera de SDC D-F, las dos del lado seguro |
 
 ## El esqueleto de una genérica
 

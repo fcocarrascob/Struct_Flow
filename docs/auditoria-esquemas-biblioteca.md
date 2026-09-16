@@ -2,7 +2,11 @@
 
 **2026-09-15.** Revisión de los SVG paramétricos de `public/biblioteca/` mirando las
 **imágenes rendidas**, no el código. La pregunta no es si se leen bien: es si el dibujo
-**representa el mecanismo que la ecuación supone**. Ninguna corrección está aplicada.
+**representa el mecanismo que la ecuación supone**.
+
+> **2026-09-16 — aplicado en parte.** La lista priorizada 1–6 está cerrada salvo F1, que
+> se paró por falta de un dato. El detalle está en **[Estado de aplicación](#estado-de-aplicación)**,
+> al final.
 
 ## Cómo se obtuvieron las imágenes
 
@@ -421,3 +425,50 @@ Por relación valor/esfuerzo, y solo cuando lo apruebes:
    Va junto con el hallazgo normativo A6.
 5. **G1, G2, G5, G6** (los solapes y el mortero): baratos, y dos de ellos ya los habías visto.
 6. **E5, E6, H1, H3**: las cuatro contradicciones entre dibujo, panel y hoja.
+
+---
+
+## Estado de aplicación
+
+**2026-09-16.** Se aplicó la **lista priorizada 1–6**, decisión tomada al abrir la sesión.
+Cuatro commits: `3b8d980` (solapes y contradicciones), `a518a85` (la llave), `e6e909f`
+(la silla) y `fe523e4` (la carrilera). **Ningún SVG se tocó sin mirar el PNG resultante**,
+antes y después, con el mismo `render-esquemas.mjs` que produjo los 14 PNG de esta revisión.
+
+| # | Estado | Qué se hizo |
+|---|---|---|
+| **E1 + E2 + G3** | aplicados | La llave pasa de dos vistas a cuatro sin crecer el `viewBox`. `A_Vc` sale de la planta y va a una **CARA LATERAL** propia, con el rectángulo teórico punteado —que suele desbordar el pedestal—, la parte recortada, `A_ef,sl` rayada porque se resta, la cota de `b_sl + 3·c_a1` y una nota que dice si hubo recorte. En planta queda la **cuña a ≈35°** y `c_a1` medida desde la superficie de aplastamiento. Y la chapa estrena **detalle a escala propia**, que de paso resuelve G1 y G6 |
+| **E3** | aplicado, **y era más hondo** | No había que mover los pernos: la elevación dibujaba los nervios saliendo de `COL_B/2` y la hoja mide `y_fila` contra `COL_H/2` (lo dice `exc_n`). Con la dirección correcta, el perno a 767 cae dentro del nervio (500–850) y de la chapa, a 267 de la cara, sin mover nada. La planta arrastraba el mismo error |
+| **F3 + E4** | aplicados | Detalle del ala superior con el riel, `l_b` acotada y las dos dispersiones (`5k + l_b` interior contra `2,5k + l_b` extremo); y la posición fantasma del tren en el apoyo, que es donde se verifica el §J10 |
+| **G1, G2, G4, G5** | aplicados | La nota de pernos sale del área `A_Nc`; `S_xc` y `S_xt` van cada uno junto a su fibra; `y_fila` baja al perno izquierdo; el rótulo de la llave deja de caer sobre el mortero |
+| **G6** | aplicado **donde el dato existe** | Trama de mortero en la silla y en la llave. En `placa-base` **no procede**: esa hoja no conoce el espesor del mortero, solo `z_llave` ya compuesto, y dibujarlo sería afirmar lo que la hoja no sabe — justo el defecto de la familia H |
+| **E5, E6, H1, H3** | aplicados | El panel del anclaje deja de dar armadura provista con `usa_arm = 0`; la elevación dibuja los `n_trac` pernos; la reacción del suelo pierde el perfil de cierre que afirmaba un reparto uniforme; y las barras del pedestal bajan con gancho a 90° cuando `sdc_def = 1`, que es lo que el panel afirmaba |
+| **F1** | **parado por falta de un dato** | Ver abajo |
+
+### F1 — por qué se paró
+
+El informe pedía «un P–M con la envolvente y los puntos de demanda encima». Al ir a
+dibujarlo apareció que **la hoja no tiene con qué**: recibe los tres puntos intermedios como
+pares `(Mu_i, φMn_i)` pero **no la axial de cada uno**, y sin ella no se pueden situar en el
+plano P–M. Interpolar una envolvente entre `φP_n,max` y `φP_nt` pasando por los `φMn_i` sin
+saber su axial sería afirmar lo que la hoja no sabe.
+
+Las dos salidas, para cuando se retome:
+
+1. **Tres entradas `P_1`, `P_2`, `P_3`.** Da el diagrama completo. Cuidado: el harness
+   instancia `Mu_i` y `phiMn_i` desde `sap/demanda.py` y no conoce las `P_i`, así que en una
+   instancia los momentos vendrían del proyecto y las axiales del ejemplo — hay que añadirlas
+   también allí o el diagrama sale incoherente en silencio.
+2. **Diagrama parcial**: el eje P con los dos extremos calculados y la demanda axial marcada,
+   más tres barras de uso por punto. No es la envolvente, pero no afirma ninguna axial.
+
+### Lo que sigue fuera, por decisión
+
+**F2** (tronco de pirámide del punzonamiento), **F4** (`H_lat` dibujada), **F5** (cuerpo
+libre de la placa base), **F6** (columna en corte con el rigidizador), **F7** (círculo de
+`0,5·h_ef` con las barras que cuentan) y **H2** (marca de desarrollo de la armadura de
+anclaje). Quedaron fuera del alcance acordado al abrir la sesión, no por dificultad.
+
+De «Otras», siguen pendientes: en la zapata, distinguir las dos secciones críticas de corte
+y acotar la banda central; en la placa base, dibujar la llave con su brazo `z_llave`; en la
+carrilera, dibujar el canal-tapa como perfil C y no como rectángulo liso.

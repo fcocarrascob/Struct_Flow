@@ -2,7 +2,11 @@
 
 **2026-09-15.** Se releyó del PDF **cada artículo citado** por las siete hojas de
 `public/biblioteca/`, sin dar por buena el acta de lectura previa del harness. Este
-documento es el resultado; **ninguna corrección se ha aplicado todavía**.
+documento es el resultado.
+
+> **2026-09-16 — aplicado.** Todos los hallazgos de este informe están cerrados, cada uno
+> con su comparación contra git. El detalle de qué se aplicó y qué se decidió declarar en
+> vez de calcular está en **[Estado de aplicación](#estado-de-aplicación)**, al final.
 
 ## Cómo leer este informe
 
@@ -847,3 +851,45 @@ de peso normal), `ACI §20.2.2` (E_s = 200.000 MPa), `ACI §25.2.1` (separación
 `ACI §25.7.2.1/.2` (detalle de estribos), `AISC §F1` (φ_b = 0,90 y C_b) y las dos filas de la
 `Tabla A-3.1` del Apéndice 3 que la hoja de la carrilera ofrece como constantes de entrada.
 Queda anotado para cerrarlo en la pasada de correcciones.
+
+---
+
+## Estado de aplicación
+
+**2026-09-16.** Aplicado en cuatro commits, con verificación en verde entre cada uno:
+`1ea6207` (citas y declaraciones), `37ec984` (seis hallazgos que cambian números) y
+`58bb323` (A3). Cada hallazgo de tipo A se comparó contra `git show HEAD:<ruta>` con una
+región `image` centinela al final, y se corrieron los `meta.casos` de las dos versiones.
+**Ningún ejemplo de referencia cambió de estado.**
+
+| # | Estado | Qué se hizo, y qué se midió |
+|---|---|---|
+| **A1** | aplicado | Rama de grupo del §17.6.4.2, con `N_sb` sin `f_ca2`. La condición de la R17.6.4.2 (`c_a1 < 0,4·h_ef`) resulta ser la misma que `h_ef > 2,5·c_a1`, así que si el modo aplica cuentan todos los de la fila. No se dispara con el ejemplo, así que se añadió el caso «embebido profundo cerca del borde»: `u_max = 2,486` y gobierna el descascaramiento |
+| **A2** | aplicado | `u_corte_biax` en `u_max` y en `gobierna`. Caso nuevo «dos cortes a 0,9»: antes `u_max = 0,9` y CUMPLE, ahora **1,198** y NO CUMPLE |
+| **A3** | aplicado | Caso 16 de la Tabla B4.1b con el eje neutro plástico derivado de las cuatro capas. `λ_pw` 106,7 → **161,8** (topa en `λ_rw`), `R_pc` 1,0 → **1,080**, `R_pt` 1,0 → **1,298**, `M_n` 116,6 → 121,4 tonf·m. `u_max` baja en los cuatro casos. Retira la frontera del eje neutro plástico |
+| **A4** | aplicado | Tabla 10.7.6.5.2 en `sep_est_max`, condicionada al §10.6.2.1. Da 600 mm y no muerde con esta geometría (`16·d_b = 512` sigue mandando), pero ahora se comprueba |
+| **A5** | aplicado **con entrada nueva** | El §10.7.6.1.5 rige el detallado **local** de la cabeza y la hoja solo conoce la separación del fuste: ninguna `sep_est` realista lo satisface. Se añadió la entrada `n_est_cab` (31 → 32 entradas) y el veredicto `v_confina_pernos`, que deriva lo exigido del diámetro adoptado |
+| **A6** | aplicado, **y destapó otro** | `l_b := 2·(H_riel + t_f)`. `u_wly` 0,3960 → 0,3375 y `u_wlc` 0,4979 → 0,4521. Con esa longitud `l_b/d` pasa de 0,196 a 0,259 y la hoja se salía del rango de [J10-5a]: hubo que **leer y añadir la rama [J10-5b]**, y el aviso `v_lb_d` desaparece porque ya no hay nada de que avisar |
+| **B1 a B8** | aplicados | Todas las erratas de cita, sin cambiar ningún número. B7 tocó cuatro sitios: la etiqueta, el encabezado de la sección 1, el panel del esquema y el README |
+| **C1, C3, C6, C7** | aplicados | Fronteras y `meta.normas` reescritos |
+| **C2, C4, C9** | **declarados, no calculados** | Decisión tomada al abrir la sesión: el §13.2.6.2 y el §18.13.2.5 se declaran en `meta.hipotesis` con lo que se gana o se pierde, y la frontera de la silla recoge lo que el §J10.8 sí prescribe (`0,75h`, `25t_w`/`12t_w`) |
+| **C5** | aplicado | `min(fluencia, rotura)` del §J4.2 en las dos hojas. En la llave no cambia nada (`F_u/F_y` = 1,61). En la **silla** apareció algo que este informe no recogía: `tau_adm` usaba `phi_b = 0,90` donde el §J4.2 fija **1,00**, así que sube de 134,0 a 148,9 MPa y `u_ner` baja de 0,5588 a 0,5029. Exigió añadir la entrada `Fu_ac` (31 → 32) |
+
+**Menores de las notas al pie**, todos aplicados: `meta.normas` del pedestal baja de
+capítulo a artículo; el §J4.4 entra en `meta.normas` de la silla; la ayuda de `omega`
+distingue la forma de grupo del §17.10.5.3(a); la excepción final de la (c) del §J10.8; y
+el primer filtro de aplicabilidad del §J10.4, que no es el geométrico.
+
+**Hallazgo que este informe no vio**, encontrado al aplicar: el veredicto `v_aa2` de la
+carrilera llevaba la etiqueta y el `avisoTexto` de otro («Condición de la ecuación
+§J10-5a») cuando lo que comprueba es que la segunda rueda caiga dentro del vano.
+
+**Lecturas nuevas registradas** en el acta del harness: `US/AISC360-22` impresas 23
+(Tabla B4.1b, casos 15 y 16), 57 y 58 (§F4.2(c)(6), `R_pc`), 59 (§F4.4, `R_pt`) y 152
+([J10-5b] y el §J10.4); `US/ACI318-25-SI` impresas 172 (§10.6.2.1) y 177 (Tabla 10.7.6.5.2).
+
+**Lo anotado al cierre del informe** —las constantes de una línea que no se releyeron— sigue
+sin cerrar, y sigue sin ser urgente por la misma razón: ninguna hoja las usa de forma dudosa.
+
+Efecto en la verificación: `verify:biblioteca` pasa de 22 a **24 casos** y
+`verify:modulos` de 58 a **60**. Los otros tres verificadores no se mueven.
