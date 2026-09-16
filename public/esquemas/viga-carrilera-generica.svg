@@ -82,17 +82,19 @@
   <text x="620" y="286" font-size="11.5" fill="#222" font-weight="bold">Alcance y validez</text>
   <text x="620" y="308" font-size="10" fill="#555">alma no esbelta (§F4)</text>
   <text x="830" y="308" font-size="10" text-anchor="end" fill="#333">{{v_alma_no_esbelta}}</text>
-  <text x="620" y="326" font-size="10" fill="#555">alma compacta (TR-13 §5.8.2)</text>
+  <text x="620" y="326" font-size="10" fill="#555">alma compacta (caso 16 · TR-13 §5.8.2)</text>
   <text x="830" y="326" font-size="10" text-anchor="end" fill="#333">{{v_alma_compacta}}</text>
-  <text x="620" y="344" font-size="10" fill="#555">C_v1 = {{C_v1}} · k_v = {{k_v}}</text>
-  <text x="830" y="344" font-size="10" text-anchor="end" fill="#333">{{v_Cv1b}}</text>
-  <text x="620" y="362" font-size="10" fill="#555">S_xt &lt; S_xc: aplica §F4.4</text>
-  <text x="830" y="362" font-size="10" text-anchor="end" fill="#333">{{v_tfy_aplica}}</text>
-  <text x="620" y="380" font-size="9.5" fill="#777">{{wsb_estado}}</text>
-  <text x="620" y="398" font-size="10" fill="#555">vida infinita a fatiga</text>
-  <text x="830" y="398" font-size="10" text-anchor="end" fill="#333">{{v_vida_infinita}}</text>
-  <text x="620" y="416" font-size="10" fill="#555">L_p = {{L_p:mm}} · L_r = {{L_r:mm}} mm</text>
-  <text x="620" y="434" font-size="9.5" fill="#777">l_b = {{l_b:mm}} mm (TR-13 §5.8.4) · rige {{rama_j103}}</text>
+  <text x="620" y="340" font-size="8.5" fill="#888">λ_pw = {{lam_pw}} · h_c/h_p = {{h_c/h_p}}</text>
+  <text x="620" y="356" font-size="10" fill="#555">C_v1 = {{C_v1}} · k_v = {{k_v}}</text>
+  <text x="830" y="356" font-size="10" text-anchor="end" fill="#333">{{v_Cv1b}}</text>
+  <text x="620" y="374" font-size="10" fill="#555">S_xt &lt; S_xc: aplica §F4.4</text>
+  <text x="830" y="374" font-size="10" text-anchor="end" fill="#333">{{v_tfy_aplica}}</text>
+  <text x="620" y="388" font-size="8.5" fill="#888">R_pc = {{R_pc}} · R_pt = {{R_pt}} · M_p/M_y = {{M_p/M_y_ext}}</text>
+  <text x="620" y="404" font-size="9.5" fill="#777">{{wsb_estado}}</text>
+  <text x="620" y="420" font-size="10" fill="#555">vida infinita a fatiga</text>
+  <text x="830" y="420" font-size="10" text-anchor="end" fill="#333">{{v_vida_infinita}}</text>
+  <text x="620" y="434" font-size="9.5" fill="#777">L_p = {{L_p:mm}} · L_r = {{L_r:mm}} mm</text>
+  <text x="620" y="446" font-size="9" fill="#777">l_b = {{l_b:mm}} mm (TR-13 §5.8.4)</text>
 
   <!-- Franja de cierre -->
   <rect x="612" y="452" width="218" height="62" rx="4" fill="{{col_global}}" fill-opacity="0.10" stroke="{{col_global}}" stroke-width="1"/>
