@@ -14,16 +14,16 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import { traerGrafo } from '../../lib/proyecto/api';
-import type { Grafo, NodoGrafo, Severidad } from '../../lib/proyecto/contrato';
+import { traerGrafo } from './api';
+import type { Grafo, NodoGrafo, Severidad } from './contrato';
 import {
   colocar,
   guardarLayout,
   layoutGuardado,
   olvidarLayout,
   type Posicion,
-} from '../../lib/proyecto/layout';
-import Enlace from '../Enlace';
+} from './layout';
+import Enlace from '../components/Enlace';
 import NodoHarness from './NodoHarness';
 import PanelLateral from './PanelLateral';
 

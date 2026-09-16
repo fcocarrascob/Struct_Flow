@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { listarProyectos } from '../../lib/proyecto/api';
-import type { ProyectoListado } from '../../lib/proyecto/contrato';
-import Enlace from '../Enlace';
+import { listarProyectos } from './api';
+import type { ProyectoListado } from './contrato';
+import Enlace from '../components/Enlace';
 
 /**
  * Los proyectos que el harness tiene en `proyectos/`.

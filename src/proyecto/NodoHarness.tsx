@@ -1,6 +1,6 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import type { NodoGrafo } from '../../lib/proyecto/contrato';
-import { ALTO, ANCHO } from '../../lib/proyecto/layout';
+import type { NodoGrafo } from './contrato';
+import { ALTO, ANCHO } from './layout';
 
 /**
  * Un nodo del proyecto.

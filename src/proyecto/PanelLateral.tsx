@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { traerArchivo, type ArchivoLeido } from '../../lib/proyecto/api';
-import type { NodoGrafo } from '../../lib/proyecto/contrato';
+import { traerArchivo, type ArchivoLeido } from './api';
+import type { NodoGrafo } from './contrato';
 
 /**
  * Lo que hay detrás de un nodo.

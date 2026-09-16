@@ -5,6 +5,19 @@
 // decidir si lo que llegó se puede pintar, y ese «no» es la pieza importante
 // del archivo.
 //
+// POR QUÉ `src/proyecto/` Y NO `src/lib/proyecto/`
+// -----------------------------------------------
+// Por convención le tocaría vivir junto a `lib/diseno/`. Está aparte por una
+// razón mecánica: `_herramientas.json` del harness sella el MOTOR de este repo
+// como el hash de árbol de `src/lib` y `scripts`, y el lint lo vigila con E13.
+// Cualquier archivo nuevo dentro de `src/lib` mueve ese hash, y mover el hash
+// del motor marca `eval_de_otro_motor` en TODAS las planillas de TODOS los
+// proyectos del harness, que hay que reverificar una por una.
+//
+// El canvas de proyecto no evalúa ninguna planilla. Que su código dispare esa
+// cascada haría que el sello dijera «cambió el motor» cuando no cambió, y un
+// aviso que salta por lo que no es deja de leerse.
+//
 // POR QUÉ EL CONTRATO VA VERSIONADO
 // ---------------------------------
 // El harness y este repo son repositorios distintos, y lo que viaja entre ellos
