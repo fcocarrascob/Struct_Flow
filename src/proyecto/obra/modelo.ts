@@ -20,44 +20,6 @@
 // son proyecciones, pero la fuente es distinta y no se mezclan.
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Un tipo de carga del catálogo. `simbolo` es el de la norma, y es el que
- *  después van a usar las combinaciones: por eso el catálogo es cerrado. */
-export interface TipoCargaDef {
-  clave: string;
-  simbolo: string;
-  nombre: string;
-}
-
-/**
- * El catálogo del ASCE 7, que es la norma en la que está escrita la biblioteca
- * de este repo. `otra` existe para no obligar a mentir cuando algo no calza; su
- * símbolo queda vacío a propósito, porque una carga sin símbolo no puede entrar
- * en una combinación sin que alguien la bautice primero.
- */
-export const TIPOS_CARGA: readonly TipoCargaDef[] = [
-  { clave: 'permanente', simbolo: 'D', nombre: 'Permanente' },
-  { clave: 'sobrecarga', simbolo: 'L', nombre: 'Sobrecarga de uso' },
-  { clave: 'sobrecarga-techo', simbolo: 'Lr', nombre: 'Sobrecarga de techo' },
-  { clave: 'nieve', simbolo: 'S', nombre: 'Nieve' },
-  { clave: 'lluvia', simbolo: 'R', nombre: 'Lluvia' },
-  { clave: 'viento', simbolo: 'W', nombre: 'Viento' },
-  { clave: 'sismo', simbolo: 'E', nombre: 'Sismo' },
-  { clave: 'empuje-suelo', simbolo: 'H', nombre: 'Empuje de suelo' },
-  { clave: 'fluidos', simbolo: 'F', nombre: 'Presión de fluidos' },
-  { clave: 'termica', simbolo: 'T', nombre: 'Térmica o deformación impuesta' },
-  { clave: 'otra', simbolo: '', nombre: 'Otra' },
-];
-
-export const TIPO_CARGA_POR_OMISION = 'permanente';
-
-const POR_CLAVE = new Map(TIPOS_CARGA.map((t) => [t.clave, t]));
-
-/** Un tipo que no esté en el catálogo se devuelve tal cual, visible y no perdido:
- *  una obra guardada con una versión anterior no se puede quedar sin su tipo. */
-export function tipoCarga(clave: string): TipoCargaDef {
-  return POR_CLAVE.get(clave) ?? { clave, simbolo: '', nombre: clave };
-}
-
 /**
  * Un bloque de la mini hoja de una subcarga.
  *
@@ -117,7 +79,7 @@ export interface Importada {
 }
 
 /**
- * Una partida del desglose de una carga permanente, respaldada por su cálculo.
+ * Una partida del desglose de una carga, respaldada por su cálculo.
  *
  * `nombre` ES UNA ETIQUETA LIBRE: «Equipos sala de bombas», no `CM_1`. Antes era
  * la variable que su hoja tenía que definir, y eso ataba dos cosas que no tienen
@@ -174,25 +136,29 @@ export interface NodoCalculo {
   importada?: Importada;
 }
 
+/**
+ * Una carga de la obra.
+ *
+ * NO TIENE TIPO, Y ES DELIBERADO. Hubo un catálogo cerrado de ASCE 7 —`D`, `L`,
+ * `Lr`, `S`, `W`…— con un `simbolo` por fila, y lo único que llegó a decidir fue
+ * cuáles se podían desglosar: solo la permanente. Pero una nieve, un viento y un
+ * sismo se calculan exactamente igual —partidas, cada una con su hoja o su
+ * planilla de la biblioteca, y una suma—, así que el catálogo no distinguía dos
+ * comportamientos: prohibía nueve de los diez.
+ *
+ * Lo que diferencia una carga de otra es su NOMBRE, que además es el
+ * identificador con el que se la cita (`D`, `SC oficinas`, `Wx`). Una carga es
+ * un nombre y un desglose; cuando llegue el módulo de combinaciones, citará esos
+ * nombres, que es lo que el usuario escribió y no una clave que tuvo que elegir
+ * de una lista.
+ */
 export interface Carga {
   id: string;
   /** Lo que el usuario escribe: `D`, `SC oficinas`, `Wx`. Es el identificador
    *  con el que la carga se va a citar, así que tiene que ser único. */
   nombre: string;
-  tipo: string;
-  /** El desglose. Hoy solo lo llevan las permanentes; ver `admiteSubcargas`. */
+  /** El desglose, siempre disponible: cualquier carga se respalda con partidas. */
   subcargas: Subcarga[];
-}
-
-/**
- * Qué tipos de carga se desglosan.
- *
- * Solo la permanente, que es lo acordado. El resto del código no supone nada de
- * esto: una carga siempre tiene `subcargas`, y abrirlo a otro tipo es cambiar
- * esta condición y nada más.
- */
-export function admiteSubcargas(tipo: string): boolean {
-  return tipo === 'permanente';
 }
 
 /**
@@ -273,16 +239,18 @@ export function nuevoCalculo(): NodoCalculo {
 }
 
 /**
- * La próxima carga, ya bautizada. Propone el símbolo del tipo (`D`, `W`) y, si
- * está tomado, le agrega el número que sigue: escribir tres permanentes seguidas
- * no debería empezar por corregir tres veces el mismo nombre repetido.
+ * La próxima carga, con un nombre correlativo y libre que el usuario reescribe.
+ *
+ * `C1`, `C2`… y no `D` ni `W`: la carga no tiene tipo, así que proponer el
+ * símbolo de una norma sería sugerir una clasificación que el modelo ya no
+ * guarda. Lo único que el nombre tiene que garantizar al nacer es ser único,
+ * porque es el identificador con el que la carga se cita.
  */
-export function nuevaCarga(cargas: readonly Carga[], tipo = TIPO_CARGA_POR_OMISION): Carga {
-  const base = tipoCarga(tipo).simbolo || 'C';
+export function nuevaCarga(cargas: readonly Carga[]): Carga {
   const tomados = new Set(cargas.map((c) => c.nombre.trim()));
-  let nombre = base;
-  for (let i = 2; tomados.has(nombre); i++) nombre = `${base}${i}`;
-  return { id: nuevoId('c'), nombre, tipo, subcargas: [] };
+  let nombre = 'C1';
+  for (let i = 2; tomados.has(nombre); i++) nombre = `C${i}`;
+  return { id: nuevoId('c'), nombre, subcargas: [] };
 }
 
 /**
@@ -340,8 +308,8 @@ export function agregarModulo(obra: Obra, modulo: Modulo): Obra {
   return { ...obra, modulos: [...obra.modulos, modulo] };
 }
 
-export function agregarCarga(obra: Obra, tipo?: string): { obra: Obra; carga: Carga } {
-  const carga = nuevaCarga(obra.cargas, tipo);
+export function agregarCarga(obra: Obra): { obra: Obra; carga: Carga } {
+  const carga = nuevaCarga(obra.cargas);
   return { obra: { ...obra, cargas: [...obra.cargas, carga] }, carga };
 }
 

@@ -16,7 +16,6 @@
 
 import {
   IDENTIFICADOR_RE,
-  TIPO_CARGA_POR_OMISION,
   VERSION_OBRA,
   type Bloque,
   type Carga,
@@ -128,7 +127,8 @@ function sanearCarga(crudo: unknown, i: number): Carga | null {
   return {
     id: typeof c.id === 'string' && c.id ? c.id : `c-recuperada-${i}`,
     nombre: c.nombre,
-    tipo: typeof c.tipo === 'string' && c.tipo ? c.tipo : TIPO_CARGA_POR_OMISION,
+    // El `tipo` de una obra guardada con el catálogo cerrado se ignora: la carga
+    // ya no lo tiene, y el nombre —que es lo que la identifica— no dependía de él.
     // Una obra guardada antes del desglose no trae `subcargas`; no es un dato
     // corrupto, es una obra anterior, y abre sin desglose y sin avisos.
     subcargas: (Array.isArray(c.subcargas) ? c.subcargas : [])

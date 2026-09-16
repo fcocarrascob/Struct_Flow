@@ -31,7 +31,7 @@ import {
   idNodoDeCarga,
   idNodoDeSubcarga,
 } from './ids';
-import { admiteSubcargas, problemaDeNombre, tipoCarga, type NodoCalculo, type Obra } from './modelo';
+import { problemaDeNombre, type NodoCalculo, type Obra } from './modelo';
 
 export * from './ids';
 
@@ -181,69 +181,66 @@ export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas =
       const problemaNombre = problemaDeNombre(c, obra.cargas);
       const motivos = problemaNombre ? [problemaNombre] : [];
       let severidad: Severidad = problemaNombre ? 'error' : 'ok';
-      const t = tipoCarga(c.tipo);
-      let subtitulo = t.simbolo ? `${t.simbolo} · ${t.nombre}` : t.nombre;
+      // Toda carga se desglosa: una nieve y un viento se respaldan con partidas
+      // igual que una permanente, y el subtítulo es lo que suman.
+      const evc = evaluarCarga(c, ev, genericas);
+      evaluaciones[c.id] = evc;
+      const subtitulo = evc.totalTexto;
 
-      if (admiteSubcargas(c.tipo)) {
-        const evc = evaluarCarga(c, ev, genericas);
-        evaluaciones[c.id] = evc;
-        subtitulo = `${t.simbolo} · ${evc.totalTexto}`;
+      if (c.subcargas.length === 0) {
+        motivos.push('Sin partidas: agrega el desglose para que la carga tenga un valor.');
+        severidad = peor(severidad, 'aviso');
+      } else {
+        const rotas = evc.valores.filter((v) => v.problema).length;
+        if (rotas > 0) {
+          motivos.push(`${rotas} partida(s) sin valor.`);
+          severidad = peor(severidad, 'error');
+        }
+        if (evc.problemaTotal) {
+          motivos.push(evc.problemaTotal);
+          severidad = peor(severidad, 'error');
+        }
+      }
 
-        if (c.subcargas.length === 0) {
-          motivos.push('Sin partidas: agrega el desglose para que la carga tenga un valor.');
-          severidad = peor(severidad, 'aviso');
-        } else {
-          const rotas = evc.valores.filter((v) => v.problema).length;
-          if (rotas > 0) {
-            motivos.push(`${rotas} partida(s) sin valor.`);
-            severidad = peor(severidad, 'error');
-          }
-          if (evc.problemaTotal) {
-            motivos.push(evc.problemaTotal);
-            severidad = peor(severidad, 'error');
-          }
+      for (const sub of c.subcargas) {
+        const idSub = idNodoDeSubcarga(sub.id);
+        const v = evc.valores.find((x) => x.id === sub.id);
+        let sevSub: Severidad = v?.problema ? 'error' : 'ok';
+        const motivosSub = v?.problema ? [v.problema] : [];
+
+        const enGrafo = sub.importada ? '' : problemaDeGrafo(idSub, ev);
+        if (enGrafo) {
+          motivosSub.push(enGrafo);
+          sevSub = peor(sevSub, 'error');
         }
 
-        for (const sub of c.subcargas) {
-          const idSub = idNodoDeSubcarga(sub.id);
-          const v = evc.valores.find((x) => x.id === sub.id);
-          let sevSub: Severidad = v?.problema ? 'error' : 'ok';
-          const motivosSub = v?.problema ? [v.problema] : [];
+        const estadoSub = sub.importada ? genericas[sub.importada.slug] : undefined;
+        if (sub.importada && estadoSub?.fase === 'lista' && quedoAtras(estadoSub.modulo, sub.importada)) {
+          motivosSub.push('La genérica cambió en la biblioteca desde que la importaste.');
+          sevSub = peor(sevSub, 'aviso');
+        }
 
-          const enGrafo = sub.importada ? '' : problemaDeGrafo(idSub, ev);
-          if (enGrafo) {
-            motivosSub.push(enGrafo);
-            sevSub = peor(sevSub, 'error');
-          }
-
-          const estadoSub = sub.importada ? genericas[sub.importada.slug] : undefined;
-          if (sub.importada && estadoSub?.fase === 'lista' && quedoAtras(estadoSub.modulo, sub.importada)) {
-            motivosSub.push('La genérica cambió en la biblioteca desde que la importaste.');
-            sevSub = peor(sevSub, 'aviso');
-          }
-
-          nodos.push(
-            nodo({
-              id: idSub,
-              tipo: 'subcarga',
-              etiqueta: sub.nombre.trim() || '(sin nombre)',
-              // El valor y de qué variable sale, que ya no se deduce del nombre.
-              subtitulo: v?.variable ? `${v.texto} · ${v.variable}` : (v?.texto ?? '—'),
-              campos: sub.importada
-                ? { planilla: sub.importada.slug, salida: sub.importada.salida ?? '' }
-                : { bloques: sub.bloques.length, define: (ev.define.get(idSub) ?? []).join(', ') },
-              severidad: sevSub,
-              motivos: motivosSub,
-            }),
-          );
-          aristas.push({
-            desde: idNodoDeCarga(c.id),
-            hasta: idSub,
-            tipo: 'compone',
-            etiqueta: '',
+        nodos.push(
+          nodo({
+            id: idSub,
+            tipo: 'subcarga',
+            etiqueta: sub.nombre.trim() || '(sin nombre)',
+            // El valor y de qué variable sale, que ya no se deduce del nombre.
+            subtitulo: v?.variable ? `${v.texto} · ${v.variable}` : (v?.texto ?? '—'),
+            campos: sub.importada
+              ? { planilla: sub.importada.slug, salida: sub.importada.salida ?? '' }
+              : { bloques: sub.bloques.length, define: (ev.define.get(idSub) ?? []).join(', ') },
             severidad: sevSub,
-          });
-        }
+            motivos: motivosSub,
+          }),
+        );
+        aristas.push({
+          desde: idNodoDeCarga(c.id),
+          hasta: idSub,
+          tipo: 'compone',
+          etiqueta: '',
+          severidad: sevSub,
+        });
       }
 
       if (severidad !== 'ok') conProblema++;
@@ -255,7 +252,7 @@ export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas =
           tipo: 'carga',
           etiqueta: c.nombre.trim() || '(sin nombre)',
           subtitulo,
-          campos: { nombre: c.nombre, tipo: t.nombre, simbolo: t.simbolo },
+          campos: { nombre: c.nombre, partidas: c.subcargas.length },
           severidad,
           motivos,
         }),

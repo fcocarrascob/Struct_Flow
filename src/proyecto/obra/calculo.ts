@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// El desglose de una carga permanente: qué aporta cada partida y cuánto suma.
+// El desglose de una carga: qué aporta cada partida y cuánto suma.
 //
 // Acá ya no se evalúa ninguna hoja. La hoja es una sola y la evalúa
 // `evaluacion.ts` para toda la obra; esto solo LEE del scope compartido el

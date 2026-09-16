@@ -37,7 +37,7 @@ const COLUMNAS: string[][] = [
   // acción: las dos son el origen de las cargas que vienen a su derecha.
   ['accion', 'cargas'],
   ['carga'],
-  // `subcarga` es una partida del desglose de una carga permanente: cuelga de su
+  // `subcarga` es una partida del desglose de una carga: cuelga de su
   // carga, así que va a su derecha. El harness no emite este tipo.
   ['familia-combinacion', 'subcarga'],
   ['modelo'],

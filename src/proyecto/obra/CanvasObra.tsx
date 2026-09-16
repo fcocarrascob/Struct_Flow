@@ -300,7 +300,7 @@ function CanvasObra({ id }: { id: string }) {
     setSeleccion((s) => (s === idNodoDeCarga(idCarga) ? ID_NODO_CARGAS : s));
   }, []);
 
-  // ── El desglose de una permanente ──────────────────────────────────────────
+  // ── El desglose de una carga ───────────────────────────────────────────────
   // Todas las escrituras del desglose pasan por `conSubcargas`, que reemplaza la
   // lista entera de la carga: un solo camino, y ninguno que pueda dejar una
   // partida a medio mover entre dos cargas.

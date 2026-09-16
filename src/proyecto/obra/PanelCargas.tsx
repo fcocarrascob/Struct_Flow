@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import type { EvaluacionCarga } from './calculo';
-import { admiteSubcargas, problemaDeNombre, TIPOS_CARGA, type Carga } from './modelo';
+import { problemaDeNombre, type Carga } from './modelo';
 
 /**
  * El CRUD de los patrones de carga, al estilo de «Define → Load Patterns».
@@ -102,12 +102,9 @@ export default function PanelCargas({
             que después se va a citar en las combinaciones, así que no puede repetirse.
           </p>
         ) : (
-          <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)_auto] items-center gap-x-2 gap-y-1">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1">
             <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">
               Nombre
-            </span>
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">
-              Tipo
             </span>
             <span className="sr-only">Borrar</span>
 
@@ -128,23 +125,6 @@ export default function PanelCargas({
                     aria-invalid={problema ? true : undefined}
                     className={`${CAMPO} font-mono ${problema ? 'border-error' : 'border-border'}`}
                   />
-                  <select
-                    value={c.tipo}
-                    onChange={(e) => onCambiar(c.id, { tipo: e.target.value })}
-                    aria-label="Tipo de carga"
-                    className={`${CAMPO} border-border`}
-                  >
-                    {TIPOS_CARGA.map((t) => (
-                      <option key={t.clave} value={t.clave}>
-                        {t.simbolo ? `${t.simbolo} — ${t.nombre}` : t.nombre}
-                      </option>
-                    ))}
-                    {/* Un tipo guardado que ya no esté en el catálogo no se pierde
-                        en silencio: se ve, y se ve que es raro. */}
-                    {!TIPOS_CARGA.some((t) => t.clave === c.tipo) && (
-                      <option value={c.tipo}>{c.tipo} (fuera del catálogo)</option>
-                    )}
-                  </select>
                   <button
                     type="button"
                     onClick={() => (confirmando ? onBorrar(c.id) : setPorBorrar(c.id))}
@@ -159,7 +139,7 @@ export default function PanelCargas({
                   </button>
 
                   {problema && (
-                    <p className="col-span-3 -mt-0.5 mb-1 text-[10px] leading-snug text-error">
+                    <p className="col-span-2 -mt-0.5 mb-1 text-[10px] leading-snug text-error">
                       {problema}
                     </p>
                   )}
@@ -183,7 +163,7 @@ export default function PanelCargas({
       {/* El desglose solo aparece con una carga enfocada, no con el nodo Cargas
           seleccionado: aquel es la tabla de definiciones de la obra entera, y
           meterle el desglose de una de ellas mezclaría dos niveles. */}
-      {cargaEnfocada && admiteSubcargas(cargaEnfocada.tipo) && (
+      {cargaEnfocada && (
         <Desglose
           carga={cargaEnfocada}
           evaluacion={evaluaciones[cargaEnfocada.id]}
@@ -196,7 +176,7 @@ export default function PanelCargas({
 }
 
 /**
- * El desglose de una carga permanente: sus partidas con el valor que produjo la
+ * El desglose de una carga: sus partidas con el valor que produjo la
  * hoja de cada una, y el total.
  *
  * No se edita acá. Una partida se abre en su propio panel, que es donde está su
