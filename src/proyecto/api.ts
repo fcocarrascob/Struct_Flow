@@ -25,22 +25,43 @@ export class ErrorApi extends Error {
   }
 }
 
+const SIN_SERVIDOR = new ErrorApi(
+  'No hay servidor del harness',
+  'Arranca `python -m harness.servidor` en la raíz de Struct_Harness (escucha en ' +
+    '127.0.0.1:8787) y vuelve a cargar. Con PYTHONPATH apuntando a `_codigo`.',
+);
+
+/**
+ * Códigos que en este montaje significan «del otro lado no hay nadie», no «el
+ * servidor del harness devolvió un error».
+ *
+ * Importa distinguirlos: como el front habla por el proxy de Vite y no directo
+ * al 8787, cuando el servidor no está corriendo el `fetch` NO falla — responde
+ * el proxy, con un 502 y un cuerpo que no es JSON. El caso más común de todos
+ * llegaba así al mensaje genérico «respondió 502 y no era JSON», que no dice
+ * qué hacer. Un error que no dice qué hacer cuesta lo mismo que no tenerlo.
+ */
+const PROXY_SIN_DESTINO = new Set([502, 503, 504]);
+
 async function pedir<T>(ruta: string): Promise<T> {
   let r: Response;
   try {
+    // Sin proxy (abriendo el HTML compilado a mano) el fetch sí falla acá.
     r = await fetch(`${BASE}${ruta}`, { headers: { Accept: 'application/json' } });
   } catch {
-    throw new ErrorApi(
-      'No hay servidor del harness',
-      'Arranca `python -m harness.servidor` en la raíz de Struct_Harness ' +
-        '(escucha en 127.0.0.1:8787) y vuelve a cargar.',
-    );
+    throw SIN_SERVIDOR;
   }
+  if (PROXY_SIN_DESTINO.has(r.status)) throw SIN_SERVIDOR;
+
   let cuerpo: unknown;
   try {
     cuerpo = await r.json();
   } catch {
-    throw new ErrorApi(`El servidor respondió ${r.status} y no era JSON`);
+    throw new ErrorApi(
+      `El servidor respondió ${r.status} y no era JSON`,
+      'Si es un 404 con HTML, la ruta /api no está proxeada: revisa `server.proxy` ' +
+        'en vite.config.ts y que el dev server se haya reiniciado después.',
+    );
   }
   if (!r.ok) {
     const e = (cuerpo as { error?: string })?.error ?? `HTTP ${r.status}`;
