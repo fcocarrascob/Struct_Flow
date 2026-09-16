@@ -69,6 +69,14 @@
   <text x="{{px(PED_X/2) + 12:svg}}" y="{{ey(zp_ef/2) + 3:svg}}" font-size="9.5" fill="{{col_zp}}">zona de protección</text>
   <text x="{{px(PED_X/2) + 12:svg}}" y="{{ey(zp_ef/2) + 15:svg}}" font-size="9.5" fill="{{col_zp}}">{{zp_ef:mm}} mm · estribos @ {{sep_est_zp:mm}}</text>
 
+  <!-- Armadura de anclaje de la llave (§17.5.2.1.2). Invisible (col_llave = "none")
+       cuando no hay llave declarada, que es el caso por defecto. El cono del §9.5.3 (b)
+       es una FRACCIÓN de la zona de protección, y la línea es lo que lo hace ver. -->
+  <line x1="{{px(-PED_X/2):svg}}" x2="{{px(PED_X/2):svg}}" y1="{{ey(zp_llave):svg}}" y2="{{ey(zp_llave):svg}}"
+        stroke="{{col_llave}}" stroke-width="1.4" stroke-dasharray="3 2"/>
+  <text x="{{px(PED_X/2) + 12:svg}}" y="{{ey(zp_ef/2) + 33:svg}}" font-size="9.5" fill="{{col_llave}}">llave §17.5.2.1.2: {{zp_llave:mm}} mm de cono, {{n_niv_llave}} niveles</text>
+  <text x="{{px(PED_X/2) + 12:svg}}" y="{{ey(zp_ef/2) + 45:svg}}" font-size="9.5" fill="{{col_llave}}">A_s ≥ {{As_req_llave:mm^2}} mm² · provista {{As_prov_llave:mm^2}} mm²</text>
+
   <!-- Zapata bajo el pedestal, esquemática -->
   <rect x="{{px(-PED_X/2) - 26:svg}}" y="{{ey(PED_H):svg}}" width="{{PED_X/(1 mm)*esc + 52:svg}}" height="16"
         fill="#e7eaed" stroke="#888" stroke-width="1"/>
@@ -119,8 +127,10 @@
   <text x="830" y="252" font-size="10.5" text-anchor="end" fill="{{cu(u_95V)}}" font-weight="bold">{{u_95V}}</text>
   <text x="620" y="270" font-size="10.5" fill="#333">Armadura de anclaje</text>
   <text x="830" y="270" font-size="10.5" text-anchor="end" fill="{{cu(u_anclaje)}}" font-weight="bold">{{u_anclaje}}</text>
+  <text x="620" y="288" font-size="10.5" fill="#333">Armadura de anclaje de la llave</text>
+  <text x="830" y="288" font-size="10.5" text-anchor="end" fill="{{cu(u_arm_llave)}}" font-weight="bold">{{u_arm_llave}}</text>
 
-  <text x="620" y="300" font-size="11.5" fill="#222" font-weight="bold">Cuantía y estribos del fuste</text>
+  <text x="620" y="306" font-size="11.5" fill="#222" font-weight="bold">Cuantía y estribos del fuste</text>
   <text x="620" y="322" font-size="10" fill="#555">A_st = {{Ast:mm^2}} mm² (0,01·Ag = {{As_min:mm^2}})</text>
   <text x="620" y="338" font-size="10" fill="#555">cuantía entre 0,01 y {{sis_aci18 == 1 ? "0,06" : "0,08"}}</text>
   <text x="830" y="338" font-size="10" text-anchor="end" fill="#333">{{v_cuantia_min and v_cuantia_max and v_rho_sismico}}</text>

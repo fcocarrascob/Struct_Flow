@@ -49,7 +49,7 @@ rotura en corte del §J4.2 en la llave y la silla.
 | Plantilla | Qué verifica | Norma | Entradas |
 |---|---|---|---:|
 | `placa-base-generica` | Aplastamiento, equilibrio, grupo de pernos y espesor de chapa. Cubre placa **lisa** y **rigidizada** con la misma hoja (`hay_nervios`). Con llave de corte suma a la tracción el **par de la llave** (`hay_llave`) | AISC DG1 3.ª §4.3.7 · AISC 360 §J8, §J4.5 · ACI 318-25 §17.6.1, §17.5.3, §17.11.1.1.9 | 31 |
-| `llave-corte-generica` | Los **siete** estados límite de la llave. Una chapa por dirección o dos paralelas desplazadas. Con `usa_arm_sl` la **armadura de anclaje del §17.5.2.1.2 sustituye al breakout** en el veredicto, como hace el anclaje en tracción | AISC DG1 3.ª Ej. 4.7-5 · ACI 318-25 §17.11, §17.5.2.1.2, Tabla 21.2.1 · AISC 360 §J2, §J4.2, §J4.5 | 32 |
+| `llave-corte-generica` | Los **siete** estados límite de la llave. Una chapa por dirección o dos paralelas desplazadas. Con `usa_arm_sl` la **armadura de anclaje del §17.5.2.1.2 sustituye al breakout** en el veredicto, como hace el anclaje en tracción, y entrega su `As_req` al pedestal, que comprueba que la zona de protección lo contiene | AISC DG1 3.ª Ej. 4.7-5 · ACI 318-25 §17.11, §17.5.2.1.2, Tabla 21.2.1 · AISC 360 §J2, §J4.2, §J4.5 | 32 |
 | `silla-anclaje-generica` | El **camino de carga** completo: perno → chapa superior → nervios → ala (o ala extendida) → alma | AISC 360-22 §J10.8 (las tres condiciones geométricas del rigidizador, incluido t ≥ b/16) · §J2, §J4.1, §J4.2, §J4.4, §J4.5 | 32 |
 | `viga-carrilera-generica` | Flexión biaxial, corte, fuerzas concentradas del rodado —incluido el pandeo lateral del alma—, deflexiones y fatiga. Cubre la doble T **monosimétrica** de las dos formas en que se construye: con canal-tapa (`hay_canal`) y **armada con el ala superior más ancha** (`es_soldada`) | AISC 360-22 Tabla B4.1b, §F4, §G2, §H1, §J10, Ap. 3 · AIST TR-13 §5.8.2 a §5.8.4 | 44 |
 
@@ -58,7 +58,7 @@ rotura en corte del §J4.2 en la llave y la silla.
 | Plantilla | Qué verifica | Norma | Entradas |
 |---|---|---|---:|
 | `anclaje-hormigon-generica` | Grupo de pernos colados en tracción: acero, cono, extracción, descascaramiento y armadura de anclaje **por capacidad del perno**. Con sismo, la opción (d) del §17.10.5.3 y el **0,75** del §17.10.5.4 sobre los modos del hormigón (`sismo`) | ACI 318-25 SI §17.5, §17.6, §17.9, §17.10, Tabla 21.2.1 | 28 |
-| `pedestal-generico` | Cuantías del §10.6.1.1 y del §18.7.4.1, el **diagrama de interacción P–M calculado** por compatibilidad de deformaciones en los dos ejes y los dos sentidos, seis combinaciones `(P, M_X, M_Y)` leídas sobre él, **flexión biaxial** por contorno lineal, corte con `V_c` **y `V_s`**, estribos, armadura de anclaje contable y el **detallado sísmico** por NCh2369 §9.5 y por ACI §18.7, activables por separado | ACI 318-25 SI §10.6, §10.7.6, §17.5.2.1, §18.7, §18.13.2, §21.2.2, §22.2, §22.4, §22.5, §25.3.4, §25.7.2 · NCh2369:2025 §9.5 | 53 |
+| `pedestal-generico` | Cuantías del §10.6.1.1 y del §18.7.4.1, el **diagrama de interacción P–M calculado** por compatibilidad de deformaciones en los dos ejes y los dos sentidos, seis combinaciones `(P, M_X, M_Y)` leídas sobre él, **flexión biaxial** por contorno lineal, corte con `V_c` **y `V_s`**, estribos, armadura de anclaje contable, el **detallado sísmico** por NCh2369 §9.5 y por ACI §18.7 —activables por separado— y el **área resistente de la zona de protección** contra la armadura de anclaje que exige la llave (§17.5.2.1.2) | ACI 318-25 SI §10.6, §10.7.6, §17.5.2.1, §17.5.2.1.2, §18.7, §18.13.2, §21.2.2, §22.2, §22.4, §22.5, §25.3.4, §25.7.2 · NCh2369:2025 §9.5, C9.5.2 | 55 |
 | `zapata-generica` | Flexión, corte en una dirección y punzonamiento, con reparto en banda, más la armadura superior por levantamiento del §18.13.2.5 verificada a flexión | ACI 318-25 SI Cap. 7, 8, 13, 18, 21, 22, 25 | 23 |
 
 ### `acciones/`
@@ -85,6 +85,7 @@ llave-corte-generica  ───┘        (acero)               (hormigón)     
 | `As_req` | `anclaje-hormigon-generica` | `pedestal-generico` (como `As_req_anc`) |
 | `N_sa` y `n_trac` | `anclaje-hormigon-generica` | `llave-corte-generica` (ψ_brg,sl en tracción, §17.11.2.2.1a) |
 | `exc` | `llave-corte-generica` (mortero + mitad de la altura efectiva de la llave) | `placa-base-generica` (como `z_llave`, brazo del par del §17.11.1.1.9) |
+| `As_reqx` y `As_reqy` | `llave-corte-generica` (§17.5.2.1.2, cuando acredita armadura en vez del breakout) | `pedestal-generico` (como `As_req_llave_X` y `As_req_llave_Y`) |
 | `Yb_comp` | `placa-base-generica` | `llave-corte-generica` (como `Yb`; de ahí sale `ψ_brg`) · `silla-anclaje-generica` |
 | `tbp_req` | `llave-corte-generica`, y el espesor que pide el aplastamiento en `placa-base-generica` | manda **el mayor de los dos** |
 | Reacción de base | el modelo estructural | `zapata-generica` |
@@ -104,6 +105,23 @@ llave-corte-generica  ───┘        (acero)               (hormigón)     
 > Chile, y el **C9.5.2 de NCh2369** la nombra: concentrar estribos en el sector superior del
 > pedestal para prevenir el desprendimiento del sólido de falla en corte.
 
+> 🔴 **Esas ramas son estribos del pedestal, y el pedestal tiene que responder por ellas.**
+> Hasta el 2026-09-16 la llave acreditaba un área que la zona de protección del pedestal no
+> comprobaba: ahí solo se verificaba la **separación** del §9.5.3, nunca el área resistente.
+> Ahora `llave-corte-generica` entrega `As_reqx` y `As_reqy`, y la **sección 13** del pedestal
+> cuenta los niveles de estribo que caben dentro del cono y comprueba que su área los cubre.
+> Dos decisiones que sostienen esa sección:
+>
+> - **La zona que cuenta es `zp_b`, no `zp_ef`.** El §9.5.3 (b) —altura de la llave más la
+>   proyección de un plano a 45° hasta la cara— **es** el sólido de falla en corte, y C9.5.3 lo
+>   dice: «buscan contener de buena manera el sólido de desprendimiento lateral en corte». El
+>   criterio (a), el lado menor, no tiene nada que ver con la llave, y contarlo regalaría área.
+> - **Envolvente, no suma.** `A_v` ya está fuera del conflicto: el corte del pedestal se
+>   acredita con la separación del **fuste**, no con la de la zona. Frente al confinamiento del
+>   §18.7.5.4 no se suma, porque ese es detallado por ductilidad y no una demanda de equilibrio
+>   bajo la combinación que produce el corte — el mismo criterio con el que `A_v` y `A_sh` ya
+>   conviven sobre las mismas `n_ramas`.
+
 ## Fronteras e hipótesis
 
 Lo que cada plantilla **no** calcula y tiene que entrar como dato con su origen, y lo que
@@ -118,7 +136,7 @@ aparte. Resumen:
 | `silla-anclaje-generica` | el reparto de tracción entre pernos (uniforme) · el ancho eficaz de la chapa · el rigidizador **a resistencia**, que el §J10.8 manda al §J4.1 en tracción y al §J4.4 en compresión | extensión de ala con la lectura conservadora |
 | `viga-carrilera-generica` | las cargas de rueda (del fabricante) · la clasificación del **ala** —la del **alma** sí la calcula— · los límites de deflexión · el riel y su unión · de la lista del §5.8.2 de TR-13: fuerzas axiales, carga concentrada **en los apoyos** y rigidizadores de apoyo | dos ruedas iguales · canal continuo y colaborante · vano simple · el ala superior (más el canal) toma íntegramente la fuerza lateral |
 | `anclaje-hormigon-generica` | la tracción del grupo · el corte (va a la llave) · las opciones (a), (b) y (c) del §17.10.5.3 | pernos colados con cabeza · una fila traccionada · armadura conformada (§17.10.4) |
-| `pedestal-generico` | los esfuerzos (seis ternas concurrentes, ya mayoradas y amplificadas por 0,7·R₁ donde NCh2369 lo pide) · el `V_e` por capacidad del §18.7.6.1 · la capacidad esperada del anclaje del §9.5.2 · la esbeltez, que con altura sobre lado menor ≤ 3 no aplica | estribos cerrados · reparto perimetral uniforme · cada barra amarrada por esquina de estribo o traba (de ahí `h_x` y `n_l`) · el cierre de la envolvente hacia la tracción pura es una recta · biaxial por suma lineal (cota superior) |
+| `pedestal-generico` | los esfuerzos (seis ternas concurrentes, ya mayoradas y amplificadas por 0,7·R₁ donde NCh2369 lo pide) · el `V_e` por capacidad del §18.7.6.1 · la capacidad esperada del anclaje del §9.5.2 · el `As_req` de la armadura de anclaje de la llave · el **despiece** de esa armadura: dónde va cada rama y su desarrollo a ambos lados del plano de falla · la esbeltez, que con altura sobre lado menor ≤ 3 no aplica | estribos cerrados · reparto perimetral uniforme · cada barra amarrada por esquina de estribo o traba (de ahí `h_x` y `n_l`) · el cierre de la envolvente hacia la tracción pura es una recta · biaxial por suma lineal (cota superior) · confinamiento y tirante de anclaje **no fluyen a la vez**: la zona de protección responde por la envolvente |
 | `zapata-generica` | los esfuerzos mayorados · el momento negativo de la cara superior (`Mu_sup`) | apoyo interior · sin armadura de corte · `Nu = 0` · X es el lado corto (**sí** se chequea) · **renuncia al §13.2.6.2** e impone el §18.13.2.5 fuera de SDC D-F, las dos del lado seguro |
 
 ## El esqueleto de una genérica
@@ -126,7 +144,9 @@ aparte. Resumen:
 Las siete tienen la misma forma desde el 2026-09-15, y una hoja nueva la copia. El
 objetivo es que la memoria impresa quepa en un anexo: entre 4 y 9 páginas por hoja.
 `pedestal-generico` se salió a 10 al pasar a calcular el diagrama P–M: el precio de
-calcular lo que antes entraba como dato, y el techo se sube una vez, no cada vez.
+calcular lo que antes entraba como dato, y el techo se sube una vez, no cada vez. Está en
+**11** desde que la sección 13 comprueba el área de la zona de protección; la próxima que
+lo empuje tiene que compensar recortando, no sumando.
 
 1. **Alcance**, uno o dos párrafos: qué verifica, hipótesis y fronteras en prosa corta.
    Lo demás vive en `meta`, que es de donde lo lee la ficha de `/diseno`.

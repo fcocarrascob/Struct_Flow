@@ -443,9 +443,9 @@
         "US/AISC360-22"
       ],
       "entradas": 32,
-      "salidas": 25,
+      "salidas": 27,
       "promovible": true,
-      "sha256": "6b260c52646377c80c6f13888043515223b507b40d633a95f97514b7a58c62eb",
+      "sha256": "7ddd0a4a3b1e97f346980e38b4b0a0727563570a9b7389fbb061d401ad851d8d",
       "resumen": "Chapa soldada bajo la placa base que transfiere el corte al hormigón: regla de espesor de la DG1, embebido mínimo de los pernos, aplastamiento, breakout de corte, acero de la chapa, soldadura y flexión local de la placa. Entrega exc y tbp_req a placa-base-generica y recibe Yb, n_trac y N_sa."
     },
     {
@@ -521,15 +521,15 @@
       "clase": "generica",
       "disciplina": "hormigon",
       "ruta": "/biblioteca/hormigon/pedestal-generico.json",
-      "regiones": 313,
+      "regiones": 324,
       "normas": [
         "US/ACI318-25-SI",
         "CL/NCh2369-2025"
       ],
-      "entradas": 53,
-      "salidas": 36,
+      "entradas": 55,
+      "salidas": 38,
       "promovible": true,
-      "sha256": "f57f2725488f99f301442888b1b7848f510e70751631cefa7a3c4f806b3af2e8",
+      "sha256": "be044a3c33de5b25db2f64da4ea237249a05eddd88258663cb43a099c150b448",
       "resumen": "Pedestal rectangular bajo placa base: cuantías del §10.6.1.1 y del §18.7.4.1, el diagrama de interacción P-M calculado por compatibilidad de deformaciones en los dos ejes y en los dos sentidos, seis combinaciones (P, M_X, M_Y) leídas sobre él, flexión biaxial por contorno lineal, corte con V_c y V_s en las dos direcciones, estribos, la armadura de anclaje que puede contarse y el detallado sísmico por NCh2369:2025 §9.5 y por ACI 318-25 §18.7. Recibe T_grupo de placa-base-generica y As_req de anclaje-hormigon-generica."
     },
     {

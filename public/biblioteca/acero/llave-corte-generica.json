@@ -334,6 +334,18 @@
     "tipo": "valor"
    },
    {
+    "nombre": "As_reqx",
+    "etiqueta": "Armadura de anclaje requerida en X (§17.5.2.1.2)",
+    "unidad": "mm^2",
+    "tipo": "valor"
+   },
+   {
+    "nombre": "As_reqy",
+    "etiqueta": "Armadura de anclaje requerida en Y (§17.5.2.1.2)",
+    "unidad": "mm^2",
+    "tipo": "valor"
+   },
+   {
     "nombre": "v_global",
     "etiqueta": "Cumple: resistencia y geometría",
     "tipo": "veredicto"
@@ -391,6 +403,12 @@
    ],
    "tbp_req": [
     "placa-base-generica"
+   ],
+   "As_reqx": [
+    "pedestal-generico"
+   ],
+   "As_reqy": [
+    "pedestal-generico"
    ]
   },
   "casos": [
