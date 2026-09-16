@@ -22,4 +22,21 @@ export default defineConfig({
   define: {
     'import.meta.env.VITE_COMMIT': JSON.stringify(commitActual()),
   },
+  server: {
+    /**
+     * El canvas de proyecto (`/proyecto/<slug>`) lee del servidor local del
+     * harness: `python -m harness.servidor`, que escucha en 127.0.0.1:8787 y
+     * sólo responde GET.
+     *
+     * Va por proxy y no por fetch a `http://127.0.0.1:8787` directo para que
+     * todo quede en el mismo origen: así el servidor del harness no necesita
+     * CORS, que es una cabecera que después cuesta quitar.
+     */
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:8787',
+        changeOrigin: false,
+      },
+    },
+  },
 });

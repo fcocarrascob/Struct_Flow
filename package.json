@@ -19,6 +19,7 @@
     "verify:motor": "node scripts/verify-motor.mjs"
   },
   "dependencies": {
+    "@xyflow/react": "^12.11.6",
     "katex": "^0.17.0",
     "mathjs": "^15.2.0",
     "react": "^19.2.7",

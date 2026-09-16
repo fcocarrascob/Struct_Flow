@@ -84,6 +84,12 @@ export default function Landing() {
           La hoja en blanco: escribe expresiones con unidades, define variables y bloques de
           programación, e imprime el resultado paginado en A4.
         </Tarjeta>
+
+        <Tarjeta a={{ vista: 'proyectos' }} titulo="Proyectos">
+          Los encargos del harness, cada uno como un grafo: normas, acciones, cargas,
+          combinaciones, modelo, planillas y documentos, con el color puesto en lo que no calza.
+          Necesita el servidor local del harness corriendo.
+        </Tarjeta>
       </div>
 
       <details className="mt-8 text-xs text-muted">

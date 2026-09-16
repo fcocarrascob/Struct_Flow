@@ -14,6 +14,9 @@ export type Ruta =
   | { vista: 'canvas' }
   | { vista: 'diseno' }
   | { vista: 'modulo'; id: string }
+  /** Los proyectos del harness, servidos por `python -m harness.servidor`. */
+  | { vista: 'proyectos' }
+  | { vista: 'proyecto'; slug: string }
   /** Herramientas de calibración de la página. Solo se renderiza en desarrollo. */
   | { vista: 'calibrar' };
 
@@ -22,6 +25,15 @@ export const EVENTO_RUTA = 'structflow:ruta';
 
 /** El id de un módulo viaja en la URL: mismo alfabeto que el slug de una planilla. */
 const ID_RE = /^[a-z0-9-]+$/;
+
+/**
+ * El slug de un proyecto del harness es `AAAA-cliente-obra`, así que empieza por
+ * dígito y `ID_RE` no le sirve. El alfabeto se mantiene cerrado igual: lo que
+ * venga en la URL se le pasa al servidor, y una ruta que acepte cualquier cosa
+ * es la primera mitad de un path traversal (la segunda la cierra el servidor,
+ * que resuelve y comprueba que no salga de `proyectos/`).
+ */
+const SLUG_PROYECTO_RE = /^[a-z0-9][a-z0-9-]*$/;
 
 export function parsearRuta(pathname: string): Ruta {
   const partes = pathname.split('/').filter(Boolean);
@@ -32,6 +44,10 @@ export function parsearRuta(pathname: string): Ruta {
   if (partes[0] === 'diseno') {
     if (partes.length === 1) return { vista: 'diseno' };
     if (partes.length === 2 && ID_RE.test(partes[1])) return { vista: 'modulo', id: partes[1] };
+  }
+  if (partes[0] === 'proyectos' && partes.length === 1) return { vista: 'proyectos' };
+  if (partes[0] === 'proyecto' && partes.length === 2 && SLUG_PROYECTO_RE.test(partes[1])) {
+    return { vista: 'proyecto', slug: partes[1] };
   }
   // Una ruta desconocida cae en el inicio en vez de en una página en blanco.
   return { vista: 'inicio' };
@@ -49,6 +65,10 @@ export function href(ruta: Ruta): string {
       return '/diseno';
     case 'modulo':
       return `/diseno/${ruta.id}`;
+    case 'proyectos':
+      return '/proyectos';
+    case 'proyecto':
+      return `/proyecto/${ruta.slug}`;
     case 'calibrar':
       return '/calibrar';
   }

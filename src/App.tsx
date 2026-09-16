@@ -5,6 +5,8 @@ import CatalogoPagina from './components/CatalogoPagina';
 import IndiceDiseno from './components/diseno/IndiceDiseno';
 import PaginaDiseno from './components/diseno/PaginaDiseno';
 import ModuloBiblioteca from './components/diseno/ModuloBiblioteca';
+import IndiceProyectos from './components/proyecto/IndiceProyectos';
+import { CanvasProyectoConProveedor } from './components/proyecto/CanvasProyecto';
 import { useRuta } from './components/useRuta';
 import Calibrar from './components/dev/Calibrar';
 import { moduloPorId } from './lib/diseno/registro';
@@ -54,6 +56,22 @@ export default function App() {
       return (
         <ErrorBoundary key="diseno">
           <IndiceDiseno />
+        </ErrorBoundary>
+      );
+
+    case 'proyectos':
+      return (
+        <ErrorBoundary key="proyectos">
+          <IndiceProyectos />
+        </ErrorBoundary>
+      );
+
+    // El canvas de un proyecto ocupa la ventana, como el canvas matemático: la
+    // cabecera, el lienzo y el panel lateral se reparten una altura definida.
+    case 'proyecto':
+      return (
+        <ErrorBoundary key={`proyecto:${ruta.slug}`}>
+          <CanvasProyectoConProveedor slug={ruta.slug} />
         </ErrorBoundary>
       );
 
