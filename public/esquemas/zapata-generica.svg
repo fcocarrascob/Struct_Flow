@@ -1,0 +1,130 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 560" font-family="system-ui, sans-serif">
+  <!-- Esquema paramétrico de `zapata-generica`. Todas las medidas salen del scope
+       de la hoja: px/py llevan a píxeles de planta, ey a los de elevación, y cada
+       cota se pinta con el color de su verificación. -->
+
+  <text x="420" y="24" font-size="15" text-anchor="middle" fill="#222" font-weight="bold">Zapata rectangular aislada — planta y elevación a escala</text>
+
+  <!-- =============== PLANTA =============== -->
+  <text x="60" y="52" font-size="12" fill="#555" font-weight="bold">PLANTA</text>
+
+  <!-- Zapata -->
+  <rect x="{{px(-ZAP_X/2):svg}}" y="{{py(-ZAP_Y/2):svg}}" width="{{ZAP_X/(1 m)*esc:svg}}" height="{{ZAP_Y/(1 m)*esc:svg}}"
+        fill="#f4f6f8" stroke="#333" stroke-width="1.6"/>
+
+  <!-- Banda central de ancho igual al lado corto -->
+  <rect data-pieza="banda" x="{{px(-ZAP_X/2):svg}}" y="{{py(-ZAP_X/2):svg}}" width="{{ZAP_X/(1 m)*esc:svg}}" height="{{ZAP_X/(1 m)*esc:svg}}"
+        fill="#1a63a8" fill-opacity="0.07" stroke="none"/>
+
+  <!-- Barras de la banda: una por separación, paralelas a X -->
+  <line data-repetir="barras_banda" x1="{{px(-ZAP_X/2) + 3:svg}}" x2="{{px(ZAP_X/2) - 3:svg}}"
+        y1="{{fila[1]:svg}}" y2="{{fila[1]:svg}}" stroke="{{col_banda}}" stroke-width="0.9" stroke-opacity="0.75"/>
+
+  <!-- Perímetro crítico de punzonamiento, a d/2 de la cara -->
+  <rect x="{{px(-b2/2):svg}}" y="{{py(-b1/2):svg}}" width="{{b2/(1 m)*esc:svg}}" height="{{b1/(1 m)*esc:svg}}"
+        fill="none" stroke="{{col_punz}}" stroke-width="1.4" stroke-dasharray="5 3"/>
+
+  <!-- Secciones críticas de corte en una dirección, a d de la cara -->
+  <line x1="{{px(-ZAP_X/2):svg}}" x2="{{px(ZAP_X/2):svg}}" y1="{{py(PED_Y/2 + d_Y):svg}}" y2="{{py(PED_Y/2 + d_Y):svg}}"
+        stroke="{{col_corte}}" stroke-width="1.2" stroke-dasharray="7 4"/>
+  <line x1="{{px(PED_X/2 + d_X):svg}}" x2="{{px(PED_X/2 + d_X):svg}}" y1="{{py(-ZAP_Y/2):svg}}" y2="{{py(ZAP_Y/2):svg}}"
+        stroke="{{col_corte}}" stroke-width="1.2" stroke-dasharray="7 4"/>
+
+  <!-- Pedestal -->
+  <rect x="{{px(-PED_X/2):svg}}" y="{{py(-PED_Y/2):svg}}" width="{{PED_X/(1 m)*esc:svg}}" height="{{PED_Y/(1 m)*esc:svg}}"
+        fill="#d9dde2" stroke="#333" stroke-width="1.3"/>
+
+  <!-- Ejes -->
+  <line x1="{{px(-ZAP_X/2) - 14:svg}}" x2="{{px(ZAP_X/2) + 14:svg}}" y1="200" y2="200" stroke="#999" stroke-width="0.6" stroke-dasharray="3 3"/>
+  <line x1="250" x2="250" y1="{{py(-ZAP_Y/2) - 14:svg}}" y2="{{py(ZAP_Y/2) + 14:svg}}" stroke="#999" stroke-width="0.6" stroke-dasharray="3 3"/>
+  <text x="{{px(ZAP_X/2) + 18:svg}}" y="204" font-size="10" fill="#777">X</text>
+  <text x="246" y="{{py(ZAP_Y/2) + 26:svg}}" font-size="10" fill="#777">Y</text>
+
+  <!-- Cotas de planta -->
+  <text x="250" y="{{py(-ZAP_Y/2) - 8:svg}}" font-size="10.5" text-anchor="middle" fill="#222"
+        stroke="#fff" stroke-width="3" paint-order="stroke">ZAP_X = {{ZAP_X:m}} m</text>
+  <text x="{{px(-ZAP_X/2) - 10:svg}}" y="200" font-size="10.5" text-anchor="end" fill="#222"
+        stroke="#fff" stroke-width="3" paint-order="stroke">ZAP_Y = {{ZAP_Y:m}} m</text>
+  <text x="{{px(-ZAP_X/2) - 10:svg}}" y="{{py(PED_Y/2 + d_Y) + 4:svg}}" font-size="10" text-anchor="end" fill="{{col_corte}}"
+        stroke="#fff" stroke-width="3" paint-order="stroke">corte a d_Y = {{d_Y:mm}} mm de la cara</text>
+  <text x="{{px(ZAP_X/2) + 10:svg}}" y="{{py(-b1/2) - 4:svg}}" font-size="10" fill="{{col_punz}}"
+        stroke="#fff" stroke-width="3" paint-order="stroke">perímetro b_o = {{bo:mm}} mm (a d/2)</text>
+  <text x="{{px(ZAP_X/2) + 10:svg}}" y="{{py(ZAP_X/2) - 6:svg}}" font-size="10" fill="{{col_banda}}"
+        stroke="#fff" stroke-width="3" paint-order="stroke">banda central: s = {{sep_banda:mm}} mm</text>
+  <text x="{{px(ZAP_X/2) + 10:svg}}" y="{{py(ZAP_Y/2) - 6:svg}}" font-size="10" fill="{{col_banda}}"
+        stroke="#fff" stroke-width="3" paint-order="stroke">fuera de la banda: s = {{sep_fuera:mm}} mm</text>
+
+  <!-- =============== ELEVACIÓN =============== -->
+  <text x="60" y="{{ey(0 m) - 46:svg}}" font-size="12" fill="#555" font-weight="bold">ELEVACIÓN (en la dirección Y)</text>
+
+  <!-- Pedestal -->
+  <rect x="{{px(-PED_Y/2):svg}}" y="{{ey(-ped_h):svg}}" width="{{PED_Y/(1 m)*esc:svg}}" height="{{ped_h/(1 m)*esc:svg}}"
+        fill="#d9dde2" stroke="#333" stroke-width="1.3"/>
+
+  <!-- Zapata -->
+  <rect x="{{px(-ZAP_Y/2):svg}}" y="{{ey(0 m):svg}}" width="{{ZAP_Y/(1 m)*esc:svg}}" height="{{hzap/(1 m)*esc:svg}}"
+        fill="#f4f6f8" stroke="#333" stroke-width="1.6"/>
+
+  <!-- Armadura: inferior en el canto útil d_Y, superior a d_sup -->
+  <line x1="{{px(-ZAP_Y/2) + 4:svg}}" x2="{{px(ZAP_Y/2) - 4:svg}}" y1="{{ey(hzap) - (recub + db/2)/(1 m)*esc:svg}}" y2="{{ey(hzap) - (recub + db/2)/(1 m)*esc:svg}}"
+        stroke="{{col_flex}}" stroke-width="2.2"/>
+  <line x1="{{px(-ZAP_Y/2) + 4:svg}}" x2="{{px(ZAP_Y/2) - 4:svg}}" y1="{{ey(0 m) + (recub + db_sup/2)/(1 m)*esc:svg}}" y2="{{ey(0 m) + (recub + db_sup/2)/(1 m)*esc:svg}}"
+        stroke="{{col_sup}}" stroke-width="1.8" stroke-dasharray="6 3"/>
+
+  <!-- Presión del suelo -->
+  <g stroke="#1a63a8" stroke-width="1" fill="none">
+    <line x1="{{px(-ZAP_Y/2) + 12:svg}}" x2="{{px(-ZAP_Y/2) + 12:svg}}" y1="{{ey(hzap) + 22:svg}}" y2="{{ey(hzap) + 4:svg}}"/>
+    <line x1="{{px(-ZAP_Y/4):svg}}" x2="{{px(-ZAP_Y/4):svg}}" y1="{{ey(hzap) + 22:svg}}" y2="{{ey(hzap) + 4:svg}}"/>
+    <line x1="{{px(0*(1 m)):svg}}" x2="{{px(0*(1 m)):svg}}" y1="{{ey(hzap) + 22:svg}}" y2="{{ey(hzap) + 4:svg}}"/>
+    <line x1="{{px(ZAP_Y/4):svg}}" x2="{{px(ZAP_Y/4):svg}}" y1="{{ey(hzap) + 22:svg}}" y2="{{ey(hzap) + 4:svg}}"/>
+    <line x1="{{px(ZAP_Y/2) - 12:svg}}" x2="{{px(ZAP_Y/2) - 12:svg}}" y1="{{ey(hzap) + 22:svg}}" y2="{{ey(hzap) + 4:svg}}"/>
+    <line x1="{{px(-ZAP_Y/2) + 12:svg}}" x2="{{px(ZAP_Y/2) - 12:svg}}" y1="{{ey(hzap) + 22:svg}}" y2="{{ey(hzap) + 22:svg}}"/>
+  </g>
+  <text x="{{px(ZAP_Y/2) + 8:svg}}" y="{{ey(hzap) + 26:svg}}" font-size="9.5" fill="#1a63a8">reacción del suelo</text>
+
+  <!-- Cotas de elevación -->
+  <text x="{{px(-ZAP_Y/2) - 8:svg}}" y="{{ey(hzap/2) + 4:svg}}" font-size="10.5" text-anchor="end" fill="#222"
+        stroke="#fff" stroke-width="3" paint-order="stroke">h = {{hzap:m}} m</text>
+  <text x="{{px(ZAP_Y/2) + 8:svg}}" y="{{ey(hzap) - (recub + db/2)/(1 m)*esc + 4:svg}}" font-size="10" fill="{{col_flex}}"
+        stroke="#fff" stroke-width="3" paint-order="stroke">inferior ø{{db:mm}} @ {{sep:mm}} · d_Y = {{d_Y:mm}} mm</text>
+  <text x="{{px(ZAP_Y/2) + 8:svg}}" y="{{ey(0 m) + (recub + db_sup/2)/(1 m)*esc - 4:svg}}" font-size="10" fill="{{col_sup}}"
+        stroke="#fff" stroke-width="3" paint-order="stroke">superior ø{{db_sup:mm}} · ρ = {{cuantia_sup}}</text>
+
+  <!-- =============== COLUMNA DE RESULTADOS =============== -->
+  <line x1="600" y1="60" x2="600" y2="520" stroke="#ddd" stroke-width="1"/>
+  <text x="620" y="66" font-size="11.5" fill="#222" font-weight="bold">Estados límite</text>
+
+  <text x="620" y="92" font-size="10.5" fill="#333">Flexión (provista/exigida)</text>
+  <text x="830" y="92" font-size="10.5" text-anchor="end" fill="{{col_flex}}" font-weight="bold">{{u_flexion}}</text>
+  <text x="620" y="112" font-size="10.5" fill="#333">Corte en una dirección, Y</text>
+  <text x="830" y="112" font-size="10.5" text-anchor="end" fill="{{col_corte}}" font-weight="bold">{{u_corte_Y}}</text>
+  <text x="620" y="132" font-size="10.5" fill="#333">Corte en una dirección, X</text>
+  <text x="830" y="132" font-size="10.5" text-anchor="end" fill="{{col_corte}}" font-weight="bold">{{u_corte_X}}</text>
+  <text x="620" y="152" font-size="10.5" fill="#333">Punzonamiento</text>
+  <text x="830" y="152" font-size="10.5" text-anchor="end" fill="{{col_punz}}" font-weight="bold">{{u_punz}}</text>
+  <text x="620" y="172" font-size="10.5" fill="#333">Armadura superior</text>
+  <text x="830" y="172" font-size="10.5" text-anchor="end" fill="{{col_sup}}" font-weight="bold">{{v_sup_flexion}}</text>
+
+  <text x="620" y="206" font-size="11.5" fill="#222" font-weight="bold">Geometría y detallado</text>
+  <text x="620" y="230" font-size="10" fill="#555">canto útil d_Y ≥ 150 mm</text>
+  <text x="830" y="230" font-size="10" text-anchor="end" fill="#333">{{v_canto_min}}</text>
+  <text x="620" y="248" font-size="10" fill="#555">controlada por tracción (ε_t = {{eps_t}})</text>
+  <text x="830" y="248" font-size="10" text-anchor="end" fill="#333">{{v_tracc}}</text>
+  <text x="620" y="266" font-size="10" fill="#555">separación ≤ {{sep_max:mm}} mm</text>
+  <text x="830" y="266" font-size="10" text-anchor="end" fill="#333">{{v_sep_max}}</text>
+  <text x="620" y="284" font-size="10" fill="#555">separación libre ≥ mínima</text>
+  <text x="830" y="284" font-size="10" text-anchor="end" fill="#333">{{v_sep_min}}</text>
+  <text x="620" y="302" font-size="10" fill="#555">banda y fuera de banda</text>
+  <text x="830" y="302" font-size="10" text-anchor="end" fill="#333">{{v_sep_banda and v_sep_fuera}}</text>
+
+  <text x="620" y="336" font-size="11.5" fill="#222" font-weight="bold">Datos del pedestal</text>
+  <text x="620" y="358" font-size="10" fill="#555">PED_X × PED_Y = {{PED_X:m}} × {{PED_Y:m}} m</text>
+  <text x="620" y="376" font-size="10" fill="#555">f'c = {{fc:MPa}} MPa · fy = {{fy:MPa}} MPa</text>
+  <text x="620" y="394" font-size="10" fill="#555">A_s,prov = {{As_prov:mm^2}} mm²/m</text>
+  <text x="620" y="412" font-size="10" fill="#555">A_s exigida = {{max(As_Y, As_X):mm^2}} mm²/m</text>
+
+  <!-- Franja de cierre -->
+  <rect x="612" y="452" width="218" height="52" rx="4" fill="{{col_global}}" fill-opacity="0.10" stroke="{{col_global}}" stroke-width="1"/>
+  <text x="622" y="472" font-size="10.5" fill="#333">Gobierna: {{gobierna}}</text>
+  <text x="622" y="492" font-size="12" fill="{{col_global}}" font-weight="bold">u_max = {{u_max}}</text>
+</svg>

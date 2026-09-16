@@ -109,16 +109,15 @@
       "clase": "generica",
       "disciplina": "hormigon",
       "ruta": "/biblioteca/hormigon/zapata-generica.json",
-      "regiones": 153,
+      "regiones": 117,
       "normas": [
-        "US/ACI318-25-SI",
-        "AR/CIRSOC-103-P2-2005"
+        "US/ACI318-25-SI"
       ],
-      "entradas": 22,
-      "salidas": 20,
+      "entradas": 23,
+      "salidas": 18,
       "promovible": true,
-      "sha256": "66c2575959901159d570e43f1912a3e2a6cb160cb618460a6f960880ae7f02c6",
-      "resumen": "Zapata rectangular bajo pedestal con esfuerzos mayorados como dato: flexión con reparto en banda (§13.3.3.3), corte en una dirección en los dos sentidos, punzonamiento con momento, armadura superior por levantamiento y detallado en magnitudes continuas."
+      "sha256": "4c970d9ce5a89745273858c701b57bb93a76b343978b1277fd0cd198ad2a9589",
+      "resumen": "Zapata rectangular bajo pedestal con esfuerzos mayorados como dato: flexión con reparto en banda (§13.3.3.3), corte en una dirección en los dos sentidos, punzonamiento con momento, armadura superior por levantamiento (§18.13.2.5) y detallado en magnitudes continuas."
     }
   ]
 }
