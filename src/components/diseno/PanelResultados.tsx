@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import type { SalidaDef } from '../../lib/diseno/tipos';
-import { formatValor } from '../../lib/worksheet';
+import { filasDeMatriz, formatValor } from '../../lib/worksheet';
 
 interface Props {
   salidas: SalidaDef[];
@@ -45,6 +46,113 @@ function BarraUso({ valor }: { valor: number }) {
   );
 }
 
+/** Cuántas filas de una serie se pintan antes de recortar. La tabla entera
+ *  sigue yendo al portapapeles: lo que se acota es lo que se dibuja. */
+const FILAS_VISIBLES = 400;
+
+/** Las filas numéricas de una serie, o `null` si el scope no trae una matriz. */
+function filasDeSerie(v: unknown, nCols: number): number[][] | null {
+  const filas = filasDeMatriz(v);
+  if (!filas || filas.length === 0) return null;
+  const salida: number[][] = [];
+  for (const fila of filas) {
+    if (!Array.isArray(fila) || fila.length < nCols) return null;
+    const nums = fila.slice(0, nCols).map((c) => (typeof c === 'number' ? c : NaN));
+    salida.push(nums);
+  }
+  return salida;
+}
+
+/**
+ * Una salida `serie`: la tabla, y el botón que la lleva entera al portapapeles.
+ *
+ * El texto que se copia va con PUNTO decimal y separado por tabuladores, que es
+ * lo que aceptan la cuadrícula de función de SAP2000 y su importador de archivo.
+ * La pantalla, en cambio, usa coma, como el resto de la aplicación: lo que se
+ * lee y lo que se pega tienen destinatarios distintos y no tienen por qué
+ * coincidir.
+ */
+function TablaSerie({ salida, valor }: { salida: SalidaDef; valor: unknown }) {
+  const [copiado, setCopiado] = useState(false);
+  const columnas = salida.columnas ?? [];
+  const filas = filasDeSerie(valor, columnas.length);
+
+  if (!filas) {
+    return (
+      <div data-salida={salida.nombre}>
+        <p className="text-xs text-ink">{salida.etiqueta}</p>
+        <p className="mt-1 font-mono text-[11px] text-muted">sin calcular</p>
+      </div>
+    );
+  }
+
+  // Seis decimales y no la precisión doble entera: en una ordenada espectral en
+  // `g` eso ya es 1e-5 m/s², y volcar diecisiete cifras por celda solo hace la
+  // tabla ilegible en la cuadrícula donde se pega.
+  const tsv = [
+    columnas.map((c) => (c.unidad ? `${c.titulo} [${c.unidad}]` : c.titulo)).join('\t'),
+    ...filas.map((f) => f.map((n) => (Number.isFinite(n) ? String(Number(n.toFixed(6))) : '')).join('\t')),
+  ].join('\n');
+
+  async function copiar() {
+    try {
+      await navigator.clipboard.writeText(tsv);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2000);
+    } catch {
+      // Sin permiso de portapapeles no hay nada que hacer desde acá, y tampoco
+      // hay que romper el panel: el acuse simplemente no aparece.
+      setCopiado(false);
+    }
+  }
+
+  return (
+    <div data-salida={salida.nombre}>
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="text-xs text-ink">{salida.etiqueta}</span>
+        <button
+          type="button"
+          onClick={copiar}
+          className="shrink-0 rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent"
+        >
+          {copiado ? '✓ copiada' : `copiar ${filas.length} filas`}
+        </button>
+      </div>
+      {salida.ayuda && <p className="mt-0.5 text-[10px] leading-snug text-muted">{salida.ayuda}</p>}
+      <div className="mt-1.5 max-h-56 overflow-auto rounded border border-border">
+        <table className="w-full border-collapse text-right font-mono text-[10px]">
+          <thead className="sticky top-0 bg-surface">
+            <tr>
+              {columnas.map((c) => (
+                <th key={c.titulo} className="border-b border-border px-1.5 py-1 font-semibold text-ink">
+                  <span title={c.ayuda}>{c.titulo}</span>
+                  {c.unidad && <span className="ml-1 font-normal text-muted">[{c.unidad}]</span>}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {filas.slice(0, FILAS_VISIBLES).map((f, i) => (
+              <tr key={i} className="odd:bg-surface/40">
+                {f.map((n, j) => (
+                  <td key={j} className="px-1.5 py-0.5 text-muted">
+                    {Number.isFinite(n) ? formatValor(n) : '—'}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {filas.length > FILAS_VISIBLES && (
+        <p className="mt-1 text-[10px] text-muted">
+          Se muestran las primeras {FILAS_VISIBLES} de {filas.length} filas; el botón copia todas.
+        </p>
+      )}
+    </div>
+  );
+}
+
 /**
  * Los resultados que el módulo declara como interesantes, leídos del scope de
  * la hoja ya evaluada.
@@ -54,7 +162,10 @@ function BarraUso({ valor }: { valor: number }) {
  */
 export default function PanelResultados({ salidas, scope, errores }: Props) {
   const usos = salidas.filter((s) => s.tipo === 'uso');
-  const resto = salidas.filter((s) => s.tipo !== 'uso');
+  // Una serie es una tabla, no una fila de la lista de resultados: va a su
+  // propio bloque, después de los números sueltos que la resumen.
+  const series = salidas.filter((s) => s.tipo === 'serie');
+  const resto = salidas.filter((s) => s.tipo !== 'uso' && s.tipo !== 'serie');
   const numeros = usos.map((s) => uso(scope[s.nombre])).filter((v): v is number => v !== null);
   const maximo = numeros.length ? Math.max(...numeros) : null;
   // Un veredicto marcado como aviso no vota en el CUMPLE / NO CUMPLE: dice que
@@ -203,6 +314,14 @@ export default function PanelResultados({ salidas, scope, errores }: Props) {
               );
             })}
           </dl>
+        </div>
+      )}
+
+      {series.length > 0 && (
+        <div className="space-y-3">
+          {series.map((s) => (
+            <TablaSerie key={s.nombre} salida={s} valor={scope[s.nombre]} />
+          ))}
         </div>
       )}
     </div>

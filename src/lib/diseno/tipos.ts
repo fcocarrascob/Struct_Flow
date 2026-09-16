@@ -57,14 +57,33 @@ export function normalizarOpciones(opciones: number[] | OpcionCampo[]): OpcionCa
  * - `veredicto` — booleano: ✓ / ✗.
  * - `valor` — número, con su unidad.
  * - `texto` — cadena (qué estado límite gobierna, por ejemplo).
+ * - `serie` — una matriz N×M del scope: tabla con encabezados y botón de copiar.
  */
-export type TipoSalida = 'valor' | 'uso' | 'veredicto' | 'texto';
+export type TipoSalida = 'valor' | 'uso' | 'veredicto' | 'texto' | 'serie';
+
+/** Una columna de una salida `serie`: qué es y en qué unidad está. */
+export interface ColumnaSerie {
+  titulo: string;
+  /** Informativa: va en el encabezado. La matriz del scope es adimensional. */
+  unidad?: string;
+  /** Para qué sirve esta columna; el panel la muestra bajo el encabezado. */
+  ayuda?: string;
+}
 
 export interface SalidaDef {
   nombre: string;
   etiqueta: string;
   unidad?: string;
   tipo: TipoSalida;
+  /**
+   * Las columnas de una `serie`, en el orden en que la matriz las trae.
+   *
+   * Obligatorias, y por una razón: una matriz de tres columnas sin encabezado
+   * es ilegible y —peor— invita a copiar la que no es. En un espectro, la
+   * columna que se carga en el modelo y la que se grafica son distintas, y
+   * confundirlas cuenta dos veces el factor de escala sin que nada falle.
+   */
+  columnas?: ColumnaSerie[];
   /**
    * Un `veredicto` que, en ✗, es una advertencia sobre la VALIDEZ del
    * resultado y no un incumplimiento de la norma.

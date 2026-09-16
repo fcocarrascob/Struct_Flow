@@ -292,8 +292,18 @@ export function validarMeta(metaCrudo: unknown, regions: readonly Region[]): Hal
         error('meta.salidas', `\`meta.salidas[${i}]\` no tiene nombre o tipo`);
         return;
       }
-      if (!['valor', 'uso', 'veredicto', 'texto'].includes(s.tipo as string)) {
+      if (!['valor', 'uso', 'veredicto', 'texto', 'serie'].includes(s.tipo as string)) {
         error('meta.salidas', `la salida «${s.nombre}» tiene tipo «${String(s.tipo)}» desconocido`);
+      }
+      // Una `serie` sin columnas declaradas es una matriz de números sin
+      // encabezado: ilegible, y una invitación a copiar la columna que no es.
+      if (s.tipo === 'serie') {
+        const cols = (s as { columnas?: unknown }).columnas;
+        if (!Array.isArray(cols) || cols.length === 0) {
+          error('meta.salidas', `la serie «${s.nombre}» no declara \`columnas\``);
+        } else if (cols.some((c) => !esObjeto(c) || typeof c.titulo !== 'string' || !c.titulo.trim())) {
+          error('meta.salidas', `una columna de la serie «${s.nombre}» no trae \`titulo\``);
+        }
       }
       porNombreSalida.set(s.nombre as string, s as unknown as SalidaDef);
     });

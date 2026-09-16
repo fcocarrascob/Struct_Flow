@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import PanelResultados from '../../components/diseno/PanelResultados';
+import VisorEsquema from '../../components/diseno/VisorEsquema';
 import type { Entradas, SalidaDef } from '../../lib/diseno/tipos';
 import {
   camposResueltos,
@@ -23,7 +24,7 @@ import type { Importada } from './modelo';
  */
 type Pestaña = 'entradas' | 'salidas' | 'verificaciones';
 
-const ES_SALIDA = (s: SalidaDef) => s.tipo === 'valor' || s.tipo === 'texto';
+const ES_SALIDA = (s: SalidaDef) => s.tipo === 'valor' || s.tipo === 'texto' || s.tipo === 'serie';
 const ES_VERIFICACION = (s: SalidaDef) => s.tipo === 'uso' || s.tipo === 'veredicto';
 
 /**
@@ -258,11 +259,26 @@ export default function FichaGenerica({
             que los números de «Salidas» pueden estar a medio hacer y quien los
             está mirando tiene que enterarse sin cambiar de pestaña. */}
         {pestaña === 'salidas' && (
-          <PanelResultados
-            salidas={modulo.salidas.filter(ES_SALIDA)}
-            scope={ev.scope}
-            errores={ev.errores}
-          />
+          <div className="space-y-3">
+            {/* La figura va con los resultados y no en una pestaña propia: en
+                una hoja de acciones ES un resultado —la curva que se carga en el
+                modelo—, y leer la ordenada sin ver de qué curva sale es
+                justamente lo que se quiere evitar. En el canvas cabe porque el
+                visor escala el SVG al ancho disponible. */}
+            {modulo.esquema && (
+              <VisorEsquema
+                src={modulo.esquema}
+                scope={ev.scope}
+                ancho={modulo.anchoEsquema ?? 660}
+                alto={modulo.altoEsquema ?? 430}
+              />
+            )}
+            <PanelResultados
+              salidas={modulo.salidas.filter(ES_SALIDA)}
+              scope={ev.scope}
+              errores={ev.errores}
+            />
+          </div>
         )}
 
         {pestaña === 'verificaciones' && (

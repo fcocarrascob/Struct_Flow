@@ -216,6 +216,29 @@
     "tipo": "valor"
    },
    {
+    "nombre": "tabla_esp",
+    "etiqueta": "Espectro tabulado",
+    "tipo": "serie",
+    "ayuda": "A la función del modelo va la columna S_aH, con el factor de escala de arriba. La de diseño ya lleva I, ξ y R* adentro: cargarla con el factor los contaría dos veces.",
+    "columnas": [
+     {
+      "titulo": "T",
+      "unidad": "s",
+      "ayuda": "Período"
+     },
+     {
+      "titulo": "S_aH",
+      "unidad": "g",
+      "ayuda": "Espectro de referencia puro, Ec. (3) o (4): sin I, sin R* y sin (0,05/ξ)^0,4. Es el que se carga en el modelo"
+     },
+     {
+      "titulo": "Sa_dis",
+      "unidad": "g",
+      "ayuda": "Espectro de diseño completo, Ec. (1a) o (2). Para graficar o contrastar, no para cargar con el factor de escala"
+     }
+    ]
+   },
+   {
     "nombre": "v_zona_valida",
     "etiqueta": "La zona está en la Tabla 3",
     "tipo": "veredicto"
@@ -823,279 +846,293 @@
   },
   {
    "id": "r058",
-   "kind": "text",
+   "kind": "program",
    "x": 40,
    "y": 5728,
-   "src": "━━ 7 — BANDA DE CORTE BASAL · §5.12 Ec. (12) y §5.13 Ec. (13) ━━"
+   "src": "tabla_esp :=\n    Q := zeros(n_pts, 3)\n    for i in 1:n_pts\n        Tq := (i - 1)/(n_pts - 1)*T_top\n        Q[i, 1] = Tq/(1 s)\n        Q[i, 2] = Sa_ref_de(Tq)\n        Q[i, 3] = I_imp*Sa_ref_de(Tq)*f_xi/R_red\n    Q"
   },
   {
    "id": "r059",
-   "kind": "math",
+   "kind": "text",
    "x": 40,
-   "y": 5776,
-   "src": "coef_Q0min := 0.25 * I_imp * Ar * S_s ="
+   "y": 5984,
+   "src": "↑ El espectro tabulado, en la misma grilla que dibuja la figura. La SEGUNDA columna es la\nque se carga en el modelo —el espectro de referencia puro, sin I, sin R* y sin la corrección\npor amortiguamiento— y va acompañada del factor de escala de arriba. La TERCERA es el\nespectro de diseño completo, para graficar o contrastar fuera; cargarla en el modelo Y\naplicarle además el factor de escala contaría I, ξ y R* dos veces."
   },
   {
    "id": "r060",
-   "kind": "math",
+   "kind": "text",
    "x": 40,
-   "y": 5824,
-   "src": "coef_Q0max := 2.75 * I_imp * Ar * S_s / (R_sis + 1) * f_xi ="
+   "y": 6128,
+   "src": "━━ 7 — BANDA DE CORTE BASAL · §5.12 Ec. (12) y §5.13 Ec. (13) ━━"
   },
   {
    "id": "r061",
    "kind": "math",
    "x": 40,
-   "y": 5872,
-   "src": "Q0_min := coef_Q0min * P_sis = kN"
+   "y": 6176,
+   "src": "coef_Q0min := 0.25 * I_imp * Ar * S_s ="
   },
   {
    "id": "r062",
    "kind": "math",
    "x": 40,
-   "y": 5920,
+   "y": 6224,
+   "src": "coef_Q0max := 2.75 * I_imp * Ar * S_s / (R_sis + 1) * f_xi ="
+  },
+  {
+   "id": "r063",
+   "kind": "math",
+   "x": 40,
+   "y": 6272,
+   "src": "Q0_min := coef_Q0min * P_sis = kN"
+  },
+  {
+   "id": "r064",
+   "kind": "math",
+   "x": 40,
+   "y": 6320,
    "src": "Q0_max := coef_Q0max * P_sis = kN"
   },
   {
    "id": "v_corte_horizontal",
    "kind": "math",
    "x": 40,
-   "y": 5968,
+   "y": 6368,
    "src": "v_corte_horizontal := es_vert == 0 ="
   },
   {
-   "id": "r063",
+   "id": "r065",
    "kind": "text",
    "x": 40,
-   "y": 6016,
+   "y": 6416,
    "src": "↑ El corte del análisis, PREVIO A COMBINAR, se compara contra esta banda. Por debajo del\npiso, §5.12 multiplica todas las fuerzas por Q_0^mín/Q_0 —y ese aumento no se aplica al\ncálculo de desplazamientos—; por encima del techo, §5.13 permite reducir, y dice «se pueden»\ny no «se deben». El piso no lleva R y el techo divide por (R + 1): subir R baja el techo y\ndeja el piso donde está, así que los dos se acercan. El veredicto de arriba marca que la\nbanda es de la dirección HORIZONTAL; en un nodo vertical no aplica y no vota."
   },
   {
-   "id": "r064",
+   "id": "r066",
    "kind": "text",
    "x": 40,
-   "y": 6192,
+   "y": 6592,
    "src": "━━ RESUMEN ━━"
   },
   {
    "id": "v_global",
    "kind": "math",
    "x": 40,
-   "y": 6240,
+   "y": 6640,
    "src": "v_global := v_zona_valida and v_suelo_valido and v_cat_valida and v_Ar_14A0 and v_ancla_0 and v_xi_rango ="
   },
   {
-   "id": "r065",
+   "id": "r067",
    "kind": "text",
    "x": 40,
-   "y": 6288,
+   "y": 6688,
    "src": "━━ ESQUEMA · MAPEO A PÍXELES ━━"
-  },
-  {
-   "id": "r066",
-   "kind": "math",
-   "x": 40,
-   "y": 6336,
-   "src": "x_0 := 58",
-   "imprimir": false
-  },
-  {
-   "id": "r067",
-   "kind": "math",
-   "x": 40,
-   "y": 6384,
-   "src": "y_0 := 356",
-   "imprimir": false
   },
   {
    "id": "r068",
    "kind": "math",
    "x": 40,
-   "y": 6432,
-   "src": "w_dib := 396",
+   "y": 6736,
+   "src": "x_0 := 58",
    "imprimir": false
   },
   {
    "id": "r069",
    "kind": "math",
    "x": 40,
-   "y": 6480,
-   "src": "h_dib := 286",
+   "y": 6784,
+   "src": "y_0 := 356",
    "imprimir": false
   },
   {
    "id": "r070",
    "kind": "math",
    "x": 40,
-   "y": 6528,
-   "src": "Sa_top := ceil(Sa_max_ref * 1.12 * 10)/10",
+   "y": 6832,
+   "src": "w_dib := 396",
    "imprimir": false
   },
   {
    "id": "r071",
    "kind": "math",
    "x": 40,
-   "y": 6576,
-   "src": "paso_tick := Sa_top <= 0.6 ? 0.1 : (Sa_top <= 1.2 ? 0.2 : (Sa_top <= 3 ? 0.5 : 1))",
+   "y": 6880,
+   "src": "h_dib := 286",
    "imprimir": false
   },
   {
    "id": "r072",
    "kind": "math",
    "x": 40,
-   "y": 6624,
-   "src": "s_T := w_dib/(T_top/(1 s))",
+   "y": 6928,
+   "src": "Sa_top := ceil(Sa_max_ref * 1.12 * 10)/10",
    "imprimir": false
   },
   {
    "id": "r073",
    "kind": "math",
    "x": 40,
-   "y": 6672,
-   "src": "s_Sa := h_dib/Sa_top",
+   "y": 6976,
+   "src": "paso_tick := Sa_top <= 0.6 ? 0.1 : (Sa_top <= 1.2 ? 0.2 : (Sa_top <= 3 ? 0.5 : 1))",
    "imprimir": false
   },
   {
    "id": "r074",
-   "kind": "program",
+   "kind": "math",
    "x": 40,
-   "y": 6720,
-   "src": "x_px(Tq) := x_0 + Tq/(1 s)*s_T",
+   "y": 7024,
+   "src": "s_T := w_dib/(T_top/(1 s))",
    "imprimir": false
   },
   {
    "id": "r075",
-   "kind": "program",
+   "kind": "math",
    "x": 40,
-   "y": 6784,
-   "src": "y_px(Sq) := y_0 - Sq*s_Sa",
+   "y": 7072,
+   "src": "s_Sa := h_dib/Sa_top",
    "imprimir": false
   },
   {
    "id": "r076",
    "kind": "program",
    "x": 40,
-   "y": 6848,
-   "src": "curva_px_de(fac) :=\n    Q := zeros(n_pts, 2)\n    for i in 1:n_pts\n        Tq := (i - 1)/(n_pts - 1)*T_top\n        Q[i, 1] = x_px(Tq)\n        Q[i, 2] = y_px(I_imp*Sa_ref_de(Tq)*f_xi*fac)\n    Q",
+   "y": 7120,
+   "src": "x_px(Tq) := x_0 + Tq/(1 s)*s_T",
    "imprimir": false
   },
   {
    "id": "r077",
-   "kind": "math",
+   "kind": "program",
    "x": 40,
-   "y": 7072,
-   "src": "esp_ref_px := curva_px_de(1)",
+   "y": 7184,
+   "src": "y_px(Sq) := y_0 - Sq*s_Sa",
    "imprimir": false
   },
   {
    "id": "r078",
-   "kind": "math",
+   "kind": "program",
    "x": 40,
-   "y": 7120,
-   "src": "esp_dis_px := curva_px_de(1/R_red)",
+   "y": 7248,
+   "src": "curva_px_de(fac) :=\n    Q := zeros(n_pts, 2)\n    for i in 1:n_pts\n        Tq := (i - 1)/(n_pts - 1)*T_top\n        Q[i, 1] = x_px(Tq)\n        Q[i, 2] = y_px(I_imp*Sa_ref_de(Tq)*f_xi*fac)\n    Q",
    "imprimir": false
   },
   {
    "id": "r079",
-   "kind": "program",
+   "kind": "math",
    "x": 40,
-   "y": 7168,
-   "src": "ticks_y_de() :=\n    m := round(Sa_top/paso_tick)\n    Q := zeros(m, 2)\n    for i in 1:m\n        v := i*paso_tick\n        Q[i, 1] = v\n        Q[i, 2] = y_px(v)\n    Q",
+   "y": 7472,
+   "src": "esp_ref_px := curva_px_de(1)",
    "imprimir": false
   },
   {
    "id": "r080",
    "kind": "math",
    "x": 40,
-   "y": 7424,
-   "src": "ticks_y := ticks_y_de()",
+   "y": 7520,
+   "src": "esp_dis_px := curva_px_de(1/R_red)",
    "imprimir": false
   },
   {
    "id": "r081",
-   "kind": "math",
+   "kind": "program",
    "x": 40,
-   "y": 7472,
-   "src": "px_T := x_px(T_est)",
+   "y": 7568,
+   "src": "ticks_y_de() :=\n    m := round(Sa_top/paso_tick)\n    Q := zeros(m, 2)\n    for i in 1:m\n        v := i*paso_tick\n        Q[i, 1] = v\n        Q[i, 2] = y_px(v)\n    Q",
    "imprimir": false
   },
   {
    "id": "r082",
    "kind": "math",
    "x": 40,
-   "y": 7520,
-   "src": "py_ref := y_px(Sa_ref)",
+   "y": 7824,
+   "src": "ticks_y := ticks_y_de()",
    "imprimir": false
   },
   {
    "id": "r083",
    "kind": "math",
    "x": 40,
-   "y": 7568,
-   "src": "py_dis := y_px(Sa_dis)",
+   "y": 7872,
+   "src": "px_T := x_px(T_est)",
    "imprimir": false
   },
   {
    "id": "r084",
    "kind": "math",
    "x": 40,
-   "y": 7616,
-   "src": "rot_dir := es_vert == 1 ? \"vertical · Ec. (4) y Ec. (2)\" : \"horizontal · Ec. (3) y Ec. (1a)\"",
+   "y": 7920,
+   "src": "py_ref := y_px(Sa_ref)",
    "imprimir": false
   },
   {
    "id": "r085",
    "kind": "math",
    "x": 40,
-   "y": 7664,
-   "src": "rot_red := es_vert == 1 ? \"R_V\" : \"R*\"",
+   "y": 7968,
+   "src": "py_dis := y_px(Sa_dis)",
    "imprimir": false
   },
   {
    "id": "r086",
    "kind": "math",
    "x": 40,
-   "y": 7712,
-   "src": "rot_suelo := suelo == 1 ? \"A\" : (suelo == 2 ? \"B\" : (suelo == 3 ? \"C\" : (suelo == 4 ? \"D\" : \"E\")))",
+   "y": 8016,
+   "src": "rot_dir := es_vert == 1 ? \"vertical · Ec. (4) y Ec. (2)\" : \"horizontal · Ec. (3) y Ec. (1a)\"",
    "imprimir": false
   },
   {
    "id": "r087",
    "kind": "math",
    "x": 40,
-   "y": 7760,
-   "src": "col_codo := es_vert == 1 ? \"#999999\" : (v_T_est_sobre_codo ? \"#1c7c3c\" : \"#c07a00\")",
+   "y": 8064,
+   "src": "rot_red := es_vert == 1 ? \"R_V\" : \"R*\"",
    "imprimir": false
   },
   {
    "id": "r088",
    "kind": "math",
    "x": 40,
-   "y": 7808,
-   "src": "op_codo := es_vert == 1 ? 0 : 0.85",
+   "y": 8112,
+   "src": "rot_suelo := suelo == 1 ? \"A\" : (suelo == 2 ? \"B\" : (suelo == 3 ? \"C\" : (suelo == 4 ? \"D\" : \"E\")))",
    "imprimir": false
   },
   {
    "id": "r089",
    "kind": "math",
    "x": 40,
-   "y": 7856,
-   "src": "rot_R := es_vert == 1 ? \"R_V\" : \"R\"",
+   "y": 8160,
+   "src": "col_codo := es_vert == 1 ? \"#999999\" : (v_T_est_sobre_codo ? \"#1c7c3c\" : \"#c07a00\")",
    "imprimir": false
   },
   {
    "id": "r090",
    "kind": "math",
    "x": 40,
-   "y": 7904,
-   "src": "R_sist := es_vert == 1 ? 2.0 : R_sis",
+   "y": 8208,
+   "src": "op_codo := es_vert == 1 ? 0 : 0.85",
    "imprimir": false
   },
   {
    "id": "r091",
    "kind": "math",
    "x": 40,
-   "y": 7952,
+   "y": 8256,
+   "src": "rot_R := es_vert == 1 ? \"R_V\" : \"R\"",
+   "imprimir": false
+  },
+  {
+   "id": "r092",
+   "kind": "math",
+   "x": 40,
+   "y": 8304,
+   "src": "R_sist := es_vert == 1 ? 2.0 : R_sis",
+   "imprimir": false
+  },
+  {
+   "id": "r093",
+   "kind": "math",
+   "x": 40,
+   "y": 8352,
    "src": "rot_codo := es_vert == 1 ? \"no aplica en vertical: R_V es fijo\" : (v_T_est_sobre_codo ? \"T* por encima: R* = R de la Tabla 7\" : \"T* por debajo: R* se degrada hacia 1,5\")",
    "imprimir": false
   },
@@ -1103,7 +1140,7 @@
    "id": "img_esq",
    "kind": "image",
    "x": 40,
-   "y": 8000,
+   "y": 8400,
    "src": "/esquemas/espectro-nch2369-generica.svg",
    "w": 680,
    "h": 430

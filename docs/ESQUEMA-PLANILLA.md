@@ -340,6 +340,30 @@ Una salida es una variable del scope. Un `veredicto` es una **variable booleana*
 nombre: `v_global := u_max <= 1 =`, no `u_max <= 1 =` a secas. Es como lo leen los
 módulos de diseño (`PanelResultados`) y como lo exige una genérica.
 
+Los tipos son `valor` · `uso` · `veredicto` · `texto` · **`serie`**. Una `serie` apunta a
+una **matriz N×M** del scope y se pinta como tabla con un botón que la copia entera —con
+punto decimal y separada por tabuladores, que es lo que aceptan la cuadrícula de función de
+SAP2000 y su importador de archivo—. Sus `columnas` son obligatorias:
+
+```json
+{ "nombre": "tabla_esp", "etiqueta": "Espectro tabulado", "tipo": "serie",
+  "columnas": [
+    { "titulo": "T", "unidad": "s", "ayuda": "Período" },
+    { "titulo": "S_aH", "unidad": "g", "ayuda": "El que se carga en el modelo" },
+    { "titulo": "Sa_dis", "unidad": "g", "ayuda": "Para graficar, no para cargar" }
+  ] }
+```
+
+No son decorativas: una matriz de tres columnas sin encabezado invita a copiar la que no es,
+y en un espectro la columna que va al modelo y la que se grafica difieren en un factor
+`I·(0,05/ξ)^0,4/R*` que el caso ya aplica por su cuenta. La matriz del scope es
+**adimensional** —la unidad de la columna es informativa—, así que la hoja divide por su
+unidad al armarla (`Q[i,1] = Tq/(1 s)`).
+
+Una serie se declara como cualquier salida, así que **no puede llevar `imprimir: false`**; en
+el papel sale resumida como `matriz 121×3`, que es lo que hace `MAX_ENTRADAS_TEX` con
+cualquier matriz grande.
+
 ### Las normas y la cita
 
 `normas[].clave` es la clave del catálogo del harness (`PAIS/NORMA-EDICION`), que es lo

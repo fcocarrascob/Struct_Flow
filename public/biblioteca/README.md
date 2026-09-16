@@ -70,7 +70,18 @@ su rango—, no de resistencia.
 
 | Plantilla | Qué entrega | Norma | Entradas |
 |---|---|---|---:|
-| `espectro-nch2369-generica` | El espectro de una dirección de análisis: ordenada de diseño en T\*, ordenada de referencia de §6.1, factor de escala del caso espectral y banda de corte basal. Cubre la dirección **horizontal y la vertical** con la misma hoja (`es_vert`), y deriva los parámetros de sitio de la zona, el suelo y la categoría | NCh2369:2025 §4.3.2, §5.4.1, §5.4.2, §5.12, §5.13, §6.1 · Tablas 3, 6 y 7 | 8 |
+| `espectro-nch2369-generica` | El espectro de una dirección de análisis: ordenada de diseño en T\*, ordenada de referencia de §6.1, factor de escala del caso espectral, banda de corte basal y el **espectro tabulado** listo para copiar al modelo. Cubre la dirección **horizontal y la vertical** con la misma hoja (`es_vert`), y deriva los parámetros de sitio de la zona, el suelo y la categoría | NCh2369:2025 §4.3.2, §5.4.1, §5.4.2, §5.12, §5.13, §6.1 · Tablas 3, 6 y 7 | 8 |
+
+La tabla es una salida de tipo **`serie`** (`docs/ESQUEMA-PLANILLA.md` §10): una matriz del
+scope que `PanelResultados` pinta con encabezados y copia entera al portapapeles, en la
+página del módulo y en la ficha del nodo de una obra. Es el camino para que una hoja de
+acciones entregue una curva y no solo un número, y cualquier genérica futura la usa
+declarándola —el perfil de presiones por altura de una hoja de viento es la siguiente.
+
+> 🔴 **La columna que va al modelo es `S_aH`, no `Sa_dis`.** La primera es el espectro de
+> referencia puro en g y viaja con el factor de escala que la hoja calcula
+> (`g·I·(0,05/ξ)^0,4/R*`); la segunda ya lleva I, ξ y R\* adentro. Cargar la segunda **y**
+> aplicarle el factor cuenta los tres dos veces, y el corte basal sale plausible.
 
 Siguen pendientes **viento** y **nieve por ASCE 7**, que se destilan de las hojas del
 taller de neumáticos cuando se instancien por segunda vez.

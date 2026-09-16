@@ -828,6 +828,19 @@ function numSvg(n: unknown): string {
  * en la coordenada 137 no lo ve ningún booleano: el navegador dibuja nada y el
  * PNG sale con la curva muda. El guard es lo único que lo caza.
  */
+/**
+ * Las filas de una matriz del scope, o `null` si el valor no es una.
+ *
+ * Una matriz de mathjs no es un array: hay que pasar por `valueOf()`. Vive acá y
+ * no en cada consumidor porque ya son dos —el `points` de un `<polyline>` y la
+ * tabla de una salida `serie`— y con la comprobación repetida acabarían
+ * discrepando en qué cuenta como matriz.
+ */
+export function filasDeMatriz(v: unknown): unknown[] | null {
+  const filas = math.isMatrix(v) ? (v.valueOf() as unknown[]) : v;
+  return Array.isArray(filas) ? filas : null;
+}
+
 export function formatSvg(v: unknown, unidad?: string): string {
   if (unidad) return numSvg(math.number(v as never, unidad as never));
   if (math.isUnit(v)) {
@@ -835,8 +848,8 @@ export function formatSvg(v: unknown, unidad?: string): string {
   }
   if (typeof v === 'number') return numSvg(v);
 
-  const filas = math.isMatrix(v) ? (v.valueOf() as unknown[]) : v;
-  if (!Array.isArray(filas)) throw new Error(`valor no dibujable: ${typeof v}`);
+  const filas = filasDeMatriz(v);
+  if (!filas) throw new Error(`valor no dibujable: ${typeof v}`);
   if (filas.length === 0) throw new Error('lista de puntos vacía');
   return filas
     .map((fila) => {
