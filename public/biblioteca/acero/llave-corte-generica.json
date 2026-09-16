@@ -1261,10 +1261,18 @@
    "imprimir": false
   },
   {
+   "id": "r_cu",
+   "kind": "program",
+   "x": 40,
+   "y": 7424,
+   "src": "cu(u) := u <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
    "id": "r123",
    "kind": "math",
    "x": 40,
-   "y": 7424,
+   "y": 7472,
    "src": "col_brg := (u_brgx <= 1 and u_brgy <= 1 and v_psi_positivo) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1272,7 +1280,7 @@
    "id": "r124",
    "kind": "math",
    "x": 40,
-   "y": 7472,
+   "y": 7520,
    "src": "col_cb := (u_cbx <= 1 and u_cby <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1280,7 +1288,7 @@
    "id": "r125",
    "kind": "math",
    "x": 40,
-   "y": 7520,
+   "y": 7568,
    "src": "col_chapa := (u_intx <= 1 and u_inty <= 1 and v_regla_espesor) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1288,7 +1296,7 @@
    "id": "r126",
    "kind": "math",
    "x": 40,
-   "y": 7568,
+   "y": 7616,
    "src": "col_perno := v_embebido and v_cabe_pedestal ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1296,7 +1304,7 @@
    "id": "r127",
    "kind": "math",
    "x": 40,
-   "y": 7616,
+   "y": 7664,
    "src": "col_global := v_global ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1304,7 +1312,7 @@
    "id": "esquema",
    "kind": "image",
    "x": 40,
-   "y": 7664,
+   "y": 7712,
    "src": "/esquemas/llave-corte-generica.svg",
    "w": 720,
    "h": 480

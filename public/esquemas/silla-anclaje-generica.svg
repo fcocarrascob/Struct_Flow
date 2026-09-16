@@ -72,17 +72,17 @@
   <text x="620" y="66" font-size="11.5" fill="#222" font-weight="bold">El camino de carga</text>
 
   <text x="620" y="92" font-size="10.5" fill="#333">Chapa superior</text>
-  <text x="830" y="92" font-size="10.5" text-anchor="end" fill="{{col_chapa}}" font-weight="bold">{{u_chapa}}</text>
+  <text x="830" y="92" font-size="10.5" text-anchor="end" fill="{{cu(u_chapa)}}" font-weight="bold">{{u_chapa}}</text>
   <text x="620" y="112" font-size="10.5" fill="#333">Corte del nervio</text>
-  <text x="830" y="112" font-size="10.5" text-anchor="end" fill="{{col_nervio}}" font-weight="bold">{{u_ner}}</text>
+  <text x="830" y="112" font-size="10.5" text-anchor="end" fill="{{cu(u_ner)}}" font-weight="bold">{{u_ner}}</text>
   <text x="620" y="132" font-size="10.5" fill="#333">Soldadura en L</text>
-  <text x="830" y="132" font-size="10.5" text-anchor="end" fill="{{col_nervio}}" font-weight="bold">{{u_sold}}</text>
+  <text x="830" y="132" font-size="10.5" text-anchor="end" fill="{{cu(u_sold)}}" font-weight="bold">{{u_sold}}</text>
   <text x="620" y="152" font-size="10.5" fill="#333">Junta a tope de la extensión</text>
-  <text x="830" y="152" font-size="10.5" text-anchor="end" fill="{{col_ala}}" font-weight="bold">{{u_ext}}</text>
+  <text x="830" y="152" font-size="10.5" text-anchor="end" fill="{{cu(u_ext)}}" font-weight="bold">{{u_ext}}</text>
   <text x="620" y="172" font-size="10.5" fill="#333">Ala a tracción</text>
-  <text x="830" y="172" font-size="10.5" text-anchor="end" fill="{{col_ala}}" font-weight="bold">{{u_ala}}</text>
+  <text x="830" y="172" font-size="10.5" text-anchor="end" fill="{{cu(u_ala)}}" font-weight="bold">{{u_ala}}</text>
   <text x="620" y="192" font-size="10.5" fill="#333">Esbeltez del rigidizador</text>
-  <text x="830" y="192" font-size="10.5" text-anchor="end" fill="{{col_rig}}" font-weight="bold">{{u_rig}}</text>
+  <text x="830" y="192" font-size="10.5" text-anchor="end" fill="{{cu(u_rig)}}" font-weight="bold">{{u_rig}}</text>
 
   <text x="620" y="226" font-size="11.5" fill="#222" font-weight="bold">Rigidizador · §J10.8</text>
   <text x="620" y="248" font-size="10" fill="#555">(a) ancho + t_w/2 ≥ CH_B/3</text>

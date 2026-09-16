@@ -95,13 +95,13 @@
   <text x="620" y="66" font-size="11.5" fill="#222" font-weight="bold">Estados límite</text>
 
   <text x="620" y="92" font-size="10.5" fill="#333">Flexión (provista/exigida)</text>
-  <text x="830" y="92" font-size="10.5" text-anchor="end" fill="{{col_flex}}" font-weight="bold">{{u_flexion}}</text>
+  <text x="830" y="92" font-size="10.5" text-anchor="end" fill="{{cu(u_flexion)}}" font-weight="bold">{{u_flexion}}</text>
   <text x="620" y="112" font-size="10.5" fill="#333">Corte en una dirección, Y</text>
-  <text x="830" y="112" font-size="10.5" text-anchor="end" fill="{{col_corte}}" font-weight="bold">{{u_corte_Y}}</text>
+  <text x="830" y="112" font-size="10.5" text-anchor="end" fill="{{cu(u_corte_Y)}}" font-weight="bold">{{u_corte_Y}}</text>
   <text x="620" y="132" font-size="10.5" fill="#333">Corte en una dirección, X</text>
-  <text x="830" y="132" font-size="10.5" text-anchor="end" fill="{{col_corte}}" font-weight="bold">{{u_corte_X}}</text>
+  <text x="830" y="132" font-size="10.5" text-anchor="end" fill="{{cu(u_corte_X)}}" font-weight="bold">{{u_corte_X}}</text>
   <text x="620" y="152" font-size="10.5" fill="#333">Punzonamiento</text>
-  <text x="830" y="152" font-size="10.5" text-anchor="end" fill="{{col_punz}}" font-weight="bold">{{u_punz}}</text>
+  <text x="830" y="152" font-size="10.5" text-anchor="end" fill="{{cu(u_punz)}}" font-weight="bold">{{u_punz}}</text>
   <text x="620" y="172" font-size="10.5" fill="#333">Armadura superior</text>
   <text x="830" y="172" font-size="10.5" text-anchor="end" fill="{{col_sup}}" font-weight="bold">{{v_sup_flexion}}</text>
 

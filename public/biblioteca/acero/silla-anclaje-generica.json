@@ -1060,7 +1060,7 @@
    "kind": "program",
    "x": 40,
    "y": 5624,
-   "src": "gobierna :=\n    if u_max == u_rig\n        return \"esbeltez del rigidizador de alma\"\n    else if u_max == u_chapa\n        return \"espesor de la chapa superior — depende del ancho eficaz\"\n    else if u_max == u_sold\n        return \"soldadura en L del nervio\"\n    else if u_max == u_ner\n        return \"corte del nervio junto al ala\"\n    else if u_max == u_ext\n        return \"junta a tope de la extensión de ala\"\n    else\n        return \"tracción del ala\""
+   "src": "gobierna :=\n    if u_max == u_rig\n        return \"esbeltez del rigidizador de alma\"\n    else if u_max == u_chapa\n        return \"espesor de la chapa superior\"\n    else if u_max == u_sold\n        return \"soldadura en L del nervio\"\n    else if u_max == u_ner\n        return \"corte del nervio junto al ala\"\n    else if u_max == u_ext\n        return \"junta a tope de la extensión de ala\"\n    else\n        return \"tracción del ala\""
   },
   {
    "id": "v_global",
@@ -1126,10 +1126,18 @@
    "imprimir": false
   },
   {
+   "id": "r_cu",
+   "kind": "program",
+   "x": 40,
+   "y": 6368,
+   "src": "cu(u) := u <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
    "id": "r112",
    "kind": "math",
    "x": 40,
-   "y": 6368,
+   "y": 6416,
    "src": "col_chapa := u_chapa <= 1 and v_chapa_cubre ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1137,7 +1145,7 @@
    "id": "r113",
    "kind": "math",
    "x": 40,
-   "y": 6416,
+   "y": 6464,
    "src": "col_nervio := (u_ner <= 1 and u_sold <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1145,7 +1153,7 @@
    "id": "r114",
    "kind": "math",
    "x": 40,
-   "y": 6464,
+   "y": 6512,
    "src": "col_ala := (u_ala <= 1 and u_ext <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1153,7 +1161,7 @@
    "id": "r115",
    "kind": "math",
    "x": 40,
-   "y": 6512,
+   "y": 6560,
    "src": "col_rig := (v_rig1 and v_rig2a and v_rig2b and v_rig3 and v_rig_largo) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1161,7 +1169,7 @@
    "id": "r116",
    "kind": "math",
    "x": 40,
-   "y": 6560,
+   "y": 6608,
    "src": "col_global := v_global ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1169,7 +1177,7 @@
    "id": "esquema",
    "kind": "image",
    "x": 40,
-   "y": 6608,
+   "y": 6656,
    "src": "/esquemas/silla-anclaje-generica.svg",
    "w": 720,
    "h": 480

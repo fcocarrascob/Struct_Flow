@@ -1305,11 +1305,19 @@
    "y": 7952
   },
   {
+   "id": "r_cu",
+   "kind": "program",
+   "x": 40,
+   "y": 8000,
+   "src": "cu(u) := u <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
    "id": "r150",
    "kind": "math",
    "x": 40,
    "src": "col_paso := v_paso ? \"#1c7c3c\" : \"#c0392b\"",
-   "y": 8000,
+   "y": 8048,
    "imprimir": false
   },
   {
@@ -1317,7 +1325,7 @@
    "kind": "math",
    "x": 40,
    "src": "col_ancho := v_ancho ? \"#1c7c3c\" : \"#c0392b\"",
-   "y": 8048,
+   "y": 8096,
    "imprimir": false
   },
   {
@@ -1325,7 +1333,7 @@
    "kind": "math",
    "x": 40,
    "src": "col_largo := v_largo ? \"#1c7c3c\" : \"#c0392b\"",
-   "y": 8096,
+   "y": 8144,
    "imprimir": false
   },
   {
@@ -1333,7 +1341,7 @@
    "kind": "math",
    "x": 40,
    "src": "col_horm_B := borde_horm_B >= borde_horm_min ? \"#1c7c3c\" : \"#c0392b\"",
-   "y": 8144,
+   "y": 8192,
    "imprimir": false
   },
   {
@@ -1341,7 +1349,7 @@
    "kind": "math",
    "x": 40,
    "src": "col_horm_L := borde_horm_L >= borde_horm_min ? \"#1c7c3c\" : \"#c0392b\"",
-   "y": 8192,
+   "y": 8240,
    "imprimir": false
   },
   {
@@ -1349,7 +1357,7 @@
    "kind": "math",
    "x": 40,
    "src": "col_fila := v_fila_libre ? \"#1c7c3c\" : \"#c0392b\"",
-   "y": 8240,
+   "y": 8288,
    "imprimir": false
   },
   {
@@ -1357,7 +1365,7 @@
    "kind": "math",
    "x": 40,
    "src": "col_bloque := v_bloque ? \"#1a63a8\" : \"#c0392b\"",
-   "y": 8288,
+   "y": 8336,
    "imprimir": false
   },
   {
@@ -1367,7 +1375,7 @@
    "src": "/esquemas/placa-base-generica.svg",
    "w": 720,
    "h": 514,
-   "y": 8336
+   "y": 8384
   }
  ]
 }

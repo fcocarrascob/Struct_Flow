@@ -72,13 +72,13 @@
   <text x="620" y="66" font-size="11.5" fill="#222" font-weight="bold">Modos de falla en tracción</text>
 
   <text x="620" y="92" font-size="10.5" fill="#333">Acero del perno</text>
-  <text x="830" y="92" font-size="10.5" text-anchor="end" fill="{{col_acero}}" font-weight="bold">{{u_acero}}</text>
+  <text x="830" y="92" font-size="10.5" text-anchor="end" fill="{{cu(u_acero)}}" font-weight="bold">{{u_acero}}</text>
   <text x="620" y="112" font-size="10.5" fill="#333">{{usa_arm == 1 ? "Armadura de anclaje" : "Cono de hormigón"}}</text>
-  <text x="830" y="112" font-size="10.5" text-anchor="end" fill="{{col_cono}}" font-weight="bold">{{u_cono}}</text>
+  <text x="830" y="112" font-size="10.5" text-anchor="end" fill="{{cu(u_cono)}}" font-weight="bold">{{u_cono}}</text>
   <text x="620" y="132" font-size="10.5" fill="#333">Extracción de la cabeza</text>
-  <text x="830" y="132" font-size="10.5" text-anchor="end" fill="#333" font-weight="bold">{{u_pullout}}</text>
+  <text x="830" y="132" font-size="10.5" text-anchor="end" fill="{{cu(u_pullout)}}" font-weight="bold">{{u_pullout}}</text>
   <text x="620" y="152" font-size="10.5" fill="#333">Descascaramiento lateral</text>
-  <text x="830" y="152" font-size="10.5" text-anchor="end" fill="#333" font-weight="bold">{{u_blowout}}</text>
+  <text x="830" y="152" font-size="10.5" text-anchor="end" fill="{{cu(u_blowout)}}" font-weight="bold">{{u_blowout}}</text>
   <text x="620" y="170" font-size="9" fill="#777">{{modo_sb}}</text>
 
   <text x="620" y="204" font-size="11.5" fill="#222" font-weight="bold">Armadura de anclaje</text>

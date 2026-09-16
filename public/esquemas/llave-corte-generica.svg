@@ -91,15 +91,15 @@
   <text x="620" y="66" font-size="11.5" fill="#222" font-weight="bold">Estados límite</text>
 
   <text x="620" y="92" font-size="10.5" fill="#333">Aplastamiento X · Y</text>
-  <text x="830" y="92" font-size="10.5" text-anchor="end" fill="{{col_brg}}" font-weight="bold">{{u_brgx}} · {{u_brgy}}</text>
+  <text x="830" y="92" font-size="10.5" text-anchor="end" fill="{{cu(max(u_brgx, u_brgy))}}" font-weight="bold">{{u_brgx}} · {{u_brgy}}</text>
   <text x="620" y="112" font-size="10.5" fill="#333">Breakout de corte X · Y</text>
-  <text x="830" y="112" font-size="10.5" text-anchor="end" fill="{{col_cb}}" font-weight="bold">{{u_cbx}} · {{u_cby}}</text>
+  <text x="830" y="112" font-size="10.5" text-anchor="end" fill="{{cu(max(u_cbx, u_cby))}}" font-weight="bold">{{u_cbx}} · {{u_cby}}</text>
   <text x="620" y="132" font-size="10.5" fill="#333">Chapa, interacción M–V X · Y</text>
-  <text x="830" y="132" font-size="10.5" text-anchor="end" fill="{{col_chapa}}" font-weight="bold">{{u_intx}} · {{u_inty}}</text>
+  <text x="830" y="132" font-size="10.5" text-anchor="end" fill="{{cu(max(u_intx, u_inty))}}" font-weight="bold">{{u_intx}} · {{u_inty}}</text>
   <text x="620" y="152" font-size="10.5" fill="#333">Soldadura X · Y</text>
-  <text x="830" y="152" font-size="10.5" text-anchor="end" fill="#333" font-weight="bold">{{u_soldx}} · {{u_soldy}}</text>
+  <text x="830" y="152" font-size="10.5" text-anchor="end" fill="{{cu(max(u_soldx, u_soldy))}}" font-weight="bold">{{u_soldx}} · {{u_soldy}}</text>
   <text x="620" y="172" font-size="10.5" fill="#333">Placa, flexión local X · Y</text>
-  <text x="830" y="172" font-size="10.5" text-anchor="end" fill="#333" font-weight="bold">{{u_bpx}} · {{u_bpy}}</text>
+  <text x="830" y="172" font-size="10.5" text-anchor="end" fill="{{cu(max(u_bpx, u_bpy))}}" font-weight="bold">{{u_bpx}} · {{u_bpy}}</text>
 
   <text x="620" y="206" font-size="11.5" fill="#222" font-weight="bold">Geometría</text>
   <text x="620" y="228" font-size="10" fill="#555">t_bp ≥ t_sl (DG1 §4.3.3)</text>

@@ -1075,10 +1075,18 @@
    "imprimir": false
   },
   {
+   "id": "r_cu",
+   "kind": "program",
+   "x": 40,
+   "y": 6152,
+   "src": "cu(u) := u <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
    "id": "r111",
    "kind": "math",
    "x": 40,
-   "y": 6152,
+   "y": 6200,
    "src": "col_flex := v_As_prov ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1086,7 +1094,7 @@
    "id": "r112",
    "kind": "math",
    "x": 40,
-   "y": 6200,
+   "y": 6248,
    "src": "col_corte := (u_corte_Y <= 1 and u_corte_X <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1094,7 +1102,7 @@
    "id": "r113",
    "kind": "math",
    "x": 40,
-   "y": 6248,
+   "y": 6296,
    "src": "col_punz := u_punz <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1102,7 +1110,7 @@
    "id": "r114",
    "kind": "math",
    "x": 40,
-   "y": 6296,
+   "y": 6344,
    "src": "col_banda := (v_sep_banda and v_sep_fuera) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1110,7 +1118,7 @@
    "id": "r115",
    "kind": "math",
    "x": 40,
-   "y": 6344,
+   "y": 6392,
    "src": "col_sup := v_sup_flexion ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1118,7 +1126,7 @@
    "id": "r116",
    "kind": "math",
    "x": 40,
-   "y": 6392,
+   "y": 6440,
    "src": "col_global := v_global ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1126,7 +1134,7 @@
    "id": "esquema",
    "kind": "image",
    "x": 40,
-   "y": 6440,
+   "y": 6488,
    "src": "/esquemas/zapata-generica.svg",
    "w": 720,
    "h": 480

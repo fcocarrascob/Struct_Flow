@@ -2013,10 +2013,18 @@
    "imprimir": false
   },
   {
+   "id": "r_cu",
+   "kind": "program",
+   "x": 40,
+   "y": 12200,
+   "src": "cu(u) := u <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
    "id": "r041b",
    "kind": "math",
    "x": 40,
-   "y": 12200,
+   "y": 12248,
    "src": "col_flex := u_H1 <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -2024,7 +2032,7 @@
    "id": "r042",
    "kind": "math",
    "x": 40,
-   "y": 12248,
+   "y": 12296,
    "src": "col_alma := (u_corte <= 1 and u_wly <= 1 and u_wlc <= 1 and u_wsb <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -2032,7 +2040,7 @@
    "id": "r043",
    "kind": "math",
    "x": 40,
-   "y": 12296,
+   "y": 12344,
    "src": "col_serv := (u_dvert <= 1 and u_dhoriz <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -2040,7 +2048,7 @@
    "id": "r044",
    "kind": "math",
    "x": 40,
-   "y": 12344,
+   "y": 12392,
    "src": "col_fat := u_fatiga <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -2048,7 +2056,7 @@
    "id": "r045",
    "kind": "math",
    "x": 40,
-   "y": 12392,
+   "y": 12440,
    "src": "col_global := v_global ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -2056,7 +2064,7 @@
    "id": "esquema",
    "kind": "image",
    "x": 40,
-   "y": 12440,
+   "y": 12488,
    "src": "/esquemas/viga-carrilera-generica.svg",
    "w": 720,
    "h": 480

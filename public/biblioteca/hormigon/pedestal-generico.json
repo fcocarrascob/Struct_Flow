@@ -1190,10 +1190,18 @@
    "imprimir": false
   },
   {
+   "id": "r_cu",
+   "kind": "program",
+   "x": 40,
+   "y": 7568,
+   "src": "cu(u) := u <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
    "id": "r118",
    "kind": "math",
    "x": 40,
-   "y": 7568,
+   "y": 7616,
    "src": "col_barras := (v_cuantia_min and v_cuantia_max) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1201,7 +1209,7 @@
    "id": "r119",
    "kind": "math",
    "x": 40,
-   "y": 7616,
+   "y": 7664,
    "src": "col_est := (v_Av and v_sep_est and v_db_est) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1209,7 +1217,7 @@
    "id": "r120",
    "kind": "math",
    "x": 40,
-   "y": 7664,
+   "y": 7712,
    "src": "col_corte := (u_corte_X <= 1 and u_corte_Y <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1217,7 +1225,7 @@
    "id": "r121",
    "kind": "math",
    "x": 40,
-   "y": 7712,
+   "y": 7760,
    "src": "col_anc := u_anclaje <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1225,7 +1233,7 @@
    "id": "r122",
    "kind": "math",
    "x": 40,
-   "y": 7760,
+   "y": 7808,
    "src": "col_pm := (u_pm <= 1 and u_biax <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1233,7 +1241,7 @@
    "id": "r123",
    "kind": "math",
    "x": 40,
-   "y": 7808,
+   "y": 7856,
    "src": "col_global := v_global ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1241,7 +1249,7 @@
    "id": "esquema",
    "kind": "image",
    "x": 40,
-   "y": 7856,
+   "y": 7904,
    "src": "/esquemas/pedestal-generico.svg",
    "w": 720,
    "h": 480

@@ -1121,10 +1121,18 @@
    "imprimir": false
   },
   {
+   "id": "r_cu",
+   "kind": "program",
+   "x": 40,
+   "y": 6920,
+   "src": "cu(u) := u <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
    "id": "r108",
    "kind": "math",
    "x": 40,
-   "y": 6920,
+   "y": 6968,
    "src": "col_acero := u_acero <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1132,7 +1140,7 @@
    "id": "r109",
    "kind": "math",
    "x": 40,
-   "y": 6968,
+   "y": 7016,
    "src": "col_cono := u_cono <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1140,7 +1148,7 @@
    "id": "r110",
    "kind": "math",
    "x": 40,
-   "y": 7016,
+   "y": 7064,
    "src": "col_arm := (usa_arm == 1 and u_armadura <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1148,7 +1156,7 @@
    "id": "r111",
    "kind": "math",
    "x": 40,
-   "y": 7064,
+   "y": 7112,
    "src": "col_sep := v_sep_min ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1156,7 +1164,7 @@
    "id": "r112",
    "kind": "math",
    "x": 40,
-   "y": 7112,
+   "y": 7160,
    "src": "col_global := v_global ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1164,7 +1172,7 @@
    "id": "esquema",
    "kind": "image",
    "x": 40,
-   "y": 7160,
+   "y": 7208,
    "src": "/esquemas/anclaje-hormigon-generica.svg",
    "w": 720,
    "h": 480

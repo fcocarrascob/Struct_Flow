@@ -57,23 +57,23 @@
   <text x="620" y="66" font-size="11.5" fill="#222" font-weight="bold">Estados límite</text>
 
   <text x="620" y="92" font-size="10.5" fill="#333">Flexión eje fuerte (§F4)</text>
-  <text x="830" y="92" font-size="10.5" text-anchor="end" fill="{{col_flex}}" font-weight="bold">{{u_flex}}</text>
+  <text x="830" y="92" font-size="10.5" text-anchor="end" fill="{{cu(u_flex)}}" font-weight="bold">{{u_flex}}</text>
   <text x="620" y="112" font-size="10.5" fill="#333">Flexión lateral</text>
-  <text x="830" y="112" font-size="10.5" text-anchor="end" fill="{{col_flex}}" font-weight="bold">{{u_lat}}</text>
+  <text x="830" y="112" font-size="10.5" text-anchor="end" fill="{{cu(u_lat)}}" font-weight="bold">{{u_lat}}</text>
   <text x="620" y="132" font-size="10.5" fill="#333">Interacción H1</text>
-  <text x="830" y="132" font-size="10.5" text-anchor="end" fill="{{col_flex}}" font-weight="bold">{{u_H1}}</text>
+  <text x="830" y="132" font-size="10.5" text-anchor="end" fill="{{cu(u_H1)}}" font-weight="bold">{{u_H1}}</text>
   <text x="620" y="152" font-size="10.5" fill="#333">Corte (§G2)</text>
-  <text x="830" y="152" font-size="10.5" text-anchor="end" fill="{{col_alma}}" font-weight="bold">{{u_corte}}</text>
+  <text x="830" y="152" font-size="10.5" text-anchor="end" fill="{{cu(u_corte)}}" font-weight="bold">{{u_corte}}</text>
   <text x="620" y="172" font-size="10.5" fill="#333">Alma bajo la rueda: fluencia</text>
-  <text x="830" y="172" font-size="10.5" text-anchor="end" fill="{{col_alma}}" font-weight="bold">{{u_wly}}</text>
+  <text x="830" y="172" font-size="10.5" text-anchor="end" fill="{{cu(u_wly)}}" font-weight="bold">{{u_wly}}</text>
   <text x="620" y="192" font-size="10.5" fill="#333">Alma bajo la rueda: aplastamiento</text>
-  <text x="830" y="192" font-size="10.5" text-anchor="end" fill="{{col_alma}}" font-weight="bold">{{u_wlc}}</text>
+  <text x="830" y="192" font-size="10.5" text-anchor="end" fill="{{cu(u_wlc)}}" font-weight="bold">{{u_wlc}}</text>
   <text x="620" y="212" font-size="10.5" fill="#333">Pandeo lateral del alma</text>
-  <text x="830" y="212" font-size="10.5" text-anchor="end" fill="{{col_alma}}" font-weight="bold">{{u_wsb}}</text>
+  <text x="830" y="212" font-size="10.5" text-anchor="end" fill="{{cu(u_wsb)}}" font-weight="bold">{{u_wsb}}</text>
   <text x="620" y="232" font-size="10.5" fill="#333">Flechas vertical y lateral</text>
-  <text x="830" y="232" font-size="10.5" text-anchor="end" fill="{{col_serv}}" font-weight="bold">{{u_dvert}} · {{u_dhoriz}}</text>
+  <text x="830" y="232" font-size="10.5" text-anchor="end" fill="{{cu(max(u_dvert, u_dhoriz))}}" font-weight="bold">{{u_dvert}} · {{u_dhoriz}}</text>
   <text x="620" y="252" font-size="10.5" fill="#333">Fatiga (Ap. 3)</text>
-  <text x="830" y="252" font-size="10.5" text-anchor="end" fill="{{col_fat}}" font-weight="bold">{{u_fatiga}}</text>
+  <text x="830" y="252" font-size="10.5" text-anchor="end" fill="{{cu(u_fatiga)}}" font-weight="bold">{{u_fatiga}}</text>
 
   <text x="620" y="286" font-size="11.5" fill="#222" font-weight="bold">Alcance y validez</text>
   <text x="620" y="308" font-size="10" fill="#555">alma no esbelta (§F4)</text>
