@@ -60,7 +60,7 @@ export default function PanelCargas({
   }, [porBorrar]);
 
   // Traer a la vista la fila del nodo seleccionado, y dejar el nombre listo para
-  // reemplazar: al agregar una carga el nombre viene propuesto («D», «W2»), y lo
+  // reemplazar: al agregar una carga el nombre viene propuesto («C1», «C2»), y lo
   // primero que se hace casi siempre es escribir otro encima.
   useEffect(() => {
     if (!enfocada) return;
@@ -82,7 +82,7 @@ export default function PanelCargas({
             <p className="truncate text-[11px] text-muted">
               {cargas.length === 0
                 ? 'ninguna definida todavía'
-                : `${cargas.length} definida${cargas.length === 1 ? '' : 's'} · ASCE 7`}
+                : `${cargas.length} definida${cargas.length === 1 ? '' : 's'}`}
             </p>
           </div>
           <button
@@ -95,6 +95,14 @@ export default function PanelCargas({
         </div>
       </header>
 
+      {/*
+        Una fila por carga, y no un grid de celdas sueltas. Con el grid, la
+        cabecera de la columna de borrar era un `sr-only` —que es
+        `position: absolute` y por eso NO ocupa celda—, así que el nombre de la
+        primera carga subía a la fila del encabezado y todo lo demás quedaba
+        corrido una posición. Con una fila por carga no hay forma de que se
+        desfase: el botón vive dentro de la fila a la que borra.
+      */}
       <section className="flex min-h-0 flex-1 flex-col px-4 py-3">
         {cargas.length === 0 ? (
           <p className="text-[11px] leading-snug text-muted">
@@ -102,46 +110,44 @@ export default function PanelCargas({
             que después se va a citar en las combinaciones, así que no puede repetirse.
           </p>
         ) : (
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1">
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">
-              Nombre
-            </span>
-            <span className="sr-only">Borrar</span>
+          <div className="space-y-1">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Nombre</p>
 
             {cargas.map((c) => {
               const problema = problemaDeNombre(c, cargas);
               const confirmando = porBorrar === c.id;
               return (
                 <Fragment key={c.id}>
-                  <input
-                    ref={(el) => {
-                      if (el) nombres.current.set(c.id, el);
-                      else nombres.current.delete(c.id);
-                    }}
-                    type="text"
-                    value={c.nombre}
-                    onChange={(e) => onCambiar(c.id, { nombre: e.target.value })}
-                    aria-label="Nombre de la carga"
-                    aria-invalid={problema ? true : undefined}
-                    className={`${CAMPO} font-mono ${problema ? 'border-error' : 'border-border'}`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => (confirmando ? onBorrar(c.id) : setPorBorrar(c.id))}
-                    title={confirmando ? 'Confirmar el borrado' : `Borrar ${c.nombre}`}
-                    className={`shrink-0 rounded border px-1.5 py-1 text-[10px] ${
-                      confirmando
-                        ? 'border-error bg-error text-white'
-                        : 'border-border text-muted hover:border-error hover:text-error'
-                    }`}
-                  >
-                    {confirmando ? '¿borrar?' : '×'}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <input
+                      ref={(el) => {
+                        if (el) nombres.current.set(c.id, el);
+                        else nombres.current.delete(c.id);
+                      }}
+                      type="text"
+                      value={c.nombre}
+                      onChange={(e) => onCambiar(c.id, { nombre: e.target.value })}
+                      aria-label="Nombre de la carga"
+                      aria-invalid={problema ? true : undefined}
+                      className={`${CAMPO} min-w-0 flex-1 font-mono ${problema ? 'border-error' : 'border-border'}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => (confirmando ? onBorrar(c.id) : setPorBorrar(c.id))}
+                      aria-label={confirmando ? 'Confirmar el borrado' : `Borrar ${c.nombre}`}
+                      title={confirmando ? 'Confirmar el borrado' : `Borrar ${c.nombre}`}
+                      className={`shrink-0 rounded border px-1.5 py-1 text-[10px] ${
+                        confirmando
+                          ? 'border-error bg-error text-white'
+                          : 'border-border text-muted hover:border-error hover:text-error'
+                      }`}
+                    >
+                      {confirmando ? '¿borrar?' : '×'}
+                    </button>
+                  </div>
 
                   {problema && (
-                    <p className="col-span-2 -mt-0.5 mb-1 text-[10px] leading-snug text-error">
-                      {problema}
-                    </p>
+                    <p className="-mt-0.5 mb-1 text-[10px] leading-snug text-error">{problema}</p>
                   )}
                 </Fragment>
               );
