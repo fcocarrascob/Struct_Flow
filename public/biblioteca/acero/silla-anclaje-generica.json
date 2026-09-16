@@ -1105,7 +1105,7 @@
    "kind": "math",
    "x": 40,
    "y": 6176,
-   "src": "esc := min(230/((y_fila + 120 mm)/(1 mm)), 150/((NER_H + CH_T + t_bp + t_mort)/(1 mm)), 190/(ALA_EXT/(1 mm))) =",
+   "src": "esc := min(205/((y_fila + 120 mm)/(1 mm)), 150/((NER_H + CH_T + t_bp + t_mort)/(1 mm)), 190/(ALA_EXT/(1 mm)), 205/((CH_L + COL_H/2)/(1 mm))) =",
    "imprimir": false
   },
   {
@@ -1113,7 +1113,7 @@
    "kind": "program",
    "x": 40,
    "y": 6224,
-   "src": "ex(u) := 210 + u/(1 mm)*esc",
+   "src": "ex(u) := 250 + u/(1 mm)*esc",
    "imprimir": false
   },
   {
@@ -1129,7 +1129,7 @@
    "kind": "program",
    "x": 40,
    "y": 6320,
-   "src": "px(u) := 210 + u/(1 mm)*esc",
+   "src": "px(u) := 250 + u/(1 mm)*esc",
    "imprimir": false
   },
   {
@@ -1141,10 +1141,26 @@
    "imprimir": false
   },
   {
-   "id": "r_cu",
+   "id": "r_pernos_px",
    "kind": "program",
    "x": 40,
    "y": 6416,
+   "src": "pernos_px :=\n    Q := zeros(2*n_col, 2)\n    paso := CH_B/n_col\n    for i in 1:n_col\n        yb := -CH_B/2 + (i - 0.5)*paso\n        Q[i, 1] = px(y_fila)\n        Q[i, 2] = py(yb)\n        Q[n_col + i, 1] = px(-y_fila)\n        Q[n_col + i, 2] = py(yb)\n    Q",
+   "imprimir": false
+  },
+  {
+   "id": "r_nervios_px",
+   "kind": "program",
+   "x": 40,
+   "y": 6944,
+   "src": "nervios_px :=\n    n := n_col + 1\n    Q := zeros(n, 1)\n    paso := CH_B/n_col\n    for i in 1:n\n        Q[i, 1] = py(-CH_B/2 + (i - 1)*paso)\n    Q",
+   "imprimir": false
+  },
+  {
+   "id": "r_cu",
+   "kind": "program",
+   "x": 40,
+   "y": 7328,
    "src": "cu(u) := u <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1152,7 +1168,7 @@
    "id": "r112",
    "kind": "math",
    "x": 40,
-   "y": 6464,
+   "y": 7376,
    "src": "col_chapa := u_chapa <= 1 and v_chapa_cubre ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1160,7 +1176,7 @@
    "id": "r113",
    "kind": "math",
    "x": 40,
-   "y": 6512,
+   "y": 7424,
    "src": "col_nervio := (u_ner <= 1 and u_sold <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1168,7 +1184,7 @@
    "id": "r114",
    "kind": "math",
    "x": 40,
-   "y": 6560,
+   "y": 7472,
    "src": "col_ala := (u_ala <= 1 and u_ext <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1176,7 +1192,7 @@
    "id": "r115",
    "kind": "math",
    "x": 40,
-   "y": 6608,
+   "y": 7520,
    "src": "col_rig := (v_rig1 and v_rig2a and v_rig2b and v_rig3 and v_rig_largo) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1184,7 +1200,7 @@
    "id": "r116",
    "kind": "math",
    "x": 40,
-   "y": 6656,
+   "y": 7568,
    "src": "col_global := v_global ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1192,7 +1208,7 @@
    "id": "esquema",
    "kind": "image",
    "x": 40,
-   "y": 6704,
+   "y": 7616,
    "src": "/esquemas/silla-anclaje-generica.svg",
    "w": 720,
    "h": 480

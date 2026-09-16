@@ -472,14 +472,14 @@
       "clase": "generica",
       "disciplina": "acero",
       "ruta": "/biblioteca/acero/silla-anclaje-generica.json",
-      "regiones": 118,
+      "regiones": 120,
       "normas": [
         "US/AISC360-22"
       ],
       "entradas": 32,
       "salidas": 19,
       "promovible": true,
-      "sha256": "6dc8c5dc54eb802977f9ccc7294b76bbc1548349f0caced10d84b74493402fbe",
+      "sha256": "41cdd171d06f8d9b0c3f20361ff0f2ff69bd7a4c444b27956b60d2349c07f970",
       "resumen": "Silla de anclaje de una placa base rigidizada: chapa superior, nervios, soldadura en L, extensión de ala y las condiciones geométricas del rigidizador del §J10.8. Recibe T_grupo e Yb_comp de placa-base-generica."
     },
     {

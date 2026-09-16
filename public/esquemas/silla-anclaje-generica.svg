@@ -23,19 +23,28 @@
   <text x="{{ex(L_bp/2) + 8:svg}}" y="{{ey(t_bp/2) + 4:svg}}" font-size="9.5" fill="#6d757d">placa base {{t_bp:mm}} mm</text>
   <text x="{{ex(L_bp/2) + 8:svg}}" y="{{ey(t_bp + t_mort) + 4:svg}}" font-size="9.5" fill="#8a7a5e">mortero {{t_mort:mm}} mm</text>
 
-  <!-- Ala de la columna (en corte) y alma -->
-  <rect x="{{ex(-COL_B/2):svg}}" y="{{ey(-NER_H - CH_T - 60 mm):svg}}" width="{{COL_B/(1 mm)*esc:svg}}" height="{{max(2, COL_TF/(1 mm)*esc):svg}}" fill="{{col_ala}}"/>
-  <rect x="{{ex(-COL_TW/2):svg}}" y="{{ey(-NER_H - CH_T - 60 mm):svg}}" width="{{max(1.5, COL_TW/(1 mm)*esc):svg}}" height="{{(NER_H + CH_T + 60 mm)/(1 mm)*esc:svg}}" fill="#c9ced3"/>
+  <!-- La columna se ve de canto: la silla se adosa al ALA, y el nervio sale
+       perpendicular a ella, o sea en la dirección en que la columna mide
+       COL_H. Es la misma dirección en que la hoja mide y_fila, y por eso
+       exc_n := y_fila − COL_H/2. Dibujarlo contra COL_B/2 dejaba los pernos
+       fuera de los nervios y fuera de la chapa que los soporta. -->
+  <rect x="{{ex(-COL_H/2):svg}}" y="{{ey(-NER_H - CH_T - 60 mm):svg}}" width="{{max(2, COL_TF/(1 mm)*esc):svg}}" height="{{(NER_H + CH_T + 60 mm)/(1 mm)*esc:svg}}" fill="{{col_ala}}"/>
+  <rect x="{{ex(COL_H/2) - max(2, COL_TF/(1 mm)*esc):svg}}" y="{{ey(-NER_H - CH_T - 60 mm):svg}}" width="{{max(2, COL_TF/(1 mm)*esc):svg}}" height="{{(NER_H + CH_T + 60 mm)/(1 mm)*esc:svg}}" fill="{{col_ala}}"/>
+  <rect x="{{ex(-COL_H/2):svg}}" y="{{ey(-NER_H/2):svg}}" width="{{COL_H/(1 mm)*esc:svg}}" height="{{max(1.5, COL_TW/(1 mm)*esc):svg}}" fill="#c9ced3"/>
 
-  <!-- Nervio: proyección NER_L desde la cara del ala, altura NER_H -->
-  <rect x="{{ex(COL_B/2):svg}}" y="{{ey(-NER_H):svg}}" width="{{NER_L/(1 mm)*esc:svg}}" height="{{NER_H/(1 mm)*esc:svg}}"
+  <!-- Nervio: proyección NER_L desde la CARA DEL ALA, altura NER_H -->
+  <rect x="{{ex(COL_H/2):svg}}" y="{{ey(-NER_H):svg}}" width="{{NER_L/(1 mm)*esc:svg}}" height="{{NER_H/(1 mm)*esc:svg}}"
         fill="{{col_nervio}}" fill-opacity="0.25" stroke="{{col_nervio}}" stroke-width="1.4"/>
-  <rect x="{{ex(-COL_B/2 - NER_L):svg}}" y="{{ey(-NER_H):svg}}" width="{{NER_L/(1 mm)*esc:svg}}" height="{{NER_H/(1 mm)*esc:svg}}"
+  <rect x="{{ex(-COL_H/2 - NER_L):svg}}" y="{{ey(-NER_H):svg}}" width="{{NER_L/(1 mm)*esc:svg}}" height="{{NER_H/(1 mm)*esc:svg}}"
         fill="{{col_nervio}}" fill-opacity="0.25" stroke="{{col_nervio}}" stroke-width="1.4"/>
 
-  <!-- Chapa superior de la silla -->
-  <rect x="{{ex(COL_B/2):svg}}" y="{{ey(-NER_H - CH_T):svg}}" width="{{CH_L/(1 mm)*esc:svg}}" height="{{max(2, CH_T/(1 mm)*esc):svg}}" fill="{{col_chapa}}"/>
-  <rect x="{{ex(-COL_B/2 - CH_L):svg}}" y="{{ey(-NER_H - CH_T):svg}}" width="{{CH_L/(1 mm)*esc:svg}}" height="{{max(2, CH_T/(1 mm)*esc):svg}}" fill="{{col_chapa}}"/>
+  <!-- Chapa superior de la silla: la que el perno flexiona a media luz -->
+  <rect x="{{ex(COL_H/2):svg}}" y="{{ey(-NER_H - CH_T):svg}}" width="{{CH_L/(1 mm)*esc:svg}}" height="{{max(2, CH_T/(1 mm)*esc):svg}}" fill="{{col_chapa}}"/>
+  <rect x="{{ex(-COL_H/2 - CH_L):svg}}" y="{{ey(-NER_H - CH_T):svg}}" width="{{CH_L/(1 mm)*esc:svg}}" height="{{max(2, CH_T/(1 mm)*esc):svg}}" fill="{{col_chapa}}"/>
+
+  <!-- La excentricidad del perno respecto de la cara del ala, que es exc_n -->
+  <line x1="{{ex(COL_H/2):svg}}" x2="{{ex(y_fila):svg}}" y1="{{ey(-NER_H - CH_T) - 22:svg}}" y2="{{ey(-NER_H - CH_T) - 22:svg}}" stroke="{{col_nervio}}" stroke-width="0.9"/>
+  <text x="{{ex((COL_H/2 + y_fila)/2):svg}}" y="{{ey(-NER_H - CH_T) - 26:svg}}" font-size="8.5" text-anchor="middle" fill="{{col_nervio}}">exc_n = {{exc_n:mm}}</text>
 
   <!-- Perno: del amarre en la chapa superior hacia abajo, a y_fila del eje -->
   <line x1="{{ex(y_fila):svg}}" x2="{{ex(y_fila):svg}}" y1="{{ey(-NER_H - CH_T):svg}}" y2="{{ey(t_bp + t_mort + 90 mm):svg}}" stroke="#1a63a8" stroke-width="2.4"/>
@@ -47,36 +56,50 @@
   <text x="{{ex(-y_fila):svg}}" y="{{ey(t_bp + t_mort + 90 mm) + 16:svg}}" font-size="10" text-anchor="middle" fill="#555">y_fila = {{y_fila:mm}} mm</text>
 
   <!-- Cotas de la silla -->
-  <text x="{{ex(COL_B/2 + NER_L) + 8:svg}}" y="{{ey(-NER_H - CH_T) + 4:svg}}" font-size="10" fill="{{col_chapa}}"
+  <text x="{{ex(COL_H/2 + NER_L) + 8:svg}}" y="{{ey(-NER_H - CH_T) + 4:svg}}" font-size="10" fill="{{col_chapa}}"
         stroke="#fff" stroke-width="3" paint-order="stroke">chapa {{CH_T:mm}} mm (exige {{t_chapa_req:mm}})</text>
-  <text x="{{ex(COL_B/2 + NER_L) + 8:svg}}" y="{{ey(-NER_H/2) + 4:svg}}" font-size="10" fill="{{col_nervio}}"
+  <text x="{{ex(COL_H/2 + NER_L) + 8:svg}}" y="{{ey(-NER_H/2) + 4:svg}}" font-size="10" fill="{{col_nervio}}"
         stroke="#fff" stroke-width="3" paint-order="stroke">nervio {{NER_H:mm}} × {{NER_L:mm}} × {{NER_T:mm}} · cordón ø{{w_sold:mm}}</text>
-  <text x="{{ex(-COL_B/2 - NER_L):svg}}" y="{{ey(-NER_H - CH_T - 70 mm):svg}}" font-size="10" fill="{{col_ala}}"
-        stroke="#fff" stroke-width="3" paint-order="stroke">ala {{COL_B:mm}} × {{COL_TF:mm}} mm</text>
+  <text x="{{ex(0 mm):svg}}" y="{{ey(-NER_H/2) + 18:svg}}" font-size="10" text-anchor="middle" fill="{{col_ala}}"
+        stroke="#fff" stroke-width="3" paint-order="stroke">columna {{COL_H:mm}} × {{COL_B:mm}} · ala {{COL_TF:mm}} mm</text>
 
   <!-- =============== PLANTA =============== -->
   <text x="40" y="{{py(-ALA_EXT/2) - 16:svg}}" font-size="12" fill="#555" font-weight="bold">PLANTA DEL ALA</text>
 
-  <!-- Ala extendida y ala original -->
-  <rect x="{{px(-CH_L - COL_B/2):svg}}" y="{{py(-ALA_EXT/2):svg}}" width="{{(2*CH_L + COL_B)/(1 mm)*esc:svg}}" height="{{ALA_EXT/(1 mm)*esc:svg}}"
+  <!-- El eje horizontal es la dirección del voladizo (la de COL_H), la misma
+       que en la elevación; el vertical, el ancho del ala. -->
+  <!-- Ala extendida, y el borde del ala ORIGINAL de COL_B, que la junta a tope amplía -->
+  <rect x="{{px(-CH_L - COL_H/2):svg}}" y="{{py(-ALA_EXT/2):svg}}" width="{{(2*CH_L + COL_H)/(1 mm)*esc:svg}}" height="{{ALA_EXT/(1 mm)*esc:svg}}"
         fill="{{col_ala}}" fill-opacity="0.10" stroke="{{col_ala}}" stroke-width="1.2"/>
-  <line x1="{{px(-CH_L - COL_B/2):svg}}" x2="{{px(CH_L + COL_B/2):svg}}" y1="{{py(-COL_B/2):svg}}" y2="{{py(-COL_B/2):svg}}" stroke="#888" stroke-width="1" stroke-dasharray="5 3"/>
-  <line x1="{{px(-CH_L - COL_B/2):svg}}" x2="{{px(CH_L + COL_B/2):svg}}" y1="{{py(COL_B/2):svg}}" y2="{{py(COL_B/2):svg}}" stroke="#888" stroke-width="1" stroke-dasharray="5 3"/>
+  <line x1="{{px(-CH_L - COL_H/2):svg}}" x2="{{px(CH_L + COL_H/2):svg}}" y1="{{py(-COL_B/2):svg}}" y2="{{py(-COL_B/2):svg}}" stroke="#888" stroke-width="1.2" stroke-dasharray="5 3"/>
+  <line x1="{{px(-CH_L - COL_H/2):svg}}" x2="{{px(CH_L + COL_H/2):svg}}" y1="{{py(COL_B/2):svg}}" y2="{{py(COL_B/2):svg}}" stroke="#888" stroke-width="1.2" stroke-dasharray="5 3"/>
+  <text x="{{px(CH_L + COL_H/2) + 8:svg}}" y="{{py(-COL_B/2) + 3:svg}}" font-size="8.5" fill="#888">borde del ala original ({{COL_B:mm}} mm)</text>
 
-  <!-- Alma, en planta -->
-  <rect x="{{px(-COL_TW/2):svg}}" y="{{py(-ALA_EXT/2):svg}}" width="{{max(1.5, COL_TW/(1 mm)*esc):svg}}" height="{{ALA_EXT/(1 mm)*esc:svg}}" fill="#c9ced3"/>
+  <!-- Alma, en planta: corre a lo largo de COL_H -->
+  <rect x="{{px(-COL_H/2):svg}}" y="{{py(0 mm) - max(1.5, COL_TW/(1 mm)*esc)/2:svg}}" width="{{COL_H/(1 mm)*esc:svg}}" height="{{max(1.5, COL_TW/(1 mm)*esc):svg}}" fill="#c9ced3"/>
 
-  <!-- Chapa superior de la silla, en planta -->
-  <rect x="{{px(COL_B/2):svg}}" y="{{py(-CH_B/2):svg}}" width="{{CH_L/(1 mm)*esc:svg}}" height="{{CH_B/(1 mm)*esc:svg}}"
+  <!-- Chapa superior de la silla, en planta, con los pernos que la flexionan -->
+  <rect x="{{px(COL_H/2):svg}}" y="{{py(-CH_B/2):svg}}" width="{{CH_L/(1 mm)*esc:svg}}" height="{{CH_B/(1 mm)*esc:svg}}"
         fill="none" stroke="{{col_chapa}}" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <rect x="{{px(-CH_L - COL_H/2):svg}}" y="{{py(-CH_B/2):svg}}" width="{{CH_L/(1 mm)*esc:svg}}" height="{{CH_B/(1 mm)*esc:svg}}"
+        fill="none" stroke="{{col_chapa}}" stroke-width="1.2" stroke-dasharray="4 3"/>
+
+  <!-- Los n_col pernos de cada fila, a y_fila del eje, con la luz entre nervios -->
+  <circle data-repetir="pernos_px" cx="{{fila[1]:svg}}" cy="{{fila[2]:svg}}" r="3.2" fill="none" stroke="#1a63a8" stroke-width="1.4"/>
+  <line data-repetir="nervios_px" x1="{{px(COL_H/2):svg}}" x2="{{px(CH_L + COL_H/2):svg}}" y1="{{fila[1]:svg}}" y2="{{fila[1]:svg}}"
+        stroke="{{col_nervio}}" stroke-width="1.2"/>
+  <line data-repetir="nervios_px" x1="{{px(-CH_L - COL_H/2):svg}}" x2="{{px(-COL_H/2):svg}}" y1="{{fila[1]:svg}}" y2="{{fila[1]:svg}}"
+        stroke="{{col_nervio}}" stroke-width="1.2"/>
 
   <!-- Cotas de planta -->
   <text x="{{px(0 mm):svg}}" y="{{py(ALA_EXT/2) + 16:svg}}" font-size="10" text-anchor="middle" fill="{{col_ala}}"
         stroke="#fff" stroke-width="3" paint-order="stroke">ala extendida {{ALA_EXT:mm}} mm · junta a tope a {{ext_ancho:mm}} mm de cada lado</text>
-  <text x="{{px(CH_L + COL_B/2) + 8:svg}}" y="{{py(-CH_B/2) + 10:svg}}" font-size="10" fill="{{col_chapa}}"
+  <text x="{{px(CH_L + COL_H/2) + 8:svg}}" y="{{py(-CH_B/2) + 10:svg}}" font-size="10" fill="{{col_chapa}}"
         stroke="#fff" stroke-width="3" paint-order="stroke">chapa superior {{CH_B:mm}} × {{CH_L:mm}} mm</text>
-  <text x="{{px(CH_L + COL_B/2) + 8:svg}}" y="{{py(0 mm):svg}}" font-size="10" fill="{{col_rig}}"
+  <text x="{{px(CH_L + COL_H/2) + 8:svg}}" y="{{py(0 mm):svg}}" font-size="10" fill="{{col_rig}}"
         stroke="#fff" stroke-width="3" paint-order="stroke">rigidizador {{rig_ancho:mm}} × {{RIG_T:mm}} mm · b/t = {{bt_rig}}</text>
+  <text x="{{px(CH_L + COL_H/2) + 8:svg}}" y="{{py(CH_B/2) - 4:svg}}" font-size="9" fill="#1a63a8"
+        stroke="#fff" stroke-width="3" paint-order="stroke">{{n_col}} pernos · luz entre nervios {{luz_max:mm}} mm</text>
 
   <!-- =============== COLUMNA DE RESULTADOS =============== -->
   <line x1="600" y1="60" x2="600" y2="520" stroke="#ddd" stroke-width="1"/>
