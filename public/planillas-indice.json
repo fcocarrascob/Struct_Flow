@@ -488,14 +488,14 @@
       "clase": "generica",
       "disciplina": "acero",
       "ruta": "/biblioteca/acero/viga-carrilera-generica.json",
-      "regiones": 276,
+      "regiones": 209,
       "normas": [
         "US/AISC360-22"
       ],
-      "entradas": 43,
-      "salidas": 34,
+      "entradas": 44,
+      "salidas": 27,
       "promovible": true,
-      "sha256": "92a1994203d8da4adb13debc4d9fe42070a082125edd0850b9698c703e90f837",
+      "sha256": "f3b6ad4b6b489b7da374a592d7b197bf0f1c7a09500e298d7fc5767458cbaefe",
       "resumen": "Viga de alma llena bajo un puente grua, con el ala superior mas ancha o con canal-tapa: flexion por §F4, corte con el C_v1 de una seccion armada, alma bajo la rueda (§J10.2 a §J10.4), interaccion H1, deflexiones y fatiga del Apendice 3."
     },
     {

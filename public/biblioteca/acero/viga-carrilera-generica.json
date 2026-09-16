@@ -1,2524 +1,2025 @@
 {
-  "version": 1,
-  "meta": {
-    "titulo": "Viga carrilera de puente grua -- doble T monosimetrica, soldada o con canal-tapa: flexion biaxial, corte, fuerzas concentradas del rodado, pandeo lateral del alma, deflexiones y fatiga",
-    "entradas": [
-      {
-        "nombre": "Fy",
-        "etiqueta": "Fy",
-        "grupo": "Materiales",
-        "unidad": "MPa"
-      },
-      {
-        "nombre": "E",
-        "etiqueta": "E",
-        "grupo": "Materiales",
-        "unidad": "MPa"
-      },
-      {
-        "nombre": "phi_b",
-        "etiqueta": "phi_b",
-        "grupo": "Factores de resistencia",
-        "ayuda": "phi_b = 0,90 en flexion. Para el CORTE, el §G1(a) —impresa 16.1-75— fija phi_v = 0,90 «for all provisions in this chapter EXCEPT Section G2.1(a)». El 1,00 del G2.1(a) es para almas de perfiles LAMINADOS con h/tw pequeno; con un canal soldado encima el miembro ya es armado, y adoptar 1,00 es una decision que hay que tomar a conciencia. Por defecto va el 0,90"
-      },
-      {
-        "nombre": "phi_v",
-        "etiqueta": "phi_v",
-        "grupo": "Factores de resistencia",
-        "ayuda": "phi_b = 0,90 en flexion. Para el CORTE, el §G1(a) —impresa 16.1-75— fija phi_v = 0,90 «for all provisions in this chapter EXCEPT Section G2.1(a)». El 1,00 del G2.1(a) es para almas de perfiles LAMINADOS con h/tw pequeno; con un canal soldado encima el miembro ya es armado, y adoptar 1,00 es una decision que hay que tomar a conciencia. Por defecto va el 0,90"
-      },
-      {
-        "nombre": "phi_j10y",
-        "etiqueta": "phi_j10y",
-        "grupo": "Factores de resistencia"
-      },
-      {
-        "nombre": "phi_j10c",
-        "etiqueta": "phi_j10c",
-        "grupo": "Factores de resistencia"
-      },
-      {
-        "nombre": "d",
-        "etiqueta": "d",
-        "grupo": "Perfil base — fila de catalogo, declarada",
-        "unidad": "mm"
-      },
-      {
-        "nombre": "b_f",
-        "etiqueta": "b_f",
-        "grupo": "Perfil base — fila de catalogo, declarada",
-        "unidad": "mm"
-      },
-      {
-        "nombre": "t_f",
-        "etiqueta": "t_f",
-        "grupo": "Perfil base — fila de catalogo, declarada",
-        "unidad": "mm"
-      },
-      {
-        "nombre": "t_w",
-        "etiqueta": "t_w",
-        "grupo": "Perfil base — fila de catalogo, declarada",
-        "unidad": "mm"
-      },
-      {
-        "nombre": "A_W",
-        "etiqueta": "A_W",
-        "grupo": "Perfil base — fila de catalogo, declarada",
-        "unidad": "mm^2"
-      },
-      {
-        "nombre": "I_xW",
-        "etiqueta": "I_xW",
-        "grupo": "Perfil base — fila de catalogo, declarada",
-        "unidad": "mm^4"
-      },
-      {
-        "nombre": "I_yW",
-        "etiqueta": "I_yW",
-        "grupo": "Perfil base — fila de catalogo, declarada",
-        "unidad": "mm^4"
-      },
-      {
-        "nombre": "J_W",
-        "etiqueta": "J_W",
-        "grupo": "Perfil base — fila de catalogo, declarada",
-        "unidad": "mm^4"
-      },
-      {
-        "nombre": "k_det",
-        "etiqueta": "k_det",
-        "grupo": "Perfil base — fila de catalogo, declarada",
-        "unidad": "mm"
-      },
-      {
-        "nombre": "hay_canal",
-        "etiqueta": "hay_canal",
-        "grupo": "Canal-tapa",
-        "ayuda": "hay_canal := 1 con canal-tapa colaborante; := 0 para la viga desnuda. I_cy es la inercia del canal respecto del eje VERTICAL de la viga —la que aporta rigidez lateral, y suele ser el eje fuerte del canal— e I_cx la respecto del eje horizontal. y_cc es la altura del centroide del canal sobre la cara superior del ala"
-      },
-      {
-        "nombre": "A_c",
-        "etiqueta": "A_c",
-        "grupo": "Canal-tapa",
-        "unidad": "mm^2"
-      },
-      {
-        "nombre": "I_cy",
-        "etiqueta": "I_cy",
-        "grupo": "Canal-tapa",
-        "unidad": "mm^4",
-        "ayuda": "hay_canal := 1 con canal-tapa colaborante; := 0 para la viga desnuda. I_cy es la inercia del canal respecto del eje VERTICAL de la viga —la que aporta rigidez lateral, y suele ser el eje fuerte del canal— e I_cx la respecto del eje horizontal. y_cc es la altura del centroide del canal sobre la cara superior del ala"
-      },
-      {
-        "nombre": "I_cx",
-        "etiqueta": "I_cx",
-        "grupo": "Canal-tapa",
-        "unidad": "mm^4",
-        "ayuda": "hay_canal := 1 con canal-tapa colaborante; := 0 para la viga desnuda. I_cy es la inercia del canal respecto del eje VERTICAL de la viga —la que aporta rigidez lateral, y suele ser el eje fuerte del canal— e I_cx la respecto del eje horizontal. y_cc es la altura del centroide del canal sobre la cara superior del ala"
-      },
-      {
-        "nombre": "y_cc",
-        "etiqueta": "y_cc",
-        "grupo": "Canal-tapa",
-        "unidad": "mm",
-        "ayuda": "hay_canal := 1 con canal-tapa colaborante; := 0 para la viga desnuda. I_cy es la inercia del canal respecto del eje VERTICAL de la viga —la que aporta rigidez lateral, y suele ser el eje fuerte del canal— e I_cx la respecto del eje horizontal. y_cc es la altura del centroide del canal sobre la cara superior del ala"
-      },
-      {
-        "nombre": "J_C",
-        "etiqueta": "J_C",
-        "grupo": "Canal-tapa",
-        "unidad": "mm^4"
-      },
-      {
-        "nombre": "h_tot",
-        "etiqueta": "h_tot",
-        "grupo": "Altura total de la seccion compuesta",
-        "unidad": "mm"
-      },
-      {
-        "nombre": "L",
-        "etiqueta": "L",
-        "grupo": "Geometria del vano",
-        "unidad": "mm"
-      },
-      {
-        "nombre": "L_b",
-        "etiqueta": "L_b",
-        "grupo": "Geometria del vano",
-        "unidad": "mm",
-        "ayuda": "L_b es la longitud no arriostrada del ala comprimida. En una via sin arriostramiento intermedio es el vano entero"
-      },
-      {
-        "nombre": "C_b",
-        "etiqueta": "C_b",
-        "grupo": "Geometria del vano",
-        "ayuda": "C_b = 1,0 es el valor conservador y el que corresponde cuando no se justifica el diagrama de momentos real"
-      },
-      {
-        "nombre": "n_r",
-        "etiqueta": "n_r",
-        "grupo": "Cargas de rueda — frontera, vienen del fabricante"
-      },
-      {
-        "nombre": "P_v",
-        "etiqueta": "P_v",
-        "grupo": "Cargas de rueda — frontera, vienen del fabricante",
-        "unidad": "tonf",
-        "ayuda": "Ejemplo cargado: puente de 20 t, dos ruedas por viga, impacto del 25 % ya incluido en P_v. P_serv es la misma carga SIN amplificar, que es la que va a deflexiones y a fatiga"
-      },
-      {
-        "nombre": "P_serv",
-        "etiqueta": "P_serv",
-        "grupo": "Cargas de rueda — frontera, vienen del fabricante",
-        "unidad": "tonf",
-        "ayuda": "Ejemplo cargado: puente de 20 t, dos ruedas por viga, impacto del 25 % ya incluido en P_v. P_serv es la misma carga SIN amplificar, que es la que va a deflexiones y a fatiga"
-      },
-      {
-        "nombre": "H_lat",
-        "etiqueta": "H_lat",
-        "grupo": "Cargas de rueda — frontera, vienen del fabricante",
-        "unidad": "tonf"
-      },
-      {
-        "nombre": "a_ruedas",
-        "etiqueta": "a_ruedas",
-        "grupo": "Cargas de rueda — frontera, vienen del fabricante",
-        "unidad": "mm"
-      },
-      {
-        "nombre": "w_pp",
-        "etiqueta": "w_pp",
-        "grupo": "Peso propio de la via",
-        "unidad": "tonf/m"
-      },
-      {
-        "nombre": "ala_compacta",
-        "etiqueta": "ala_compacta",
-        "grupo": "Clasificacion del ala — frontera declarada"
-      },
-      {
-        "nombre": "C_f",
-        "etiqueta": "C_f",
-        "grupo": "Fatiga — tabla a-3.1, categoria del detalle",
-        "ayuda": "Constantes de la Tabla A-3.1, impresa 16.1-210, LEIDA RASTERIZADA: categoria A  C_f = 25    F_TH = 170 MPa categoria B  C_f = 12    F_TH = 110 MPa categoria C  C_f = 4,4   F_TH =  69 MPa categoria D  C_f = 2,2   F_TH =  48 MPa categoria E' C_f = 0,39  F_TH =  18 MPa El caso concreto se elige en la Seccion 2 de esa tabla para la soldadura que une el canal al ala. Por defecto va la B, que es la del cordon continuo paralelo a la direccion de la tension"
-      },
-      {
-        "nombre": "F_TH",
-        "etiqueta": "F_TH",
-        "grupo": "Fatiga — tabla a-3.1, categoria del detalle",
-        "unidad": "MPa",
-        "ayuda": "Constantes de la Tabla A-3.1, impresa 16.1-210, LEIDA RASTERIZADA: categoria A  C_f = 25    F_TH = 170 MPa categoria B  C_f = 12    F_TH = 110 MPa categoria C  C_f = 4,4   F_TH =  69 MPa categoria D  C_f = 2,2   F_TH =  48 MPa categoria E' C_f = 0,39  F_TH =  18 MPa El caso concreto se elige en la Seccion 2 de esa tabla para la soldadura que une el canal al ala. Por defecto va la B, que es la del cordon continuo paralelo a la direccion de la tension"
-      },
-      {
-        "nombre": "n_SR",
-        "etiqueta": "n_SR",
-        "grupo": "Fatiga — tabla a-3.1, categoria del detalle",
-        "ayuda": "n_SR es el numero de fluctuaciones de tension en la vida de diseno, no el numero de ciclos de la grua: cada pasada del puente puede dar mas de una"
-      },
-      {
-        "nombre": "den_vert",
-        "etiqueta": "den_vert",
-        "grupo": "Limites de servicio — frontera, no son de aisc"
-      },
-      {
-        "nombre": "den_lat",
-        "etiqueta": "den_lat",
-        "grupo": "Limites de servicio — frontera, no son de aisc"
-      },
-      {
-        "nombre": "es_soldada",
-        "unidad": "",
-        "etiqueta": "Seccion armada soldada",
-        "grupo": "perfil base",
-        "que": "1 deriva A, I_x, I_y y J de las tres chapas; 0 los toma de la fila de catalogo"
-      },
-      {
-        "nombre": "b_fb",
-        "unidad": "mm",
-        "etiqueta": "Ancho del ala inferior",
-        "grupo": "perfil base",
-        "que": "ala traccionada; solo se usa con es_soldada = 1"
-      },
-      {
-        "nombre": "t_fb",
-        "unidad": "mm",
-        "etiqueta": "Espesor del ala inferior",
-        "grupo": "perfil base",
-        "que": "ala traccionada; solo se usa con es_soldada = 1"
-      },
-      {
-        "nombre": "phi_wsb",
-        "unidad": "",
-        "etiqueta": "phi del pandeo lateral del alma",
-        "grupo": "factores de resistencia",
-        "que": "§J10.4"
-      },
-      {
-        "nombre": "k_v",
-        "unidad": "",
-        "etiqueta": "Coeficiente de pandeo por corte",
-        "grupo": "factores de resistencia",
-        "que": "§G2.1(b)(2): 5,34 sin rigidizadores transversales"
-      },
-      {
-        "nombre": "restr_rot",
-        "unidad": "",
-        "etiqueta": "Ala comprimida restringida contra rotacion",
-        "grupo": "pandeo lateral del alma",
-        "que": "1 con restriccion (umbral 2,3), 0 sin ella (umbral 1,7)"
-      }
-    ],
-    "slug": "viga-carrilera-generica",
-    "clase": "generica",
-    "disciplina": "acero",
-    "resumen": "Viga de alma llena bajo un puente grua, con el ala superior mas ancha o con canal-tapa: flexion por §F4, corte con el C_v1 de una seccion armada, alma bajo la rueda (§J10.2 a §J10.4), interaccion H1, deflexiones y fatiga del Apendice 3.",
-    "normas": [
-      {
-        "clave": "US/AISC360-22",
-        "rol": "resistencia y fatiga",
-        "articulos": [
-          "§F4",
-          "§G2",
-          "§H1",
-          "§J10",
-          "Ap. 3"
-        ]
-      }
-    ],
-    "salidas": [
-      {
-        "nombre": "u_max",
-        "etiqueta": "Uso máximo",
-        "tipo": "uso"
-      },
-      {
-        "nombre": "gobierna",
-        "etiqueta": "Estado límite que gobierna",
-        "tipo": "texto"
-      },
-      {
-        "nombre": "u_flex",
-        "etiqueta": "Flexión fuerte",
-        "tipo": "uso"
-      },
-      {
-        "nombre": "u_lat",
-        "etiqueta": "Flexión lateral",
-        "tipo": "uso"
-      },
-      {
-        "nombre": "u_corte",
-        "etiqueta": "Corte",
-        "tipo": "uso"
-      },
-      {
-        "nombre": "u_wly",
-        "etiqueta": "Fluencia local del alma bajo la rueda",
-        "tipo": "uso"
-      },
-      {
-        "nombre": "u_wlc",
-        "etiqueta": "Aplastamiento del alma bajo la rueda",
-        "tipo": "uso"
-      },
-      {
-        "nombre": "u_dvert",
-        "etiqueta": "Deflexión vertical",
-        "tipo": "uso"
-      },
-      {
-        "nombre": "u_dhoriz",
-        "etiqueta": "Deflexión lateral",
-        "tipo": "uso"
-      },
-      {
-        "nombre": "u_fatiga",
-        "etiqueta": "Fatiga",
-        "tipo": "uso"
-      },
-      {
-        "nombre": "v_global",
-        "etiqueta": "u_max ≤ 1",
-        "tipo": "veredicto"
-      },
-      {
-        "nombre": "v_dos_ruedas",
-        "etiqueta": "Dos ruedas por viga",
-        "tipo": "veredicto",
-        "aviso": true,
-        "avisoTexto": "La hoja está escrita para dos ruedas iguales por viga"
-      },
-      {
-        "nombre": "v_tren_cabe",
-        "etiqueta": "El tren de ruedas cabe en el vano",
-        "tipo": "veredicto",
-        "aviso": true,
-        "avisoTexto": "El tren de ruedas no cabe en el vano: la posición crítica no aplica"
-      },
-      {
-        "nombre": "v_ala_compacta",
-        "etiqueta": "Ala compacta",
-        "tipo": "veredicto",
-        "aviso": true,
-        "avisoTexto": "El ala no es compacta: la hoja no cubre ese caso (frontera declarada)"
-      },
-      {
-        "nombre": "v_alma_no_esbelta",
-        "etiqueta": "Alma no esbelta",
-        "tipo": "veredicto",
-        "aviso": true,
-        "avisoTexto": "El alma es esbelta: rige el §F5 y no el §F4 de esta hoja"
-      },
-      {
-        "nombre": "v_pos_critica",
-        "etiqueta": "Posición crítica del tren",
-        "tipo": "veredicto",
-        "aviso": true,
-        "avisoTexto": "La posición crítica adoptada no aplica"
-      },
-      {
-        "nombre": "v_lp_lr",
-        "etiqueta": "L_p ≤ L_r",
-        "tipo": "veredicto",
-        "aviso": true,
-        "avisoTexto": "Los límites de pandeo lateral salen invertidos: revisar la sección"
-      },
-      {
-        "nombre": "v_tfy_aplica",
-        "etiqueta": "Aplica la fluencia del ala traccionada",
-        "tipo": "veredicto",
-        "aviso": true,
-        "avisoTexto": "Rama del §F4 fuera de su condición de aplicación"
-      },
-      {
-        "nombre": "v_flexion",
-        "etiqueta": "Flexión fuerte",
-        "tipo": "veredicto"
-      },
-      {
-        "nombre": "v_H1",
-        "etiqueta": "Interacción §H1",
-        "tipo": "veredicto"
-      },
-      {
-        "nombre": "v_Cv1",
-        "etiqueta": "Coeficiente de corte C_v1 = 1",
-        "tipo": "veredicto",
-        "aviso": true,
-        "avisoTexto": "El alma no alcanza C_v1 = 1: el corte va por otra rama del §G2"
-      },
-      {
-        "nombre": "v_corte",
-        "etiqueta": "Corte",
-        "tipo": "veredicto"
-      },
-      {
-        "nombre": "v_wly",
-        "etiqueta": "Fluencia local del alma",
-        "tipo": "veredicto"
-      },
-      {
-        "nombre": "v_lb_d",
-        "etiqueta": "Largo de apoyo l_b respecto del canto",
-        "tipo": "veredicto",
-        "aviso": true,
-        "avisoTexto": "El largo de apoyo bajo la rueda excede d/2: rige otra ecuación del §J10"
-      },
-      {
-        "nombre": "v_wlc",
-        "etiqueta": "Aplastamiento del alma",
-        "tipo": "veredicto"
-      },
-      {
-        "nombre": "v_aa2",
-        "etiqueta": "Condición de la ecuación §J10-5a",
-        "tipo": "veredicto",
-        "aviso": true,
-        "avisoTexto": "La condición de la ecuación §J10-5a no se cumple: rige §J10-5b"
-      },
-      {
-        "nombre": "v_flecha_vert",
-        "etiqueta": "Deflexión vertical",
-        "tipo": "veredicto"
-      },
-      {
-        "nombre": "v_flecha_lat",
-        "etiqueta": "Deflexión lateral",
-        "tipo": "veredicto"
-      },
-      {
-        "nombre": "v_fatiga",
-        "etiqueta": "Fatiga",
-        "tipo": "veredicto"
-      },
-      {
-        "nombre": "u_wsb",
-        "etiqueta": "Pandeo lateral del alma",
-        "tipo": "uso"
-      },
-      {
-        "nombre": "v_alma_compacta",
-        "etiqueta": "Alma compacta (AIST TR-13 §5.8.2)",
-        "tipo": "veredicto",
-        "aviso": true,
-        "avisoTexto": "el alma no es compacta: el §5.8.2 de AIST TR-13 lo exige en una viga carrilera, aunque al §F4 le baste con que no sea esbelta"
-      },
-      {
-        "nombre": "v_Cv1b",
-        "etiqueta": "El alma no pandea por corte antes de fluir",
-        "tipo": "veredicto",
-        "aviso": true,
-        "avisoTexto": "el alma pandea por corte antes de fluir: C_v1 < 1 y la resistencia al corte baja en esa proporcion. No es un error, es el caso (b) del §G2.1"
-      },
-      {
-        "nombre": "wsb_estado",
-        "etiqueta": "Pandeo lateral del alma: aplicabilidad",
-        "tipo": "texto"
-      },
-      {
-        "nombre": "v_wsb",
-        "etiqueta": "Pandeo lateral del alma",
-        "tipo": "veredicto"
-      }
-    ],
-    "fronteras": [
-      "Las cargas de rueda vienen del fabricante, ya amplificadas",
-      "La clasificacion del ALA comprimida entra como dato (ala_compacta); la del ALMA la calcula la hoja",
-      "El eje neutro plastico: adopta R_pc = R_pt = 1,0, limite inferior de F4-9a y por lo tanto conservador",
-      "Los limites de deflexion no son de AISC: entran como denominadores (den_vert, den_lat), y en una via los fija la clase de edificio, que especifica el propietario",
-      "El riel y su union no se verifican: por el §5.8.2 de AIST TR-13 el momento torsor de la excentricidad del riel va a cargo de las GRAMPAS, y el analisis torsional exacto de la viga esta fuera del alcance de ese documento"
-    ],
-    "hipotesis": [
-      "Dos ruedas iguales por viga",
-      "Canal-tapa soldado con cordón continuo y colaborante",
-      "Vano simplemente apoyado, sin continuidad entre vanos",
-      "El ala superior más el canal toman íntegramente la fuerza lateral"
-    ],
-    "entrega": {},
-    "casos": [
-      {
-        "nombre": "ejemplo de referencia",
-        "entradas": {},
-        "cumple": true
-      },
-      {
-        "nombre": "rueda al doble",
-        "entradas": {
-          "P_v": 40
-        },
-        "cumple": false,
-        "esperadoFalso": [
-          "v_H1",
-          "v_flexion",
-          "v_global",
-          "v_wlc"
-        ]
-      },
-      {
-        "nombre": "armada monosimetrica sin canal",
-        "entradas": {
-          "es_soldada": 1,
-          "hay_canal": 0,
-          "Fy": 345,
-          "d": 684,
-          "b_f": 400,
-          "t_f": 25,
-          "t_w": 12,
-          "b_fb": 250,
-          "t_fb": 14,
-          "h_tot": 684,
-          "k_det": 26,
-          "L": 7500,
-          "L_b": 7500,
-          "C_b": 1.0,
-          "P_v": 19.73,
-          "P_serv": 16.44,
-          "H_lat": 1.53,
-          "a_ruedas": 3400,
-          "w_pp": 0.1654,
-          "den_vert": 600,
-          "den_lat": 400
-        },
-        "cumple": true
-      },
-      {
-        "nombre": "armada monosimetrica de alma delgada",
-        "entradas": {
-          "es_soldada": 1,
-          "hay_canal": 0,
-          "Fy": 345,
-          "d": 684,
-          "b_f": 350,
-          "t_f": 20,
-          "t_w": 8,
-          "b_fb": 250,
-          "t_fb": 14,
-          "h_tot": 684,
-          "k_det": 26,
-          "L": 7500,
-          "L_b": 7500,
-          "C_b": 1.0,
-          "P_v": 19.73,
-          "P_serv": 16.44,
-          "H_lat": 1.53,
-          "a_ruedas": 3400,
-          "w_pp": 0.1654,
-          "den_vert": 600,
-          "den_lat": 400
-        },
-        "cumple": false,
-        "esperadoFalso": [
-          "v_H1",
-          "v_Cv1",
-          "v_Cv1b",
-          "v_wlc",
-          "v_global"
-        ]
-      }
+ "version": 1,
+ "meta": {
+  "titulo": "Viga carrilera de puente grua -- doble T monosimetrica, soldada o con canal-tapa: flexion biaxial, corte, fuerzas concentradas del rodado, pandeo lateral del alma, deflexiones y fatiga",
+  "entradas": [
+   {
+    "nombre": "Fy",
+    "etiqueta": "Fy",
+    "grupo": "Materiales y factores",
+    "unidad": "MPa"
+   },
+   {
+    "nombre": "E",
+    "etiqueta": "E",
+    "grupo": "Materiales y factores",
+    "unidad": "MPa"
+   },
+   {
+    "nombre": "phi_b",
+    "etiqueta": "phi_b",
+    "grupo": "Materiales y factores",
+    "ayuda": "phi_b = 0,90 en flexion. Para el CORTE, el §G1(a) —impresa 16.1-75— fija phi_v = 0,90 «for all provisions in this chapter EXCEPT Section G2.1(a)». El 1,00 del G2.1(a) es para almas de perfiles LAMINADOS con h/tw pequeno; con un canal soldado encima el miembro ya es armado, y adoptar 1,00 es una decision que hay que tomar a conciencia. Por defecto va el 0,90"
+   },
+   {
+    "nombre": "phi_v",
+    "etiqueta": "phi_v",
+    "grupo": "Materiales y factores",
+    "ayuda": "phi_b = 0,90 en flexion. Para el CORTE, el §G1(a) —impresa 16.1-75— fija phi_v = 0,90 «for all provisions in this chapter EXCEPT Section G2.1(a)». El 1,00 del G2.1(a) es para almas de perfiles LAMINADOS con h/tw pequeno; con un canal soldado encima el miembro ya es armado, y adoptar 1,00 es una decision que hay que tomar a conciencia. Por defecto va el 0,90"
+   },
+   {
+    "nombre": "phi_j10y",
+    "etiqueta": "phi_j10y",
+    "grupo": "Materiales y factores"
+   },
+   {
+    "nombre": "phi_j10c",
+    "etiqueta": "phi_j10c",
+    "grupo": "Materiales y factores"
+   },
+   {
+    "nombre": "d",
+    "etiqueta": "d",
+    "grupo": "Perfil base",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "b_f",
+    "etiqueta": "b_f",
+    "grupo": "Perfil base",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "t_f",
+    "etiqueta": "t_f",
+    "grupo": "Perfil base",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "t_w",
+    "etiqueta": "t_w",
+    "grupo": "Perfil base",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "A_W",
+    "etiqueta": "A_W",
+    "grupo": "Perfil base",
+    "unidad": "mm^2"
+   },
+   {
+    "nombre": "I_xW",
+    "etiqueta": "I_xW",
+    "grupo": "Perfil base",
+    "unidad": "mm^4"
+   },
+   {
+    "nombre": "I_yW",
+    "etiqueta": "I_yW",
+    "grupo": "Perfil base",
+    "unidad": "mm^4"
+   },
+   {
+    "nombre": "J_W",
+    "etiqueta": "J_W",
+    "grupo": "Perfil base",
+    "unidad": "mm^4"
+   },
+   {
+    "nombre": "k_det",
+    "etiqueta": "k_det",
+    "grupo": "Perfil base",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "hay_canal",
+    "etiqueta": "hay_canal",
+    "grupo": "Canal-tapa y altura total",
+    "ayuda": "hay_canal := 1 con canal-tapa colaborante; := 0 para la viga desnuda. I_cy es la inercia del canal respecto del eje VERTICAL de la viga —la que aporta rigidez lateral, y suele ser el eje fuerte del canal— e I_cx la respecto del eje horizontal. y_cc es la altura del centroide del canal sobre la cara superior del ala"
+   },
+   {
+    "nombre": "A_c",
+    "etiqueta": "A_c",
+    "grupo": "Canal-tapa y altura total",
+    "unidad": "mm^2"
+   },
+   {
+    "nombre": "I_cy",
+    "etiqueta": "I_cy",
+    "grupo": "Canal-tapa y altura total",
+    "unidad": "mm^4",
+    "ayuda": "hay_canal := 1 con canal-tapa colaborante; := 0 para la viga desnuda. I_cy es la inercia del canal respecto del eje VERTICAL de la viga —la que aporta rigidez lateral, y suele ser el eje fuerte del canal— e I_cx la respecto del eje horizontal. y_cc es la altura del centroide del canal sobre la cara superior del ala"
+   },
+   {
+    "nombre": "I_cx",
+    "etiqueta": "I_cx",
+    "grupo": "Canal-tapa y altura total",
+    "unidad": "mm^4",
+    "ayuda": "hay_canal := 1 con canal-tapa colaborante; := 0 para la viga desnuda. I_cy es la inercia del canal respecto del eje VERTICAL de la viga —la que aporta rigidez lateral, y suele ser el eje fuerte del canal— e I_cx la respecto del eje horizontal. y_cc es la altura del centroide del canal sobre la cara superior del ala"
+   },
+   {
+    "nombre": "y_cc",
+    "etiqueta": "y_cc",
+    "grupo": "Canal-tapa y altura total",
+    "unidad": "mm",
+    "ayuda": "hay_canal := 1 con canal-tapa colaborante; := 0 para la viga desnuda. I_cy es la inercia del canal respecto del eje VERTICAL de la viga —la que aporta rigidez lateral, y suele ser el eje fuerte del canal— e I_cx la respecto del eje horizontal. y_cc es la altura del centroide del canal sobre la cara superior del ala"
+   },
+   {
+    "nombre": "J_C",
+    "etiqueta": "J_C",
+    "grupo": "Canal-tapa y altura total",
+    "unidad": "mm^4"
+   },
+   {
+    "nombre": "h_tot",
+    "etiqueta": "h_tot",
+    "grupo": "Canal-tapa y altura total",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "L",
+    "etiqueta": "L",
+    "grupo": "Vano, cargas de rueda y vía",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "L_b",
+    "etiqueta": "L_b",
+    "grupo": "Vano, cargas de rueda y vía",
+    "unidad": "mm",
+    "ayuda": "L_b es la longitud no arriostrada del ala comprimida. En una via sin arriostramiento intermedio es el vano entero"
+   },
+   {
+    "nombre": "C_b",
+    "etiqueta": "C_b",
+    "grupo": "Vano, cargas de rueda y vía",
+    "ayuda": "C_b = 1,0 es el valor conservador y el que corresponde cuando no se justifica el diagrama de momentos real"
+   },
+   {
+    "nombre": "n_r",
+    "etiqueta": "n_r",
+    "grupo": "Vano, cargas de rueda y vía"
+   },
+   {
+    "nombre": "P_v",
+    "etiqueta": "P_v",
+    "grupo": "Vano, cargas de rueda y vía",
+    "unidad": "tonf",
+    "ayuda": "Ejemplo cargado: puente de 20 t, dos ruedas por viga, impacto del 25 % ya incluido en P_v. P_serv es la misma carga SIN amplificar, que es la que va a deflexiones y a fatiga"
+   },
+   {
+    "nombre": "P_serv",
+    "etiqueta": "P_serv",
+    "grupo": "Vano, cargas de rueda y vía",
+    "unidad": "tonf",
+    "ayuda": "Ejemplo cargado: puente de 20 t, dos ruedas por viga, impacto del 25 % ya incluido en P_v. P_serv es la misma carga SIN amplificar, que es la que va a deflexiones y a fatiga"
+   },
+   {
+    "nombre": "H_lat",
+    "etiqueta": "H_lat",
+    "grupo": "Vano, cargas de rueda y vía",
+    "unidad": "tonf"
+   },
+   {
+    "nombre": "a_ruedas",
+    "etiqueta": "a_ruedas",
+    "grupo": "Vano, cargas de rueda y vía",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "w_pp",
+    "etiqueta": "w_pp",
+    "grupo": "Vano, cargas de rueda y vía",
+    "unidad": "tonf/m"
+   },
+   {
+    "nombre": "ala_compacta",
+    "etiqueta": "ala_compacta",
+    "grupo": "Fronteras declaradas"
+   },
+   {
+    "nombre": "C_f",
+    "etiqueta": "C_f",
+    "grupo": "Fronteras declaradas",
+    "ayuda": "Constantes de la Tabla A-3.1, impresa 16.1-210, LEIDA RASTERIZADA: categoria A  C_f = 25    F_TH = 170 MPa categoria B  C_f = 12    F_TH = 110 MPa categoria C  C_f = 4,4   F_TH =  69 MPa categoria D  C_f = 2,2   F_TH =  48 MPa categoria E' C_f = 0,39  F_TH =  18 MPa El caso concreto se elige en la Seccion 2 de esa tabla para la soldadura que une el canal al ala. Por defecto va la B, que es la del cordon continuo paralelo a la direccion de la tension"
+   },
+   {
+    "nombre": "F_TH",
+    "etiqueta": "F_TH",
+    "grupo": "Fronteras declaradas",
+    "unidad": "MPa",
+    "ayuda": "Constantes de la Tabla A-3.1, impresa 16.1-210, LEIDA RASTERIZADA: categoria A  C_f = 25    F_TH = 170 MPa categoria B  C_f = 12    F_TH = 110 MPa categoria C  C_f = 4,4   F_TH =  69 MPa categoria D  C_f = 2,2   F_TH =  48 MPa categoria E' C_f = 0,39  F_TH =  18 MPa El caso concreto se elige en la Seccion 2 de esa tabla para la soldadura que une el canal al ala. Por defecto va la B, que es la del cordon continuo paralelo a la direccion de la tension"
+   },
+   {
+    "nombre": "n_SR",
+    "etiqueta": "n_SR",
+    "grupo": "Fronteras declaradas",
+    "ayuda": "n_SR es el numero de fluctuaciones de tension en la vida de diseno, no el numero de ciclos de la grua: cada pasada del puente puede dar mas de una"
+   },
+   {
+    "nombre": "den_vert",
+    "etiqueta": "den_vert",
+    "grupo": "Fronteras declaradas"
+   },
+   {
+    "nombre": "den_lat",
+    "etiqueta": "den_lat",
+    "grupo": "Fronteras declaradas"
+   },
+   {
+    "nombre": "es_soldada",
+    "unidad": "",
+    "etiqueta": "Seccion armada soldada",
+    "grupo": "Perfil base"
+   },
+   {
+    "nombre": "b_fb",
+    "unidad": "mm",
+    "etiqueta": "Ancho del ala inferior",
+    "grupo": "Perfil base"
+   },
+   {
+    "nombre": "t_fb",
+    "unidad": "mm",
+    "etiqueta": "Espesor del ala inferior",
+    "grupo": "Perfil base"
+   },
+   {
+    "nombre": "phi_wsb",
+    "unidad": "",
+    "etiqueta": "phi del pandeo lateral del alma",
+    "grupo": "Materiales y factores"
+   },
+   {
+    "nombre": "k_v",
+    "unidad": "",
+    "etiqueta": "Coeficiente de pandeo por corte",
+    "grupo": "Materiales y factores"
+   },
+   {
+    "nombre": "H_riel",
+    "etiqueta": "Altura del riel",
+    "unidad": "mm",
+    "grupo": "Vano, cargas de rueda y vía",
+    "ayuda": "La longitud de apoyo de la rueda se toma como dos veces esta altura"
+   },
+   {
+    "nombre": "restr_rot",
+    "unidad": "",
+    "etiqueta": "Ala comprimida restringida contra rotacion",
+    "grupo": "Vano, cargas de rueda y vía"
+   }
+  ],
+  "slug": "viga-carrilera-generica",
+  "clase": "generica",
+  "disciplina": "acero",
+  "resumen": "Viga de alma llena bajo un puente grua, con el ala superior mas ancha o con canal-tapa: flexion por §F4, corte con el C_v1 de una seccion armada, alma bajo la rueda (§J10.2 a §J10.4), interaccion H1, deflexiones y fatiga del Apendice 3.",
+  "normas": [
+   {
+    "clave": "US/AISC360-22",
+    "rol": "resistencia y fatiga",
+    "articulos": [
+     "§F4",
+     "§G2",
+     "§H1",
+     "§J10",
+     "Ap. 3"
     ]
-  },
-  "regions": [
-    {
-      "id": "r001",
-      "kind": "text",
-      "x": 40,
-      "y": 32,
-      "src": "PLANTILLA REUTILIZABLE. Todo lo editable esta en los ocho bloques DATOS;\ndebajo no hay ningun numero de proyecto, solo ecuaciones de AISC 360-22."
-    },
-    {
-      "id": "r002",
-      "kind": "text",
-      "x": 40,
-      "y": 104,
-      "src": "ESTA HOJA NO USA EL CAPITULO F2. Una viga con canal-tapa, o con el ala superior\nmas ancha, es MONOSIMETRICA, y el F2 se titula «DOUBLY SYMMETRIC ... MEMBERS AND\nCHANNELS»: no la alcanza. Rige el F4, cuyo alcance incluye «singly symmetric\nI-shaped members with webs attached to the mid-width of the flanges»."
-    },
-    {
-      "id": "r003",
-      "kind": "text",
-      "x": 40,
-      "y": 220,
-      "src": "LA DIFERENCIA NO ES FORMAL: L_p pasa de 1,76*r_y a 1,1*r_t · L_r usa F_L y\nno 0,7*Fy · la capacidad se mide sobre S_xc y no sobre Z_x · y aparece un\nCUARTO estado limite que la lectura por F2 no tiene: fluencia del ALA\nTRACCIONADA, §F4.4, que aplica siempre que S_xt < S_xc. Con el canal arriba\nel eje neutro sube y esa condicion se cumple casi siempre."
-    },
-    {
-      "id": "r004",
-      "kind": "text",
-      "x": 40,
-      "y": 358,
-      "src": "FRONTERAS: la hoja NO calcula las cargas de rueda —entran del fabricante,\nya amplificadas—, NO clasifica el ala comprimida, NO calcula el eje neutro\nplastico —toma R_pc = R_pt = 1,0, que es conservador—, NO fija los limites\nde deflexion y NO verifica el riel ni la union a la mensula."
-    },
-    {
-      "id": "r005",
-      "kind": "text",
-      "x": 40,
-      "y": 474,
-      "src": "HIPOTESIS: dos ruedas iguales por viga · canal-tapa soldado y colaborante ·\nvano simplemente apoyado · el ala superior mas el canal toman INTEGRAMENTE\nla fuerza lateral, que es practica corriente, va del lado seguro y es lo que\nel §5.8.2 de AIST TR-13 describe."
-    },
-    {
-      "id": "r006",
-      "kind": "text",
-      "x": 40,
-      "y": 590,
-      "src": "━━ DATOS · MATERIALES ━━"
-    },
-    {
-      "id": "in_Fy",
-      "kind": "math",
-      "x": 40,
-      "y": 636,
-      "src": "Fy := 248.2 MPa"
-    },
-    {
-      "id": "in_E",
-      "kind": "math",
-      "x": 40,
-      "y": 682,
-      "src": "E := 200000 MPa"
-    },
-    {
-      "id": "r009",
-      "kind": "text",
-      "x": 40,
-      "y": 728,
-      "src": "━━ DATOS · FACTORES DE RESISTENCIA ━━"
-    },
-    {
-      "id": "r010",
-      "kind": "text",
-      "x": 40,
-      "y": 774,
-      "src": "phi_b = 0,90 en flexion. Para el CORTE, el §G1(a) —impresa 16.1-75— fija\nphi_v = 0,90 «for all provisions in this chapter EXCEPT Section G2.1(a)».\nEl 1,00 del G2.1(a) es para almas de perfiles LAMINADOS con h/tw pequeno; con\nun canal soldado encima el miembro ya es armado, y adoptar 1,00 es una\ndecision que hay que tomar a conciencia. Por defecto va el 0,90"
-    },
-    {
-      "id": "in_phi_b",
-      "kind": "math",
-      "x": 40,
-      "y": 912,
-      "src": "phi_b := 0.90"
-    },
-    {
-      "id": "in_phi_v",
-      "kind": "math",
-      "x": 40,
-      "y": 958,
-      "src": "phi_v := 0.90"
-    },
-    {
-      "id": "r013",
-      "kind": "text",
-      "x": 40,
-      "y": 1004,
-      "src": "§J10.2 fluencia local del alma: phi = 1,00. §J10.3 aplastamiento: phi = 0,75.\nLos dos leidos en impresa 16.1-151"
-    },
-    {
-      "id": "in_phi_j10y",
-      "kind": "math",
-      "x": 40,
-      "y": 1076,
-      "src": "phi_j10y := 1.00"
-    },
-    {
-      "id": "in_phi_j10c",
-      "kind": "math",
-      "x": 40,
-      "y": 1122,
-      "src": "phi_j10c := 0.75"
-    },
-    {
-      "id": "r_phi_wsb_nota",
-      "kind": "text",
-      "x": 40,
-      "y": 1168,
-      "src": "§J10.4, pandeo lateral del alma: phi = 0,85"
-    },
-    {
-      "id": "in_phi_wsb",
-      "kind": "math",
-      "x": 40,
-      "y": 1214,
-      "src": "phi_wsb := 0.85"
-    },
-    {
-      "id": "r_kv_nota",
-      "kind": "text",
-      "x": 40,
-      "y": 1260,
-      "src": "k_v es el coeficiente de pandeo por corte del alma del §G2.1(b)(2): sin\nrigidizadores transversales vale 5,34, y con ellos 5 + 5/(a/h)^2, que vuelve a\n5,34 cuando a/h pasa de 3. El §5.8.3 de AIST TR-13 PROHIBE la accion de campo\ndiagonal del §G3 en vigas carrileras, asi que esta hoja no la usa nunca"
-    },
-    {
-      "id": "in_k_v",
-      "kind": "math",
-      "x": 40,
-      "y": 1376,
-      "src": "k_v := 5.34"
-    },
-    {
-      "id": "r016",
-      "kind": "text",
-      "x": 40,
-      "y": 1422,
-      "src": "━━ DATOS · PERFIL BASE — fila de catalogo, declarada ━━"
-    },
-    {
-      "id": "r017",
-      "kind": "text",
-      "x": 40,
-      "y": 1468,
-      "src": "Frontera de lo verificado: con es_soldada := 0 estas propiedades son de la\ntabla del fabricante y la hoja no las deriva. Con es_soldada := 1 las deriva\nde las tres chapas y estas cuatro quedan sin usar"
-    },
-    {
-      "id": "in_d",
-      "kind": "math",
-      "x": 40,
-      "y": 1562,
-      "src": "d := 611 mm"
-    },
-    {
-      "id": "in_b_f",
-      "kind": "math",
-      "x": 40,
-      "y": 1608,
-      "src": "b_f := 324 mm"
-    },
-    {
-      "id": "in_t_f",
-      "kind": "math",
-      "x": 40,
-      "y": 1654,
-      "src": "t_f := 19.05 mm"
-    },
-    {
-      "id": "in_t_w",
-      "kind": "math",
-      "x": 40,
-      "y": 1700,
-      "src": "t_w := 12.7 mm"
-    },
-    {
-      "id": "r_soldada_nota",
-      "kind": "text",
-      "x": 40,
-      "y": 1746,
-      "src": "es_soldada := 1 cuando la viga es una doble T ARMADA SOLDADA y la hoja DERIVA\nA, I_x, I_y y J de las tres chapas; := 0 cuando el perfil base sale de una\nfila de catalogo y esas cuatro propiedades entran como dato de tabla. Con 0 el\nala inferior se iguala a la superior, que es lo que hace un perfil laminado"
-    },
-    {
-      "id": "in_es_soldada",
-      "kind": "math",
-      "x": 40,
-      "y": 1862,
-      "src": "es_soldada := 0"
-    },
-    {
-      "id": "r_ala_inf_nota",
-      "kind": "text",
-      "x": 40,
-      "y": 1908,
-      "src": "Ala INFERIOR, la traccionada. Solo se usa con es_soldada := 1. Una viga\ncarrilera suele llevar el ala superior mas ancha para tomar la fuerza lateral\nen el nivel del riel -- el §5.8.2 de AIST TR-13 la describe asi --, y esa\nasimetria es la que hace que S_xt < S_xc y que el §F4.4 tenga algo que decir"
-    },
-    {
-      "id": "in_b_fb",
-      "kind": "math",
-      "x": 40,
-      "y": 2024,
-      "src": "b_fb := 324 mm"
-    },
-    {
-      "id": "in_t_fb",
-      "kind": "math",
-      "x": 40,
-      "y": 2070,
-      "src": "t_fb := 19.05 mm"
-    },
-    {
-      "id": "in_A_W",
-      "kind": "math",
-      "x": 40,
-      "y": 2116,
-      "src": "A_W := 19800 mm^2"
-    },
-    {
-      "id": "in_I_xW",
-      "kind": "math",
-      "x": 40,
-      "y": 2162,
-      "src": "I_xW := 1.29e9 mm^4"
-    },
-    {
-      "id": "in_I_yW",
-      "kind": "math",
-      "x": 40,
-      "y": 2208,
-      "src": "I_yW := 1.078e8 mm^4"
-    },
-    {
-      "id": "in_J_W",
-      "kind": "math",
-      "x": 40,
-      "y": 2254,
-      "src": "J_W := 1.32e6 mm^4"
-    },
-    {
-      "id": "r026",
-      "kind": "text",
-      "x": 40,
-      "y": 2300,
-      "src": "k del §J10: distancia de la cara exterior del ala al pie del filete. De la\ntabla de detalle del perfil; si no se tiene, k = t_f + radio de acuerdo"
-    },
-    {
-      "id": "in_k_det",
-      "kind": "math",
-      "x": 40,
-      "y": 2372,
-      "src": "k_det := 40 mm"
-    },
-    {
-      "id": "r028",
-      "kind": "text",
-      "x": 40,
-      "y": 2418,
-      "src": "━━ DATOS · CANAL-TAPA ━━"
-    },
-    {
-      "id": "r029",
-      "kind": "text",
-      "x": 40,
-      "y": 2464,
-      "src": "hay_canal := 1 con canal-tapa colaborante; := 0 para la viga desnuda.\nI_cy es la inercia del canal respecto del eje VERTICAL de la viga —la que\naporta rigidez lateral, y suele ser el eje fuerte del canal— e I_cx la\nrespecto del eje horizontal. y_cc es la altura del centroide del canal sobre\nla cara superior del ala"
-    },
-    {
-      "id": "in_hay_canal",
-      "kind": "math",
-      "x": 40,
-      "y": 2602,
-      "src": "hay_canal := 1"
-    },
-    {
-      "id": "in_A_c",
-      "kind": "math",
-      "x": 40,
-      "y": 2648,
-      "src": "A_c := 5680 mm^2"
-    },
-    {
-      "id": "in_I_cy",
-      "kind": "math",
-      "x": 40,
-      "y": 2694,
-      "src": "I_cy := 6.743e7 mm^4"
-    },
-    {
-      "id": "in_I_cx",
-      "kind": "math",
-      "x": 40,
-      "y": 2740,
-      "src": "I_cx := 2.13e6 mm^4"
-    },
-    {
-      "id": "in_y_cc",
-      "kind": "math",
-      "x": 40,
-      "y": 2786,
-      "src": "y_cc := 17.1 mm"
-    },
-    {
-      "id": "in_J_C",
-      "kind": "math",
-      "x": 40,
-      "y": 2832,
-      "src": "J_C := 3.0e5 mm^4"
-    },
-    {
-      "id": "r036",
-      "kind": "text",
-      "x": 40,
-      "y": 2878,
-      "src": "━━ DATOS · ALTURA TOTAL DE LA SECCION COMPUESTA ━━"
-    },
-    {
-      "id": "r037",
-      "kind": "text",
-      "x": 40,
-      "y": 2924,
-      "src": "FRONTERA: depende de COMO se apoya el canal —alas hacia arriba o hacia\nabajo— y la hoja no lo adivina. Es la distancia de la fibra inferior a la\nfibra superior de todo el conjunto, y de ella salen S_xc y S_xt, que son los\nque gobiernan el F4. Medirla del detalle, no suponerla"
-    },
-    {
-      "id": "in_h_tot",
-      "kind": "math",
-      "x": 40,
-      "y": 3040,
-      "src": "h_tot := 691.5 mm"
-    },
-    {
-      "id": "r039",
-      "kind": "text",
-      "x": 40,
-      "y": 3086,
-      "src": "━━ DATOS · GEOMETRIA DEL VANO ━━"
-    },
-    {
-      "id": "in_L",
-      "kind": "math",
-      "x": 40,
-      "y": 3132,
-      "src": "L := 8000 mm"
-    },
-    {
-      "id": "r041",
-      "kind": "text",
-      "x": 40,
-      "y": 3178,
-      "src": "L_b es la longitud no arriostrada del ala comprimida. En una via sin\narriostramiento intermedio es el vano entero"
-    },
-    {
-      "id": "in_L_b",
-      "kind": "math",
-      "x": 40,
-      "y": 3250,
-      "src": "L_b := 8000 mm"
-    },
-    {
-      "id": "r043",
-      "kind": "text",
-      "x": 40,
-      "y": 3296,
-      "src": "C_b = 1,0 es el valor conservador y el que corresponde cuando no se justifica\nel diagrama de momentos real"
-    },
-    {
-      "id": "in_C_b",
-      "kind": "math",
-      "x": 40,
-      "y": 3368,
-      "src": "C_b := 1.0"
-    },
-    {
-      "id": "r045",
-      "kind": "text",
-      "x": 40,
-      "y": 3414,
-      "src": "━━ DATOS · CARGAS DE RUEDA — FRONTERA, vienen del fabricante ━━"
-    },
-    {
-      "id": "r046",
-      "kind": "text",
-      "x": 40,
-      "y": 3460,
-      "src": "P_v es la carga vertical por rueda YA AMPLIFICADA por impacto. H_lat es la\nfuerza lateral por rueda y a la separacion entre ejes de rueda. Dos ruedas\niguales por viga. Si el fabricante da otra cosa, esta hoja no alcanza"
-    },
-    {
-      "id": "r047",
-      "kind": "text",
-      "x": 40,
-      "y": 3554,
-      "src": "Ejemplo cargado: puente de 20 t, dos ruedas por viga, impacto del 25 % ya\nincluido en P_v. P_serv es la misma carga SIN amplificar, que es la que va a\ndeflexiones y a fatiga"
-    },
-    {
-      "id": "in_n_r",
-      "kind": "math",
-      "x": 40,
-      "y": 3648,
-      "src": "n_r := 2"
-    },
-    {
-      "id": "in_P_v",
-      "kind": "math",
-      "x": 40,
-      "y": 3694,
-      "src": "P_v := 17.5 tonf"
-    },
-    {
-      "id": "in_P_serv",
-      "kind": "math",
-      "x": 40,
-      "y": 3740,
-      "src": "P_serv := 14.0 tonf"
-    },
-    {
-      "id": "in_H_lat",
-      "kind": "math",
-      "x": 40,
-      "y": 3786,
-      "src": "H_lat := 1.12 tonf"
-    },
-    {
-      "id": "in_a_ruedas",
-      "kind": "math",
-      "x": 40,
-      "y": 3832,
-      "src": "a_ruedas := 4000 mm"
-    },
-    {
-      "id": "v_dos_ruedas",
-      "kind": "math",
-      "x": 40,
-      "y": 3878,
-      "src": "v_dos_ruedas := n_r == 2 ="
-    },
-    {
-      "id": "v_tren_cabe",
-      "kind": "math",
-      "x": 40,
-      "y": 3924,
-      "src": "v_tren_cabe := a_ruedas < L ="
-    },
-    {
-      "id": "r055",
-      "kind": "text",
-      "x": 40,
-      "y": 3970,
-      "src": "━━ DATOS · PESO PROPIO DE LA VIA ━━"
-    },
-    {
-      "id": "in_w_pp",
-      "kind": "math",
-      "x": 40,
-      "y": 4016,
-      "src": "w_pp := 0.2366 tonf/m"
-    },
-    {
-      "id": "r057",
-      "kind": "text",
-      "x": 40,
-      "y": 4062,
-      "src": "━━ DATOS · CLASIFICACION DEL ALA — FRONTERA declarada ━━"
-    },
-    {
-      "id": "r058",
-      "kind": "text",
-      "x": 40,
-      "y": 4108,
-      "src": "La hoja NO clasifica el ala comprimida: el canal cambia su geometria y el\ncaso no esta tabulado. Confirmar contra la Tabla B4.1b que el ala del perfil\nbase es compacta, y poner 1. Si no lo es, hay que agregar el estado limite de\npandeo local del ala comprimida, §F4.3"
-    },
-    {
-      "id": "in_ala_compacta",
-      "kind": "math",
-      "x": 40,
-      "y": 4224,
-      "src": "ala_compacta := 1"
-    },
-    {
-      "id": "v_ala_compacta",
-      "kind": "math",
-      "x": 40,
-      "y": 4270,
-      "src": "v_ala_compacta := ala_compacta == 1 ="
-    },
-    {
-      "id": "r061",
-      "kind": "text",
-      "x": 40,
-      "y": 4316,
-      "src": "━━ DATOS · FATIGA — Tabla A-3.1, categoria del detalle ━━"
-    },
-    {
-      "id": "r062",
-      "kind": "text",
-      "x": 40,
-      "y": 4362,
-      "src": "Constantes de la Tabla A-3.1:\n  categoria A  C_f = 25    F_TH = 170 MPa\n  categoria B  C_f = 12    F_TH = 110 MPa\n  categoria C  C_f = 4,4   F_TH =  69 MPa\n  categoria D  C_f = 2,2   F_TH =  48 MPa\n  categoria E' C_f = 0,39  F_TH =  18 MPa\nEl caso concreto se elige en la Seccion 2 de esa tabla para la soldadura que\nune el canal al ala. Por defecto va la B, que es la del cordon continuo\nparalelo a la direccion de la tension"
-    },
-    {
-      "id": "in_C_f",
-      "kind": "math",
-      "x": 40,
-      "y": 4588,
-      "src": "C_f := 12"
-    },
-    {
-      "id": "in_F_TH",
-      "kind": "math",
-      "x": 40,
-      "y": 4634,
-      "src": "F_TH := 110 MPa"
-    },
-    {
-      "id": "r065",
-      "kind": "text",
-      "x": 40,
-      "y": 4680,
-      "src": "n_SR es el numero de fluctuaciones de tension en la vida de diseno, no el\nnumero de ciclos de la grua: cada pasada del puente puede dar mas de una"
-    },
-    {
-      "id": "in_n_SR",
-      "kind": "math",
-      "x": 40,
-      "y": 4752,
-      "src": "n_SR := 500000"
-    },
-    {
-      "id": "r067",
-      "kind": "text",
-      "x": 40,
-      "y": 4798,
-      "src": "━━ DATOS · LIMITES DE SERVICIO — FRONTERA, no son de AISC ━━"
-    },
-    {
-      "id": "r068",
-      "kind": "text",
-      "x": 40,
-      "y": 4844,
-      "src": "Salen del criterio del propietario o de la guia de puentes grua. El de la\nvertical suele estar entre L/600 y L/1000 segun la clase de edificio, y esa\nclase la especifica el PROPIETARIO: es un dato, no una eleccion del calculista"
-    },
-    {
-      "id": "in_den_vert",
-      "kind": "math",
-      "x": 40,
-      "y": 4938,
-      "src": "den_vert := 600"
-    },
-    {
-      "id": "in_den_lat",
-      "kind": "math",
-      "x": 40,
-      "y": 4984,
-      "src": "den_lat := 400"
-    },
-    {
-      "id": "r071",
-      "kind": "text",
-      "x": 40,
-      "y": 5030,
-      "src": "━━ 1 — SECCION COMPUESTA · Steiner ━━",
-      "pageBreak": true
-    },
-    {
-      "id": "r072",
-      "kind": "math",
-      "x": 40,
-      "y": 5076,
-      "src": "h_alma := d - t_f - t_fb = mm"
-    },
-    {
-      "id": "r_der_nota",
-      "kind": "text",
-      "x": 40,
-      "y": 5122,
-      "src": "Con es_soldada := 1 las cuatro propiedades del perfil base se DERIVAN de las\ntres chapas y las entradas de catalogo quedan sin usar. El J de una doble T\nsoldada se toma como la suma de b*t^3/3 de las tres chapas: es el limite de\ntira delgada, menor que el valor con la correccion de razon finita, y por lo\ntanto del lado conservador para el pandeo lateral-torsional"
-    },
-    {
-      "id": "r_A_sol",
-      "kind": "math",
-      "x": 40,
-      "y": 5260,
-      "src": "A_sol := b_f*t_f + b_fb*t_fb + h_alma*t_w = mm^2"
-    },
-    {
-      "id": "r_y_sol_nota",
-      "kind": "text",
-      "x": 40,
-      "y": 5306,
-      "src": "Centroide del perfil base desde la fibra INFERIOR. Con alas iguales da d/2 y\ntodo lo que sigue se reduce al caso simetrico"
-    },
-    {
-      "id": "r_y_sol",
-      "kind": "math",
-      "x": 40,
-      "y": 5378,
-      "src": "y_sol := (b_fb*t_fb*t_fb/2 + h_alma*t_w*(t_fb + h_alma/2) + b_f*t_f*(d - t_f/2))/A_sol = mm"
-    },
-    {
-      "id": "r_Ix_sol",
-      "kind": "math",
-      "x": 40,
-      "y": 5424,
-      "src": "I_x_sol := b_fb*t_fb^3/12 + b_fb*t_fb*(y_sol - t_fb/2)^2 + t_w*h_alma^3/12 + h_alma*t_w*(y_sol - t_fb - h_alma/2)^2 + b_f*t_f^3/12 + b_f*t_f*(d - t_f/2 - y_sol)^2 = mm^4"
-    },
-    {
-      "id": "r_Iy_sol",
-      "kind": "math",
-      "x": 40,
-      "y": 5470,
-      "src": "I_y_sol := t_f*b_f^3/12 + t_fb*b_fb^3/12 + h_alma*t_w^3/12 = mm^4"
-    },
-    {
-      "id": "r_J_sol",
-      "kind": "math",
-      "x": 40,
-      "y": 5516,
-      "src": "J_sol := (b_f*t_f^3 + b_fb*t_fb^3 + h_alma*t_w^3)/3 = mm^4"
-    },
-    {
-      "id": "r_A_ef",
-      "kind": "program",
-      "x": 40,
-      "y": 5562,
-      "src": "A_ef :=\n    if es_soldada == 1\n        return A_sol\n    else\n        return A_W"
-    },
-    {
-      "id": "r_y_W",
-      "kind": "program",
-      "x": 40,
-      "y": 5700,
-      "src": "y_W :=\n    if es_soldada == 1\n        return y_sol\n    else\n        return d/2"
-    },
-    {
-      "id": "r_Ix_ef",
-      "kind": "program",
-      "x": 40,
-      "y": 5838,
-      "src": "I_x_ef :=\n    if es_soldada == 1\n        return I_x_sol\n    else\n        return I_xW"
-    },
-    {
-      "id": "r_Iy_ef",
-      "kind": "program",
-      "x": 40,
-      "y": 5976,
-      "src": "I_y_ef :=\n    if es_soldada == 1\n        return I_y_sol\n    else\n        return I_yW"
-    },
-    {
-      "id": "r_J_ef",
-      "kind": "program",
-      "x": 40,
-      "y": 6114,
-      "src": "J_ef :=\n    if es_soldada == 1\n        return J_sol\n    else\n        return J_W"
-    },
-    {
-      "id": "r073",
-      "kind": "math",
-      "x": 40,
-      "y": 6252,
-      "src": "A_g := A_ef + hay_canal*A_c = mm^2"
-    },
-    {
-      "id": "r074",
-      "kind": "text",
-      "x": 40,
-      "y": 6298,
-      "src": "Centroide medido desde la fibra INFERIOR. El canal sube el eje neutro, y ese\ncorrimiento es el que hace que S_xt sea menor que S_xc"
-    },
-    {
-      "id": "r075",
-      "kind": "math",
-      "x": 40,
-      "y": 6370,
-      "src": "y_c_canal := d + y_cc = mm"
-    },
-    {
-      "id": "r076",
-      "kind": "math",
-      "x": 40,
-      "y": 6416,
-      "src": "y_NA := (A_ef*y_W + hay_canal*A_c*y_c_canal)/A_g = mm"
-    },
-    {
-      "id": "r077",
-      "kind": "math",
-      "x": 40,
-      "y": 6462,
-      "src": "I_x := I_x_ef + A_ef*(y_NA - y_W)^2 + hay_canal*(I_cx + A_c*(y_c_canal - y_NA)^2) = mm^4"
-    },
-    {
-      "id": "r078",
-      "kind": "text",
-      "x": 40,
-      "y": 6508,
-      "src": "Fibras extremas y modulos elasticos a cada lado. S_xc es el que manda en el\nF4; S_xt es el que decide si hay que verificar el ala traccionada"
-    },
-    {
-      "id": "r079",
-      "kind": "math",
-      "x": 40,
-      "y": 6580,
-      "src": "y_sup := h_tot - y_NA = mm"
-    },
-    {
-      "id": "r080",
-      "kind": "math",
-      "x": 40,
-      "y": 6626,
-      "src": "y_inf := y_NA = mm"
-    },
-    {
-      "id": "r081",
-      "kind": "math",
-      "x": 40,
-      "y": 6672,
-      "src": "S_xc := I_x/y_sup = mm^3"
-    },
-    {
-      "id": "r082",
-      "kind": "math",
-      "x": 40,
-      "y": 6718,
-      "src": "S_xt := I_x/y_inf = mm^3"
-    },
-    {
-      "id": "r083",
-      "kind": "math",
-      "x": 40,
-      "y": 6764,
-      "src": "razon_S := S_xt/S_xc ="
-    },
-    {
-      "id": "r084",
-      "kind": "text",
-      "x": 40,
-      "y": 6810,
-      "src": "Inercia lateral: la del alma respecto del eje vertical es despreciable y se\nincluye igual. I_ytop es la del ala comprimida sola mas el canal, que es el\nmodelo con que se toma la fuerza lateral"
-    },
-    {
-      "id": "r085",
-      "kind": "math",
-      "x": 40,
-      "y": 6904,
-      "src": "I_yf := t_f*b_f^3/12 = mm^4"
-    },
-    {
-      "id": "r086",
-      "kind": "math",
-      "x": 40,
-      "y": 6950,
-      "src": "I_y := I_y_ef + hay_canal*I_cy = mm^4"
-    },
-    {
-      "id": "r087",
-      "kind": "math",
-      "x": 40,
-      "y": 6996,
-      "src": "I_ytop := I_yf + hay_canal*I_cy = mm^4"
-    },
-    {
-      "id": "r088",
-      "kind": "math",
-      "x": 40,
-      "y": 7042,
-      "src": "S_ytop := I_ytop/(b_f/2) = mm^3"
-    },
-    {
-      "id": "r089",
-      "kind": "math",
-      "x": 40,
-      "y": 7088,
-      "src": "J := J_ef + hay_canal*J_C = mm^4"
-    },
-    {
-      "id": "r090",
-      "kind": "math",
-      "x": 40,
-      "y": 7134,
-      "src": "h_o := d - t_f = mm"
-    },
-    {
-      "id": "r091",
-      "kind": "text",
-      "x": 40,
-      "y": 7180,
-      "src": "━━ 2 — CLASIFICACION DEL ALMA · C-F4-2 impresa 16.1-380 ━━",
-      "pageBreak": true
-    },
-    {
-      "id": "r092",
-      "kind": "text",
-      "x": 40,
-      "y": 7226,
-      "src": "h_c: el doble de la distancia del centroide a la cara interna del ala\ncomprimida — definicion del §F4, impresa 16.1-58"
-    },
-    {
-      "id": "r093",
-      "kind": "math",
-      "x": 40,
-      "y": 7298,
-      "src": "h_c := 2*(d - t_f - y_NA) = mm"
-    },
-    {
-      "id": "r094",
-      "kind": "math",
-      "x": 40,
-      "y": 7344,
-      "src": "lam_w := h_c/t_w ="
-    },
-    {
-      "id": "r095",
-      "kind": "text",
-      "x": 40,
-      "y": 7390,
-      "src": "lambda_rw = 5,70*sqrt(E/Fy). Si se supera, el alma es ESBELTA, rige el §F5 y\nesta hoja NO alcanza"
-    },
-    {
-      "id": "r096",
-      "kind": "math",
-      "x": 40,
-      "y": 7462,
-      "src": "lam_rw := 5.70*sqrt(E/Fy) ="
-    },
-    {
-      "id": "v_alma_no_esbelta",
-      "kind": "math",
-      "x": 40,
-      "y": 7508,
-      "src": "v_alma_no_esbelta := lam_w <= lam_rw ="
-    },
-    {
-      "id": "r_lam_pw_nota",
-      "kind": "text",
-      "x": 40,
-      "y": 7554,
-      "src": "El §F4 solo necesita que el alma NO SEA ESBELTA. El §5.8.2 de AIST TR-13 pide\nmas: «the top flange and web of the crane runway girder shall be compact as\ndefined in Ref. 1». El limite de compacidad del alma en flexion es\nlambda_pw = 3,76*sqrt(E/Fy), Tabla B4.1b"
-    },
-    {
-      "id": "r_lam_pw",
-      "kind": "math",
-      "x": 40,
-      "y": 7670,
-      "src": "lam_pw := 3.76*sqrt(E/Fy) ="
-    },
-    {
-      "id": "v_alma_compacta",
-      "kind": "math",
-      "x": 40,
-      "y": 7716,
-      "src": "v_alma_compacta := lam_w <= lam_pw ="
-    },
-    {
-      "id": "r098",
-      "kind": "text",
-      "x": 40,
-      "y": 7762,
-      "src": "━━ 3 — FACTORES DE PLASTIFICACION DEL ALMA — adopcion conservadora ━━"
-    },
-    {
-      "id": "r099",
-      "kind": "text",
-      "x": 40,
-      "y": 7808,
-      "src": "FRONTERA: R_pc y R_pt salen de F4-9a/b y F4-16a/b, que necesitan el eje\nneutro PLASTICO. La hoja no lo calcula y adopta 1,0. Como F4-9a da\nR_pc = M_p/M_yc >= 1, tomar 1,0 es el limite inferior: CONSERVADOR.\nCalcularlos solo puede subir la capacidad, nunca bajarla"
-    },
-    {
-      "id": "r100",
-      "kind": "math",
-      "x": 40,
-      "y": 7924,
-      "src": "R_pc := 1.0"
-    },
-    {
-      "id": "r101",
-      "kind": "math",
-      "x": 40,
-      "y": 7970,
-      "src": "R_pt := 1.0"
-    },
-    {
-      "id": "r102",
-      "kind": "text",
-      "x": 40,
-      "y": 8016,
-      "src": "━━ 4 — SOLICITACIONES · dos ruedas iguales sobre vano simple ━━",
-      "pageBreak": true
-    },
-    {
-      "id": "r103",
-      "kind": "text",
-      "x": 40,
-      "y": 8062,
-      "src": "Momento maximo absoluto del tren de dos cargas iguales: se ubica la\nresultante y una rueda simetricas respecto del centro, y la seccion critica\ncae bajo esa rueda, a x = L/2 - a/4 del apoyo. Es mecanica, no norma"
-    },
-    {
-      "id": "r104",
-      "kind": "math",
-      "x": 40,
-      "y": 8156,
-      "src": "x_crit := L/2 - a_ruedas/4 = mm"
-    },
-    {
-      "id": "v_pos_critica",
-      "kind": "math",
-      "x": 40,
-      "y": 8202,
-      "src": "v_pos_critica := x_crit > 0 mm ="
-    },
-    {
-      "id": "r106",
-      "kind": "math",
-      "x": 40,
-      "y": 8248,
-      "src": "M_rueda := 2*P_v*x_crit^2/L = tonf*m"
-    },
-    {
-      "id": "r107",
-      "kind": "math",
-      "x": 40,
-      "y": 8294,
-      "src": "M_lat := 2*H_lat*x_crit^2/L = tonf*m"
-    },
-    {
-      "id": "r108",
-      "kind": "math",
-      "x": 40,
-      "y": 8340,
-      "src": "M_serv := 2*P_serv*x_crit^2/L = tonf*m"
-    },
-    {
-      "id": "r109",
-      "kind": "text",
-      "x": 40,
-      "y": 8386,
-      "src": "Corte maximo: el tren pegado al apoyo"
-    },
-    {
-      "id": "r110",
-      "kind": "math",
-      "x": 40,
-      "y": 8432,
-      "src": "V_rueda := P_v*(2*L - a_ruedas)/L = tonf"
-    },
-    {
-      "id": "r111",
-      "kind": "math",
-      "x": 40,
-      "y": 8478,
-      "src": "M_pp := w_pp*L^2/8 = tonf*m"
-    },
-    {
-      "id": "r112",
-      "kind": "math",
-      "x": 40,
-      "y": 8524,
-      "src": "V_pp := w_pp*L/2 = tonf"
-    },
-    {
-      "id": "r113",
-      "kind": "text",
-      "x": 40,
-      "y": 8570,
-      "src": "Combinacion: peso propio a 1,2 y la grua a 1,6. Si el reglamento del\nproyecto usa otros factores, cambiarlos aca"
-    },
-    {
-      "id": "r114",
-      "kind": "math",
-      "x": 40,
-      "y": 8642,
-      "src": "M_ux := 1.2*M_pp + 1.6*M_rueda = tonf*m"
-    },
-    {
-      "id": "r115",
-      "kind": "math",
-      "x": 40,
-      "y": 8688,
-      "src": "M_uy := 1.6*M_lat = tonf*m"
-    },
-    {
-      "id": "r116",
-      "kind": "math",
-      "x": 40,
-      "y": 8734,
-      "src": "V_u := 1.2*V_pp + 1.6*V_rueda = tonf"
-    },
-    {
-      "id": "r117",
-      "kind": "text",
-      "x": 40,
-      "y": 8780,
-      "src": "━━ 5 — FLEXION EN EL EJE FUERTE · §F4 ━━",
-      "pageBreak": true
-    },
-    {
-      "id": "r118",
-      "kind": "text",
-      "x": 40,
-      "y": 8826,
-      "src": "[F4-4] M_yc = Fy*S_xc, el momento de fluencia en el ala COMPRIMIDA"
-    },
-    {
-      "id": "r119",
-      "kind": "math",
-      "x": 40,
-      "y": 8872,
-      "src": "M_yc := Fy*S_xc = tonf*m"
-    },
-    {
-      "id": "r120",
-      "kind": "text",
-      "x": 40,
-      "y": 8918,
-      "src": "[F4-1] fluencia del ala comprimida: M_n = R_pc*M_yc"
-    },
-    {
-      "id": "r121",
-      "kind": "math",
-      "x": 40,
-      "y": 8964,
-      "src": "Mn_cfy := R_pc*M_yc = tonf*m"
-    },
-    {
-      "id": "r122",
-      "kind": "text",
-      "x": 40,
-      "y": 9010,
-      "src": "━━ 5b — r_t DEL CANAL-TAPA · §F4(7)(ii) impresa 16.1-58 ━━"
-    },
-    {
-      "id": "r123",
-      "kind": "text",
-      "x": 40,
-      "y": 9056,
-      "src": "La norma escribe este caso exacto: «radius of gyration of the flange\ncomponents in flexural compression plus ONE-THIRD OF THE WEB AREA IN\nCOMPRESSION». El alma comprimida es la que queda entre el eje neutro y la\ncara interna del ala, o sea h_c/2 de altura — NO media alma"
-    },
-    {
-      "id": "r124",
-      "kind": "math",
-      "x": 40,
-      "y": 9172,
-      "src": "h_web_comp := d - t_f - y_NA = mm"
-    },
-    {
-      "id": "r125",
-      "kind": "math",
-      "x": 40,
-      "y": 9218,
-      "src": "A_web_comp := h_web_comp*t_w = mm^2"
-    },
-    {
-      "id": "r126",
-      "kind": "math",
-      "x": 40,
-      "y": 9264,
-      "src": "A_t := b_f*t_f + hay_canal*A_c + A_web_comp/3 = mm^2"
-    },
-    {
-      "id": "r127",
-      "kind": "text",
-      "x": 40,
-      "y": 9310,
-      "src": "La inercia de esos mismos componentes respecto del eje vertical"
-    },
-    {
-      "id": "r128",
-      "kind": "math",
-      "x": 40,
-      "y": 9356,
-      "src": "I_t := I_yf + hay_canal*I_cy = mm^4"
-    },
-    {
-      "id": "r129",
-      "kind": "math",
-      "x": 40,
-      "y": 9402,
-      "src": "r_t := sqrt(I_t/A_t) = mm"
-    },
-    {
-      "id": "r130",
-      "kind": "text",
-      "x": 40,
-      "y": 9448,
-      "src": "Cuanto se habria equivocado usando un sexto del alma ENTERA, que es lo mismo\nsolo si el eje neutro esta a media altura — justo lo que el canal rompe"
-    },
-    {
-      "id": "r131",
-      "kind": "math",
-      "x": 40,
-      "y": 9520,
-      "src": "A_t_mal := b_f*t_f + hay_canal*A_c + h_alma*t_w/6 = mm^2"
-    },
-    {
-      "id": "r132",
-      "kind": "math",
-      "x": 40,
-      "y": 9566,
-      "src": "desvio_At := A_t/A_t_mal - 1 ="
-    },
-    {
-      "id": "r133",
-      "kind": "text",
-      "x": 40,
-      "y": 9612,
-      "src": "━━ 5c — LONGITUDES LIMITE · F4-6, F4-7 y F4-8 ━━"
-    },
-    {
-      "id": "r134",
-      "kind": "text",
-      "x": 40,
-      "y": 9658,
-      "src": "[F4-6a] si S_xt/S_xc >= 0,7 entonces F_L = 0,7*Fy\n[F4-6b] si no, F_L = Fy*S_xt/S_xc, y nunca menos de 0,5*Fy"
-    },
-    {
-      "id": "r135",
-      "kind": "program",
-      "x": 40,
-      "y": 9730,
-      "src": "F_L :=\n    if razon_S >= 0.7\n        return 0.7*Fy\n    else\n        return max(Fy*razon_S, 0.5*Fy)"
-    },
-    {
-      "id": "r136",
-      "kind": "text",
-      "x": 40,
-      "y": 9868,
-      "src": "[F4-7] L_p = 1,1*r_t*sqrt(E/Fy). NO es el 1,76*r_y del F2"
-    },
-    {
-      "id": "r137",
-      "kind": "math",
-      "x": 40,
-      "y": 9914,
-      "src": "L_p := 1.1*r_t*sqrt(E/Fy) = mm"
-    },
-    {
-      "id": "r138",
-      "kind": "text",
-      "x": 40,
-      "y": 9960,
-      "src": "[F4-8] L_r, con F_L en lugar del 0,7*Fy del F2-6"
-    },
-    {
-      "id": "r139",
-      "kind": "math",
-      "x": 40,
-      "y": 10006,
-      "src": "Jsh := J/(S_xc*h_o) ="
-    },
-    {
-      "id": "r140",
-      "kind": "math",
-      "x": 40,
-      "y": 10052,
-      "src": "FLE := F_L/E ="
-    },
-    {
-      "id": "r141",
-      "kind": "math",
-      "x": 40,
-      "y": 10098,
-      "src": "L_r := 1.95*r_t*(E/F_L)*sqrt(Jsh + sqrt(Jsh^2 + 6.76*FLE^2)) = mm"
-    },
-    {
-      "id": "v_lp_lr",
-      "kind": "math",
-      "x": 40,
-      "y": 10144,
-      "src": "v_lp_lr := L_p < L_r ="
-    },
-    {
-      "id": "r143",
-      "kind": "text",
-      "x": 40,
-      "y": 10190,
-      "src": "━━ 5d — PANDEO LATERAL-TORSIONAL · F4-2 y F4-3 ━━"
-    },
-    {
-      "id": "r144",
-      "kind": "text",
-      "x": 40,
-      "y": 10236,
-      "src": "[F4-5] tension critica, para el tramo elastico"
-    },
-    {
-      "id": "r145",
-      "kind": "math",
-      "x": 40,
-      "y": 10282,
-      "src": "F_cr := C_b*pi^2*E/(L_b/r_t)^2*sqrt(1 + 0.078*Jsh*(L_b/r_t)^2) = MPa"
-    },
-    {
-      "id": "r146",
-      "kind": "text",
-      "x": 40,
-      "y": 10328,
-      "src": "(a) L_b <= L_p: el estado limite no aplica  ·  (b) L_p < L_b <= L_r: F4-2\n(c) L_b > L_r: F4-3, con el tope R_pc*M_yc en los dos casos"
-    },
-    {
-      "id": "r147",
-      "kind": "program",
-      "x": 40,
-      "y": 10400,
-      "src": "Mn_ltb :=\n    if L_b <= L_p\n        return R_pc*M_yc\n    else if L_b <= L_r\n        return min(C_b*(R_pc*M_yc - (R_pc*M_yc - F_L*S_xc)*(L_b - L_p)/(L_r - L_p)), R_pc*M_yc)\n    else\n        return min(F_cr*S_xc, R_pc*M_yc)"
-    },
-    {
-      "id": "r148",
-      "kind": "math",
-      "x": 40,
-      "y": 10582,
-      "src": "merma_ltb := 1 - Mn_ltb/Mn_cfy ="
-    },
-    {
-      "id": "r149",
-      "kind": "text",
-      "x": 40,
-      "y": 10628,
-      "src": "━━ 5e — FLUENCIA DEL ALA TRACCIONADA · §F4.4 ━━"
-    },
-    {
-      "id": "r150",
-      "kind": "text",
-      "x": 40,
-      "y": 10674,
-      "src": "El estado limite que la lectura por F2 no tiene. (a) si S_xt >= S_xc no\naplica  ·  (b) si S_xt < S_xc, M_n = R_pt*M_yt con M_yt = Fy*S_xt [F4-15]"
-    },
-    {
-      "id": "r151",
-      "kind": "math",
-      "x": 40,
-      "y": 10746,
-      "src": "M_yt := Fy*S_xt = tonf*m"
-    },
-    {
-      "id": "r152",
-      "kind": "program",
-      "x": 40,
-      "y": 10792,
-      "src": "Mn_tfy :=\n    if S_xt >= S_xc\n        return R_pc*M_yc\n    else\n        return R_pt*M_yt"
-    },
-    {
-      "id": "r153",
-      "kind": "text",
-      "x": 40,
-      "y": 10930,
-      "src": "Aplica de verdad cuando el ala traccionada es la mas chica, que es lo normal\ncon canal-tapa: el canal sube el eje neutro y aleja la fibra inferior"
-    },
-    {
-      "id": "v_tfy_aplica",
-      "kind": "math",
-      "x": 40,
-      "y": 11002,
-      "src": "v_tfy_aplica := S_xt < S_xc ="
-    },
-    {
-      "id": "r155",
-      "kind": "text",
-      "x": 40,
-      "y": 11048,
-      "src": "━━ 5f — RESISTENCIA NOMINAL A FLEXION ━━"
-    },
-    {
-      "id": "r156",
-      "kind": "text",
-      "x": 40,
-      "y": 11094,
-      "src": "El §F4 pide el MENOR de los estados limite considerados. El pandeo local del\nala comprimida queda fuera por frontera declarada, con el ala compacta"
-    },
-    {
-      "id": "r157",
-      "kind": "math",
-      "x": 40,
-      "y": 11166,
-      "src": "M_n := min(Mn_cfy, Mn_ltb, Mn_tfy) = tonf*m"
-    },
-    {
-      "id": "r158",
-      "kind": "math",
-      "x": 40,
-      "y": 11212,
-      "src": "Rd_Mx := phi_b*M_n = tonf*m"
-    },
-    {
-      "id": "r159",
-      "kind": "math",
-      "x": 40,
-      "y": 11258,
-      "src": "u_flex := M_ux/Rd_Mx ="
-    },
-    {
-      "id": "v_flexion",
-      "kind": "math",
-      "x": 40,
-      "y": 11304,
-      "src": "v_flexion := Rd_Mx >= M_ux ="
-    },
-    {
-      "id": "r161",
-      "kind": "text",
-      "x": 40,
-      "y": 11350,
-      "src": "━━ 6 — FLEXION LATERAL Y COMBINACION · §H1 ━━",
-      "pageBreak": true
-    },
-    {
-      "id": "r162",
-      "kind": "text",
-      "x": 40,
-      "y": 11396,
-      "src": "HIPOTESIS: la fuerza lateral la toman INTEGRAMENTE el ala superior y el\ncanal, no la seccion completa. Es practica corriente y va del lado seguro"
-    },
-    {
-      "id": "r163",
-      "kind": "math",
-      "x": 40,
-      "y": 11468,
-      "src": "Rd_My := phi_b*Fy*S_ytop = tonf*m"
-    },
-    {
-      "id": "r164",
-      "kind": "math",
-      "x": 40,
-      "y": 11514,
-      "src": "u_lat := M_uy/Rd_My ="
-    },
-    {
-      "id": "r165",
-      "kind": "text",
-      "x": 40,
-      "y": 11560,
-      "src": "[H1-1b] con esfuerzo axial nulo la interaccion se reduce a la suma de los\ndos cocientes de flexion. Todos los terminos van POSITIVOS — nota de usuario\ndel §H1, impresa 16.1-83"
-    },
-    {
-      "id": "r166",
-      "kind": "math",
-      "x": 40,
-      "y": 11654,
-      "src": "H1 := u_flex + u_lat ="
-    },
-    {
-      "id": "v_H1",
-      "kind": "math",
-      "x": 40,
-      "y": 11700,
-      "src": "v_H1 := H1 <= 1.0 ="
-    },
-    {
-      "id": "r168",
-      "kind": "text",
-      "x": 40,
-      "y": 11746,
-      "src": "━━ 7 — CORTE · §G2 ━━",
-      "pageBreak": true
-    },
-    {
-      "id": "r169",
-      "kind": "text",
-      "x": 40,
-      "y": 11792,
-      "src": "[G2-1] V_n = 0,6*Fy*A_w*C_v1. El area de corte es el alma completa del perfil"
-    },
-    {
-      "id": "r170",
-      "kind": "math",
-      "x": 40,
-      "y": 11838,
-      "src": "A_w := d*t_w = mm^2"
-    },
-    {
-      "id": "r171",
-      "kind": "text",
-      "x": 40,
-      "y": 11884,
-      "src": "C_v1 = 1,0 cuando el alma no pandea antes de fluir. El limite del G2.1(a) es\n2,24*sqrt(E/Fy); se comprueba y si no se cumple hay que ir al G2.1(b)"
-    },
-    {
-      "id": "r172",
-      "kind": "math",
-      "x": 40,
-      "y": 11956,
-      "src": "lim_Cv1 := 2.24*sqrt(E/Fy) ="
-    },
-    {
-      "id": "r173",
-      "kind": "math",
-      "x": 40,
-      "y": 12002,
-      "src": "lam_alma := h_alma/t_w ="
-    },
-    {
-      "id": "v_Cv1",
-      "kind": "math",
-      "x": 40,
-      "y": 12048,
-      "src": "v_Cv1 := lam_alma <= lim_Cv1 ="
-    },
-    {
-      "id": "r_g2b_nota",
-      "kind": "text",
-      "x": 40,
-      "y": 12094,
-      "src": "El §G2.1(a) -- phi_v = 1,00 y C_v1 = 1,0 -- vale SOLO para almas de perfiles\nLAMINADOS. Una carrilera con canal-tapa soldado, o armada de chapas, cae en el\n(b), donde C_v1 = 1,0 solo mientras h/tw no supere 1,10*sqrt(k_v*E/Fy) [G2-3];\npor encima el alma pandea antes de fluir y C_v1 baja segun [G2-4]. Fijarlo en\n1,0 ahi NO es conservador"
-    },
-    {
-      "id": "r_lim_Cv1b",
-      "kind": "math",
-      "x": 40,
-      "y": 12232,
-      "src": "lim_Cv1b := 1.10*sqrt(k_v*E/Fy) ="
-    },
-    {
-      "id": "v_Cv1b",
-      "kind": "math",
-      "x": 40,
-      "y": 12278,
-      "src": "v_Cv1b := lam_alma <= lim_Cv1b ="
-    },
-    {
-      "id": "r175",
-      "kind": "program",
-      "x": 40,
-      "y": 12324,
-      "src": "C_v1 :=\n    if lam_alma <= lim_Cv1b\n        return 1.0\n    else\n        return lim_Cv1b/lam_alma"
-    },
-    {
-      "id": "r176",
-      "kind": "math",
-      "x": 40,
-      "y": 12462,
-      "src": "Rd_V := phi_v*0.6*Fy*A_w*C_v1 = tonf"
-    },
-    {
-      "id": "r177",
-      "kind": "math",
-      "x": 40,
-      "y": 12508,
-      "src": "u_corte := V_u/Rd_V ="
-    },
-    {
-      "id": "v_corte",
-      "kind": "math",
-      "x": 40,
-      "y": 12554,
-      "src": "v_corte := Rd_V >= V_u ="
-    },
-    {
-      "id": "r179",
-      "kind": "text",
-      "x": 40,
-      "y": 12600,
-      "src": "━━ 8 — FUERZAS CONCENTRADAS DEL RODADO · §J10 ━━",
-      "pageBreak": true
-    },
-    {
-      "id": "r180",
-      "kind": "text",
-      "x": 40,
-      "y": 12646,
-      "src": "La rueda apoya sobre el riel y este reparte: la longitud de apoyo se toma\ncomo dos veces la altura del riel, criterio corriente que conviene declarar"
-    },
-    {
-      "id": "r181",
-      "kind": "math",
-      "x": 40,
-      "y": 12718,
-      "src": "H_riel := 60 mm"
-    },
-    {
-      "id": "r182",
-      "kind": "math",
-      "x": 40,
-      "y": 12764,
-      "src": "l_b := 2*H_riel = mm"
-    },
-    {
-      "id": "r183",
-      "kind": "math",
-      "x": 40,
-      "y": 12810,
-      "src": "P_ur := 1.6*P_v = tonf"
-    },
-    {
-      "id": "r184",
-      "kind": "text",
-      "x": 40,
-      "y": 12856,
-      "src": "UNA VIGA CARRILERA NO TIENE UN PUNTO DE APLICACION FIJO: la rueda recorre\ntodo el vano, extremos incluidos. Por eso hay que verificar los DOS casos\ndel §J10, y el del extremo es la mitad de resistente"
-    },
-    {
-      "id": "r185",
-      "kind": "text",
-      "x": 40,
-      "y": 12950,
-      "src": "[J10-2] lejos del extremo, a mas de d:  R_n = Fy*t_w*(5k + l_b)\n[J10-3] cerca del extremo, a d o menos: R_n = Fy*t_w*(2,5k + l_b)"
-    },
-    {
-      "id": "r186",
-      "kind": "math",
-      "x": 40,
-      "y": 13022,
-      "src": "Rd_wly_int := phi_j10y*Fy*t_w*(5*k_det + l_b) = tonf"
-    },
-    {
-      "id": "r187",
-      "kind": "math",
-      "x": 40,
-      "y": 13068,
-      "src": "Rd_wly_ext := phi_j10y*Fy*t_w*(2.5*k_det + l_b) = tonf"
-    },
-    {
-      "id": "r188",
-      "kind": "math",
-      "x": 40,
-      "y": 13114,
-      "src": "u_wly := P_ur/Rd_wly_ext ="
-    },
-    {
-      "id": "v_wly",
-      "kind": "math",
-      "x": 40,
-      "y": 13160,
-      "src": "v_wly := Rd_wly_ext >= P_ur ="
-    },
-    {
-      "id": "r190",
-      "kind": "text",
-      "x": 40,
-      "y": 13206,
-      "src": "[J10-4] lejos del extremo, a d/2 o mas: coeficiente 0,80\n[J10-5a] cerca del extremo y con l_b/d <= 0,2: coeficiente 0,40"
-    },
-    {
-      "id": "r191",
-      "kind": "math",
-      "x": 40,
-      "y": 13278,
-      "src": "Q_f := 1.0"
-    },
-    {
-      "id": "r192",
-      "kind": "math",
-      "x": 40,
-      "y": 13324,
-      "src": "lb_d := l_b/d ="
-    },
-    {
-      "id": "r193",
-      "kind": "math",
-      "x": 40,
-      "y": 13370,
-      "src": "nucleo := (1 + 3*lb_d*(t_w/t_f)^1.5)*sqrt(E*Fy*t_f/t_w) = MPa"
-    },
-    {
-      "id": "r194",
-      "kind": "math",
-      "x": 40,
-      "y": 13416,
-      "src": "Rd_wlc_int := phi_j10c*0.80*t_w^2*nucleo*Q_f = tonf"
-    },
-    {
-      "id": "r195",
-      "kind": "math",
-      "x": 40,
-      "y": 13462,
-      "src": "Rd_wlc_ext := phi_j10c*0.40*t_w^2*nucleo*Q_f = tonf"
-    },
-    {
-      "id": "r196",
-      "kind": "text",
-      "x": 40,
-      "y": 13508,
-      "src": "La expresion J10-5a solo vale con l_b/d <= 0,2; por encima la norma da otra"
-    },
-    {
-      "id": "v_lb_d",
-      "kind": "math",
-      "x": 40,
-      "y": 13554,
-      "src": "v_lb_d := lb_d <= 0.2 ="
-    },
-    {
-      "id": "r198",
-      "kind": "math",
-      "x": 40,
-      "y": 13600,
-      "src": "u_wlc := P_ur/Rd_wlc_ext ="
-    },
-    {
-      "id": "v_wlc",
-      "kind": "math",
-      "x": 40,
-      "y": 13646,
-      "src": "v_wlc := Rd_wlc_ext >= P_ur ="
-    },
-    {
-      "id": "r200",
-      "kind": "text",
-      "x": 40,
-      "y": 13692,
-      "src": "Cuanto castiga estar en el extremo, que es lo que una lectura solo-interior\nse pierde"
-    },
-    {
-      "id": "r201",
-      "kind": "math",
-      "x": 40,
-      "y": 13764,
-      "src": "castigo_ext := 1 - Rd_wlc_ext/Rd_wlc_int ="
-    },
-    {
-      "id": "r_wsb_tit",
-      "kind": "text",
-      "x": 40,
-      "y": 13810,
-      "src": "━━ 8b — PANDEO LATERAL DEL ALMA · §J10.4 ━━"
-    },
-    {
-      "id": "r_wsb_nota",
-      "kind": "text",
-      "x": 40,
-      "y": 13856,
-      "src": "El §5.8.2 de AIST TR-13 lo lista entre los estados limite de una carrilera, y\nuna carrilera es su caso de manual: carga de compresion concentrada sobre el ala\nsuperior, que ademas recorre el vano. Aplica SOLO donde el movimiento lateral\nrelativo entre el ala comprimida cargada y la traccionada no esta impedido. Y lo\nprimero es un criterio GEOMETRICO: por encima del umbral no existe"
-    },
-    {
-      "id": "r_restr_nota",
-      "kind": "text",
-      "x": 40,
-      "y": 13994,
-      "src": "restr_rot := 1 si el ala comprimida esta restringida contra ROTACION -- el riel\ny sus grampas, un arriostramiento de via, un sistema de respaldo --; := 0 si no.\nEl umbral es 2,3 con restriccion y 1,7 sin ella"
-    },
-    {
-      "id": "in_restr_rot",
-      "kind": "math",
-      "x": 40,
-      "y": 14088,
-      "src": "restr_rot := 1"
-    },
-    {
-      "id": "r_wsb_razon",
-      "kind": "math",
-      "x": 40,
-      "y": 14134,
-      "src": "wsb_razon := (h_alma/t_w)/(L_b/b_f) ="
-    },
-    {
-      "id": "r_wsb_umbral",
-      "kind": "program",
-      "x": 40,
-      "y": 14180,
-      "src": "wsb_umbral :=\n    if restr_rot == 1\n        return 2.3\n    else\n        return 1.7"
-    },
-    {
-      "id": "r_wsb_estado",
-      "kind": "program",
-      "x": 40,
-      "y": 14318,
-      "src": "wsb_estado :=\n    if wsb_razon > wsb_umbral\n        return \"NO APLICA: la razon supera el umbral\"\n    else\n        return \"APLICA: se verifica contra Rd_wsb\""
-    },
-    {
-      "id": "r_wsb_cr_nota",
-      "kind": "text",
-      "x": 40,
-      "y": 14456,
-      "src": "C_r = 6,6e6 MPa cuando M_r < M_y en el punto de la fuerza y 3,3e6 MPa cuando lo\nalcanza, con alpha_s = 1,0 en LRFD. M_y = Fy*S_x; con una monosimetrica se toma\nel S menor, que es el de la fibra que primero fluye"
-    },
-    {
-      "id": "r_wsb_My",
-      "kind": "math",
-      "x": 40,
-      "y": 14550,
-      "src": "M_y_wsb := Fy*min(S_xc, S_xt) = tonf*m"
-    },
-    {
-      "id": "r_wsb_Cr",
-      "kind": "program",
-      "x": 40,
-      "y": 14596,
-      "src": "C_r :=\n    if M_ux < M_y_wsb\n        return 6600000*(1 MPa)\n    else\n        return 3300000*(1 MPa)"
-    },
-    {
-      "id": "r_wsb_Rn",
-      "kind": "program",
-      "x": 40,
-      "y": 14734,
-      "src": "Rd_wsb :=\n    if restr_rot == 1\n        return phi_wsb*C_r*t_w^3*t_f/h_alma^2*(1 + 0.4*wsb_razon^3)\n    else\n        return phi_wsb*C_r*t_w^3*t_f/h_alma^2*0.4*wsb_razon^3"
-    },
-    {
-      "id": "r_wsb_u",
-      "kind": "program",
-      "x": 40,
-      "y": 14872,
-      "src": "u_wsb :=\n    if wsb_razon > wsb_umbral\n        return 0\n    else\n        return P_ur/Rd_wsb"
-    },
-    {
-      "id": "v_wsb",
-      "kind": "math",
-      "x": 40,
-      "y": 15010,
-      "src": "v_wsb := u_wsb <= 1 ="
-    },
-    {
-      "id": "r202",
-      "kind": "text",
-      "x": 40,
-      "y": 15056,
-      "src": "━━ 9 — DEFLEXIONES DE SERVICIO ━━",
-      "pageBreak": true
-    },
-    {
-      "id": "r203",
-      "kind": "text",
-      "x": 40,
-      "y": 15102,
-      "src": "Flecha en el centro por una carga puntual a distancia aa del apoyo, con\naa <= L/2. Se superponen las dos ruedas en la posicion critica"
-    },
-    {
-      "id": "r204",
-      "kind": "math",
-      "x": 40,
-      "y": 15174,
-      "src": "aa1 := x_crit = mm"
-    },
-    {
-      "id": "r205",
-      "kind": "math",
-      "x": 40,
-      "y": 15220,
-      "src": "aa2 := L - (x_crit + a_ruedas) = mm"
-    },
-    {
-      "id": "v_aa2",
-      "kind": "math",
-      "x": 40,
-      "y": 15266,
-      "src": "v_aa2 := aa2 > 0 mm ="
-    },
-    {
-      "id": "r207",
-      "kind": "program",
-      "x": 40,
-      "y": 15312,
-      "src": "f_pt(Qq, aa, Ii) := Qq*aa*(3*L^2 - 4*aa^2)/(48*E*Ii)"
-    },
-    {
-      "id": "r208",
-      "kind": "math",
-      "x": 40,
-      "y": 15358,
-      "src": "dv_ruedas := f_pt(P_serv, aa1, I_x) + f_pt(P_serv, aa2, I_x) = mm"
-    },
-    {
-      "id": "r209",
-      "kind": "math",
-      "x": 40,
-      "y": 15404,
-      "src": "dv_pp := 5*w_pp*L^4/(384*E*I_x) = mm"
-    },
-    {
-      "id": "r210",
-      "kind": "math",
-      "x": 40,
-      "y": 15450,
-      "src": "d_vert := dv_ruedas + dv_pp = mm"
-    },
-    {
-      "id": "r211",
-      "kind": "math",
-      "x": 40,
-      "y": 15496,
-      "src": "lim_vert := L/den_vert = mm"
-    },
-    {
-      "id": "r212",
-      "kind": "math",
-      "x": 40,
-      "y": 15542,
-      "src": "u_dvert := d_vert/lim_vert ="
-    },
-    {
-      "id": "v_flecha_vert",
-      "kind": "math",
-      "x": 40,
-      "y": 15588,
-      "src": "v_flecha_vert := d_vert <= lim_vert ="
-    },
-    {
-      "id": "r214",
-      "kind": "text",
-      "x": 40,
-      "y": 15634,
-      "src": "Lateral: solo el ala superior y el canal, coherente con el §6"
-    },
-    {
-      "id": "r215",
-      "kind": "math",
-      "x": 40,
-      "y": 15680,
-      "src": "d_horiz := f_pt(H_lat, aa1, I_ytop) + f_pt(H_lat, aa2, I_ytop) = mm"
-    },
-    {
-      "id": "r216",
-      "kind": "math",
-      "x": 40,
-      "y": 15726,
-      "src": "lim_horiz := L/den_lat = mm"
-    },
-    {
-      "id": "r217",
-      "kind": "math",
-      "x": 40,
-      "y": 15772,
-      "src": "u_dhoriz := d_horiz/lim_horiz ="
-    },
-    {
-      "id": "v_flecha_lat",
-      "kind": "math",
-      "x": 40,
-      "y": 15818,
-      "src": "v_flecha_lat := d_horiz <= lim_horiz ="
-    },
-    {
-      "id": "r219",
-      "kind": "text",
-      "x": 40,
-      "y": 15864,
-      "src": "━━ 10 — FATIGA · Apendice 3 ━━",
-      "pageBreak": true
-    },
-    {
-      "id": "r220",
-      "kind": "text",
-      "x": 40,
-      "y": 15910,
-      "src": "El rango de tension se calcula con las cargas de SERVICIO, sin amplificar:\nel §3.2, impresa 16.1-205, pide analisis elastico y sin factores"
-    },
-    {
-      "id": "r221",
-      "kind": "math",
-      "x": 40,
-      "y": 15982,
-      "src": "D_sigma := M_serv/S_xt = MPa"
-    },
-    {
-      "id": "r222",
-      "kind": "text",
-      "x": 40,
-      "y": 16028,
-      "src": "[A-3-1M] F_SR = 6 900*(C_f/n_SR)^0,333 >= F_TH, en MPa"
-    },
-    {
-      "id": "r223",
-      "kind": "program",
-      "x": 40,
-      "y": 16074,
-      "src": "F_sr(nn) := max(6900*(C_f/nn)^0.333*(1 MPa), F_TH)"
-    },
-    {
-      "id": "r224",
-      "kind": "math",
-      "x": 40,
-      "y": 16120,
-      "src": "F_SR := F_sr(n_SR) = MPa"
-    },
-    {
-      "id": "r225",
-      "kind": "math",
-      "x": 40,
-      "y": 16166,
-      "src": "u_fatiga := D_sigma/F_SR ="
-    },
-    {
-      "id": "v_fatiga",
-      "kind": "math",
-      "x": 40,
-      "y": 16212,
-      "src": "v_fatiga := D_sigma <= F_SR ="
-    },
-    {
-      "id": "r227",
-      "kind": "text",
-      "x": 40,
-      "y": 16258,
-      "src": "Vida infinita: si el rango no supera el umbral F_TH, el §3.1 no exige mas\nevaluacion cualquiera sea el numero de ciclos"
-    },
-    {
-      "id": "r228",
-      "kind": "math",
-      "x": 40,
-      "y": 16330,
-      "src": "u_fat_inf := D_sigma/F_TH ="
-    },
-    {
-      "id": "r229",
-      "kind": "program",
-      "x": 40,
-      "y": 16376,
-      "src": "vida :=\n    if u_fat_inf <= 1\n        return \"vida infinita: el rango no supera el umbral F_TH\"\n    else\n        return \"vida finita: gobierna la curva, revisar n_SR\""
-    },
-    {
-      "id": "r230",
-      "kind": "text",
-      "x": 40,
-      "y": 16514,
-      "src": "Numero de ciclos a partir del cual manda el umbral y no la curva"
-    },
-    {
-      "id": "r231",
-      "kind": "math",
-      "x": 40,
-      "y": 16560,
-      "src": "n_umbral := C_f/((F_TH/(6900 MPa))^(1/0.333)) ="
-    },
-    {
-      "id": "r232",
-      "kind": "text",
-      "x": 40,
-      "y": 16606,
-      "src": "━━ QUE GOBIERNA ━━"
-    },
-    {
-      "id": "r233",
-      "kind": "math",
-      "x": 40,
-      "y": 16652,
-      "src": "u_max := max(H1, u_corte, u_wly, u_wlc, u_wsb, u_dvert, u_dhoriz, u_fatiga) ="
-    },
-    {
-      "id": "r234",
-      "kind": "program",
-      "x": 40,
-      "y": 16698,
-      "src": "gobierna :=\n    if u_max == u_dvert\n        return \"flecha vertical de servicio\"\n    else if u_max == u_dhoriz\n        return \"flecha lateral de servicio\"\n    else if u_max == u_fatiga\n        return \"fatiga del Apendice 3\"\n    else if u_max == u_wlc\n        return \"aplastamiento local del alma bajo la rueda, cerca del extremo\"\n    else if u_max == u_wly\n        return \"fluencia local del alma bajo la rueda, cerca del extremo\"\n    else if u_max == u_wsb\n        return \"pandeo lateral del alma bajo la rueda\"\n    else if u_max == u_corte\n        return \"corte del alma\"\n    else\n        return \"flexion biaxial, interaccion H1\""
-    },
-    {
-      "id": "v_global",
-      "kind": "math",
-      "x": 40,
-      "y": 17100,
-      "src": "v_global := u_max <= 1 ="
-    },
-    {
-      "id": "r236",
-      "kind": "text",
-      "x": 40,
-      "y": 17146,
-      "src": "RECORDATORIO: si u_dvert gobierna, mirar de donde salio den_vert antes de\ncambiar la seccion. El salto de L/600 a L/1000 no es una eleccion del\ncalculista sino un dato del propietario, y cambia el resultado un 67 %."
-    }
+   }
+  ],
+  "salidas": [
+   {
+    "nombre": "u_max",
+    "etiqueta": "Uso máximo",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "gobierna",
+    "etiqueta": "Estado límite que gobierna",
+    "tipo": "texto"
+   },
+   {
+    "nombre": "u_flex",
+    "etiqueta": "Flexión fuerte",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_lat",
+    "etiqueta": "Flexión lateral",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_H1",
+    "etiqueta": "Interacción H1 (flexión biaxial)",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_corte",
+    "etiqueta": "Corte",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_wly",
+    "etiqueta": "Fluencia local del alma bajo la rueda",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_wlc",
+    "etiqueta": "Aplastamiento del alma bajo la rueda",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_dvert",
+    "etiqueta": "Deflexión vertical",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_dhoriz",
+    "etiqueta": "Deflexión lateral",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_fatiga",
+    "etiqueta": "Fatiga",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "v_global",
+    "etiqueta": "u_max ≤ 1",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_dos_ruedas",
+    "etiqueta": "Dos ruedas por viga",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "La hoja está escrita para dos ruedas iguales por viga"
+   },
+   {
+    "nombre": "v_tren_cabe",
+    "etiqueta": "El tren de ruedas cabe en el vano",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "El tren de ruedas no cabe en el vano: la posición crítica no aplica"
+   },
+   {
+    "nombre": "v_ala_compacta",
+    "etiqueta": "Ala compacta",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "El ala no es compacta: la hoja no cubre ese caso (frontera declarada)"
+   },
+   {
+    "nombre": "v_alma_no_esbelta",
+    "etiqueta": "Alma no esbelta",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "El alma es esbelta: rige el §F5 y no el §F4 de esta hoja"
+   },
+   {
+    "nombre": "v_pos_critica",
+    "etiqueta": "Posición crítica del tren",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "La posición crítica adoptada no aplica"
+   },
+   {
+    "nombre": "v_lp_lr",
+    "etiqueta": "L_p ≤ L_r",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "Los límites de pandeo lateral salen invertidos: revisar la sección"
+   },
+   {
+    "nombre": "v_tfy_aplica",
+    "etiqueta": "Aplica la fluencia del ala traccionada",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "Rama del §F4 fuera de su condición de aplicación"
+   },
+   {
+    "nombre": "v_Cv1",
+    "etiqueta": "Coeficiente de corte C_v1 = 1",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "El alma no alcanza C_v1 = 1: el corte va por otra rama del §G2"
+   },
+   {
+    "nombre": "v_lb_d",
+    "etiqueta": "Largo de apoyo l_b respecto del canto",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "El largo de apoyo bajo la rueda excede d/2: rige otra ecuación del §J10"
+   },
+   {
+    "nombre": "v_aa2",
+    "etiqueta": "Condición de la ecuación §J10-5a",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "La condición de la ecuación §J10-5a no se cumple: rige §J10-5b"
+   },
+   {
+    "nombre": "u_wsb",
+    "etiqueta": "Pandeo lateral del alma",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "v_alma_compacta",
+    "etiqueta": "Alma compacta (AIST TR-13 §5.8.2)",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "el alma no es compacta: el §5.8.2 de AIST TR-13 lo exige en una viga carrilera, aunque al §F4 le baste con que no sea esbelta"
+   },
+   {
+    "nombre": "v_Cv1b",
+    "etiqueta": "El alma no pandea por corte antes de fluir",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "el alma pandea por corte antes de fluir: C_v1 < 1 y la resistencia al corte baja en esa proporcion. No es un error, es el caso (b) del §G2.1"
+   },
+   {
+    "nombre": "wsb_estado",
+    "etiqueta": "Pandeo lateral del alma: aplica o no",
+    "tipo": "texto"
+   },
+   {
+    "nombre": "v_vida_infinita",
+    "etiqueta": "Vida infinita a fatiga",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "El rango de tensión supera el umbral F_TH: la vida es finita y hay que revisar n_SR"
+   }
+  ],
+  "fronteras": [
+   "Las cargas de rueda vienen del fabricante, ya amplificadas",
+   "La clasificacion del ALA comprimida entra como dato (ala_compacta); la del ALMA la calcula la hoja",
+   "El eje neutro plastico: adopta R_pc = R_pt = 1,0, limite inferior de F4-9a y por lo tanto conservador",
+   "Los limites de deflexion no son de AISC: entran como denominadores (den_vert, den_lat), y en una via los fija la clase de edificio, que especifica el propietario",
+   "El riel y su union no se verifican: por el §5.8.2 de AIST TR-13 el momento torsor de la excentricidad del riel va a cargo de las GRAMPAS, y el analisis torsional exacto de la viga esta fuera del alcance de ese documento"
+  ],
+  "hipotesis": [
+   "Dos ruedas iguales por viga",
+   "Canal-tapa soldado con cordón continuo y colaborante",
+   "Vano simplemente apoyado, sin continuidad entre vanos",
+   "El ala superior más el canal toman íntegramente la fuerza lateral"
+  ],
+  "entrega": {},
+  "casos": [
+   {
+    "nombre": "ejemplo de referencia",
+    "entradas": {},
+    "cumple": true
+   },
+   {
+    "nombre": "rueda al doble",
+    "entradas": {
+     "P_v": 40
+    },
+    "cumple": false,
+    "esperadoFalso": [
+     "v_global"
+    ]
+   },
+   {
+    "nombre": "armada monosimetrica sin canal",
+    "entradas": {
+     "es_soldada": 1,
+     "hay_canal": 0,
+     "Fy": 345,
+     "d": 684,
+     "b_f": 400,
+     "t_f": 25,
+     "t_w": 12,
+     "b_fb": 250,
+     "t_fb": 14,
+     "h_tot": 684,
+     "k_det": 26,
+     "L": 7500,
+     "L_b": 7500,
+     "C_b": 1,
+     "P_v": 19.73,
+     "P_serv": 16.44,
+     "H_lat": 1.53,
+     "a_ruedas": 3400,
+     "w_pp": 0.1654,
+     "den_vert": 600,
+     "den_lat": 400
+    },
+    "cumple": true
+   },
+   {
+    "nombre": "armada monosimetrica de alma delgada",
+    "entradas": {
+     "es_soldada": 1,
+     "hay_canal": 0,
+     "Fy": 345,
+     "d": 684,
+     "b_f": 350,
+     "t_f": 20,
+     "t_w": 8,
+     "b_fb": 250,
+     "t_fb": 14,
+     "h_tot": 684,
+     "k_det": 26,
+     "L": 7500,
+     "L_b": 7500,
+     "C_b": 1,
+     "P_v": 19.73,
+     "P_serv": 16.44,
+     "H_lat": 1.53,
+     "a_ruedas": 3400,
+     "w_pp": 0.1654,
+     "den_vert": 600,
+     "den_lat": 400
+    },
+    "cumple": false,
+    "esperadoFalso": [
+     "v_Cv1",
+     "v_Cv1b",
+     "v_global",
+     "v_vida_infinita"
+    ]
+   }
   ]
+ },
+ "regions": [
+  {
+   "id": "r001",
+   "kind": "text",
+   "x": 40,
+   "y": 32,
+   "src": "Viga de alma llena bajo un puente grúa, con el ala superior más ancha o con canal-tapa: flexión por\n§F4, corte con el C_v1 de una sección armada, alma bajo la rueda (§J10.2 a §J10.4), interacción H1,\ndeflexiones y fatiga del Apéndice 3. ESTA HOJA NO USA EL §F2: una viga con canal-tapa, o con el ala\nsuperior más ancha, es MONOSIMÉTRICA, y el §F2 se titula «doubly symmetric … members and channels».\nLa diferencia no es formal: L_p pasa de 1,76·r_y a 1,1·r_t, L_r usa F_L y no 0,7·Fy, la capacidad se\nmide sobre S_xc y no sobre Z_x, y aparece un CUARTO estado límite que la lectura por §F2 no tiene —la\nfluencia del ala traccionada del §F4.4—, que aplica siempre que S_xt < S_xc. AISC 360-22."
+  },
+  {
+   "id": "r002",
+   "kind": "text",
+   "x": 40,
+   "y": 224,
+   "src": "FRONTERAS: la hoja no calcula las cargas de rueda —entran del fabricante, ya amplificadas—, no\nclasifica el ala comprimida, no calcula el eje neutro plástico —toma R_pc = R_pt = 1,0, que es\nconservador—, no fija los límites de deflexión y no verifica el riel ni su unión a la ménsula.\nHIPÓTESIS: dos ruedas iguales por viga, canal-tapa soldado y colaborante, vano simplemente apoyado y\nel ala superior más el canal tomando ÍNTEGRAMENTE la fuerza lateral, que es lo que describe el\n§5.8.2 de AIST TR-13 y va del lado seguro."
+  },
+  {
+   "id": "r003",
+   "kind": "text",
+   "x": 40,
+   "y": 392,
+   "src": "━━ DATOS · MATERIALES Y FACTORES DE RESISTENCIA ━━"
+  },
+  {
+   "id": "r004",
+   "kind": "text",
+   "x": 40,
+   "y": 440,
+   "src": "φ_b = 0,90 en flexión. Para el CORTE, el §G1(a) fija φ_v = 0,90 «for all provisions in this chapter\nexcept Section G2.1(a)»: el 1,00 del §G2.1(a) es para almas de perfiles LAMINADOS, y con un canal\nsoldado encima el miembro ya es armado. §J10.2 fluencia local del alma: φ = 1,00; §J10.3\naplastamiento: φ = 0,75; §J10.4 pandeo lateral del alma: φ = 0,85. k_v es el coeficiente de pandeo\npor corte del §G2.1(b)(2): sin rigidizadores transversales vale 5,34. El §5.8.3 de AIST TR-13\nPROHÍBE la acción de campo diagonal del §G3 en vigas carrileras, así que esta hoja no la usa nunca."
+  },
+  {
+   "id": "in_Fy",
+   "kind": "math",
+   "x": 40,
+   "y": 608,
+   "src": "Fy := 248.2 MPa"
+  },
+  {
+   "id": "in_E",
+   "kind": "math",
+   "x": 40,
+   "y": 656,
+   "src": "E := 200000 MPa"
+  },
+  {
+   "id": "in_phi_b",
+   "kind": "math",
+   "x": 40,
+   "y": 704,
+   "src": "phi_b := 0.90"
+  },
+  {
+   "id": "in_phi_v",
+   "kind": "math",
+   "x": 40,
+   "y": 752,
+   "src": "phi_v := 0.90"
+  },
+  {
+   "id": "in_phi_j10y",
+   "kind": "math",
+   "x": 40,
+   "y": 800,
+   "src": "phi_j10y := 1.00"
+  },
+  {
+   "id": "in_phi_j10c",
+   "kind": "math",
+   "x": 40,
+   "y": 848,
+   "src": "phi_j10c := 0.75"
+  },
+  {
+   "id": "in_phi_wsb",
+   "kind": "math",
+   "x": 40,
+   "y": 896,
+   "src": "phi_wsb := 0.85"
+  },
+  {
+   "id": "in_k_v",
+   "kind": "math",
+   "x": 40,
+   "y": 944,
+   "src": "k_v := 5.34"
+  },
+  {
+   "id": "r005",
+   "kind": "text",
+   "x": 40,
+   "y": 992,
+   "src": "━━ DATOS · PERFIL BASE ━━"
+  },
+  {
+   "id": "r006",
+   "kind": "text",
+   "x": 40,
+   "y": 1040,
+   "src": "Con es_soldada := 1 la viga es una doble T ARMADA SOLDADA y la hoja DERIVA A, I_x, I_y y J de las\ntres chapas; con 0, el perfil base sale de una fila de catálogo, esas cuatro propiedades entran como\ndato de tabla y el ala inferior se iguala a la superior. Una carrilera suele llevar el ala superior\nmás ancha para tomar la fuerza lateral en el nivel del riel, y esa asimetría es la que hace que\nS_xt < S_xc y que el §F4.4 tenga algo que decir. k_det es la distancia de la cara exterior del ala al\npie del filete; si no se tiene, k = t_f + radio de acuerdo."
+  },
+  {
+   "id": "in_es_soldada",
+   "kind": "math",
+   "x": 40,
+   "y": 1208,
+   "src": "es_soldada := 0"
+  },
+  {
+   "id": "in_d",
+   "kind": "math",
+   "x": 40,
+   "y": 1256,
+   "src": "d := 611 mm"
+  },
+  {
+   "id": "in_b_f",
+   "kind": "math",
+   "x": 40,
+   "y": 1304,
+   "src": "b_f := 324 mm"
+  },
+  {
+   "id": "in_t_f",
+   "kind": "math",
+   "x": 40,
+   "y": 1352,
+   "src": "t_f := 19.05 mm"
+  },
+  {
+   "id": "in_t_w",
+   "kind": "math",
+   "x": 40,
+   "y": 1400,
+   "src": "t_w := 12.7 mm"
+  },
+  {
+   "id": "in_b_fb",
+   "kind": "math",
+   "x": 40,
+   "y": 1448,
+   "src": "b_fb := 324 mm"
+  },
+  {
+   "id": "in_t_fb",
+   "kind": "math",
+   "x": 40,
+   "y": 1496,
+   "src": "t_fb := 19.05 mm"
+  },
+  {
+   "id": "in_A_W",
+   "kind": "math",
+   "x": 40,
+   "y": 1544,
+   "src": "A_W := 19800 mm^2"
+  },
+  {
+   "id": "in_I_xW",
+   "kind": "math",
+   "x": 40,
+   "y": 1592,
+   "src": "I_xW := 1.29e9 mm^4"
+  },
+  {
+   "id": "in_I_yW",
+   "kind": "math",
+   "x": 40,
+   "y": 1640,
+   "src": "I_yW := 1.078e8 mm^4"
+  },
+  {
+   "id": "in_J_W",
+   "kind": "math",
+   "x": 40,
+   "y": 1688,
+   "src": "J_W := 1.32e6 mm^4"
+  },
+  {
+   "id": "in_k_det",
+   "kind": "math",
+   "x": 40,
+   "y": 1736,
+   "src": "k_det := 40 mm"
+  },
+  {
+   "id": "r007",
+   "kind": "text",
+   "x": 40,
+   "y": 1784,
+   "src": "━━ DATOS · CANAL-TAPA Y ALTURA TOTAL ━━"
+  },
+  {
+   "id": "r008",
+   "kind": "text",
+   "x": 40,
+   "y": 1832,
+   "src": "hay_canal := 1 con canal-tapa colaborante; := 0 para la viga desnuda. I_cy es la inercia del canal\nrespecto del eje VERTICAL de la viga —la que aporta rigidez lateral— e I_cx la del eje horizontal;\ny_cc es la altura de su centroide sobre la cara superior del ala. h_tot depende de CÓMO se apoya el\ncanal, alas arriba o abajo, y la hoja no lo adivina: es la distancia de fibra inferior a fibra\nsuperior del conjunto, de ella salen S_xc y S_xt, y se mide del detalle."
+  },
+  {
+   "id": "in_hay_canal",
+   "kind": "math",
+   "x": 40,
+   "y": 1976,
+   "src": "hay_canal := 1"
+  },
+  {
+   "id": "in_A_c",
+   "kind": "math",
+   "x": 40,
+   "y": 2024,
+   "src": "A_c := 5680 mm^2"
+  },
+  {
+   "id": "in_I_cy",
+   "kind": "math",
+   "x": 40,
+   "y": 2072,
+   "src": "I_cy := 6.743e7 mm^4"
+  },
+  {
+   "id": "in_I_cx",
+   "kind": "math",
+   "x": 40,
+   "y": 2120,
+   "src": "I_cx := 2.13e6 mm^4"
+  },
+  {
+   "id": "in_y_cc",
+   "kind": "math",
+   "x": 40,
+   "y": 2168,
+   "src": "y_cc := 17.1 mm"
+  },
+  {
+   "id": "in_J_C",
+   "kind": "math",
+   "x": 40,
+   "y": 2216,
+   "src": "J_C := 3.0e5 mm^4"
+  },
+  {
+   "id": "in_h_tot",
+   "kind": "math",
+   "x": 40,
+   "y": 2264,
+   "src": "h_tot := 691.5 mm"
+  },
+  {
+   "id": "r009",
+   "kind": "text",
+   "x": 40,
+   "y": 2312,
+   "src": "━━ DATOS · VANO, CARGAS DE RUEDA Y VÍA ━━"
+  },
+  {
+   "id": "r010",
+   "kind": "text",
+   "x": 40,
+   "y": 2360,
+   "src": "L_b es la longitud no arriostrada del ala comprimida: en una vía sin arriostramiento intermedio es el\nvano entero. C_b = 1,0 es el valor conservador. P_v es la carga vertical por rueda YA AMPLIFICADA por\nimpacto y P_serv la misma sin amplificar, que es la que va a deflexiones y a fatiga; H_lat es la\nfuerza lateral por rueda y a_ruedas la separación entre ejes. La longitud de apoyo de la rueda se\ntoma como dos veces la altura del riel, criterio corriente que conviene declarar. restr_rot := 1 si\nel ala comprimida está restringida contra ROTACIÓN —el riel y sus grampas, un arriostramiento de\nvía—; decide el umbral del §J10.4, que es 2,3 con restricción y 1,7 sin ella."
+  },
+  {
+   "id": "in_L",
+   "kind": "math",
+   "x": 40,
+   "y": 2552,
+   "src": "L := 8000 mm"
+  },
+  {
+   "id": "in_L_b",
+   "kind": "math",
+   "x": 40,
+   "y": 2600,
+   "src": "L_b := 8000 mm"
+  },
+  {
+   "id": "in_C_b",
+   "kind": "math",
+   "x": 40,
+   "y": 2648,
+   "src": "C_b := 1.0"
+  },
+  {
+   "id": "in_n_r",
+   "kind": "math",
+   "x": 40,
+   "y": 2696,
+   "src": "n_r := 2"
+  },
+  {
+   "id": "in_P_v",
+   "kind": "math",
+   "x": 40,
+   "y": 2744,
+   "src": "P_v := 17.5 tonf"
+  },
+  {
+   "id": "in_P_serv",
+   "kind": "math",
+   "x": 40,
+   "y": 2792,
+   "src": "P_serv := 14.0 tonf"
+  },
+  {
+   "id": "in_H_lat",
+   "kind": "math",
+   "x": 40,
+   "y": 2840,
+   "src": "H_lat := 1.12 tonf"
+  },
+  {
+   "id": "in_a_ruedas",
+   "kind": "math",
+   "x": 40,
+   "y": 2888,
+   "src": "a_ruedas := 4000 mm"
+  },
+  {
+   "id": "in_w_pp",
+   "kind": "math",
+   "x": 40,
+   "y": 2936,
+   "src": "w_pp := 0.2366 tonf/m"
+  },
+  {
+   "id": "in_H_riel",
+   "kind": "math",
+   "x": 40,
+   "y": 2984,
+   "src": "H_riel := 60 mm"
+  },
+  {
+   "id": "in_restr_rot",
+   "kind": "math",
+   "x": 40,
+   "y": 3032,
+   "src": "restr_rot := 1"
+  },
+  {
+   "id": "r011",
+   "kind": "text",
+   "x": 40,
+   "y": 3080,
+   "src": "━━ DATOS · FRONTERAS DECLARADAS: CLASIFICACIÓN DEL ALA, FATIGA Y SERVICIO ━━"
+  },
+  {
+   "id": "r012",
+   "kind": "text",
+   "x": 40,
+   "y": 3128,
+   "src": "La hoja NO clasifica el ala comprimida: el canal cambia su geometría y el caso no está tabulado. Hay\nque confirmar contra la Tabla B4.1b que el ala del perfil base es compacta; si no lo es, falta el\nestado límite de pandeo local del ala comprimida del §F4.3. Constantes de la Tabla A-3.1: categoría A\nC_f = 25 y F_TH = 170 MPa · B 12 y 110 · C 4,4 y 69 · D 2,2 y 48 · E′ 0,39 y 18. n_SR es el número de\nfluctuaciones de tensión en la vida de diseño, no el de ciclos de la grúa. Los límites de deflexión\nno son de AISC: la clase de edificio la especifica el PROPIETARIO, y el salto de L/600 a L/1000\ncambia el resultado un 67 %."
+  },
+  {
+   "id": "in_ala_compacta",
+   "kind": "math",
+   "x": 40,
+   "y": 3320,
+   "src": "ala_compacta := 1"
+  },
+  {
+   "id": "v_ala_compacta",
+   "kind": "math",
+   "x": 40,
+   "y": 3368,
+   "src": "v_ala_compacta := ala_compacta == 1 ="
+  },
+  {
+   "id": "in_C_f",
+   "kind": "math",
+   "x": 40,
+   "y": 3416,
+   "src": "C_f := 12"
+  },
+  {
+   "id": "in_F_TH",
+   "kind": "math",
+   "x": 40,
+   "y": 3464,
+   "src": "F_TH := 110 MPa"
+  },
+  {
+   "id": "in_n_SR",
+   "kind": "math",
+   "x": 40,
+   "y": 3512,
+   "src": "n_SR := 500000"
+  },
+  {
+   "id": "in_den_vert",
+   "kind": "math",
+   "x": 40,
+   "y": 3560,
+   "src": "den_vert := 600"
+  },
+  {
+   "id": "in_den_lat",
+   "kind": "math",
+   "x": 40,
+   "y": 3608,
+   "src": "den_lat := 400"
+  },
+  {
+   "id": "r013",
+   "kind": "text",
+   "x": 40,
+   "y": 3656,
+   "src": "━━ 1 — SECCIÓN COMPUESTA · Steiner ━━"
+  },
+  {
+   "id": "r014",
+   "kind": "text",
+   "x": 40,
+   "y": 3704,
+   "src": "El J de una doble T soldada se toma como la suma de b·t³/3 de las tres chapas: es el límite de tira\ndelgada, menor que el valor con corrección de razón finita y por lo tanto conservador para el pandeo\nlateral-torsional. El centroide se mide desde la fibra INFERIOR; el canal sube el eje neutro, y ese\ncorrimiento es el que hace que S_xt sea menor que S_xc. I_ytop es la del ala comprimida sola más el\ncanal, que es el modelo con que se toma la fuerza lateral."
+  },
+  {
+   "id": "r072",
+   "kind": "math",
+   "x": 40,
+   "y": 3848,
+   "src": "h_alma := d - t_f - t_fb = mm"
+  },
+  {
+   "id": "r_A_sol",
+   "kind": "math",
+   "x": 40,
+   "y": 3896,
+   "src": "A_sol := b_f*t_f + b_fb*t_fb + h_alma*t_w = mm^2"
+  },
+  {
+   "id": "r_y_sol",
+   "kind": "math",
+   "x": 40,
+   "y": 3944,
+   "src": "y_sol := (b_fb*t_fb*t_fb/2 + h_alma*t_w*(t_fb + h_alma/2) + b_f*t_f*(d - t_f/2))/A_sol = mm"
+  },
+  {
+   "id": "r_Ix_sol",
+   "kind": "math",
+   "x": 40,
+   "y": 3992,
+   "src": "I_x_sol := b_fb*t_fb^3/12 + b_fb*t_fb*(y_sol - t_fb/2)^2 + t_w*h_alma^3/12 + h_alma*t_w*(y_sol - t_fb - h_alma/2)^2 + b_f*t_f^3/12 + b_f*t_f*(d - t_f/2 - y_sol)^2 = mm^4"
+  },
+  {
+   "id": "r_Iy_sol",
+   "kind": "math",
+   "x": 40,
+   "y": 4040,
+   "src": "I_y_sol := t_f*b_f^3/12 + t_fb*b_fb^3/12 + h_alma*t_w^3/12 = mm^4"
+  },
+  {
+   "id": "r_J_sol",
+   "kind": "math",
+   "x": 40,
+   "y": 4088,
+   "src": "J_sol := (b_f*t_f^3 + b_fb*t_fb^3 + h_alma*t_w^3)/3 = mm^4"
+  },
+  {
+   "id": "r_A_ef",
+   "kind": "math",
+   "x": 40,
+   "y": 4136,
+   "src": "A_ef := es_soldada == 1 ? A_sol : A_W = mm^2"
+  },
+  {
+   "id": "r_y_W",
+   "kind": "math",
+   "x": 40,
+   "y": 4184,
+   "src": "y_W := es_soldada == 1 ? y_sol : d/2 = mm"
+  },
+  {
+   "id": "r_Ix_ef",
+   "kind": "math",
+   "x": 40,
+   "y": 4232,
+   "src": "I_x_ef := es_soldada == 1 ? I_x_sol : I_xW = mm^4"
+  },
+  {
+   "id": "r_Iy_ef",
+   "kind": "math",
+   "x": 40,
+   "y": 4280,
+   "src": "I_y_ef := es_soldada == 1 ? I_y_sol : I_yW = mm^4"
+  },
+  {
+   "id": "r_J_ef",
+   "kind": "math",
+   "x": 40,
+   "y": 4328,
+   "src": "J_ef := es_soldada == 1 ? J_sol : J_W = mm^4"
+  },
+  {
+   "id": "r073",
+   "kind": "math",
+   "x": 40,
+   "y": 4376,
+   "src": "A_g := A_ef + hay_canal*A_c = mm^2"
+  },
+  {
+   "id": "r075",
+   "kind": "math",
+   "x": 40,
+   "y": 4424,
+   "src": "y_c_canal := d + y_cc = mm"
+  },
+  {
+   "id": "r076",
+   "kind": "math",
+   "x": 40,
+   "y": 4472,
+   "src": "y_NA := (A_ef*y_W + hay_canal*A_c*y_c_canal)/A_g = mm"
+  },
+  {
+   "id": "r077",
+   "kind": "math",
+   "x": 40,
+   "y": 4520,
+   "src": "I_x := I_x_ef + A_ef*(y_NA - y_W)^2 + hay_canal*(I_cx + A_c*(y_c_canal - y_NA)^2) = mm^4"
+  },
+  {
+   "id": "r079",
+   "kind": "math",
+   "x": 40,
+   "y": 4568,
+   "src": "y_sup := h_tot - y_NA = mm"
+  },
+  {
+   "id": "r080",
+   "kind": "math",
+   "x": 40,
+   "y": 4616,
+   "src": "y_inf := y_NA = mm"
+  },
+  {
+   "id": "r081",
+   "kind": "math",
+   "x": 40,
+   "y": 4664,
+   "src": "S_xc := I_x/y_sup = mm^3"
+  },
+  {
+   "id": "r082",
+   "kind": "math",
+   "x": 40,
+   "y": 4712,
+   "src": "S_xt := I_x/y_inf = mm^3"
+  },
+  {
+   "id": "r083",
+   "kind": "math",
+   "x": 40,
+   "y": 4760,
+   "src": "razon_S := S_xt/S_xc ="
+  },
+  {
+   "id": "r085",
+   "kind": "math",
+   "x": 40,
+   "y": 4808,
+   "src": "I_yf := t_f*b_f^3/12 = mm^4"
+  },
+  {
+   "id": "r086",
+   "kind": "math",
+   "x": 40,
+   "y": 4856,
+   "src": "I_y := I_y_ef + hay_canal*I_cy = mm^4"
+  },
+  {
+   "id": "r087",
+   "kind": "math",
+   "x": 40,
+   "y": 4904,
+   "src": "I_ytop := I_yf + hay_canal*I_cy = mm^4"
+  },
+  {
+   "id": "r088",
+   "kind": "math",
+   "x": 40,
+   "y": 4952,
+   "src": "S_ytop := I_ytop/(b_f/2) = mm^3"
+  },
+  {
+   "id": "r089",
+   "kind": "math",
+   "x": 40,
+   "y": 5000,
+   "src": "J := J_ef + hay_canal*J_C = mm^4"
+  },
+  {
+   "id": "r090",
+   "kind": "math",
+   "x": 40,
+   "y": 5048,
+   "src": "h_o := d - t_f = mm"
+  },
+  {
+   "id": "r015",
+   "kind": "text",
+   "x": 40,
+   "y": 5096,
+   "src": "━━ 2 — CLASIFICACIÓN DEL ALMA Y FACTORES DE PLASTIFICACIÓN · §F4 y Tabla B4.1b ━━"
+  },
+  {
+   "id": "r016",
+   "kind": "text",
+   "x": 40,
+   "y": 5144,
+   "src": "h_c es el doble de la distancia del centroide a la cara interna del ala comprimida, definición del\n§F4. Con λ_w por encima de λ_rw = 5,70·√(E/Fy) el alma es ESBELTA, rige el §F5 y esta hoja no\nalcanza. El §F4 se conforma con que no sea esbelta, pero el §5.8.2 de AIST TR-13 pide más —«the top\nflange and web of the crane runway girder shall be compact»—, y el límite de compacidad es\nλ_pw = 3,76·√(E/Fy). R_pc y R_pt salen de F4-9a/b y F4-16a/b, que necesitan el eje neutro PLÁSTICO:\nla hoja no lo calcula y adopta 1,0, que es el límite inferior y por lo tanto conservador."
+  },
+  {
+   "id": "r093",
+   "kind": "math",
+   "x": 40,
+   "y": 5312,
+   "src": "h_c := 2*(d - t_f - y_NA) = mm"
+  },
+  {
+   "id": "r094",
+   "kind": "math",
+   "x": 40,
+   "y": 5360,
+   "src": "lam_w := h_c/t_w ="
+  },
+  {
+   "id": "r096",
+   "kind": "math",
+   "x": 40,
+   "y": 5408,
+   "src": "lam_rw := 5.70*sqrt(E/Fy) ="
+  },
+  {
+   "id": "v_alma_no_esbelta",
+   "kind": "math",
+   "x": 40,
+   "y": 5456,
+   "src": "v_alma_no_esbelta := lam_w <= lam_rw ="
+  },
+  {
+   "id": "r_lam_pw",
+   "kind": "math",
+   "x": 40,
+   "y": 5504,
+   "src": "lam_pw := 3.76*sqrt(E/Fy) ="
+  },
+  {
+   "id": "v_alma_compacta",
+   "kind": "math",
+   "x": 40,
+   "y": 5552,
+   "src": "v_alma_compacta := lam_w <= lam_pw ="
+  },
+  {
+   "id": "r100",
+   "kind": "math",
+   "x": 40,
+   "y": 5600,
+   "src": "R_pc := 1.0"
+  },
+  {
+   "id": "r101",
+   "kind": "math",
+   "x": 40,
+   "y": 5648,
+   "src": "R_pt := 1.0"
+  },
+  {
+   "id": "r017",
+   "kind": "text",
+   "x": 40,
+   "y": 5696,
+   "src": "━━ 3 — SOLICITACIONES · dos ruedas iguales sobre vano simple ━━"
+  },
+  {
+   "id": "r018",
+   "kind": "text",
+   "x": 40,
+   "y": 5744,
+   "src": "Momento máximo absoluto del tren de dos cargas iguales: se ubican la resultante y una rueda\nsimétricas respecto del centro, y la sección crítica cae bajo esa rueda, a x = L/2 − a/4 del apoyo.\nEs mecánica, no norma. El corte máximo se da con el tren pegado al apoyo. Combinación: peso propio a\n1,2 y grúa a 1,6; si el reglamento del proyecto usa otros factores, se cambian aquí."
+  },
+  {
+   "id": "r104",
+   "kind": "math",
+   "x": 40,
+   "y": 5864,
+   "src": "x_crit := L/2 - a_ruedas/4 = mm"
+  },
+  {
+   "id": "v_pos_critica",
+   "kind": "math",
+   "x": 40,
+   "y": 5912,
+   "src": "v_pos_critica := x_crit > 0 mm ="
+  },
+  {
+   "id": "v_dos_ruedas",
+   "kind": "math",
+   "x": 40,
+   "y": 5960,
+   "src": "v_dos_ruedas := n_r == 2 ="
+  },
+  {
+   "id": "v_tren_cabe",
+   "kind": "math",
+   "x": 40,
+   "y": 6008,
+   "src": "v_tren_cabe := a_ruedas < L ="
+  },
+  {
+   "id": "r106",
+   "kind": "math",
+   "x": 40,
+   "y": 6056,
+   "src": "M_rueda := 2*P_v*x_crit^2/L = tonf*m"
+  },
+  {
+   "id": "r107",
+   "kind": "math",
+   "x": 40,
+   "y": 6104,
+   "src": "M_lat := 2*H_lat*x_crit^2/L = tonf*m"
+  },
+  {
+   "id": "r108",
+   "kind": "math",
+   "x": 40,
+   "y": 6152,
+   "src": "M_serv := 2*P_serv*x_crit^2/L = tonf*m"
+  },
+  {
+   "id": "r110",
+   "kind": "math",
+   "x": 40,
+   "y": 6200,
+   "src": "V_rueda := P_v*(2*L - a_ruedas)/L = tonf"
+  },
+  {
+   "id": "r111",
+   "kind": "math",
+   "x": 40,
+   "y": 6248,
+   "src": "M_pp := w_pp*L^2/8 = tonf*m"
+  },
+  {
+   "id": "r112",
+   "kind": "math",
+   "x": 40,
+   "y": 6296,
+   "src": "V_pp := w_pp*L/2 = tonf"
+  },
+  {
+   "id": "r114",
+   "kind": "math",
+   "x": 40,
+   "y": 6344,
+   "src": "M_ux := 1.2*M_pp + 1.6*M_rueda = tonf*m"
+  },
+  {
+   "id": "r115",
+   "kind": "math",
+   "x": 40,
+   "y": 6392,
+   "src": "M_uy := 1.6*M_lat = tonf*m"
+  },
+  {
+   "id": "r116",
+   "kind": "math",
+   "x": 40,
+   "y": 6440,
+   "src": "V_u := 1.2*V_pp + 1.6*V_rueda = tonf"
+  },
+  {
+   "id": "r019",
+   "kind": "text",
+   "x": 40,
+   "y": 6488,
+   "src": "━━ 4 — FLEXIÓN EN EL EJE FUERTE · AISC 360-22 §F4 ━━"
+  },
+  {
+   "id": "r020",
+   "kind": "text",
+   "x": 40,
+   "y": 6536,
+   "src": "[F4-4] M_yc = Fy·S_xc, el momento de fluencia del ala COMPRIMIDA, y [F4-1] la fluencia de esa ala es\nM_n = R_pc·M_yc. El §F4(7)(ii) escribe el caso del canal-tapa: r_t es el radio de giro de «the flange\ncomponents in flexural compression plus one-third of the web area in compression», y el alma\ncomprimida es la que queda entre el eje neutro y la cara interna del ala —h_c/2 de altura—, no media\nalma. [F4-6] F_L vale 0,7·Fy si S_xt/S_xc ≥ 0,7, y si no Fy·S_xt/S_xc, nunca menos de 0,5·Fy.\n[F4-7] L_p = 1,1·r_t·√(E/Fy), que no es el 1,76·r_y del §F2, y [F4-8] L_r lleva F_L. El pandeo\nlateral-torsional no aplica con L_b ≤ L_p, va por [F4-2] hasta L_r y por [F4-3] más allá, siempre con\nel tope R_pc·M_yc. El §F4.4 agrega la fluencia del ala traccionada cuando S_xt < S_xc [F4-15]."
+  },
+  {
+   "id": "r119",
+   "kind": "math",
+   "x": 40,
+   "y": 6752,
+   "src": "M_yc := Fy*S_xc = tonf*m"
+  },
+  {
+   "id": "r121",
+   "kind": "math",
+   "x": 40,
+   "y": 6800,
+   "src": "Mn_cfy := R_pc*M_yc = tonf*m"
+  },
+  {
+   "id": "r124",
+   "kind": "math",
+   "x": 40,
+   "y": 6848,
+   "src": "h_web_comp := d - t_f - y_NA = mm"
+  },
+  {
+   "id": "r125",
+   "kind": "math",
+   "x": 40,
+   "y": 6896,
+   "src": "A_web_comp := h_web_comp*t_w = mm^2"
+  },
+  {
+   "id": "r126",
+   "kind": "math",
+   "x": 40,
+   "y": 6944,
+   "src": "A_t := b_f*t_f + hay_canal*A_c + A_web_comp/3 = mm^2"
+  },
+  {
+   "id": "r128",
+   "kind": "math",
+   "x": 40,
+   "y": 6992,
+   "src": "I_t := I_yf + hay_canal*I_cy = mm^4"
+  },
+  {
+   "id": "r129",
+   "kind": "math",
+   "x": 40,
+   "y": 7040,
+   "src": "r_t := sqrt(I_t/A_t) = mm"
+  },
+  {
+   "id": "r135",
+   "kind": "math",
+   "x": 40,
+   "y": 7088,
+   "src": "F_L := razon_S >= 0.7 ? 0.7*Fy : max(Fy*razon_S, 0.5*Fy) = MPa"
+  },
+  {
+   "id": "r137",
+   "kind": "math",
+   "x": 40,
+   "y": 7136,
+   "src": "L_p := 1.1*r_t*sqrt(E/Fy) = mm"
+  },
+  {
+   "id": "r139",
+   "kind": "math",
+   "x": 40,
+   "y": 7184,
+   "src": "Jsh := J/(S_xc*h_o) ="
+  },
+  {
+   "id": "r140",
+   "kind": "math",
+   "x": 40,
+   "y": 7232,
+   "src": "FLE := F_L/E ="
+  },
+  {
+   "id": "r141",
+   "kind": "math",
+   "x": 40,
+   "y": 7280,
+   "src": "L_r := 1.95*r_t*(E/F_L)*sqrt(Jsh + sqrt(Jsh^2 + 6.76*FLE^2)) = mm"
+  },
+  {
+   "id": "v_lp_lr",
+   "kind": "math",
+   "x": 40,
+   "y": 7328,
+   "src": "v_lp_lr := L_p < L_r ="
+  },
+  {
+   "id": "r145",
+   "kind": "math",
+   "x": 40,
+   "y": 7376,
+   "src": "F_cr := C_b*pi^2*E/(L_b/r_t)^2*sqrt(1 + 0.078*Jsh*(L_b/r_t)^2) = MPa"
+  },
+  {
+   "id": "r147",
+   "kind": "program",
+   "x": 40,
+   "y": 7424,
+   "src": "Mn_ltb :=\n    if L_b <= L_p\n        return R_pc*M_yc\n    else if L_b <= L_r\n        return min(C_b*(R_pc*M_yc - (R_pc*M_yc - F_L*S_xc)*(L_b - L_p)/(L_r - L_p)), R_pc*M_yc)\n    else\n        return min(F_cr*S_xc, R_pc*M_yc)"
+  },
+  {
+   "id": "r151",
+   "kind": "math",
+   "x": 40,
+   "y": 7616,
+   "src": "M_yt := Fy*S_xt = tonf*m"
+  },
+  {
+   "id": "r152",
+   "kind": "math",
+   "x": 40,
+   "y": 7664,
+   "src": "Mn_tfy := S_xt >= S_xc ? R_pc*M_yc : R_pt*M_yt = tonf*m"
+  },
+  {
+   "id": "v_tfy_aplica",
+   "kind": "math",
+   "x": 40,
+   "y": 7712,
+   "src": "v_tfy_aplica := S_xt < S_xc ="
+  },
+  {
+   "id": "r157",
+   "kind": "math",
+   "x": 40,
+   "y": 7760,
+   "src": "M_n := min(Mn_cfy, Mn_ltb, Mn_tfy) = tonf*m"
+  },
+  {
+   "id": "r158",
+   "kind": "math",
+   "x": 40,
+   "y": 7808,
+   "src": "Rd_Mx := phi_b*M_n = tonf*m"
+  },
+  {
+   "id": "r159",
+   "kind": "math",
+   "x": 40,
+   "y": 7856,
+   "src": "u_flex := M_ux/Rd_Mx ="
+  },
+  {
+   "id": "r021",
+   "kind": "text",
+   "x": 40,
+   "y": 7904,
+   "src": "━━ 5 — FLEXIÓN LATERAL Y COMBINACIÓN · AISC 360-22 §H1 ━━"
+  },
+  {
+   "id": "r022",
+   "kind": "text",
+   "x": 40,
+   "y": 7952,
+   "src": "La fuerza lateral la toman ÍNTEGRAMENTE el ala superior y el canal, no la sección completa: es\npráctica corriente y va del lado seguro. [H1-1b] con esfuerzo axial nulo la interacción se reduce a\nla suma de los dos cocientes de flexión, con todos los términos POSITIVOS."
+  },
+  {
+   "id": "r163",
+   "kind": "math",
+   "x": 40,
+   "y": 8048,
+   "src": "Rd_My := phi_b*Fy*S_ytop = tonf*m"
+  },
+  {
+   "id": "r164",
+   "kind": "math",
+   "x": 40,
+   "y": 8096,
+   "src": "u_lat := M_uy/Rd_My ="
+  },
+  {
+   "id": "r_u_H1",
+   "kind": "math",
+   "x": 40,
+   "y": 8144,
+   "src": "u_H1 := u_flex + u_lat ="
+  },
+  {
+   "id": "r023",
+   "kind": "text",
+   "x": 40,
+   "y": 8192,
+   "src": "━━ 6 — CORTE · AISC 360-22 §G2 ━━"
+  },
+  {
+   "id": "r024",
+   "kind": "text",
+   "x": 40,
+   "y": 8240,
+   "src": "[G2-1] V_n = 0,6·Fy·A_w·C_v1, con el alma completa del perfil como área de corte. El §G2.1(a) —φ_v =\n1,00 y C_v1 = 1,0 mientras h/t_w no pase 2,24·√(E/Fy)— vale SOLO para almas de perfiles LAMINADOS:\nuna carrilera con canal-tapa soldado, o armada de chapas, cae en el (b), donde C_v1 = 1,0 solo\nmientras h/t_w no supere 1,10·√(k_v·E/Fy) [G2-3], y por encima el alma pandea antes de fluir y C_v1\nbaja según [G2-4]. Fijarlo en 1,0 ahí NO es conservador."
+  },
+  {
+   "id": "r170",
+   "kind": "math",
+   "x": 40,
+   "y": 8384,
+   "src": "A_w := d*t_w = mm^2"
+  },
+  {
+   "id": "r172",
+   "kind": "math",
+   "x": 40,
+   "y": 8432,
+   "src": "lim_Cv1 := 2.24*sqrt(E/Fy) ="
+  },
+  {
+   "id": "r173",
+   "kind": "math",
+   "x": 40,
+   "y": 8480,
+   "src": "lam_alma := h_alma/t_w ="
+  },
+  {
+   "id": "v_Cv1",
+   "kind": "math",
+   "x": 40,
+   "y": 8528,
+   "src": "v_Cv1 := lam_alma <= lim_Cv1 ="
+  },
+  {
+   "id": "r_lim_Cv1b",
+   "kind": "math",
+   "x": 40,
+   "y": 8576,
+   "src": "lim_Cv1b := 1.10*sqrt(k_v*E/Fy) ="
+  },
+  {
+   "id": "v_Cv1b",
+   "kind": "math",
+   "x": 40,
+   "y": 8624,
+   "src": "v_Cv1b := lam_alma <= lim_Cv1b ="
+  },
+  {
+   "id": "r175",
+   "kind": "math",
+   "x": 40,
+   "y": 8672,
+   "src": "C_v1 := lam_alma <= lim_Cv1b ? 1.0 : lim_Cv1b/lam_alma ="
+  },
+  {
+   "id": "r176",
+   "kind": "math",
+   "x": 40,
+   "y": 8720,
+   "src": "Rd_V := phi_v*0.6*Fy*A_w*C_v1 = tonf"
+  },
+  {
+   "id": "r177",
+   "kind": "math",
+   "x": 40,
+   "y": 8768,
+   "src": "u_corte := V_u/Rd_V ="
+  },
+  {
+   "id": "r025",
+   "kind": "text",
+   "x": 40,
+   "y": 8816,
+   "src": "━━ 7 — FUERZAS CONCENTRADAS DEL RODADO · AISC 360-22 §J10.2 y §J10.3 ━━"
+  },
+  {
+   "id": "r026",
+   "kind": "text",
+   "x": 40,
+   "y": 8864,
+   "src": "UNA VIGA CARRILERA NO TIENE UN PUNTO DE APLICACIÓN FIJO: la rueda recorre todo el vano, extremos\nincluidos, así que se verifica el caso del EXTREMO, que es el de menos resistencia —la mitad en\nfluencia local y la mitad del coeficiente en aplastamiento—. [J10-3] R_n = Fy·t_w·(2,5k + l_b) a d o\nmenos del extremo, contra [J10-2] con 5k lejos de él. [J10-5a] el aplastamiento cerca del extremo\nlleva coeficiente 0,40 contra el 0,80 de [J10-4], y su expresión vale solo con l_b/d ≤ 0,2. Q_f = 1,0\nen secciones doble T."
+  },
+  {
+   "id": "r182",
+   "kind": "math",
+   "x": 40,
+   "y": 9032,
+   "src": "l_b := 2*H_riel = mm"
+  },
+  {
+   "id": "r183",
+   "kind": "math",
+   "x": 40,
+   "y": 9080,
+   "src": "P_ur := 1.6*P_v = tonf"
+  },
+  {
+   "id": "r186",
+   "kind": "math",
+   "x": 40,
+   "y": 9128,
+   "src": "Rd_wly_ext := phi_j10y*Fy*t_w*(2.5*k_det + l_b) = tonf"
+  },
+  {
+   "id": "r_u_wly_prev",
+   "kind": "math",
+   "x": 40,
+   "y": 9176,
+   "src": "lb_d := l_b/d ="
+  },
+  {
+   "id": "v_lb_d",
+   "kind": "math",
+   "x": 40,
+   "y": 9224,
+   "src": "v_lb_d := lb_d <= 0.2 ="
+  },
+  {
+   "id": "r191",
+   "kind": "math",
+   "x": 40,
+   "y": 9272,
+   "src": "Q_f := 1.0"
+  },
+  {
+   "id": "r193",
+   "kind": "math",
+   "x": 40,
+   "y": 9320,
+   "src": "nucleo := (1 + 3*lb_d*(t_w/t_f)^1.5)*sqrt(E*Fy*t_f/t_w) = MPa"
+  },
+  {
+   "id": "r195",
+   "kind": "math",
+   "x": 40,
+   "y": 9368,
+   "src": "Rd_wlc_ext := phi_j10c*0.40*t_w^2*nucleo*Q_f = tonf"
+  },
+  {
+   "id": "r198",
+   "kind": "math",
+   "x": 40,
+   "y": 9416,
+   "src": "u_wlc := P_ur/Rd_wlc_ext ="
+  },
+  {
+   "id": "r188",
+   "kind": "math",
+   "x": 40,
+   "y": 9464,
+   "src": "u_wly := P_ur/Rd_wly_ext ="
+  },
+  {
+   "id": "r027",
+   "kind": "text",
+   "x": 40,
+   "y": 9512,
+   "src": "━━ 8 — PANDEO LATERAL DEL ALMA · AISC 360-22 §J10.4 ━━"
+  },
+  {
+   "id": "r028",
+   "kind": "text",
+   "x": 40,
+   "y": 9560,
+   "src": "El §5.8.2 de AIST TR-13 lo lista entre los estados límite de una carrilera, y una carrilera es su\ncaso de manual: carga de compresión concentrada sobre el ala superior, que además recorre el vano.\nAplica SOLO donde el movimiento lateral relativo entre el ala comprimida cargada y la traccionada no\nestá impedido, y lo primero es un criterio GEOMÉTRICO: por encima del umbral el estado límite no\nexiste. C_r = 6,6·10⁶ MPa cuando M_r < M_y en el punto de la fuerza y 3,3·10⁶ MPa cuando lo alcanza,\ncon α_s = 1,0 en LRFD; en una monosimétrica M_y se toma con el S menor, el de la fibra que primero\nfluye."
+  },
+  {
+   "id": "r_wsb_razon",
+   "kind": "math",
+   "x": 40,
+   "y": 9752,
+   "src": "wsb_razon := (h_alma/t_w)/(L_b/b_f) ="
+  },
+  {
+   "id": "r_wsb_umbral",
+   "kind": "math",
+   "x": 40,
+   "y": 9800,
+   "src": "wsb_umbral := restr_rot == 1 ? 2.3 : 1.7 ="
+  },
+  {
+   "id": "r_wsb_estado",
+   "kind": "math",
+   "x": 40,
+   "y": 9848,
+   "src": "wsb_estado := wsb_razon > wsb_umbral ? \"NO APLICA: la razón supera el umbral\" : \"APLICA: se verifica contra Rd_wsb\" ="
+  },
+  {
+   "id": "r_wsb_My",
+   "kind": "math",
+   "x": 40,
+   "y": 9896,
+   "src": "M_y_wsb := Fy*min(S_xc, S_xt) = tonf*m"
+  },
+  {
+   "id": "r_wsb_Cr",
+   "kind": "math",
+   "x": 40,
+   "y": 9944,
+   "src": "C_r := M_ux < M_y_wsb ? 6600000*(1 MPa) : 3300000*(1 MPa) = MPa"
+  },
+  {
+   "id": "r_wsb_Rn",
+   "kind": "math",
+   "x": 40,
+   "y": 9992,
+   "src": "Rd_wsb := phi_wsb*C_r*t_w^3*t_f/h_alma^2*(restr_rot == 1 ? 1 + 0.4*wsb_razon^3 : 0.4*wsb_razon^3) = tonf"
+  },
+  {
+   "id": "r_wsb_u",
+   "kind": "math",
+   "x": 40,
+   "y": 10040,
+   "src": "u_wsb := wsb_razon > wsb_umbral ? 0 : P_ur/Rd_wsb ="
+  },
+  {
+   "id": "r029",
+   "kind": "text",
+   "x": 40,
+   "y": 10088,
+   "src": "━━ 9 — DEFLEXIONES DE SERVICIO ━━"
+  },
+  {
+   "id": "r030",
+   "kind": "text",
+   "x": 40,
+   "y": 10136,
+   "src": "Flecha en el centro por una carga puntual a distancia aa del apoyo, con aa ≤ L/2: se superponen las\ndos ruedas en la posición crítica. La lateral va solo con el ala superior y el canal, coherente con\nla hipótesis de la sección 5."
+  },
+  {
+   "id": "r204",
+   "kind": "math",
+   "x": 40,
+   "y": 10232,
+   "src": "aa1 := x_crit = mm"
+  },
+  {
+   "id": "r205",
+   "kind": "math",
+   "x": 40,
+   "y": 10280,
+   "src": "aa2 := L - (x_crit + a_ruedas) = mm"
+  },
+  {
+   "id": "v_aa2",
+   "kind": "math",
+   "x": 40,
+   "y": 10328,
+   "src": "v_aa2 := aa2 > 0 mm ="
+  },
+  {
+   "id": "r207",
+   "kind": "program",
+   "x": 40,
+   "y": 10376,
+   "src": "f_pt(Qq, aa, Ii) := Qq*aa*(3*L^2 - 4*aa^2)/(48*E*Ii)"
+  },
+  {
+   "id": "r208",
+   "kind": "math",
+   "x": 40,
+   "y": 10424,
+   "src": "dv_ruedas := f_pt(P_serv, aa1, I_x) + f_pt(P_serv, aa2, I_x) = mm"
+  },
+  {
+   "id": "r209",
+   "kind": "math",
+   "x": 40,
+   "y": 10472,
+   "src": "dv_pp := 5*w_pp*L^4/(384*E*I_x) = mm"
+  },
+  {
+   "id": "r210",
+   "kind": "math",
+   "x": 40,
+   "y": 10520,
+   "src": "d_vert := dv_ruedas + dv_pp = mm"
+  },
+  {
+   "id": "r211",
+   "kind": "math",
+   "x": 40,
+   "y": 10568,
+   "src": "lim_vert := L/den_vert = mm"
+  },
+  {
+   "id": "r212",
+   "kind": "math",
+   "x": 40,
+   "y": 10616,
+   "src": "u_dvert := d_vert/lim_vert ="
+  },
+  {
+   "id": "r215",
+   "kind": "math",
+   "x": 40,
+   "y": 10664,
+   "src": "d_horiz := f_pt(H_lat, aa1, I_ytop) + f_pt(H_lat, aa2, I_ytop) = mm"
+  },
+  {
+   "id": "r216",
+   "kind": "math",
+   "x": 40,
+   "y": 10712,
+   "src": "lim_horiz := L/den_lat = mm"
+  },
+  {
+   "id": "r217",
+   "kind": "math",
+   "x": 40,
+   "y": 10760,
+   "src": "u_dhoriz := d_horiz/lim_horiz ="
+  },
+  {
+   "id": "r031",
+   "kind": "text",
+   "x": 40,
+   "y": 10808,
+   "src": "━━ 10 — FATIGA · AISC 360-22 Apéndice 3 ━━"
+  },
+  {
+   "id": "r032",
+   "kind": "text",
+   "x": 40,
+   "y": 10856,
+   "src": "El rango de tensión se calcula con las cargas de SERVICIO, sin amplificar: el §3.2 pide análisis\nelástico y sin factores. [A-3-1M] F_SR = 6900·(C_f/n_SR)^0,333 ≥ F_TH, en MPa. Si el rango no supera\nel umbral F_TH hay vida infinita y el §3.1 no exige más evaluación, cualquiera sea el número de\nciclos."
+  },
+  {
+   "id": "r221",
+   "kind": "math",
+   "x": 40,
+   "y": 10976,
+   "src": "D_sigma := M_serv/S_xt = MPa"
+  },
+  {
+   "id": "r223",
+   "kind": "program",
+   "x": 40,
+   "y": 11024,
+   "src": "F_sr(nn) := max(6900*(C_f/nn)^0.333*(1 MPa), F_TH)"
+  },
+  {
+   "id": "r224",
+   "kind": "math",
+   "x": 40,
+   "y": 11072,
+   "src": "F_SR := F_sr(n_SR) = MPa"
+  },
+  {
+   "id": "r225",
+   "kind": "math",
+   "x": 40,
+   "y": 11120,
+   "src": "u_fatiga := D_sigma/F_SR ="
+  },
+  {
+   "id": "v_vida_infinita",
+   "kind": "math",
+   "x": 40,
+   "y": 11168,
+   "src": "v_vida_infinita := D_sigma <= F_TH ="
+  },
+  {
+   "id": "r033",
+   "kind": "text",
+   "x": 40,
+   "y": 11216,
+   "src": "━━ RESUMEN ━━"
+  },
+  {
+   "id": "r233",
+   "kind": "math",
+   "x": 40,
+   "y": 11264,
+   "src": "u_max := max(u_H1, u_corte, u_wly, u_wlc, u_wsb, u_dvert, u_dhoriz, u_fatiga) ="
+  },
+  {
+   "id": "r234",
+   "kind": "program",
+   "x": 40,
+   "y": 11312,
+   "src": "gobierna :=\n    if u_max == u_dvert\n        return \"flecha vertical de servicio\"\n    else if u_max == u_dhoriz\n        return \"flecha lateral de servicio\"\n    else if u_max == u_fatiga\n        return \"fatiga del Apéndice 3\"\n    else if u_max == u_wlc\n        return \"aplastamiento local del alma bajo la rueda, cerca del extremo\"\n    else if u_max == u_wly\n        return \"fluencia local del alma bajo la rueda, cerca del extremo\"\n    else if u_max == u_wsb\n        return \"pandeo lateral del alma bajo la rueda\"\n    else if u_max == u_corte\n        return \"corte del alma\"\n    else\n        return \"flexión biaxial, interacción H1\""
+  },
+  {
+   "id": "v_global",
+   "kind": "math",
+   "x": 40,
+   "y": 11744,
+   "src": "v_global := u_max <= 1 ="
+  },
+  {
+   "id": "r034",
+   "kind": "text",
+   "x": 40,
+   "y": 11792,
+   "src": "━━ ESQUEMA · MAPEO A PÍXELES ━━",
+   "imprimir": false
+  },
+  {
+   "id": "r035",
+   "kind": "text",
+   "x": 40,
+   "y": 11840,
+   "src": "sx y sy llevan a píxeles de la sección transversal, con el origen en el eje de la viga y en la fibra\ninferior; vx y vy hacen lo propio en el alzado del vano. Este bloque no se imprime.",
+   "imprimir": false
+  },
+  {
+   "id": "r036",
+   "kind": "math",
+   "x": 40,
+   "y": 11912,
+   "src": "esc := min(200/(max(b_f, b_fb, 300 mm)/(1 mm)), 150/(h_tot/(1 mm))) =",
+   "imprimir": false
+  },
+  {
+   "id": "r037",
+   "kind": "program",
+   "x": 40,
+   "y": 11960,
+   "src": "sx(u) := 230 + u/(1 mm)*esc",
+   "imprimir": false
+  },
+  {
+   "id": "r038",
+   "kind": "program",
+   "x": 40,
+   "y": 12008,
+   "src": "sy(v) := 330 - v/(1 mm)*esc",
+   "imprimir": false
+  },
+  {
+   "id": "r039",
+   "kind": "math",
+   "x": 40,
+   "y": 12056,
+   "src": "esc_v := 300/(L/(1 mm)) =",
+   "imprimir": false
+  },
+  {
+   "id": "r040",
+   "kind": "program",
+   "x": 40,
+   "y": 12104,
+   "src": "vx(u) := 60 + u/(1 mm)*esc_v",
+   "imprimir": false
+  },
+  {
+   "id": "r041",
+   "kind": "math",
+   "x": 40,
+   "y": 12152,
+   "src": "canal_px := hay_canal == 1 ? [1] : []",
+   "imprimir": false
+  },
+  {
+   "id": "r041b",
+   "kind": "math",
+   "x": 40,
+   "y": 12200,
+   "src": "col_flex := u_H1 <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
+   "id": "r042",
+   "kind": "math",
+   "x": 40,
+   "y": 12248,
+   "src": "col_alma := (u_corte <= 1 and u_wly <= 1 and u_wlc <= 1 and u_wsb <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
+   "id": "r043",
+   "kind": "math",
+   "x": 40,
+   "y": 12296,
+   "src": "col_serv := (u_dvert <= 1 and u_dhoriz <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
+   "id": "r044",
+   "kind": "math",
+   "x": 40,
+   "y": 12344,
+   "src": "col_fat := u_fatiga <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
+   "id": "r045",
+   "kind": "math",
+   "x": 40,
+   "y": 12392,
+   "src": "col_global := v_global ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
+   "id": "esquema",
+   "kind": "image",
+   "x": 40,
+   "y": 12440,
+   "src": "/esquemas/viga-carrilera-generica.svg",
+   "w": 720,
+   "h": 480
+  }
+ ]
 }
