@@ -291,7 +291,7 @@
     "etiqueta": "Altura del riel",
     "unidad": "mm",
     "grupo": "Vano, cargas de rueda y vía",
-    "ayuda": "La longitud de apoyo de la rueda se toma como dos veces esta altura"
+    "ayuda": "§5.8.4 de AIST TR-13: la longitud eficaz de alma bajo la rueda es dos veces la altura combinada del riel y el espesor del ala, l_b = 2·(H_riel + t_f)"
    },
    {
     "nombre": "restr_rot",
@@ -454,18 +454,16 @@
     "avisoTexto": "El alma no alcanza C_v1 = 1: el corte va por otra rama del §G2"
    },
    {
-    "nombre": "v_lb_d",
-    "etiqueta": "Largo de apoyo l_b respecto del canto",
-    "tipo": "veredicto",
-    "aviso": true,
-    "avisoTexto": "El largo de apoyo bajo la rueda excede d/2: rige otra ecuación del §J10"
+    "nombre": "rama_j103",
+    "etiqueta": "Rama del §J10.3 que rige el aplastamiento",
+    "tipo": "texto"
    },
    {
     "nombre": "v_aa2",
-    "etiqueta": "Condición de la ecuación §J10-5a",
+    "etiqueta": "La segunda rueda cae dentro del vano",
     "tipo": "veredicto",
     "aviso": true,
-    "avisoTexto": "La condición de la ecuación §J10-5a no se cumple: rige §J10-5b"
+    "avisoTexto": "Con x_crít + a_ruedas fuera del vano la superposición de las dos ruedas no vale: revisa la posición crítica"
    },
    {
     "nombre": "u_wsb",
@@ -852,7 +850,7 @@
    "kind": "text",
    "x": 40,
    "y": 2360,
-   "src": "L_b es la longitud no arriostrada del ala comprimida: en una vía sin arriostramiento intermedio es el\nvano entero. C_b = 1,0 es el valor conservador. P_v es la carga vertical por rueda YA AMPLIFICADA por\nimpacto y P_serv la misma sin amplificar, que es la que va a deflexiones y a fatiga; H_lat es la\nfuerza lateral por rueda y a_ruedas la separación entre ejes. La longitud de apoyo de la rueda se\ntoma como dos veces la altura del riel, criterio corriente que conviene declarar. restr_rot := 1 si\nel ala comprimida está restringida contra ROTACIÓN —el riel y sus grampas, un arriostramiento de\nvía—; decide el umbral del §J10.4, que es 2,3 con restricción y 1,7 sin ella."
+   "src": "L_b es la longitud no arriostrada del ala comprimida: en una vía sin arriostramiento intermedio es el\nvano entero. C_b = 1,0 es el valor conservador. P_v es la carga vertical por rueda YA AMPLIFICADA por\nimpacto y P_serv la misma sin amplificar, que es la que va a deflexiones y a fatiga; H_lat es la\nfuerza lateral por rueda y a_ruedas la separación entre ejes. La longitud de apoyo de la rueda sale\ndel §5.8.4 de AIST TR-13: dos veces la altura del riel MÁS el espesor del ala. restr_rot := 1 si\nel ala comprimida está restringida contra ROTACIÓN —el riel y sus grampas, un arriostramiento de\nvía—; decide el umbral del §J10.4, que es 2,3 con restricción y 1,7 sin ella."
   },
   {
    "id": "in_L",
@@ -1650,14 +1648,14 @@
    "kind": "text",
    "x": 40,
    "y": 8864,
-   "src": "UNA VIGA CARRILERA NO TIENE UN PUNTO DE APLICACIÓN FIJO: la rueda recorre todo el vano, extremos\nincluidos, así que se verifica el caso del EXTREMO, que es el de menos resistencia —la mitad en\nfluencia local y la mitad del coeficiente en aplastamiento—. [J10-3] R_n = Fy·t_w·(2,5k + l_b) a d o\nmenos del extremo, contra [J10-2] con 5k lejos de él. [J10-5a] el aplastamiento cerca del extremo\nlleva coeficiente 0,40 contra el 0,80 de [J10-4], y su expresión vale solo con l_b/d ≤ 0,2. Q_f = 1,0\nen secciones doble T."
+   "src": "UNA VIGA CARRILERA NO TIENE UN PUNTO DE APLICACIÓN FIJO: la rueda recorre todo el vano, extremos\nincluidos, así que se verifica el caso del EXTREMO, que es el de menos resistencia —la mitad en\nfluencia local y la mitad del coeficiente en aplastamiento—. [J10-3] R_n = Fy·t_w·(2,5k + l_b) a d o\nmenos del extremo, contra [J10-2] con 5k lejos de él. [J10-5a] el aplastamiento cerca del extremo\nlleva coeficiente 0,40 contra el 0,80 de [J10-4]. Q_f = 1,0 en secciones doble T.\nLa longitud de apoyo l_b NO es un criterio de casa: el §5.8.4 de AIST TR-13 la prescribe como dos\nveces la altura COMBINADA del riel y el espesor del ala, y esa misma longitud sirve para las fuerzas\nen la soldadura entre el alma y el ala superior. Con esa longitud l_b/d suele pasar de 0,2, así que\nla hoja lleva las DOS ramas del §J10.3: el núcleo va con 3·l_b/d en [J10-5a] y con 4·l_b/d − 0,2 en\n[J10-5b], y rama_j103 dice cuál rige. Con una sola rama, el número saldría de una ecuación fuera de\nsu rango de validez."
   },
   {
    "id": "r182",
    "kind": "math",
    "x": 40,
    "y": 9032,
-   "src": "l_b := 2*H_riel = mm"
+   "src": "l_b := 2*(H_riel + t_f) = mm"
   },
   {
    "id": "r183",
@@ -1681,11 +1679,11 @@
    "src": "lb_d := l_b/d ="
   },
   {
-   "id": "v_lb_d",
+   "id": "r_rama_j103",
    "kind": "math",
    "x": 40,
    "y": 9224,
-   "src": "v_lb_d := lb_d <= 0.2 ="
+   "src": "rama_j103 := lb_d <= 0.2 ? \"[J10-5a]: l_b/d ≤ 0,2\" : \"[J10-5b]: l_b/d > 0,2\" ="
   },
   {
    "id": "r191",
@@ -1699,7 +1697,7 @@
    "kind": "math",
    "x": 40,
    "y": 9320,
-   "src": "nucleo := (1 + 3*lb_d*(t_w/t_f)^1.5)*sqrt(E*Fy*t_f/t_w) = MPa"
+   "src": "nucleo := (1 + (lb_d <= 0.2 ? 3*lb_d : 4*lb_d - 0.2)*(t_w/t_f)^1.5)*sqrt(E*Fy*t_f/t_w) = MPa"
   },
   {
    "id": "r195",

@@ -971,7 +971,7 @@
    "kind": "text",
    "x": 40,
    "y": 4736,
-   "src": "La chapa trabaja como voladizo empotrado en la placa, con el momento M = V·e de la sección 1 y el\ncorte V en su sección de arranque. La flexión de un elemento de conexión es el §J4.5, que no numera\necuaciones: fluencia con φ = 0,90 y rotura con φ = 0,75, y manda el menor. [J4-3] fluencia en corte:\nV_n = 0,60·F_y·A_gv con φ = 1,00. La interacción M–V es la\nEc. 9-1 del Manual: M_r/M_c + (V_r/V_c)^4 ≤ 1,0, y es la que vota."
+   "src": "La chapa trabaja como voladizo empotrado en la placa, con el momento M = V·e de la sección 1 y el\ncorte V en su sección de arranque. La flexión de un elemento de conexión es el §J4.5, que no numera\necuaciones: fluencia con φ = 0,90 y rotura con φ = 0,75, y manda el menor. En CORTE el §J4.2 pide lo\nmismo: el MENOR de [J4-3] fluencia, 0,60·F_y·A_gv con φ = 1,00, y [J4-4] rotura, 0,60·F_u·A_nv con\nφ = 0,75. Sin perforaciones A_nv = A_gv, y la rotura manda cuando F_u/F_y < 1,33 —un A572 Gr. 50\nestá justo por debajo—; el artículo no la condiciona a que haya agujeros. La interacción M–V es la\nEc. 9-1 del Manual: M_r/M_c + (V_r/V_c)^4 ≤ 1,0, y es la que vota."
   },
   {
    "id": "r083",
@@ -992,14 +992,14 @@
    "kind": "math",
    "x": 40,
    "y": 4952,
-   "src": "phiVn_slx := 1.00*0.60*Fy_ac*bY_sl*t_sl = kN"
+   "src": "phiVn_slx := min(1.00*0.60*Fy_ac, 0.75*0.60*Fu_ac)*bY_sl*t_sl = kN"
   },
   {
    "id": "r086",
    "kind": "math",
    "x": 40,
    "y": 5000,
-   "src": "phiVn_sly := 1.00*0.60*Fy_ac*bX_sl*t_sl = kN"
+   "src": "phiVn_sly := min(1.00*0.60*Fy_ac, 0.75*0.60*Fu_ac)*bX_sl*t_sl = kN"
   },
   {
    "id": "r087",

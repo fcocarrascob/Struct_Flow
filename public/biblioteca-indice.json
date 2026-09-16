@@ -16,7 +16,7 @@
       "entradas": 30,
       "salidas": 22,
       "promovible": true,
-      "sha256": "c7e29d9293a72dce7dd6c1b887ef86783089cf3e4a549cee136de2dc6bb2045e",
+      "sha256": "4dbc0050c15a89490f117fdf4a52aff797618a6c570dffb8ad98de15f017b708",
       "resumen": "Chapa soldada bajo la placa base que transfiere el corte al hormigón: regla de espesor de la DG1, embebido mínimo de los pernos, aplastamiento, breakout de corte, acero de la chapa, soldadura y flexión local de la placa. Entrega exc y tbp_req a placa-base-generica y recibe Yb, n_trac y N_sa."
     },
     {
@@ -43,14 +43,14 @@
       "clase": "generica",
       "disciplina": "acero",
       "ruta": "/biblioteca/acero/silla-anclaje-generica.json",
-      "regiones": 117,
+      "regiones": 118,
       "normas": [
         "US/AISC360-22"
       ],
-      "entradas": 31,
+      "entradas": 32,
       "salidas": 19,
       "promovible": true,
-      "sha256": "0f6b277e5edbe3dc1a6b159e323ec77ce0e217f8434c0e43b5f14595b43412d4",
+      "sha256": "6dc8c5dc54eb802977f9ccc7294b76bbc1548349f0caced10d84b74493402fbe",
       "resumen": "Silla de anclaje de una placa base rigidizada: chapa superior, nervios, soldadura en L, extensión de ala y las condiciones geométricas del rigidizador del §J10.8. Recibe T_grupo e Yb_comp de placa-base-generica."
     },
     {
@@ -67,7 +67,7 @@
       "entradas": 44,
       "salidas": 27,
       "promovible": true,
-      "sha256": "d239bdefa14710fbe2a1983b3e3e02a78277ce651e8da69fcaa8e69517897822",
+      "sha256": "c036ab8c57b9738e8cfb220f66b85a41797e04b24d8c4ddd5d9a1b83a1cc0f6c",
       "resumen": "Viga de alma llena bajo un puente grúa, con el ala superior más ancha o con canal-tapa: flexión por §F4, corte con el C_v1 de una sección armada, alma bajo la rueda (§J10.2 a §J10.4), interacción H1, deflexiones y fatiga del Apéndice 3."
     },
     {
@@ -76,14 +76,14 @@
       "clase": "generica",
       "disciplina": "hormigon",
       "ruta": "/biblioteca/hormigon/anclaje-hormigon-generica.json",
-      "regiones": 117,
+      "regiones": 122,
       "normas": [
         "US/ACI318-25-SI"
       ],
       "entradas": 28,
-      "salidas": 14,
+      "salidas": 15,
       "promovible": true,
-      "sha256": "576eb6fd86ba1484fd584e47f56bba19a3dafd47d703a66070039ca7fe42b302",
+      "sha256": "60203797993a4d04d220502baa7534fc66b037da8fd435ba5149a16c78acc3b1",
       "resumen": "El Cap. 17 del ACI 318-25 en tracción para pernos colados, con los dos factores nuevos de la edición 25 (psi_a y psi_cm,N) y el diseño sísmico del §17.10 (opción (d), factor 0,75 sobre los modos del hormigón). Recibe Nua_g de placa-base-generica y decide si hace falta armadura de anclaje."
     },
     {
@@ -92,14 +92,14 @@
       "clase": "generica",
       "disciplina": "hormigon",
       "ruta": "/biblioteca/hormigon/pedestal-generico.json",
-      "regiones": 125,
+      "regiones": 138,
       "normas": [
         "US/ACI318-25-SI"
       ],
-      "entradas": 31,
-      "salidas": 19,
+      "entradas": 32,
+      "salidas": 21,
       "promovible": true,
-      "sha256": "90f71fe01fa92a917be2805517821d872b64586458e576fbab0d1752740419d6",
+      "sha256": "57a489c14c396019a873f3e2a5d4dc9d3e72846fa4b8b8ebcd801013efa3b091",
       "resumen": "Pedestal rectangular bajo placa base: cuantías del §10.6.1.1, los tres extremos del diagrama P–M y puntos intermedios como dato, flexión biaxial por contorno lineal, corte en las dos direcciones, estribos, la armadura de anclaje que puede contarse —por capacidad del perno— y el detallado del §18.13.2. Recibe T_grupo de placa-base-generica y As_req de anclaje-hormigon-generica."
     },
     {

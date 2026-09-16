@@ -188,6 +188,13 @@
     "grupo": "Materiales y factores"
    },
    {
+    "nombre": "Fu_ac",
+    "etiqueta": "Rotura del acero",
+    "unidad": "MPa",
+    "grupo": "Materiales y factores",
+    "ayuda": "El §J4.2 toma el menor de fluencia y rotura en corte. Sin perforaciones A_nv = A_gv, y la rotura manda cuando F_u/F_y < 1,33"
+   },
+   {
     "nombre": "FEXX",
     "etiqueta": "Resistencia del electrodo",
     "unidad": "MPa",
@@ -574,507 +581,514 @@
    "src": "Fy_ac := 248.2 MPa"
   },
   {
-   "id": "in_FEXX",
+   "id": "in_Fu_ac",
    "kind": "math",
    "x": 40,
    "y": 1784,
+   "src": "Fu_ac := 400 MPa"
+  },
+  {
+   "id": "in_FEXX",
+   "kind": "math",
+   "x": 40,
+   "y": 1832,
    "src": "FEXX := 480 MPa"
   },
   {
    "id": "in_E_ac",
    "kind": "math",
    "x": 40,
-   "y": 1832,
+   "y": 1880,
    "src": "E_ac := 200000 MPa"
   },
   {
    "id": "in_phi_b",
    "kind": "math",
    "x": 40,
-   "y": 1880,
+   "y": 1928,
    "src": "phi_b := 0.90"
   },
   {
    "id": "in_phi_w",
    "kind": "math",
    "x": 40,
-   "y": 1928,
+   "y": 1976,
    "src": "phi_w := 0.75"
   },
   {
    "id": "in_b_eff",
    "kind": "math",
    "x": 40,
-   "y": 1976,
+   "y": 2024,
    "src": "b_eff := 150 mm"
   },
   {
    "id": "r039",
    "kind": "text",
    "x": 40,
-   "y": 2024,
+   "y": 2072,
    "src": "━━ 1 — REPARTO Y CHAPA SUPERIOR · AISC 360-22 §J4.5 ━━"
   },
   {
    "id": "r040",
    "kind": "text",
    "x": 40,
-   "y": 2072,
+   "y": 2120,
    "src": "Reparto uniforme de la tracción entre los pernos, y un nervio no puede tomar menos que medio perno\n—siempre tiene al menos un vecino— ni más que el grupo entero. El perno tira a media luz entre dos\nnervios: tomada como viga biempotrada, M = P·L/8; biapoyada daría P·L/4, o sea el doble, así que la\nelección del esquema estático vale un factor 2 y por eso se declara. Con Z de una franja de ancho\nb_eff, el espesor exigido es t = √(4·M/(φ·F_y·b_eff))."
   },
   {
    "id": "r041",
    "kind": "math",
    "x": 40,
-   "y": 2216,
+   "y": 2264,
    "src": "P_perno := T_grupo/n_col = kN"
   },
   {
    "id": "v_frac_inf",
    "kind": "math",
    "x": 40,
-   "y": 2264,
+   "y": 2312,
    "src": "v_frac_inf := frac_nervio >= 0.5 ="
   },
   {
    "id": "v_frac_sup",
    "kind": "math",
    "x": 40,
-   "y": 2312,
+   "y": 2360,
    "src": "v_frac_sup := frac_nervio <= n_col ="
   },
   {
    "id": "r044",
    "kind": "math",
    "x": 40,
-   "y": 2360,
+   "y": 2408,
    "src": "M_chapa := P_perno*luz_max/8 = kN*m"
   },
   {
    "id": "r045",
    "kind": "math",
    "x": 40,
-   "y": 2408,
+   "y": 2456,
    "src": "t_chapa_req := sqrt(4*(M_chapa/(phi_b*Fy_ac))/b_eff) = mm"
   },
   {
    "id": "r046",
    "kind": "math",
    "x": 40,
-   "y": 2456,
+   "y": 2504,
    "src": "u_chapa := t_chapa_req/CH_T ="
   },
   {
    "id": "v_chapa_cubre",
    "kind": "math",
    "x": 40,
-   "y": 2504,
+   "y": 2552,
    "src": "v_chapa_cubre := CH_L >= NER_L ="
   },
   {
    "id": "r048",
    "kind": "text",
    "x": 40,
-   "y": 2552,
+   "y": 2600,
    "src": "━━ 2 — NERVIO · corte junto al ala · AISC 360-22 §J4.2 ━━"
   },
   {
    "id": "r049",
    "kind": "text",
    "x": 40,
-   "y": 2600,
-   "src": "[J4-3] fluencia en corte: 0,60·F_y. Se adopta φ = 0,90, el de fluencia; con la rotura del área neta\nregiría 0,75, pero el nervio no tiene perforaciones."
+   "y": 2648,
+   "src": "El §J4.2 manda tomar el MENOR de dos estados límite: [J4-3] fluencia en corte, 0,60·F_y·A_gv con\nφ = 1,00, y [J4-4] rotura en corte, 0,60·F_u·A_nv con φ = 0,75. La rotura NO está condicionada a que\nhaya perforaciones: sin ellas A_nv = A_gv y la comprobación sigue existiendo. Manda cuando\nF_u/F_y < 1,33, que es justo donde cae un A572 Gr. 50."
   },
   {
    "id": "r050",
    "kind": "math",
    "x": 40,
-   "y": 2672,
+   "y": 2720,
    "src": "P_nervio := frac_nervio*P_perno = kN"
   },
   {
    "id": "r051",
    "kind": "math",
    "x": 40,
-   "y": 2720,
+   "y": 2768,
    "src": "tau_ner := P_nervio/(NER_H*NER_T) = MPa"
   },
   {
    "id": "r052",
    "kind": "math",
    "x": 40,
-   "y": 2768,
-   "src": "tau_adm := phi_b*0.60*Fy_ac = MPa"
+   "y": 2816,
+   "src": "tau_adm := min(1.00*0.60*Fy_ac, 0.75*0.60*Fu_ac) = MPa"
   },
   {
    "id": "r053",
    "kind": "math",
    "x": 40,
-   "y": 2816,
+   "y": 2864,
    "src": "u_ner := tau_ner/tau_adm ="
   },
   {
    "id": "r054",
    "kind": "text",
    "x": 40,
-   "y": 2864,
+   "y": 2912,
    "src": "━━ 3 — SOLDADURA DEL NERVIO · cordón en L, método elástico vectorial · AISC 360-22 §J2 ━━"
   },
   {
    "id": "r055",
    "kind": "text",
    "x": 40,
-   "y": 2912,
+   "y": 2960,
    "src": "El nervio suelda por DOS bordes: el vertical al ala, de altura NER_H, y el horizontal a la placa\nbase, de largo NER_L. Con los dos, el momento P·e se resuelve como PAR sobre la altura y no como\nflexión del propio cordón; con un solo borde el cordón toma el momento con módulo proporcional a H²\ny ahí la altura del nervio deja de ser holgura de detalle y pasa a gobernar. I_x, I_y y J_p son de\nla LÍNEA de soldadura, no del área: salen en mm³, y el momento se toma respecto del CENTROIDE del\ngrupo, no de la cara del ala. El punto crítico es el extremo del cordón horizontal. [J2-4] la\nresistencia del metal de aporte es F_nw = 0,60·F_EXX con φ = 0,75."
   },
   {
    "id": "r056",
    "kind": "math",
    "x": 40,
-   "y": 3104,
+   "y": 3152,
    "src": "exc_n := y_fila - COL_H/2 = mm"
   },
   {
    "id": "r057",
    "kind": "math",
    "x": 40,
-   "y": 3152,
+   "y": 3200,
    "src": "H_n := NER_H/(1 mm) ="
   },
   {
    "id": "r058",
    "kind": "math",
    "x": 40,
-   "y": 3200,
+   "y": 3248,
    "src": "L_n := NER_L/(1 mm) ="
   },
   {
    "id": "r059",
    "kind": "math",
    "x": 40,
-   "y": 3248,
+   "y": 3296,
    "src": "Lt := H_n + L_n ="
   },
   {
    "id": "r060",
    "kind": "math",
    "x": 40,
-   "y": 3296,
+   "y": 3344,
    "src": "ub := L_n^2/(2*Lt) ="
   },
   {
    "id": "r061",
    "kind": "math",
    "x": 40,
-   "y": 3344,
+   "y": 3392,
    "src": "vb := H_n^2/(2*Lt) ="
   },
   {
    "id": "r062",
    "kind": "math",
    "x": 40,
-   "y": 3392,
+   "y": 3440,
    "src": "Ix := (H_n^3/12 + H_n*(H_n/2 - vb)^2) + L_n*vb^2 ="
   },
   {
    "id": "r063",
    "kind": "math",
    "x": 40,
-   "y": 3440,
+   "y": 3488,
    "src": "Iy := H_n*ub^2 + (L_n^3/12 + L_n*(L_n/2 - ub)^2) ="
   },
   {
    "id": "r064",
    "kind": "math",
    "x": 40,
-   "y": 3488,
+   "y": 3536,
    "src": "Jp := Ix + Iy ="
   },
   {
    "id": "r065",
    "kind": "math",
    "x": 40,
-   "y": 3536,
+   "y": 3584,
    "src": "M_cor := P_nervio*(exc_n - ub*(1 mm)) = kN*m"
   },
   {
    "id": "r066",
    "kind": "math",
    "x": 40,
-   "y": 3584,
+   "y": 3632,
    "src": "M_corn := M_cor/(1 kN*mm) ="
   },
   {
    "id": "r067",
    "kind": "math",
    "x": 40,
-   "y": 3632,
+   "y": 3680,
    "src": "P_nern := P_nervio/(1 kN) ="
   },
   {
    "id": "r068",
    "kind": "math",
    "x": 40,
-   "y": 3680,
+   "y": 3728,
    "src": "r_corn := sqrt((-M_corn*vb/Jp)^2 + (P_nern/Lt + M_corn*(L_n - ub)/Jp)^2) ="
   },
   {
    "id": "r069",
    "kind": "math",
    "x": 40,
-   "y": 3728,
+   "y": 3776,
    "src": "sigma_cor := r_corn*(1 kN/mm)/(2*0.7071*w_sold) = MPa"
   },
   {
    "id": "r070",
    "kind": "math",
    "x": 40,
-   "y": 3776,
+   "y": 3824,
    "src": "sigma_adm := phi_w*0.60*FEXX = MPa"
   },
   {
    "id": "r071",
    "kind": "math",
    "x": 40,
-   "y": 3824,
+   "y": 3872,
    "src": "u_sold := sigma_cor/sigma_adm ="
   },
   {
    "id": "r072",
    "kind": "text",
    "x": 40,
-   "y": 3872,
+   "y": 3920,
    "src": "━━ 4 — EXTENSIÓN DE ALA · junta a tope de penetración completa ━━"
   },
   {
    "id": "r073",
    "kind": "text",
    "x": 40,
-   "y": 3920,
+   "y": 3968,
    "src": "Cuando los nervios exteriores caen fuera del ancho de ala original, la carga que recogen tiene que\ncruzar la junta a tope que une la chapa de extensión con el ala. La junta se especifica de\nPENETRACIÓN COMPLETA y pide ensayo no destructivo: no es un detalle de montaje. Con\nhay_extension := 0 el bloque no aplica y devuelve uso nulo."
   },
   {
    "id": "r074",
    "kind": "math",
    "x": 40,
-   "y": 4040,
+   "y": 4088,
    "src": "frac_junta := n_nerv_fuera*frac_nervio ="
   },
   {
    "id": "v_junta_admisible",
    "kind": "math",
    "x": 40,
-   "y": 4088,
+   "y": 4136,
    "src": "v_junta_admisible := frac_junta <= n_col ="
   },
   {
    "id": "r076",
    "kind": "math",
    "x": 40,
-   "y": 4136,
+   "y": 4184,
    "src": "ext_ancho := (ALA_EXT - COL_B)/2 = mm"
   },
   {
    "id": "r077",
    "kind": "math",
    "x": 40,
-   "y": 4184,
+   "y": 4232,
    "src": "P_junta := frac_junta*P_perno = kN"
   },
   {
    "id": "r078",
    "kind": "math",
    "x": 40,
-   "y": 4232,
+   "y": 4280,
    "src": "phiPn_ext := hay_extension == 1 ? phi_b*Fy_ac*ext_ancho*COL_TF : 1 kN = kN"
   },
   {
    "id": "r079",
    "kind": "math",
    "x": 40,
-   "y": 4280,
+   "y": 4328,
    "src": "u_ext := hay_extension == 1 ? P_junta/phiPn_ext : 0 ="
   },
   {
    "id": "r080",
    "kind": "text",
    "x": 40,
-   "y": 4328,
+   "y": 4376,
    "src": "━━ 5 — ALA A TRACCIÓN ━━"
   },
   {
    "id": "r081",
    "kind": "text",
    "x": 40,
-   "y": 4376,
+   "y": 4424,
    "src": "El ala completa —extendida o no— tiene que poder llevar la tracción del grupo."
   },
   {
    "id": "r082",
    "kind": "math",
    "x": 40,
-   "y": 4424,
+   "y": 4472,
    "src": "phiPn_ala := phi_b*Fy_ac*ALA_EXT*COL_TF = kN"
   },
   {
    "id": "r083",
    "kind": "math",
    "x": 40,
-   "y": 4472,
+   "y": 4520,
    "src": "u_ala := T_grupo/phiPn_ala ="
   },
   {
    "id": "r084",
    "kind": "text",
    "x": 40,
-   "y": 4520,
+   "y": 4568,
    "src": "━━ 6 — RIGIDIZADOR DE ALMA · AISC 360-22 §J10.8 ━━"
   },
   {
    "id": "r085",
    "kind": "text",
    "x": 40,
-   "y": 4568,
+   "y": 4616,
    "src": "El §J10.8 da tres condiciones geométricas para los rigidizadores transversales: (a) el ancho de cada\nuno más medio espesor del alma no baja de un tercio del ancho del ala o de la chapa de momento que\nentrega la fuerza; (b) el espesor no baja de la mitad del espesor de esa ala o chapa, ni del ancho\ndividido por 16; (c) se extienden al menos media altura del miembro, «salvo lo que exijan los §J10.3,\n§J10.5 y §J10.7», excepción que esta hoja no recoge y que solo puede pedir MÁS extensión.\nCumplirlas NO verifica el rigidizador a resistencia: para eso el mismo artículo remite al §J4.1 en\ntracción y al §J4.4 en compresión. Y para un rigidizador de apoyo de altura completa da la receta\ncompleta —miembro comprimido por el §E6.2, longitud efectiva 0,75·h, sección de dos rigidizadores\nmás 25·t_w de alma (12·t_w en el extremo)—, que esta hoja tampoco calcula."
   },
   {
    "id": "r086",
    "kind": "math",
    "x": 40,
-   "y": 4736,
+   "y": 4784,
    "src": "rig_ancho := (ALA_EXT - COL_TW)/2 = mm"
   },
   {
    "id": "r087",
    "kind": "math",
    "x": 40,
-   "y": 4784,
+   "y": 4832,
    "src": "rig_largo := COL_H - 2*COL_TF = mm"
   },
   {
    "id": "v_rig1",
    "kind": "math",
    "x": 40,
-   "y": 4832,
+   "y": 4880,
    "src": "v_rig1 := rig_ancho + COL_TW/2 >= CH_B/3 ="
   },
   {
    "id": "v_rig2a",
    "kind": "math",
    "x": 40,
-   "y": 4880,
+   "y": 4928,
    "src": "v_rig2a := RIG_T >= COL_TF/2 ="
   },
   {
    "id": "v_rig2b",
    "kind": "math",
    "x": 40,
-   "y": 4928,
+   "y": 4976,
    "src": "v_rig2b := RIG_T >= CH_T/2 ="
   },
   {
    "id": "r091",
    "kind": "math",
    "x": 40,
-   "y": 4976,
+   "y": 5024,
    "src": "bt_rig := rig_ancho/RIG_T ="
   },
   {
    "id": "v_rig3",
    "kind": "math",
    "x": 40,
-   "y": 5024,
+   "y": 5072,
    "src": "v_rig3 := bt_rig <= 16 ="
   },
   {
    "id": "v_rig_largo",
    "kind": "math",
    "x": 40,
-   "y": 5072,
+   "y": 5120,
    "src": "v_rig_largo := rig_largo >= COL_H/2 ="
   },
   {
    "id": "r094",
    "kind": "math",
    "x": 40,
-   "y": 5120,
+   "y": 5168,
    "src": "u_rig := bt_rig/16 ="
   },
   {
    "id": "r095",
    "kind": "text",
    "x": 40,
-   "y": 5168,
+   "y": 5216,
    "src": "━━ 7 — FLEXIBILIDAD DE LA BASE · condición de admisibilidad ━━"
   },
   {
    "id": "r096",
    "kind": "text",
    "x": 40,
-   "y": 5216,
+   "y": 5264,
    "src": "La silla ELEVA el amarre del perno, y ese tramo libre alarga bajo carga. El modelo estructural supone\nla base empotrada: la rotación que sale de aquí es la condición bajo la cual esa suposición se\nsostiene, y corresponde al nivel de solicitación con que se corrió el equilibrio de la placa. No es\nun resultado de diseño, es una comprobación de coherencia con el modelo."
   },
   {
    "id": "r097",
    "kind": "math",
    "x": 40,
-   "y": 5336,
+   "y": 5384,
    "src": "z_libre := t_mort + t_bp + NER_H + CH_T = mm"
   },
   {
    "id": "r098",
    "kind": "math",
    "x": 40,
-   "y": 5384,
+   "y": 5432,
    "src": "alarg := P_perno*z_libre/(Ase_perno*E_ac) = mm"
   },
   {
    "id": "r099",
    "kind": "math",
    "x": 40,
-   "y": 5432,
+   "y": 5480,
    "src": "brazo_rot := y_fila + (L_bp/2 - Yb_comp/2) = mm"
   },
   {
    "id": "r100",
    "kind": "math",
    "x": 40,
-   "y": 5480,
+   "y": 5528,
    "src": "theta_base := alarg/brazo_rot ="
   },
   {
    "id": "r101",
    "kind": "text",
    "x": 40,
-   "y": 5528,
+   "y": 5576,
    "src": "━━ RESUMEN ━━"
   },
   {
    "id": "r102",
    "kind": "math",
    "x": 40,
-   "y": 5576,
+   "y": 5624,
    "src": "u_max := max(u_chapa, u_ner, u_sold, u_ext, u_ala, u_rig) ="
   },
   {
    "id": "r103",
    "kind": "program",
    "x": 40,
-   "y": 5624,
+   "y": 5672,
    "src": "gobierna :=\n    if u_max == u_rig\n        return \"esbeltez del rigidizador de alma\"\n    else if u_max == u_chapa\n        return \"espesor de la chapa superior\"\n    else if u_max == u_sold\n        return \"soldadura en L del nervio\"\n    else if u_max == u_ner\n        return \"corte del nervio junto al ala\"\n    else if u_max == u_ext\n        return \"junta a tope de la extensión de ala\"\n    else\n        return \"tracción del ala\""
   },
   {
    "id": "v_global",
    "kind": "math",
    "x": 40,
-   "y": 5960,
+   "y": 6008,
    "src": "v_global := u_max <= 1 and v_chapa_cubre and v_rig1 and v_rig2a and v_rig2b and v_rig3 and v_rig_largo ="
   },
   {
    "id": "r105",
    "kind": "text",
    "x": 40,
-   "y": 6008,
+   "y": 6056,
    "src": "━━ ESQUEMA · MAPEO A PÍXELES ━━",
    "imprimir": false
   },
@@ -1082,7 +1096,7 @@
    "id": "r106",
    "kind": "text",
    "x": 40,
-   "y": 6056,
+   "y": 6104,
    "src": "ex y ey llevan a píxeles de la elevación lateral, con el origen en el eje de la columna y en la cara\nsuperior de la placa base; px y py hacen lo propio en la planta del ala. Este bloque no se imprime.",
    "imprimir": false
   },
@@ -1090,7 +1104,7 @@
    "id": "r107",
    "kind": "math",
    "x": 40,
-   "y": 6128,
+   "y": 6176,
    "src": "esc := min(230/((y_fila + 120 mm)/(1 mm)), 150/((NER_H + CH_T + t_bp + t_mort)/(1 mm)), 190/(ALA_EXT/(1 mm))) =",
    "imprimir": false
   },
@@ -1098,7 +1112,7 @@
    "id": "r108",
    "kind": "program",
    "x": 40,
-   "y": 6176,
+   "y": 6224,
    "src": "ex(u) := 210 + u/(1 mm)*esc",
    "imprimir": false
   },
@@ -1106,7 +1120,7 @@
    "id": "r109",
    "kind": "program",
    "x": 40,
-   "y": 6224,
+   "y": 6272,
    "src": "ey(w) := 210 + w/(1 mm)*esc",
    "imprimir": false
   },
@@ -1114,7 +1128,7 @@
    "id": "r110",
    "kind": "program",
    "x": 40,
-   "y": 6272,
+   "y": 6320,
    "src": "px(u) := 210 + u/(1 mm)*esc",
    "imprimir": false
   },
@@ -1122,7 +1136,7 @@
    "id": "r111",
    "kind": "program",
    "x": 40,
-   "y": 6320,
+   "y": 6368,
    "src": "py(v) := 430 + v/(1 mm)*esc",
    "imprimir": false
   },
@@ -1130,7 +1144,7 @@
    "id": "r_cu",
    "kind": "program",
    "x": 40,
-   "y": 6368,
+   "y": 6416,
    "src": "cu(u) := u <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1138,7 +1152,7 @@
    "id": "r112",
    "kind": "math",
    "x": 40,
-   "y": 6416,
+   "y": 6464,
    "src": "col_chapa := u_chapa <= 1 and v_chapa_cubre ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1146,7 +1160,7 @@
    "id": "r113",
    "kind": "math",
    "x": 40,
-   "y": 6464,
+   "y": 6512,
    "src": "col_nervio := (u_ner <= 1 and u_sold <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1154,7 +1168,7 @@
    "id": "r114",
    "kind": "math",
    "x": 40,
-   "y": 6512,
+   "y": 6560,
    "src": "col_ala := (u_ala <= 1 and u_ext <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1162,7 +1176,7 @@
    "id": "r115",
    "kind": "math",
    "x": 40,
-   "y": 6560,
+   "y": 6608,
    "src": "col_rig := (v_rig1 and v_rig2a and v_rig2b and v_rig3 and v_rig_largo) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1170,7 +1184,7 @@
    "id": "r116",
    "kind": "math",
    "x": 40,
-   "y": 6608,
+   "y": 6656,
    "src": "col_global := v_global ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1178,7 +1192,7 @@
    "id": "esquema",
    "kind": "image",
    "x": 40,
-   "y": 6656,
+   "y": 6704,
    "src": "/esquemas/silla-anclaje-generica.svg",
    "w": 720,
    "h": 480
