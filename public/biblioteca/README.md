@@ -63,9 +63,35 @@ rotura en corte del §J4.2 en la llave y la silla.
 
 ### `acciones/`
 
-Vacía. Las candidatas son **viento** y **nieve por ASCE 7**, que se destilan de las
-hojas del taller de neumáticos cuando se instancien por segunda vez; para una hoja de
-acciones el contrato exige solo `v_global`, no `u_max` ni `gobierna`.
+Para una hoja de acciones el contrato exige solo `v_global`: no hay estado límite que
+gobierne ni factor de uso, porque entrega cargas en vez de verificar una sección. Sus
+`v_*` son de **validez** —que el dato caiga dentro de la tabla, que la corrección esté en
+su rango—, no de resistencia.
+
+| Plantilla | Qué entrega | Norma | Entradas |
+|---|---|---|---:|
+| `espectro-nch2369-generica` | El espectro de una dirección de análisis: ordenada de diseño en T\*, ordenada de referencia de §6.1, factor de escala del caso espectral y banda de corte basal. Cubre la dirección **horizontal y la vertical** con la misma hoja (`es_vert`), y deriva los parámetros de sitio de la zona, el suelo y la categoría | NCh2369:2025 §4.3.2, §5.4.1, §5.4.2, §5.12, §5.13, §6.1 · Tablas 3, 6 y 7 | 8 |
+
+Siguen pendientes **viento** y **nieve por ASCE 7**, que se destilan de las hojas del
+taller de neumáticos cuando se instancien por segunda vez.
+
+> 🔴 **La que entra al espectro es `A_r`, no `A_0`.** El encabezado de la tercera columna
+> de la Tabla 3 es literalmente «A_r = 1,4 A_0», y las Ec. (3), (12) y (13) usan la de
+> referencia. Meter `A_0` deja la demanda **1,4 veces menor**, perfectamente plausible y
+> sin ninguna excepción que lo delate. La hoja lo comprueba sobre la fila que extrae
+> (`v_Ar_14A0`), que es lo único que convierte ese riesgo en un veredicto.
+
+> 🔴 **La reducción por `R*` se evalúa una sola vez, en `T*`, y escala la curva entera.**
+> No es una reducción rama a rama del espectro: por eso la curva de diseño es la de
+> referencia dividida por un número, y por eso la función que se carga en el modelo lleva
+> el espectro de **referencia puro** mientras `R*` viaja en el factor de escala del caso.
+> Con `R*` horneado en la curva, moverlo obliga a regenerar la función entera — y entonces
+> no se mueve, y el modelo sigue con el `R*` de una estructura que ya cambió.
+
+> 🟠 **Una estructura rígida es castigada, y eso no es un incumplimiento.** Bajo el codo
+> `C_r·T_1` la Ec. (1b) degrada `R*` hacia 1,5, porque no alcanza a desarrollar la
+> ductilidad que `R` supone. `v_T_est_sobre_codo` lo marca como **aviso** y no vota en
+> `v_global`: dice en qué rama quedó la dirección, no que falle nada.
 
 ## La familia BASE DE COLUMNA
 
@@ -227,7 +253,7 @@ caso real, cuando haga falta** — no antes.
 | **Viento ASCE 7** (Cap. 26 y 27) | las hojas de viento del taller de neumáticos (Struct_Harness), rehechas contra ASCE 7-16, que es la edición calibrada del catálogo |
 | **Nieve ASCE 7** (Cap. 7) | las hojas de nieve del mismo proyecto, con la misma conversión |
 | **Losa de fundación (flexión, corte, punzonamiento)** | el trío `*-aci318` del taller de neumáticos; **nomenclatura distinta** de `zapata-generica` (`b/h/rec/d_b/s` vs `bw/hzap/recub/db/sep`). Se dejó pendiente a propósito: unificar es editar cálculos que respaldan una memoria |
-| **Espectro y factores de escala** | `espectro-factores-escala` (Pachón) |
+| **R_1 y el amplificador de 0,7·R_1** | necesitan el `Q_0` del análisis, así que no son de una hoja de acciones: van en una hoja de **verificación del análisis**, junto al escalado de §5.12 y a la deriva de §6.3 |
 | **Riostras — esbeltez y compacidad** | `esbelteces-c103p4` del taller de neumáticos |
 | **Capacidad de soporte · balasto · estabilidad · volcamiento** | las cuatro de fundación (Pachón) |
 | **Viga de alma llena / columna PRS** | no existe |
@@ -264,3 +290,24 @@ al seguro:
 
 Vivieron en `_plantillas/planillas/` de Struct_Harness hasta el 2026-09-11, generadas por
 `_gen/hoja.py` + `gen_*.py`; desde entonces la fuente de verdad es este JSON.
+
+**Tercera pasada, 2026-09-16: la primera de `acciones/`.** `espectro-nch2369-generica` se
+destiló de `public/planillas/galpon-altiplano-sismico-nch2369.json` —de donde se copiaron
+literalmente la Ec. (3) y la Ec. (1b), que allí están contrastadas contra el post— y se
+cruzó contra `codigo_cl/sismo_nch2369.py` y `sismo_nch2369.valores.json` del galpón
+simulado, que llegan a los mismos números por otro camino.
+
+Una genérica no puede llevar contrastes `c_*`, así que el anclaje se hizo al escribirla,
+corriendo. Los **catorce** valores que reprodujo, con las entradas de cada caso:
+
+| Con | Da | Que es el de |
+|---|---|---|
+| altiplano · zona 2, suelo B, R = 5, T\* = 0,8527 s | `Sa_ref` = 0,6306425 · `Q0_min` = 70,860415 kN · `R*` = 5 | las regiones `e-01`, `b-01` y `r-06` de la planilla publicada |
+| simulado · zona 2, suelo C, T\* = 0,1111578 s | `R*` = 2,8894726912 · `Sa_dis` = 0,3576673096 · `Sa_ref` = 1,0334699237 · `codo` = 0,28 s · `coef_Q0max` = 0,2916057185 | `sismo_nch2369.valores.json`, a 1e-12 |
+| vertical · suelo C | `f_ξ` = 1,2267032047 · `S_aV(0)` = 0,3087 · `Sa_dis(0)` = 0,1893416396 | el mismo, rama vertical |
+
+Los dos primeros cuadran a 1e-7 porque el post publica siete cifras; el resto, a 1e-12 o
+exacto. **Las tablas 3 y 6 se releyeron del PDF** para poder derivarlas en vez de pedirlas:
+la Tabla 6 entera (suelos A a E) vive ahora en un `program` de la hoja, y los seis
+parámetros del suelo del altiplano y los del simulado salieron de ella idénticos a los que
+las dos fuentes traían escritos a mano.

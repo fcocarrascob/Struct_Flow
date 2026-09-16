@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 430" font-family="Segoe UI, Arial, sans-serif">
+  <rect width="680" height="430" fill="#ffffff"/>
+
+  <text x="340" y="22" font-size="13.5" text-anchor="middle" fill="#222" font-weight="bold">Espectro de NCh2369:2025 — dirección {{rot_dir}}</text>
+  <text x="340" y="38" font-size="9.5" text-anchor="middle" fill="#888">zona {{zona}} · suelo {{rot_suelo}} · I = {{I_imp}} · {{rot_R}} = {{R_sist}} · ξ = {{xi_ef}} · {{n_pts}} puntos entre 0 y {{T_top:s}} s</text>
+
+  <!-- ═══ ejes. El dibujo termina en x_px(3 s) = 454 y de ahí a la derecha va el
+       panel, que es lo que impide que un suelo blando meta la curva bajo el texto ═══ -->
+  <line x1="{{x_0:svg}}" y1="{{y_px(Sa_top):svg}}" x2="{{x_0:svg}}" y2="{{y_0:svg}}" stroke="#333" stroke-width="1.2"/>
+  <line x1="{{x_0:svg}}" y1="{{y_0:svg}}" x2="{{x_px(3 s) + 12:svg}}" y2="{{y_0:svg}}" stroke="#333" stroke-width="1.2"/>
+  <text x="{{x_0 + 5:svg}}" y="{{y_px(Sa_top) - 7:svg}}" font-size="10" fill="#333">Sa <tspan font-size="8.5" fill="#888">[g]</tspan></text>
+  <text x="{{x_px(3 s) + 16:svg}}" y="{{y_0 + 4:svg}}" font-size="10.5" fill="#333">T</text>
+  <text x="{{x_px(3 s) + 16:svg}}" y="{{y_0 + 15:svg}}" font-size="9" fill="#888">s</text>
+
+  <!-- ═══ ticks de Sa: la escala se adapta al sitio, así que los clona la hoja ═══ -->
+  <g data-repetir="ticks_y">
+    <line x1="{{x_0:svg}}" y1="{{fila[2]:svg}}" x2="{{x_px(3 s):svg}}" y2="{{fila[2]:svg}}" stroke="#ececec" stroke-width="0.8"/>
+    <line x1="{{x_0 - 4:svg}}" y1="{{fila[2]:svg}}" x2="{{x_0:svg}}" y2="{{fila[2]:svg}}" stroke="#333"/>
+    <text x="{{x_0 - 8:svg}}" y="{{fila[2] + 3.5:svg}}" font-size="9.5" text-anchor="end" fill="#555">{{fila[1]}}</text>
+  </g>
+  <text x="{{x_0 - 8:svg}}" y="{{y_0 + 3.5:svg}}" font-size="9.5" text-anchor="end" fill="#555">0</text>
+
+  <!-- ═══ ticks de T: el rango del eje es fijo, así que van escritos ═══ -->
+  <line x1="{{x_px(0.5 s):svg}}" y1="{{y_0:svg}}" x2="{{x_px(0.5 s):svg}}" y2="{{y_0 + 4:svg}}" stroke="#333"/>
+  <text x="{{x_px(0.5 s):svg}}" y="{{y_0 + 15:svg}}" font-size="9.5" text-anchor="middle" fill="#555">0,5</text>
+  <line x1="{{x_px(1 s):svg}}" y1="{{y_0:svg}}" x2="{{x_px(1 s):svg}}" y2="{{y_0 + 4:svg}}" stroke="#333"/>
+  <text x="{{x_px(1 s):svg}}" y="{{y_0 + 15:svg}}" font-size="9.5" text-anchor="middle" fill="#555">1,0</text>
+  <line x1="{{x_px(1.5 s):svg}}" y1="{{y_0:svg}}" x2="{{x_px(1.5 s):svg}}" y2="{{y_0 + 4:svg}}" stroke="#333"/>
+  <text x="{{x_px(1.5 s):svg}}" y="{{y_0 + 15:svg}}" font-size="9.5" text-anchor="middle" fill="#555">1,5</text>
+  <line x1="{{x_px(2 s):svg}}" y1="{{y_0:svg}}" x2="{{x_px(2 s):svg}}" y2="{{y_0 + 4:svg}}" stroke="#333"/>
+  <text x="{{x_px(2 s):svg}}" y="{{y_0 + 15:svg}}" font-size="9.5" text-anchor="middle" fill="#555">2,0</text>
+  <line x1="{{x_px(2.5 s):svg}}" y1="{{y_0:svg}}" x2="{{x_px(2.5 s):svg}}" y2="{{y_0 + 4:svg}}" stroke="#333"/>
+  <text x="{{x_px(2.5 s):svg}}" y="{{y_0 + 15:svg}}" font-size="9.5" text-anchor="middle" fill="#555">2,5</text>
+  <line x1="{{x_px(3 s):svg}}" y1="{{y_0:svg}}" x2="{{x_px(3 s):svg}}" y2="{{y_0 + 4:svg}}" stroke="#333"/>
+  <text x="{{x_px(3 s):svg}}" y="{{y_0 + 15:svg}}" font-size="9.5" text-anchor="middle" fill="#555">3,0</text>
+
+  <!-- ═══ el codo de la Ec. (1b): dónde R* deja de degradarse ═══ -->
+  <line x1="{{x_px(codo):svg}}" y1="{{y_0:svg}}" x2="{{x_px(codo):svg}}" y2="{{y_px(Sa_top):svg}}" stroke="{{col_codo}}" stroke-width="0.9" stroke-dasharray="3 4" opacity="{{op_codo:svg}}"/>
+  <text x="{{x_px(codo):svg}}" y="{{y_0 + 43:svg}}" font-size="9" text-anchor="middle" fill="{{col_codo}}" opacity="{{op_codo:svg}}">codo {{codo:s}} s</text>
+
+  <!-- ═══ las dos curvas ═══ -->
+  <polyline points="{{esp_ref_px:svg}}" fill="none" stroke="#1a63a8" stroke-width="2.2"/>
+  <polyline points="{{esp_dis_px:svg}}" fill="none" stroke="#c0392b" stroke-width="1.9" stroke-dasharray="6 3"/>
+
+  <!-- ═══ la ordenada que se lleva la dirección: el segmento ES la reducción por R* ═══ -->
+  <line x1="{{px_T:svg}}" y1="{{y_0:svg}}" x2="{{px_T:svg}}" y2="{{py_ref:svg}}" stroke="#5a6b7c" stroke-width="0.9" stroke-dasharray="2 3"/>
+  <line x1="{{px_T:svg}}" y1="{{py_ref:svg}}" x2="{{px_T:svg}}" y2="{{py_dis:svg}}" stroke="#5a6b7c" stroke-width="1.5"/>
+  <circle cx="{{px_T:svg}}" cy="{{py_ref:svg}}" r="4.2" fill="#1a63a8"/>
+  <circle cx="{{px_T:svg}}" cy="{{py_dis:svg}}" r="4.2" fill="#c0392b"/>
+  <text x="{{px_T:svg}}" y="{{y_0 + 29:svg}}" font-size="9.5" text-anchor="middle" fill="#3d4a55" font-weight="bold">T* = {{T_est:s}}</text>
+
+  <!-- ═══════════ panel derecho ═══════════ -->
+  <line x1="474" y1="62" x2="474" y2="372" stroke="#e4e4e4"/>
+
+  <text x="490" y="76" font-size="10.5" fill="#222" font-weight="bold">En T* = {{T_est:s}} s</text>
+  <line x1="490" y1="84" x2="530" y2="84" stroke="#1a63a8" stroke-width="2.2"/>
+  <text x="538" y="88" font-size="10" fill="#1a63a8">referencia · {{Sa_ref}} g</text>
+  <text x="490" y="103" font-size="9" fill="#777">I·S_a(T*)·(0,05/ξ)^0,4 — §6.1, la que</text>
+  <text x="490" y="115" font-size="9" fill="#777">gobierna los desplazamientos</text>
+  <line x1="490" y1="132" x2="530" y2="132" stroke="#c0392b" stroke-width="1.9" stroke-dasharray="6 3"/>
+  <text x="538" y="136" font-size="10" fill="#c0392b">diseño · {{Sa_dis}} g</text>
+  <text x="490" y="151" font-size="9" fill="#777">la misma dividida por {{rot_red}} = {{R_red}}</text>
+
+  <line x1="490" y1="170" x2="666" y2="170" stroke="#ececec"/>
+
+  <text x="490" y="188" font-size="9.5" fill="#555">(0,05/ξ)^0,4 = {{f_xi}}</text>
+  <text x="490" y="203" font-size="9.5" fill="{{col_codo}}">codo C_r·T₁ = {{codo:s}} s</text>
+  <text x="490" y="218" font-size="8.5" fill="#999">{{rot_codo}}</text>
+  <text x="490" y="236" font-size="9.5" fill="#555">pico de referencia = {{Sa_max_ref}} g</text>
+
+  <line x1="490" y1="250" x2="666" y2="250" stroke="#ececec"/>
+
+  <text x="490" y="268" font-size="9.5" fill="#222" font-weight="bold">Factor de escala del caso</text>
+  <text x="490" y="283" font-size="9.5" fill="#555">diseño = {{SF_dis:m/s^2}} m/s²</text>
+  <text x="490" y="298" font-size="9.5" fill="#555">desplazamientos = {{SF_desp:m/s^2}} m/s²</text>
+  <text x="490" y="311" font-size="8.5" fill="#999">sobre el espectro de referencia en g</text>
+
+  <line x1="490" y1="326" x2="666" y2="326" stroke="#ececec"/>
+
+  <text x="490" y="344" font-size="9.5" fill="#222" font-weight="bold">Banda de corte basal</text>
+  <text x="490" y="359" font-size="9.5" fill="#555">{{Q0_min:kN}} a {{Q0_max:kN}} kN</text>
+  <text x="490" y="371" font-size="8.5" fill="#999">§5.12 y §5.13, para P = {{P_sis:kN}} kN</text>
+
+  <text x="{{x_0:svg}}" y="416" font-size="9" fill="#999">La reducción por {{rot_red}} escala la curva entera: se evalúa una sola vez, en T*, y no rama a rama del espectro.</text>
+</svg>

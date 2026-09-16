@@ -1,0 +1,1112 @@
+{
+ "version": 1,
+ "meta": {
+  "titulo": "Espectro sísmico de NCh2369:2025 — referencia y diseño, factor de escala y banda de corte basal",
+  "slug": "espectro-nch2369-generica",
+  "clase": "generica",
+  "disciplina": "acciones",
+  "resumen": "Espectro de NCh2369:2025 para una dirección de análisis, horizontal o vertical. Deriva los parámetros de sitio de la zona, el suelo y la categoría; entrega la ordenada de diseño, la de referencia de §6.1, el factor de escala del caso espectral y la banda de corte basal de §5.12 y §5.13.",
+  "normas": [
+   {
+    "clave": "CL/NCh2369-2025",
+    "rol": "acción sísmica",
+    "articulos": [
+     "§4.3.2",
+     "§5.4",
+     "§5.4.1",
+     "§5.4.2",
+     "§5.12",
+     "§5.13",
+     "§6.1",
+     "Tabla 3",
+     "Tabla 6",
+     "Tabla 7"
+    ]
+   }
+  ],
+  "entradas": [
+   {
+    "nombre": "zona",
+    "etiqueta": "Zona sísmica",
+    "grupo": "Sitio",
+    "ayuda": "Tabla 3, con la zonificación por comuna de la Tabla 2 corregida por la Figura 2. Fija A_0 y A_r",
+    "opciones": [
+     {
+      "valor": 1,
+      "etiqueta": "1 — A_0 = 0,20 g"
+     },
+     {
+      "valor": 2,
+      "etiqueta": "2 — A_0 = 0,30 g"
+     },
+     {
+      "valor": 3,
+      "etiqueta": "3 — A_0 = 0,40 g"
+     }
+    ]
+   },
+   {
+    "nombre": "suelo",
+    "etiqueta": "Tipo de suelo de fundación",
+    "grupo": "Sitio",
+    "ayuda": "Tabla 4, por V_s30 y ratificación por T_g. Fija los seis parámetros de la Tabla 6. El suelo F queda fuera: §5.4.3 pide espectro de sitio",
+    "opciones": [
+     {
+      "valor": 1,
+      "etiqueta": "A — roca"
+     },
+     {
+      "valor": 2,
+      "etiqueta": "B"
+     },
+     {
+      "valor": 3,
+      "etiqueta": "C — denso o firme"
+     },
+     {
+      "valor": 4,
+      "etiqueta": "D"
+     },
+     {
+      "valor": 5,
+      "etiqueta": "E"
+     }
+    ]
+   },
+   {
+    "nombre": "cat_oc",
+    "etiqueta": "Categoría de ocupación",
+    "grupo": "Sitio",
+    "ayuda": "Tabla 1, por consecuencia sobre el proceso productivo. Fija I por §4.3.2, y la nota al pie de la Tabla 7 condiciona R fuera de la Categoría II",
+    "opciones": [
+     {
+      "valor": 1,
+      "etiqueta": "I — I = 0,80"
+     },
+     {
+      "valor": 2,
+      "etiqueta": "II — I = 1,00"
+     },
+     {
+      "valor": 3,
+      "etiqueta": "III — I = 1,20"
+     },
+     {
+      "valor": 4,
+      "etiqueta": "IV — I = 1,20"
+     }
+    ]
+   },
+   {
+    "nombre": "R_sis",
+    "etiqueta": "R, factor de modificación de la respuesta",
+    "grupo": "Sistema resistente",
+    "min": 1,
+    "max": 5,
+    "paso": 0.5,
+    "ayuda": "Tabla 7, fila del sistema. Sus condiciones son acumulativas y la hoja no las verifica: un galpón de un piso con puente grúa necesita arriostramiento continuo de techo Y anclajes dúctiles para la fila 5.5. §8.1.2 acota R a 5"
+   },
+   {
+    "nombre": "xi",
+    "etiqueta": "ξ, razón de amortiguamiento horizontal",
+    "grupo": "Sistema resistente",
+    "min": 0.01,
+    "max": 0.1,
+    "paso": 0.005,
+    "ayuda": "Tabla 7, misma fila que R: 0,02 uniones soldadas y 0,03 empernadas. El valor bajo es el desfavorable, porque (0,05/ξ)^0,4 amplifica. En vertical manda ξ_V = 0,03 de §5.4"
+   },
+   {
+    "nombre": "es_vert",
+    "etiqueta": "Dirección de análisis",
+    "grupo": "Sistema resistente",
+    "ayuda": "La vertical usa la Ec. (4) y la Ec. (2), con R_V = 2,0 y ξ_V = 0,03 de §5.4, y no interviene R*. §4.5.2 exige evaluar las tres direcciones",
+    "opciones": [
+     {
+      "valor": 0,
+      "etiqueta": "horizontal"
+     },
+     {
+      "valor": 1,
+      "etiqueta": "vertical"
+     }
+    ]
+   },
+   {
+    "nombre": "T_est",
+    "etiqueta": "T*, período de la dirección",
+    "unidad": "s",
+    "grupo": "Modelo",
+    "min": 0,
+    "max": 5,
+    "paso": 0.01,
+    "ayuda": "§5.4: el del modo con mayor masa de traslación equivalente en la dirección, que no tiene por qué ser el modo 1. C5.4.1 pide comprobar que maximice la respuesta"
+   },
+   {
+    "nombre": "P_sis",
+    "etiqueta": "Peso sísmico",
+    "unidad": "kN",
+    "grupo": "Modelo",
+    "min": 0,
+    "ayuda": "La reacción de base del estado de masa. Solo entra en la banda de corte basal de §5.12 y §5.13"
+   }
+  ],
+  "salidas": [
+   {
+    "nombre": "v_global",
+    "etiqueta": "La hoja es aplicable al caso",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "Sa_dis",
+    "etiqueta": "Sa de diseño en T*, en g",
+    "tipo": "valor"
+   },
+   {
+    "nombre": "Sa_ref",
+    "etiqueta": "Sa de referencia en T*, en g (§6.1, desplazamientos)",
+    "tipo": "valor"
+   },
+   {
+    "nombre": "Sa_max_ref",
+    "etiqueta": "Pico del espectro de referencia, en g",
+    "tipo": "valor"
+   },
+   {
+    "nombre": "R_red",
+    "etiqueta": "R* (o R_V en vertical)",
+    "tipo": "valor"
+   },
+   {
+    "nombre": "f_xi",
+    "etiqueta": "Corrección por amortiguamiento",
+    "tipo": "valor"
+   },
+   {
+    "nombre": "SF_dis",
+    "etiqueta": "Factor de escala del caso de diseño",
+    "unidad": "m/s^2",
+    "tipo": "valor"
+   },
+   {
+    "nombre": "SF_desp",
+    "etiqueta": "Factor de escala del caso de desplazamientos",
+    "unidad": "m/s^2",
+    "tipo": "valor"
+   },
+   {
+    "nombre": "coef_Q0min",
+    "etiqueta": "Coeficiente del corte basal mínimo",
+    "tipo": "valor"
+   },
+   {
+    "nombre": "coef_Q0max",
+    "etiqueta": "Coeficiente del corte basal máximo",
+    "tipo": "valor"
+   },
+   {
+    "nombre": "Q0_min",
+    "etiqueta": "Corte basal mínimo, Ec. (12)",
+    "unidad": "kN",
+    "tipo": "valor"
+   },
+   {
+    "nombre": "Q0_max",
+    "etiqueta": "Corte basal máximo, Ec. (13)",
+    "unidad": "kN",
+    "tipo": "valor"
+   },
+   {
+    "nombre": "v_zona_valida",
+    "etiqueta": "La zona está en la Tabla 3",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_suelo_valido",
+    "etiqueta": "El suelo está en la Tabla 6",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_cat_valida",
+    "etiqueta": "La categoría está en la Tabla 1",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_Ar_14A0",
+    "etiqueta": "A_r = 1,4·A_0 en la fila extraída",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_ancla_0",
+    "etiqueta": "El espectro en T = 0 vale A_r·S",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_xi_rango",
+    "etiqueta": "ξ dentro del rango de validez de (0,05/ξ)^0,4",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_T_est_sobre_codo",
+    "etiqueta": "T* por encima del codo C_r·T_1",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "T* cae bajo el codo: R* se degrada hacia 1,5 y no entrega el R de la Tabla 7"
+   },
+   {
+    "nombre": "v_corte_horizontal",
+    "etiqueta": "La banda de corte basal aplica",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "La dirección es vertical: §5.12 y §5.13 son de la dirección horizontal y la banda no aplica"
+   }
+  ],
+  "fronteras": [
+   "T* y el peso sísmico salen del modelo: la hoja no calcula períodos ni masa",
+   "R y ξ se eligen de la Tabla 7; sus condiciones son acumulativas y cualitativas, y la hoja no las verifica",
+   "El suelo F y el espectro de sitio de §5.4.3 quedan fuera de la Tabla 6",
+   "R_1 de la Ec. (14) y el amplificador 0,7·R_1 de §8.3.4 necesitan el Q_0 del análisis, que no entra acá",
+   "El escalado efectivo de las fuerzas por §5.12 lo aplica quien corre el análisis, no esta hoja"
+  ],
+  "hipotesis": [
+   "T* es el del modo con mayor masa de traslación en la dirección, no el modo 1 (§5.4)",
+   "Ninguna de las cinco excepciones de §5.13 alcanza al caso",
+   "R_V = 2,0 y ξ_V = 0,03 son los de §5.4, sin justificación en contrario",
+   "La corrección (0,05/ξ)^0,4 se aplica dentro del rango de §5.4.2, que el veredicto comprueba"
+  ],
+  "entrega": {},
+  "casos": [
+   {
+    "nombre": "galpón del altiplano — zona 2, suelo B, R = 5",
+    "entradas": {},
+    "cumple": true
+   },
+   {
+    "nombre": "galpón simulado con puente grúa — zona 2, suelo C, T* bajo el codo",
+    "entradas": {
+     "suelo": 3,
+     "T_est": 0.11115781529788459,
+     "P_sis": 1648.078
+    },
+    "cumple": true,
+    "esperadoFalso": [
+     "v_T_est_sobre_codo"
+    ]
+   },
+   {
+    "nombre": "acción sísmica vertical",
+    "entradas": {
+     "es_vert": 1,
+     "T_est": 0
+    },
+    "cumple": true,
+    "esperadoFalso": [
+     "v_corte_horizontal"
+    ]
+   },
+   {
+    "nombre": "ξ fuera del rango de validez de §5.4.2",
+    "entradas": {
+     "xi": 0.06
+    },
+    "cumple": false,
+    "esperadoFalso": [
+     "v_global",
+     "v_xi_rango"
+    ]
+   }
+  ]
+ },
+ "regions": [
+  {
+   "id": "r001",
+   "kind": "text",
+   "x": 40,
+   "y": 32,
+   "src": "Espectro sísmico de NCh2369:2025 para una dirección de análisis: entrega la ordenada de\ndiseño en el período de la dirección, la del espectro de referencia que gobierna los\ndesplazamientos, el factor de escala del caso espectral y la banda de corte basal. Cubre la\ndirección horizontal y la vertical con la misma hoja (es_vert). Los parámetros de sitio se\nderivan de la zona, el tipo de suelo y la categoría de ocupación; el período y el peso\nsísmico entran como dato del modelo."
+  },
+  {
+   "id": "r002",
+   "kind": "text",
+   "x": 40,
+   "y": 208,
+   "src": "La reducción por R* se evalúa UNA SOLA VEZ, en el período de la dirección, y escala la\ncurva entera: no es una reducción rama a rama del espectro. Por eso la curva de diseño es la\nde referencia dividida por un número, y por eso el factor de escala del caso espectral puede\nllevar R* adentro mientras la función del modelo lleva el espectro de referencia puro."
+  },
+  {
+   "id": "r003",
+   "kind": "text",
+   "x": 40,
+   "y": 336,
+   "src": "━━ DATOS · SITIO ━━"
+  },
+  {
+   "id": "in_zona",
+   "kind": "math",
+   "x": 40,
+   "y": 384,
+   "src": "zona := 2"
+  },
+  {
+   "id": "in_suelo",
+   "kind": "math",
+   "x": 40,
+   "y": 432,
+   "src": "suelo := 2"
+  },
+  {
+   "id": "in_cat_oc",
+   "kind": "math",
+   "x": 40,
+   "y": 480,
+   "src": "cat_oc := 2"
+  },
+  {
+   "id": "r004",
+   "kind": "text",
+   "x": 40,
+   "y": 528,
+   "src": "━━ DATOS · SISTEMA RESISTENTE ━━"
+  },
+  {
+   "id": "in_R_sis",
+   "kind": "math",
+   "x": 40,
+   "y": 576,
+   "src": "R_sis := 5"
+  },
+  {
+   "id": "in_xi",
+   "kind": "math",
+   "x": 40,
+   "y": 624,
+   "src": "xi := 0.02"
+  },
+  {
+   "id": "in_es_vert",
+   "kind": "math",
+   "x": 40,
+   "y": 672,
+   "src": "es_vert := 0"
+  },
+  {
+   "id": "r005",
+   "kind": "text",
+   "x": 40,
+   "y": 720,
+   "src": "━━ DATOS · MODELO ━━"
+  },
+  {
+   "id": "in_T_est",
+   "kind": "math",
+   "x": 40,
+   "y": 768,
+   "src": "T_est := 0.8526565963541679 s"
+  },
+  {
+   "id": "in_P_sis",
+   "kind": "math",
+   "x": 40,
+   "y": 816,
+   "src": "P_sis := 674.8610909934324 kN"
+  },
+  {
+   "id": "r006",
+   "kind": "text",
+   "x": 40,
+   "y": 864,
+   "src": "Los dos salen del modelo y no se derivan acá. El período es el del modo con MAYOR MASA DE\nTRASLACIÓN en la dirección de análisis —§5.4, no el modo 1—, y el peso sísmico es la\nreacción de base del estado de masa. En la dirección vertical el período no interviene: la\nEc. (2) no lleva R*."
+  },
+  {
+   "id": "r007",
+   "kind": "text",
+   "x": 40,
+   "y": 992,
+   "src": "━━ 1 — PARÁMETROS DE SITIO · NCh2369:2025 Tablas 3 y 6, §4.3.2 ━━"
+  },
+  {
+   "id": "r008",
+   "kind": "text",
+   "x": 40,
+   "y": 1040,
+   "src": "Nada de esto se escribe a mano: las tres tablas viven en los programas de abajo y la hoja\nextrae la fila que toca. Un parámetro de tabla tecleado es un número que hay que creer."
+  },
+  {
+   "id": "r009",
+   "kind": "program",
+   "x": 40,
+   "y": 1120,
+   "src": "par_suelo(k) :=\n    if k == 1\n        return [0.90, 4.50, 0.15, 1.85, 3.00, 0.15]\n    else if k == 2\n        return [1.00, 4.50, 0.30, 1.60, 3.00, 0.27]\n    else if k == 3\n        return [1.05, 4.50, 0.40, 1.50, 3.00, 0.35]\n    else if k == 4\n        return [1.00, 3.50, 0.60, 1.00, 2.50, 0.41]\n    else\n        return [1.00, 3.00, 1.20, 1.00, 2.70, 0.79]"
+  },
+  {
+   "id": "r010",
+   "kind": "text",
+   "x": 40,
+   "y": 1440,
+   "src": "↑ Tabla 6, en el orden S · r · T_0 · p · q · T_1. El suelo F no está en ella: §5.4.3 pide espectro de sitio."
+  },
+  {
+   "id": "r011",
+   "kind": "math",
+   "x": 40,
+   "y": 1488,
+   "src": "sue := par_suelo(suelo)"
+  },
+  {
+   "id": "r012",
+   "kind": "math",
+   "x": 40,
+   "y": 1536,
+   "src": "S_s := sue[1] ="
+  },
+  {
+   "id": "r013",
+   "kind": "math",
+   "x": 40,
+   "y": 1584,
+   "src": "r_s := sue[2] ="
+  },
+  {
+   "id": "r014",
+   "kind": "math",
+   "x": 40,
+   "y": 1632,
+   "src": "T0_s := sue[3] * (1 s) = s"
+  },
+  {
+   "id": "r015",
+   "kind": "math",
+   "x": 40,
+   "y": 1680,
+   "src": "p_s := sue[4] ="
+  },
+  {
+   "id": "r016",
+   "kind": "math",
+   "x": 40,
+   "y": 1728,
+   "src": "q_s := sue[5] ="
+  },
+  {
+   "id": "r017",
+   "kind": "math",
+   "x": 40,
+   "y": 1776,
+   "src": "T1_s := sue[6] * (1 s) = s"
+  },
+  {
+   "id": "r018",
+   "kind": "program",
+   "x": 40,
+   "y": 1824,
+   "src": "acel_zona(z) :=\n    if z == 1\n        return [0.20, 0.28]\n    else if z == 2\n        return [0.30, 0.42]\n    else\n        return [0.40, 0.56]"
+  },
+  {
+   "id": "r019",
+   "kind": "math",
+   "x": 40,
+   "y": 2048,
+   "src": "acc := acel_zona(zona)"
+  },
+  {
+   "id": "r020",
+   "kind": "math",
+   "x": 40,
+   "y": 2096,
+   "src": "A0 := acc[1] ="
+  },
+  {
+   "id": "r021",
+   "kind": "math",
+   "x": 40,
+   "y": 2144,
+   "src": "Ar := acc[2] ="
+  },
+  {
+   "id": "v_Ar_14A0",
+   "kind": "math",
+   "x": 40,
+   "y": 2192,
+   "src": "v_Ar_14A0 := abs(Ar - 1.4*A0) < 1e-12 ="
+  },
+  {
+   "id": "r022",
+   "kind": "text",
+   "x": 40,
+   "y": 2240,
+   "src": "↑ LA QUE ENTRA AL ESPECTRO ES A_r, NO A_0. El encabezado de su columna en la Tabla 3 es\nliteralmente «A_r = 1,4 A_0», y el veredicto de arriba lo comprueba sobre la fila extraída.\nMeter A_0 en la Ec. (3) deja la demanda 1,4 veces menor, sin ningún síntoma. Las dos van en\nunidades de g, así que el cociente A_r/g de las Ec. (12) y (13) es el número de la tabla."
+  },
+  {
+   "id": "r023",
+   "kind": "program",
+   "x": 40,
+   "y": 2368,
+   "src": "imp_cat(c) :=\n    if c == 1\n        return 0.80\n    else if c == 2\n        return 1.00\n    else\n        return 1.20"
+  },
+  {
+   "id": "r024",
+   "kind": "math",
+   "x": 40,
+   "y": 2592,
+   "src": "I_imp := imp_cat(cat_oc) ="
+  },
+  {
+   "id": "r025",
+   "kind": "text",
+   "x": 40,
+   "y": 2640,
+   "src": "↑ §4.3.2. Las categorías III y IV comparten I = 1,20; para la IV se admite uno mayor por desempeño."
+  },
+  {
+   "id": "v_zona_valida",
+   "kind": "math",
+   "x": 40,
+   "y": 2688,
+   "src": "v_zona_valida := zona >= 1 and zona <= 3 ="
+  },
+  {
+   "id": "v_suelo_valido",
+   "kind": "math",
+   "x": 40,
+   "y": 2736,
+   "src": "v_suelo_valido := suelo >= 1 and suelo <= 5 ="
+  },
+  {
+   "id": "v_cat_valida",
+   "kind": "math",
+   "x": 40,
+   "y": 2784,
+   "src": "v_cat_valida := cat_oc >= 1 and cat_oc <= 4 ="
+  },
+  {
+   "id": "r026",
+   "kind": "text",
+   "x": 40,
+   "y": 2832,
+   "src": "━━ 2 — ESPECTRO DE REFERENCIA · §5.4.2, Ec. (3) y Ec. (4) ━━"
+  },
+  {
+   "id": "r027",
+   "kind": "program",
+   "x": 40,
+   "y": 2880,
+   "src": "Sa_ref_de(Tq) :=\n    x := (es_vert == 1 ? 1.7*Tq : Tq) / T0_s\n    b := Ar*S_s*(1 + r_s*x^p_s)/(1 + x^q_s)\n    return es_vert == 1 ? 0.7*b : b"
+  },
+  {
+   "id": "r028",
+   "kind": "text",
+   "x": 40,
+   "y": 3024,
+   "src": "↑ Ec. (3) horizontal y Ec. (4) vertical en una sola función: la vertical estira el argumento\npor 1,7 y pondera por 0,7. Las dos están definidas para ξ = 0,05 y en unidades de g."
+  },
+  {
+   "id": "r029",
+   "kind": "math",
+   "x": 40,
+   "y": 3104,
+   "src": "Sa_ref_0 := Sa_ref_de(0 s) ="
+  },
+  {
+   "id": "r030",
+   "kind": "program",
+   "x": 40,
+   "y": 3152,
+   "src": "ancla_de() :=\n    if es_vert == 1\n        return 0.7*Ar*S_s\n    return Ar*S_s"
+  },
+  {
+   "id": "v_ancla_0",
+   "kind": "math",
+   "x": 40,
+   "y": 3296,
+   "src": "v_ancla_0 := abs(Sa_ref_0 - ancla_de()) < 1e-12 ="
+  },
+  {
+   "id": "r031",
+   "kind": "text",
+   "x": 40,
+   "y": 3344,
+   "src": "↑ En T = 0 la Ec. (3) se reduce a A_r·S, y la Ec. (4) a 0,7·A_r·S. Es el ancla que comprueba\nla implementación sin depender del resto de la curva."
+  },
+  {
+   "id": "r032",
+   "kind": "text",
+   "x": 40,
+   "y": 3424,
+   "src": "━━ 3 — CORRECCIÓN POR AMORTIGUAMIENTO · §5.4.2 ━━"
+  },
+  {
+   "id": "r033",
+   "kind": "program",
+   "x": 40,
+   "y": 3472,
+   "src": "xi_ef_de() :=\n    if es_vert == 1\n        return 0.03\n    return xi"
+  },
+  {
+   "id": "r034",
+   "kind": "math",
+   "x": 40,
+   "y": 3616,
+   "src": "xi_ef := xi_ef_de() ="
+  },
+  {
+   "id": "r035",
+   "kind": "math",
+   "x": 40,
+   "y": 3664,
+   "src": "f_xi := (0.05/xi_ef)^0.4 ="
+  },
+  {
+   "id": "v_xi_rango",
+   "kind": "math",
+   "x": 40,
+   "y": 3712,
+   "src": "v_xi_rango := xi_ef >= 0.02 and xi_ef <= 0.05 ="
+  },
+  {
+   "id": "r036",
+   "kind": "text",
+   "x": 40,
+   "y": 3760,
+   "src": "↑ AMPLIFICA, NO REDUCE. Los espectros de referencia están escritos para ξ = 0,05, y una\nestructura menos amortiguada responde más: con ξ = 0,02 el factor vale 1,4427. §5.4.2 acota\nsu validez a ξ entre 0,02 y 0,05, y eso es lo que comprueba el veredicto. En la dirección\nvertical ξ_V = 0,03 por definición de §5.4, salvo justificación por análisis racional."
+  },
+  {
+   "id": "r037",
+   "kind": "text",
+   "x": 40,
+   "y": 3888,
+   "src": "━━ 4 — REDUCCIÓN DE LA RESPUESTA · §5.4.1, Ec. (1b) ━━"
+  },
+  {
+   "id": "r038",
+   "kind": "program",
+   "x": 40,
+   "y": 3936,
+   "src": "rstar(Te, Rr) :=\n    if Rr <= 1\n        return 1\n    lim := 0.16 * Rr * T1_s\n    if Te >= lim\n        return Rr\n    return 1.5 + (Rr - 1.5) * (Te / lim)"
+  },
+  {
+   "id": "r039",
+   "kind": "math",
+   "x": 40,
+   "y": 4160,
+   "src": "C_r := 0.16 * R_sis ="
+  },
+  {
+   "id": "r040",
+   "kind": "math",
+   "x": 40,
+   "y": 4208,
+   "src": "codo := C_r * T1_s = s"
+  },
+  {
+   "id": "r041",
+   "kind": "program",
+   "x": 40,
+   "y": 4256,
+   "src": "R_red_de() :=\n    if es_vert == 1\n        return 2.0\n    return rstar(T_est, R_sis)"
+  },
+  {
+   "id": "r042",
+   "kind": "math",
+   "x": 40,
+   "y": 4400,
+   "src": "R_red := R_red_de() ="
+  },
+  {
+   "id": "v_T_est_sobre_codo",
+   "kind": "math",
+   "x": 40,
+   "y": 4448,
+   "src": "v_T_est_sobre_codo := es_vert == 1 or T_est >= codo ="
+  },
+  {
+   "id": "r043",
+   "kind": "text",
+   "x": 40,
+   "y": 4496,
+   "src": "↑ El codo C_r·T_1 separa la meseta —donde R* entrega el R de la tabla— de la rampa que lo\ndegrada hacia 1,5. Una estructura RÍGIDA cae bajo el codo y se lleva menos reducción,\nporque no alcanza a desarrollar la ductilidad que R supone. El veredicto de arriba señala\nese caso y NO ES UN INCUMPLIMIENTO: es la rama en la que quedó la dirección. En vertical\nno aplica, porque la Ec. (2) usa R_V = 2,0 fijo y no R*."
+  },
+  {
+   "id": "r044",
+   "kind": "text",
+   "x": 40,
+   "y": 4640,
+   "src": "━━ 5 — ESPECTRO DE DISEÑO · §5.4.1, Ec. (1a) y Ec. (2) ━━"
+  },
+  {
+   "id": "r045",
+   "kind": "math",
+   "x": 40,
+   "y": 4688,
+   "src": "Sa_ref := I_imp * Sa_ref_de(T_est) * f_xi ="
+  },
+  {
+   "id": "r046",
+   "kind": "math",
+   "x": 40,
+   "y": 4736,
+   "src": "Sa_dis := Sa_ref / R_red ="
+  },
+  {
+   "id": "r047",
+   "kind": "text",
+   "x": 40,
+   "y": 4784,
+   "src": "↑ Sa_dis es la Ec. (1a) en la dirección horizontal y la Ec. (2) en la vertical. Sa_ref es\nla misma ordenada, SIN DIVIDIR POR R*, que es la que §6.1 manda usar para estimar los\ndesplazamientos: comparar contra el 0,015·h de §6.3 lo que devuelve el espectro de diseño\nsubestima la deriva exactamente por un factor R*."
+  },
+  {
+   "id": "r048",
+   "kind": "math",
+   "x": 40,
+   "y": 4912,
+   "src": "T_top := 3 s"
+  },
+  {
+   "id": "r049",
+   "kind": "math",
+   "x": 40,
+   "y": 4960,
+   "src": "n_pts := 121"
+  },
+  {
+   "id": "r050",
+   "kind": "program",
+   "x": 40,
+   "y": 5008,
+   "src": "Sa_max_de() :=\n    mx := 0\n    for i in 1:n_pts\n        Tq := (i - 1)/(n_pts - 1)*T_top\n        v := Sa_ref_de(Tq)\n        if v > mx\n            mx := v\n    return mx"
+  },
+  {
+   "id": "r051",
+   "kind": "math",
+   "x": 40,
+   "y": 5264,
+   "src": "Sa_max_ref := I_imp * Sa_max_de() * f_xi ="
+  },
+  {
+   "id": "r052",
+   "kind": "text",
+   "x": 40,
+   "y": 5312,
+   "src": "↑ El pico se busca BARRIENDO, no derivando: la Ec. (3) tiene p y q distintos y su máximo\nno cae en T_0. Es la cota que permite verificar cualquier espectro tabulado que se genere\ndespués, y la que fija la escala vertical de la figura."
+  },
+  {
+   "id": "r053",
+   "kind": "text",
+   "x": 40,
+   "y": 5408,
+   "src": "━━ 6 — FACTOR DE ESCALA DEL CASO ESPECTRAL ━━"
+  },
+  {
+   "id": "r054",
+   "kind": "math",
+   "x": 40,
+   "y": 5456,
+   "src": "g_ac := 9.80665 m/s^2"
+  },
+  {
+   "id": "r055",
+   "kind": "math",
+   "x": 40,
+   "y": 5504,
+   "src": "SF_dis := g_ac * I_imp * f_xi / R_red = m/s^2"
+  },
+  {
+   "id": "r056",
+   "kind": "math",
+   "x": 40,
+   "y": 5552,
+   "src": "SF_desp := g_ac * I_imp * f_xi = m/s^2"
+  },
+  {
+   "id": "r057",
+   "kind": "text",
+   "x": 40,
+   "y": 5600,
+   "src": "↑ Con la función del modelo cargada con el espectro de REFERENCIA PURO en g —sin I, sin\nR* y sin la corrección por amortiguamiento—, estos son los dos factores de escala: el de\ndiseño y el de desplazamientos de §6.1. Dejar R* fuera de la curva es lo que permite\ncambiarlo editando un número en vez de regenerar la función entera cuando el modal se mueve."
+  },
+  {
+   "id": "r058",
+   "kind": "text",
+   "x": 40,
+   "y": 5728,
+   "src": "━━ 7 — BANDA DE CORTE BASAL · §5.12 Ec. (12) y §5.13 Ec. (13) ━━"
+  },
+  {
+   "id": "r059",
+   "kind": "math",
+   "x": 40,
+   "y": 5776,
+   "src": "coef_Q0min := 0.25 * I_imp * Ar * S_s ="
+  },
+  {
+   "id": "r060",
+   "kind": "math",
+   "x": 40,
+   "y": 5824,
+   "src": "coef_Q0max := 2.75 * I_imp * Ar * S_s / (R_sis + 1) * f_xi ="
+  },
+  {
+   "id": "r061",
+   "kind": "math",
+   "x": 40,
+   "y": 5872,
+   "src": "Q0_min := coef_Q0min * P_sis = kN"
+  },
+  {
+   "id": "r062",
+   "kind": "math",
+   "x": 40,
+   "y": 5920,
+   "src": "Q0_max := coef_Q0max * P_sis = kN"
+  },
+  {
+   "id": "v_corte_horizontal",
+   "kind": "math",
+   "x": 40,
+   "y": 5968,
+   "src": "v_corte_horizontal := es_vert == 0 ="
+  },
+  {
+   "id": "r063",
+   "kind": "text",
+   "x": 40,
+   "y": 6016,
+   "src": "↑ El corte del análisis, PREVIO A COMBINAR, se compara contra esta banda. Por debajo del\npiso, §5.12 multiplica todas las fuerzas por Q_0^mín/Q_0 —y ese aumento no se aplica al\ncálculo de desplazamientos—; por encima del techo, §5.13 permite reducir, y dice «se pueden»\ny no «se deben». El piso no lleva R y el techo divide por (R + 1): subir R baja el techo y\ndeja el piso donde está, así que los dos se acercan. El veredicto de arriba marca que la\nbanda es de la dirección HORIZONTAL; en un nodo vertical no aplica y no vota."
+  },
+  {
+   "id": "r064",
+   "kind": "text",
+   "x": 40,
+   "y": 6192,
+   "src": "━━ RESUMEN ━━"
+  },
+  {
+   "id": "v_global",
+   "kind": "math",
+   "x": 40,
+   "y": 6240,
+   "src": "v_global := v_zona_valida and v_suelo_valido and v_cat_valida and v_Ar_14A0 and v_ancla_0 and v_xi_rango ="
+  },
+  {
+   "id": "r065",
+   "kind": "text",
+   "x": 40,
+   "y": 6288,
+   "src": "━━ ESQUEMA · MAPEO A PÍXELES ━━"
+  },
+  {
+   "id": "r066",
+   "kind": "math",
+   "x": 40,
+   "y": 6336,
+   "src": "x_0 := 58",
+   "imprimir": false
+  },
+  {
+   "id": "r067",
+   "kind": "math",
+   "x": 40,
+   "y": 6384,
+   "src": "y_0 := 356",
+   "imprimir": false
+  },
+  {
+   "id": "r068",
+   "kind": "math",
+   "x": 40,
+   "y": 6432,
+   "src": "w_dib := 396",
+   "imprimir": false
+  },
+  {
+   "id": "r069",
+   "kind": "math",
+   "x": 40,
+   "y": 6480,
+   "src": "h_dib := 286",
+   "imprimir": false
+  },
+  {
+   "id": "r070",
+   "kind": "math",
+   "x": 40,
+   "y": 6528,
+   "src": "Sa_top := ceil(Sa_max_ref * 1.12 * 10)/10",
+   "imprimir": false
+  },
+  {
+   "id": "r071",
+   "kind": "math",
+   "x": 40,
+   "y": 6576,
+   "src": "paso_tick := Sa_top <= 0.6 ? 0.1 : (Sa_top <= 1.2 ? 0.2 : (Sa_top <= 3 ? 0.5 : 1))",
+   "imprimir": false
+  },
+  {
+   "id": "r072",
+   "kind": "math",
+   "x": 40,
+   "y": 6624,
+   "src": "s_T := w_dib/(T_top/(1 s))",
+   "imprimir": false
+  },
+  {
+   "id": "r073",
+   "kind": "math",
+   "x": 40,
+   "y": 6672,
+   "src": "s_Sa := h_dib/Sa_top",
+   "imprimir": false
+  },
+  {
+   "id": "r074",
+   "kind": "program",
+   "x": 40,
+   "y": 6720,
+   "src": "x_px(Tq) := x_0 + Tq/(1 s)*s_T",
+   "imprimir": false
+  },
+  {
+   "id": "r075",
+   "kind": "program",
+   "x": 40,
+   "y": 6784,
+   "src": "y_px(Sq) := y_0 - Sq*s_Sa",
+   "imprimir": false
+  },
+  {
+   "id": "r076",
+   "kind": "program",
+   "x": 40,
+   "y": 6848,
+   "src": "curva_px_de(fac) :=\n    Q := zeros(n_pts, 2)\n    for i in 1:n_pts\n        Tq := (i - 1)/(n_pts - 1)*T_top\n        Q[i, 1] = x_px(Tq)\n        Q[i, 2] = y_px(I_imp*Sa_ref_de(Tq)*f_xi*fac)\n    Q",
+   "imprimir": false
+  },
+  {
+   "id": "r077",
+   "kind": "math",
+   "x": 40,
+   "y": 7072,
+   "src": "esp_ref_px := curva_px_de(1)",
+   "imprimir": false
+  },
+  {
+   "id": "r078",
+   "kind": "math",
+   "x": 40,
+   "y": 7120,
+   "src": "esp_dis_px := curva_px_de(1/R_red)",
+   "imprimir": false
+  },
+  {
+   "id": "r079",
+   "kind": "program",
+   "x": 40,
+   "y": 7168,
+   "src": "ticks_y_de() :=\n    m := round(Sa_top/paso_tick)\n    Q := zeros(m, 2)\n    for i in 1:m\n        v := i*paso_tick\n        Q[i, 1] = v\n        Q[i, 2] = y_px(v)\n    Q",
+   "imprimir": false
+  },
+  {
+   "id": "r080",
+   "kind": "math",
+   "x": 40,
+   "y": 7424,
+   "src": "ticks_y := ticks_y_de()",
+   "imprimir": false
+  },
+  {
+   "id": "r081",
+   "kind": "math",
+   "x": 40,
+   "y": 7472,
+   "src": "px_T := x_px(T_est)",
+   "imprimir": false
+  },
+  {
+   "id": "r082",
+   "kind": "math",
+   "x": 40,
+   "y": 7520,
+   "src": "py_ref := y_px(Sa_ref)",
+   "imprimir": false
+  },
+  {
+   "id": "r083",
+   "kind": "math",
+   "x": 40,
+   "y": 7568,
+   "src": "py_dis := y_px(Sa_dis)",
+   "imprimir": false
+  },
+  {
+   "id": "r084",
+   "kind": "math",
+   "x": 40,
+   "y": 7616,
+   "src": "rot_dir := es_vert == 1 ? \"vertical · Ec. (4) y Ec. (2)\" : \"horizontal · Ec. (3) y Ec. (1a)\"",
+   "imprimir": false
+  },
+  {
+   "id": "r085",
+   "kind": "math",
+   "x": 40,
+   "y": 7664,
+   "src": "rot_red := es_vert == 1 ? \"R_V\" : \"R*\"",
+   "imprimir": false
+  },
+  {
+   "id": "r086",
+   "kind": "math",
+   "x": 40,
+   "y": 7712,
+   "src": "rot_suelo := suelo == 1 ? \"A\" : (suelo == 2 ? \"B\" : (suelo == 3 ? \"C\" : (suelo == 4 ? \"D\" : \"E\")))",
+   "imprimir": false
+  },
+  {
+   "id": "r087",
+   "kind": "math",
+   "x": 40,
+   "y": 7760,
+   "src": "col_codo := es_vert == 1 ? \"#999999\" : (v_T_est_sobre_codo ? \"#1c7c3c\" : \"#c07a00\")",
+   "imprimir": false
+  },
+  {
+   "id": "r088",
+   "kind": "math",
+   "x": 40,
+   "y": 7808,
+   "src": "op_codo := es_vert == 1 ? 0 : 0.85",
+   "imprimir": false
+  },
+  {
+   "id": "r089",
+   "kind": "math",
+   "x": 40,
+   "y": 7856,
+   "src": "rot_R := es_vert == 1 ? \"R_V\" : \"R\"",
+   "imprimir": false
+  },
+  {
+   "id": "r090",
+   "kind": "math",
+   "x": 40,
+   "y": 7904,
+   "src": "R_sist := es_vert == 1 ? 2.0 : R_sis",
+   "imprimir": false
+  },
+  {
+   "id": "r091",
+   "kind": "math",
+   "x": 40,
+   "y": 7952,
+   "src": "rot_codo := es_vert == 1 ? \"no aplica en vertical: R_V es fijo\" : (v_T_est_sobre_codo ? \"T* por encima: R* = R de la Tabla 7\" : \"T* por debajo: R* se degrada hacia 1,5\")",
+   "imprimir": false
+  },
+  {
+   "id": "img_esq",
+   "kind": "image",
+   "x": 40,
+   "y": 8000,
+   "src": "/esquemas/espectro-nch2369-generica.svg",
+   "w": 680,
+   "h": 430
+  }
+ ]
+}

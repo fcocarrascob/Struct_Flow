@@ -431,6 +431,22 @@
       "sha256": "a391fee0fad8cff7cba39c5b37915c6741973c64502aa1ccd0c5bc007b2f57e5"
     },
     {
+      "slug": "espectro-nch2369-generica",
+      "titulo": "Espectro sísmico de NCh2369:2025 — referencia y diseño, factor de escala y banda de corte basal",
+      "clase": "generica",
+      "disciplina": "acciones",
+      "ruta": "/biblioteca/acciones/espectro-nch2369-generica.json",
+      "regiones": 109,
+      "normas": [
+        "CL/NCh2369-2025"
+      ],
+      "entradas": 8,
+      "salidas": 20,
+      "promovible": true,
+      "sha256": "5fc85a4d081de425d6bcb58af8254125b571bc3328a4797b83a99e88753ba3ba",
+      "resumen": "Espectro de NCh2369:2025 para una dirección de análisis, horizontal o vertical. Deriva los parámetros de sitio de la zona, el suelo y la categoría; entrega la ordenada de diseño, la de referencia de §6.1, el factor de escala del caso espectral y la banda de corte basal de §5.12 y §5.13."
+    },
+    {
       "slug": "llave-corte-generica",
       "titulo": "Llave de corte bajo placa base — los siete estados límite, con una chapa por dirección o dos paralelas",
       "clase": "generica",
