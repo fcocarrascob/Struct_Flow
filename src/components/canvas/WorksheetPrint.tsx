@@ -1,5 +1,6 @@
 import { createPortal } from 'react-dom';
-import BloqueDoc, { esEspaciador } from './BloqueDoc';
+import BloqueDoc from './BloqueDoc';
+import { regionTitulo, seImprime } from '../../lib/bloque';
 import type { Region, SheetResults } from '../../lib/worksheet';
 
 /** Id del pie, para que la paginación pueda contarlo. */
@@ -30,18 +31,15 @@ export default function WorksheetPrint({
   regions: Region[];
   results: SheetResults;
 }) {
-  // Se descarta lo que está vacío, SALVO los espaciadores: una región de texto
-  // sin contenido es un hueco deliberado y tiene que imprimirse como tal. Una
-  // `math` o una `program` vacía sí se descarta — esa es un bloque a medio
-  // escribir, no un hueco.
-  const ordered = [...regions]
-    .filter((r) => r.src.trim() !== '' || esEspaciador(r))
-    .sort((a, b) => a.y - b.y || a.x - b.x);
+  // Qué sale en el papel lo decide `seImprime`: lo vacío no —salvo los
+  // espaciadores, que son huecos deliberados— y tampoco lo marcado
+  // `imprimir: false`, que es el mapeo a píxeles de un esquema.
+  const ordered = [...regions].filter(seImprime).sort((a, b) => a.y - b.y || a.x - b.x);
 
   // El título no puede ser un espaciador. `MathCanvas` elige el suyo con la
   // misma regla (`idTitulo`), y si discreparan el título saldría en un sitio en
   // la hoja y en otro en el papel — que es justo el fallo que costó arreglar.
-  const titleRegion = ordered.find((r) => r.kind === 'text' && !esEspaciador(r));
+  const titleRegion = regionTitulo(ordered);
 
   if (typeof document === 'undefined') return null;
 

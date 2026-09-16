@@ -75,6 +75,7 @@ Definida en `worksheet.ts:64`:
 | `src` | `string` | Expresión, texto libre o fuente de imagen según el `kind`. |
 | `w`, `h` | `number?` | Solo `image`: tamaño mostrado. Sin ellos, el natural. |
 | `pageBreak` | `boolean?` | Al imprimir, esta región abre una A4 nueva. |
+| `imprimir` | `boolean?` | `false` la deja **fuera del papel**: se evalúa en su sitio del orden de lectura y lo que define sigue visible para lo de abajo y para los tokens de un esquema, pero no sale en el documento. Es para el **mapeo a píxeles de un esquema** (escala, funciones de coordenadas, colores por veredicto). Una entrada `in_*`, un veredicto `v_*` o una salida declarada no se esconden: `validarMeta` lo rechaza con `region.imprimir`. |
 
 ### Convención de ids
 

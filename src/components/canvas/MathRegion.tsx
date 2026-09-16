@@ -304,6 +304,19 @@ function MathRegion({
           ⚠
         </span>
       )}
+      {/* Lo que no sale en el papel se señala al margen y se atenúa: sigue
+          calculándose y alimentando al esquema, pero el autor tiene que poder
+          ver de un vistazo que ese bloque no llega a la memoria. */}
+      {region.imprimir === false && !active && (
+        <span
+          className="pointer-events-auto absolute top-0 -left-9 cursor-help select-none text-[13px] leading-5 text-muted"
+          title="No se imprime: se calcula y alimenta los esquemas, pero queda fuera del papel"
+          aria-label="No se imprime"
+          role="img"
+        >
+          ⊘
+        </span>
+      )}
       <div
         // LA CAJA DE INTERACCIÓN Y REALCE. `fit-content` acotado al ancho del
         // papel: el ancho disponible sigue siendo el mismo, así que el salto de
@@ -314,6 +327,8 @@ function MathRegion({
         // dos de diferencia con el papel. El realce va en `ring`, que es una
         // sombra y no ocupa sitio.
         className={`group pointer-events-auto select-none rounded ${
+          region.imprimir === false && !active ? 'opacity-55 ' : ''
+        }${
           active
             ? 'bg-white shadow-sm ring-1 ring-accent'
             : selected
@@ -532,7 +547,8 @@ export default memo(MathRegion, (a, b) => {
       x.kind === y.kind &&
       x.w === y.w &&
       x.h === y.h &&
-      x.pageBreak === y.pageBreak)
+      x.pageBreak === y.pageBreak &&
+      x.imprimir === y.imprimir)
   ) && a.result === b.result && a.active === b.active && a.selected === b.selected &&
     a.tapada === b.tapada && a.titulo === b.titulo && a.sugerencias === b.sugerencias;
 });

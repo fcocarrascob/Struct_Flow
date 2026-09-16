@@ -46,6 +46,7 @@ import {
   fitToSheet,
   isImageFile,
 } from '../../lib/canvas-image';
+import { regionTitulo, seImprime } from '../../lib/bloque';
 import { STORAGE_KEY, hayTrabajoGuardado } from '../../lib/hoja-guardada';
 import { descargarHoja } from '../../lib/canvas-handoff';
 import Enlace from '../Enlace';
@@ -388,11 +389,7 @@ export default function MathCanvas() {
    * en otro en el papel, que es justo lo que se acaba de arreglar.
    */
   const idTitulo = useMemo(
-    () =>
-      [...regions]
-        .filter((r) => r.src.trim() !== '')
-        .sort((a, b) => a.y - b.y || a.x - b.x)
-        .find((r) => r.kind === 'text')?.id,
+    () => regionTitulo([...regions].filter(seImprime).sort((a, b) => a.y - b.y || a.x - b.x))?.id,
     [regions],
   );
 
@@ -460,6 +457,22 @@ export default function MathCanvas() {
       const poner = sel.some((r) => !r.pageBreak);
       return prev.map((r) =>
         selected.has(r.id) ? { ...r, pageBreak: poner ? true : undefined } : r,
+      );
+    });
+  }, [selected]);
+
+  /**
+   * Deja (o devuelve al papel) las regiones seleccionadas. Lo que se marca así
+   * se sigue calculando y alimentando a los esquemas; solo desaparece del
+   * documento de impresión. Mismo ida y vuelta que el botón del salto.
+   */
+  const toggleImprimir = useCallback(() => {
+    setRegions((prev) => {
+      const sel = prev.filter((r) => selected.has(r.id));
+      if (sel.length === 0) return prev;
+      const ocultar = sel.some((r) => r.imprimir !== false);
+      return prev.map((r) =>
+        selected.has(r.id) ? { ...r, imprimir: ocultar ? false : undefined } : r,
       );
     });
   }, [selected]);
@@ -1595,6 +1608,18 @@ export default function MathCanvas() {
           }
         >
           ⇱ Salto de página
+        </button>
+        <button
+          className={`${toolBtn} ${selected.size === 0 ? 'opacity-40' : ''}`}
+          disabled={selected.size === 0}
+          onClick={toggleImprimir}
+          title={
+            selected.size === 0
+              ? 'Selecciona una región y este botón la dejará fuera del papel: se sigue calculando, pero no se imprime'
+              : 'La región seleccionada queda fuera del papel: se calcula igual y alimenta los esquemas, pero no se imprime (vuelve a pulsarlo para devolverla)'
+          }
+        >
+          ⊘ No imprimir
         </button>
         <button
           className={toolBtn}

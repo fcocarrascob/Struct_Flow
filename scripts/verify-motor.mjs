@@ -20,7 +20,7 @@
 import katex from 'katex';
 import { cargarMotor } from './lib/motor.mjs';
 
-const { evaluateSheet, renderEsquema } = await cargarMotor();
+const { evaluateSheet, renderEsquema, renderHtml } = await cargarMotor();
 
 /** Una hoja a partir de `[tipo, src]`, apiladas en orden de lectura. */
 function hoja(...filas) {
@@ -312,7 +312,63 @@ const CASOS_ESQUEMA = [
   },
 ];
 
+// --- El papel: regiones con `imprimir: false` -------------------------------
+//
+// El mapeo a píxeles de un esquema (escala, funciones hx/vp, colores) son
+// cálculos que la figura necesita y que un anexo de memoria no quiere leer.
+// Con `imprimir: false` la región se evalúa y alimenta el SVG, pero no sale en
+// el documento. Lo que vota —una entrada, un veredicto, una salida— no se
+// esconde: eso lo exige `validarMeta`, no el motor.
+
+const SVG_K = '<svg><text>{{k}}</text></svg>';
+
+/** El documento de una hoja, con el esquema resuelto. */
+function papelDe(regiones) {
+  const res = evaluateSheet(regiones);
+  return renderHtml(regiones, res, undefined, { esquemas: { '/esquemas/x.svg': SVG_K } });
+}
+
+const CASOS_PAPEL = [
+  {
+    nombre: 'una región «imprimir: false» alimenta el esquema y no sale en el papel',
+    hoja: () => {
+      const rs = hoja(['text', 'TÍTULO'], m('k := 7'));
+      rs[1].imprimir = false;
+      rs.push({ id: 'img', kind: 'image', x: 40, y: 200, src: '/esquemas/x.svg' });
+      return rs;
+    },
+    ok: (html) =>
+      (html.includes('>7<') ? null : `el token del esquema no se resolvió: ${html}`) ??
+      (html.includes('data-wp-id="r1"') ? 'la región oculta salió impresa' : null),
+  },
+  {
+    nombre: 'una región oculta no se lleva el título del documento',
+    hoja: () => {
+      const rs = hoja(['text', 'NOTA OCULTA'], ['text', 'TÍTULO DE VERDAD']);
+      rs[0].imprimir = false;
+      return rs;
+    },
+    ok: (html) =>
+      html.includes('<h1>TÍTULO DE VERDAD</h1>') ? null : `el título salió de la región oculta: ${html}`,
+  },
+];
+
 let fallos = 0;
+for (const caso of CASOS_PAPEL) {
+  let motivo;
+  try {
+    motivo = caso.ok(papelDe(caso.hoja()));
+  } catch (e) {
+    motivo = `lanzó: ${e.message}`;
+  }
+  if (motivo) {
+    fallos++;
+    console.log(`  [FALLA] ${caso.nombre}\n          ${motivo}`);
+  } else {
+    console.log(`  [ OK  ] ${caso.nombre}`);
+  }
+}
+
 for (const caso of CASOS_ESQUEMA) {
   let motivo;
   try {
@@ -358,6 +414,6 @@ for (const caso of CASOS) {
   }
 }
 
-const total = CASOS.length + CASOS_ESQUEMA.length;
+const total = CASOS.length + CASOS_ESQUEMA.length + CASOS_PAPEL.length;
 console.log(`\n${fallos ? 'FALLA' : 'OK'}: ${total - fallos} de ${total} casos.\n`);
 process.exit(fallos ? 1 : 0);

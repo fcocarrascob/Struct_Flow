@@ -197,6 +197,16 @@ espaciador de la hoja se convertiría en el `<h1>`.
   regiones a un documento **lineal** (orden de lectura). **No** es el layout del canvas: no
   hay correspondencia geométrica entre dónde está una región en la hoja y dónde cae en el
   papel.
+
+  **Qué sale en el papel lo decide `seImprime` de `bloque.ts`**, y lo comparten este
+  documento y `render-html.ts` — con la comprobación repetida, el título del papel del
+  navegador y el del PDF acabarían siendo regiones distintas. Una región con
+  `imprimir: false` se evalúa en su sitio del orden de lectura, alimenta a lo de abajo y a
+  los tokens de un esquema, y **no se imprime**: es para el mapeo a píxeles de una figura
+  (escala, funciones de coordenadas, colores por veredicto), que un anexo de memoria no
+  tiene por qué leer. Lo que vota o entra —`in_*`, `v_*`, una salida declarada— no se
+  esconde, y `validarMeta` lo rechaza. En el canvas la región sigue editable, atenuada y
+  con un ⊘ al margen.
 - `usePaginacion.ts` — mide ese documento y reporta en qué página cae cada región.
 
 **Capa motor** (`src/lib/`, pura, sin React — *mantenerla así*, para que siga siendo

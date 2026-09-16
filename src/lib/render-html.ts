@@ -21,7 +21,7 @@ import type { Region, SheetResults } from './worksheet';
 import type { MetaPlanilla } from './biblioteca/contrato';
 import { renderEsquema, esRutaDeEsquema } from './esquema';
 import { ordenDeLectura } from './orden-lectura';
-import { nivelEncabezado, textoEncabezado, esEspaciador, regionTitulo } from './bloque';
+import { nivelEncabezado, textoEncabezado, esEspaciador, regionTitulo, seImprime } from './bloque';
 
 export interface OpcionesRender {
   /** Texto de cada SVG de `/esquemas/`, por `src`. Quien llama lo lee del disco. */
@@ -68,7 +68,7 @@ export function renderHtml(
   opciones: OpcionesRender = {},
 ): string {
   const programas = opciones.programas ?? 'visibles';
-  const ordenadas = ordenDeLectura(regions).filter((r) => r.src.trim() !== '' || esEspaciador(r));
+  const ordenadas = ordenDeLectura(regions).filter(seImprime);
   const bloques: string[] = [];
 
   // El título: `meta.titulo` si lo hay, y si no la primera región de texto,

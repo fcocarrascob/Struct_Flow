@@ -87,6 +87,19 @@ export function esEspaciador(region: Pick<Region, 'kind' | 'src'>): boolean {
 }
 
 /**
+ * Lo que sale en el papel: todo salvo lo vacío —los espaciadores sí, que son
+ * huecos deliberados— y lo marcado `imprimir: false`.
+ *
+ * Es una sola regla y vive aquí porque la aplican los dos caminos que dibujan el
+ * documento (`WorksheetPrint.tsx` y `render-html.ts`) y quien elige el título;
+ * con la comprobación repetida, el título del papel del navegador y el del PDF
+ * acabarían siendo regiones distintas.
+ */
+export function seImprime(region: Pick<Region, 'kind' | 'src' | 'imprimir'>): boolean {
+  return region.imprimir !== false && (region.src.trim() !== '' || esEspaciador(region));
+}
+
+/**
  * La región que hace de título: la primera de texto que no es un espaciador,
  * en orden de lectura. `MathCanvas` (`idTitulo`), `WorksheetPrint` y el render
  * a HTML eligen con esta misma regla; si discreparan, el título saldría en un

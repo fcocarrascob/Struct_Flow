@@ -318,6 +318,26 @@ export function validarMeta(metaCrudo: unknown, regions: readonly Region[]): Hal
     });
   }
 
+  // ── Lo que vota o entra no se esconde del papel ─────────────────────────────
+  //
+  // `imprimir: false` es para el mapeo a píxeles de un esquema. Una entrada, un
+  // veredicto o una salida declarada fuera del papel dejaría una memoria en la
+  // que el número que decide no está impreso — y nadie lo notaría al leerla.
+  for (const r of regions) {
+    if (r.imprimir !== false) continue;
+    const entrada = r.id.startsWith(PREFIJO_ENTRADA) ? r.id.slice(PREFIJO_ENTRADA.length) : undefined;
+    // El nombre que define la región, que es con el que se declara una salida;
+    // su id puede ser otro (`r_u_acero` define `u_acero`).
+    const define = /^\s*([A-Za-z_]\w*)\s*:=/.exec(r.src)?.[1];
+    if (entrada && nombresEntrada.has(entrada)) {
+      error('region.imprimir', `la entrada «${entrada}» (\`${r.id}\`) está marcada para no imprimirse`);
+    } else if (define?.startsWith('v_')) {
+      error('region.imprimir', `el veredicto «${define}» (\`${r.id}\`) está marcado para no imprimirse`);
+    } else if (define && porNombreSalida.has(define)) {
+      error('region.imprimir', `la salida «${define}» (\`${r.id}\`) está marcada para no imprimirse`);
+    }
+  }
+
   // ── Texto: la cita es el artículo, la evidencia vive en el harness ─────────
   for (const r of regions) {
     if (r.kind === 'text' && RE_CITA_PROHIBIDA.test(r.src)) {

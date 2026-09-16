@@ -179,6 +179,19 @@ export interface Region {
    * automático la corte (ver `paginacion.ts`).
    */
   pageBreak?: boolean;
+  /**
+   * `false` deja la región **fuera del papel**: se evalúa igual, en su sitio del
+   * orden de lectura, y lo que define sigue visible para lo de abajo y para los
+   * tokens de un esquema — pero no sale en el documento de impresión ni en la
+   * memoria exportada.
+   *
+   * Es para el **mapeo a píxeles de un esquema** (la escala, las funciones de
+   * coordenadas, los colores por veredicto): cálculos que la figura necesita y
+   * que un anexo de memoria no tiene por qué leer. Lo que vota o entra —una
+   * entrada `in_*`, un veredicto `v_*`, una salida declarada— no se esconde;
+   * `validarMeta` lo rechaza.
+   */
+  imprimir?: boolean;
 }
 
 export interface ParsedMath {
