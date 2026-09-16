@@ -2101,10 +2101,42 @@
    "imprimir": false
   },
   {
+   "id": "r_esc_riel",
+   "kind": "math",
+   "x": 40,
+   "y": 13880,
+   "src": "esc_riel := min(150/((l_b + 5*k_det)/(1 mm)), 80/((H_riel + t_f + 2.5*k_det)/(1 mm)))",
+   "imprimir": false
+  },
+  {
+   "id": "r_rx",
+   "kind": "program",
+   "x": 40,
+   "y": 13928,
+   "src": "rx(u) := 470 + u/(1 mm)*esc_riel",
+   "imprimir": false
+  },
+  {
+   "id": "r_ry",
+   "kind": "program",
+   "x": 40,
+   "y": 14024,
+   "src": "ry(w) := 150 + w/(1 mm)*esc_riel",
+   "imprimir": false
+  },
+  {
+   "id": "r_x_extremo",
+   "kind": "math",
+   "x": 40,
+   "y": 14120,
+   "src": "x_extremo := min(d, L/2)",
+   "imprimir": false
+  },
+  {
    "id": "r_cu",
    "kind": "program",
    "x": 40,
-   "y": 13880,
+   "y": 14168,
    "src": "cu(u) := u <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -2112,7 +2144,7 @@
    "id": "r041b",
    "kind": "math",
    "x": 40,
-   "y": 13928,
+   "y": 14216,
    "src": "col_flex := u_H1 <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -2120,7 +2152,7 @@
    "id": "r042",
    "kind": "math",
    "x": 40,
-   "y": 13976,
+   "y": 14264,
    "src": "col_alma := (u_corte <= 1 and u_wly <= 1 and u_wlc <= 1 and u_wsb <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -2128,7 +2160,7 @@
    "id": "r043",
    "kind": "math",
    "x": 40,
-   "y": 14024,
+   "y": 14312,
    "src": "col_serv := (u_dvert <= 1 and u_dhoriz <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -2136,7 +2168,7 @@
    "id": "r044",
    "kind": "math",
    "x": 40,
-   "y": 14072,
+   "y": 14360,
    "src": "col_fat := u_fatiga <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -2144,7 +2176,7 @@
    "id": "r045",
    "kind": "math",
    "x": 40,
-   "y": 14120,
+   "y": 14408,
    "src": "col_global := v_global ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -2152,7 +2184,7 @@
    "id": "esquema",
    "kind": "image",
    "x": 40,
-   "y": 14168,
+   "y": 14456,
    "src": "/esquemas/viga-carrilera-generica.svg",
    "w": 720,
    "h": 480
