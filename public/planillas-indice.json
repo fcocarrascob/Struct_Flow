@@ -432,21 +432,21 @@
     },
     {
       "slug": "llave-corte-generica",
-      "titulo": "Llave de corte bajo placa base — los siete estados límite, una chapa por dirección o dos paralelas",
+      "titulo": "Llave de corte bajo placa base — los siete estados límite, con una chapa por dirección o dos paralelas",
       "clase": "generica",
       "disciplina": "acero",
       "ruta": "/biblioteca/acero/llave-corte-generica.json",
-      "regiones": 180,
+      "regiones": 129,
       "normas": [
         "US/AISC-DG1-3ed",
         "US/ACI318-25-SI",
         "US/AISC360-22"
       ],
-      "entradas": 29,
-      "salidas": 30,
+      "entradas": 30,
+      "salidas": 22,
       "promovible": true,
-      "sha256": "f869970d57ec79c47accb302f08996cc5a1713509edd4bd76901e54d612d6144",
-      "resumen": "Llave de corte soldada bajo la placa: aplastamiento del hormigón, breakout, flexión de la chapa, soldadura y flexión local de la placa, en las dos direcciones. Una chapa por dirección o dos paralelas desplazadas."
+      "sha256": "a1a468c154a394af644ea9acf61f9e098e9564027a944f4d13fc086892c5ead1",
+      "resumen": "Chapa soldada bajo la placa base que transfiere el corte al hormigón: regla de espesor de la DG1, embebido mínimo de los pernos, aplastamiento, breakout de corte, acero de la chapa, soldadura y flexión local de la placa. Entrega exc y tbp_req a placa-base-generica y recibe Yb, n_trac y N_sa."
     },
     {
       "slug": "placa-base-generica",
