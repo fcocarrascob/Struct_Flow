@@ -20,7 +20,8 @@
     "articulos": [
      "§17.11",
      "§17.7.2.2",
-     "§17.5.2.1.2"
+     "§17.5.2.1.2",
+     "Tabla 21.2.1"
     ]
    },
    {
@@ -217,6 +218,28 @@
     "etiqueta": "Factor de hormigón liviano",
     "grupo": "Materiales",
     "ayuda": "§19.2.4.3: λ = 1 en hormigón de peso normal"
+   },
+   {
+    "nombre": "usa_arm_sl",
+    "etiqueta": "Acreditar armadura de anclaje en vez del breakout",
+    "grupo": "Armadura de anclaje del §17.5.2.1.2",
+    "ayuda": "Con 1, la armadura SUSTITUYE al breakout del hormigón en el veredicto (§17.5.2.1, «in lieu of»), como hace anclaje-hormigon-generica en tracción",
+    "opciones": [
+     {
+      "valor": 1,
+      "etiqueta": "sí: la armadura reemplaza al cono"
+     },
+     {
+      "valor": 0,
+      "etiqueta": "no: rige el breakout del hormigón"
+     }
+    ]
+   },
+   {
+    "nombre": "n_est_sl",
+    "etiqueta": "Estribos cerrados horizontales dentro del cono",
+    "grupo": "Armadura de anclaje del §17.5.2.1.2",
+    "ayuda": "Desarrollados a ambos lados de la superficie de falla. Cada estribo cerrado aporta dos ramas a cada dirección"
    }
   ],
   "salidas": [
@@ -238,6 +261,16 @@
    {
     "nombre": "u_brgy",
     "etiqueta": "Aplastamiento en Y",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_cb_efx",
+    "etiqueta": "Corte en X: breakout o armadura, lo que rija",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_cb_efy",
+    "etiqueta": "Corte en Y: breakout o armadura, lo que rija",
     "tipo": "uso"
    },
    {
@@ -303,6 +336,11 @@
    {
     "nombre": "v_global",
     "etiqueta": "Cumple: resistencia y geometría",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_ramas_sl",
+    "etiqueta": "Las ramas dispuestas alcanzan a las requeridas",
     "tipo": "veredicto"
    },
    {
@@ -387,6 +425,27 @@
     "esperadoFalso": [
      "v_global",
      "v_psi_positivo"
+    ]
+   },
+   {
+    "nombre": "pedestal estrecho: el breakout no cierra y se acredita armadura de anclaje",
+    "entradas": {
+     "PED_X": 700,
+     "usa_arm_sl": 1
+    },
+    "cumple": true
+   },
+   {
+    "nombre": "armadura acreditada pero insuficiente: dos estribos no alcanzan",
+    "entradas": {
+     "PED_X": 700,
+     "usa_arm_sl": 1,
+     "n_est_sl": 2
+    },
+    "cumple": false,
+    "esperadoFalso": [
+     "v_global",
+     "v_ramas_sl"
     ]
    }
   ]
@@ -664,6 +723,20 @@
    "x": 40,
    "y": 2216,
    "src": "lambda_a := 1.00"
+  },
+  {
+   "id": "in_usa_arm_sl",
+   "kind": "math",
+   "x": 40,
+   "y": 2232,
+   "src": "usa_arm_sl := 0"
+  },
+  {
+   "id": "in_n_est_sl",
+   "kind": "math",
+   "x": 40,
+   "y": 2248,
+   "src": "n_est_sl := 4"
   },
   {
    "id": "r039",
@@ -1146,21 +1219,28 @@
    "kind": "text",
    "x": 40,
    "y": 6104,
-   "src": "La armadura de anclaje sustituye a la resistencia de breakout del hormigón: estribos horizontales\npróximos a la cara superior, dentro del cono de falla y desarrollados a AMBOS lados de la superficie\nteórica, con φ = 0,75. Estas ramas COMPITEN POR EL ESPACIO QUE LA LLAVE YA OCUPA: van en los\nprimeros milímetros bajo la cara superior, que es justo donde penetra la llave."
+   "src": "La armadura de anclaje sustituye a la resistencia de breakout del hormigón: estribos horizontales\npróximos a la cara superior, dentro del cono de falla y desarrollados a AMBOS lados de la superficie\nteórica. Estas ramas COMPITEN POR EL ESPACIO QUE LA LLAVE YA OCUPA: van en los primeros milímetros\nbajo la cara superior, que es justo donde penetra la llave. El φ es el de la fila (k) de la Tabla\n21.2.1, «anchor reinforcement in accordance with 17.5.2.1», que vale 0,90 y no distingue tracción\nde corte: es el mismo que usan anclaje-hormigon-generica y pedestal-generico para esta armadura."
+  },
+  {
+   "id": "r_phi_arm",
+   "kind": "math",
+   "x": 40,
+   "y": 6200,
+   "src": "phi_arm := 0.90"
   },
   {
    "id": "r108",
    "kind": "math",
    "x": 40,
-   "y": 6224,
-   "src": "As_reqx := V_ux/(0.75*fy_arm) = mm^2"
+   "y": 6248,
+   "src": "As_reqx := V_ux/(phi_arm*fy_arm) = mm^2"
   },
   {
    "id": "r109",
    "kind": "math",
    "x": 40,
-   "y": 6272,
-   "src": "As_reqy := V_uy/(0.75*fy_arm) = mm^2"
+   "y": 6296,
+   "src": "As_reqy := V_uy/(phi_arm*fy_arm) = mm^2"
   },
   {
    "id": "r110",
@@ -1177,38 +1257,87 @@
    "src": "n_ramas_y := ceil(As_reqy/(pi*db_est^2/4)) ="
   },
   {
+   "id": "r_arm_sl_texto",
+   "kind": "text",
+   "x": 40,
+   "y": 6392,
+   "src": "Con usa_arm_sl := 1 esa armadura SUSTITUYE al breakout del hormigón en el veredicto, igual que hace\nanclaje-hormigon-generica en tracción: el §17.5.2.1 dice «in lieu of», no «además de». Lo provisto\nson n_est_sl estribos CERRADOS horizontales dentro del cono y desarrollados a ambos lados, y un\nestribo cerrado aporta dos ramas a cada dirección, así que el área provista es la misma en X y en Y.\nEs la práctica corriente en Chile, y el C9.5.2 de NCh2369 la nombra: concentrar estribos en el sector\nsuperior del pedestal para prevenir el desprendimiento del sólido de falla en corte."
+  },
+  {
+   "id": "r_as_prov_sl",
+   "kind": "math",
+   "x": 40,
+   "y": 6512,
+   "src": "As_prov_sl := n_est_sl*2*pi*db_est^2/4 = mm^2"
+  },
+  {
+   "id": "r_u_armx",
+   "kind": "math",
+   "x": 40,
+   "y": 6560,
+   "src": "u_armx := usa_arm_sl == 1 ? As_reqx/As_prov_sl : 0 ="
+  },
+  {
+   "id": "r_u_army",
+   "kind": "math",
+   "x": 40,
+   "y": 6608,
+   "src": "u_army := usa_arm_sl == 1 ? As_reqy/As_prov_sl : 0 ="
+  },
+  {
+   "id": "r_u_cb_efx",
+   "kind": "math",
+   "x": 40,
+   "y": 6656,
+   "src": "u_cb_efx := usa_arm_sl == 1 ? u_armx : u_cbx ="
+  },
+  {
+   "id": "r_u_cb_efy",
+   "kind": "math",
+   "x": 40,
+   "y": 6704,
+   "src": "u_cb_efy := usa_arm_sl == 1 ? u_army : u_cby ="
+  },
+  {
+   "id": "v_ramas_sl",
+   "kind": "math",
+   "x": 40,
+   "y": 6752,
+   "src": "v_ramas_sl := (usa_arm_sl == 0) or (2*n_est_sl >= max(n_ramas_x, n_ramas_y)) ="
+  },
+  {
    "id": "r112",
    "kind": "text",
    "x": 40,
-   "y": 6416,
+   "y": 6816,
    "src": "━━ RESUMEN ━━"
   },
   {
    "id": "r113",
    "kind": "math",
    "x": 40,
-   "y": 6464,
-   "src": "u_max := max(u_brgx, u_brgy, u_cbx, u_cby, u_intx, u_inty, u_soldx, u_soldy, u_bpx, u_bpy) ="
+   "y": 6864,
+   "src": "u_max := max(u_brgx, u_brgy, u_cb_efx, u_cb_efy, u_intx, u_inty, u_soldx, u_soldy, u_bpx, u_bpy) ="
   },
   {
    "id": "r114",
    "kind": "program",
    "x": 40,
-   "y": 6512,
-   "src": "gobierna :=\n    if u_max == u_cbx\n        return \"breakout de corte en X: depende del ancho del pedestal\"\n    else if u_max == u_cby\n        return \"breakout de corte en Y: depende del ancho del pedestal\"\n    else if u_max == u_intx\n        return \"flexión de la chapa de la llave en X\"\n    else if u_max == u_inty\n        return \"flexión de la chapa de la llave en Y\"\n    else if u_max == u_bpx\n        return \"flexión local de la placa base en X\"\n    else if u_max == u_bpy\n        return \"flexión local de la placa base en Y\"\n    else if u_max == u_soldx\n        return \"soldadura llave-placa en X\"\n    else if u_max == u_soldy\n        return \"soldadura llave-placa en Y\"\n    else\n        return \"aplastamiento del hormigón\""
+   "y": 6912,
+   "src": "gobierna :=\n    if u_max == u_cb_efx\n        return usa_arm_sl == 1 ? \"armadura de anclaje en X (17.5.2.1.2)\" : \"breakout de corte en X: depende del ancho del pedestal\"\n    else if u_max == u_cb_efy\n        return usa_arm_sl == 1 ? \"armadura de anclaje en Y (17.5.2.1.2)\" : \"breakout de corte en Y: depende del ancho del pedestal\"\n    else if u_max == u_intx\n        return \"flexión de la chapa de la llave en X\"\n    else if u_max == u_inty\n        return \"flexión de la chapa de la llave en Y\"\n    else if u_max == u_bpx\n        return \"flexión local de la placa base en X\"\n    else if u_max == u_bpy\n        return \"flexión local de la placa base en Y\"\n    else if u_max == u_soldx\n        return \"soldadura llave-placa en X\"\n    else if u_max == u_soldy\n        return \"soldadura llave-placa en Y\"\n    else\n        return \"aplastamiento del hormigón\""
   },
   {
    "id": "v_global",
    "kind": "math",
    "x": 40,
-   "y": 6992,
-   "src": "v_global := u_max <= 1 and v_regla_espesor and v_embebido and v_psi_positivo ="
+   "y": 7392,
+   "src": "v_global := u_max <= 1 and v_regla_espesor and v_embebido and v_psi_positivo and v_ramas_sl ="
   },
   {
    "id": "r116",
    "kind": "text",
    "x": 40,
-   "y": 7040,
+   "y": 7440,
    "src": "━━ ESQUEMA · MAPEO A PÍXELES ━━",
    "imprimir": false
   },
@@ -1216,7 +1345,7 @@
    "id": "r117",
    "kind": "text",
    "x": 40,
-   "y": 7088,
+   "y": 7488,
    "src": "px y py llevan una distancia medida desde el centro del pedestal a píxeles de planta; ey hace lo\npropio en elevación, medida hacia abajo desde la cara superior del hormigón. Este bloque no se\nimprime.",
    "imprimir": false
   },
@@ -1224,7 +1353,7 @@
    "id": "r118",
    "kind": "math",
    "x": 40,
-   "y": 7184,
+   "y": 7584,
    "src": "esc := min(230/(PED_X/(1 mm)), 150/(PED_Y/(1 mm)), 150/(H_PED/(1 mm))) =",
    "imprimir": false
   },
@@ -1232,7 +1361,7 @@
    "id": "r119",
    "kind": "program",
    "x": 40,
-   "y": 7232,
+   "y": 7632,
    "src": "px(u) := 165 + u/(1 mm)*esc",
    "imprimir": false
   },
@@ -1240,7 +1369,7 @@
    "id": "r120",
    "kind": "program",
    "x": 40,
-   "y": 7280,
+   "y": 7680,
    "src": "py(v) := 150 + v/(1 mm)*esc",
    "imprimir": false
   },
@@ -1248,7 +1377,7 @@
    "id": "r121",
    "kind": "program",
    "x": 40,
-   "y": 7328,
+   "y": 7728,
    "src": "ey(w) := 345 + w/(1 mm)*esc",
    "imprimir": false
   },
@@ -1256,7 +1385,7 @@
    "id": "r122",
    "kind": "math",
    "x": 40,
-   "y": 7376,
+   "y": 7776,
    "src": "t_px := max(2.5, t_sl/(1 mm)*esc) =",
    "imprimir": false
   },
@@ -1264,7 +1393,7 @@
    "id": "r_esc_lat",
    "kind": "math",
    "x": 40,
-   "y": 7424,
+   "y": 7824,
    "src": "esc_lat := min(230/(max(bY_sl + 3*ca1_x, PED_Y)/(1 mm)), 120/(max(hef_sl + 1.5*ca1_x, H_PED)/(1 mm)))",
    "imprimir": false
   },
@@ -1272,7 +1401,7 @@
    "id": "r_lx",
    "kind": "program",
    "x": 40,
-   "y": 7472,
+   "y": 7872,
    "src": "lx(u) := 455 + u/(1 mm)*esc_lat",
    "imprimir": false
   },
@@ -1280,7 +1409,7 @@
    "id": "r_ly",
    "kind": "program",
    "x": 40,
-   "y": 7568,
+   "y": 7968,
    "src": "ly(w) := 70 + w/(1 mm)*esc_lat",
    "imprimir": false
   },
@@ -1288,7 +1417,7 @@
    "id": "r_alto_avc",
    "kind": "math",
    "x": 40,
-   "y": 7664,
+   "y": 8064,
    "src": "alto_AVc := min(hef_sl + 1.5*ca1_x, H_PED)",
    "imprimir": false
   },
@@ -1296,7 +1425,7 @@
    "id": "r_ancho_avc",
    "kind": "math",
    "x": 40,
-   "y": 7712,
+   "y": 8112,
    "src": "ancho_AVc := min(bY_sl + 3*ca1_x, PED_Y)",
    "imprimir": false
   },
@@ -1304,7 +1433,7 @@
    "id": "r_nota_avc",
    "kind": "math",
    "x": 40,
-   "y": 7760,
+   "y": 8160,
    "src": "nota_AVc := (bY_sl + 3*ca1_x > PED_Y or hef_sl + 1.5*ca1_x > H_PED) ? \"la superficie teórica desborda la cara: se recorta al pedestal\" : \"la superficie teórica cabe entera en la cara del pedestal\"",
    "imprimir": false
   },
@@ -1312,7 +1441,7 @@
    "id": "r_esc_det",
    "kind": "math",
    "x": 40,
-   "y": 7808,
+   "y": 8208,
    "src": "esc_det := min(150/(8*t_sl/(1 mm)), 150/((t_bp + t_gr + h_sl)/(1 mm)))",
    "imprimir": false
   },
@@ -1320,7 +1449,7 @@
    "id": "r_dx",
    "kind": "program",
    "x": 40,
-   "y": 7856,
+   "y": 8256,
    "src": "dx(u) := 455 + u/(1 mm)*esc_det",
    "imprimir": false
   },
@@ -1328,7 +1457,7 @@
    "id": "r_dy",
    "kind": "program",
    "x": 40,
-   "y": 7952,
+   "y": 8352,
    "src": "dy(w) := 400 + w/(1 mm)*esc_det",
    "imprimir": false
   },
@@ -1336,7 +1465,7 @@
    "id": "r_cu",
    "kind": "program",
    "x": 40,
-   "y": 8048,
+   "y": 8448,
    "src": "cu(u) := u <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1344,7 +1473,7 @@
    "id": "r123",
    "kind": "math",
    "x": 40,
-   "y": 8096,
+   "y": 8496,
    "src": "col_brg := (u_brgx <= 1 and u_brgy <= 1 and v_psi_positivo) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1352,15 +1481,15 @@
    "id": "r124",
    "kind": "math",
    "x": 40,
-   "y": 8144,
-   "src": "col_cb := (u_cbx <= 1 and u_cby <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
+   "y": 8544,
+   "src": "col_cb := (u_cb_efx <= 1 and u_cb_efy <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
   {
    "id": "r125",
    "kind": "math",
    "x": 40,
-   "y": 8192,
+   "y": 8592,
    "src": "col_chapa := (u_intx <= 1 and u_inty <= 1 and v_regla_espesor) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1368,7 +1497,7 @@
    "id": "r126",
    "kind": "math",
    "x": 40,
-   "y": 8240,
+   "y": 8640,
    "src": "col_perno := v_embebido and v_cabe_pedestal ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1376,7 +1505,7 @@
    "id": "r127",
    "kind": "math",
    "x": 40,
-   "y": 8288,
+   "y": 8688,
    "src": "col_global := v_global ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1384,7 +1513,7 @@
    "id": "esquema",
    "kind": "image",
    "x": 40,
-   "y": 8336,
+   "y": 8736,
    "src": "/esquemas/llave-corte-generica.svg",
    "w": 720,
    "h": 480

@@ -49,7 +49,7 @@ rotura en corte del §J4.2 en la llave y la silla.
 | Plantilla | Qué verifica | Norma | Entradas |
 |---|---|---|---:|
 | `placa-base-generica` | Aplastamiento, equilibrio, grupo de pernos y espesor de chapa. Cubre placa **lisa** y **rigidizada** con la misma hoja (`hay_nervios`). Con llave de corte suma a la tracción el **par de la llave** (`hay_llave`) | AISC DG1 3.ª §4.3.7 · AISC 360 §J8, §J4.5 · ACI 318-25 §17.6.1, §17.5.3, §17.11.1.1.9 | 31 |
-| `llave-corte-generica` | Los **siete** estados límite de la llave. Una chapa por dirección o dos paralelas desplazadas | AISC DG1 3.ª Ej. 4.7-5 · ACI 318-25 §17.11, §17.5.2.1.2 · AISC 360 §J2, §J4.2, §J4.5 | 30 |
+| `llave-corte-generica` | Los **siete** estados límite de la llave. Una chapa por dirección o dos paralelas desplazadas. Con `usa_arm_sl` la **armadura de anclaje del §17.5.2.1.2 sustituye al breakout** en el veredicto, como hace el anclaje en tracción | AISC DG1 3.ª Ej. 4.7-5 · ACI 318-25 §17.11, §17.5.2.1.2, Tabla 21.2.1 · AISC 360 §J2, §J4.2, §J4.5 | 32 |
 | `silla-anclaje-generica` | El **camino de carga** completo: perno → chapa superior → nervios → ala (o ala extendida) → alma | AISC 360-22 §J10.8 (las tres condiciones geométricas del rigidizador, incluido t ≥ b/16) · §J2, §J4.1, §J4.2, §J4.4, §J4.5 | 32 |
 | `viga-carrilera-generica` | Flexión biaxial, corte, fuerzas concentradas del rodado —incluido el pandeo lateral del alma—, deflexiones y fatiga. Cubre la doble T **monosimétrica** de las dos formas en que se construye: con canal-tapa (`hay_canal`) y **armada con el ala superior más ancha** (`es_soldada`) | AISC 360-22 Tabla B4.1b, §F4, §G2, §H1, §J10, Ap. 3 · AIST TR-13 §5.8.2 a §5.8.4 | 44 |
 
@@ -95,10 +95,14 @@ llave-corte-generica  ───┘        (acero)               (hormigón)     
 > flexión local que induce su excentricidad. Dimensionar la placa sin haber mirado la llave
 > es el error fácil de esta familia.
 
-> 🔴 **El *breakout* de la llave no se arregla con acero.** Va con `c_a1^1,5`, o sea con el
-> **ancho del pedestal**: es variable de la fundación, no de la placa. Las salidas son
+> 🔴 **El *breakout* de la llave no se arregla con más chapa.** Va con `c_a1^1,5`, o sea con
+> el **ancho del pedestal**: es variable de la fundación, no de la placa. Las salidas son
 > ensanchar el pedestal o acreditar armadura de anclaje por el §17.5.2.1.2 — y esas ramas
-> compiten por el mismo espacio que la llave ocupa.
+> compiten por el mismo espacio que la llave ocupa. Desde el 2026-09-16 la hoja acredita la
+> segunda: con `usa_arm_sl = 1`, la armadura **reemplaza** al breakout en el veredicto y no se
+> suma a él, que es lo que dice el «in lieu of» del §17.5.2.1. Es la práctica corriente en
+> Chile, y el **C9.5.2 de NCh2369** la nombra: concentrar estribos en el sector superior del
+> pedestal para prevenir el desprendimiento del sólido de falla en corte.
 
 ## Fronteras e hipótesis
 
@@ -110,7 +114,7 @@ aparte. Resumen:
 | Plantilla | No calcula | Asume |
 |---|---|---|
 | `placa-base-generica` | **β** (entra medido o de tabla; la hoja lo acota entre 0,0479 y 0,125) · la silla · la llave | placa rectangular · una fila de pernos por lado · bloque rectangular |
-| `llave-corte-generica` | el equilibrio de la placa · el despiece de la armadura de anclaje · la envolvente de dos chapas como bloque único | — |
+| `llave-corte-generica` | el equilibrio de la placa · el **despiece** de la armadura de anclaje (la hoja comprueba el área, no dónde va cada rama ni su desarrollo) · la envolvente de dos chapas como bloque único | los estribos acreditados son cerrados, horizontales, caen dentro del cono y están desarrollados a ambos lados del plano de falla |
 | `silla-anclaje-generica` | el reparto de tracción entre pernos (uniforme) · el ancho eficaz de la chapa · el rigidizador **a resistencia**, que el §J10.8 manda al §J4.1 en tracción y al §J4.4 en compresión | extensión de ala con la lectura conservadora |
 | `viga-carrilera-generica` | las cargas de rueda (del fabricante) · la clasificación del **ala** —la del **alma** sí la calcula— · los límites de deflexión · el riel y su unión · de la lista del §5.8.2 de TR-13: fuerzas axiales, carga concentrada **en los apoyos** y rigidizadores de apoyo | dos ruedas iguales · canal continuo y colaborante · vano simple · el ala superior (más el canal) toma íntegramente la fuerza lateral |
 | `anclaje-hormigon-generica` | la tracción del grupo · el corte (va a la llave) · las opciones (a), (b) y (c) del §17.10.5.3 | pernos colados con cabeza · una fila traccionada · armadura conformada (§17.10.4) |

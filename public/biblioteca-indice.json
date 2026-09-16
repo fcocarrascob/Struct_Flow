@@ -7,16 +7,16 @@
       "clase": "generica",
       "disciplina": "acero",
       "ruta": "/biblioteca/acero/llave-corte-generica.json",
-      "regiones": 139,
+      "regiones": 149,
       "normas": [
         "US/AISC-DG1-3ed",
         "US/ACI318-25-SI",
         "US/AISC360-22"
       ],
-      "entradas": 30,
-      "salidas": 22,
+      "entradas": 32,
+      "salidas": 25,
       "promovible": true,
-      "sha256": "6effbfeb08f4b9ddb04cdef386b183e3145ec5502d5c588e753c44b48133c3b4",
+      "sha256": "6b260c52646377c80c6f13888043515223b507b40d633a95f97514b7a58c62eb",
       "resumen": "Chapa soldada bajo la placa base que transfiere el corte al hormigón: regla de espesor de la DG1, embebido mínimo de los pernos, aplastamiento, breakout de corte, acero de la chapa, soldadura y flexión local de la placa. Entrega exc y tbp_req a placa-base-generica y recibe Yb, n_trac y N_sa."
     },
     {

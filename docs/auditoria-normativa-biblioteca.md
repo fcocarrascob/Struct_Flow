@@ -891,5 +891,21 @@ carrilera llevaba la etiqueta y el `avisoTexto` de otro («Condición de la ecua
 **Lo anotado al cierre del informe** —las constantes de una línea que no se releyeron— sigue
 sin cerrar, y sigue sin ser urgente por la misma razón: ninguna hoja las usa de forma dudosa.
 
+### Hallazgo posterior, 2026-09-16: el φ de la armadura de anclaje
+
+Este informe no lo vio, y salió al comparar las tres hojas de la familia entre sí: la llave
+usaba **φ = 0,75** en `As_reqx := V_ux/(0,75·fy_arm)`, mientras `anclaje-hormigon-generica` y
+`pedestal-generico` usan **0,90** para la misma armadura. La **Tabla 21.2.1, fila (k)** —«anchor
+reinforcement in accordance with 17.5.2.1»— da 0,90 sin excepciones y **sin distinguir tracción
+de corte**, y el acta de la impresa 430 lo tenía registrado desde el 2026-08-25: era una errata,
+no una lectura que faltara. Corregido; la llave pedía un 20 % más de armadura de la que
+corresponde, o sea era conservador, no inseguro.
+
+El mismo φ está mal en **`pedestal-anclaje-nch2369.json`** (corpus), con la cita «§17.5.2.1:
+φ = 0,75 en la armadura». Ahí **no se tocó**: `phi_anc` alimenta `A_sreq = 15,70 cm²`, que está
+contrastado contra el post con `c_Asreq`, `c_Asprov` y `c_uarm`. El contrato de una planilla
+`ejemplo` es reproducir el post, no corregirlo; con 0,90 daría 13,08 cm² y `u_arm` bajaría de
+0,98 a 0,81. Corregirlo es una decisión sobre el post, no sobre la planilla.
+
 Efecto en la verificación: `verify:biblioteca` pasa de 22 a **24 casos** y
 `verify:modulos` de 58 a **60**. Los otros tres verificadores no se mueven.
