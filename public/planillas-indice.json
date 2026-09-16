@@ -521,16 +521,15 @@
       "clase": "generica",
       "disciplina": "hormigon",
       "ruta": "/biblioteca/hormigon/pedestal-generico.json",
-      "regiones": 145,
+      "regiones": 124,
       "normas": [
-        "US/ACI318-25-SI",
-        "AR/CIRSOC-103-P2-2005"
+        "US/ACI318-25-SI"
       ],
-      "entradas": 33,
-      "salidas": 25,
+      "entradas": 31,
+      "salidas": 19,
       "promovible": true,
-      "sha256": "caf985b82bc0b8309e62c314f2aed156ef62a9485890d10b8ddcf9dd51674f8b",
-      "resumen": "Pedestal rectangular bajo placa base: cuantías, los tres extremos del diagrama P–M y puntos intermedios como dato, flexión biaxial por contorno lineal, corte en las dos direcciones, estribos, la armadura de anclaje que puede contarse —por capacidad del perno— y el detallado del §18.13.2. Recibe T_grupo de placa-base-generica y As_req de anclaje-hormigon-generica."
+      "sha256": "7f819724384d6c9baebf1b4f72170eab1949d740b11d9b9ccbdb1f1dffb536bc",
+      "resumen": "Pedestal rectangular bajo placa base: cuantías del §10.6.1.1, los tres extremos del diagrama P–M y puntos intermedios como dato, flexión biaxial por contorno lineal, corte en las dos direcciones, estribos, la armadura de anclaje que puede contarse —por capacidad del perno— y el detallado del §18.13.2. Recibe T_grupo de placa-base-generica y As_req de anclaje-hormigon-generica."
     },
     {
       "slug": "zapata-generica",

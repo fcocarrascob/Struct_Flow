@@ -1,1431 +1,1250 @@
 {
-  "version": 1,
-  "meta": {
-    "titulo": "Pedestal de hormigón armado — cuantías, extremos del diagrama P–M, corte, estribos y armadura de anclaje contable",
-    "entradas": [
-      {
-        "nombre": "PED_X",
-        "etiqueta": "PED_X",
-        "grupo": "Seccion",
-        "unidad": "mm"
-      },
-      {
-        "nombre": "PED_Y",
-        "etiqueta": "PED_Y",
-        "grupo": "Seccion",
-        "unidad": "mm"
-      },
-      {
-        "nombre": "PED_H",
-        "etiqueta": "PED_H",
-        "grupo": "Seccion",
-        "unidad": "mm"
-      },
-      {
-        "nombre": "fc",
-        "etiqueta": "fc",
-        "grupo": "Materiales",
-        "unidad": "MPa"
-      },
-      {
-        "nombre": "fy",
-        "etiqueta": "fy",
-        "grupo": "Materiales",
-        "unidad": "MPa"
-      },
-      {
-        "nombre": "lam",
-        "etiqueta": "lam",
-        "grupo": "Materiales",
-        "ayuda": "§19.2.4.3: lam = 1 en hormigon de peso normal"
-      },
-      {
-        "nombre": "db_long",
-        "etiqueta": "db_long",
-        "grupo": "Armadura adoptada",
-        "unidad": "mm"
-      },
-      {
-        "nombre": "n_barras",
-        "etiqueta": "n_barras",
-        "grupo": "Armadura adoptada"
-      },
-      {
-        "nombre": "recub_ped",
-        "etiqueta": "recub_ped",
-        "grupo": "Armadura adoptada",
-        "unidad": "mm"
-      },
-      {
-        "nombre": "db_est",
-        "etiqueta": "db_est",
-        "grupo": "Armadura adoptada",
-        "unidad": "mm"
-      },
-      {
-        "nombre": "sep_est",
-        "etiqueta": "sep_est",
-        "grupo": "Armadura adoptada",
-        "unidad": "mm"
-      },
-      {
-        "nombre": "n_ramas",
-        "etiqueta": "n_ramas",
-        "grupo": "Armadura adoptada"
-      },
-      {
-        "nombre": "rho_min_norma",
-        "etiqueta": "rho_min_norma",
-        "grupo": "Limites de cuantia de la norma del proyecto"
-      },
-      {
-        "nombre": "rho_max_norma",
-        "etiqueta": "rho_max_norma",
-        "grupo": "Limites de cuantia de la norma del proyecto"
-      },
-      {
-        "nombre": "N_comp_max",
-        "etiqueta": "N_comp_max",
-        "grupo": "Demandas mayoradas",
-        "unidad": "kN"
-      },
-      {
-        "nombre": "N_trac_max",
-        "etiqueta": "N_trac_max",
-        "grupo": "Demandas mayoradas",
-        "unidad": "kN"
-      },
-      {
-        "nombre": "Vu_X",
-        "etiqueta": "Vu_X",
-        "grupo": "Demandas mayoradas",
-        "unidad": "kN"
-      },
-      {
-        "nombre": "Vu_Y",
-        "etiqueta": "Vu_Y",
-        "grupo": "Demandas mayoradas",
-        "unidad": "kN"
-      },
-      {
-        "nombre": "Mu_1",
-        "etiqueta": "Mu_1",
-        "grupo": "Demandas mayoradas",
-        "unidad": "kN*m"
-      },
-      {
-        "nombre": "phiMn_1",
-        "etiqueta": "phiMn_1",
-        "grupo": "Demandas mayoradas",
-        "unidad": "kN*m"
-      },
-      {
-        "nombre": "Mu_2",
-        "etiqueta": "Mu_2",
-        "grupo": "Demandas mayoradas",
-        "unidad": "kN*m"
-      },
-      {
-        "nombre": "phiMn_2",
-        "etiqueta": "phiMn_2",
-        "grupo": "Demandas mayoradas",
-        "unidad": "kN*m"
-      },
-      {
-        "nombre": "Mu_3",
-        "etiqueta": "Mu_3",
-        "grupo": "Demandas mayoradas",
-        "unidad": "kN*m"
-      },
-      {
-        "nombre": "phiMn_3",
-        "etiqueta": "phiMn_3",
-        "grupo": "Demandas mayoradas",
-        "unidad": "kN*m"
-      },
-      {
-        "nombre": "h_ef",
-        "etiqueta": "h_ef",
-        "grupo": "Armadura de anclaje",
-        "unidad": "mm",
-        "ayuda": "n_contables son las barras dentro de 0,5·h_ef de un perno traccionado, medido en planta: NO son las n_barras del pedestal. T_grupo es la traccion del grupo de pernos con que se corrio el hormigon del anclaje"
-      },
-      {
-        "nombre": "n_contables",
-        "etiqueta": "n_contables",
-        "grupo": "Armadura de anclaje",
-        "ayuda": "n_contables son las barras dentro de 0,5·h_ef de un perno traccionado, medido en planta: NO son las n_barras del pedestal. T_grupo es la traccion del grupo de pernos con que se corrio el hormigon del anclaje"
-      },
-      {
-        "nombre": "T_grupo",
-        "etiqueta": "T_grupo",
-        "grupo": "Armadura de anclaje",
-        "unidad": "kN",
-        "ayuda": "n_contables son las barras dentro de 0,5·h_ef de un perno traccionado, medido en planta: NO son las n_barras del pedestal. T_grupo es la traccion del grupo de pernos con que se corrio el hormigon del anclaje"
-      },
-      {
-        "nombre": "Mu_X_b",
-        "etiqueta": "Momento concurrente en X",
-        "unidad": "kN*m",
-        "grupo": "Demandas"
-      },
-      {
-        "nombre": "phiMnX_b",
-        "etiqueta": "phiMn en X con la misma axial",
-        "unidad": "kN*m",
-        "grupo": "Demandas"
-      },
-      {
-        "nombre": "Mu_Y_b",
-        "etiqueta": "Momento concurrente en Y",
-        "unidad": "kN*m",
-        "grupo": "Demandas"
-      },
-      {
-        "nombre": "phiMnY_b",
-        "etiqueta": "phiMn en Y con la misma axial",
-        "unidad": "kN*m",
-        "grupo": "Demandas"
-      },
-      {
-        "nombre": "As_req_anc",
-        "etiqueta": "Armadura de anclaje requerida",
-        "unidad": "mm^2",
-        "grupo": "Armadura de anclaje",
-        "ayuda": "As_req de anclaje-hormigon-generica (por capacidad del perno)"
-      },
-      {
-        "nombre": "sdc_def",
-        "etiqueta": "Categoria sismica D, E o F",
-        "grupo": "Sismo",
-        "opciones": [
-          {
-            "valor": 1,
-            "etiqueta": "si: rige 18.13.2"
-          },
-          {
-            "valor": 0,
-            "etiqueta": "no"
-          }
-        ]
-      }
-    ],
-    "slug": "pedestal-generico",
-    "clase": "generica",
-    "disciplina": "hormigon",
-    "resumen": "Pedestal rectangular bajo placa base: cuantías, los tres extremos del diagrama P–M y puntos intermedios como dato, flexión biaxial por contorno lineal, corte en las dos direcciones, estribos, la armadura de anclaje que puede contarse —por capacidad del perno— y el detallado del §18.13.2. Recibe T_grupo de placa-base-generica y As_req de anclaje-hormigon-generica.",
-    "normas": [
-      {
-        "clave": "US/ACI318-25-SI",
-        "rol": "resistencia y detallado",
-        "articulos": [
-          "Cap. 10",
-          "Cap. 17",
-          "Cap. 21",
-          "Cap. 22",
-          "Cap. 25",
-          "Cap. 18"
-        ]
-      },
-      {
-        "clave": "AR/CIRSOC-103-P2-2005",
-        "rol": "límites de cuantía en proyecto argentino",
-        "articulos": []
-      }
-    ],
-    "salidas": [
-      {
-        "nombre": "u_max",
-        "etiqueta": "Uso máximo",
-        "tipo": "uso"
-      },
-      {
-        "nombre": "gobierna",
-        "etiqueta": "Estado límite que gobierna",
-        "tipo": "texto"
-      },
-      {
-        "nombre": "u_cuantia",
-        "etiqueta": "Cuantía",
-        "tipo": "uso"
-      },
-      {
-        "nombre": "u_comp",
-        "etiqueta": "Compresión",
-        "tipo": "uso"
-      },
-      {
-        "nombre": "u_trac",
-        "etiqueta": "Tracción",
-        "tipo": "uso"
-      },
-      {
-        "nombre": "u_pm",
-        "etiqueta": "Flexocompresión (peor punto)",
-        "tipo": "uso"
-      },
-      {
-        "nombre": "u_corte_X",
-        "etiqueta": "Corte X",
-        "tipo": "uso"
-      },
-      {
-        "nombre": "u_corte_Y",
-        "etiqueta": "Corte Y",
-        "tipo": "uso"
-      },
-      {
-        "nombre": "u_anclaje",
-        "etiqueta": "Armadura de anclaje",
-        "tipo": "uso"
-      },
-      {
-        "nombre": "v_global",
-        "etiqueta": "u_max ≤ 1",
-        "tipo": "veredicto"
-      },
-      {
-        "nombre": "v_detallado",
-        "etiqueta": "Detallado (estribos y separaciones)",
-        "tipo": "veredicto"
-      },
-      {
-        "nombre": "v_cuantia_min",
-        "etiqueta": "Cuantía ≥ mínima",
-        "tipo": "veredicto"
-      },
-      {
-        "nombre": "v_cuantia_max",
-        "etiqueta": "Cuantía ≤ máxima",
-        "tipo": "veredicto"
-      },
-      {
-        "nombre": "v_comp",
-        "etiqueta": "Compresión",
-        "tipo": "veredicto"
-      },
-      {
-        "nombre": "v_trac",
-        "etiqueta": "Tracción",
-        "tipo": "veredicto"
-      },
-      {
-        "nombre": "v_pm",
-        "etiqueta": "Flexocompresión",
-        "tipo": "veredicto"
-      },
-      {
-        "nombre": "v_vc_positivo",
-        "etiqueta": "V_c positivo",
-        "tipo": "veredicto",
-        "aviso": true,
-        "avisoTexto": "La tracción anula V_c: el corte lo toman solo los estribos"
-      },
-      {
-        "nombre": "v_vc_techo",
-        "etiqueta": "V_c bajo el techo",
-        "tipo": "veredicto",
-        "aviso": true,
-        "avisoTexto": "V_c supera el techo del §22.5.5.1: rige el techo"
-      },
-      {
-        "nombre": "v_corte_X",
-        "etiqueta": "Corte X",
-        "tipo": "veredicto"
-      },
-      {
-        "nombre": "v_corte_Y",
-        "etiqueta": "Corte Y",
-        "tipo": "veredicto"
-      },
-      {
-        "nombre": "v_Av",
-        "etiqueta": "Área de estribos ≥ mínima",
-        "tipo": "veredicto"
-      },
-      {
-        "nombre": "v_sep_est",
-        "etiqueta": "Separación de estribos",
-        "tipo": "veredicto"
-      },
-      {
-        "nombre": "v_db_est",
-        "etiqueta": "Diámetro de estribo",
-        "tipo": "veredicto"
-      },
-      {
-        "nombre": "v_contables",
-        "etiqueta": "Barras contables ≤ barras",
-        "tipo": "veredicto",
-        "aviso": true,
-        "avisoTexto": "Se declaran más barras contables de anclaje que barras del pedestal"
-      },
-      {
-        "nombre": "v_anclaje",
-        "etiqueta": "Armadura de anclaje",
-        "tipo": "veredicto"
-      }
-    ],
-    "fronteras": [
-      "Los puntos intermedios del diagrama P–M: calcula los tres extremos (Po, φPn,max, φPnt) y cada punto intermedio entra como par (Mu, φMn) desde una herramienta de sección",
-      "Los límites de cuantía son dato: es la única parte que puede no salir de ACI en un proyecto argentino",
-      "La resistencia uniaxial de cada eje para la verificación biaxial (φMnX_b, φMnY_b) entra como dato, con la misma axial"
-    ],
-    "hipotesis": [
-      "Estribos cerrados",
-      "Armadura simétrica",
-      "Detallado no sísmico del §10.7.6 en el fuste. Si el pedestal forma parte de un sistema sismorresistente de hormigón rige el Cap. 18 y la plantilla no alcanza; la unión con la zapata (§18.13.2) sí se declara",
-      "Flexión biaxial por suma lineal de usos: cota superior por convexidad de la superficie de falla, no ecuación de norma"
-    ],
-    "entrega": {},
-    "casos": [
-      {
-        "nombre": "ejemplo de referencia",
-        "entradas": {},
-        "cumple": true
-      },
-      {
-        "nombre": "corte X al doble: gobierna el corte",
-        "entradas": {
-          "Vu_X": 2000
-        },
-        "cumple": false,
-        "esperadoFalso": [
-          "v_corte_X",
-          "v_global"
-        ]
-      },
-      {
-        "nombre": "biaxial al doble en Y: gobierna la biaxial",
-        "entradas": {
-          "Mu_Y_b": 4000
-        },
-        "cumple": false,
-        "esperadoFalso": [
-          "v_biax",
-          "v_global"
-        ]
-      }
+ "version": 1,
+ "meta": {
+  "titulo": "Pedestal de hormigón armado — cuantías, extremos del diagrama P–M, corte, estribos y armadura de anclaje contable",
+  "entradas": [
+   {
+    "nombre": "PED_X",
+    "etiqueta": "Lado en X",
+    "grupo": "Sección",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "PED_Y",
+    "etiqueta": "Lado en Y",
+    "grupo": "Sección",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "PED_H",
+    "etiqueta": "Altura del pedestal",
+    "grupo": "Sección",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "fc",
+    "etiqueta": "f'c del hormigón",
+    "grupo": "Materiales",
+    "unidad": "MPa"
+   },
+   {
+    "nombre": "fy",
+    "etiqueta": "fy de la armadura",
+    "grupo": "Materiales",
+    "unidad": "MPa"
+   },
+   {
+    "nombre": "lam",
+    "etiqueta": "λ, hormigón liviano",
+    "grupo": "Materiales",
+    "ayuda": "§19.2.4.3: λ = 1 en hormigón de peso normal"
+   },
+   {
+    "nombre": "db_long",
+    "etiqueta": "Diámetro de la armadura longitudinal",
+    "grupo": "Armadura adoptada",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "n_barras",
+    "etiqueta": "Número de barras longitudinales",
+    "grupo": "Armadura adoptada"
+   },
+   {
+    "nombre": "recub_ped",
+    "etiqueta": "Recubrimiento al eje de la barra",
+    "grupo": "Armadura adoptada",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "db_est",
+    "etiqueta": "Diámetro del estribo",
+    "grupo": "Armadura adoptada",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "sep_est",
+    "etiqueta": "Separación de estribos",
+    "grupo": "Armadura adoptada",
+    "unidad": "mm"
+   },
+   {
+    "nombre": "n_ramas",
+    "etiqueta": "Ramas de estribo por cara",
+    "grupo": "Armadura adoptada"
+   },
+   {
+    "nombre": "N_comp_max",
+    "etiqueta": "Axial de compresión máxima",
+    "grupo": "Demandas mayoradas",
+    "unidad": "kN"
+   },
+   {
+    "nombre": "N_trac_max",
+    "etiqueta": "Axial de tracción máxima (positiva)",
+    "grupo": "Demandas mayoradas",
+    "unidad": "kN"
+   },
+   {
+    "nombre": "Vu_X",
+    "etiqueta": "Corte mayorado en X",
+    "grupo": "Demandas mayoradas",
+    "unidad": "kN"
+   },
+   {
+    "nombre": "Vu_Y",
+    "etiqueta": "Corte mayorado en Y",
+    "grupo": "Demandas mayoradas",
+    "unidad": "kN"
+   },
+   {
+    "nombre": "Mu_1",
+    "etiqueta": "Momento del punto 1 del P–M",
+    "grupo": "Demandas mayoradas",
+    "unidad": "kN*m"
+   },
+   {
+    "nombre": "phiMn_1",
+    "etiqueta": "φMn del punto 1, con la misma axial",
+    "grupo": "Demandas mayoradas",
+    "unidad": "kN*m"
+   },
+   {
+    "nombre": "Mu_2",
+    "etiqueta": "Momento del punto 2 del P–M",
+    "grupo": "Demandas mayoradas",
+    "unidad": "kN*m"
+   },
+   {
+    "nombre": "phiMn_2",
+    "etiqueta": "φMn del punto 2, con la misma axial",
+    "grupo": "Demandas mayoradas",
+    "unidad": "kN*m"
+   },
+   {
+    "nombre": "Mu_3",
+    "etiqueta": "Momento del punto 3 del P–M",
+    "grupo": "Demandas mayoradas",
+    "unidad": "kN*m"
+   },
+   {
+    "nombre": "phiMn_3",
+    "etiqueta": "φMn del punto 3, con la misma axial",
+    "grupo": "Demandas mayoradas",
+    "unidad": "kN*m"
+   },
+   {
+    "nombre": "Mu_X_b",
+    "etiqueta": "Momento concurrente en X",
+    "unidad": "kN*m",
+    "grupo": "Demandas mayoradas"
+   },
+   {
+    "nombre": "phiMnX_b",
+    "etiqueta": "φMn en X con la misma axial",
+    "unidad": "kN*m",
+    "grupo": "Demandas mayoradas"
+   },
+   {
+    "nombre": "Mu_Y_b",
+    "etiqueta": "Momento concurrente en Y",
+    "unidad": "kN*m",
+    "grupo": "Demandas mayoradas"
+   },
+   {
+    "nombre": "phiMnY_b",
+    "etiqueta": "φMn en Y con la misma axial",
+    "unidad": "kN*m",
+    "grupo": "Demandas mayoradas"
+   },
+   {
+    "nombre": "h_ef",
+    "etiqueta": "Profundidad efectiva del perno",
+    "grupo": "Armadura de anclaje",
+    "unidad": "mm",
+    "ayuda": "La que se usó en anclaje-hormigon-generica"
+   },
+   {
+    "nombre": "n_contables",
+    "etiqueta": "Barras dentro de 0,5·h_ef de un perno traccionado",
+    "grupo": "Armadura de anclaje",
+    "ayuda": "Medido en planta: NO son las n_barras del pedestal"
+   },
+   {
+    "nombre": "T_grupo",
+    "etiqueta": "Tracción del grupo de pernos",
+    "grupo": "Armadura de anclaje",
+    "unidad": "kN",
+    "ayuda": "La de placa-base-generica, con la que se corrió el hormigón del anclaje"
+   },
+   {
+    "nombre": "As_req_anc",
+    "etiqueta": "Armadura de anclaje requerida",
+    "unidad": "mm^2",
+    "grupo": "Armadura de anclaje",
+    "ayuda": "As_req de anclaje-hormigon-generica (por capacidad del perno)"
+   },
+   {
+    "nombre": "sdc_def",
+    "etiqueta": "Categoría sísmica D, E o F",
+    "grupo": "Sismo",
+    "opciones": [
+     {
+      "valor": 1,
+      "etiqueta": "sí: rige 18.13.2"
+     },
+     {
+      "valor": 0,
+      "etiqueta": "no"
+     }
     ]
-  },
-  "regions": [
-    {
-      "id": "r001",
-      "kind": "text",
-      "x": 40,
-      "y": 32,
-      "src": "PLANTILLA REUTILIZABLE. Todo lo editable esta en los cinco bloques DATOS;\ndebajo no hay ningun numero de proyecto, solo ecuaciones de norma."
-    },
-    {
-      "id": "r002",
-      "kind": "text",
-      "x": 40,
-      "y": 104,
-      "src": "FRONTERA: la plantilla NO construye el diagrama P-M. Calcula sus tres\nextremos —P_o, phi·P_n,max y phi·P_nt— pero los puntos intermedios entran\ncomo (Mu, phi·Mn) declarado, desde una herramienta de seccion y con su\norigen escrito, igual que un valor del modelo. Es frontera de lo verificado."
-    },
-    {
-      "id": "r003",
-      "kind": "text",
-      "x": 40,
-      "y": 220,
-      "src": "El pedestal se verifica como COLUMNA: el §10.1.1, impresa 169, rasterizada\n2026-08-19, incluye a los reinforced concrete pedestals en el alcance del\nCap. 10. No es una asimilacion, es el alcance del capitulo."
-    },
-    {
-      "id": "r004",
-      "kind": "text",
-      "x": 40,
-      "y": 314,
-      "src": "HIPOTESIS que la plantilla asume y declara: pedestal rectangular con\nestribos cerrados —no zunchado— · armadura simetrica en las dos caras ·\ndetallado NO sismico del §10.7.6. Si el pedestal forma parte de un sistema\nsismorresistente de hormigon, rige el Cap. 18 y esta hoja no alcanza."
-    },
-    {
-      "id": "r005",
-      "kind": "text",
-      "x": 40,
-      "y": 430,
-      "src": "━━ DATOS · SECCION ━━"
-    },
-    {
-      "id": "in_PED_X",
-      "kind": "math",
-      "x": 40,
-      "y": 476,
-      "src": "PED_X := 1500 mm"
-    },
-    {
-      "id": "in_PED_Y",
-      "kind": "math",
-      "x": 40,
-      "y": 522,
-      "src": "PED_Y := 1950 mm"
-    },
-    {
-      "id": "in_PED_H",
-      "kind": "math",
-      "x": 40,
-      "y": 568,
-      "src": "PED_H := 1300 mm"
-    },
-    {
-      "id": "r009",
-      "kind": "text",
-      "x": 40,
-      "y": 614,
-      "src": "━━ DATOS · MATERIALES ━━"
-    },
-    {
-      "id": "in_fc",
-      "kind": "math",
-      "x": 40,
-      "y": 660,
-      "src": "fc := 30 MPa"
-    },
-    {
-      "id": "in_fy",
-      "kind": "math",
-      "x": 40,
-      "y": 706,
-      "src": "fy := 420 MPa"
-    },
-    {
-      "id": "r012",
-      "kind": "text",
-      "x": 40,
-      "y": 752,
-      "src": "§19.2.4.3: lam = 1 en hormigon de peso normal"
-    },
-    {
-      "id": "in_lam",
-      "kind": "math",
-      "x": 40,
-      "y": 798,
-      "src": "lam := 1"
-    },
-    {
-      "id": "r014",
-      "kind": "text",
-      "x": 40,
-      "y": 844,
-      "src": "━━ DATOS · ARMADURA ADOPTADA ━━"
-    },
-    {
-      "id": "in_db_long",
-      "kind": "math",
-      "x": 40,
-      "y": 890,
-      "src": "db_long := 32 mm"
-    },
-    {
-      "id": "in_n_barras",
-      "kind": "math",
-      "x": 40,
-      "y": 936,
-      "src": "n_barras := 30"
-    },
-    {
-      "id": "in_recub_ped",
-      "kind": "math",
-      "x": 40,
-      "y": 982,
-      "src": "recub_ped := 78 mm"
-    },
-    {
-      "id": "in_db_est",
-      "kind": "math",
-      "x": 40,
-      "y": 1028,
-      "src": "db_est := 12 mm"
-    },
-    {
-      "id": "in_sep_est",
-      "kind": "math",
-      "x": 40,
-      "y": 1074,
-      "src": "sep_est := 150 mm"
-    },
-    {
-      "id": "in_n_ramas",
-      "kind": "math",
-      "x": 40,
-      "y": 1120,
-      "src": "n_ramas := 3"
-    },
-    {
-      "id": "r021",
-      "kind": "text",
-      "x": 40,
-      "y": 1166,
-      "src": "━━ DATOS · LIMITES DE CUANTIA DE LA NORMA DEL PROYECTO ━━"
-    },
-    {
-      "id": "r022",
-      "kind": "text",
-      "x": 40,
-      "y": 1212,
-      "src": "Es la unica parte del calculo que puede no salir de ACI 318. Cargados los\ndel art. 2.3.8 de INPRES-CIRSOC 103 P.II, pdf 49: 0,008 y 18/fy_n, que con\nfy = 420 MPa da 0,0429. El §10.6.1.1, impresa 171, rasterizada 2026-08-19,\npide 0,01·Ag y no mas de 0,08·Ag. Poner los de la norma del proyecto"
-    },
-    {
-      "id": "in_rho_min_norma",
-      "kind": "math",
-      "x": 40,
-      "y": 1328,
-      "src": "rho_min_norma := 0.008"
-    },
-    {
-      "id": "in_rho_max_norma",
-      "kind": "math",
-      "x": 40,
-      "y": 1374,
-      "src": "rho_max_norma := 0.0429"
-    },
-    {
-      "id": "r025",
-      "kind": "text",
-      "x": 40,
-      "y": 1420,
-      "src": "━━ DATOS · DEMANDAS MAYORADAS ━━"
-    },
-    {
-      "id": "r026",
-      "kind": "text",
-      "x": 40,
-      "y": 1466,
-      "src": "Axiales extremos y cortes en las dos direcciones. La traccion entra POSITIVA\ny la hoja le pone el signo donde la norma lo pide"
-    },
-    {
-      "id": "in_N_comp_max",
-      "kind": "math",
-      "x": 40,
-      "y": 1538,
-      "src": "N_comp_max := 2644.8 kN"
-    },
-    {
-      "id": "in_N_trac_max",
-      "kind": "math",
-      "x": 40,
-      "y": 1584,
-      "src": "N_trac_max := 1222.5 kN"
-    },
-    {
-      "id": "in_Vu_X",
-      "kind": "math",
-      "x": 40,
-      "y": 1630,
-      "src": "Vu_X := 1013.5 kN"
-    },
-    {
-      "id": "in_Vu_Y",
-      "kind": "math",
-      "x": 40,
-      "y": 1676,
-      "src": "Vu_Y := 682.2 kN"
-    },
-    {
-      "id": "r031",
-      "kind": "text",
-      "x": 40,
-      "y": 1722,
-      "src": "Tres puntos (Mu, phi·Mn) del diagrama, concurrentes. Una ranura que no se\nuse va con Mu := 0 kN*m y phiMn := 1 kN*m, que da uso nulo"
-    },
-    {
-      "id": "in_Mu_1",
-      "kind": "math",
-      "x": 40,
-      "y": 1794,
-      "src": "Mu_1 := 639.6 kN*m"
-    },
-    {
-      "id": "in_phiMn_1",
-      "kind": "math",
-      "x": 40,
-      "y": 1840,
-      "src": "phiMn_1 := 10264 kN*m"
-    },
-    {
-      "id": "in_Mu_2",
-      "kind": "math",
-      "x": 40,
-      "y": 1886,
-      "src": "Mu_2 := 4859.1 kN*m"
-    },
-    {
-      "id": "in_phiMn_2",
-      "kind": "math",
-      "x": 40,
-      "y": 1932,
-      "src": "phiMn_2 := 9184 kN*m"
-    },
-    {
-      "id": "in_Mu_3",
-      "kind": "math",
-      "x": 40,
-      "y": 1978,
-      "src": "Mu_3 := 4353.7 kN*m"
-    },
-    {
-      "id": "in_phiMn_3",
-      "kind": "math",
-      "x": 40,
-      "y": 2024,
-      "src": "phiMn_3 := 7899 kN*m"
-    },
-    {
-      "id": "r201",
-      "kind": "text",
-      "x": 40,
-      "y": 2070,
-      "src": "FLEXION BIAXIAL. En la base del pedestal el momento es M + V·PED_H en el eje de la columna y\nV_debil·PED_H en el otro, CONCURRENTES: una columna rotulada en su eje debil igual le entrega\ncorte al pedestal, y ese corte por la altura es momento. Se da un par (Mu_X_b, Mu_Y_b) de la\nmisma fila y la resistencia uniaxial de cada eje con la misma axial."
-    },
-    {
-      "id": "in_Mu_X_b",
-      "kind": "math",
-      "x": 40,
-      "y": 2194,
-      "src": "Mu_X_b := 4353.7 kN*m"
-    },
-    {
-      "id": "in_phiMnX_b",
-      "kind": "math",
-      "x": 40,
-      "y": 2240,
-      "src": "phiMnX_b := 7899 kN*m"
-    },
-    {
-      "id": "in_Mu_Y_b",
-      "kind": "math",
-      "x": 40,
-      "y": 2286,
-      "src": "Mu_Y_b := 886.9 kN*m"
-    },
-    {
-      "id": "in_phiMnY_b",
-      "kind": "math",
-      "x": 40,
-      "y": 2332,
-      "src": "phiMnY_b := 6000 kN*m"
-    },
-    {
-      "id": "r038",
-      "kind": "text",
-      "x": 40,
-      "y": 2378,
-      "src": "━━ DATOS · ARMADURA DE ANCLAJE ━━"
-    },
-    {
-      "id": "r039",
-      "kind": "text",
-      "x": 40,
-      "y": 2424,
-      "src": "n_contables son las barras dentro de 0,5·h_ef de un perno traccionado, medido en planta: NO son\nlas n_barras del pedestal. T_grupo es la traccion del grupo con que se corrio el anclaje, y\nAs_req_anc la armadura de anclaje que exige anclaje-hormigon-generica: ella la dimensiona por la\nCAPACIDAD del perno (fusible), y es la que manda cuando supera a la de la demanda."
-    },
-    {
-      "id": "in_h_ef",
-      "kind": "math",
-      "x": 40,
-      "y": 2544,
-      "src": "h_ef := 1250 mm"
-    },
-    {
-      "id": "in_n_contables",
-      "kind": "math",
-      "x": 40,
-      "y": 2590,
-      "src": "n_contables := 13"
-    },
-    {
-      "id": "in_T_grupo",
-      "kind": "math",
-      "x": 40,
-      "y": 2636,
-      "src": "T_grupo := 3267.9 kN"
-    },
-    {
-      "id": "in_As_req_anc",
-      "kind": "math",
-      "x": 40,
-      "y": 2682,
-      "src": "As_req_anc := 6678 mm^2"
-    },
-    {
-      "id": "r205",
-      "kind": "text",
-      "x": 40,
-      "y": 2728,
-      "src": "━━ DATOS · CATEGORIA SISMICA ━━"
-    },
-    {
-      "id": "r206",
-      "kind": "text",
-      "x": 40,
-      "y": 2774,
-      "src": "sdc_def := 1 si la estructura es de SDC D, E o F (18.13.2.1): rigen 18.13.2.2 y 18.13.2.3 en la\nunion del pedestal con la zapata. := 0 si no."
-    },
-    {
-      "id": "in_sdc_def",
-      "kind": "math",
-      "x": 40,
-      "y": 2846,
-      "src": "sdc_def := 1"
-    },
-    {
-      "id": "r043",
-      "kind": "text",
-      "x": 40,
-      "y": 2892,
-      "src": "━━ DERIVADOS · SECCION Y ACERO ━━",
-      "pageBreak": true
-    },
-    {
-      "id": "r044",
-      "kind": "text",
-      "x": 40,
-      "y": 2938,
-      "src": "sqrt(f'c) no es dimensional: se adimensiona y se reconstituye con (1 MPa)"
-    },
-    {
-      "id": "r045",
-      "kind": "math",
-      "x": 40,
-      "y": 2984,
-      "src": "fc_n := fc/(1 MPa) ="
-    },
-    {
-      "id": "r046",
-      "kind": "math",
-      "x": 40,
-      "y": 3030,
-      "src": "fy_n := fy/(1 MPa) ="
-    },
-    {
-      "id": "r047",
-      "kind": "math",
-      "x": 40,
-      "y": 3076,
-      "src": "raiz_fc := sqrt(fc_n) ="
-    },
-    {
-      "id": "r048",
-      "kind": "math",
-      "x": 40,
-      "y": 3122,
-      "src": "Ag := PED_X*PED_Y = mm^2"
-    },
-    {
-      "id": "r049",
-      "kind": "math",
-      "x": 40,
-      "y": 3168,
-      "src": "area_barra := pi/4*db_long^2 = mm^2"
-    },
-    {
-      "id": "r050",
-      "kind": "math",
-      "x": 40,
-      "y": 3214,
-      "src": "Ast := n_barras*area_barra = mm^2"
-    },
-    {
-      "id": "r051",
-      "kind": "math",
-      "x": 40,
-      "y": 3260,
-      "src": "d_ped_X := PED_X - recub_ped = mm"
-    },
-    {
-      "id": "r052",
-      "kind": "math",
-      "x": 40,
-      "y": 3306,
-      "src": "d_ped_Y := PED_Y - recub_ped = mm"
-    },
-    {
-      "id": "r053",
-      "kind": "text",
-      "x": 40,
-      "y": 3352,
-      "src": "━━ CUANTIA LONGITUDINAL ━━"
-    },
-    {
-      "id": "r054",
-      "kind": "math",
-      "x": 40,
-      "y": 3398,
-      "src": "As_min := rho_min_norma*Ag = mm^2"
-    },
-    {
-      "id": "r055",
-      "kind": "math",
-      "x": 40,
-      "y": 3444,
-      "src": "As_max := rho_max_norma*Ag = mm^2"
-    },
-    {
-      "id": "r056",
-      "kind": "math",
-      "x": 40,
-      "y": 3490,
-      "src": "rho_long := Ast/Ag ="
-    },
-    {
-      "id": "v_cuantia_min",
-      "kind": "math",
-      "x": 40,
-      "y": 3536,
-      "src": "v_cuantia_min := Ast >= As_min ="
-    },
-    {
-      "id": "v_cuantia_max",
-      "kind": "math",
-      "x": 40,
-      "y": 3582,
-      "src": "v_cuantia_max := Ast <= As_max ="
-    },
-    {
-      "id": "r059",
-      "kind": "math",
-      "x": 40,
-      "y": 3628,
-      "src": "u_cuantia := As_min/Ast ="
-    },
-    {
-      "id": "r060",
-      "kind": "text",
-      "x": 40,
-      "y": 3674,
-      "src": "━━ EXTREMOS DEL DIAGRAMA DE INTERACCION ━━"
-    },
-    {
-      "id": "r061",
-      "kind": "text",
-      "x": 40,
-      "y": 3720,
-      "src": "§22.4.2.2: P_o = 0,85·f'c·(Ag - Ast) + fy·Ast"
-    },
-    {
-      "id": "r062",
-      "kind": "math",
-      "x": 40,
-      "y": 3766,
-      "src": "Po := 0.85*fc*(Ag - Ast) + fy*Ast = kN"
-    },
-    {
-      "id": "r063",
-      "kind": "text",
-      "x": 40,
-      "y": 3812,
-      "src": "§22.4.2.1 con estribos: phi·P_n,max = 0,80·phi·P_o. Tabla 21.2.2: phi = 0,65\nen seccion controlada por compresion con estribos, y 0,90 en traccion pura"
-    },
-    {
-      "id": "r064",
-      "kind": "math",
-      "x": 40,
-      "y": 3884,
-      "src": "phi_comp := 0.65"
-    },
-    {
-      "id": "r065",
-      "kind": "math",
-      "x": 40,
-      "y": 3930,
-      "src": "phiPn_max := 0.80*phi_comp*Po = kN"
-    },
-    {
-      "id": "r066",
-      "kind": "math",
-      "x": 40,
-      "y": 3976,
-      "src": "phi_trac := 0.90"
-    },
-    {
-      "id": "r067",
-      "kind": "math",
-      "x": 40,
-      "y": 4022,
-      "src": "phiPnt := phi_trac*fy*Ast = kN"
-    },
-    {
-      "id": "r068",
-      "kind": "math",
-      "x": 40,
-      "y": 4068,
-      "src": "u_comp := N_comp_max/phiPn_max ="
-    },
-    {
-      "id": "r069",
-      "kind": "math",
-      "x": 40,
-      "y": 4114,
-      "src": "u_trac := N_trac_max/phiPnt ="
-    },
-    {
-      "id": "v_comp",
-      "kind": "math",
-      "x": 40,
-      "y": 4160,
-      "src": "v_comp := u_comp <= 1 ="
-    },
-    {
-      "id": "v_trac",
-      "kind": "math",
-      "x": 40,
-      "y": 4206,
-      "src": "v_trac := u_trac <= 1 ="
-    },
-    {
-      "id": "r072",
-      "kind": "text",
-      "x": 40,
-      "y": 4252,
-      "src": "━━ FLEXO-COMPRESION · phi·Mn declarado ━━"
-    },
-    {
-      "id": "r073",
-      "kind": "math",
-      "x": 40,
-      "y": 4298,
-      "src": "u_pm_1 := Mu_1/phiMn_1 ="
-    },
-    {
-      "id": "r074",
-      "kind": "math",
-      "x": 40,
-      "y": 4344,
-      "src": "u_pm_2 := Mu_2/phiMn_2 ="
-    },
-    {
-      "id": "r075",
-      "kind": "math",
-      "x": 40,
-      "y": 4390,
-      "src": "u_pm_3 := Mu_3/phiMn_3 ="
-    },
-    {
-      "id": "r076",
-      "kind": "math",
-      "x": 40,
-      "y": 4436,
-      "src": "u_pm := max(u_pm_1, u_pm_2, u_pm_3) ="
-    },
-    {
-      "id": "v_pm",
-      "kind": "math",
-      "x": 40,
-      "y": 4482,
-      "src": "v_pm := u_pm <= 1 ="
-    },
-    {
-      "id": "r202",
-      "kind": "text",
-      "x": 40,
-      "y": 4528,
-      "src": "━━ FLEXION BIAXIAL · contorno lineal ━━"
-    },
-    {
-      "id": "r203",
-      "kind": "text",
-      "x": 40,
-      "y": 4574,
-      "src": "Suma lineal de usos uniaxiales con la misma axial. No es una ecuacion de la norma: es una COTA\nSUPERIOR por mecanica -la superficie de falla de una seccion con armadura simetrica es convexa,\nasi que la recta entre sus dos trazas uniaxiales queda por dentro-. Si no cumple, no quiere\ndecir que falle: hay que calcular el punto biaxial con una herramienta de seccion."
-    },
-    {
-      "id": "r204",
-      "kind": "math",
-      "x": 40,
-      "y": 4698,
-      "src": "u_biax := Mu_X_b/phiMnX_b + Mu_Y_b/phiMnY_b ="
-    },
-    {
-      "id": "v_biax",
-      "kind": "math",
-      "x": 40,
-      "y": 4744,
-      "src": "v_biax := u_biax <= 1 ="
-    },
-    {
-      "id": "r078",
-      "kind": "text",
-      "x": 40,
-      "y": 4790,
-      "src": "━━ CORTE · Tabla 22.5.5.1 ecuacion (a) ━━",
-      "pageBreak": true
-    },
-    {
-      "id": "r079",
-      "kind": "text",
-      "x": 40,
-      "y": 4836,
-      "src": "Nota 1 de esa tabla: N_u es NEGATIVO en traccion, que es la condicion\ndesfavorable porque resta capacidad. Se toma la traccion maxima"
-    },
-    {
-      "id": "r080",
-      "kind": "math",
-      "x": 40,
-      "y": 4908,
-      "src": "Nu := -N_trac_max = kN"
-    },
-    {
-      "id": "r081",
-      "kind": "text",
-      "x": 40,
-      "y": 4954,
-      "src": "§22.5.5.1.2: el termino axial N_u/(6·Ag) no se toma mayor que 0,05·f'c —\nel tope solo muerde en compresion, pero la plantilla lo aplica igual"
-    },
-    {
-      "id": "r082",
-      "kind": "math",
-      "x": 40,
-      "y": 5026,
-      "src": "term_axial := min(Nu/(6*Ag), 0.05*fc) = MPa"
-    },
-    {
-      "id": "r083",
-      "kind": "math",
-      "x": 40,
-      "y": 5072,
-      "src": "vc_ped := 0.17*lam*raiz_fc*(1 MPa) + term_axial = MPa"
-    },
-    {
-      "id": "r084",
-      "kind": "text",
-      "x": 40,
-      "y": 5118,
-      "src": "Con traccion suficiente v_c se anula y todo el corte pasa a los estribos:\nsi este chequeo no pasa, esta hoja no alcanza"
-    },
-    {
-      "id": "v_vc_positivo",
-      "kind": "math",
-      "x": 40,
-      "y": 5190,
-      "src": "v_vc_positivo := vc_ped > 0 MPa ="
-    },
-    {
-      "id": "r086",
-      "kind": "text",
-      "x": 40,
-      "y": 5236,
-      "src": "La misma tabla pone un techo de 0,42·lam·sqrt(f'c)"
-    },
-    {
-      "id": "r087",
-      "kind": "math",
-      "x": 40,
-      "y": 5282,
-      "src": "vc_techo := 0.42*lam*raiz_fc*(1 MPa) = MPa"
-    },
-    {
-      "id": "v_vc_techo",
-      "kind": "math",
-      "x": 40,
-      "y": 5328,
-      "src": "v_vc_techo := vc_ped <= vc_techo ="
-    },
-    {
-      "id": "r089",
-      "kind": "text",
-      "x": 40,
-      "y": 5374,
-      "src": "Tabla 21.2.1 fila (b): corte, phi = 0,75"
-    },
-    {
-      "id": "r090",
-      "kind": "math",
-      "x": 40,
-      "y": 5420,
-      "src": "phi_corte := 0.75"
-    },
-    {
-      "id": "r091",
-      "kind": "text",
-      "x": 40,
-      "y": 5466,
-      "src": "Corte en X: la seccion que resiste tiene ancho PED_Y y canto util en X"
-    },
-    {
-      "id": "r092",
-      "kind": "math",
-      "x": 40,
-      "y": 5512,
-      "src": "phiVc_X := phi_corte*vc_ped*PED_Y*d_ped_X = kN"
-    },
-    {
-      "id": "r093",
-      "kind": "math",
-      "x": 40,
-      "y": 5558,
-      "src": "phiVc_Y := phi_corte*vc_ped*PED_X*d_ped_Y = kN"
-    },
-    {
-      "id": "r094",
-      "kind": "math",
-      "x": 40,
-      "y": 5604,
-      "src": "u_corte_X := Vu_X/phiVc_X ="
-    },
-    {
-      "id": "r095",
-      "kind": "math",
-      "x": 40,
-      "y": 5650,
-      "src": "u_corte_Y := Vu_Y/phiVc_Y ="
-    },
-    {
-      "id": "v_corte_X",
-      "kind": "math",
-      "x": 40,
-      "y": 5696,
-      "src": "v_corte_X := u_corte_X <= 1 ="
-    },
-    {
-      "id": "v_corte_Y",
-      "kind": "math",
-      "x": 40,
-      "y": 5742,
-      "src": "v_corte_Y := u_corte_Y <= 1 ="
-    },
-    {
-      "id": "r098",
-      "kind": "text",
-      "x": 40,
-      "y": 5788,
-      "src": "━━ ESTRIBOS · minimo y separacion ━━"
-    },
-    {
-      "id": "r099",
-      "kind": "text",
-      "x": 40,
-      "y": 5834,
-      "src": "§10.6.2.2: el 0,062·sqrt(f'c) y el 0,35 son coeficientes en MPa, no numeros.\nSe dimensiona sobre la cara larga, que es la que pide mas ramas"
-    },
-    {
-      "id": "r100",
-      "kind": "math",
-      "x": 40,
-      "y": 5906,
-      "src": "Av_a := 0.062*raiz_fc*(1 MPa)*PED_Y*sep_est/fy = mm^2"
-    },
-    {
-      "id": "r101",
-      "kind": "math",
-      "x": 40,
-      "y": 5952,
-      "src": "Av_b := 0.35*(1 MPa)*PED_Y*sep_est/fy = mm^2"
-    },
-    {
-      "id": "r102",
-      "kind": "math",
-      "x": 40,
-      "y": 5998,
-      "src": "Av_min := max(Av_a, Av_b) = mm^2"
-    },
-    {
-      "id": "r103",
-      "kind": "math",
-      "x": 40,
-      "y": 6044,
-      "src": "Av_prov := n_ramas*pi/4*db_est^2 = mm^2"
-    },
-    {
-      "id": "v_Av",
-      "kind": "math",
-      "x": 40,
-      "y": 6090,
-      "src": "v_Av := Av_prov >= Av_min ="
-    },
-    {
-      "id": "r105",
-      "kind": "text",
-      "x": 40,
-      "y": 6136,
-      "src": "El §10.7.6.1.2 no da la separacion: remite al §25.7.2.1 para estribos. Es el\n(b), impresa 551, rasterizada 2026-08-19 — la menor de 16·db de la barra\nlongitudinal, 48·db del estribo y la dimension menor del elemento"
-    },
-    {
-      "id": "r106",
-      "kind": "math",
-      "x": 40,
-      "y": 6230,
-      "src": "sep_est_max := min(16*db_long, 48*db_est, min(PED_X, PED_Y)) = mm"
-    },
-    {
-      "id": "v_sep_est",
-      "kind": "math",
-      "x": 40,
-      "y": 6276,
-      "src": "v_sep_est := sep_est <= sep_est_max ="
-    },
-    {
-      "id": "r108",
-      "kind": "text",
-      "x": 40,
-      "y": 6322,
-      "src": "§25.7.2.2, misma impresa 551: el estribo es al menos No. 10 encerrando barras\nNo. 32 o menores, y No. 13 encerrando No. 36 o mayores"
-    },
-    {
-      "id": "r109",
-      "kind": "program",
-      "x": 40,
-      "y": 6394,
-      "src": "db_est_min :=\n    if db_long <= 32 mm\n        return 10 mm\n    else\n        return 13 mm"
-    },
-    {
-      "id": "v_db_est",
-      "kind": "math",
-      "x": 40,
-      "y": 6532,
-      "src": "v_db_est := db_est >= db_est_min ="
-    },
-    {
-      "id": "r207",
-      "kind": "text",
-      "x": 40,
-      "y": 6578,
-      "src": "━━ UNION CON LA ZAPATA · §18.13.2 ━━"
-    },
-    {
-      "id": "r208",
-      "kind": "text",
-      "x": 40,
-      "y": 6624,
-      "src": "18.13.2.2: la armadura longitudinal de columnas que resisten sismo se prolonga dentro de la zapata\ny desarrolla f_y en traccion EN LA INTERFAZ. 18.13.2.3: con base empotrada, si lleva ganchos, van a\n90 grados cerca del fondo de la zapata con el extremo libre hacia el centro de la columna. Es\ndetallado: la hoja lo declara, no lo calcula."
-    },
-    {
-      "id": "r209",
-      "kind": "program",
-      "x": 40,
-      "y": 6748,
-      "src": "detallado_18_13 :=\n    if sdc_def == 1\n        return \"RIGE 18.13.2.2 y 18.13.2.3: barras desarrolladas para fy en la interfaz, ganchos a 90 grados hacia el centro\"\n    else\n        return \"no rige 18.13.2 (SDC A, B o C)\""
-    },
-    {
-      "id": "r111",
-      "kind": "text",
-      "x": 40,
-      "y": 6898,
-      "src": "━━ LA ARMADURA DEL PEDESTAL ES LA ARMADURA DE ANCLAJE ━━",
-      "pageBreak": true
-    },
-    {
-      "id": "r112",
-      "kind": "text",
-      "x": 40,
-      "y": 6944,
-      "src": "La traccion del grupo de pernos y la del lado traccionado del pedestal son el\nMISMO fenomeno: no hay doble conteo. Pero no cuentan todas las barras, solo\nlas que caen dentro del radio del cono"
-    },
-    {
-      "id": "r113",
-      "kind": "math",
-      "x": 40,
-      "y": 7038,
-      "src": "radio_cono := 0.5*h_ef = mm"
-    },
-    {
-      "id": "v_contables",
-      "kind": "math",
-      "x": 40,
-      "y": 7084,
-      "src": "v_contables := n_contables <= n_barras ="
-    },
-    {
-      "id": "r115",
-      "kind": "text",
-      "x": 40,
-      "y": 7130,
-      "src": "Tabla 21.2.1 fila (k), impresa 430, rasterizada: Anchor reinforcement in\naccordance with 17.5.2.1 — phi = 0,90. El §17.5.2.1.5, impresa 264, remite alli"
-    },
-    {
-      "id": "r116",
-      "kind": "math",
-      "x": 40,
-      "y": 7202,
-      "src": "phi_anclaje := 0.90"
-    },
-    {
-      "id": "r117",
-      "kind": "math",
-      "x": 40,
-      "y": 7248,
-      "src": "As_anclaje := max(T_grupo/(phi_anclaje*fy), As_req_anc) = mm^2"
-    },
-    {
-      "id": "r118",
-      "kind": "math",
-      "x": 40,
-      "y": 7294,
-      "src": "n_req := ceil(As_anclaje/area_barra) ="
-    },
-    {
-      "id": "r119",
-      "kind": "math",
-      "x": 40,
-      "y": 7340,
-      "src": "u_anclaje := n_req/n_contables ="
-    },
-    {
-      "id": "v_anclaje",
-      "kind": "math",
-      "x": 40,
-      "y": 7386,
-      "src": "v_anclaje := u_anclaje <= 1 ="
-    },
-    {
-      "id": "r121",
-      "kind": "text",
-      "x": 40,
-      "y": 7432,
-      "src": "La cuantia TOTAL sobra sobre la requerida por anclaje, y eso es justamente lo\nque invita al error: lo que cuenta son las barras del cono"
-    },
-    {
-      "id": "r122",
-      "kind": "math",
-      "x": 40,
-      "y": 7504,
-      "src": "Ast/As_anclaje ="
-    },
-    {
-      "id": "r123",
-      "kind": "math",
-      "x": 40,
-      "y": 7550,
-      "src": "n_contables/n_barras ="
-    },
-    {
-      "id": "r124",
-      "kind": "text",
-      "x": 40,
-      "y": 7596,
-      "src": "━━ QUE GOBIERNA ━━"
-    },
-    {
-      "id": "r125",
-      "kind": "math",
-      "x": 40,
-      "y": 7642,
-      "src": "u_max := max(u_comp, u_trac, u_pm, u_biax, u_corte_X, u_corte_Y, u_anclaje) ="
-    },
-    {
-      "id": "r126",
-      "kind": "program",
-      "x": 40,
-      "y": 7688,
-      "src": "gobierna :=\n    if u_max == u_anclaje\n        return \"armadura de anclaje: barras dentro del cono\"\n    else if u_max == u_biax\n        return \"flexion biaxial (contorno lineal)\"\n    else if u_max == u_pm\n        return \"flexo-compresion\"\n    else if u_max == u_corte_X\n        return \"corte en X del pedestal\"\n    else if u_max == u_corte_Y\n        return \"corte en Y del pedestal\"\n    else if u_max == u_comp\n        return \"compresion axial\"\n    else\n        return \"traccion axial\""
-    },
-    {
-      "id": "v_global",
-      "kind": "math",
-      "x": 40,
-      "y": 8054,
-      "src": "v_global := u_max <= 1 ="
-    },
-    {
-      "id": "r128",
-      "kind": "text",
-      "x": 40,
-      "y": 8100,
-      "src": "La cuantia minima es un ratio de DETALLADO —exigida contra provista— y va\naparte: no dice cuanto falta para agotar la seccion"
-    },
-    {
-      "id": "v_detallado",
-      "kind": "math",
-      "x": 40,
-      "y": 8172,
-      "src": "v_detallado := u_cuantia <= 1 ="
-    }
+   }
+  ],
+  "slug": "pedestal-generico",
+  "clase": "generica",
+  "disciplina": "hormigon",
+  "resumen": "Pedestal rectangular bajo placa base: cuantías del §10.6.1.1, los tres extremos del diagrama P–M y puntos intermedios como dato, flexión biaxial por contorno lineal, corte en las dos direcciones, estribos, la armadura de anclaje que puede contarse —por capacidad del perno— y el detallado del §18.13.2. Recibe T_grupo de placa-base-generica y As_req de anclaje-hormigon-generica.",
+  "normas": [
+   {
+    "clave": "US/ACI318-25-SI",
+    "rol": "resistencia y detallado",
+    "articulos": [
+     "Cap. 10",
+     "Cap. 17",
+     "Cap. 18",
+     "Cap. 21",
+     "Cap. 22",
+     "Cap. 25"
+    ]
+   }
+  ],
+  "salidas": [
+   {
+    "nombre": "u_max",
+    "etiqueta": "Uso máximo",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "gobierna",
+    "etiqueta": "Estado límite que gobierna",
+    "tipo": "texto"
+   },
+   {
+    "nombre": "u_cuantia",
+    "etiqueta": "Cuantía (mínima contra provista)",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_comp",
+    "etiqueta": "Compresión",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_trac",
+    "etiqueta": "Tracción",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_pm",
+    "etiqueta": "Flexocompresión (peor punto)",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_biax",
+    "etiqueta": "Flexión biaxial (contorno lineal)",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_corte_X",
+    "etiqueta": "Corte X",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_corte_Y",
+    "etiqueta": "Corte Y",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_anclaje",
+    "etiqueta": "Armadura de anclaje",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "v_global",
+    "etiqueta": "Cumple: resistencia y detallado",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_cuantia_min",
+    "etiqueta": "Cuantía ≥ 0,01·Ag",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_cuantia_max",
+    "etiqueta": "Cuantía ≤ 0,08·Ag",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_vc_positivo",
+    "etiqueta": "V_c positivo",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "La tracción anula V_c: el corte lo toman solo los estribos"
+   },
+   {
+    "nombre": "v_vc_techo",
+    "etiqueta": "V_c bajo el techo",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "V_c supera el techo del §22.5.5.1: rige el techo"
+   },
+   {
+    "nombre": "v_Av",
+    "etiqueta": "Área de estribos ≥ mínima",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_sep_est",
+    "etiqueta": "Separación de estribos",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_db_est",
+    "etiqueta": "Diámetro de estribo",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_contables",
+    "etiqueta": "Barras contables ≤ barras",
+    "tipo": "veredicto",
+    "aviso": true,
+    "avisoTexto": "Se declaran más barras contables de anclaje que barras del pedestal"
+   }
+  ],
+  "fronteras": [
+   "Los puntos intermedios del diagrama P–M: calcula los tres extremos (Po, φPn,max, φPnt) y cada punto intermedio entra como par (Mu, φMn) desde una herramienta de sección",
+   "La resistencia uniaxial de cada eje para la verificación biaxial (φMnX_b, φMnY_b) entra como dato, con la misma axial"
+  ],
+  "hipotesis": [
+   "Estribos cerrados",
+   "Armadura simétrica",
+   "Detallado no sísmico del §10.7.6 en el fuste. Si el pedestal forma parte de un sistema sismorresistente de hormigón rige el Cap. 18 y la plantilla no alcanza; la unión con la zapata (§18.13.2) sí se declara",
+   "Flexión biaxial por suma lineal de usos: cota superior por convexidad de la superficie de falla, no ecuación de norma"
+  ],
+  "entrega": {},
+  "casos": [
+   {
+    "nombre": "ejemplo de referencia",
+    "entradas": {},
+    "cumple": true
+   },
+   {
+    "nombre": "corte X al doble: gobierna el corte",
+    "entradas": {
+     "Vu_X": 2000
+    },
+    "cumple": false,
+    "esperadoFalso": [
+     "v_global"
+    ]
+   },
+   {
+    "nombre": "biaxial al doble en Y: gobierna la biaxial",
+    "entradas": {
+     "Mu_Y_b": 4000
+    },
+    "cumple": false,
+    "esperadoFalso": [
+     "v_global"
+    ]
+   }
   ]
+ },
+ "regions": [
+  {
+   "id": "r001",
+   "kind": "text",
+   "x": 40,
+   "y": 32,
+   "src": "Pedestal rectangular bajo placa base, verificado como COLUMNA: el §10.1.1 incluye a los pedestales\nde hormigón armado en el alcance del Cap. 10. Hipótesis: estribos cerrados —no zunchado—, armadura\nsimétrica en las dos caras y detallado no sísmico del §10.7.6 en el fuste; si el pedestal forma\nparte de un sistema sismorresistente de hormigón rige el Cap. 18 y esta hoja no alcanza.\nNorma: ACI 318-25 (SI)."
+  },
+  {
+   "id": "r002",
+   "kind": "text",
+   "x": 40,
+   "y": 176,
+   "src": "━━ DATOS · SECCIÓN ━━"
+  },
+  {
+   "id": "in_PED_X",
+   "kind": "math",
+   "x": 40,
+   "y": 224,
+   "src": "PED_X := 1500 mm"
+  },
+  {
+   "id": "in_PED_Y",
+   "kind": "math",
+   "x": 40,
+   "y": 272,
+   "src": "PED_Y := 1950 mm"
+  },
+  {
+   "id": "in_PED_H",
+   "kind": "math",
+   "x": 40,
+   "y": 320,
+   "src": "PED_H := 1300 mm"
+  },
+  {
+   "id": "r006",
+   "kind": "text",
+   "x": 40,
+   "y": 368,
+   "src": "━━ DATOS · MATERIALES ━━"
+  },
+  {
+   "id": "in_fc",
+   "kind": "math",
+   "x": 40,
+   "y": 416,
+   "src": "fc := 30 MPa"
+  },
+  {
+   "id": "in_fy",
+   "kind": "math",
+   "x": 40,
+   "y": 464,
+   "src": "fy := 420 MPa"
+  },
+  {
+   "id": "in_lam",
+   "kind": "math",
+   "x": 40,
+   "y": 512,
+   "src": "lam := 1"
+  },
+  {
+   "id": "r010",
+   "kind": "text",
+   "x": 40,
+   "y": 560,
+   "src": "━━ DATOS · ARMADURA ADOPTADA ━━"
+  },
+  {
+   "id": "in_db_long",
+   "kind": "math",
+   "x": 40,
+   "y": 608,
+   "src": "db_long := 32 mm"
+  },
+  {
+   "id": "in_n_barras",
+   "kind": "math",
+   "x": 40,
+   "y": 656,
+   "src": "n_barras := 37"
+  },
+  {
+   "id": "in_recub_ped",
+   "kind": "math",
+   "x": 40,
+   "y": 704,
+   "src": "recub_ped := 78 mm"
+  },
+  {
+   "id": "in_db_est",
+   "kind": "math",
+   "x": 40,
+   "y": 752,
+   "src": "db_est := 12 mm"
+  },
+  {
+   "id": "in_sep_est",
+   "kind": "math",
+   "x": 40,
+   "y": 800,
+   "src": "sep_est := 150 mm"
+  },
+  {
+   "id": "in_n_ramas",
+   "kind": "math",
+   "x": 40,
+   "y": 848,
+   "src": "n_ramas := 3"
+  },
+  {
+   "id": "r017",
+   "kind": "text",
+   "x": 40,
+   "y": 896,
+   "src": "━━ DATOS · DEMANDAS MAYORADAS ━━"
+  },
+  {
+   "id": "r018",
+   "kind": "text",
+   "x": 40,
+   "y": 944,
+   "src": "Axiales extremos y cortes en las dos direcciones; la tracción entra POSITIVA y la hoja le pone el\nsigno donde la norma lo pide. Los tres pares (Mu, φMn) son puntos concurrentes del diagrama P–M,\ncalculados fuera con una herramienta de sección; una ranura sin usar va con Mu := 0 kN·m y\nφMn := 1 kN·m, que da uso nulo."
+  },
+  {
+   "id": "in_N_comp_max",
+   "kind": "math",
+   "x": 40,
+   "y": 1064,
+   "src": "N_comp_max := 2644.8 kN"
+  },
+  {
+   "id": "in_N_trac_max",
+   "kind": "math",
+   "x": 40,
+   "y": 1112,
+   "src": "N_trac_max := 1222.5 kN"
+  },
+  {
+   "id": "in_Vu_X",
+   "kind": "math",
+   "x": 40,
+   "y": 1160,
+   "src": "Vu_X := 1013.5 kN"
+  },
+  {
+   "id": "in_Vu_Y",
+   "kind": "math",
+   "x": 40,
+   "y": 1208,
+   "src": "Vu_Y := 682.2 kN"
+  },
+  {
+   "id": "in_Mu_1",
+   "kind": "math",
+   "x": 40,
+   "y": 1256,
+   "src": "Mu_1 := 639.6 kN*m"
+  },
+  {
+   "id": "in_phiMn_1",
+   "kind": "math",
+   "x": 40,
+   "y": 1304,
+   "src": "phiMn_1 := 10264 kN*m"
+  },
+  {
+   "id": "in_Mu_2",
+   "kind": "math",
+   "x": 40,
+   "y": 1352,
+   "src": "Mu_2 := 4859.1 kN*m"
+  },
+  {
+   "id": "in_phiMn_2",
+   "kind": "math",
+   "x": 40,
+   "y": 1400,
+   "src": "phiMn_2 := 9184 kN*m"
+  },
+  {
+   "id": "in_Mu_3",
+   "kind": "math",
+   "x": 40,
+   "y": 1448,
+   "src": "Mu_3 := 4353.7 kN*m"
+  },
+  {
+   "id": "in_phiMn_3",
+   "kind": "math",
+   "x": 40,
+   "y": 1496,
+   "src": "phiMn_3 := 7899 kN*m"
+  },
+  {
+   "id": "r029",
+   "kind": "text",
+   "x": 40,
+   "y": 1544,
+   "src": "En la base del pedestal el momento es M + V·PED_H en el eje de la columna y V_débil·PED_H en el\notro, CONCURRENTES: una columna rotulada en su eje débil igual le entrega corte al pedestal, y ese\ncorte por la altura es momento. Entra el par (Mu_X_b, Mu_Y_b) de la misma fila y la resistencia\nuniaxial de cada eje con la misma axial."
+  },
+  {
+   "id": "in_Mu_X_b",
+   "kind": "math",
+   "x": 40,
+   "y": 1664,
+   "src": "Mu_X_b := 4353.7 kN*m"
+  },
+  {
+   "id": "in_phiMnX_b",
+   "kind": "math",
+   "x": 40,
+   "y": 1712,
+   "src": "phiMnX_b := 7899 kN*m"
+  },
+  {
+   "id": "in_Mu_Y_b",
+   "kind": "math",
+   "x": 40,
+   "y": 1760,
+   "src": "Mu_Y_b := 886.9 kN*m"
+  },
+  {
+   "id": "in_phiMnY_b",
+   "kind": "math",
+   "x": 40,
+   "y": 1808,
+   "src": "phiMnY_b := 6000 kN*m"
+  },
+  {
+   "id": "r034",
+   "kind": "text",
+   "x": 40,
+   "y": 1856,
+   "src": "━━ DATOS · ARMADURA DE ANCLAJE Y CATEGORÍA SÍSMICA ━━"
+  },
+  {
+   "id": "r035",
+   "kind": "text",
+   "x": 40,
+   "y": 1904,
+   "src": "n_contables son las barras dentro de 0,5·h_ef de un perno traccionado, medido en planta: NO son las\nn_barras del pedestal. As_req_anc es la armadura que exige anclaje-hormigon-generica, dimensionada\npor la CAPACIDAD del perno, y manda cuando supera a la de la demanda. sdc_def := 1 si la estructura\nes de categoría sísmica D, E o F (§18.13.2.1)."
+  },
+  {
+   "id": "in_h_ef",
+   "kind": "math",
+   "x": 40,
+   "y": 2024,
+   "src": "h_ef := 1250 mm"
+  },
+  {
+   "id": "in_n_contables",
+   "kind": "math",
+   "x": 40,
+   "y": 2072,
+   "src": "n_contables := 13"
+  },
+  {
+   "id": "in_T_grupo",
+   "kind": "math",
+   "x": 40,
+   "y": 2120,
+   "src": "T_grupo := 3267.9 kN"
+  },
+  {
+   "id": "in_As_req_anc",
+   "kind": "math",
+   "x": 40,
+   "y": 2168,
+   "src": "As_req_anc := 6678 mm^2"
+  },
+  {
+   "id": "in_sdc_def",
+   "kind": "math",
+   "x": 40,
+   "y": 2216,
+   "src": "sdc_def := 1"
+  },
+  {
+   "id": "r041",
+   "kind": "text",
+   "x": 40,
+   "y": 2264,
+   "src": "━━ 1 — SECCIÓN Y ACERO ━━"
+  },
+  {
+   "id": "r042",
+   "kind": "math",
+   "x": 40,
+   "y": 2312,
+   "src": "fc_n := fc/(1 MPa) ="
+  },
+  {
+   "id": "r043",
+   "kind": "math",
+   "x": 40,
+   "y": 2360,
+   "src": "fy_n := fy/(1 MPa) ="
+  },
+  {
+   "id": "r044",
+   "kind": "math",
+   "x": 40,
+   "y": 2408,
+   "src": "Ag := PED_X*PED_Y = mm^2"
+  },
+  {
+   "id": "r045",
+   "kind": "math",
+   "x": 40,
+   "y": 2456,
+   "src": "area_barra := pi/4*db_long^2 = mm^2"
+  },
+  {
+   "id": "r046",
+   "kind": "math",
+   "x": 40,
+   "y": 2504,
+   "src": "Ast := n_barras*area_barra = mm^2"
+  },
+  {
+   "id": "r047",
+   "kind": "math",
+   "x": 40,
+   "y": 2552,
+   "src": "d_ped_X := PED_X - recub_ped = mm"
+  },
+  {
+   "id": "r048",
+   "kind": "math",
+   "x": 40,
+   "y": 2600,
+   "src": "d_ped_Y := PED_Y - recub_ped = mm"
+  },
+  {
+   "id": "r049",
+   "kind": "text",
+   "x": 40,
+   "y": 2648,
+   "src": "━━ 2 — CUANTÍA LONGITUDINAL · ACI 318-25 §10.6.1.1 ━━"
+  },
+  {
+   "id": "r050",
+   "kind": "text",
+   "x": 40,
+   "y": 2696,
+   "src": "El §10.6.1.1 pide A_st entre 0,01·Ag y 0,08·Ag. El uso de cuantía es de DETALLADO —mínima contra\nprovista— y no dice cuánto falta para agotar la sección, así que no entra en u_max."
+  },
+  {
+   "id": "r051",
+   "kind": "math",
+   "x": 40,
+   "y": 2768,
+   "src": "As_min := 0.01*Ag = mm^2"
+  },
+  {
+   "id": "r052",
+   "kind": "math",
+   "x": 40,
+   "y": 2816,
+   "src": "As_max := 0.08*Ag = mm^2"
+  },
+  {
+   "id": "r053",
+   "kind": "math",
+   "x": 40,
+   "y": 2864,
+   "src": "rho_long := Ast/Ag ="
+  },
+  {
+   "id": "v_cuantia_min",
+   "kind": "math",
+   "x": 40,
+   "y": 2912,
+   "src": "v_cuantia_min := Ast >= As_min ="
+  },
+  {
+   "id": "v_cuantia_max",
+   "kind": "math",
+   "x": 40,
+   "y": 2960,
+   "src": "v_cuantia_max := Ast <= As_max ="
+  },
+  {
+   "id": "r056",
+   "kind": "math",
+   "x": 40,
+   "y": 3008,
+   "src": "u_cuantia := As_min/Ast ="
+  },
+  {
+   "id": "r057",
+   "kind": "text",
+   "x": 40,
+   "y": 3056,
+   "src": "━━ 3 — EXTREMOS DEL DIAGRAMA P–M · ACI 318-25 §22.4.2 y Tabla 21.2.2 ━━"
+  },
+  {
+   "id": "r058",
+   "kind": "text",
+   "x": 40,
+   "y": 3104,
+   "src": "§22.4.2.2: P_o = 0,85·f'c·(Ag − A_st) + fy·A_st. §22.4.2.1 con estribos: φ·P_n,max = 0,80·φ·P_o,\ncon φ = 0,65 en sección controlada por compresión y φ = 0,90 en tracción pura."
+  },
+  {
+   "id": "r059",
+   "kind": "math",
+   "x": 40,
+   "y": 3176,
+   "src": "Po := 0.85*fc*(Ag - Ast) + fy*Ast = kN"
+  },
+  {
+   "id": "r060",
+   "kind": "math",
+   "x": 40,
+   "y": 3224,
+   "src": "phi_comp := 0.65"
+  },
+  {
+   "id": "r061",
+   "kind": "math",
+   "x": 40,
+   "y": 3272,
+   "src": "phi_trac := 0.90"
+  },
+  {
+   "id": "r062",
+   "kind": "math",
+   "x": 40,
+   "y": 3320,
+   "src": "phiPn_max := 0.80*phi_comp*Po = kN"
+  },
+  {
+   "id": "r063",
+   "kind": "math",
+   "x": 40,
+   "y": 3368,
+   "src": "phiPnt := phi_trac*fy*Ast = kN"
+  },
+  {
+   "id": "r064",
+   "kind": "math",
+   "x": 40,
+   "y": 3416,
+   "src": "u_comp := N_comp_max/phiPn_max ="
+  },
+  {
+   "id": "r065",
+   "kind": "math",
+   "x": 40,
+   "y": 3464,
+   "src": "u_trac := N_trac_max/phiPnt ="
+  },
+  {
+   "id": "r066",
+   "kind": "text",
+   "x": 40,
+   "y": 3512,
+   "src": "━━ 4 — FLEXOCOMPRESIÓN Y FLEXIÓN BIAXIAL ━━"
+  },
+  {
+   "id": "r067",
+   "kind": "text",
+   "x": 40,
+   "y": 3560,
+   "src": "La biaxial se resuelve por suma lineal de usos uniaxiales con la misma axial. No es una ecuación de\nla norma: es una COTA SUPERIOR por mecánica —la superficie de falla de una sección con armadura\nsimétrica es convexa, así que la recta entre sus dos trazas uniaxiales queda por dentro—. Si no\ncumple no quiere decir que falle: hay que calcular el punto biaxial con una herramienta de sección."
+  },
+  {
+   "id": "r068",
+   "kind": "math",
+   "x": 40,
+   "y": 3680,
+   "src": "u_pm_1 := Mu_1/phiMn_1 ="
+  },
+  {
+   "id": "r069",
+   "kind": "math",
+   "x": 40,
+   "y": 3728,
+   "src": "u_pm_2 := Mu_2/phiMn_2 ="
+  },
+  {
+   "id": "r070",
+   "kind": "math",
+   "x": 40,
+   "y": 3776,
+   "src": "u_pm_3 := Mu_3/phiMn_3 ="
+  },
+  {
+   "id": "r071",
+   "kind": "math",
+   "x": 40,
+   "y": 3824,
+   "src": "u_pm := max(u_pm_1, u_pm_2, u_pm_3) ="
+  },
+  {
+   "id": "r072",
+   "kind": "math",
+   "x": 40,
+   "y": 3872,
+   "src": "u_biax := Mu_X_b/phiMnX_b + Mu_Y_b/phiMnY_b ="
+  },
+  {
+   "id": "r073",
+   "kind": "text",
+   "x": 40,
+   "y": 3920,
+   "src": "━━ 5 — CORTE · ACI 318-25 Tabla 22.5.5.1, ecuación (a) ━━"
+  },
+  {
+   "id": "r074",
+   "kind": "text",
+   "x": 40,
+   "y": 3968,
+   "src": "Nota 1 de la tabla: N_u es NEGATIVO en tracción, que es la condición desfavorable porque resta\ncapacidad, y por eso se toma la tracción máxima. El §22.5.5.1.2 no deja tomar el término axial\nN_u/(6·Ag) mayor que 0,05·f'c, y la misma tabla pone un techo de 0,42·λ·√f'c. Con tracción\nsuficiente v_c se anula y todo el corte pasa a los estribos: ahí esta hoja no alcanza."
+  },
+  {
+   "id": "r075",
+   "kind": "math",
+   "x": 40,
+   "y": 4088,
+   "src": "Nu := -N_trac_max = kN"
+  },
+  {
+   "id": "r076",
+   "kind": "math",
+   "x": 40,
+   "y": 4136,
+   "src": "term_axial := min(Nu/(6*Ag), 0.05*fc) = MPa"
+  },
+  {
+   "id": "r077",
+   "kind": "math",
+   "x": 40,
+   "y": 4184,
+   "src": "vc_ped := 0.17*lam*sqrt(fc_n)*(1 MPa) + term_axial = MPa"
+  },
+  {
+   "id": "v_vc_positivo",
+   "kind": "math",
+   "x": 40,
+   "y": 4232,
+   "src": "v_vc_positivo := vc_ped > 0 MPa ="
+  },
+  {
+   "id": "v_vc_techo",
+   "kind": "math",
+   "x": 40,
+   "y": 4280,
+   "src": "v_vc_techo := vc_ped <= 0.42*lam*sqrt(fc_n)*(1 MPa) ="
+  },
+  {
+   "id": "r080",
+   "kind": "math",
+   "x": 40,
+   "y": 4328,
+   "src": "phi_corte := 0.75"
+  },
+  {
+   "id": "r081",
+   "kind": "math",
+   "x": 40,
+   "y": 4376,
+   "src": "phiVc_X := phi_corte*vc_ped*PED_Y*d_ped_X = kN"
+  },
+  {
+   "id": "r082",
+   "kind": "math",
+   "x": 40,
+   "y": 4424,
+   "src": "phiVc_Y := phi_corte*vc_ped*PED_X*d_ped_Y = kN"
+  },
+  {
+   "id": "r083",
+   "kind": "math",
+   "x": 40,
+   "y": 4472,
+   "src": "u_corte_X := Vu_X/phiVc_X ="
+  },
+  {
+   "id": "r084",
+   "kind": "math",
+   "x": 40,
+   "y": 4520,
+   "src": "u_corte_Y := Vu_Y/phiVc_Y ="
+  },
+  {
+   "id": "r085",
+   "kind": "text",
+   "x": 40,
+   "y": 4568,
+   "src": "━━ 6 — ESTRIBOS · ACI 318-25 §10.6.2.2 y §25.7.2 ━━"
+  },
+  {
+   "id": "r086",
+   "kind": "text",
+   "x": 40,
+   "y": 4616,
+   "src": "El 0,062·√f'c y el 0,35 del §10.6.2.2 son coeficientes en MPa, no números, y el mínimo se\ndimensiona sobre la cara larga, que es la que pide más ramas. La separación sale del §25.7.2.1(b),\nal que remite el §10.7.6.1.2: la menor de 16·db longitudinal, 48·db del estribo y la dimensión\nmenor del elemento. El §25.7.2.2 pide estribo No. 10 con barras No. 32 o menores, y No. 13 arriba."
+  },
+  {
+   "id": "r087",
+   "kind": "math",
+   "x": 40,
+   "y": 4736,
+   "src": "Av_min := max(0.062*sqrt(fc_n), 0.35)*(1 MPa)*PED_Y*sep_est/fy = mm^2"
+  },
+  {
+   "id": "r088",
+   "kind": "math",
+   "x": 40,
+   "y": 4784,
+   "src": "Av_prov := n_ramas*pi/4*db_est^2 = mm^2"
+  },
+  {
+   "id": "v_Av",
+   "kind": "math",
+   "x": 40,
+   "y": 4832,
+   "src": "v_Av := Av_prov >= Av_min ="
+  },
+  {
+   "id": "r090",
+   "kind": "math",
+   "x": 40,
+   "y": 4880,
+   "src": "sep_est_max := min(16*db_long, 48*db_est, min(PED_X, PED_Y)) = mm"
+  },
+  {
+   "id": "v_sep_est",
+   "kind": "math",
+   "x": 40,
+   "y": 4928,
+   "src": "v_sep_est := sep_est <= sep_est_max ="
+  },
+  {
+   "id": "r092",
+   "kind": "program",
+   "x": 40,
+   "y": 4976,
+   "src": "db_est_min :=\n    if db_long <= 32 mm\n        return 10 mm\n    else\n        return 13 mm"
+  },
+  {
+   "id": "v_db_est",
+   "kind": "math",
+   "x": 40,
+   "y": 5120,
+   "src": "v_db_est := db_est >= db_est_min ="
+  },
+  {
+   "id": "r094",
+   "kind": "text",
+   "x": 40,
+   "y": 5168,
+   "src": "━━ 7 — LA ARMADURA DEL PEDESTAL ES LA ARMADURA DE ANCLAJE · §17.5.2.1 y Tabla 21.2.1 (k) ━━"
+  },
+  {
+   "id": "r095",
+   "kind": "text",
+   "x": 40,
+   "y": 5216,
+   "src": "La tracción del grupo de pernos y la del lado traccionado del pedestal son el MISMO fenómeno: no\nhay doble conteo. Pero no cuentan todas las barras, solo las que caen dentro del radio del cono.\nEl φ de la armadura de anclaje del §17.5.2.1 es 0,90 (Tabla 21.2.1 (k))."
+  },
+  {
+   "id": "r096",
+   "kind": "math",
+   "x": 40,
+   "y": 5312,
+   "src": "radio_cono := 0.5*h_ef = mm"
+  },
+  {
+   "id": "v_contables",
+   "kind": "math",
+   "x": 40,
+   "y": 5360,
+   "src": "v_contables := n_contables <= n_barras ="
+  },
+  {
+   "id": "r098",
+   "kind": "math",
+   "x": 40,
+   "y": 5408,
+   "src": "phi_anclaje := 0.90"
+  },
+  {
+   "id": "r099",
+   "kind": "math",
+   "x": 40,
+   "y": 5456,
+   "src": "As_anclaje := max(T_grupo/(phi_anclaje*fy), As_req_anc) = mm^2"
+  },
+  {
+   "id": "r100",
+   "kind": "math",
+   "x": 40,
+   "y": 5504,
+   "src": "n_req := ceil(As_anclaje/area_barra) ="
+  },
+  {
+   "id": "r101",
+   "kind": "math",
+   "x": 40,
+   "y": 5552,
+   "src": "u_anclaje := n_req/n_contables ="
+  },
+  {
+   "id": "r102",
+   "kind": "text",
+   "x": 40,
+   "y": 5600,
+   "src": "━━ 8 — UNIÓN CON LA ZAPATA · ACI 318-25 §18.13.2 ━━"
+  },
+  {
+   "id": "r103",
+   "kind": "text",
+   "x": 40,
+   "y": 5648,
+   "src": "§18.13.2.2: la armadura longitudinal de columnas que resisten sismo se prolonga dentro de la zapata\ny desarrolla fy en tracción EN LA INTERFAZ. §18.13.2.3: con base empotrada, si lleva ganchos van a\n90 grados cerca del fondo de la zapata, con el extremo libre hacia el centro de la columna. Es\ndetallado: la hoja lo declara, no lo calcula."
+  },
+  {
+   "id": "r104",
+   "kind": "program",
+   "x": 40,
+   "y": 5768,
+   "src": "detallado_18_13 :=\n    if sdc_def == 1\n        return \"RIGE 18.13.2.2 y 18.13.2.3: barras desarrolladas para fy en la interfaz, ganchos a 90 grados hacia el centro\"\n    else\n        return \"no rige 18.13.2 (SDC A, B o C)\""
+  },
+  {
+   "id": "r105",
+   "kind": "text",
+   "x": 40,
+   "y": 5912,
+   "src": "━━ RESUMEN ━━"
+  },
+  {
+   "id": "r106",
+   "kind": "math",
+   "x": 40,
+   "y": 5960,
+   "src": "u_max := max(u_comp, u_trac, u_pm, u_biax, u_corte_X, u_corte_Y, u_anclaje) ="
+  },
+  {
+   "id": "r107",
+   "kind": "program",
+   "x": 40,
+   "y": 6008,
+   "src": "gobierna :=\n    if u_max == u_anclaje\n        return \"armadura de anclaje: barras dentro del cono\"\n    else if u_max == u_biax\n        return \"flexión biaxial (contorno lineal)\"\n    else if u_max == u_pm\n        return \"flexocompresión\"\n    else if u_max == u_corte_X\n        return \"corte en X del pedestal\"\n    else if u_max == u_corte_Y\n        return \"corte en Y del pedestal\"\n    else if u_max == u_comp\n        return \"compresión axial\"\n    else\n        return \"tracción axial\""
+  },
+  {
+   "id": "v_global",
+   "kind": "math",
+   "x": 40,
+   "y": 6392,
+   "src": "v_global := u_max <= 1 and v_cuantia_min and v_cuantia_max and v_Av and v_sep_est and v_db_est ="
+  },
+  {
+   "id": "r109",
+   "kind": "text",
+   "x": 40,
+   "y": 6440,
+   "src": "━━ ESQUEMA · MAPEO A PÍXELES ━━",
+   "imprimir": false
+  },
+  {
+   "id": "r110",
+   "kind": "text",
+   "x": 40,
+   "y": 6488,
+   "src": "El dibujo sale de las mismas variables que las verificaciones. px y py llevan una distancia medida\ndesde el centro de la sección a píxeles de planta; ey hace lo propio en elevación, medida hacia\nabajo desde la cara superior del pedestal. Las barras se reparten por el perímetro del núcleo, en\nel orden en que se colocan. Este bloque no se imprime.",
+   "imprimir": false
+  },
+  {
+   "id": "r111",
+   "kind": "math",
+   "x": 40,
+   "y": 6608,
+   "src": "esc := min(300/(PED_X/(1 mm)), 200/(PED_Y/(1 mm))) =",
+   "imprimir": false
+  },
+  {
+   "id": "r112",
+   "kind": "program",
+   "x": 40,
+   "y": 6656,
+   "src": "px(u) := 230 + u/(1 mm)*esc",
+   "imprimir": false
+  },
+  {
+   "id": "r113",
+   "kind": "program",
+   "x": 40,
+   "y": 6704,
+   "src": "py(v) := 175 + v/(1 mm)*esc",
+   "imprimir": false
+  },
+  {
+   "id": "r114",
+   "kind": "program",
+   "x": 40,
+   "y": 6752,
+   "src": "ey(w) := 360 + w/(1 mm)*esc",
+   "imprimir": false
+  },
+  {
+   "id": "r115",
+   "kind": "math",
+   "x": 40,
+   "y": 6800,
+   "src": "r_barra_px := max(1.6, db_long/(1 mm)*esc/2) =",
+   "imprimir": false
+  },
+  {
+   "id": "r116",
+   "kind": "program",
+   "x": 40,
+   "y": 6848,
+   "src": "barras_px :=\n    ax := (PED_X - 2*recub_ped)/2\n    ay := (PED_Y - 2*recub_ped)/2\n    paso := 4*(ax + ay)/n_barras\n    Q := zeros(n_barras, 2)\n    for i in 1:n_barras\n        s := (i - 1)*paso\n        if s < 2*ax\n            xb := -ax + s\n            yb := -ay\n        else if s < 2*ax + 2*ay\n            xb := ax\n            yb := -ay + (s - 2*ax)\n        else if s < 4*ax + 2*ay\n            xb := ax - (s - 2*ax - 2*ay)\n            yb := ay\n        else\n            xb := -ax\n            yb := ay - (s - 4*ax - 2*ay)\n        Q[i, 1] = px(xb)\n        Q[i, 2] = py(yb)\n    Q",
+   "imprimir": false
+  },
+  {
+   "id": "r117",
+   "kind": "program",
+   "x": 40,
+   "y": 7400,
+   "src": "estribos_px :=\n    n := floor(PED_H/sep_est)\n    Q := zeros(n, 1)\n    for i in 1:n\n        Q[i, 1] = ey(i*sep_est)\n    Q",
+   "imprimir": false
+  },
+  {
+   "id": "r118",
+   "kind": "math",
+   "x": 40,
+   "y": 7568,
+   "src": "col_barras := (v_cuantia_min and v_cuantia_max) ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
+   "id": "r119",
+   "kind": "math",
+   "x": 40,
+   "y": 7616,
+   "src": "col_est := (v_Av and v_sep_est and v_db_est) ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
+   "id": "r120",
+   "kind": "math",
+   "x": 40,
+   "y": 7664,
+   "src": "col_corte := (u_corte_X <= 1 and u_corte_Y <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
+   "id": "r121",
+   "kind": "math",
+   "x": 40,
+   "y": 7712,
+   "src": "col_anc := u_anclaje <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
+   "id": "r122",
+   "kind": "math",
+   "x": 40,
+   "y": 7760,
+   "src": "col_pm := (u_pm <= 1 and u_biax <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
+   "id": "r123",
+   "kind": "math",
+   "x": 40,
+   "y": 7808,
+   "src": "col_global := v_global ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
+   "id": "esquema",
+   "kind": "image",
+   "x": 40,
+   "y": 7856,
+   "src": "/esquemas/pedestal-generico.svg",
+   "w": 720,
+   "h": 480
+  }
+ ]
 }

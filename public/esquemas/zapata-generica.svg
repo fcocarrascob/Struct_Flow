@@ -124,7 +124,8 @@
   <text x="620" y="412" font-size="10" fill="#555">A_s exigida = {{max(As_Y, As_X):mm^2}} mm²/m</text>
 
   <!-- Franja de cierre -->
-  <rect x="612" y="452" width="218" height="52" rx="4" fill="{{col_global}}" fill-opacity="0.10" stroke="{{col_global}}" stroke-width="1"/>
-  <text x="622" y="472" font-size="10.5" fill="#333">Gobierna: {{gobierna}}</text>
-  <text x="622" y="492" font-size="12" fill="{{col_global}}" font-weight="bold">u_max = {{u_max}}</text>
+  <rect x="612" y="452" width="218" height="62" rx="4" fill="{{col_global}}" fill-opacity="0.10" stroke="{{col_global}}" stroke-width="1"/>
+  <text x="622" y="470" font-size="9.5" fill="#777">Gobierna</text>
+  <text x="622" y="486" font-size="9.5" fill="#333">{{gobierna}}</text>
+  <text x="622" y="505" font-size="12" fill="{{col_global}}" font-weight="bold">u_max = {{u_max}}</text>
 </svg>
