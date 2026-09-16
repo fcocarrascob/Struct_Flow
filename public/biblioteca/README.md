@@ -28,16 +28,18 @@ completo del `meta` está en `docs/ESQUEMA-PLANILLA.md` §10.
 
 ## Inventario
 
-Migradas el 2026-09-11 desde el harness. Las seis pasan `verify:biblioteca` con su
-ejemplo de referencia y un caso que falla a propósito.
+Migradas el 2026-09-11 desde el harness. Las siete pasan `verify:biblioteca` con su
+ejemplo de referencia y un caso que falla a propósito. **Solo norma americana en SI**:
+AISC, ACI y ASCE. Las citas argentinas y chilenas que quedaban se reemplazaron el
+2026-09-15 por el artículo americano equivalente, leído antes de citarlo.
 
 ### `acero/`
 
 | Plantilla | Qué verifica | Norma | Entradas |
 |---|---|---|---:|
-| `placa-base-generica` | Aplastamiento, equilibrio, grupo de pernos y espesor de chapa. Cubre placa **lisa** y **rigidizada** con la misma hoja (`hay_nervios`). Con llave de corte suma a la tracción el **par de la llave** (`hay_llave`) | AISC DG1 3.ª §4.3.7 · AISC 360 §J8, §J4.5 · ACI 318-25 §17.6.1, §17.5.3, §17.11.1.1.9 | 29 |
-| `llave-corte-generica` | Los **siete** estados límite de la llave. Una chapa por dirección o dos paralelas desplazadas | AISC DG1 3.ª §4.3.3 y Ej. 4.7-5 · ACI 318-25 §17.11, §17.5.2.1.2 · AISC 360 §J2, §J4.2, §J4.5 | 27 |
-| `silla-anclaje-generica` | El **camino de carga** completo: perno → chapa superior → nervios → ala (o ala extendida) → alma | CIRSOC 301-18 §J.10.8 · AISC 360 §J2, §J4.2, §J4.5 | 31 |
+| `placa-base-generica` | Aplastamiento, equilibrio, grupo de pernos y espesor de chapa. Cubre placa **lisa** y **rigidizada** con la misma hoja (`hay_nervios`). Con llave de corte suma a la tracción el **par de la llave** (`hay_llave`) | AISC DG1 3.ª §4.3.7 · AISC 360 §J8, §J4.5 · ACI 318-25 §17.6.1, §17.5.3, §17.11.1.1.9 | 31 |
+| `llave-corte-generica` | Los **siete** estados límite de la llave. Una chapa por dirección o dos paralelas desplazadas | AISC DG1 3.ª §4.3.3 y Ej. 4.7-5 · ACI 318-25 §17.11, §17.5.2.1.2 · AISC 360 §J2, §J4.2, §J4.5 | 30 |
+| `silla-anclaje-generica` | El **camino de carga** completo: perno → chapa superior → nervios → ala (o ala extendida) → alma | AISC 360-22 §J10.8 (las tres condiciones geométricas del rigidizador, incluido t ≥ b/16) · §J2, §J4.2, §J4.5 | 31 |
 | `viga-carrilera-generica` | Flexión biaxial, corte, fuerzas concentradas del rodado —incluido el pandeo lateral del alma—, deflexiones y fatiga. Cubre la doble T **monosimétrica** de las dos formas en que se construye: con canal-tapa (`hay_canal`) y **armada con el ala superior más ancha** (`es_soldada`) | AISC 360-22 §F4, §G2, §H1, §J10, Ap. 3 | 43 |
 
 ### `hormigon/`
@@ -45,13 +47,13 @@ ejemplo de referencia y un caso que falla a propósito.
 | Plantilla | Qué verifica | Norma | Entradas |
 |---|---|---|---:|
 | `anclaje-hormigon-generica` | Grupo de pernos colados en tracción: acero, cono, extracción, descascaramiento y armadura de anclaje **por capacidad del perno**. Con sismo, la opción (d) del §17.10.5.3 y el **0,75** del §17.10.5.4 sobre los modos del hormigón (`sismo`) | ACI 318-25 SI §17.5, §17.6, §17.9, §17.10, Tabla 21.2.1 | 28 |
-| `pedestal-generico` | Cuantías, extremos del diagrama P–M, **flexión biaxial** por contorno lineal, corte, estribos, armadura de anclaje contable (la mayor entre demanda y `As_req` por capacidad) y el detallado de la unión del §18.13.2 | ACI 318-25 SI Cap. 10, 17, 18, 21, 22, 25 | 33 |
-| `zapata-generica` | Flexión, corte en una dirección y punzonamiento, con reparto en banda | ACI 318-25 SI Cap. 8, 13, 21, 22, 25 | 22 |
+| `pedestal-generico` | Cuantías del §10.6.1.1 (0,01·Ag a 0,08·Ag), extremos del diagrama P–M, **flexión biaxial** por contorno lineal, corte, estribos, armadura de anclaje contable (la mayor entre demanda y `As_req` por capacidad) y el detallado de la unión del §18.13.2 | ACI 318-25 SI Cap. 10, 17, 18, 21, 22, 25 | 31 |
+| `zapata-generica` | Flexión, corte en una dirección y punzonamiento, con reparto en banda, más la armadura superior por levantamiento del §18.13.2.5 verificada a flexión | ACI 318-25 SI Cap. 7, 8, 13, 18, 21, 22, 25 | 23 |
 
 ### `acciones/`
 
-Vacía. Las candidatas (viento CIRSOC 102, nieve CIRSOC 104) se destilan de las hojas
-del taller de neumáticos cuando se instancien por segunda vez; para una hoja de
+Vacía. Las candidatas son **viento** y **nieve por ASCE 7**, que se destilan de las
+hojas del taller de neumáticos cuando se instancien por segunda vez; para una hoja de
 acciones el contrato exige solo `v_global`, no `u_max` ni `gobierna`.
 
 ## La familia BASE DE COLUMNA
@@ -70,9 +72,10 @@ llave-corte-generica  ───┘        (acero)               (hormigón)     
 |---|---|---|
 | `T_grupo` | `placa-base-generica` | `silla-anclaje-generica` · `anclaje-hormigon-generica` (como `Nua_g`) · `pedestal-generico` |
 | `As_req` | `anclaje-hormigon-generica` | `pedestal-generico` (como `As_req_anc`) |
+| `N_sa` y `n_trac` | `anclaje-hormigon-generica` | `llave-corte-generica` (ψ_brg,sl en tracción, §17.11.2.2.1a) |
 | `exc` | `llave-corte-generica` (mortero + mitad de la altura efectiva de la llave) | `placa-base-generica` (como `z_llave`, brazo del par del §17.11.1.1.9) |
 | `Yb_comp` | `placa-base-generica` | `llave-corte-generica` (como `Yb`; de ahí sale `ψ_brg`) · `silla-anclaje-generica` |
-| `t_bp` requerido | `placa-base-generica` **y** `llave-corte-generica` | manda **el mayor de los dos** |
+| `tbp_req` | `llave-corte-generica`, y el espesor que pide el aplastamiento en `placa-base-generica` | manda **el mayor de los dos** |
 | Reacción de base | el modelo estructural | `zapata-generica` |
 
 > 🔴 **El espesor de la placa lo suele fijar la llave, no el panel entre nervios.** Por la
@@ -95,20 +98,42 @@ aparte. Resumen:
 |---|---|---|
 | `placa-base-generica` | **β** (entra medido o de tabla; la hoja lo acota entre 0,0479 y 0,125) · la silla · la llave | placa rectangular · una fila de pernos por lado · bloque rectangular |
 | `llave-corte-generica` | el equilibrio de la placa · el despiece de la armadura de anclaje · la envolvente de dos chapas como bloque único | — |
-| `silla-anclaje-generica` | el reparto de tracción entre pernos (uniforme) · el ancho eficaz de la chapa · el rigidizador a resistencia | extensión de ala con la lectura conservadora |
+| `silla-anclaje-generica` | el reparto de tracción entre pernos (uniforme) · el ancho eficaz de la chapa · el rigidizador **a resistencia**, que el §J10.8 manda al §J4.1 en tracción y al §J4.4 en compresión | extensión de ala con la lectura conservadora |
 | `viga-carrilera-generica` | las cargas de rueda (del fabricante) · la clasificación del **ala** —la del **alma** sí la calcula— · el eje neutro plástico (`R_pc = R_pt = 1,0`) · los límites de deflexión · el riel y su unión | dos ruedas iguales · canal continuo y colaborante · vano simple · el ala superior (más el canal) toma íntegramente la fuerza lateral |
 | `anclaje-hormigon-generica` | la tracción del grupo · el corte (va a la llave) · las opciones (a), (b) y (c) del §17.10.5.3 | pernos colados con cabeza · una fila traccionada · armadura conformada (§17.10.4) |
-| `pedestal-generico` | los puntos intermedios del P–M (entran como pares) · la φMn uniaxial de cada eje para la biaxial · los límites de cuantía | estribos cerrados · armadura simétrica · **detallado no sísmico** en el fuste · biaxial por suma lineal (cota superior) |
-| `zapata-generica` | los esfuerzos mayorados | apoyo interior · sin armadura de corte · `Nu = 0` · X es el lado corto (**sí** se chequea) |
+| `pedestal-generico` | los puntos intermedios del P–M (entran como pares) · la φMn uniaxial de cada eje para la biaxial | estribos cerrados · armadura simétrica · **detallado no sísmico** en el fuste · biaxial por suma lineal (cota superior) |
+| `zapata-generica` | los esfuerzos mayorados · el momento negativo de la cara superior (`Mu_sup`) | apoyo interior · sin armadura de corte · `Nu = 0` · X es el lado corto (**sí** se chequea) |
+
+## El esqueleto de una genérica
+
+Las siete tienen la misma forma desde el 2026-09-15, y una hoja nueva la copia. El
+objetivo es que la memoria impresa quepa en un anexo: entre 4 y 9 páginas por hoja.
+
+1. **Alcance**, uno o dos párrafos: qué verifica, hipótesis y fronteras en prosa corta.
+   Lo demás vive en `meta`, que es de donde lo lee la ficha de `/diseno`.
+2. **`━━ DATOS · <GRUPO> ━━`**: solo regiones `in_*`, con una nota por bloque como
+   máximo. Lo que explica un dato concreto va en su `ayuda`, que la GUI muestra al lado
+   del campo y el papel no imprime.
+3. **`━━ N — ESTADO LÍMITE · <norma> §<art.> ━━`**, numerados de corrido: cada ecuación
+   de norma con su valor, las adimensionalizaciones en línea, y cierre con `u_x`. Un
+   `v_*` solo para lo que **no** es resistencia —geometría, detallado, validez—, porque
+   un veredicto que repite `u_x ≤ 1` no agrega nada y ocupa una línea.
+4. **`━━ RESUMEN ━━`**: `u_max`, `gobierna` y `v_global`, que suma la resistencia y los
+   veredictos que no son aviso. Nada suelto después.
+5. **`━━ ESQUEMA · MAPEO A PÍXELES ━━`**, todo con `imprimir: false`: la escala, las
+   funciones de coordenadas y los colores `col_*` alimentan la figura y no salen en el
+   papel. La región `image` va la última y **sí** se imprime.
+
+Reglas de redacción: español neutro con tildes, cero `pdf N` / `rasterizada` / `impresa
+NN` —la evidencia de lectura vive en el harness, en la hoja va el artículo—, cero
+`pageBreak` y cita en un solo formato (`ACI 318-25 §17.6.2` en el encabezado,
+`[17.6.2.1b]` en la ecuación).
 
 ## Lo que queda por afinar en el `meta`
 
-Las **etiquetas** de las entradas de `placa-base-generica` están escritas; en las otras
-cinco la etiqueta es el nombre de la variable y la `ayuda` es el párrafo de la hoja que
-la nombra, tal como las esbozó `scripts/promover-entradas.mjs`. Se completan en el
-canvas cuando cada hoja se use por primera vez desde `/diseno`. Lo mismo con el
-`aviso: true` de los veredictos: marca los chequeos de validez (rango de un dato,
-hipótesis) y no los de resistencia, y se revisa hoja por hoja.
+Las **etiquetas** y las `ayuda` de las entradas están escritas en las siete. El
+`aviso: true` de los veredictos marca los chequeos de validez (rango de un dato,
+hipótesis) y no los de resistencia; un aviso **no vota** en `v_global`.
 
 ## Cómo se usa
 
@@ -160,8 +185,8 @@ caso real, cuando haga falta** — no antes.
 
 | Falta | De dónde sale |
 |---|---|
-| **Viento CIRSOC 102** | `viento-cirsoc102` del taller de neumáticos (Struct_Harness) |
-| **Nieve CIRSOC 104** | `nieve-cirsoc104` del taller de neumáticos |
+| **Viento ASCE 7** (Cap. 26 y 27) | las hojas de viento del taller de neumáticos (Struct_Harness), rehechas contra ASCE 7-16, que es la edición calibrada del catálogo |
+| **Nieve ASCE 7** (Cap. 7) | las hojas de nieve del mismo proyecto, con la misma conversión |
 | **Losa de fundación (flexión, corte, punzonamiento)** | el trío `*-aci318` del taller de neumáticos; **nomenclatura distinta** de `zapata-generica` (`b/h/rec/d_b/s` vs `bw/hzap/recub/db/sep`). Se dejó pendiente a propósito: unificar es editar cálculos que respaldan una memoria |
 | **Espectro y factores de escala** | `espectro-factores-escala` (Pachón) |
 | **Riostras — esbeltez y compacidad** | `esbelteces-c103p4` del taller de neumáticos |

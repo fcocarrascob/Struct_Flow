@@ -154,8 +154,8 @@ function construirHoja(e: EntradasAceroI): Item[] {
     t('Cubre: perfil I doblemente simétrico, compresión (E3 y E4), flexión en el eje fuerte'),
     t('(F2), corte del alma (G2.1) e interacción (H1.1). NO cubre: elementos esbeltos en'),
     t('compresión (E7), alas no compactas o esbeltas en flexión (F3), flexión en el eje débil'),
-    t('(F6), tracción (D2) ni la capa sísmica de NCh2369. El veredicto v_alcance se pone en ✗'),
-    t('cuando la sección entra en un régimen que este módulo no sabe tratar.'),
+    t('(F6), tracción (D2) ni requisitos sismorresistentes (AISC 341). El veredicto v_alcance se'),
+    t('pone en ✗ cuando la sección entra en un régimen que este módulo no sabe tratar.'),
 
     t('━━ DATOS · ACERO Y FACTORES ━━'),
     m(`F_y := ${n(e.F_y)} kgf/cm^2`),

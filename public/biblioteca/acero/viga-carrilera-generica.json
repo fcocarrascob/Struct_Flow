@@ -19,13 +19,13 @@
     "nombre": "phi_b",
     "etiqueta": "phi_b",
     "grupo": "Materiales y factores",
-    "ayuda": "phi_b = 0,90 en flexion. Para el CORTE, el §G1(a) —impresa 16.1-75— fija phi_v = 0,90 «for all provisions in this chapter EXCEPT Section G2.1(a)». El 1,00 del G2.1(a) es para almas de perfiles LAMINADOS con h/tw pequeno; con un canal soldado encima el miembro ya es armado, y adoptar 1,00 es una decision que hay que tomar a conciencia. Por defecto va el 0,90"
+    "ayuda": "phi_b = 0,90 en flexion. Para el corte, el §G1(a) fija phi_v = 0,90 salvo en el §G2.1(a), cuyo 1,00 vale solo para almas de perfiles laminados: una carrilera con canal-tapa soldado ya es un miembro armado."
    },
    {
     "nombre": "phi_v",
     "etiqueta": "phi_v",
     "grupo": "Materiales y factores",
-    "ayuda": "phi_b = 0,90 en flexion. Para el CORTE, el §G1(a) —impresa 16.1-75— fija phi_v = 0,90 «for all provisions in this chapter EXCEPT Section G2.1(a)». El 1,00 del G2.1(a) es para almas de perfiles LAMINADOS con h/tw pequeno; con un canal soldado encima el miembro ya es armado, y adoptar 1,00 es una decision que hay que tomar a conciencia. Por defecto va el 0,90"
+    "ayuda": "phi_b = 0,90 en flexion. Para el corte, el §G1(a) fija phi_v = 0,90 salvo en el §G2.1(a), cuyo 1,00 vale solo para almas de perfiles laminados: una carrilera con canal-tapa soldado ya es un miembro armado."
    },
    {
     "nombre": "phi_j10y",
@@ -201,14 +201,14 @@
     "nombre": "C_f",
     "etiqueta": "C_f",
     "grupo": "Fronteras declaradas",
-    "ayuda": "Constantes de la Tabla A-3.1, impresa 16.1-210, LEIDA RASTERIZADA: categoria A  C_f = 25    F_TH = 170 MPa categoria B  C_f = 12    F_TH = 110 MPa categoria C  C_f = 4,4   F_TH =  69 MPa categoria D  C_f = 2,2   F_TH =  48 MPa categoria E' C_f = 0,39  F_TH =  18 MPa El caso concreto se elige en la Seccion 2 de esa tabla para la soldadura que une el canal al ala. Por defecto va la B, que es la del cordon continuo paralelo a la direccion de la tension"
+    "ayuda": "Constantes de la Tabla A-3.1: categoria A  C_f = 25    F_TH = 170 MPa categoria B  C_f = 12    F_TH = 110 MPa categoria C  C_f = 4,4   F_TH =  69 MPa categoria D  C_f = 2,2   F_TH =  48 MPa categoria E' C_f = 0,39  F_TH =  18 MPa El caso concreto se elige en la Seccion 2 de esa tabla para la soldadura que une el canal al ala. Por defecto va la B, que es la del cordon continuo paralelo a la direccion de la tension"
    },
    {
     "nombre": "F_TH",
     "etiqueta": "F_TH",
     "grupo": "Fronteras declaradas",
     "unidad": "MPa",
-    "ayuda": "Constantes de la Tabla A-3.1, impresa 16.1-210, LEIDA RASTERIZADA: categoria A  C_f = 25    F_TH = 170 MPa categoria B  C_f = 12    F_TH = 110 MPa categoria C  C_f = 4,4   F_TH =  69 MPa categoria D  C_f = 2,2   F_TH =  48 MPa categoria E' C_f = 0,39  F_TH =  18 MPa El caso concreto se elige en la Seccion 2 de esa tabla para la soldadura que une el canal al ala. Por defecto va la B, que es la del cordon continuo paralelo a la direccion de la tension"
+    "ayuda": "Constantes de la Tabla A-3.1: categoria A  C_f = 25    F_TH = 170 MPa categoria B  C_f = 12    F_TH = 110 MPa categoria C  C_f = 4,4   F_TH =  69 MPa categoria D  C_f = 2,2   F_TH =  48 MPa categoria E' C_f = 0,39  F_TH =  18 MPa El caso concreto se elige en la Seccion 2 de esa tabla para la soldadura que une el canal al ala. Por defecto va la B, que es la del cordon continuo paralelo a la direccion de la tension"
    },
    {
     "nombre": "n_SR",

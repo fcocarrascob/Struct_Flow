@@ -35,7 +35,7 @@ export const CLASES: readonly ClasePlanilla[] = ['generica', 'instancia', 'ejemp
 
 /** Una norma de la que la hoja toma ecuaciones, tablas o factores. */
 export interface NormaRef {
-  /** Clave del catálogo del harness: `US/ACI318-25-SI`, `AR/CIRSOC-301-2018`. */
+  /** Clave del catálogo del harness: `US/ACI318-25-SI`, `US/AISC360-22`. */
   clave: string;
   /** Qué aporta a la hoja: `resistencia`, `anclaje`, `cargas de puente grúa`… */
   rol: string;
