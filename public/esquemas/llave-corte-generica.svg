@@ -1,12 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 560" font-family="system-ui, sans-serif">
-  <!-- Esquema paramétrico de `llave-corte-generica`: planta del pedestal con las
-       dos chapas y las distancias de borde que gobiernan el breakout, y elevación
-       con la placa, el mortero, la parte efectiva de la llave y el perno. -->
+  <!-- Esquema paramétrico de `llave-corte-generica`, en cuatro vistas.
 
-  <text x="420" y="24" font-size="15" text-anchor="middle" fill="#222" font-weight="bold">Llave de corte bajo placa base — planta y elevación a escala</text>
+       A_Vc es el área proyectada de la superficie de falla SOBRE LA CARA
+       LATERAL del hormigón (§17.11.3.1), no una superficie horizontal: por eso
+       tiene vista propia y no se dibuja en planta, donde el número no
+       corresponde a nada. En planta va la CUÑA que se abre hacia el borde
+       libre, que es el mecanismo. Y la llave tiene detalle a escala propia
+       porque a la escala del pedestal son cinco píxeles, y la hoja entera
+       trata de esa chapa. -->
 
-  <!-- =============== PLANTA =============== -->
-  <text x="40" y="52" font-size="12" fill="#555" font-weight="bold">PLANTA</text>
+  <defs>
+    <pattern id="llave-mortero" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="6" height="6" fill="#e6dcc6"/>
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#a9997e" stroke-width="1.2"/>
+    </pattern>
+    <pattern id="llave-aef" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="5" stroke="#b07d2b" stroke-width="1.1"/>
+    </pattern>
+  </defs>
+
+  <text x="420" y="20" font-size="14" text-anchor="middle" fill="#222" font-weight="bold">Llave de corte bajo placa base — planta, cara lateral del breakout, elevación y detalle</text>
+
+  <!-- =============== 1 · PLANTA =============== -->
+  <text x="40" y="44" font-size="11.5" fill="#555" font-weight="bold">PLANTA · la cuña se abre hacia el borde libre</text>
 
   <!-- Pedestal -->
   <rect x="{{px(-PED_X/2):svg}}" y="{{py(-PED_Y/2):svg}}" width="{{PED_X/(1 mm)*esc:svg}}" height="{{PED_Y/(1 mm)*esc:svg}}"
@@ -16,6 +32,14 @@
   <rect x="{{px(-B_bp/2):svg}}" y="{{py(-B_bp/2):svg}}" width="{{B_bp/(1 mm)*esc:svg}}" height="{{B_bp/(1 mm)*esc:svg}}"
         fill="none" stroke="#9aa3ab" stroke-width="1" stroke-dasharray="4 3"/>
 
+  <!-- La CUÑA a ~35°: de los bordes de la superficie de aplastamiento hasta el
+       borde libre, abriéndose 1,5·c_a1 a cada lado. Recortada al pedestal. -->
+  <path d="M {{px(t_sl/2):svg}} {{py(-bY_sl/2):svg}}
+           L {{px(t_sl/2 + ca1_x):svg}} {{py(-min(bY_sl + 3*ca1_x, PED_Y)/2):svg}}
+           L {{px(t_sl/2 + ca1_x):svg}} {{py(min(bY_sl + 3*ca1_x, PED_Y)/2):svg}}
+           L {{px(t_sl/2):svg}} {{py(bY_sl/2):svg}} Z"
+        fill="{{col_cb}}" fill-opacity="0.10" stroke="{{col_cb}}" stroke-width="1.1" stroke-dasharray="5 3"/>
+
   <!-- Chapa que toma V_ux: orientada según Y, ancho bY_sl -->
   <rect x="{{px(0 mm) - t_px/2:svg}}" y="{{py(-bY_sl/2):svg}}" width="{{t_px:svg}}" height="{{bY_sl/(1 mm)*esc:svg}}"
         fill="{{col_chapa}}" stroke="none"/>
@@ -23,100 +47,137 @@
   <rect x="{{px(-bX_sl/2):svg}}" y="{{py(y_chapa) - t_px/2:svg}}" width="{{bX_sl/(1 mm)*esc:svg}}" height="{{t_px:svg}}"
         fill="{{col_chapa}}" stroke="none"/>
 
-  <!-- Distancia de borde que gobierna el breakout en X -->
-  <line x1="{{px(0 mm):svg}}" x2="{{px(PED_X/2):svg}}" y1="{{py(-bY_sl/2) - 10:svg}}" y2="{{py(-bY_sl/2) - 10:svg}}"
-        stroke="{{col_cb}}" stroke-width="1.3"/>
-  <line x1="{{px(PED_X/2):svg}}" x2="{{px(PED_X/2):svg}}" y1="{{py(-bY_sl/2) - 15:svg}}" y2="{{py(-bY_sl/2) - 5:svg}}" stroke="{{col_cb}}" stroke-width="1.3"/>
-  <text x="{{px(PED_X/2) + 6:svg}}" y="{{py(-bY_sl/2) - 12:svg}}" font-size="10" fill="{{col_cb}}">c_a1,X = {{ca1_x:mm}} mm</text>
+  <!-- c_a1 se mide desde la SUPERFICIE DE APLASTAMIENTO, no desde el eje -->
+  <line x1="{{px(t_sl/2):svg}}" x2="{{px(PED_X/2):svg}}" y1="{{py(-PED_Y/2) - 9:svg}}" y2="{{py(-PED_Y/2) - 9:svg}}" stroke="{{col_cb}}" stroke-width="1.2"/>
+  <line x1="{{px(t_sl/2):svg}}" x2="{{px(t_sl/2):svg}}" y1="{{py(-PED_Y/2) - 13:svg}}" y2="{{py(-PED_Y/2) - 5:svg}}" stroke="{{col_cb}}" stroke-width="1.2"/>
+  <line x1="{{px(PED_X/2):svg}}" x2="{{px(PED_X/2):svg}}" y1="{{py(-PED_Y/2) - 13:svg}}" y2="{{py(-PED_Y/2) - 5:svg}}" stroke="{{col_cb}}" stroke-width="1.2"/>
+  <text x="{{px(t_sl/2 + ca1_x/2):svg}}" y="{{py(-PED_Y/2) - 16:svg}}" font-size="9" text-anchor="middle" fill="{{col_cb}}">c_a1,X = {{ca1_x:mm}} (de la cara de aplastamiento)</text>
+  <text x="{{px(t_sl/2 + ca1_x/2):svg}}" y="{{py(0 mm) - 4:svg}}" font-size="9" text-anchor="middle" fill="{{col_cb}}">≈35°</text>
 
-  <!-- Área de breakout en X, proyectada sobre el borde. El alto real es
-       bY_sl + 3·c_a1 y suele salirse del pedestal: se dibuja recortado a él y el
-       valor va rotulado. -->
-  <rect x="{{px(t_sl/2):svg}}" y="{{py(-min(bY_sl + 3*ca1_x, PED_Y)/2):svg}}"
-        width="{{ca1_x/(1 mm)*esc:svg}}" height="{{min(bY_sl + 3*ca1_x, PED_Y)/(1 mm)*esc:svg}}"
-        fill="{{col_cb}}" fill-opacity="0.08" stroke="{{col_cb}}" stroke-width="1" stroke-dasharray="4 3"/>
+  <!-- Flechas del corte, fuera del pedestal para no pisar las chapas. Cada una
+       apunta a la chapa que la toma: V_ux a la orientada según Y, y al revés. -->
+  <line x1="{{px(-PED_X/2) - 28:svg}}" x2="{{px(-PED_X/2) - 6:svg}}" y1="{{py(0 mm):svg}}" y2="{{py(0 mm):svg}}" stroke="#1a63a8" stroke-width="1.8"/>
+  <text x="{{px(-PED_X/2) - 17:svg}}" y="{{py(0 mm) - 5:svg}}" font-size="9" text-anchor="middle" fill="#1a63a8">V_ux</text>
+  <line x1="{{px(-PED_X/4):svg}}" x2="{{px(-PED_X/4):svg}}" y1="{{py(PED_Y/2) + 26:svg}}" y2="{{py(PED_Y/2) + 6:svg}}" stroke="#1a63a8" stroke-width="1.8"/>
+  <text x="{{px(-PED_X/4) + 5:svg}}" y="{{py(PED_Y/2) + 22:svg}}" font-size="9" fill="#1a63a8">V_uy</text>
 
-  <!-- Cotas de planta -->
-  <text x="{{px(0 mm):svg}}" y="{{py(PED_Y/2) + 16:svg}}" font-size="10.5" text-anchor="middle" fill="#222"
-        stroke="#fff" stroke-width="3" paint-order="stroke">pedestal {{PED_X:mm}} × {{PED_Y:mm}} mm</text>
-  <text x="{{px(-PED_X/2) - 8:svg}}" y="{{py(0 mm):svg}}" font-size="10" text-anchor="end" fill="{{col_chapa}}"
-        stroke="#fff" stroke-width="3" paint-order="stroke">chapas {{bY_sl:mm}} y {{bX_sl:mm}} × {{t_sl:mm}} mm</text>
-  <text x="{{px(PED_X/2) + 6:svg}}" y="{{py(-bY_sl/2) + 6:svg}}" font-size="9.5" fill="{{col_cb}}"
-        stroke="#fff" stroke-width="3" paint-order="stroke">A_Vc,X = {{AVc_x/(1000 mm^2)}} ·10³ mm²</text>
-  <text x="{{px(PED_X/2) + 6:svg}}" y="{{py(-bY_sl/2) + 22:svg}}" font-size="9.5" fill="{{col_cb}}"
-        stroke="#fff" stroke-width="3" paint-order="stroke">{{n_chapas}} chapa(s) por dirección</text>
+  <text x="{{px(0 mm):svg}}" y="{{py(PED_Y/2) + 42:svg}}" font-size="9.5" text-anchor="middle" fill="#222">pedestal {{PED_X:mm}} × {{PED_Y:mm}} · chapas {{bY_sl:mm}} y {{bX_sl:mm}} × {{t_sl:mm}} mm</text>
+  <text x="{{px(0 mm):svg}}" y="{{py(PED_Y/2) + 55:svg}}" font-size="9.5" text-anchor="middle" fill="#1a63a8">V_ux = {{V_ux:kN}} kN (la toma la chapa de {{bY_sl:mm}}) · V_uy = {{V_uy:kN}} kN</text>
 
-  <!-- =============== ELEVACIÓN =============== -->
-  <text x="40" y="{{ey(0 mm) - 46:svg}}" font-size="12" fill="#555" font-weight="bold">ELEVACIÓN (corte en X)</text>
+  <!-- =============== 2 · CARA LATERAL · A_Vc =============== -->
+  <text x="330" y="44" font-size="11.5" fill="#555" font-weight="bold">CARA LATERAL · A_Vc proyectada (§17.11.3.1.1)</text>
 
-  <!-- Pedestal -->
+  <!-- El rectángulo TEÓRICO, que suele desbordar la cara del pedestal -->
+  <rect x="{{lx(-(bY_sl + 3*ca1_x)/2):svg}}" y="{{ly(0 mm):svg}}"
+        width="{{(bY_sl + 3*ca1_x)/(1 mm)*esc_lat:svg}}" height="{{(hef_sl + 1.5*ca1_x)/(1 mm)*esc_lat:svg}}"
+        fill="none" stroke="{{col_cb}}" stroke-width="0.9" stroke-dasharray="3 3" stroke-opacity="0.6"/>
+
+  <!-- Cara lateral del pedestal -->
+  <rect x="{{lx(-PED_Y/2):svg}}" y="{{ly(0 mm):svg}}" width="{{PED_Y/(1 mm)*esc_lat:svg}}" height="{{H_PED/(1 mm)*esc_lat:svg}}"
+        fill="#f4f6f8" stroke="#333" stroke-width="1.4"/>
+
+  <!-- A_Vc efectiva: el teórico recortado al pedestal -->
+  <rect x="{{lx(-ancho_AVc/2):svg}}" y="{{ly(0 mm):svg}}" width="{{ancho_AVc/(1 mm)*esc_lat:svg}}" height="{{alto_AVc/(1 mm)*esc_lat:svg}}"
+        fill="{{col_cb}}" fill-opacity="0.14" stroke="{{col_cb}}" stroke-width="1.2"/>
+
+  <!-- A_ef,sl, que se RESTA: la huella de la chapa -->
+  <rect x="{{lx(-bY_sl/2):svg}}" y="{{ly(0 mm):svg}}" width="{{bY_sl/(1 mm)*esc_lat:svg}}" height="{{max(2, hef_sl/(1 mm)*esc_lat):svg}}"
+        fill="url(#llave-aef)" stroke="#b07d2b" stroke-width="1"/>
+
+  <!-- Cota del ancho teórico, b_sl + 3·c_a1 -->
+  <line x1="{{lx(-(bY_sl + 3*ca1_x)/2):svg}}" x2="{{lx((bY_sl + 3*ca1_x)/2):svg}}"
+        y1="{{ly(max(hef_sl + 1.5*ca1_x, H_PED)) + 12:svg}}" y2="{{ly(max(hef_sl + 1.5*ca1_x, H_PED)) + 12:svg}}" stroke="{{col_cb}}" stroke-width="0.9"/>
+  <text x="{{lx(0 mm):svg}}" y="{{ly(max(hef_sl + 1.5*ca1_x, H_PED)) + 24:svg}}" font-size="8.5" text-anchor="middle" fill="{{col_cb}}">b_sl + 3·c_a1 = {{bY_sl + 3*ca1_x:mm}} mm</text>
+
+  <text x="{{lx(-(bY_sl + 3*ca1_x)/2):svg}}" y="{{ly(max(hef_sl + 1.5*ca1_x, H_PED)) + 40:svg}}" font-size="9" fill="{{col_cb}}">A_Vc,X = {{AVc_x/(1000 mm^2)}} ·10³ mm², ya descontada A_ef,sl</text>
+  <text x="{{lx(-(bY_sl + 3*ca1_x)/2):svg}}" y="{{ly(max(hef_sl + 1.5*ca1_x, H_PED)) + 53:svg}}" font-size="9" fill="#b07d2b">A_ef,sl = {{A_efx/(1000 mm^2)}} ·10³ mm² · {{n_chapas}} chapa(s) por dirección</text>
+  <text x="{{lx(-(bY_sl + 3*ca1_x)/2):svg}}" y="{{ly(max(hef_sl + 1.5*ca1_x, H_PED)) + 66:svg}}" font-size="8.5" fill="#777">{{nota_AVc}}</text>
+
+  <!-- =============== 3 · ELEVACIÓN (corte en X) =============== -->
+  <text x="40" y="{{ey(0 mm) - 30:svg}}" font-size="11.5" fill="#555" font-weight="bold">ELEVACIÓN (corte en X)</text>
+
   <rect x="{{px(-PED_X/2):svg}}" y="{{ey(0 mm):svg}}" width="{{PED_X/(1 mm)*esc:svg}}" height="{{H_PED/(1 mm)*esc:svg}}"
-        fill="#f4f6f8" stroke="#333" stroke-width="1.6"/>
-
-  <!-- Mortero y placa base -->
+        fill="#f4f6f8" stroke="#333" stroke-width="1.4"/>
   <rect x="{{px(-B_bp/2):svg}}" y="{{ey(0 mm) - t_gr/(1 mm)*esc:svg}}" width="{{B_bp/(1 mm)*esc:svg}}" height="{{max(2, t_gr/(1 mm)*esc):svg}}"
-        fill="#e7eaed" stroke="#aaa" stroke-width="0.8"/>
+        fill="url(#llave-mortero)" stroke="#a9997e" stroke-width="0.7"/>
   <rect x="{{px(-B_bp/2):svg}}" y="{{ey(0 mm) - (t_gr + t_bp)/(1 mm)*esc:svg}}" width="{{B_bp/(1 mm)*esc:svg}}" height="{{max(2, t_bp/(1 mm)*esc):svg}}"
         fill="#9aa3ab" stroke="none"/>
-
-  <!-- Llave: la parte efectiva, 2·t_sl, y el resto en trazo fino -->
   <rect x="{{px(0 mm) - t_px/2:svg}}" y="{{ey(0 mm):svg}}" width="{{t_px:svg}}" height="{{h_sl/(1 mm)*esc:svg}}"
-        fill="none" stroke="{{col_chapa}}" stroke-width="0.8" stroke-dasharray="3 2"/>
-  <rect x="{{px(0 mm) - t_px/2:svg}}" y="{{ey(0 mm):svg}}" width="{{t_px:svg}}" height="{{max(2, hef_sl/(1 mm)*esc):svg}}"
-        fill="{{col_brg}}" stroke="none"/>
-
-  <!-- Aplastamiento sobre la cara efectiva -->
-  <line x1="{{px(0 mm) + t_px/2 + 3:svg}}" x2="{{px(0 mm) + t_px/2 + 16:svg}}" y1="{{ey(hef_sl/2):svg}}" y2="{{ey(hef_sl/2):svg}}"
-        stroke="{{col_brg}}" stroke-width="1.6"/>
-  <text x="{{px(0 mm) + t_px/2 + 20:svg}}" y="{{ey(hef_sl/2) + 4:svg}}" font-size="10" fill="{{col_brg}}">h_ef,sl = {{hef_sl:mm}} mm · e = {{exc:mm}} mm</text>
+        fill="{{col_chapa}}" stroke="none"/>
 
   <!-- Perno de anclaje a c_sl del eje de la llave -->
   <line x1="{{px(csl_X):svg}}" x2="{{px(csl_X):svg}}" y1="{{ey(0 mm) - (t_gr + t_bp)/(1 mm)*esc:svg}}" y2="{{ey(h_ef):svg}}"
-        stroke="{{col_perno}}" stroke-width="2.2"/>
-  <line x1="{{px(csl_X) - 7:svg}}" x2="{{px(csl_X) + 7:svg}}" y1="{{ey(h_ef):svg}}" y2="{{ey(h_ef):svg}}" stroke="{{col_perno}}" stroke-width="3"/>
-  <text x="{{px(csl_X) + 10:svg}}" y="{{ey(h_ef) - 4:svg}}" font-size="10" fill="{{col_perno}}"
-        stroke="#fff" stroke-width="3" paint-order="stroke">h_ef = {{h_ef:mm}} mm (mín. {{hef_req:mm}})</text>
-  <text x="{{px(csl_X) + 10:svg}}" y="{{ey(0 mm) + 34:svg}}" font-size="10" fill="{{col_perno}}"
+        stroke="{{col_perno}}" stroke-width="2"/>
+  <line x1="{{px(csl_X) - 6:svg}}" x2="{{px(csl_X) + 6:svg}}" y1="{{ey(h_ef):svg}}" y2="{{ey(h_ef):svg}}" stroke="{{col_perno}}" stroke-width="3"/>
+  <text x="{{px(csl_X) + 9:svg}}" y="{{ey(h_ef) - 3:svg}}" font-size="9" fill="{{col_perno}}"
+        stroke="#fff" stroke-width="3" paint-order="stroke">h_ef = {{h_ef:mm}} (mín. {{hef_req:mm}})</text>
+  <text x="{{px(csl_X) + 9:svg}}" y="{{ey(0 mm) + 22:svg}}" font-size="9" fill="{{col_perno}}"
         stroke="#fff" stroke-width="3" paint-order="stroke">c_sl = {{csl_X:mm}} mm</text>
+  <text x="{{px(-PED_X/2) - 6:svg}}" y="{{ey(H_PED/2):svg}}" font-size="9" text-anchor="end" fill="#555">H_PED = {{H_PED:mm}}</text>
 
-  <!-- Flecha del corte -->
-  <line x1="{{px(-B_bp/2) - 36:svg}}" x2="{{px(-B_bp/2) - 6:svg}}" y1="{{ey(0 mm) - (t_gr + t_bp/2)/(1 mm)*esc:svg}}" y2="{{ey(0 mm) - (t_gr + t_bp/2)/(1 mm)*esc:svg}}"
-        stroke="#1a63a8" stroke-width="2"/>
-  <text x="{{px(-B_bp/2) - 36:svg}}" y="{{ey(0 mm) - (t_gr + t_bp/2)/(1 mm)*esc - 6:svg}}" font-size="10" fill="#1a63a8">V_ux = {{V_ux:kN}} kN</text>
-  <text x="{{px(-PED_X/2) - 8:svg}}" y="{{ey(H_PED/2):svg}}" font-size="10" text-anchor="end" fill="#555"
-        stroke="#fff" stroke-width="3" paint-order="stroke">H_PED = {{H_PED:mm}} mm</text>
+  <!-- =============== 4 · DETALLE DE LA CHAPA =============== -->
+  <text x="330" y="{{dy(0 mm) - (t_bp + t_gr)/(1 mm)*esc_det - 22:svg}}" font-size="11.5" fill="#555" font-weight="bold">DETALLE DE LA LLAVE · escala propia</text>
+
+  <!-- Hormigón bajo el mortero -->
+  <rect x="{{dx(-4*t_sl):svg}}" y="{{dy(0 mm):svg}}" width="{{8*t_sl/(1 mm)*esc_det:svg}}" height="{{h_sl/(1 mm)*esc_det + 10:svg}}"
+        fill="#f4f6f8" stroke="#333" stroke-width="1.2"/>
+  <!-- Mortero y placa -->
+  <rect x="{{dx(-4*t_sl):svg}}" y="{{dy(0 mm) - t_gr/(1 mm)*esc_det:svg}}" width="{{8*t_sl/(1 mm)*esc_det:svg}}" height="{{t_gr/(1 mm)*esc_det:svg}}"
+        fill="url(#llave-mortero)" stroke="#a9997e" stroke-width="0.8"/>
+  <rect x="{{dx(-4*t_sl):svg}}" y="{{dy(0 mm) - (t_gr + t_bp)/(1 mm)*esc_det:svg}}" width="{{8*t_sl/(1 mm)*esc_det:svg}}" height="{{t_bp/(1 mm)*esc_det:svg}}"
+        fill="#9aa3ab" stroke="#6d757d" stroke-width="0.8"/>
+
+  <!-- La llave: h_sl entera en trazo fino, la parte efectiva 2·t_sl rellena -->
+  <rect x="{{dx(-t_sl/2):svg}}" y="{{dy(0 mm):svg}}" width="{{t_sl/(1 mm)*esc_det:svg}}" height="{{h_sl/(1 mm)*esc_det:svg}}"
+        fill="none" stroke="{{col_chapa}}" stroke-width="1" stroke-dasharray="3 2"/>
+  <rect x="{{dx(-t_sl/2):svg}}" y="{{dy(0 mm):svg}}" width="{{t_sl/(1 mm)*esc_det:svg}}" height="{{hef_sl/(1 mm)*esc_det:svg}}"
+        fill="{{col_brg}}" fill-opacity="0.65" stroke="{{col_brg}}" stroke-width="1"/>
+
+  <!-- Resultante del aplastamiento a media altura efectiva, y el brazo e -->
+  <line x1="{{dx(t_sl/2) + 4:svg}}" x2="{{dx(t_sl/2) + 26:svg}}" y1="{{dy(hef_sl/2):svg}}" y2="{{dy(hef_sl/2):svg}}" stroke="{{col_brg}}" stroke-width="1.8"/>
+  <line x1="{{dx(t_sl/2) + 26:svg}}" x2="{{dx(t_sl/2) + 26:svg}}" y1="{{dy(hef_sl/2):svg}}" y2="{{dy(0 mm) - (t_gr + t_bp)/(1 mm)*esc_det:svg}}"
+        stroke="{{col_brg}}" stroke-width="0.9" stroke-dasharray="3 2"/>
+  <text x="{{dx(t_sl/2) + 30:svg}}" y="{{dy(hef_sl/2) + 3:svg}}" font-size="9" fill="{{col_brg}}">h_ef,sl = {{hef_sl:mm}} mm</text>
+  <text x="{{dx(t_sl/2) + 30:svg}}" y="{{dy(hef_sl/4):svg}}" font-size="9" fill="{{col_brg}}">e = {{exc:mm}} mm</text>
+  <text x="{{dx(-4*t_sl) - 4:svg}}" y="{{dy(0 mm) - (t_gr + t_bp/2)/(1 mm)*esc_det + 3:svg}}" font-size="8.5" text-anchor="end" fill="#6d757d">placa {{t_bp:mm}}</text>
+  <text x="{{dx(-4*t_sl) - 4:svg}}" y="{{dy(0 mm) - t_gr/(1 mm)*esc_det/2 + 3:svg}}" font-size="8.5" text-anchor="end" fill="#8a7a5e">mortero {{t_gr:mm}}</text>
+  <text x="{{dx(-t_sl/2) - 4:svg}}" y="{{dy(h_sl) + 3:svg}}" font-size="8.5" text-anchor="end" fill="{{col_chapa}}">h_sl = {{h_sl:mm}}</text>
+  <!-- Cota del espesor: es el t_sl de la regla t_bp ≥ t_sl -->
+  <line x1="{{dx(-t_sl/2):svg}}" x2="{{dx(t_sl/2):svg}}" y1="{{dy(h_sl) + 12:svg}}" y2="{{dy(h_sl) + 12:svg}}" stroke="{{col_chapa}}" stroke-width="0.9"/>
+  <text x="{{dx(0 mm):svg}}" y="{{dy(h_sl) + 22:svg}}" font-size="8.5" text-anchor="middle" fill="{{col_chapa}}">t_sl = {{t_sl:mm}}</text>
+  <text x="{{dx(0 mm):svg}}" y="{{dy(h_sl) + 36:svg}}" font-size="8.5" text-anchor="middle" fill="#777">el §17.11.2.1.1(b) topa en 2·t_sl la parte que aplasta</text>
 
   <!-- =============== COLUMNA DE RESULTADOS =============== -->
-  <line x1="600" y1="60" x2="600" y2="520" stroke="#ddd" stroke-width="1"/>
-  <text x="620" y="66" font-size="11.5" fill="#222" font-weight="bold">Estados límite</text>
+  <line x1="600" y1="40" x2="600" y2="520" stroke="#ddd" stroke-width="1"/>
+  <text x="620" y="50" font-size="11.5" fill="#222" font-weight="bold">Estados límite</text>
 
-  <text x="620" y="92" font-size="10.5" fill="#333">Aplastamiento X · Y</text>
-  <text x="830" y="92" font-size="10.5" text-anchor="end" fill="{{cu(max(u_brgx, u_brgy))}}" font-weight="bold">{{u_brgx}} · {{u_brgy}}</text>
-  <text x="620" y="112" font-size="10.5" fill="#333">Breakout de corte X · Y</text>
-  <text x="830" y="112" font-size="10.5" text-anchor="end" fill="{{cu(max(u_cbx, u_cby))}}" font-weight="bold">{{u_cbx}} · {{u_cby}}</text>
-  <text x="620" y="132" font-size="10.5" fill="#333">Chapa, interacción M–V X · Y</text>
-  <text x="830" y="132" font-size="10.5" text-anchor="end" fill="{{cu(max(u_intx, u_inty))}}" font-weight="bold">{{u_intx}} · {{u_inty}}</text>
-  <text x="620" y="152" font-size="10.5" fill="#333">Soldadura X · Y</text>
-  <text x="830" y="152" font-size="10.5" text-anchor="end" fill="{{cu(max(u_soldx, u_soldy))}}" font-weight="bold">{{u_soldx}} · {{u_soldy}}</text>
-  <text x="620" y="172" font-size="10.5" fill="#333">Placa, flexión local X · Y</text>
-  <text x="830" y="172" font-size="10.5" text-anchor="end" fill="{{cu(max(u_bpx, u_bpy))}}" font-weight="bold">{{u_bpx}} · {{u_bpy}}</text>
+  <text x="620" y="76" font-size="10.5" fill="#333">Aplastamiento X · Y</text>
+  <text x="830" y="76" font-size="10.5" text-anchor="end" fill="{{cu(max(u_brgx, u_brgy))}}" font-weight="bold">{{u_brgx}} · {{u_brgy}}</text>
+  <text x="620" y="96" font-size="10.5" fill="#333">Breakout de corte X · Y</text>
+  <text x="830" y="96" font-size="10.5" text-anchor="end" fill="{{cu(max(u_cbx, u_cby))}}" font-weight="bold">{{u_cbx}} · {{u_cby}}</text>
+  <text x="620" y="116" font-size="10.5" fill="#333">Chapa, interacción M–V X · Y</text>
+  <text x="830" y="116" font-size="10.5" text-anchor="end" fill="{{cu(max(u_intx, u_inty))}}" font-weight="bold">{{u_intx}} · {{u_inty}}</text>
+  <text x="620" y="136" font-size="10.5" fill="#333">Soldadura X · Y</text>
+  <text x="830" y="136" font-size="10.5" text-anchor="end" fill="{{cu(max(u_soldx, u_soldy))}}" font-weight="bold">{{u_soldx}} · {{u_soldy}}</text>
+  <text x="620" y="156" font-size="10.5" fill="#333">Placa, flexión local X · Y</text>
+  <text x="830" y="156" font-size="10.5" text-anchor="end" fill="{{cu(max(u_bpx, u_bpy))}}" font-weight="bold">{{u_bpx}} · {{u_bpy}}</text>
 
-  <text x="620" y="206" font-size="11.5" fill="#222" font-weight="bold">Geometría</text>
-  <text x="620" y="228" font-size="10" fill="#555">t_bp ≥ t_sl (DG1, regla práctica)</text>
-  <text x="830" y="228" font-size="10" text-anchor="end" fill="#333">{{v_regla_espesor}}</text>
-  <text x="620" y="246" font-size="10" fill="#555">embebido ≥ {{hef_req:mm}} mm</text>
-  <text x="830" y="246" font-size="10" text-anchor="end" fill="#333">{{v_embebido}}</text>
-  <text x="620" y="264" font-size="10" fill="#555">cabe en el pedestal</text>
-  <text x="830" y="264" font-size="10" text-anchor="end" fill="#333">{{v_cabe_pedestal}}</text>
-  <text x="620" y="282" font-size="10" fill="#555">psi_brg,sl = {{psi_x}} · {{psi_y}}</text>
-  <text x="830" y="282" font-size="10" text-anchor="end" fill="#333">{{v_psi_positivo}}</text>
-  <text x="620" y="300" font-size="10" fill="#555">aplastamiento aditivo</text>
-  <text x="830" y="300" font-size="10" text-anchor="end" fill="#333">{{v_aditividad}}</text>
+  <text x="620" y="190" font-size="11.5" fill="#222" font-weight="bold">Geometría</text>
+  <text x="620" y="212" font-size="10" fill="#555">t_bp ≥ t_sl (DG1, regla práctica)</text>
+  <text x="830" y="212" font-size="10" text-anchor="end" fill="#333">{{v_regla_espesor}}</text>
+  <text x="620" y="230" font-size="10" fill="#555">embebido ≥ {{hef_req:mm}} mm</text>
+  <text x="830" y="230" font-size="10" text-anchor="end" fill="#333">{{v_embebido}}</text>
+  <text x="620" y="248" font-size="10" fill="#555">cabe en el pedestal</text>
+  <text x="830" y="248" font-size="10" text-anchor="end" fill="#333">{{v_cabe_pedestal}}</text>
+  <text x="620" y="266" font-size="10" fill="#555">psi_brg,sl = {{psi_x}} · {{psi_y}}</text>
+  <text x="830" y="266" font-size="10" text-anchor="end" fill="#333">{{v_psi_positivo}}</text>
+  <text x="620" y="284" font-size="10" fill="#555">aplastamiento aditivo</text>
+  <text x="830" y="284" font-size="10" text-anchor="end" fill="#333">{{v_aditividad}}</text>
 
-  <text x="620" y="334" font-size="11.5" fill="#222" font-weight="bold">Lo que entrega</text>
-  <text x="620" y="356" font-size="10" fill="#555">excentricidad e = {{exc:mm}} mm</text>
-  <text x="620" y="374" font-size="10" fill="#555">espesor de placa que pide: {{tbp_req:mm}} mm</text>
-  <text x="620" y="392" font-size="10" fill="#555">si el breakout no cierra: {{n_ramas_x}} y {{n_ramas_y}} ramas ø{{db_est:mm}}</text>
+  <text x="620" y="318" font-size="11.5" fill="#222" font-weight="bold">Lo que entrega</text>
+  <text x="620" y="340" font-size="10" fill="#555">excentricidad e = {{exc:mm}} mm</text>
+  <text x="620" y="358" font-size="10" fill="#555">espesor de placa que pide: {{tbp_req:mm}} mm</text>
+  <text x="620" y="376" font-size="10" fill="#555">si el breakout no cierra: {{n_ramas_x}} y {{n_ramas_y}} ramas ø{{db_est:mm}}</text>
 
   <!-- Franja de cierre -->
   <rect x="612" y="452" width="218" height="62" rx="4" fill="{{col_global}}" fill-opacity="0.10" stroke="{{col_global}}" stroke-width="1"/>

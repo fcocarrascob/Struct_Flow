@@ -1225,7 +1225,7 @@
    "kind": "math",
    "x": 40,
    "y": 7184,
-   "src": "esc := min(260/(PED_X/(1 mm)), 180/(PED_Y/(1 mm)), 150/(H_PED/(1 mm))) =",
+   "src": "esc := min(230/(PED_X/(1 mm)), 150/(PED_Y/(1 mm)), 150/(H_PED/(1 mm))) =",
    "imprimir": false
   },
   {
@@ -1233,7 +1233,7 @@
    "kind": "program",
    "x": 40,
    "y": 7232,
-   "src": "px(u) := 230 + u/(1 mm)*esc",
+   "src": "px(u) := 165 + u/(1 mm)*esc",
    "imprimir": false
   },
   {
@@ -1241,7 +1241,7 @@
    "kind": "program",
    "x": 40,
    "y": 7280,
-   "src": "py(v) := 165 + v/(1 mm)*esc",
+   "src": "py(v) := 150 + v/(1 mm)*esc",
    "imprimir": false
   },
   {
@@ -1249,7 +1249,7 @@
    "kind": "program",
    "x": 40,
    "y": 7328,
-   "src": "ey(w) := 350 + w/(1 mm)*esc",
+   "src": "ey(w) := 345 + w/(1 mm)*esc",
    "imprimir": false
   },
   {
@@ -1261,10 +1261,82 @@
    "imprimir": false
   },
   {
+   "id": "r_esc_lat",
+   "kind": "math",
+   "x": 40,
+   "y": 7424,
+   "src": "esc_lat := min(230/(max(bY_sl + 3*ca1_x, PED_Y)/(1 mm)), 120/(max(hef_sl + 1.5*ca1_x, H_PED)/(1 mm)))",
+   "imprimir": false
+  },
+  {
+   "id": "r_lx",
+   "kind": "program",
+   "x": 40,
+   "y": 7472,
+   "src": "lx(u) := 455 + u/(1 mm)*esc_lat",
+   "imprimir": false
+  },
+  {
+   "id": "r_ly",
+   "kind": "program",
+   "x": 40,
+   "y": 7568,
+   "src": "ly(w) := 70 + w/(1 mm)*esc_lat",
+   "imprimir": false
+  },
+  {
+   "id": "r_alto_avc",
+   "kind": "math",
+   "x": 40,
+   "y": 7664,
+   "src": "alto_AVc := min(hef_sl + 1.5*ca1_x, H_PED)",
+   "imprimir": false
+  },
+  {
+   "id": "r_ancho_avc",
+   "kind": "math",
+   "x": 40,
+   "y": 7712,
+   "src": "ancho_AVc := min(bY_sl + 3*ca1_x, PED_Y)",
+   "imprimir": false
+  },
+  {
+   "id": "r_nota_avc",
+   "kind": "math",
+   "x": 40,
+   "y": 7760,
+   "src": "nota_AVc := (bY_sl + 3*ca1_x > PED_Y or hef_sl + 1.5*ca1_x > H_PED) ? \"la superficie teórica desborda la cara: se recorta al pedestal\" : \"la superficie teórica cabe entera en la cara del pedestal\"",
+   "imprimir": false
+  },
+  {
+   "id": "r_esc_det",
+   "kind": "math",
+   "x": 40,
+   "y": 7808,
+   "src": "esc_det := min(150/(8*t_sl/(1 mm)), 150/((t_bp + t_gr + h_sl)/(1 mm)))",
+   "imprimir": false
+  },
+  {
+   "id": "r_dx",
+   "kind": "program",
+   "x": 40,
+   "y": 7856,
+   "src": "dx(u) := 455 + u/(1 mm)*esc_det",
+   "imprimir": false
+  },
+  {
+   "id": "r_dy",
+   "kind": "program",
+   "x": 40,
+   "y": 7952,
+   "src": "dy(w) := 400 + w/(1 mm)*esc_det",
+   "imprimir": false
+  },
+  {
    "id": "r_cu",
    "kind": "program",
    "x": 40,
-   "y": 7424,
+   "y": 8048,
    "src": "cu(u) := u <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1272,7 +1344,7 @@
    "id": "r123",
    "kind": "math",
    "x": 40,
-   "y": 7472,
+   "y": 8096,
    "src": "col_brg := (u_brgx <= 1 and u_brgy <= 1 and v_psi_positivo) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1280,7 +1352,7 @@
    "id": "r124",
    "kind": "math",
    "x": 40,
-   "y": 7520,
+   "y": 8144,
    "src": "col_cb := (u_cbx <= 1 and u_cby <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1288,7 +1360,7 @@
    "id": "r125",
    "kind": "math",
    "x": 40,
-   "y": 7568,
+   "y": 8192,
    "src": "col_chapa := (u_intx <= 1 and u_inty <= 1 and v_regla_espesor) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1296,7 +1368,7 @@
    "id": "r126",
    "kind": "math",
    "x": 40,
-   "y": 7616,
+   "y": 8240,
    "src": "col_perno := v_embebido and v_cabe_pedestal ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1304,7 +1376,7 @@
    "id": "r127",
    "kind": "math",
    "x": 40,
-   "y": 7664,
+   "y": 8288,
    "src": "col_global := v_global ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1312,7 +1384,7 @@
    "id": "esquema",
    "kind": "image",
    "x": 40,
-   "y": 7712,
+   "y": 8336,
    "src": "/esquemas/llave-corte-generica.svg",
    "w": 720,
    "h": 480
