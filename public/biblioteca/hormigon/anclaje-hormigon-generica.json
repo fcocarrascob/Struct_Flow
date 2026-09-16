@@ -1,1348 +1,1173 @@
 {
-  "version": 1,
-  "meta": {
-    "titulo": "Anclaje al hormigon — grupo de pernos colados en traccion: acero, arrancamiento del cono, extraccion de la cabeza, descascaramiento lateral y armadura de anclaje",
-    "slug": "anclaje-hormigon-generica",
-    "clase": "generica",
-    "disciplina": "hormigon",
-    "resumen": "El Cap. 17 del ACI 318-25 en traccion para pernos colados, con los dos factores nuevos de la edicion 25 (psi_a y psi_cm,N) y el diseno sismico del §17.10 (opcion (d), factor 0,75 sobre los modos del hormigon). Recibe Nua_g de placa-base-generica y decide si hace falta armadura de anclaje.",
-    "normas": [
-      {
-        "clave": "US/ACI318-25-SI",
-        "rol": "resistencia del anclaje al hormigon",
-        "articulos": [
-          "§17.5.2.1",
-          "Tabla 17.5.4.1",
-          "§17.6.1.2",
-          "§17.6.2",
-          "§17.6.3",
-          "§17.6.4",
-          "Tabla 17.9.2(a)",
-          "Tabla 21.2.1",
-          "§17.5.3",
-          "§17.10.4",
-          "§17.10.5"
-        ]
-      }
-    ],
-    "entradas": [
-      {
-        "nombre": "Nua_g",
-        "etiqueta": "Traccion mayorada del grupo",
-        "unidad": "kN",
-        "grupo": "Solicitacion",
-        "ayuda": "T_grupo de placa-base-generica, no la reaccion del apoyo"
-      },
-      {
-        "nombre": "n_trac",
-        "etiqueta": "Pernos que traccionan",
-        "grupo": "Solicitacion",
-        "min": 1,
-        "max": 12,
-        "paso": 1
-      },
-      {
-        "nombre": "e_N",
-        "etiqueta": "Excentricidad de la resultante de traccion",
-        "unidad": "mm",
-        "grupo": "Solicitacion"
-      },
-      {
-        "nombre": "h_ef",
-        "etiqueta": "Profundidad efectiva de embebido",
-        "unidad": "mm",
-        "grupo": "Geometria",
-        "min": 100,
-        "max": 1200,
-        "paso": 10
-      },
-      {
-        "nombre": "s_1",
-        "etiqueta": "Separacion entre pernos de la fila",
-        "unidad": "mm",
-        "grupo": "Geometria"
-      },
-      {
-        "nombre": "c_a1",
-        "etiqueta": "Distancia de borde en la direccion de la fila",
-        "unidad": "mm",
-        "grupo": "Geometria"
-      },
-      {
-        "nombre": "c_a2",
-        "etiqueta": "Distancia de borde perpendicular",
-        "unidad": "mm",
-        "grupo": "Geometria"
-      },
-      {
-        "nombre": "n_bordes",
-        "etiqueta": "Bordes a menos de 1,5 h_ef del grupo",
-        "grupo": "Geometria",
-        "min": 0,
-        "max": 4,
-        "paso": 1,
-        "ayuda": "Con tres o mas, 17.6.2.1.2 obliga a un h_ef ficticio y el caso sale del alcance"
-      },
-      {
-        "nombre": "d_a",
-        "etiqueta": "Diametro nominal del perno",
-        "unidad": "mm",
-        "grupo": "Geometria"
-      },
-      {
-        "nombre": "n_hilos",
-        "etiqueta": "Hilos por pulgada de la rosca",
-        "grupo": "Geometria",
-        "ayuda": "Para rosca metrica de paso p: 25,4/p"
-      },
-      {
-        "nombre": "A_brg",
-        "etiqueta": "Area de apoyo de la cabeza o golilla",
-        "unidad": "mm^2",
-        "grupo": "Geometria"
-      },
-      {
-        "nombre": "fpc",
-        "etiqueta": "f'c del hormigon",
-        "unidad": "MPa",
-        "grupo": "Hormigon"
-      },
-      {
-        "nombre": "lambda_a",
-        "etiqueta": "Factor de hormigon liviano",
-        "grupo": "Hormigon"
-      },
-      {
-        "nombre": "fisurado",
-        "etiqueta": "Estado del hormigon",
-        "grupo": "Hormigon",
-        "opciones": [
-          {
-            "valor": 1,
-            "etiqueta": "fisurado a nivel de servicio"
-          },
-          {
-            "valor": 0,
-            "etiqueta": "no fisurado"
-          }
-        ]
-      },
-      {
-        "nombre": "futa",
-        "etiqueta": "Resistencia ultima del perno",
-        "unidad": "MPa",
-        "grupo": "Acero del perno"
-      },
-      {
-        "nombre": "fya",
-        "etiqueta": "Fluencia del perno",
-        "unidad": "MPa",
-        "grupo": "Acero del perno"
-      },
-      {
-        "nombre": "usa_arm",
-        "etiqueta": "Via de transferencia de la traccion",
-        "grupo": "Armadura de anclaje",
-        "opciones": [
-          {
-            "valor": 1,
-            "etiqueta": "con armadura de anclaje"
-          },
-          {
-            "valor": 0,
-            "etiqueta": "por el hormigon (cono)"
-          }
-        ]
-      },
-      {
-        "nombre": "n_arm",
-        "etiqueta": "Barras de armadura de anclaje",
-        "grupo": "Armadura de anclaje"
-      },
-      {
-        "nombre": "d_arm",
-        "etiqueta": "Diametro de la barra",
-        "unidad": "mm",
-        "grupo": "Armadura de anclaje"
-      },
-      {
-        "nombre": "fy_arm",
-        "etiqueta": "Fluencia de la armadura",
-        "unidad": "MPa",
-        "grupo": "Armadura de anclaje"
-      },
-      {
-        "nombre": "omega",
-        "etiqueta": "Sobrerresistencia del criterio de fusible",
-        "grupo": "Armadura de anclaje"
-      },
-      {
-        "nombre": "phi_sa",
-        "etiqueta": "φ acero del anclaje en traccion",
-        "grupo": "Factores"
-      },
-      {
-        "nombre": "phi_c",
-        "etiqueta": "φ hormigon en traccion",
-        "grupo": "Factores"
-      },
-      {
-        "nombre": "phi_arm",
-        "etiqueta": "φ armadura de anclaje",
-        "grupo": "Factores"
-      },
-      {
-        "nombre": "psi_a",
-        "etiqueta": "ψ_a, modificador de modos del hormigon",
-        "grupo": "Factores"
-      },
-      {
-        "nombre": "psi_cm",
-        "etiqueta": "ψ_cm,N, campo de compresion",
-        "grupo": "Factores"
-      },
-      {
-        "nombre": "k_c",
-        "etiqueta": "k_c de la resistencia basica",
-        "grupo": "Factores"
-      },
-      {
-        "nombre": "sismo",
-        "etiqueta": "Diseno sismico del anclaje",
-        "grupo": "Sismo",
-        "ayuda": "17.10.5.2: la componente sismica supera el 20 % de la traccion mayorada total",
-        "opciones": [
-          {
-            "valor": 1,
-            "etiqueta": "supera el 20 %: rige 17.10.5.4"
-          },
-          {
-            "valor": 0,
-            "etiqueta": "no supera el 20 % o no hay sismo"
-          }
-        ]
-      }
-    ],
-    "salidas": [
-      {
-        "nombre": "u_max",
-        "etiqueta": "Uso maximo",
-        "tipo": "uso"
-      },
-      {
-        "nombre": "gobierna",
-        "etiqueta": "Modo de falla que gobierna",
-        "tipo": "texto"
-      },
-      {
-        "nombre": "u_acero",
-        "etiqueta": "Uso del acero del perno",
-        "tipo": "uso"
-      },
-      {
-        "nombre": "u_breakout",
-        "etiqueta": "Uso del cono de hormigon",
-        "tipo": "uso"
-      },
-      {
-        "nombre": "u_pullout",
-        "etiqueta": "Uso de la extraccion de la cabeza",
-        "tipo": "uso"
-      },
-      {
-        "nombre": "u_armadura",
-        "etiqueta": "Uso de la armadura de anclaje",
-        "tipo": "uso"
-      },
-      {
-        "nombre": "N_sa",
-        "etiqueta": "Resistencia del acero, por perno",
-        "tipo": "valor"
-      },
-      {
-        "nombre": "As_req",
-        "etiqueta": "Armadura de anclaje requerida",
-        "tipo": "valor"
-      },
-      {
-        "nombre": "rige_armadura",
-        "etiqueta": "Que dimensiona la armadura",
-        "tipo": "texto"
-      },
-      {
-        "nombre": "v_global",
-        "etiqueta": "u_max ≤ 1",
-        "tipo": "veredicto"
-      },
-      {
-        "nombre": "v_sep_min",
-        "etiqueta": "Separacion ≥ 4 d_a",
-        "tipo": "veredicto"
-      },
-      {
-        "nombre": "v_dos_bordes",
-        "etiqueta": "No hay tres o mas bordes cercanos",
-        "tipo": "veredicto"
-      },
-      {
-        "nombre": "modo_sb",
-        "etiqueta": "Descascaramiento lateral",
-        "tipo": "texto"
-      }
-    ],
-    "fronteras": [
-      "La traccion del grupo entra como dato: la produce el equilibrio de la placa",
-      "Solo pernos COLADOS. Post-instalados y adhesivos cambian k_c, psi_c,N y psi_cp,N",
-      "No cubre el corte: pryout, breakout de borde e interaccion 17.8 van en llave-corte-generica",
-      "Una sola fila de pernos traccionados",
-      "psi_cm,N entra como dato con su procedencia: z no es geometria de esta hoja",
-      "Sismo por la opcion (d) de 17.10.5.3: Omega_0 viene en Nua_g. Las opciones (a), (b) y (c) no se verifican"
-    ],
-    "hipotesis": [
-      "Perno colado con cabeza o golilla",
-      "La armadura de anclaje, cuando se usa, cruza la superficie de falla y esta desarrollada a ambos lados",
-      "Pedestal de seccion constante",
-      "No se cuenta friccion bajo la placa base",
-      "Con sismo (SDC C a F), la armadura de anclaje es barra conformada segun 20.2.2 (17.10.4)"
-    ],
-    "entrega": {
-      "As_req": [
-        "pedestal-generico"
-      ]
-    },
-    "casos": [
-      {
-        "nombre": "ejemplo de referencia",
-        "entradas": {},
-        "cumple": true
-      },
-      {
-        "nombre": "sin armadura de anclaje: el cono no da",
-        "entradas": {
-          "usa_arm": 0
-        },
-        "cumple": false,
-        "esperadoFalso": [
-          "v_global"
-        ]
-      },
-      {
-        "nombre": "sin sismo: 17.10.5.1",
-        "entradas": {
-          "sismo": 0
-        },
-        "cumple": true
-      }
+ "version": 1,
+ "meta": {
+  "titulo": "Anclaje al hormigón — grupo de pernos colados en tracción: acero, arrancamiento del cono, extracción de la cabeza, descascaramiento lateral y armadura de anclaje",
+  "slug": "anclaje-hormigon-generica",
+  "clase": "generica",
+  "disciplina": "hormigon",
+  "resumen": "El Cap. 17 del ACI 318-25 en tracción para pernos colados, con los dos factores nuevos de la edición 25 (psi_a y psi_cm,N) y el diseño sísmico del §17.10 (opción (d), factor 0,75 sobre los modos del hormigón). Recibe Nua_g de placa-base-generica y decide si hace falta armadura de anclaje.",
+  "normas": [
+   {
+    "clave": "US/ACI318-25-SI",
+    "rol": "resistencia del anclaje al hormigón",
+    "articulos": [
+     "§17.5.2.1",
+     "Tabla 17.5.4.1",
+     "§17.6.1.2",
+     "§17.6.2",
+     "§17.6.3",
+     "§17.6.4",
+     "Tabla 17.9.2(a)",
+     "Tabla 21.2.1",
+     "§17.5.3",
+     "§17.10.4",
+     "§17.10.5"
     ]
+   }
+  ],
+  "entradas": [
+   {
+    "nombre": "Nua_g",
+    "etiqueta": "Tracción mayorada del grupo",
+    "unidad": "kN",
+    "grupo": "Solicitación",
+    "ayuda": "T_grupo de placa-base-generica, no la reacción del apoyo"
+   },
+   {
+    "nombre": "n_trac",
+    "etiqueta": "Pernos que traccionan",
+    "grupo": "Solicitación",
+    "min": 1,
+    "max": 12,
+    "paso": 1,
+    "ayuda": "§17.6.2.3.2: solo los que traccionan, no los de la placa"
+   },
+   {
+    "nombre": "e_N",
+    "etiqueta": "Excentricidad de la resultante de tracción",
+    "unidad": "mm",
+    "grupo": "Solicitación",
+    "ayuda": "§17.6.2.3.1: respecto del centro de gravedad de los pernos traccionados. Con la fila simétrica y cargada uniformemente vale cero"
+   },
+   {
+    "nombre": "h_ef",
+    "etiqueta": "Profundidad efectiva de embebido",
+    "unidad": "mm",
+    "grupo": "Geometría",
+    "min": 100,
+    "max": 1200,
+    "paso": 10
+   },
+   {
+    "nombre": "s_1",
+    "etiqueta": "Separación entre pernos de la fila",
+    "unidad": "mm",
+    "grupo": "Geometría"
+   },
+   {
+    "nombre": "c_a1",
+    "etiqueta": "Distancia de borde en la dirección de la fila",
+    "unidad": "mm",
+    "grupo": "Geometría",
+    "ayuda": "Del eje del perno al borde del hormigón"
+   },
+   {
+    "nombre": "c_a2",
+    "etiqueta": "Distancia de borde perpendicular",
+    "unidad": "mm",
+    "grupo": "Geometría",
+    "ayuda": "Del eje del perno al borde del hormigón"
+   },
+   {
+    "nombre": "n_bordes",
+    "etiqueta": "Bordes a menos de 1,5·h_ef del grupo",
+    "grupo": "Geometría",
+    "min": 0,
+    "max": 4,
+    "paso": 1,
+    "ayuda": "No se deduce de c_a1 y c_a2: son dos distancias y los bordes pueden ser cuatro. Con tres o más, §17.6.2.1.2 obliga a un h_ef ficticio y el caso sale del alcance"
+   },
+   {
+    "nombre": "d_a",
+    "etiqueta": "Diámetro nominal del perno",
+    "unidad": "mm",
+    "grupo": "Geometría"
+   },
+   {
+    "nombre": "n_hilos",
+    "etiqueta": "Hilos por pulgada de la rosca",
+    "grupo": "Geometría",
+    "ayuda": "Para rosca métrica de paso p: 25,4/p"
+   },
+   {
+    "nombre": "A_brg",
+    "etiqueta": "Área de apoyo de la cabeza o golilla",
+    "unidad": "mm^2",
+    "grupo": "Geometría",
+    "ayuda": "El área bruta menos el agujero: es la que manda en extracción y descascaramiento"
+   },
+   {
+    "nombre": "fpc",
+    "etiqueta": "f'c del hormigón",
+    "unidad": "MPa",
+    "grupo": "Hormigón"
+   },
+   {
+    "nombre": "lambda_a",
+    "etiqueta": "Factor de hormigón liviano",
+    "grupo": "Hormigón",
+    "ayuda": "§19.2.4.3: λ = 1 en hormigón de peso normal"
+   },
+   {
+    "nombre": "fisurado",
+    "etiqueta": "Estado del hormigón",
+    "grupo": "Hormigón",
+    "ayuda": "Decide ψ_c,N (1,0 contra 1,25) y ψ_c,P (1,0 contra 1,4). En un pedestal traccionado por el momento de la columna lo prudente es suponerlo fisurado",
+    "opciones": [
+     {
+      "valor": 1,
+      "etiqueta": "fisurado a nivel de servicio"
+     },
+     {
+      "valor": 0,
+      "etiqueta": "no fisurado"
+     }
+    ]
+   },
+   {
+    "nombre": "futa",
+    "etiqueta": "Resistencia última del perno",
+    "unidad": "MPa",
+    "grupo": "Acero del perno"
+   },
+   {
+    "nombre": "fya",
+    "etiqueta": "Fluencia del perno",
+    "unidad": "MPa",
+    "grupo": "Acero del perno"
+   },
+   {
+    "nombre": "usa_arm",
+    "etiqueta": "Vía de transferencia de la tracción",
+    "grupo": "Armadura de anclaje",
+    "opciones": [
+     {
+      "valor": 1,
+      "etiqueta": "con armadura de anclaje"
+     },
+     {
+      "valor": 0,
+      "etiqueta": "por el hormigón (cono)"
+     }
+    ]
+   },
+   {
+    "nombre": "n_arm",
+    "etiqueta": "Barras de armadura de anclaje",
+    "grupo": "Armadura de anclaje"
+   },
+   {
+    "nombre": "d_arm",
+    "etiqueta": "Diámetro de la barra",
+    "unidad": "mm",
+    "grupo": "Armadura de anclaje"
+   },
+   {
+    "nombre": "fy_arm",
+    "etiqueta": "Fluencia de la armadura",
+    "unidad": "MPa",
+    "grupo": "Armadura de anclaje"
+   },
+   {
+    "nombre": "omega",
+    "etiqueta": "Sobrerresistencia del criterio de fusible",
+    "grupo": "Armadura de anclaje",
+    "ayuda": "§17.10.5.3(a): la resistencia gobernada por el hormigón no baja de 1,2·N_sa"
+   },
+   {
+    "nombre": "phi_sa",
+    "etiqueta": "φ acero del anclaje en tracción",
+    "grupo": "Factores",
+    "ayuda": "Tabla 21.2.1 (o) anclaje dúctil 0,75; (p) no dúctil 0,65"
+   },
+   {
+    "nombre": "phi_c",
+    "etiqueta": "φ hormigón en tracción",
+    "grupo": "Factores",
+    "ayuda": "Tabla 21.2.1 (l) no redundante 0,65; (m) redundante 0,75. Redundante = la falla de un anclaje no produce pérdida de posición ni colapso progresivo"
+   },
+   {
+    "nombre": "phi_arm",
+    "etiqueta": "φ armadura de anclaje",
+    "grupo": "Factores",
+    "ayuda": "Tabla 21.2.1 (k): 0,90"
+   },
+   {
+    "nombre": "psi_a",
+    "etiqueta": "ψ_a, modificador de modos del hormigón",
+    "grupo": "Factores",
+    "ayuda": "Tabla 17.5.4.1, nueva en la edición 25. Colado: 0,95 sin armadura suplementaria y 1,00 con ella"
+   },
+   {
+    "nombre": "psi_cm",
+    "etiqueta": "ψ_cm,N, campo de compresión",
+    "grupo": "Factores",
+    "ayuda": "§17.6.2.7: solo mayor que 1 con los pernos a 1,5·h_ef o más de un borde libre y razón compresión/tracción sobre 0,8. Entra como dato porque z no es geometría de esta hoja"
+   },
+   {
+    "nombre": "k_c",
+    "etiqueta": "k_c de la resistencia básica",
+    "grupo": "Factores",
+    "ayuda": "§17.6.2.2.1: 10 para colados, 7 para post-instalados"
+   },
+   {
+    "nombre": "sismo",
+    "etiqueta": "Diseño sísmico del anclaje",
+    "grupo": "Sismo",
+    "ayuda": "§17.10.5.2: la componente sísmica supera el 20 % de la tracción mayorada total",
+    "opciones": [
+     {
+      "valor": 1,
+      "etiqueta": "supera el 20 %: rige 17.10.5.4"
+     },
+     {
+      "valor": 0,
+      "etiqueta": "no supera el 20 % o no hay sismo"
+     }
+    ]
+   }
+  ],
+  "salidas": [
+   {
+    "nombre": "u_max",
+    "etiqueta": "Uso máximo",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "gobierna",
+    "etiqueta": "Modo de falla que gobierna",
+    "tipo": "texto"
+   },
+   {
+    "nombre": "u_acero",
+    "etiqueta": "Uso del acero del perno",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_breakout",
+    "etiqueta": "Uso del cono de hormigón",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_pullout",
+    "etiqueta": "Uso de la extracción de la cabeza",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_blowout",
+    "etiqueta": "Uso del descascaramiento lateral",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "u_armadura",
+    "etiqueta": "Uso de la armadura de anclaje",
+    "tipo": "uso"
+   },
+   {
+    "nombre": "N_sa",
+    "etiqueta": "Resistencia del acero, por perno",
+    "tipo": "valor"
+   },
+   {
+    "nombre": "As_req",
+    "etiqueta": "Armadura de anclaje requerida",
+    "tipo": "valor"
+   },
+   {
+    "nombre": "rige_armadura",
+    "etiqueta": "Qué dimensiona la armadura",
+    "tipo": "texto"
+   },
+   {
+    "nombre": "v_global",
+    "etiqueta": "Cumple: resistencia y geometría",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_sep_min",
+    "etiqueta": "Separación ≥ 4·d_a",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_dos_bordes",
+    "etiqueta": "No hay tres o más bordes cercanos",
+    "tipo": "veredicto"
+   },
+   {
+    "nombre": "modo_sb",
+    "etiqueta": "Descascaramiento lateral",
+    "tipo": "texto"
+   }
+  ],
+  "fronteras": [
+   "La tracción del grupo entra como dato: la produce el equilibrio de la placa",
+   "Solo pernos COLADOS. Post-instalados y adhesivos cambian k_c, psi_c,N y psi_cp,N",
+   "No cubre el corte: pryout, breakout de borde e interacción 17.8 van en llave-corte-generica",
+   "Una sola fila de pernos traccionados",
+   "psi_cm,N entra como dato con su procedencia: z no es geometría de esta hoja",
+   "Sismo por la opción (d) de 17.10.5.3: Omega_0 viene en Nua_g. Los requisitos de ductilidad de la opción (a) no se verifican aquí"
+  ],
+  "hipotesis": [
+   "Perno colado con cabeza o golilla",
+   "La armadura de anclaje, cuando se usa, cruza la superficie de falla y está desarrollada a ambos lados",
+   "Pedestal de sección constante",
+   "No se cuenta fricción bajo la placa base",
+   "Con sismo (SDC C a F), la armadura de anclaje es barra conformada según 20.2.2 (17.10.4)"
+  ],
+  "entrega": {
+   "As_req": [
+    "pedestal-generico"
+   ]
   },
-  "regions": [
-    {
-      "id": "r001",
-      "kind": "text",
-      "x": 40,
-      "y": 40,
-      "src": "PLANTILLA REUTILIZABLE. Todo lo editable esta en los seis bloques DATOS;\ndebajo no hay ningun numero de proyecto, solo ecuaciones de norma."
-    },
-    {
-      "id": "r002",
-      "kind": "text",
-      "x": 40,
-      "y": 112,
-      "src": "ALCANCE: el grupo de pernos COLADOS (cast-in) en TRACCION, con los cinco\nmodos del Cap. 17 que le aplican -- acero del perno, arrancamiento del cono\n(breakout), extraccion de la cabeza (pullout), descascaramiento lateral\n(side-face blowout) -- mas la via alternativa de ARMADURA DE ANCLAJE, que\nreemplaza al breakout cuando se dispone."
-    },
-    {
-      "id": "r003",
-      "kind": "text",
-      "x": 40,
-      "y": 250,
-      "src": "FRONTERA: la hoja NO calcula la traccion del grupo -- la produce el\nequilibrio de la placa, y entra por Nua_g desde placa-base-generica. NO\ncubre el CORTE: en una base sismica chilena el corte lo toma integro la\nllave (llave-corte-generica), y por eso tampoco calcula pryout ni la\ninteraccion traccion-corte de 17.8. NO cubre anclajes POST-INSTALADOS ni\nADHESIVOS: k_c, psi_c,N y psi_cp,N cambian, y la adherencia de 17.6.5 no\nesta aca."
-    },
-    {
-      "id": "r004",
-      "kind": "text",
-      "x": 40,
-      "y": 432,
-      "src": "HIPOTESIS: perno colado con cabeza o golilla (headed) · UNA fila de pernos\ntraccionados, que es lo que produce una placa base con momento en un plano ·\npedestal de seccion constante · no se cuenta friccion bajo la placa."
-    },
-    {
-      "id": "r005",
-      "kind": "text",
-      "x": 40,
-      "y": 526,
-      "src": "LA REGLA QUE ORDENA EL CAPITULO: la resistencia del grupo es la MENOR de\nlos modos que aplican, y cada modo tiene su propio phi. Un modo que no se\ncalcula no es un modo que no existe."
-    },
-    {
-      "id": "r006",
-      "kind": "text",
-      "x": 40,
-      "y": 620,
-      "src": "━━ DATOS · SOLICITACION DEL GRUPO TRACCIONADO ━━"
-    },
-    {
-      "id": "r007",
-      "kind": "text",
-      "x": 40,
-      "y": 666,
-      "src": "Nua_g es la traccion MAYORADA del grupo. Sale del equilibrio de la placa\n(T_grupo de placa-base-generica), no de la reaccion del apoyo: con gran\nexcentricidad el grupo tracciona aunque el axial del nudo comprima."
-    },
-    {
-      "id": "in_Nua_g",
-      "kind": "math",
-      "x": 40,
-      "y": 760,
-      "src": "Nua_g := 1533.8 kN"
-    },
-    {
-      "id": "r009",
-      "kind": "text",
-      "x": 40,
-      "y": 806,
-      "src": "n_trac es el numero de pernos QUE TRACCIONAN, no los de la placa. 17.6.2.3.2:\n«only those anchors that are in tension shall be considered»."
-    },
-    {
-      "id": "in_n_trac",
-      "kind": "math",
-      "x": 40,
-      "y": 878,
-      "src": "n_trac := 4"
-    },
-    {
-      "id": "r011",
-      "kind": "text",
-      "x": 40,
-      "y": 924,
-      "src": "e_N es la excentricidad de la resultante de traccion respecto del centro de\ngravedad de los pernos TRACCIONADOS (17.6.2.3.1, Fig. R17.6.2.3.1). Con la\nfila simetrica y cargada uniformemente vale cero."
-    },
-    {
-      "id": "in_e_N",
-      "kind": "math",
-      "x": 40,
-      "y": 1018,
-      "src": "e_N := 0 mm"
-    },
-    {
-      "id": "r013",
-      "kind": "text",
-      "x": 40,
-      "y": 1064,
-      "src": "━━ DATOS · GEOMETRIA DEL GRUPO Y DEL PEDESTAL ━━"
-    },
-    {
-      "id": "in_h_ef",
-      "kind": "math",
-      "x": 40,
-      "y": 1110,
-      "src": "h_ef := 600 mm"
-    },
-    {
-      "id": "r015",
-      "kind": "text",
-      "x": 40,
-      "y": 1156,
-      "src": "s_1 es la separacion entre pernos de la fila traccionada; c_a1 la distancia\nde borde en la direccion de la fila y c_a2 en la perpendicular, medidas del\neje del perno al BORDE DEL HORMIGON."
-    },
-    {
-      "id": "in_s_1",
-      "kind": "math",
-      "x": 40,
-      "y": 1250,
-      "src": "s_1 := 192 mm"
-    },
-    {
-      "id": "in_c_a1",
-      "kind": "math",
-      "x": 40,
-      "y": 1296,
-      "src": "c_a1 := 362 mm"
-    },
-    {
-      "id": "in_c_a2",
-      "kind": "math",
-      "x": 40,
-      "y": 1342,
-      "src": "c_a2 := 270 mm"
-    },
-    {
-      "id": "r019",
-      "kind": "text",
-      "x": 40,
-      "y": 1388,
-      "src": "n_bordes es cuantos bordes del hormigon quedan a menos de 1,5 h_ef del\ngrupo. NO se puede deducir de c_a1 y c_a2: son dos distancias y los bordes\npueden ser cuatro. Importa porque con TRES O MAS (17.6.2.1.2) hay que usar\nun h_ef ficticio en todas las ecuaciones, y esta hoja no lo hace."
-    },
-    {
-      "id": "in_n_bordes",
-      "kind": "math",
-      "x": 40,
-      "y": 1504,
-      "src": "n_bordes := 2"
-    },
-    {
-      "id": "in_d_a",
-      "kind": "math",
-      "x": 40,
-      "y": 1550,
-      "src": "d_a := 48 mm"
-    },
-    {
-      "id": "r022",
-      "kind": "text",
-      "x": 40,
-      "y": 1596,
-      "src": "n_hilos es el numero de hilos POR PULGADA de la rosca (17.6.1.2 lo escribe\nasi aun en la edicion SI). Para una rosca metrica de paso p: 25,4/p."
-    },
-    {
-      "id": "in_n_hilos",
-      "kind": "math",
-      "x": 40,
-      "y": 1668,
-      "src": "n_hilos := 5.08"
-    },
-    {
-      "id": "r024",
-      "kind": "text",
-      "x": 40,
-      "y": 1714,
-      "src": "A_brg es el area de APOYO de la cabeza o la golilla contra el hormigon --\nel area bruta menos el agujero --, y es la que manda en pullout y blowout."
-    },
-    {
-      "id": "in_A_brg",
-      "kind": "math",
-      "x": 40,
-      "y": 1786,
-      "src": "A_brg := 3000 mm^2"
-    },
-    {
-      "id": "r026",
-      "kind": "text",
-      "x": 40,
-      "y": 1832,
-      "src": "━━ DATOS · HORMIGON ━━"
-    },
-    {
-      "id": "in_fpc",
-      "kind": "math",
-      "x": 40,
-      "y": 1878,
-      "src": "fpc := 30 MPa"
-    },
-    {
-      "id": "r028",
-      "kind": "text",
-      "x": 40,
-      "y": 1924,
-      "src": "19.2.4.3: lambda = 1 en hormigon de peso normal."
-    },
-    {
-      "id": "in_lambda_a",
-      "kind": "math",
-      "x": 40,
-      "y": 1970,
-      "src": "lambda_a := 1.00"
-    },
-    {
-      "id": "r030",
-      "kind": "text",
-      "x": 40,
-      "y": 2016,
-      "src": "fisurado := 1 si el analisis indica fisuracion a nivel de servicio en la\nzona del anclaje; := 0 si no. Decide psi_c,N (1,0 contra 1,25) y psi_c,P\n(1,0 contra 1,4). En un pedestal traccionado por el momento de la columna lo\nprudente es 1: suponer no fisurado regala un 25 % de breakout."
-    },
-    {
-      "id": "in_fisurado",
-      "kind": "math",
-      "x": 40,
-      "y": 2132,
-      "src": "fisurado := 1"
-    },
-    {
-      "id": "r032",
-      "kind": "text",
-      "x": 40,
-      "y": 2178,
-      "src": "━━ DATOS · ACERO DEL PERNO ━━"
-    },
-    {
-      "id": "in_futa",
-      "kind": "math",
-      "x": 40,
-      "y": 2224,
-      "src": "futa := 400 MPa"
-    },
-    {
-      "id": "in_fya",
-      "kind": "math",
-      "x": 40,
-      "y": 2270,
-      "src": "fya := 248 MPa"
-    },
-    {
-      "id": "r035",
-      "kind": "text",
-      "x": 40,
-      "y": 2316,
-      "src": "━━ DATOS · ARMADURA DE ANCLAJE (17.5.2.1) ━━"
-    },
-    {
-      "id": "r036",
-      "kind": "text",
-      "x": 40,
-      "y": 2362,
-      "src": "usa_arm := 1 cuando se dispone armadura de anclaje que cruza la superficie\nde falla y esta desarrollada a ambos lados: entonces ELLA toma la traccion y\nel breakout del hormigon NO se cuenta. := 0 para que gobierne el cono."
-    },
-    {
-      "id": "in_usa_arm",
-      "kind": "math",
-      "x": 40,
-      "y": 2456,
-      "src": "usa_arm := 1"
-    },
-    {
-      "id": "in_n_arm",
-      "kind": "math",
-      "x": 40,
-      "y": 2502,
-      "src": "n_arm := 14"
-    },
-    {
-      "id": "in_d_arm",
-      "kind": "math",
-      "x": 40,
-      "y": 2548,
-      "src": "d_arm := 25 mm"
-    },
-    {
-      "id": "in_fy_arm",
-      "kind": "math",
-      "x": 40,
-      "y": 2594,
-      "src": "fy_arm := 420 MPa"
-    },
-    {
-      "id": "r041",
-      "kind": "text",
-      "x": 40,
-      "y": 2640,
-      "src": "omega es la sobrerresistencia con que la armadura se dimensiona contra la\nCAPACIDAD del perno y no contra la demanda: criterio de fusible. La armadura\nno puede fluir antes que el perno."
-    },
-    {
-      "id": "in_omega",
-      "kind": "math",
-      "x": 40,
-      "y": 2734,
-      "src": "omega := 1.2"
-    },
-    {
-      "id": "r043",
-      "kind": "text",
-      "x": 40,
-      "y": 2780,
-      "src": "━━ DATOS · FACTORES DE REDUCCION Y MODIFICACION ━━"
-    },
-    {
-      "id": "r044",
-      "kind": "text",
-      "x": 40,
-      "y": 2826,
-      "src": "17.5.3 remite a la Tabla 21.2.1: (o) acero del anclaje en traccion, ANCLAJE DUCTIL,\nphi = 0,75. Con anclaje no ductil es la fila (p), 0,65, y hay que cambiarlo aca."
-    },
-    {
-      "id": "in_phi_sa",
-      "kind": "math",
-      "x": 40,
-      "y": 2898,
-      "src": "phi_sa := 0.75"
-    },
-    {
-      "id": "r046",
-      "kind": "text",
-      "x": 40,
-      "y": 2944,
-      "src": "Tabla 21.2.1 (l) y (m): falla del HORMIGON en traccion, phi = 0,65 si el anclaje NO es\nREDUNDANTE y 0,75 si lo es. R17.5.3: redundante = la falla de un anclaje no produce perdida\nde posicion ni colapso progresivo. En la 25 la armadura suplementaria ya no cambia phi:\nentra por psi_a. Es una decision del proyecto, no un default."
-    },
-    {
-      "id": "in_phi_c",
-      "kind": "math",
-      "x": 40,
-      "y": 3068,
-      "src": "phi_c := 0.75"
-    },
-    {
-      "id": "r048",
-      "kind": "text",
-      "x": 40,
-      "y": 3114,
-      "src": "17.5.2.1.5 y 17.5.3 remiten a la Tabla 21.2.1 (k): armadura de anclaje, phi = 0,90."
-    },
-    {
-      "id": "in_phi_arm",
-      "kind": "math",
-      "x": 40,
-      "y": 3160,
-      "src": "phi_arm := 0.90"
-    },
-    {
-      "id": "r050",
-      "kind": "text",
-      "x": 40,
-      "y": 3206,
-      "src": "Tabla 17.5.4.1, NUEVA EN LA EDICION 25: psi_a modifica los modos de falla\ndel HORMIGON -- no el acero del perno. Colado: 0,95 sin armadura\nsuplementaria y 1,00 con. Post-instalado baja hasta 0,60."
-    },
-    {
-      "id": "in_psi_a",
-      "kind": "math",
-      "x": 40,
-      "y": 3300,
-      "src": "psi_a := 0.95"
-    },
-    {
-      "id": "r052",
-      "kind": "text",
-      "x": 40,
-      "y": 3346,
-      "src": "17.6.2.7, TAMBIEN NUEVO EN LA 25: psi_cm,N premia el campo de compresion\nbajo la placa, que inhibe el cono. Solo se puede tomar mayor que 1 si los\npernos traccionados estan a 1,5 h_ef o mas de un borde libre Y la razon\ncompresion/traccion supera 0,8; vale 2 - z/(1,5 h_ef) >= 1, con z el brazo\ninterno del par. 17.6.2.7.2: en todos los demas casos vale 1,0, y R17.6.2.7.2\ndice que tomar 1,0 es SIEMPRE conservador. Entra como dato, con su\nprocedencia, porque z no es geometria de esta hoja."
-    },
-    {
-      "id": "in_psi_cm",
-      "kind": "math",
-      "x": 40,
-      "y": 3528,
-      "src": "psi_cm := 1.00"
-    },
-    {
-      "id": "r054",
-      "kind": "text",
-      "x": 40,
-      "y": 3574,
-      "src": "17.6.2.2.1: k_c = 10 para anclajes COLADOS y 7 para post-instalados. Esta\nhoja es de colados; el dato queda a la vista para que se vea que no es 7."
-    },
-    {
-      "id": "in_k_c",
-      "kind": "math",
-      "x": 40,
-      "y": 3646,
-      "src": "k_c := 10"
-    },
-    {
-      "id": "r201",
-      "kind": "text",
-      "x": 40,
-      "y": 3692,
-      "src": "━━ DATOS · DISENO SISMICO DEL ANCLAJE · §17.10 ━━"
-    },
-    {
-      "id": "r202",
-      "kind": "text",
-      "x": 40,
-      "y": 3738,
-      "src": "sismo := 1 cuando la componente sismica de la traccion supera el 20 % de la traccion\nmayorada total de la misma combinacion (17.10.5.2): rige 17.10.5.3 y la resistencia de\ndiseno sale de 17.10.5.4. := 0 si no la supera (17.10.5.1) o si no hay sismo."
-    },
-    {
-      "id": "in_sismo",
-      "kind": "math",
-      "x": 40,
-      "y": 3836,
-      "src": "sismo := 1"
-    },
-    {
-      "id": "r203",
-      "kind": "text",
-      "x": 40,
-      "y": 3882,
-      "src": "La hoja implementa la OPCION (d) de 17.10.5.3: Nua_g ya viene de combinaciones con E_h\namplificado por Omega_0. Los requisitos de ductilidad de la opcion (a) -estiramiento de\n8 d_a, f_uta/f_ya >= 1,3- no se verifican aca: si el proyecto elige (a), van aparte."
-    },
-    {
-      "id": "r204",
-      "kind": "text",
-      "x": 40,
-      "y": 3980,
-      "src": "17.10.4: en SDC C a F la armadura de anclaje es BARRA CONFORMADA segun 20.2.2. Es\ndetallamiento: va como hipotesis, no como calculo."
-    },
-    {
-      "id": "r056",
-      "kind": "text",
-      "x": 40,
-      "y": 4052,
-      "src": "El Cap. 17 esta escrito con f'c en MPa y longitudes en mm: se adimensiona."
-    },
-    {
-      "id": "r057",
-      "kind": "math",
-      "x": 40,
-      "y": 4098,
-      "src": "fpc_n := fpc/(1 MPa) ="
-    },
-    {
-      "id": "r058",
-      "kind": "math",
-      "x": 40,
-      "y": 4144,
-      "src": "raiz_fpc := sqrt(fpc_n) ="
-    },
-    {
-      "id": "r059",
-      "kind": "math",
-      "x": 40,
-      "y": 4190,
-      "src": "hef_n := h_ef/(1 mm) ="
-    },
-    {
-      "id": "r060",
-      "kind": "math",
-      "x": 40,
-      "y": 4236,
-      "src": "ca1_n := c_a1/(1 mm) ="
-    },
-    {
-      "id": "r061",
-      "kind": "math",
-      "x": 40,
-      "y": 4282,
-      "src": "Abrg_n := A_brg/(1 mm^2) ="
-    },
-    {
-      "id": "r205",
-      "kind": "text",
-      "x": 40,
-      "y": 4328,
-      "src": "[17.10.5.4] Con sismo, las resistencias gobernadas por el HORMIGON -cono (b), extraccion\n(c) y descascaramiento (d)- se multiplican por 0,75, con el hormigon fisurado salvo que se\ndemuestre lo contrario. El acero del perno (a) no se reduce, y la armadura de anclaje\ntampoco (17.10.5.5): por eso f_sis no toca ni u_acero ni u_armadura."
-    },
-    {
-      "id": "r206",
-      "kind": "program",
-      "x": 40,
-      "y": 4452,
-      "src": "f_sis :=\n    if sismo == 1\n        return 0.75\n    else\n        return 1.0"
-    },
-    {
-      "id": "r062",
-      "kind": "text",
-      "x": 40,
-      "y": 4602,
-      "src": "━━ 1 — ACERO DEL PERNO EN TRACCION · §17.6.1 ━━"
-    },
-    {
-      "id": "r063",
-      "kind": "text",
-      "x": 40,
-      "y": 4648,
-      "src": "[R17.6.1.2] Area efectiva de la parte roscada, de ASME B1.1. La constante\n0,9743 esta en PULGADAS aunque esta sea la edicion SI: por eso el termino\nlleva la unidad explicita."
-    },
-    {
-      "id": "r064",
-      "kind": "math",
-      "x": 40,
-      "y": 4742,
-      "src": "A_se := (pi/4)*(d_a - 0.9743 in/n_hilos)^2 = mm^2"
-    },
-    {
-      "id": "r065",
-      "kind": "text",
-      "x": 40,
-      "y": 4788,
-      "src": "[17.6.1.2] «f_uta used for calculations shall not exceed either 1,9 f_ya or\n860 MPa». El tope de 1,9 f_ya existe para que el perno no supere su fluencia\nen servicio; el de 860 MPa acota los aceros de alta resistencia."
-    },
-    {
-      "id": "r066",
-      "kind": "math",
-      "x": 40,
-      "y": 4882,
-      "src": "futa_lim := min(1.9*fya, 860 MPa) = MPa"
-    },
-    {
-      "id": "r067",
-      "kind": "math",
-      "x": 40,
-      "y": 4928,
-      "src": "futa_ef := min(futa, futa_lim) = MPa"
-    },
-    {
-      "id": "r068",
-      "kind": "math",
-      "x": 40,
-      "y": 4974,
-      "src": "N_sa := A_se*futa_ef = kN"
-    },
-    {
-      "id": "r069",
-      "kind": "math",
-      "x": 40,
-      "y": 5020,
-      "src": "phiN_sa := phi_sa*n_trac*N_sa = kN"
-    },
-    {
-      "id": "r_u_acero",
-      "kind": "math",
-      "x": 40,
-      "y": 5066,
-      "src": "u_acero := Nua_g/phiN_sa ="
-    },
-    {
-      "id": "r071",
-      "kind": "text",
-      "x": 40,
-      "y": 5112,
-      "src": "━━ 2 — ARRANCAMIENTO DEL CONO EN TRACCION · §17.6.2 ━━"
-    },
-    {
-      "id": "r072",
-      "kind": "text",
-      "x": 40,
-      "y": 5158,
-      "src": "[Fig. R17.6.2.1(a)] Area proyectada de UN anclaje sin bordes: el cono a 35°\nproyecta 1,5 h_ef en cada direccion."
-    },
-    {
-      "id": "r073",
-      "kind": "math",
-      "x": 40,
-      "y": 5230,
-      "src": "A_Nco := 9*h_ef^2 = mm^2"
-    },
-    {
-      "id": "r074",
-      "kind": "text",
-      "x": 40,
-      "y": 5276,
-      "src": "[Fig. R17.6.2.1(b)] El area del grupo se arma sumando, en cada direccion, la\ndistancia de borde -- acotada a 1,5 h_ef, porque mas alla el borde deja de\ninfluir -- mas las separaciones entre pernos."
-    },
-    {
-      "id": "r075",
-      "kind": "text",
-      "x": 40,
-      "y": 5370,
-      "src": "En la direccion de la fila hay borde a los DOS lados y el grupo se supone\ncentrado, asi que c_a1 entra dos veces. En la perpendicular hay borde de un\nsolo lado -- del otro esta el resto del pedestal y la zona comprimida --, asi\nque entra c_a2 y 1,5 h_ef."
-    },
-    {
-      "id": "r076",
-      "kind": "math",
-      "x": 40,
-      "y": 5486,
-      "src": "lado_1 := 2*min(c_a1, 1.5*h_ef) + (n_trac - 1)*s_1 = mm"
-    },
-    {
-      "id": "r077",
-      "kind": "math",
-      "x": 40,
-      "y": 5532,
-      "src": "lado_2 := min(c_a2, 1.5*h_ef) + 1.5*h_ef = mm"
-    },
-    {
-      "id": "r078",
-      "kind": "math",
-      "x": 40,
-      "y": 5578,
-      "src": "A_Nc_geom := lado_1*lado_2 = mm^2"
-    },
-    {
-      "id": "r079",
-      "kind": "text",
-      "x": 40,
-      "y": 5624,
-      "src": "[17.6.2.1.1] «A_Nc shall not exceed n A_Nco»: con pernos muy separados el\nrectangulo crece mas que la suma de conos individuales, y eso no existe."
-    },
-    {
-      "id": "r080",
-      "kind": "math",
-      "x": 40,
-      "y": 5696,
-      "src": "A_Nc := min(A_Nc_geom, n_trac*A_Nco) = mm^2"
-    },
-    {
-      "id": "r081",
-      "kind": "text",
-      "x": 40,
-      "y": 5742,
-      "src": "[17.6.2.2.1] Resistencia basica. La rama de h_ef^(5/3) de 17.6.2.2.3 vale\npara colados con cabeza y 280 mm <= h_ef <= 635 mm, y devuelve mas: se toma\nla MAYOR de las dos, que es lo que la norma permite."
-    },
-    {
-      "id": "r082",
-      "kind": "math",
-      "x": 40,
-      "y": 5836,
-      "src": "N_b15 := k_c*lambda_a*raiz_fpc*hef_n^1.5*(1 N) = kN"
-    },
-    {
-      "id": "r083",
-      "kind": "math",
-      "x": 40,
-      "y": 5882,
-      "src": "N_b53 := 3.9*lambda_a*raiz_fpc*hef_n^(5/3)*(1 N) = kN"
-    },
-    {
-      "id": "r084",
-      "kind": "program",
-      "x": 40,
-      "y": 5928,
-      "src": "N_b :=\n    if h_ef >= 280 mm and h_ef <= 635 mm\n        return max(N_b15, N_b53)\n    else\n        return N_b15"
-    },
-    {
-      "id": "r085",
-      "kind": "text",
-      "x": 40,
-      "y": 6066,
-      "src": "[17.6.2.3.1] Factor de excentricidad, sobre el centroide de los pernos\nTRACCIONADOS."
-    },
-    {
-      "id": "r086",
-      "kind": "math",
-      "x": 40,
-      "y": 6138,
-      "src": "psi_ec := min(1/(1 + e_N/(1.5*h_ef)), 1.0) ="
-    },
-    {
-      "id": "r087",
-      "kind": "text",
-      "x": 40,
-      "y": 6184,
-      "src": "[17.6.2.4.1] Factor de borde. El que manda es el MENOR de los dos\nrecubrimientos, no el de la direccion de la carga."
-    },
-    {
-      "id": "r088",
-      "kind": "math",
-      "x": 40,
-      "y": 6256,
-      "src": "c_a_menor := min(c_a1, c_a2) = mm"
-    },
-    {
-      "id": "r089",
-      "kind": "program",
-      "x": 40,
-      "y": 6302,
-      "src": "psi_ed :=\n    if c_a_menor >= 1.5*h_ef\n        return 1.0\n    else\n        return 0.7 + 0.3*c_a_menor/(1.5*h_ef)"
-    },
-    {
-      "id": "r090",
-      "kind": "text",
-      "x": 40,
-      "y": 6440,
-      "src": "[17.6.2.5.1] Factor de fisuracion. Las Ec. (17.6.2.2.1) y (17.6.2.2.3) ya\nsuponen hormigon FISURADO: el 1,25 es un premio por no estarlo."
-    },
-    {
-      "id": "r091",
-      "kind": "program",
-      "x": 40,
-      "y": 6512,
-      "src": "psi_c :=\n    if fisurado == 1\n        return 1.0\n    else\n        return 1.25"
-    },
-    {
-      "id": "r092",
-      "kind": "text",
-      "x": 40,
-      "y": 6650,
-      "src": "[17.6.2.6.2] «For all other cases, including CAST-IN anchors, psi_cp,N shall\nbe taken as 1,0.» Para un perno colado el factor de hendimiento no se\ncalcula: vale 1,0 por disposicion, no por simplificacion."
-    },
-    {
-      "id": "r093",
-      "kind": "math",
-      "x": 40,
-      "y": 6744,
-      "src": "psi_cp := 1.0"
-    },
-    {
-      "id": "r094",
-      "kind": "text",
-      "x": 40,
-      "y": 6790,
-      "src": "[17.6.2.1b] La ecuacion madre. Siete factores, y NO lleva `n`: R17.6.2.1\navisa que el numero de pernos ya esta dentro de A_Nc."
-    },
-    {
-      "id": "r095",
-      "kind": "math",
-      "x": 40,
-      "y": 6862,
-      "src": "N_cbg := (A_Nc/A_Nco)*psi_a*psi_ec*psi_ed*psi_c*psi_cp*psi_cm*N_b = kN"
-    },
-    {
-      "id": "r096",
-      "kind": "math",
-      "x": 40,
-      "y": 6908,
-      "src": "phiN_cbg := f_sis*phi_c*N_cbg = kN"
-    },
-    {
-      "id": "r_u_breakout",
-      "kind": "math",
-      "x": 40,
-      "y": 6954,
-      "src": "u_breakout := Nua_g/phiN_cbg ="
-    },
-    {
-      "id": "r098",
-      "kind": "text",
-      "x": 40,
-      "y": 7000,
-      "src": "━━ 3 — EXTRACCION DE LA CABEZA · §17.6.3 ━━"
-    },
-    {
-      "id": "r099",
-      "kind": "text",
-      "x": 40,
-      "y": 7046,
-      "src": "[17.6.3.2.2a] N_p = 8 A_brg f'c, POR PERNO. R17.6.3.2.2: es la fuerza que\naplasta el hormigon bajo la cabeza, no la de arrancar el perno -- por eso la\necuacion NO tiene termino de profundidad: alargar el perno no mejora el\npullout, agrandar la cabeza si."
-    },
-    {
-      "id": "r100",
-      "kind": "math",
-      "x": 40,
-      "y": 7162,
-      "src": "N_p := 8*A_brg*fpc = kN"
-    },
-    {
-      "id": "r101",
-      "kind": "program",
-      "x": 40,
-      "y": 7208,
-      "src": "psi_cP :=\n    if fisurado == 1\n        return 1.0\n    else\n        return 1.4"
-    },
-    {
-      "id": "r102",
-      "kind": "math",
-      "x": 40,
-      "y": 7346,
-      "src": "N_pn := psi_a*psi_cP*N_p = kN"
-    },
-    {
-      "id": "r103",
-      "kind": "math",
-      "x": 40,
-      "y": 7392,
-      "src": "phiN_pn := f_sis*phi_c*n_trac*N_pn = kN"
-    },
-    {
-      "id": "r_u_pullout",
-      "kind": "math",
-      "x": 40,
-      "y": 7438,
-      "src": "u_pullout := Nua_g/phiN_pn ="
-    },
-    {
-      "id": "r105",
-      "kind": "text",
-      "x": 40,
-      "y": 7484,
-      "src": "━━ 4 — DESCASCARAMIENTO LATERAL · §17.6.4 ━━"
-    },
-    {
-      "id": "r106",
-      "kind": "text",
-      "x": 40,
-      "y": 7530,
-      "src": "[17.6.4.1] Solo existe con embebido PROFUNDO y CERCA de un borde:\nh_ef > 2,5 c_a1. Si la condicion no se cumple el modo no aplica, y eso se\ndeclara en vez de calcularlo y dar un numero que no significa nada."
-    },
-    {
-      "id": "r107",
-      "kind": "text",
-      "x": 40,
-      "y": 7624,
-      "src": "El indicador devuelve TEXTO y no un booleano a proposito: una region booleana\nes una verificacion para el motor, y «el modo no aplica» no es una falla."
-    },
-    {
-      "id": "r108",
-      "kind": "math",
-      "x": 40,
-      "y": 7696,
-      "src": "hef_lim_sb := 2.5*c_a1 = mm"
-    },
-    {
-      "id": "r_modo_sb",
-      "kind": "program",
-      "x": 40,
-      "y": 7742,
-      "src": "modo_sb :=\n    if h_ef > hef_lim_sb\n        return \"APLICA: el embebido supera 2,5 c_a1\"\n    else\n        return \"no aplica: el embebido no supera 2,5 c_a1\""
-    },
-    {
-      "id": "r110",
-      "kind": "math",
-      "x": 40,
-      "y": 7880,
-      "src": "N_sb_base := psi_a*13*ca1_n*sqrt(Abrg_n)*lambda_a*raiz_fpc*(1 N) = kN"
-    },
-    {
-      "id": "r111",
-      "kind": "text",
-      "x": 40,
-      "y": 7926,
-      "src": "[17.6.4.1.1] Si c_a2 < 3 c_a1 la resistencia se reduce por (1 + c_a2/c_a1)/4,\ncon la razon acotada entre 1 y 3."
-    },
-    {
-      "id": "r112",
-      "kind": "math",
-      "x": 40,
-      "y": 7998,
-      "src": "razon_c := min(max(c_a2/c_a1, 1.0), 3.0) ="
-    },
-    {
-      "id": "r113",
-      "kind": "program",
-      "x": 40,
-      "y": 8044,
-      "src": "f_ca2 :=\n    if c_a2 < 3*c_a1\n        return (1 + razon_c)/4\n    else\n        return 1.0"
-    },
-    {
-      "id": "r114",
-      "kind": "math",
-      "x": 40,
-      "y": 8182,
-      "src": "N_sb := N_sb_base*f_ca2 = kN"
-    },
-    {
-      "id": "r115",
-      "kind": "math",
-      "x": 40,
-      "y": 8228,
-      "src": "phiN_sb := f_sis*phi_c*N_sb = kN"
-    },
-    {
-      "id": "r116",
-      "kind": "program",
-      "x": 40,
-      "y": 8274,
-      "src": "u_blowout :=\n    if h_ef > hef_lim_sb\n        return (Nua_g/n_trac)/phiN_sb\n    else\n        return 0"
-    },
-    {
-      "id": "r117",
-      "kind": "text",
-      "x": 40,
-      "y": 8412,
-      "src": "━━ 5 — ARMADURA DE ANCLAJE · §17.5.2.1 ━━"
-    },
-    {
-      "id": "r118",
-      "kind": "text",
-      "x": 40,
-      "y": 8458,
-      "src": "[17.5.2.1] Cuando se dispone armadura que cruza la superficie de falla y\nesta desarrollada a ambos lados, su resistencia se usa EN LUGAR de la de\nbreakout del hormigon. No reemplaza al pullout ni al blowout, que son\nlocales a la cabeza."
-    },
-    {
-      "id": "r119",
-      "kind": "math",
-      "x": 40,
-      "y": 8574,
-      "src": "As_dem := Nua_g/(phi_arm*fy_arm) = mm^2"
-    },
-    {
-      "id": "r120",
-      "kind": "text",
-      "x": 40,
-      "y": 8620,
-      "src": "Criterio de fusible: la armadura se dimensiona contra la CAPACIDAD del perno\n-- no contra la demanda --, para que el perno fluya primero. Es lo que C8.5.2\nde NCh2369 exige cuando el anclaje es el elemento ductil."
-    },
-    {
-      "id": "r121",
-      "kind": "math",
-      "x": 40,
-      "y": 8714,
-      "src": "As_cap := n_trac*omega*N_sa/fy_arm = mm^2"
-    },
-    {
-      "id": "r122",
-      "kind": "math",
-      "x": 40,
-      "y": 8760,
-      "src": "As_req := max(As_dem, As_cap) = mm^2"
-    },
-    {
-      "id": "r123",
-      "kind": "math",
-      "x": 40,
-      "y": 8806,
-      "src": "As_prov := n_arm*pi*d_arm^2/4 = mm^2"
-    },
-    {
-      "id": "r124",
-      "kind": "program",
-      "x": 40,
-      "y": 8852,
-      "src": "rige_armadura :=\n    if As_req == As_cap\n        return \"capacidad del perno\"\n    else\n        return \"demanda del analisis\""
-    },
-    {
-      "id": "r125",
-      "kind": "program",
-      "x": 40,
-      "y": 8990,
-      "src": "u_armadura :=\n    if usa_arm == 1\n        return As_req/As_prov\n    else\n        return 0"
-    },
-    {
-      "id": "r126",
-      "kind": "text",
-      "x": 40,
-      "y": 9128,
-      "src": "━━ 6 — SEPARACION Y DISTANCIA DE BORDE · §17.9 ━━"
-    },
-    {
-      "id": "r127",
-      "kind": "text",
-      "x": 40,
-      "y": 9174,
-      "src": "[Tabla 17.9.2(a)] Separacion minima entre anclajes colados NO torqueados:\n4 d_a. Si el pliego manda pretensar pasa a 6 d_a, y eso puede tumbar la\nconfiguracion entera: no es una propiedad del perno sino de como se aprieta."
-    },
-    {
-      "id": "r128",
-      "kind": "math",
-      "x": 40,
-      "y": 9268,
-      "src": "s_min := 4*d_a = mm"
-    },
-    {
-      "id": "v_sep_min",
-      "kind": "math",
-      "x": 40,
-      "y": 9314,
-      "src": "v_sep_min := s_1 >= s_min ="
-    },
-    {
-      "id": "r130",
-      "kind": "text",
-      "x": 40,
-      "y": 9360,
-      "src": "[17.6.2.1.2] Con anclajes a menos de 1,5 h_ef de TRES O MAS bordes hay que\nusar un h_ef ficticio -- el mayor entre c_a,max/1,5 y s/3 -- en TODAS las\necuaciones. Esta hoja no lo hace, asi que el caso queda fuera de su alcance y\nse declara en vez de calcularse mal."
-    },
-    {
-      "id": "v_dos_bordes",
-      "kind": "math",
-      "x": 40,
-      "y": 9476,
-      "src": "v_dos_bordes := n_bordes <= 2 ="
-    },
-    {
-      "id": "r132",
-      "kind": "text",
-      "x": 40,
-      "y": 9522,
-      "src": "━━ QUE GOBIERNA ━━"
-    },
-    {
-      "id": "r133",
-      "kind": "text",
-      "x": 40,
-      "y": 9568,
-      "src": "La via del hormigon y la de la armadura son EXCLUYENTES en el breakout: la\narmadura lo reemplaza. El pullout y el blowout aplican en las dos."
-    },
-    {
-      "id": "r134",
-      "kind": "program",
-      "x": 40,
-      "y": 9640,
-      "src": "u_cono :=\n    if usa_arm == 1\n        return u_armadura\n    else\n        return u_breakout"
-    },
-    {
-      "id": "r_u_max",
-      "kind": "math",
-      "x": 40,
-      "y": 9778,
-      "src": "u_max := max(u_acero, u_cono, u_pullout, u_blowout) ="
-    },
-    {
-      "id": "r_gobierna",
-      "kind": "program",
-      "x": 40,
-      "y": 9824,
-      "src": "gobierna :=\n    if u_max == u_acero\n        return \"acero del perno en traccion\"\n    else\n        if u_max == u_pullout\n            return \"extraccion de la cabeza (pullout)\"\n        else\n            if u_max == u_blowout\n                return \"descascaramiento lateral\"\n            else\n                if usa_arm == 1\n                    return \"armadura de anclaje\"\n                else\n                    return \"arrancamiento del cono de hormigon\""
-    },
-    {
-      "id": "v_global",
-      "kind": "math",
-      "x": 40,
-      "y": 10160,
-      "src": "v_global := u_max <= 1 ="
-    }
+  "casos": [
+   {
+    "nombre": "ejemplo de referencia",
+    "entradas": {},
+    "cumple": true
+   },
+   {
+    "nombre": "sin armadura de anclaje: el cono no da",
+    "entradas": {
+     "usa_arm": 0
+    },
+    "cumple": false,
+    "esperadoFalso": [
+     "v_global"
+    ]
+   },
+   {
+    "nombre": "sin sismo: 17.10.5.1",
+    "entradas": {
+     "sismo": 0
+    },
+    "cumple": true
+   }
   ]
+ },
+ "regions": [
+  {
+   "id": "r001",
+   "kind": "text",
+   "x": 40,
+   "y": 32,
+   "src": "Grupo de pernos COLADOS (cast-in) en TRACCIÓN, con los cuatro modos del Cap. 17 que le aplican\n—acero del perno, arrancamiento del cono, extracción de la cabeza y descascaramiento lateral— más\nla vía alternativa de ARMADURA DE ANCLAJE, que reemplaza al cono cuando se dispone. La resistencia\ndel grupo es la MENOR de los modos que aplican, y cada modo tiene su propio φ: un modo que no se\ncalcula no es un modo que no existe. Hipótesis: perno con cabeza o golilla, una sola fila\ntraccionada, pedestal de sección constante y sin contar fricción bajo la placa. ACI 318-25 (SI)."
+  },
+  {
+   "id": "r002",
+   "kind": "text",
+   "x": 40,
+   "y": 200,
+   "src": "FRONTERA: la hoja no calcula la tracción del grupo —la produce el equilibrio de la placa y entra\npor Nua_g desde placa-base-generica— ni el CORTE, que va en llave-corte-generica junto con el\npryout y la interacción del §17.8. Tampoco cubre anclajes post-instalados ni adhesivos."
+  },
+  {
+   "id": "r003",
+   "kind": "text",
+   "x": 40,
+   "y": 296,
+   "src": "━━ DATOS · SOLICITACIÓN DEL GRUPO TRACCIONADO ━━"
+  },
+  {
+   "id": "in_Nua_g",
+   "kind": "math",
+   "x": 40,
+   "y": 344,
+   "src": "Nua_g := 1533.8 kN"
+  },
+  {
+   "id": "in_n_trac",
+   "kind": "math",
+   "x": 40,
+   "y": 392,
+   "src": "n_trac := 4"
+  },
+  {
+   "id": "in_e_N",
+   "kind": "math",
+   "x": 40,
+   "y": 440,
+   "src": "e_N := 0 mm"
+  },
+  {
+   "id": "r007",
+   "kind": "text",
+   "x": 40,
+   "y": 488,
+   "src": "━━ DATOS · GEOMETRÍA DEL GRUPO Y DEL PEDESTAL ━━"
+  },
+  {
+   "id": "r008",
+   "kind": "text",
+   "x": 40,
+   "y": 536,
+   "src": "s_1 es la separación entre pernos de la fila traccionada; c_a1 la distancia de borde en la\ndirección de la fila y c_a2 en la perpendicular, las dos del eje del perno al BORDE DEL HORMIGÓN.\nn_bordes es cuántos bordes quedan a menos de 1,5·h_ef del grupo, que no se deduce de c_a1 y c_a2."
+  },
+  {
+   "id": "in_h_ef",
+   "kind": "math",
+   "x": 40,
+   "y": 632,
+   "src": "h_ef := 600 mm"
+  },
+  {
+   "id": "in_s_1",
+   "kind": "math",
+   "x": 40,
+   "y": 680,
+   "src": "s_1 := 192 mm"
+  },
+  {
+   "id": "in_c_a1",
+   "kind": "math",
+   "x": 40,
+   "y": 728,
+   "src": "c_a1 := 362 mm"
+  },
+  {
+   "id": "in_c_a2",
+   "kind": "math",
+   "x": 40,
+   "y": 776,
+   "src": "c_a2 := 270 mm"
+  },
+  {
+   "id": "in_n_bordes",
+   "kind": "math",
+   "x": 40,
+   "y": 824,
+   "src": "n_bordes := 2"
+  },
+  {
+   "id": "in_d_a",
+   "kind": "math",
+   "x": 40,
+   "y": 872,
+   "src": "d_a := 48 mm"
+  },
+  {
+   "id": "in_n_hilos",
+   "kind": "math",
+   "x": 40,
+   "y": 920,
+   "src": "n_hilos := 5.08"
+  },
+  {
+   "id": "in_A_brg",
+   "kind": "math",
+   "x": 40,
+   "y": 968,
+   "src": "A_brg := 3000 mm^2"
+  },
+  {
+   "id": "r017",
+   "kind": "text",
+   "x": 40,
+   "y": 1016,
+   "src": "━━ DATOS · HORMIGÓN Y ACERO DEL PERNO ━━"
+  },
+  {
+   "id": "in_fpc",
+   "kind": "math",
+   "x": 40,
+   "y": 1064,
+   "src": "fpc := 30 MPa"
+  },
+  {
+   "id": "in_lambda_a",
+   "kind": "math",
+   "x": 40,
+   "y": 1112,
+   "src": "lambda_a := 1.00"
+  },
+  {
+   "id": "in_fisurado",
+   "kind": "math",
+   "x": 40,
+   "y": 1160,
+   "src": "fisurado := 1"
+  },
+  {
+   "id": "in_futa",
+   "kind": "math",
+   "x": 40,
+   "y": 1208,
+   "src": "futa := 400 MPa"
+  },
+  {
+   "id": "in_fya",
+   "kind": "math",
+   "x": 40,
+   "y": 1256,
+   "src": "fya := 248 MPa"
+  },
+  {
+   "id": "r023",
+   "kind": "text",
+   "x": 40,
+   "y": 1304,
+   "src": "━━ DATOS · ARMADURA DE ANCLAJE · §17.5.2.1 ━━"
+  },
+  {
+   "id": "r024",
+   "kind": "text",
+   "x": 40,
+   "y": 1352,
+   "src": "usa_arm := 1 cuando se dispone armadura de anclaje que cruza la superficie de falla y está\ndesarrollada a ambos lados: entonces ELLA toma la tracción y el cono del hormigón no se cuenta\n(§17.10.5.4(b)). omega es la sobrerresistencia con que la armadura se dimensiona contra la\nCAPACIDAD del perno y no contra la demanda, para que el perno fluya primero."
+  },
+  {
+   "id": "in_usa_arm",
+   "kind": "math",
+   "x": 40,
+   "y": 1472,
+   "src": "usa_arm := 1"
+  },
+  {
+   "id": "in_n_arm",
+   "kind": "math",
+   "x": 40,
+   "y": 1520,
+   "src": "n_arm := 14"
+  },
+  {
+   "id": "in_d_arm",
+   "kind": "math",
+   "x": 40,
+   "y": 1568,
+   "src": "d_arm := 25 mm"
+  },
+  {
+   "id": "in_fy_arm",
+   "kind": "math",
+   "x": 40,
+   "y": 1616,
+   "src": "fy_arm := 420 MPa"
+  },
+  {
+   "id": "in_omega",
+   "kind": "math",
+   "x": 40,
+   "y": 1664,
+   "src": "omega := 1.2"
+  },
+  {
+   "id": "r030",
+   "kind": "text",
+   "x": 40,
+   "y": 1712,
+   "src": "━━ DATOS · FACTORES DE REDUCCIÓN Y MODIFICACIÓN ━━"
+  },
+  {
+   "id": "r031",
+   "kind": "text",
+   "x": 40,
+   "y": 1760,
+   "src": "φ_sa: Tabla 21.2.1 (o), acero del anclaje en tracción con anclaje DÚCTIL, 0,75; con anclaje no\ndúctil es la fila (p), 0,65. φ_c: filas (l) y (m), falla del hormigón, 0,65 si el anclaje NO es\nredundante y 0,75 si lo es —es una decisión del proyecto, no un valor por omisión—. φ_arm: fila\n(k), 0,90. ψ_a de la Tabla 17.5.4.1 y ψ_cm,N del §17.6.2.7 son nuevos de la edición 25: el primero\nmodifica los modos del hormigón y el segundo premia el campo de compresión bajo la placa, y tomarlo\nigual a 1,0 siempre es conservador. k_c = 10 es el de los pernos colados."
+  },
+  {
+   "id": "in_phi_sa",
+   "kind": "math",
+   "x": 40,
+   "y": 1928,
+   "src": "phi_sa := 0.75"
+  },
+  {
+   "id": "in_phi_c",
+   "kind": "math",
+   "x": 40,
+   "y": 1976,
+   "src": "phi_c := 0.75"
+  },
+  {
+   "id": "in_phi_arm",
+   "kind": "math",
+   "x": 40,
+   "y": 2024,
+   "src": "phi_arm := 0.90"
+  },
+  {
+   "id": "in_psi_a",
+   "kind": "math",
+   "x": 40,
+   "y": 2072,
+   "src": "psi_a := 0.95"
+  },
+  {
+   "id": "in_psi_cm",
+   "kind": "math",
+   "x": 40,
+   "y": 2120,
+   "src": "psi_cm := 1.00"
+  },
+  {
+   "id": "in_k_c",
+   "kind": "math",
+   "x": 40,
+   "y": 2168,
+   "src": "k_c := 10"
+  },
+  {
+   "id": "r038",
+   "kind": "text",
+   "x": 40,
+   "y": 2216,
+   "src": "━━ DATOS · DISEÑO SÍSMICO DEL ANCLAJE · §17.10 ━━"
+  },
+  {
+   "id": "r039",
+   "kind": "text",
+   "x": 40,
+   "y": 2264,
+   "src": "sismo := 1 cuando la componente sísmica de la tracción supera el 20 % de la tracción mayorada total\nde la misma combinación (§17.10.5.2): rige el §17.10.5.3 y la resistencia sale del §17.10.5.4. La\nhoja implementa la opción (d) —Nua_g ya viene de combinaciones con E_h amplificado por Ω₀— y además\ndimensiona la armadura con el criterio de fusible de la opción (a), que pide resistencia del\nhormigón sobre 1,2·N_sa. El §17.10.4 exige barra conformada según §20.2.2 en SDC C a F."
+  },
+  {
+   "id": "in_sismo",
+   "kind": "math",
+   "x": 40,
+   "y": 2408,
+   "src": "sismo := 1"
+  },
+  {
+   "id": "r041",
+   "kind": "text",
+   "x": 40,
+   "y": 2456,
+   "src": "━━ 1 — ACERO DEL PERNO EN TRACCIÓN · §17.6.1 y factor sísmico del §17.10.5.4 ━━"
+  },
+  {
+   "id": "r042",
+   "kind": "text",
+   "x": 40,
+   "y": 2504,
+   "src": "El Cap. 17 está escrito con f'c en MPa y longitudes en mm: se adimensiona y se reconstituye con la\nunidad. El área efectiva de la parte roscada es la de ASME B1.1 (R17.6.1.2), y su constante 0,9743\nva en PULGADAS aun en la edición SI. El §17.6.1.2 no deja usar f_uta mayor que 1,9·f_ya ni que\n860 MPa. Con sismo, el §17.10.5.4 multiplica por 0,75 las resistencias gobernadas por el HORMIGÓN\n—cono, extracción y descascaramiento—; el acero del perno y la armadura de anclaje no se reducen."
+  },
+  {
+   "id": "r043",
+   "kind": "math",
+   "x": 40,
+   "y": 2648,
+   "src": "fpc_n := fpc/(1 MPa) ="
+  },
+  {
+   "id": "r044",
+   "kind": "math",
+   "x": 40,
+   "y": 2696,
+   "src": "f_sis := sismo == 1 ? 0.75 : 1.0 ="
+  },
+  {
+   "id": "r045",
+   "kind": "math",
+   "x": 40,
+   "y": 2744,
+   "src": "A_se := (pi/4)*(d_a - 0.9743 in/n_hilos)^2 = mm^2"
+  },
+  {
+   "id": "r046",
+   "kind": "math",
+   "x": 40,
+   "y": 2792,
+   "src": "futa_ef := min(futa, 1.9*fya, 860 MPa) = MPa"
+  },
+  {
+   "id": "r047",
+   "kind": "math",
+   "x": 40,
+   "y": 2840,
+   "src": "N_sa := A_se*futa_ef = kN"
+  },
+  {
+   "id": "r048",
+   "kind": "math",
+   "x": 40,
+   "y": 2888,
+   "src": "phiN_sa := phi_sa*n_trac*N_sa = kN"
+  },
+  {
+   "id": "r_u_acero",
+   "kind": "math",
+   "x": 40,
+   "y": 2936,
+   "src": "u_acero := Nua_g/phiN_sa ="
+  },
+  {
+   "id": "r050",
+   "kind": "text",
+   "x": 40,
+   "y": 2984,
+   "src": "━━ 2 — ARRANCAMIENTO DEL CONO EN TRACCIÓN · §17.6.2 ━━"
+  },
+  {
+   "id": "r051",
+   "kind": "text",
+   "x": 40,
+   "y": 3032,
+   "src": "El cono a 35° proyecta 1,5·h_ef en cada dirección [Fig. R17.6.2.1(a)]. El área del grupo se arma\nsumando, en cada dirección, la distancia de borde —acotada a 1,5·h_ef, porque más allá el borde\ndeja de influir— más las separaciones entre pernos: en la dirección de la fila hay borde a los dos\nlados y el grupo se supone centrado, y en la perpendicular hay borde de un solo lado. El §17.6.2.1.1\nno deja que A_Nc pase de n·A_Nco. La rama de h_ef^(5/3) del §17.6.2.2.3 vale para colados con cabeza\ncon 280 ≤ h_ef ≤ 635 mm y devuelve más, así que se toma la mayor de las dos. La ecuación madre\n[17.6.2.1b] no lleva «n»: el número de pernos ya está dentro de A_Nc."
+  },
+  {
+   "id": "r052",
+   "kind": "math",
+   "x": 40,
+   "y": 3224,
+   "src": "A_Nco := 9*h_ef^2 = mm^2"
+  },
+  {
+   "id": "r053",
+   "kind": "math",
+   "x": 40,
+   "y": 3272,
+   "src": "lado_1 := 2*min(c_a1, 1.5*h_ef) + (n_trac - 1)*s_1 = mm"
+  },
+  {
+   "id": "r054",
+   "kind": "math",
+   "x": 40,
+   "y": 3320,
+   "src": "lado_2 := min(c_a2, 1.5*h_ef) + 1.5*h_ef = mm"
+  },
+  {
+   "id": "r055",
+   "kind": "math",
+   "x": 40,
+   "y": 3368,
+   "src": "A_Nc := min(lado_1*lado_2, n_trac*A_Nco) = mm^2"
+  },
+  {
+   "id": "r056",
+   "kind": "math",
+   "x": 40,
+   "y": 3416,
+   "src": "N_b15 := k_c*lambda_a*sqrt(fpc_n)*(h_ef/(1 mm))^1.5*(1 N) = kN"
+  },
+  {
+   "id": "r057",
+   "kind": "math",
+   "x": 40,
+   "y": 3464,
+   "src": "N_b53 := 3.9*lambda_a*sqrt(fpc_n)*(h_ef/(1 mm))^(5/3)*(1 N) = kN"
+  },
+  {
+   "id": "r058",
+   "kind": "math",
+   "x": 40,
+   "y": 3512,
+   "src": "N_b := (h_ef >= 280 mm and h_ef <= 635 mm) ? max(N_b15, N_b53) : N_b15 = kN"
+  },
+  {
+   "id": "r059",
+   "kind": "math",
+   "x": 40,
+   "y": 3560,
+   "src": "psi_ec := min(1/(1 + e_N/(1.5*h_ef)), 1.0) ="
+  },
+  {
+   "id": "r060",
+   "kind": "math",
+   "x": 40,
+   "y": 3608,
+   "src": "c_a_menor := min(c_a1, c_a2) = mm"
+  },
+  {
+   "id": "r061",
+   "kind": "math",
+   "x": 40,
+   "y": 3656,
+   "src": "psi_ed := c_a_menor >= 1.5*h_ef ? 1.0 : 0.7 + 0.3*c_a_menor/(1.5*h_ef) ="
+  },
+  {
+   "id": "r062",
+   "kind": "math",
+   "x": 40,
+   "y": 3704,
+   "src": "psi_c := fisurado == 1 ? 1.0 : 1.25 ="
+  },
+  {
+   "id": "r063",
+   "kind": "math",
+   "x": 40,
+   "y": 3752,
+   "src": "psi_cp := 1.0"
+  },
+  {
+   "id": "r064",
+   "kind": "math",
+   "x": 40,
+   "y": 3800,
+   "src": "N_cbg := (A_Nc/A_Nco)*psi_a*psi_ec*psi_ed*psi_c*psi_cp*psi_cm*N_b = kN"
+  },
+  {
+   "id": "r065",
+   "kind": "math",
+   "x": 40,
+   "y": 3848,
+   "src": "phiN_cbg := f_sis*phi_c*N_cbg = kN"
+  },
+  {
+   "id": "r_u_breakout",
+   "kind": "math",
+   "x": 40,
+   "y": 3896,
+   "src": "u_breakout := Nua_g/phiN_cbg ="
+  },
+  {
+   "id": "r067",
+   "kind": "text",
+   "x": 40,
+   "y": 3944,
+   "src": "━━ 3 — EXTRACCIÓN DE LA CABEZA · §17.6.3 ━━"
+  },
+  {
+   "id": "r068",
+   "kind": "text",
+   "x": 40,
+   "y": 3992,
+   "src": "[17.6.3.2.2a] N_p = 8·A_brg·f'c, POR PERNO: es la fuerza que aplasta el hormigón bajo la cabeza, no\nla de arrancar el perno, y por eso la ecuación no tiene término de profundidad. Alargar el perno no\nmejora la extracción; agrandar la cabeza, sí. ψ_c,P vale 1,0 con hormigón fisurado y 1,4 si no."
+  },
+  {
+   "id": "r069",
+   "kind": "math",
+   "x": 40,
+   "y": 4088,
+   "src": "N_p := 8*A_brg*fpc = kN"
+  },
+  {
+   "id": "r070",
+   "kind": "math",
+   "x": 40,
+   "y": 4136,
+   "src": "psi_cP := fisurado == 1 ? 1.0 : 1.4 ="
+  },
+  {
+   "id": "r071",
+   "kind": "math",
+   "x": 40,
+   "y": 4184,
+   "src": "N_pn := psi_a*psi_cP*N_p = kN"
+  },
+  {
+   "id": "r071b",
+   "kind": "math",
+   "x": 40,
+   "y": 4232,
+   "src": "phiN_pn := f_sis*phi_c*n_trac*N_pn = kN"
+  },
+  {
+   "id": "r_u_pullout",
+   "kind": "math",
+   "x": 40,
+   "y": 4280,
+   "src": "u_pullout := Nua_g/phiN_pn ="
+  },
+  {
+   "id": "r073",
+   "kind": "text",
+   "x": 40,
+   "y": 4328,
+   "src": "━━ 4 — DESCASCARAMIENTO LATERAL · §17.6.4 ━━"
+  },
+  {
+   "id": "r074",
+   "kind": "text",
+   "x": 40,
+   "y": 4376,
+   "src": "[17.6.4.1] Solo existe con embebido PROFUNDO y CERCA de un borde: h_ef > 2,5·c_a1. Si la condición\nno se cumple el modo no aplica, y eso se declara en vez de calcularlo y dar un número que no\nsignifica nada. El indicador devuelve TEXTO a propósito: «el modo no aplica» no es una falla.\n[17.6.4.1.1] Si c_a2 < 3·c_a1 la resistencia se reduce por (1 + c_a2/c_a1)/4, con la razón acotada\nentre 1 y 3."
+  },
+  {
+   "id": "r075",
+   "kind": "math",
+   "x": 40,
+   "y": 4520,
+   "src": "hef_lim_sb := 2.5*c_a1 = mm"
+  },
+  {
+   "id": "r_modo_sb",
+   "kind": "math",
+   "x": 40,
+   "y": 4568,
+   "src": "modo_sb := h_ef > hef_lim_sb ? \"APLICA: el embebido supera 2,5·c_a1\" : \"no aplica: el embebido no supera 2,5·c_a1\" ="
+  },
+  {
+   "id": "r077",
+   "kind": "math",
+   "x": 40,
+   "y": 4616,
+   "src": "f_ca2 := c_a2 < 3*c_a1 ? (1 + min(max(c_a2/c_a1, 1.0), 3.0))/4 : 1.0 ="
+  },
+  {
+   "id": "r078",
+   "kind": "math",
+   "x": 40,
+   "y": 4664,
+   "src": "N_sb := psi_a*13*(c_a1/(1 mm))*sqrt(A_brg/(1 mm^2))*lambda_a*sqrt(fpc_n)*(1 N)*f_ca2 = kN"
+  },
+  {
+   "id": "r079",
+   "kind": "math",
+   "x": 40,
+   "y": 4712,
+   "src": "phiN_sb := f_sis*phi_c*N_sb = kN"
+  },
+  {
+   "id": "r_u_blowout",
+   "kind": "math",
+   "x": 40,
+   "y": 4760,
+   "src": "u_blowout := h_ef > hef_lim_sb ? (Nua_g/n_trac)/phiN_sb : 0 ="
+  },
+  {
+   "id": "r081",
+   "kind": "text",
+   "x": 40,
+   "y": 4808,
+   "src": "━━ 5 — ARMADURA DE ANCLAJE · §17.5.2.1 y §17.10.5.3(a) ━━"
+  },
+  {
+   "id": "r082",
+   "kind": "text",
+   "x": 40,
+   "y": 4856,
+   "src": "[17.5.2.1.1] Cuando se dispone armadura que cruza la superficie de falla y está desarrollada a\nambos lados, su resistencia se usa EN LUGAR de la del cono. No reemplaza a la extracción ni al\ndescascaramiento, que son locales a la cabeza. Criterio de fusible: la armadura se dimensiona\ncontra la CAPACIDAD del perno y no contra la demanda, que es lo que pide la opción (a) del\n§17.10.5.3 —resistencia del hormigón sobre 1,2·N_sa— para que el perno fluya primero."
+  },
+  {
+   "id": "r083",
+   "kind": "math",
+   "x": 40,
+   "y": 5000,
+   "src": "As_dem := Nua_g/(phi_arm*fy_arm) = mm^2"
+  },
+  {
+   "id": "r084",
+   "kind": "math",
+   "x": 40,
+   "y": 5048,
+   "src": "As_cap := n_trac*omega*N_sa/fy_arm = mm^2"
+  },
+  {
+   "id": "r085",
+   "kind": "math",
+   "x": 40,
+   "y": 5096,
+   "src": "As_req := max(As_dem, As_cap) = mm^2"
+  },
+  {
+   "id": "r086",
+   "kind": "math",
+   "x": 40,
+   "y": 5144,
+   "src": "As_prov := n_arm*pi*d_arm^2/4 = mm^2"
+  },
+  {
+   "id": "r_rige_armadura",
+   "kind": "math",
+   "x": 40,
+   "y": 5192,
+   "src": "rige_armadura := As_req == As_cap ? \"capacidad del perno\" : \"demanda del análisis\" ="
+  },
+  {
+   "id": "r_u_armadura",
+   "kind": "math",
+   "x": 40,
+   "y": 5240,
+   "src": "u_armadura := usa_arm == 1 ? As_req/As_prov : 0 ="
+  },
+  {
+   "id": "r089",
+   "kind": "text",
+   "x": 40,
+   "y": 5288,
+   "src": "━━ 6 — SEPARACIÓN Y DISTANCIA DE BORDE · §17.9 ━━"
+  },
+  {
+   "id": "r090",
+   "kind": "text",
+   "x": 40,
+   "y": 5336,
+   "src": "[Tabla 17.9.2(a)] Separación mínima entre anclajes colados NO torqueados: 4·d_a. Si el pliego manda\npretensar pasa a 6·d_a, y eso puede tumbar la configuración entera: no es una propiedad del perno\nsino de cómo se aprieta. [17.6.2.1.2] Con anclajes a menos de 1,5·h_ef de TRES O MÁS bordes hay que\nusar un h_ef ficticio en todas las ecuaciones: esta hoja no lo hace, así que ese caso queda fuera de\nsu alcance y se declara en vez de calcularse mal."
+  },
+  {
+   "id": "v_sep_min",
+   "kind": "math",
+   "x": 40,
+   "y": 5480,
+   "src": "v_sep_min := s_1 >= 4*d_a ="
+  },
+  {
+   "id": "v_dos_bordes",
+   "kind": "math",
+   "x": 40,
+   "y": 5528,
+   "src": "v_dos_bordes := n_bordes <= 2 ="
+  },
+  {
+   "id": "r093",
+   "kind": "text",
+   "x": 40,
+   "y": 5576,
+   "src": "━━ RESUMEN ━━"
+  },
+  {
+   "id": "r094",
+   "kind": "text",
+   "x": 40,
+   "y": 5624,
+   "src": "La vía del hormigón y la de la armadura son EXCLUYENTES en el cono: la armadura lo reemplaza. La\nextracción y el descascaramiento aplican en las dos."
+  },
+  {
+   "id": "r095",
+   "kind": "math",
+   "x": 40,
+   "y": 5696,
+   "src": "u_cono := usa_arm == 1 ? u_armadura : u_breakout ="
+  },
+  {
+   "id": "r_u_max",
+   "kind": "math",
+   "x": 40,
+   "y": 5744,
+   "src": "u_max := max(u_acero, u_cono, u_pullout, u_blowout) ="
+  },
+  {
+   "id": "r_gobierna",
+   "kind": "program",
+   "x": 40,
+   "y": 5792,
+   "src": "gobierna :=\n    if u_max == u_acero\n        return \"acero del perno en tracción\"\n    else if u_max == u_pullout\n        return \"extracción de la cabeza (pullout)\"\n    else if u_max == u_blowout\n        return \"descascaramiento lateral\"\n    else if usa_arm == 1\n        return \"armadura de anclaje\"\n    else\n        return \"arrancamiento del cono de hormigón\""
+  },
+  {
+   "id": "v_global",
+   "kind": "math",
+   "x": 40,
+   "y": 6080,
+   "src": "v_global := u_max <= 1 and v_sep_min and v_dos_bordes ="
+  },
+  {
+   "id": "r099",
+   "kind": "text",
+   "x": 40,
+   "y": 6128,
+   "src": "━━ ESQUEMA · MAPEO A PÍXELES ━━",
+   "imprimir": false
+  },
+  {
+   "id": "r100",
+   "kind": "text",
+   "x": 40,
+   "y": 6176,
+   "src": "px y py llevan una distancia medida desde el centro del grupo a píxeles de planta, con y positivo\nhacia adentro del pedestal; ey hace lo propio en elevación, medida hacia abajo desde la cara\nsuperior del hormigón. Este bloque no se imprime.",
+   "imprimir": false
+  },
+  {
+   "id": "r101",
+   "kind": "math",
+   "x": 40,
+   "y": 6272,
+   "src": "esc := min(300/(lado_1/(1 mm)), 150/(lado_2/(1 mm)), 300/(3*h_ef/(1 mm))) =",
+   "imprimir": false
+  },
+  {
+   "id": "r102",
+   "kind": "program",
+   "x": 40,
+   "y": 6320,
+   "src": "px(u) := 250 + u/(1 mm)*esc",
+   "imprimir": false
+  },
+  {
+   "id": "r103",
+   "kind": "program",
+   "x": 40,
+   "y": 6368,
+   "src": "py(v) := 150 + v/(1 mm)*esc",
+   "imprimir": false
+  },
+  {
+   "id": "r104",
+   "kind": "program",
+   "x": 40,
+   "y": 6416,
+   "src": "ey(w) := 360 + w/(1 mm)*esc",
+   "imprimir": false
+  },
+  {
+   "id": "r105",
+   "kind": "math",
+   "x": 40,
+   "y": 6464,
+   "src": "media_fila := (n_trac - 1)*s_1/2 = mm",
+   "imprimir": false
+  },
+  {
+   "id": "r106",
+   "kind": "program",
+   "x": 40,
+   "y": 6512,
+   "src": "pernos_px :=\n    Q := zeros(n_trac, 2)\n    for i in 1:n_trac\n        Q[i, 1] = px(-media_fila + (i - 1)*s_1)\n        Q[i, 2] = py(0 mm)\n    Q",
+   "imprimir": false
+  },
+  {
+   "id": "r107",
+   "kind": "program",
+   "x": 40,
+   "y": 6680,
+   "src": "armadura_px :=\n    if usa_arm == 0\n        return zeros(0, 1)\n    n := n_arm\n    ancho := 2*media_fila + h_ef\n    Q := zeros(n, 1)\n    for i in 1:n\n        Q[i, 1] = px(-ancho/2 + (i - 1)*ancho/max(n - 1, 1))\n    Q",
+   "imprimir": false
+  },
+  {
+   "id": "r108",
+   "kind": "math",
+   "x": 40,
+   "y": 6920,
+   "src": "col_acero := u_acero <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
+   "id": "r109",
+   "kind": "math",
+   "x": 40,
+   "y": 6968,
+   "src": "col_cono := u_cono <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
+   "id": "r110",
+   "kind": "math",
+   "x": 40,
+   "y": 7016,
+   "src": "col_arm := (usa_arm == 1 and u_armadura <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
+   "id": "r111",
+   "kind": "math",
+   "x": 40,
+   "y": 7064,
+   "src": "col_sep := v_sep_min ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
+   "id": "r112",
+   "kind": "math",
+   "x": 40,
+   "y": 7112,
+   "src": "col_global := v_global ? \"#1c7c3c\" : \"#c0392b\"",
+   "imprimir": false
+  },
+  {
+   "id": "esquema",
+   "kind": "image",
+   "x": 40,
+   "y": 7160,
+   "src": "/esquemas/anclaje-hormigon-generica.svg",
+   "w": 720,
+   "h": 480
+  }
+ ]
 }

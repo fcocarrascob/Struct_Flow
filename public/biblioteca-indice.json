@@ -72,19 +72,19 @@
     },
     {
       "slug": "anclaje-hormigon-generica",
-      "titulo": "Anclaje al hormigon — grupo de pernos colados en traccion: acero, arrancamiento del cono, extraccion de la cabeza, descascaramiento lateral y armadura de anclaje",
+      "titulo": "Anclaje al hormigón — grupo de pernos colados en tracción: acero, arrancamiento del cono, extracción de la cabeza, descascaramiento lateral y armadura de anclaje",
       "clase": "generica",
       "disciplina": "hormigon",
       "ruta": "/biblioteca/hormigon/anclaje-hormigon-generica.json",
-      "regiones": 144,
+      "regiones": 114,
       "normas": [
         "US/ACI318-25-SI"
       ],
       "entradas": 28,
-      "salidas": 13,
+      "salidas": 14,
       "promovible": true,
-      "sha256": "041c4dcefb7d6b15e423feee1ef8d2e490bd896fd31ba595aa8e3251201f702d",
-      "resumen": "El Cap. 17 del ACI 318-25 en traccion para pernos colados, con los dos factores nuevos de la edicion 25 (psi_a y psi_cm,N) y el diseno sismico del §17.10 (opcion (d), factor 0,75 sobre los modos del hormigon). Recibe Nua_g de placa-base-generica y decide si hace falta armadura de anclaje."
+      "sha256": "538be26994502fbb7eef9b21b2ed3e0ace3a8629d0d5ba6664325d0811d0a098",
+      "resumen": "El Cap. 17 del ACI 318-25 en tracción para pernos colados, con los dos factores nuevos de la edición 25 (psi_a y psi_cm,N) y el diseño sísmico del §17.10 (opción (d), factor 0,75 sobre los modos del hormigón). Recibe Nua_g de placa-base-generica y decide si hace falta armadura de anclaje."
     },
     {
       "slug": "pedestal-generico",

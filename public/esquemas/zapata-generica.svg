@@ -1,4 +1,4 @@
-﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 560" font-family="system-ui, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 560" font-family="system-ui, sans-serif">
   <!-- Esquema paramétrico de `zapata-generica`. Todas las medidas salen del scope
        de la hoja: px/py llevan a píxeles de planta, ey a los de elevación, y cada
        cota se pinta con el color de su verificación. -->
