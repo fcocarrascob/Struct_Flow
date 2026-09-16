@@ -55,7 +55,7 @@
     },
     {
       "slug": "viga-carrilera-generica",
-      "titulo": "Viga carrilera de puente grua -- doble T monosimetrica, soldada o con canal-tapa: flexion biaxial, corte, fuerzas concentradas del rodado, pandeo lateral del alma, deflexiones y fatiga",
+      "titulo": "Viga carrilera de puente grúa — doble T monosimétrica, soldada o con canal-tapa: flexión biaxial, corte, fuerzas concentradas del rodado, pandeo lateral del alma, deflexiones y fatiga",
       "clase": "generica",
       "disciplina": "acero",
       "ruta": "/biblioteca/acero/viga-carrilera-generica.json",
@@ -66,8 +66,8 @@
       "entradas": 44,
       "salidas": 27,
       "promovible": true,
-      "sha256": "1addb62b6ccd7bbbeffbe9f925e4d481a6cea1a7c16508453ab68597e210baba",
-      "resumen": "Viga de alma llena bajo un puente grua, con el ala superior mas ancha o con canal-tapa: flexion por §F4, corte con el C_v1 de una seccion armada, alma bajo la rueda (§J10.2 a §J10.4), interaccion H1, deflexiones y fatiga del Apendice 3."
+      "sha256": "32870160ed41fc651c8a74ab44ac2a77970e7ec40d7c7ca83940299e770b1bd5",
+      "resumen": "Viga de alma llena bajo un puente grúa, con el ala superior más ancha o con canal-tapa: flexión por §F4, corte con el C_v1 de una sección armada, alma bajo la rueda (§J10.2 a §J10.4), interacción H1, deflexiones y fatiga del Apéndice 3."
     },
     {
       "slug": "anclaje-hormigon-generica",

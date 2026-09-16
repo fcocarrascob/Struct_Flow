@@ -1,236 +1,266 @@
 {
  "version": 1,
  "meta": {
-  "titulo": "Viga carrilera de puente grua -- doble T monosimetrica, soldada o con canal-tapa: flexion biaxial, corte, fuerzas concentradas del rodado, pandeo lateral del alma, deflexiones y fatiga",
+  "titulo": "Viga carrilera de puente grúa — doble T monosimétrica, soldada o con canal-tapa: flexión biaxial, corte, fuerzas concentradas del rodado, pandeo lateral del alma, deflexiones y fatiga",
   "entradas": [
    {
     "nombre": "Fy",
-    "etiqueta": "Fy",
+    "etiqueta": "Fluencia del acero",
     "grupo": "Materiales y factores",
     "unidad": "MPa"
    },
    {
     "nombre": "E",
-    "etiqueta": "E",
+    "etiqueta": "Módulo de elasticidad",
     "grupo": "Materiales y factores",
     "unidad": "MPa"
    },
    {
     "nombre": "phi_b",
-    "etiqueta": "phi_b",
+    "etiqueta": "φ de flexión",
     "grupo": "Materiales y factores",
     "ayuda": "phi_b = 0,90 en flexion. Para el corte, el §G1(a) fija phi_v = 0,90 salvo en el §G2.1(a), cuyo 1,00 vale solo para almas de perfiles laminados: una carrilera con canal-tapa soldado ya es un miembro armado."
    },
    {
     "nombre": "phi_v",
-    "etiqueta": "phi_v",
+    "etiqueta": "φ de corte",
     "grupo": "Materiales y factores",
     "ayuda": "phi_b = 0,90 en flexion. Para el corte, el §G1(a) fija phi_v = 0,90 salvo en el §G2.1(a), cuyo 1,00 vale solo para almas de perfiles laminados: una carrilera con canal-tapa soldado ya es un miembro armado."
    },
    {
     "nombre": "phi_j10y",
-    "etiqueta": "phi_j10y",
+    "etiqueta": "φ de fluencia local del alma (§J10.2)",
     "grupo": "Materiales y factores"
    },
    {
     "nombre": "phi_j10c",
-    "etiqueta": "phi_j10c",
+    "etiqueta": "φ de aplastamiento local (§J10.3)",
     "grupo": "Materiales y factores"
    },
    {
     "nombre": "d",
-    "etiqueta": "d",
+    "etiqueta": "Altura del perfil base",
     "grupo": "Perfil base",
     "unidad": "mm"
    },
    {
     "nombre": "b_f",
-    "etiqueta": "b_f",
+    "etiqueta": "Ancho del ala superior",
     "grupo": "Perfil base",
     "unidad": "mm"
    },
    {
     "nombre": "t_f",
-    "etiqueta": "t_f",
+    "etiqueta": "Espesor del ala superior",
     "grupo": "Perfil base",
     "unidad": "mm"
    },
    {
     "nombre": "t_w",
-    "etiqueta": "t_w",
+    "etiqueta": "Espesor del alma",
     "grupo": "Perfil base",
     "unidad": "mm"
    },
    {
     "nombre": "A_W",
-    "etiqueta": "A_W",
+    "etiqueta": "Área del perfil de catálogo",
     "grupo": "Perfil base",
     "unidad": "mm^2"
    },
    {
     "nombre": "I_xW",
-    "etiqueta": "I_xW",
+    "etiqueta": "I_x del perfil de catálogo",
     "grupo": "Perfil base",
     "unidad": "mm^4"
    },
    {
     "nombre": "I_yW",
-    "etiqueta": "I_yW",
+    "etiqueta": "I_y del perfil de catálogo",
     "grupo": "Perfil base",
     "unidad": "mm^4"
    },
    {
     "nombre": "J_W",
-    "etiqueta": "J_W",
+    "etiqueta": "J del perfil de catálogo",
     "grupo": "Perfil base",
     "unidad": "mm^4"
    },
    {
     "nombre": "k_det",
-    "etiqueta": "k_det",
+    "etiqueta": "k de detalle (cara del ala al pie del filete)",
     "grupo": "Perfil base",
     "unidad": "mm"
    },
    {
     "nombre": "hay_canal",
-    "etiqueta": "hay_canal",
+    "etiqueta": "¿Lleva canal-tapa colaborante?",
     "grupo": "Canal-tapa y altura total",
-    "ayuda": "hay_canal := 1 con canal-tapa colaborante; := 0 para la viga desnuda. I_cy es la inercia del canal respecto del eje VERTICAL de la viga —la que aporta rigidez lateral, y suele ser el eje fuerte del canal— e I_cx la respecto del eje horizontal. y_cc es la altura del centroide del canal sobre la cara superior del ala"
+    "ayuda": "hay_canal := 1 con canal-tapa colaborante; := 0 para la viga desnuda. I_cy es la inercia del canal respecto del eje VERTICAL de la viga —la que aporta rigidez lateral, y suele ser el eje fuerte del canal— e I_cx la respecto del eje horizontal. y_cc es la altura del centroide del canal sobre la cara superior del ala",
+    "opciones": [
+     {
+      "valor": 1,
+      "etiqueta": "sí, colaborante"
+     },
+     {
+      "valor": 0,
+      "etiqueta": "no: viga desnuda"
+     }
+    ]
    },
    {
     "nombre": "A_c",
-    "etiqueta": "A_c",
+    "etiqueta": "Área del canal",
     "grupo": "Canal-tapa y altura total",
     "unidad": "mm^2"
    },
    {
     "nombre": "I_cy",
-    "etiqueta": "I_cy",
+    "etiqueta": "I del canal respecto del eje vertical",
     "grupo": "Canal-tapa y altura total",
     "unidad": "mm^4",
     "ayuda": "hay_canal := 1 con canal-tapa colaborante; := 0 para la viga desnuda. I_cy es la inercia del canal respecto del eje VERTICAL de la viga —la que aporta rigidez lateral, y suele ser el eje fuerte del canal— e I_cx la respecto del eje horizontal. y_cc es la altura del centroide del canal sobre la cara superior del ala"
    },
    {
     "nombre": "I_cx",
-    "etiqueta": "I_cx",
+    "etiqueta": "I del canal respecto del eje horizontal",
     "grupo": "Canal-tapa y altura total",
     "unidad": "mm^4",
     "ayuda": "hay_canal := 1 con canal-tapa colaborante; := 0 para la viga desnuda. I_cy es la inercia del canal respecto del eje VERTICAL de la viga —la que aporta rigidez lateral, y suele ser el eje fuerte del canal— e I_cx la respecto del eje horizontal. y_cc es la altura del centroide del canal sobre la cara superior del ala"
    },
    {
     "nombre": "y_cc",
-    "etiqueta": "y_cc",
+    "etiqueta": "Centroide del canal sobre la cara del ala",
     "grupo": "Canal-tapa y altura total",
     "unidad": "mm",
     "ayuda": "hay_canal := 1 con canal-tapa colaborante; := 0 para la viga desnuda. I_cy es la inercia del canal respecto del eje VERTICAL de la viga —la que aporta rigidez lateral, y suele ser el eje fuerte del canal— e I_cx la respecto del eje horizontal. y_cc es la altura del centroide del canal sobre la cara superior del ala"
    },
    {
     "nombre": "J_C",
-    "etiqueta": "J_C",
+    "etiqueta": "J del canal",
     "grupo": "Canal-tapa y altura total",
     "unidad": "mm^4"
    },
    {
     "nombre": "h_tot",
-    "etiqueta": "h_tot",
+    "etiqueta": "Altura total de la sección compuesta",
     "grupo": "Canal-tapa y altura total",
     "unidad": "mm"
    },
    {
     "nombre": "L",
-    "etiqueta": "L",
+    "etiqueta": "Luz del vano",
     "grupo": "Vano, cargas de rueda y vía",
     "unidad": "mm"
    },
    {
     "nombre": "L_b",
-    "etiqueta": "L_b",
+    "etiqueta": "Longitud no arriostrada del ala comprimida",
     "grupo": "Vano, cargas de rueda y vía",
     "unidad": "mm",
     "ayuda": "L_b es la longitud no arriostrada del ala comprimida. En una via sin arriostramiento intermedio es el vano entero"
    },
    {
     "nombre": "C_b",
-    "etiqueta": "C_b",
+    "etiqueta": "C_b, factor de modificación",
     "grupo": "Vano, cargas de rueda y vía",
     "ayuda": "C_b = 1,0 es el valor conservador y el que corresponde cuando no se justifica el diagrama de momentos real"
    },
    {
     "nombre": "n_r",
-    "etiqueta": "n_r",
+    "etiqueta": "Ruedas por viga",
     "grupo": "Vano, cargas de rueda y vía"
    },
    {
     "nombre": "P_v",
-    "etiqueta": "P_v",
+    "etiqueta": "Carga vertical por rueda, amplificada",
     "grupo": "Vano, cargas de rueda y vía",
     "unidad": "tonf",
     "ayuda": "Ejemplo cargado: puente de 20 t, dos ruedas por viga, impacto del 25 % ya incluido en P_v. P_serv es la misma carga SIN amplificar, que es la que va a deflexiones y a fatiga"
    },
    {
     "nombre": "P_serv",
-    "etiqueta": "P_serv",
+    "etiqueta": "Carga vertical por rueda, de servicio",
     "grupo": "Vano, cargas de rueda y vía",
     "unidad": "tonf",
     "ayuda": "Ejemplo cargado: puente de 20 t, dos ruedas por viga, impacto del 25 % ya incluido en P_v. P_serv es la misma carga SIN amplificar, que es la que va a deflexiones y a fatiga"
    },
    {
     "nombre": "H_lat",
-    "etiqueta": "H_lat",
+    "etiqueta": "Fuerza lateral por rueda",
     "grupo": "Vano, cargas de rueda y vía",
     "unidad": "tonf"
    },
    {
     "nombre": "a_ruedas",
-    "etiqueta": "a_ruedas",
+    "etiqueta": "Separación entre ejes de rueda",
     "grupo": "Vano, cargas de rueda y vía",
     "unidad": "mm"
    },
    {
     "nombre": "w_pp",
-    "etiqueta": "w_pp",
+    "etiqueta": "Peso propio de la vía",
     "grupo": "Vano, cargas de rueda y vía",
     "unidad": "tonf/m"
    },
    {
     "nombre": "ala_compacta",
-    "etiqueta": "ala_compacta",
-    "grupo": "Fronteras declaradas"
+    "etiqueta": "¿El ala comprimida es compacta?",
+    "grupo": "Fronteras declaradas",
+    "opciones": [
+     {
+      "valor": 1,
+      "etiqueta": "sí (Tabla B4.1b)"
+     },
+     {
+      "valor": 0,
+      "etiqueta": "no: falta el §F4.3"
+     }
+    ]
    },
    {
     "nombre": "C_f",
-    "etiqueta": "C_f",
+    "etiqueta": "C_f de la categoría del detalle",
     "grupo": "Fronteras declaradas",
     "ayuda": "Constantes de la Tabla A-3.1: categoria A  C_f = 25    F_TH = 170 MPa categoria B  C_f = 12    F_TH = 110 MPa categoria C  C_f = 4,4   F_TH =  69 MPa categoria D  C_f = 2,2   F_TH =  48 MPa categoria E' C_f = 0,39  F_TH =  18 MPa El caso concreto se elige en la Seccion 2 de esa tabla para la soldadura que une el canal al ala. Por defecto va la B, que es la del cordon continuo paralelo a la direccion de la tension"
    },
    {
     "nombre": "F_TH",
-    "etiqueta": "F_TH",
+    "etiqueta": "Umbral F_TH de la categoría",
     "grupo": "Fronteras declaradas",
     "unidad": "MPa",
     "ayuda": "Constantes de la Tabla A-3.1: categoria A  C_f = 25    F_TH = 170 MPa categoria B  C_f = 12    F_TH = 110 MPa categoria C  C_f = 4,4   F_TH =  69 MPa categoria D  C_f = 2,2   F_TH =  48 MPa categoria E' C_f = 0,39  F_TH =  18 MPa El caso concreto se elige en la Seccion 2 de esa tabla para la soldadura que une el canal al ala. Por defecto va la B, que es la del cordon continuo paralelo a la direccion de la tension"
    },
    {
     "nombre": "n_SR",
-    "etiqueta": "n_SR",
+    "etiqueta": "Fluctuaciones de tensión en la vida de diseño",
     "grupo": "Fronteras declaradas",
     "ayuda": "n_SR es el numero de fluctuaciones de tension en la vida de diseno, no el numero de ciclos de la grua: cada pasada del puente puede dar mas de una"
    },
    {
     "nombre": "den_vert",
-    "etiqueta": "den_vert",
+    "etiqueta": "Denominador del límite de flecha vertical",
     "grupo": "Fronteras declaradas"
    },
    {
     "nombre": "den_lat",
-    "etiqueta": "den_lat",
+    "etiqueta": "Denominador del límite de flecha lateral",
     "grupo": "Fronteras declaradas"
    },
    {
     "nombre": "es_soldada",
     "unidad": "",
-    "etiqueta": "Seccion armada soldada",
-    "grupo": "Perfil base"
+    "etiqueta": "¿Doble T armada soldada?",
+    "grupo": "Perfil base",
+    "opciones": [
+     {
+      "valor": 1,
+      "etiqueta": "sí: la hoja deriva A, I y J de las chapas"
+     },
+     {
+      "valor": 0,
+      "etiqueta": "no: propiedades de catálogo"
+     }
+    ]
    },
    {
     "nombre": "b_fb",
@@ -247,13 +277,13 @@
    {
     "nombre": "phi_wsb",
     "unidad": "",
-    "etiqueta": "phi del pandeo lateral del alma",
+    "etiqueta": "φ de pandeo lateral del alma (§J10.4)",
     "grupo": "Materiales y factores"
    },
    {
     "nombre": "k_v",
     "unidad": "",
-    "etiqueta": "Coeficiente de pandeo por corte",
+    "etiqueta": "k_v, pandeo por corte del alma",
     "grupo": "Materiales y factores"
    },
    {
@@ -266,14 +296,24 @@
    {
     "nombre": "restr_rot",
     "unidad": "",
-    "etiqueta": "Ala comprimida restringida contra rotacion",
-    "grupo": "Vano, cargas de rueda y vía"
+    "etiqueta": "¿Ala comprimida restringida a rotación?",
+    "grupo": "Vano, cargas de rueda y vía",
+    "opciones": [
+     {
+      "valor": 1,
+      "etiqueta": "sí: umbral 2,3"
+     },
+     {
+      "valor": 0,
+      "etiqueta": "no: umbral 1,7"
+     }
+    ]
    }
   ],
   "slug": "viga-carrilera-generica",
   "clase": "generica",
   "disciplina": "acero",
-  "resumen": "Viga de alma llena bajo un puente grua, con el ala superior mas ancha o con canal-tapa: flexion por §F4, corte con el C_v1 de una seccion armada, alma bajo la rueda (§J10.2 a §J10.4), interaccion H1, deflexiones y fatiga del Apendice 3.",
+  "resumen": "Viga de alma llena bajo un puente grúa, con el ala superior más ancha o con canal-tapa: flexión por §F4, corte con el C_v1 de una sección armada, alma bajo la rueda (§J10.2 a §J10.4), interacción H1, deflexiones y fatiga del Apéndice 3.",
   "normas": [
    {
     "clave": "US/AISC360-22",
