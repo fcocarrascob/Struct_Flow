@@ -2,6 +2,9 @@ import { useState } from 'react';
 import PanelResultados from '../../components/diseno/PanelResultados';
 import VisorEsquema from '../../components/diseno/VisorEsquema';
 import type { SalidaDef } from '../../lib/diseno/tipos';
+import { hojaDeModulo } from '../../lib/diseno/evaluar';
+import { slugDeInstancia } from '../../lib/diseno/declarativo';
+import { abrirEnCanvas, descargarHoja } from '../../lib/canvas-handoff';
 import { camposResueltos, entradasEfectivas, quedoAtras, type EstadoGenerica } from './biblioteca';
 import type { Instanciada } from './evaluacion';
 import FormularioAtable from './FormularioAtable';
@@ -341,13 +344,36 @@ export default function FichaGenerica({
         )}
       </section>
 
-      <button
-        type="button"
-        onClick={onQuitar}
-        className="rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-error hover:text-error"
-      >
-        quitar la planilla
-      </button>
+      {/* La memoria, que es el entregable. Es la MISMA que exporta
+          `/diseno/<slug>`: una instancia estampada con el `origen.sha256` de la
+          genérica y el commit de la aplicación, que `harness.planilla` acepta
+          tal cual. Sin esto, una obra organizaba los cálculos y no producía
+          nada que se pudiera anexar ni revisar. */}
+      <div className="flex flex-wrap items-center gap-1">
+        <button
+          type="button"
+          onClick={() => descargarHoja(hojaDeModulo(modulo, ev), `${slugDeInstancia(modulo.id)}.json`)}
+          title="La memoria de cálculo con estos datos, lista para el proyecto"
+          className="rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent"
+        >
+          descargar la memoria
+        </button>
+        <button
+          type="button"
+          onClick={() => abrirEnCanvas(hojaDeModulo(modulo, ev))}
+          title="Abrirla en el canvas para revisarla o imprimirla"
+          className="rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent"
+        >
+          abrir en el canvas
+        </button>
+        <button
+          type="button"
+          onClick={onQuitar}
+          className="ml-auto rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-error hover:text-error"
+        >
+          quitar la planilla
+        </button>
+      </div>
     </div>
   );
 }
