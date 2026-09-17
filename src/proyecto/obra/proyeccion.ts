@@ -21,9 +21,10 @@
 // letra; el color dice lo mismo y deja trabajar.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { parseMathRegion } from '../../lib/worksheet';
 import { peor, type AristaGrafo, type NodoGrafo, type Severidad } from '../contrato';
 import { evaluarCarga, type EvaluacionCarga } from './calculo';
-import { evaluarImportada, quedoAtras, type Genericas } from './biblioteca';
+import { quedoAtras, type Genericas } from './biblioteca';
 import { problemaDeGrafo, type EvaluacionObra } from './evaluacion';
 import {
   ID_NODO_CARGAS,
@@ -95,6 +96,28 @@ function aristasDeDatos(ev: EvaluacionObra): AristaGrafo[] {
   });
 }
 
+/**
+ * Lo que hay que decir de la hoja libre de un nodo que ahora lleva planilla.
+ *
+ * Los bloques NO se borran al importar, a propósito: quitar la planilla
+ * devuelve el tanteo del que salió la decisión de buscar una genérica. Pero
+ * mientras tanto esa hoja no se evalúa, así que los nombres que definía dejaron
+ * de existir para el resto de la obra — y los nodos que los usaban pasaban a
+ * «variable indefinida» sin que nada dijera de dónde venía el apagón.
+ */
+function avisoDeHojaTapada(bloques: { tipo: string; src: string }[]): string[] {
+  const nombres = bloques
+    .filter((b) => b.tipo === 'math')
+    .map((b) => parseMathRegion(b.src).varName)
+    .filter((v): v is string => Boolean(v));
+  if (nombres.length === 0) return [];
+  return [
+    `La hoja de este nodo no se evalúa mientras lo respalde una planilla: ` +
+      `${[...new Set(nombres)].join(', ')} ya no existe para el resto de la obra. ` +
+      'Publica lo que haga falta desde las salidas de la planilla.',
+  ];
+}
+
 /** El nodo de un cálculo suelto: una hoja libre o una genérica instanciada. */
 function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra): NodoGrafo {
   const id = idNodoDeCalculo(k.id);
@@ -137,12 +160,24 @@ function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra)
   }
 
   const modulo = estado.modulo;
-  // Con el scope de la obra: si algún campo está atado a una expresión, el
-  // veredicto del nodo tiene que salir del valor que esa expresión produce, no
-  // del número que quedó guardado.
-  const evg = evaluarImportada(modulo, k.importada, ev.scope);
+  // La evaluación es la que hizo `evaluarObra` en el sitio de este nodo dentro
+  // del orden de lectura, con los campos atados ya resueltos contra el scope que
+  // había ahí. Reevaluar acá sería una segunda autoridad sobre el mismo número.
+  const instancia = ev.importadas.get(id);
+  if (!instancia) return nodo({ ...base, subtitulo: `${k.importada.slug} · cargando…` });
+  const evg = instancia.ev;
   const motivos: string[] = [];
   let severidad: Severidad = 'ok';
+
+  // Un alias repetido o un ciclo le pasan a una planilla igual que a una hoja.
+  const enGrafo = problemaDeGrafo(id, ev);
+  if (enGrafo) {
+    motivos.push(enGrafo);
+    severidad = 'error';
+  }
+  motivos.push(...avisoDeHojaTapada(k.bloques));
+
+  if (motivos.length && severidad === 'ok') severidad = 'aviso';
 
   if (quedoAtras(modulo, k.importada)) {
     motivos.push('La genérica cambió en la biblioteca desde que la importaste: revisa el resultado.');
@@ -157,10 +192,20 @@ function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra)
   const veredicto = global === true ? 'CUMPLE' : global === false ? 'NO CUMPLE' : '';
   if (global === false) severidad = peor(severidad, 'error');
 
+  // Lo que publica va en el subtítulo, como en un nodo de hoja libre: es lo que
+  // el resto de la obra puede nombrar, y no verlo obliga a abrir el panel para
+  // saber si esta planilla alimenta a alguien.
+  const publica = ev.define.get(id) ?? [];
+  const veredictoTexto = veredicto ? `${modulo.norma || modulo.disciplina} · ${veredicto}` : modulo.norma;
+
   return nodo({
     ...base,
-    subtitulo: veredicto ? `${modulo.norma || modulo.disciplina} · ${veredicto}` : modulo.norma,
-    campos: { planilla: k.importada.slug, entradas: Object.keys(k.importada.entradas).length },
+    subtitulo: publica.length ? `${veredictoTexto} · publica ${publica.join(', ')}` : veredictoTexto,
+    campos: {
+      planilla: k.importada.slug,
+      entradas: Object.keys(k.importada.entradas).length,
+      publica: publica.join(', '),
+    },
     severidad,
     motivos,
   });
@@ -205,10 +250,17 @@ export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas =
         let sevSub: Severidad = v?.problema ? 'error' : 'ok';
         const motivosSub = v?.problema ? [v.problema] : [];
 
-        const enGrafo = sub.importada ? '' : problemaDeGrafo(idSub, ev);
+        // También para una partida con planilla: su alias puede chocar con el de
+        // otro nodo, y puede quedar en un ciclo por un campo atado.
+        const enGrafo = problemaDeGrafo(idSub, ev);
         if (enGrafo) {
           motivosSub.push(enGrafo);
           sevSub = peor(sevSub, 'error');
+        }
+        if (sub.importada) {
+          const tapada = avisoDeHojaTapada(sub.bloques);
+          motivosSub.push(...tapada);
+          if (tapada.length) sevSub = peor(sevSub, 'aviso');
         }
 
         const estadoSub = sub.importada ? genericas[sub.importada.slug] : undefined;
@@ -225,7 +277,11 @@ export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas =
             // El valor y de qué variable sale, que ya no se deduce del nombre.
             subtitulo: v?.variable ? `${v.texto} · ${v.variable}` : (v?.texto ?? '—'),
             campos: sub.importada
-              ? { planilla: sub.importada.slug, salida: sub.importada.salida ?? '' }
+              ? {
+                  planilla: sub.importada.slug,
+                  salida: sub.importada.salida ?? '',
+                  publica: (ev.define.get(idSub) ?? []).join(', '),
+                }
               : { bloques: sub.bloques.length, define: (ev.define.get(idSub) ?? []).join(', ') },
             severidad: sevSub,
             motivos: motivosSub,

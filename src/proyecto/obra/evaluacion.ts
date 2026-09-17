@@ -1,12 +1,12 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// La obra entera como UNA sola hoja.
+// La obra entera como UNA sola cadena de cálculo.
 //
-// Antes cada carga evaluaba la suya, y por eso una partida no podía usar lo que
-// definía otra de otra carga. Ahora todas las hojas libres de la obra —las de
-// las partidas y las de los nodos de cálculo— se concatenan en una hoja única y
-// se le pasan al mismo `evaluateSheet` de siempre. Con eso el espacio de nombres
-// es compartido sin inventar ningún mecanismo: es el scope de una hoja, que es
-// exactamente lo que el motor ya sabe hacer.
+// Antes cada carga evaluaba su hoja, y por eso una partida no podía usar lo que
+// definía otra. Después todas las hojas libres de la obra pasaron a
+// concatenarse en una hoja única con un scope compartido, que es exactamente lo
+// que el motor ya sabía hacer. Ahora entran también las planillas de la
+// biblioteca, que hasta aquí sólo podían LEER de ese scope —un campo atado a
+// una expresión— y no escribir en él.
 //
 // EL ORDEN LO DECIDE LA DEPENDENCIA, NO EL CANVAS
 // -----------------------------------------------
@@ -21,18 +21,44 @@
 // «B usa esto que define A», que es la única cosa que un grafo de cálculo
 // necesita decir.
 //
+// QUÉ APORTA CADA NODO
+// --------------------
+//   - Una **hoja libre** define lo que sus fórmulas definen, y usa los nombres
+//     que nombra en ellas. Sus bloques entran en la hoja global.
+//   - Una **planilla importada** es otra hoja, con su propio scope, y no entra:
+//     define los ALIAS que su `publica` declara y usa los nombres que aparecen
+//     en las expresiones de sus campos atados. Sus 120 a 324 regiones se quedan
+//     donde están; lo único que cruza la frontera son los valores que publica,
+//     y cruzan como el objeto `Unit` que son.
+//
+// POR ESO LA EVALUACIÓN VA POR TRAMOS. No se puede armar una sola hoja y
+// evaluarla de una vez, porque en medio del orden hay planillas que producen
+// valores que los nodos de aguas abajo necesitan ver ya definidos. Se recorre el
+// orden acumulando un scope: los nodos de hoja libre consecutivos se evalúan
+// juntos con `evaluateSheet(tramo, scope)`, y cada planilla se evalúa con el
+// scope que hay en su posición y deja en él lo que publica.
+//
 // DOS FALLAS QUE ESTE MODELO TRAE, Y HAY QUE NOMBRARLAS
 // -----------------------------------------------------
 //   - **Un nombre definido en dos nodos** no se puede resolver: cuál gana
 //     dependería del orden, y el orden lo calculamos nosotros. Los dos nodos
-//     salen en rojo y el nombre no se usa.
+//     salen en rojo y el nombre no se usa. Vale igual para dos planillas que
+//     publican con el mismo alias.
 //   - **Un ciclo** (A usa algo de B y B algo de A) no tiene orden posible. Los
 //     nodos del ciclo salen en rojo y se evalúan al final, donde el motor dirá
 //     por su cuenta que la variable no está definida.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { evaluateSheet, parseMathRegion, type Region, type SheetResults } from '../../lib/worksheet';
-import { identificadoresDe, type Bloque, type HojaDeNodo, type Obra } from './modelo';
+import {
+  evaluateSheet,
+  formatValor,
+  parseMathRegion,
+  type Region,
+  type SheetResults,
+} from '../../lib/worksheet';
+import type { EvaluacionModulo } from '../../lib/diseno/evaluar';
+import { evaluarImportada, type Genericas } from './biblioteca';
+import { identificadoresDe, type Bloque, type Importada, type Obra } from './modelo';
 import { idNodoDeCalculo, idNodoDeSubcarga } from './ids';
 
 const CENTINELA = '__scope_final';
@@ -40,6 +66,27 @@ const CENTINELA = '__scope_final';
 /** Separación entre bloques al sintetizar la hoja. Cualquier paso creciente
  *  sirve para el orden; este deja sitio de sobra entre nodos. */
 const PASO = 100;
+
+/** Un nodo de la obra que participa del grafo de cálculo. */
+export interface NodoObra {
+  /** El id del NODO del canvas: `partida:xxx`, `calculo:xxx`. */
+  idNodo: string;
+  etiqueta: string;
+  /** Su hoja libre. Vacía si el nodo está respaldado por una planilla. */
+  bloques: Bloque[];
+  importada?: Importada;
+}
+
+/** Lo que una planilla importada produjo, en su sitio del orden de lectura. */
+export interface Instanciada {
+  ev: EvaluacionModulo;
+  /**
+   * El scope de la obra **visible en la posición de este nodo**, que es contra
+   * el que se resuelven sus campos atados. No es el final de la obra: una
+   * planilla no puede alimentarse de lo que se calcula debajo de ella.
+   */
+  scope: Record<string, unknown>;
+}
 
 export interface EvaluacionObra {
   /** Por id de bloque, para pintar cada uno con su resultado o su error. */
@@ -55,29 +102,37 @@ export interface EvaluacionObra {
   repetidos: Map<string, string[]>;
   /** id de nodo → nombres que toma de otros nodos. */
   usos: Map<string, Set<string>>;
-  /** id de nodo → nombres que define, en orden. */
+  /** id de nodo → nombres que define (o publica, si es una planilla), en orden. */
   define: Map<string, string[]>;
   /** Nodos que no tienen orden posible porque se citan en círculo. */
   enCiclo: Set<string>;
+  /** id de nodo → lo que su planilla produjo. Una sola evaluación por nodo, que
+   *  es lo que impide que el canvas y el panel enseñen números distintos. */
+  importadas: Map<string, Instanciada>;
 }
 
-/** Las hojas libres de la obra. Un nodo con planilla importada no aporta
- *  ninguna: su cálculo es otra hoja, con su propio scope. */
-export function hojasDeLaObra(obra: Obra): HojaDeNodo[] {
-  const hojas: HojaDeNodo[] = [];
+/** Todos los nodos de cálculo de la obra, con hoja libre o con planilla. */
+export function nodosDeLaObra(obra: Obra): NodoObra[] {
+  const nodos: NodoObra[] = [];
   for (const k of obra.calculos) {
-    if (!k.importada) {
-      hojas.push({ idNodo: idNodoDeCalculo(k.id), etiqueta: k.nombre, bloques: k.bloques });
-    }
+    nodos.push({
+      idNodo: idNodoDeCalculo(k.id),
+      etiqueta: k.nombre,
+      bloques: k.bloques,
+      ...(k.importada ? { importada: k.importada } : {}),
+    });
   }
   for (const c of obra.cargas) {
     for (const s of c.subcargas) {
-      if (!s.importada) {
-        hojas.push({ idNodo: idNodoDeSubcarga(s.id), etiqueta: s.nombre, bloques: s.bloques });
-      }
+      nodos.push({
+        idNodo: idNodoDeSubcarga(s.id),
+        etiqueta: s.nombre,
+        bloques: s.bloques,
+        ...(s.importada ? { importada: s.importada } : {}),
+      });
     }
   }
-  return hojas;
+  return nodos;
 }
 
 function definicionesDe(bloques: Bloque[]): string[] {
@@ -94,33 +149,63 @@ function definicionesDe(bloques: Bloque[]): string[] {
 }
 
 /**
- * Orden topológico de las hojas. Kahn: lo que no queda en la salida es
+ * Los nombres que un nodo pone a disposición de los demás.
+ *
+ * Los de una planilla salen de `publica`, que es del documento y no del módulo:
+ * así la lista no cambia cuando termina la descarga, y el grafo no se reordena
+ * solo un segundo después de abrir la obra.
+ */
+function defineDe(nodo: NodoObra): string[] {
+  if (!nodo.importada) return definicionesDe(nodo.bloques);
+  const alias = Object.values(nodo.importada.publica ?? {}).map((a) => a.trim());
+  return [...new Set(alias.filter(Boolean))];
+}
+
+/** El texto del que salen los nombres que un nodo toma de los demás. */
+function fuentesDeUso(nodo: NodoObra): string[] {
+  // De una planilla, las expresiones de sus campos atados: son la única vía por
+  // la que la obra entra en ella.
+  if (nodo.importada) return Object.values(nodo.importada.formulas ?? {});
+  // De una hoja libre, solo las fórmulas. Un bloque de texto es prosa: escribir
+  // «el área de planta se midió en terreno» con `area` definida en otro nodo
+  // dibujaba una flecha que no existe y, si la otra dirección ya estaba,
+  // fabricaba un ciclo — dos nodos en rojo por una palabra de un párrafo.
+  return nodo.bloques.filter((b) => b.tipo === 'math').map((b) => b.src);
+}
+
+/**
+ * Orden topológico de los nodos. Kahn: lo que no queda en la salida es
  * exactamente lo que está en un ciclo.
  */
 function ordenar(
-  hojas: HojaDeNodo[],
+  nodos: NodoObra[],
   usos: Map<string, Set<string>>,
   duenio: Map<string, string>,
-): { orden: HojaDeNodo[]; enCiclo: Set<string> } {
-  const porId = new Map(hojas.map((h) => [h.idNodo, h]));
+): { orden: NodoObra[]; enCiclo: Set<string> } {
+  const porId = new Map(nodos.map((h) => [h.idNodo, h]));
   const pendientes = new Map<string, Set<string>>();
   const consumidores = new Map<string, string[]>();
 
-  for (const h of hojas) {
+  for (const h of nodos) {
     const antes = new Set<string>();
     for (const n of usos.get(h.idNodo) ?? []) {
       const d = duenio.get(n);
       if (d && d !== h.idNodo && porId.has(d)) antes.add(d);
     }
     pendientes.set(h.idNodo, antes);
-    for (const a of antes) consumidores.set(a, [...(consumidores.get(a) ?? []), h.idNodo]);
+    for (const a of antes) {
+      const lista = consumidores.get(a);
+      if (lista) lista.push(h.idNodo);
+      else consumidores.set(a, [h.idNodo]);
+    }
   }
 
   // Sin dependencias, el orden es el de creación: estable y predecible.
-  const cola = hojas.filter((h) => pendientes.get(h.idNodo)!.size === 0).map((h) => h.idNodo);
-  const orden: HojaDeNodo[] = [];
-  while (cola.length) {
-    const id = cola.shift()!;
+  const cola = nodos.filter((h) => pendientes.get(h.idNodo)!.size === 0).map((h) => h.idNodo);
+  const orden: NodoObra[] = [];
+  // Índice en vez de `shift()`: sacar del principio de un array es O(n).
+  for (let i = 0; i < cola.length; i++) {
+    const id = cola[i];
     orden.push(porId.get(id)!);
     for (const c of consumidores.get(id) ?? []) {
       const p = pendientes.get(c)!;
@@ -130,24 +215,28 @@ function ordenar(
   }
 
   const colocados = new Set(orden.map((h) => h.idNodo));
-  const enCiclo = new Set(hojas.filter((h) => !colocados.has(h.idNodo)).map((h) => h.idNodo));
+  const enCiclo = new Set(nodos.filter((h) => !colocados.has(h.idNodo)).map((h) => h.idNodo));
   // Los del ciclo van al final: no hay orden que los salve, pero evaluarlos deja
   // que el motor diga qué nombre concreto le faltó a cada uno.
-  for (const h of hojas) if (enCiclo.has(h.idNodo)) orden.push(h);
+  for (const h of nodos) if (enCiclo.has(h.idNodo)) orden.push(h);
 
   return { orden, enCiclo };
 }
 
-export function evaluarObra(obra: Obra): EvaluacionObra {
-  const hojas = hojasDeLaObra(obra);
+export function evaluarObra(obra: Obra, genericas: Genericas = {}): EvaluacionObra {
+  const nodos = nodosDeLaObra(obra);
 
   // ── Quién define qué ───────────────────────────────────────────────────────
   const define = new Map<string, string[]>();
   const porNombre = new Map<string, string[]>();
-  for (const h of hojas) {
-    const nombres = definicionesDe(h.bloques);
+  for (const h of nodos) {
+    const nombres = defineDe(h);
     define.set(h.idNodo, nombres);
-    for (const n of nombres) porNombre.set(n, [...(porNombre.get(n) ?? []), h.idNodo]);
+    for (const n of nombres) {
+      const lista = porNombre.get(n);
+      if (lista) lista.push(h.idNodo);
+      else porNombre.set(n, [h.idNodo]);
+    }
   }
 
   const duenio = new Map<string, string>();
@@ -162,17 +251,11 @@ export function evaluarObra(obra: Obra): EvaluacionObra {
   // función (`sqrt`) o una unidad (`kN`) no se confunde nunca con una
   // dependencia, sin tener que analizar la expresión.
   const usos = new Map<string, Set<string>>();
-  for (const h of hojas) {
+  for (const h of nodos) {
     const mios = new Set(define.get(h.idNodo) ?? []);
     const usa = new Set<string>();
-    for (const b of h.bloques) {
-      // Solo las fórmulas, igual que `definicionesDe`. Un bloque de texto es
-      // prosa: escribir «el área de planta se midió en terreno» con `area`
-      // definida en otro nodo dibujaba una flecha que no existe y, si la otra
-      // dirección ya estaba, fabricaba un ciclo — dos nodos en rojo diciendo
-      // que se citan en círculo, por una palabra de un párrafo.
-      if (b.tipo !== 'math') continue;
-      for (const id of identificadoresDe(b.src)) {
+    for (const src of fuentesDeUso(h)) {
+      for (const id of identificadoresDe(src)) {
         const d = duenio.get(id);
         if (d && d !== h.idNodo && !mios.has(id)) usa.add(id);
       }
@@ -180,23 +263,67 @@ export function evaluarObra(obra: Obra): EvaluacionObra {
     usos.set(h.idNodo, usa);
   }
 
-  const { orden, enCiclo } = ordenar(hojas, usos, duenio);
+  const { orden, enCiclo } = ordenar(nodos, usos, duenio);
 
-  // ── La hoja global ─────────────────────────────────────────────────────────
+  // ── La cadena, tramo a tramo ───────────────────────────────────────────────
   const regions: Region[] = [];
-  for (const h of orden) {
-    for (const b of h.bloques) {
-      regions.push({ id: b.id, kind: b.tipo, x: 0, y: regions.length * PASO, src: b.src });
+  const results: SheetResults = {};
+  const importadas = new Map<string, Instanciada>();
+  let scope: Record<string, unknown> = {};
+  let y = 0;
+
+  /** Evalúa las hojas libres acumuladas y deja su scope disponible. */
+  const cerrarTramo = (tramo: Region[]) => {
+    if (tramo.length === 0) return;
+    // El centinela es una región `image`: el motor la registra sin evaluarla y
+    // captura el scope visible en su posición. Va muy abajo para caer la última
+    // del tramo, y no se devuelve — no es parte de ninguna hoja.
+    const centinela: Region = { id: CENTINELA, kind: 'image', x: 0, y: y + 1e6, src: '' };
+    const res = evaluateSheet([...tramo, centinela], scope);
+    scope = res[CENTINELA]?.scope ?? scope;
+    delete res[CENTINELA];
+    Object.assign(results, res);
+  };
+
+  let tramo: Region[] = [];
+  for (const nodo of orden) {
+    if (!nodo.importada) {
+      for (const b of nodo.bloques) {
+        y += PASO;
+        tramo.push({ id: b.id, kind: b.tipo, x: 0, y, src: b.src });
+      }
+      continue;
+    }
+
+    // Una planilla corta el tramo: lo que publica tiene que estar en el scope
+    // antes de que lo lea el nodo siguiente.
+    cerrarTramo(tramo);
+    regions.push(...tramo);
+    tramo = [];
+
+    const estado = genericas[nodo.importada.slug];
+    if (estado?.fase !== 'lista') continue;
+    const ev = evaluarImportada(estado.modulo, nodo.importada, scope);
+    importadas.set(nodo.idNodo, { ev, scope });
+
+    for (const [salida, alias] of Object.entries(nodo.importada.publica ?? {})) {
+      const v = ev.scope[salida];
+      if (v === undefined) continue;
+      scope = { ...scope, [alias.trim()]: v };
+      // Una región fantasma por alias, para que el autocompletado de los nodos
+      // de aguas abajo lo ofrezca. Sin esto, la única forma de encontrar lo que
+      // publica una planilla sería saberlo de memoria: `variablesVisibles` lee
+      // lo que cada región DEFINE, y las de una planilla no están en esta hoja.
+      y += PASO;
+      const id = `pub:${nodo.idNodo}:${alias}`;
+      regions.push({ id, kind: 'text', x: 0, y, src: `${alias} · ${nodo.etiqueta}` });
+      results[id] = { define: { nombre: alias.trim(), valor: formatValor(v) } };
     }
   }
-  const fondo = regions.reduce((max, r) => Math.max(max, r.y), 0);
-  const centinela: Region = { id: CENTINELA, kind: 'image', x: 0, y: fondo + 1e6, src: '' };
+  cerrarTramo(tramo);
+  regions.push(...tramo);
 
-  const results = evaluateSheet([...regions, centinela]);
-  const scope = results[CENTINELA]?.scope ?? {};
-  delete results[CENTINELA];
-
-  return { results, regions, scope, duenio, repetidos, usos, define, enCiclo };
+  return { results, regions, scope, duenio, repetidos, usos, define, enCiclo, importadas };
 }
 
 /**

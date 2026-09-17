@@ -23,7 +23,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { formatValor } from '../../lib/worksheet';
-import { evaluarImportada, type Genericas } from './biblioteca';
+import { type Genericas } from './biblioteca';
 import type { EvaluacionObra } from './evaluacion';
 import { idNodoDeSubcarga } from './ids';
 import { variableDePartida, type Carga, type Importada, type Subcarga } from './modelo';
@@ -81,7 +81,7 @@ function valorImportado(
   sub: Subcarga,
   imp: Importada,
   genericas: Genericas,
-  scopeObra: Record<string, unknown>,
+  ev: EvaluacionObra,
 ): ValorSubcarga {
   const base = { id: sub.id, nombre: sub.nombre, variable: imp.salida };
   const estado = genericas[imp.slug];
@@ -96,8 +96,12 @@ function valorImportado(
       problema: 'Elige cuál de las salidas de la planilla es el valor de la partida.',
     };
   }
-  const ev = evaluarImportada(estado.modulo, imp, scopeObra);
-  const valor = ev.scope[imp.salida];
+  // La evaluación la hizo `evaluarObra`, en el sitio que le toca a este nodo
+  // dentro del orden de lectura. Reevaluarla acá con el scope final de la obra
+  // daría otro número el día que la planilla lea algo que se calcula debajo.
+  const instancia = ev.importadas.get(idNodoDeSubcarga(sub.id));
+  if (!instancia) return { ...base, texto: '…', problema: '', cargando: true };
+  const valor = instancia.ev.scope[imp.salida];
   if (valor === undefined) {
     return { ...base, texto: '—', problema: `La planilla no dejó valor en «${imp.salida}».` };
   }
@@ -141,9 +145,7 @@ export function evaluarCarga(
   genericas: Genericas = {},
 ): EvaluacionCarga {
   const valores = carga.subcargas.map((sub) =>
-    sub.importada
-      ? valorImportado(sub, sub.importada, genericas, ev.scope)
-      : valorLibre(sub, ev),
+    sub.importada ? valorImportado(sub, sub.importada, genericas, ev) : valorLibre(sub, ev),
   );
 
   return { valores, resumen: resumirValores(valores) };

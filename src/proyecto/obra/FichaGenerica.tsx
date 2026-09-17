@@ -1,15 +1,11 @@
 import { useState } from 'react';
 import PanelResultados from '../../components/diseno/PanelResultados';
 import VisorEsquema from '../../components/diseno/VisorEsquema';
-import type { Entradas, SalidaDef } from '../../lib/diseno/tipos';
-import {
-  camposResueltos,
-  entradasEfectivas,
-  evaluarImportada,
-  quedoAtras,
-  type EstadoGenerica,
-} from './biblioteca';
+import type { SalidaDef } from '../../lib/diseno/tipos';
+import { camposResueltos, entradasEfectivas, quedoAtras, type EstadoGenerica } from './biblioteca';
+import type { Instanciada } from './evaluacion';
 import FormularioAtable from './FormularioAtable';
+import Publicacion from './Publicacion';
 import type { Importada } from './modelo';
 
 /**
@@ -61,6 +57,7 @@ function Pestañas({
   onCambiar,
   cuenta,
   atados,
+  publicados,
   severidad,
 }: {
   activa: Pestaña;
@@ -69,6 +66,8 @@ function Pestañas({
   /** Campos atados a una expresión: se anuncian en la pestaña porque son la
    *  diferencia entre una planilla aislada y una conectada al resto de la obra. */
   atados: number;
+  /** Y salidas publicadas, que es la misma diferencia en el otro sentido. */
+  publicados: number;
   severidad: 'ok' | 'aviso' | 'error';
 }) {
   return (
@@ -96,6 +95,14 @@ function Pestañas({
                 ƒ{atados}
               </span>
             )}
+            {p.clave === 'salidas' && publicados > 0 && (
+              <span
+                title={`${publicados} salida(s) publicadas al resto de la obra`}
+                className="text-[10px] text-accent"
+              >
+                ↗{publicados}
+              </span>
+            )}
             {marca && <span className={`inline-block h-1.5 w-1.5 rounded-full ${marca}`} />}
           </button>
         );
@@ -120,17 +127,26 @@ function Pestañas({
 export default function FichaGenerica({
   estado,
   importada,
-  scopeObra,
+  instancia,
+  otrosAlias,
   onEntrada,
   onFormula,
+  onPublicar,
   onSalida,
   onResellar,
   onQuitar,
 }: {
   estado: EstadoGenerica | undefined;
   importada: Importada;
-  /** El scope compartido de la obra: lo que pueden nombrar los campos atados. */
-  scopeObra: Record<string, unknown>;
+  /**
+   * Lo que esta planilla produjo, ya evaluado por `evaluarObra` en el sitio que
+   * le toca dentro del orden de lectura, y el scope de la obra visible ahí.
+   * Evaluarla otra vez desde aquí sería una segunda autoridad sobre el mismo
+   * número, y con el scope final en vez del de su posición.
+   */
+  instancia: Instanciada | undefined;
+  /** Los alias que ya usan los demás nodos, para no proponer uno que choque. */
+  otrosAlias: ReadonlySet<string>;
   /**
    * Un campo, no el juego entero. Los valores que pinta el formulario son los
    * **efectivos** —los de la genérica, pisados por los guardados y por lo que
@@ -141,6 +157,8 @@ export default function FichaGenerica({
    */
   onEntrada: (nombre: string, valor: number) => void;
   onFormula: (campo: string, expr: string | undefined) => void;
+  /** Publicar una salida con ese alias, o dejar de publicarla (`undefined`). */
+  onPublicar: (salida: string, alias: string | undefined) => void;
   /** Solo en una partida de carga: cuál salida es su valor. */
   onSalida?: (nombre: string) => void;
   /** Aceptar la versión de hoy: reescribe el sello con el sha256 actual. */
@@ -173,11 +191,23 @@ export default function FichaGenerica({
   }
 
   const modulo = estado.modulo;
+  // Mientras `evaluarObra` no haya llegado a este nodo —la genérica acaba de
+  // terminar de descargarse y el render va por delante— se pinta con el scope
+  // vacío, que es lo que el nodo del canvas está enseñando en ese mismo momento.
+  const scopeObra = instancia?.scope ?? {};
   const valores = entradasEfectivas(modulo, importada, scopeObra);
   const resueltos = camposResueltos(modulo, importada, scopeObra);
-  const ev = evaluarImportada(modulo, importada, scopeObra);
+  const ev = instancia?.ev;
   const atrasada = quedoAtras(modulo, importada);
   const atados = Object.keys(importada.formulas ?? {}).length;
+
+  if (!ev) {
+    return (
+      <p className="text-[11px] text-muted">
+        Calculando «<span className="font-mono">{importada.slug}</span>»…
+      </p>
+    );
+  }
 
   return (
     <div>
@@ -238,6 +268,7 @@ export default function FichaGenerica({
         activa={pestaña}
         onCambiar={setPestaña}
         atados={atados}
+        publicados={Object.keys(importada.publica ?? {}).length}
         cuenta={{
           entradas: modulo.entradas.length,
           salidas: modulo.salidas.filter(ES_SALIDA).length,
@@ -288,6 +319,15 @@ export default function FichaGenerica({
               salidas={modulo.salidas.filter(ES_SALIDA)}
               scope={ev.scope}
               errores={ev.errores}
+            />
+            {/* Al final de las salidas y no en una pestaña aparte: publicar es
+                una decisión que se toma mirando el número que va a viajar. */}
+            <Publicacion
+              modulo={modulo}
+              importada={importada}
+              scope={ev.scope}
+              otrosAlias={otrosAlias}
+              onPublicar={onPublicar}
             />
           </div>
         )}

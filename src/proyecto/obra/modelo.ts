@@ -20,6 +20,8 @@
 // son proyecciones, pero la fuente es distinta y no se mezclan.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { INTRINSECOS } from '../../lib/canvas-handoff';
+
 /**
  * Un bloque de la mini hoja de una subcarga.
  *
@@ -70,6 +72,26 @@ export interface Importada {
    * devuelve el número que había.
    */
   formulas?: Record<string, string>;
+  /**
+   * Qué salidas de la planilla ve el resto de la obra, y con qué nombre:
+   * `salida → alias`.
+   *
+   * ES LO QUE CIERRA EL ENCADENAMIENTO. `formulas` deja que una planilla LEA de
+   * la obra; sin esto no podía escribir nada en ella, así que la `T_grupo` de
+   * una placa base no existía para el anclaje que la recibe y la cadena de la
+   * familia BASE DE COLUMNA —que `public/biblioteca/README.md` documenta entera—
+   * se recorría copiando números a mano.
+   *
+   * EL ALIAS ES DEL USUARIO, y no el nombre de la salida, porque dos zapatas
+   * publican las dos su `u_max`: sin poder renombrar una, el segundo nodo que
+   * publicara lo mismo dejaría a los dos sin dueño. Lo que la genérica declara
+   * en `meta.entrega` sirve para PROPONER cuáles publicar, no para decidirlo.
+   *
+   * Se publica de a poco y a mano, no todo: una genérica declara hasta 38
+   * salidas, y meterlas todas en el espacio de nombres de la obra convertiría
+   * cualquier nombre corto en un choque.
+   */
+  publica?: Record<string, string>;
   /**
    * Cuál de las salidas declaradas es el valor con el que la partida se resume.
    * No se suma con nada —una carga agrupa sus partidas, ver `calculo.ts`—: es lo
@@ -371,6 +393,43 @@ export function slugsImportados(obra: Obra): string[] {
 export function conFormula(imp: Importada, campo: string, expr: string | undefined): Importada {
   const { [campo]: _fuera, ...resto } = imp.formulas ?? {};
   return { ...imp, formulas: expr === undefined ? resto : { ...resto, [campo]: expr } };
+}
+
+/**
+ * Publica o deja de publicar una salida. Misma regla que `conFormula`: dejar de
+ * publicar BORRA la clave, porque `publica` responde «¿qué ve la obra de esta
+ * planilla?» y un alias vacío no es una respuesta.
+ */
+export function conPublicacion(
+  imp: Importada,
+  salida: string,
+  alias: string | undefined,
+): Importada {
+  const { [salida]: _fuera, ...resto } = imp.publica ?? {};
+  return { ...imp, publica: alias === undefined ? resto : { ...resto, [salida]: alias } };
+}
+
+/**
+ * Qué le pasa a un alias publicado, o cadena vacía.
+ *
+ * Tiene que ser un nombre que el motor acepte a la izquierda de un `:=` —si no,
+ * nadie podría escribirlo en una fórmula— y no puede ser el de una unidad o una
+ * función, o taparía a la del motor en su propia hoja. Es la misma lista con la
+ * que `validarMeta` impide que una entrada se llame `m` o `min`.
+ *
+ * Se devuelve el motivo y no un booleano por lo mismo que en `problemaDeNombre`:
+ * es el motivo lo que se pinta.
+ */
+export function problemaDeAlias(alias: string): string {
+  const a = alias.trim();
+  if (!a) return 'Sin nombre: escribe con qué nombre lo va a ver el resto de la obra.';
+  if (!IDENTIFICADOR_RE.test(a)) {
+    return `«${a}» no es un nombre de variable: empieza por letra o «_» y sigue con letras, cifras o «_».`;
+  }
+  if (INTRINSECOS.has(a)) {
+    return `«${a}» ya es una unidad o una función del motor: taparía a la del motor en cualquier fórmula.`;
+  }
+  return '';
 }
 
 /** Todas las hojas libres de la obra, con el id de nodo con que se pintan. */

@@ -31,6 +31,7 @@ import {
   cambiarCarga,
   cargaDeSubcarga,
   conFormula,
+  conPublicacion,
   conSubcargas,
   nuevaSubcarga,
   nuevoCalculo,
@@ -106,13 +107,14 @@ function CanvasObra({ id }: { id: string }) {
 
   const claveLayout = `obra:${id}`;
 
-  // La obra entera es UNA hoja: se evalúa una vez y de ahí sale todo —los
-  // valores, las dependencias entre nodos y las flechas—. Evaluar por carga,
-  // como antes, es lo que impedía que una partida usara lo que definía otra.
+  // La obra entera es UNA cadena: se evalúa una vez y de ahí sale todo —los
+  // valores, las dependencias entre nodos y las flechas—. Recibe `genericas`
+  // porque las planillas también son nodos de esa cadena: publican al scope
+  // común lo que su `publica` declara.
   const evaluacion = useMemo(
     () =>
       obra
-        ? evaluarObra(obra)
+        ? evaluarObra(obra, genericas)
         : {
             results: {},
             regions: [],
@@ -122,8 +124,9 @@ function CanvasObra({ id }: { id: string }) {
             usos: new Map(),
             define: new Map(),
             enCiclo: new Set<string>(),
+            importadas: new Map(),
           },
-    [obra],
+    [obra, genericas],
   );
 
   const proyeccion = useMemo(
@@ -435,6 +438,17 @@ function CanvasObra({ id }: { id: string }) {
   const idCalculoSeleccionado = seleccion ? calculoDeNodo(seleccion) : null;
   const calculo = obra.calculos.find((k) => k.id === idCalculoSeleccionado);
 
+  // Los nombres que publican los OTROS nodos: con eso el selector de salidas
+  // propone un alias libre en vez de uno que deja los dos nodos en rojo en el
+  // mismo clic que los conecta.
+  const aliasAjenos = (idNodo: string): ReadonlySet<string> => {
+    const fuera = new Set<string>();
+    for (const [id, nombres] of evaluacion.define) {
+      if (id !== idNodo) for (const n of nombres) fuera.add(n);
+    }
+    return fuera;
+  };
+
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden">
       <header className="shrink-0 border-b border-border bg-white px-4 py-2">
@@ -567,10 +581,9 @@ function CanvasObra({ id }: { id: string }) {
             variables={variablesDePartida(partida, evaluacion)}
             regions={evaluacion.regions}
             results={evaluacion.results}
-            scopeObra={evaluacion.scope}
-            problemaGrafo={
-              partida.importada ? '' : problemaDeGrafo(idNodoDeSubcarga(partida.id), evaluacion)
-            }
+            instancia={evaluacion.importadas.get(idNodoDeSubcarga(partida.id))}
+            otrosAlias={aliasAjenos(idNodoDeSubcarga(partida.id))}
+            problemaGrafo={problemaDeGrafo(idNodoDeSubcarga(partida.id), evaluacion)}
             estado={partida.importada ? genericas[partida.importada.slug] : undefined}
             onRenombrar={(nombre) => cambiarPartida(partida.id, (s) => ({ ...s, nombre }))}
             onVariable={(variable) =>
@@ -600,6 +613,11 @@ function CanvasObra({ id }: { id: string }) {
                 s.importada ? { ...s, importada: conFormula(s.importada, campo, expr) } : s,
               )
             }
+            onPublicar={(salida, alias) =>
+              cambiarPartida(partida.id, (s) =>
+                s.importada ? { ...s, importada: conPublicacion(s.importada, salida, alias) } : s,
+              )
+            }
             onSalida={(salida) =>
               cambiarPartida(partida.id, (s) =>
                 s.importada ? { ...s, importada: { ...s.importada, salida } } : s,
@@ -625,12 +643,11 @@ function CanvasObra({ id }: { id: string }) {
             calculo={calculo}
             estado={calculo.importada ? genericas[calculo.importada.slug] : undefined}
             define={evaluacion.define.get(idNodoDeCalculo(calculo.id)) ?? []}
-            problemaGrafo={
-              calculo.importada ? '' : problemaDeGrafo(idNodoDeCalculo(calculo.id), evaluacion)
-            }
+            problemaGrafo={problemaDeGrafo(idNodoDeCalculo(calculo.id), evaluacion)}
             regions={evaluacion.regions}
             results={evaluacion.results}
-            scopeObra={evaluacion.scope}
+            instancia={evaluacion.importadas.get(idNodoDeCalculo(calculo.id))}
+            otrosAlias={aliasAjenos(idNodoDeCalculo(calculo.id))}
             onNombre={(nombre) => cambiarUnCalculo(calculo.id, (k) => ({ ...k, nombre }))}
             onBloques={(bloques: Bloque[]) =>
               cambiarUnCalculo(calculo.id, (k) => ({ ...k, bloques }))
@@ -663,6 +680,11 @@ function CanvasObra({ id }: { id: string }) {
             onFormula={(campo, expr) =>
               cambiarUnCalculo(calculo.id, (k) =>
                 k.importada ? { ...k, importada: conFormula(k.importada, campo, expr) } : k,
+              )
+            }
+            onPublicar={(salida, alias) =>
+              cambiarUnCalculo(calculo.id, (k) =>
+                k.importada ? { ...k, importada: conPublicacion(k.importada, salida, alias) } : k,
               )
             }
             onResellar={(sha256) =>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Region, SheetResults } from '../../lib/worksheet';
 import type { EstadoGenerica } from './biblioteca';
+import type { Instanciada } from './evaluacion';
 import FichaGenerica from './FichaGenerica';
 import MiniHoja from './MiniHoja';
 import SelectorGenerica from './SelectorGenerica';
@@ -25,7 +26,8 @@ export default function PanelSubcarga({
   problemaGrafo,
   regions,
   results,
-  scopeObra,
+  instancia,
+  otrosAlias,
   estado,
   onRenombrar,
   onVariable,
@@ -33,6 +35,7 @@ export default function PanelSubcarga({
   onImportar,
   onEntrada,
   onFormula,
+  onPublicar,
   onSalida,
   onResellar,
   onQuitarPlanilla,
@@ -51,7 +54,9 @@ export default function PanelSubcarga({
    *  ofrecer lo que definen los nodos de aguas arriba. */
   regions: Region[];
   results: SheetResults;
-  scopeObra: Record<string, unknown>;
+  /** Lo que su planilla produjo, si la tiene, en su sitio del orden de lectura. */
+  instancia: Instanciada | undefined;
+  otrosAlias: ReadonlySet<string>;
   estado: EstadoGenerica | undefined;
   onRenombrar: (nombre: string) => void;
   onVariable: (nombre: string) => void;
@@ -59,6 +64,7 @@ export default function PanelSubcarga({
   onImportar: (slug: string) => void;
   onEntrada: (nombre: string, valor: number) => void;
   onFormula: (campo: string, expr: string | undefined) => void;
+  onPublicar: (salida: string, alias: string | undefined) => void;
   onSalida: (nombre: string) => void;
   onResellar: (sha256: string) => void;
   onQuitarPlanilla: () => void;
@@ -155,9 +161,11 @@ export default function PanelSubcarga({
           <FichaGenerica
             estado={estado}
             importada={importada}
-            scopeObra={scopeObra}
+            instancia={instancia}
+            otrosAlias={otrosAlias}
             onEntrada={onEntrada}
             onFormula={onFormula}
+            onPublicar={onPublicar}
             onSalida={onSalida}
             onResellar={onResellar}
             onQuitar={onQuitarPlanilla}

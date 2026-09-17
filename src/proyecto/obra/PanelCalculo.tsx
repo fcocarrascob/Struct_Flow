@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Region, SheetResults } from '../../lib/worksheet';
 import type { EstadoGenerica } from './biblioteca';
+import type { Instanciada } from './evaluacion';
 import FichaGenerica from './FichaGenerica';
 import MiniHoja from './MiniHoja';
 import SelectorGenerica from './SelectorGenerica';
@@ -25,12 +26,14 @@ export default function PanelCalculo({
   problemaGrafo,
   regions,
   results,
-  scopeObra,
+  instancia,
+  otrosAlias,
   onNombre,
   onBloques,
   onImportar,
   onEntrada,
   onFormula,
+  onPublicar,
   onResellar,
   onQuitarPlanilla,
   onBorrar,
@@ -45,12 +48,15 @@ export default function PanelCalculo({
    *  ofrecer lo que definen los nodos de aguas arriba. */
   regions: Region[];
   results: SheetResults;
-  scopeObra: Record<string, unknown>;
+  /** Lo que su planilla produjo, si la tiene, en su sitio del orden de lectura. */
+  instancia: Instanciada | undefined;
+  otrosAlias: ReadonlySet<string>;
   onNombre: (nombre: string) => void;
   onBloques: (bloques: Bloque[]) => void;
   onImportar: (slug: string) => void;
   onEntrada: (nombre: string, valor: number) => void;
   onFormula: (campo: string, expr: string | undefined) => void;
+  onPublicar: (salida: string, alias: string | undefined) => void;
   onResellar: (sha256: string) => void;
   onQuitarPlanilla: () => void;
   onBorrar: () => void;
@@ -71,14 +77,19 @@ export default function PanelCalculo({
               placeholder="Geometría"
               className="w-full rounded border border-transparent bg-white px-1.5 py-0.5 text-sm font-semibold text-ink outline-none hover:border-border focus:border-accent"
             />
+            {/* Lo que el nodo publica se lee igual venga de su hoja o de las
+                salidas de su planilla: para el resto de la obra son lo mismo,
+                un nombre con un valor. */}
             <p className="px-1.5 text-[11px] leading-snug text-muted">
-              {calculo.importada
-                ? 'Respaldado por una planilla de la biblioteca.'
-                : define.length > 0
-                  ? `Publica ${define.length === 1 ? 'la variable' : 'las variables'} `
-                  : 'Lo que definas acá queda disponible para los demás nodos.'}
-              {!calculo.importada && define.length > 0 && (
-                <span className="font-mono text-ink">{define.join(', ')}</span>
+              {define.length > 0 ? (
+                <>
+                  Publica {define.length === 1 ? 'la variable ' : 'las variables '}
+                  <span className="font-mono text-ink">{define.join(', ')}</span>
+                </>
+              ) : calculo.importada ? (
+                'Respaldado por una planilla. Marca en «Salidas» lo que tengan que ver los demás nodos.'
+              ) : (
+                'Lo que definas acá queda disponible para los demás nodos.'
               )}
             </p>
           </div>
@@ -101,9 +112,11 @@ export default function PanelCalculo({
           <FichaGenerica
             estado={estado}
             importada={calculo.importada}
-            scopeObra={scopeObra}
+            instancia={instancia}
+            otrosAlias={otrosAlias}
             onEntrada={onEntrada}
             onFormula={onFormula}
+            onPublicar={onPublicar}
             onResellar={onResellar}
             onQuitar={onQuitarPlanilla}
           />

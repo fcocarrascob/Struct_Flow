@@ -17,6 +17,7 @@
 import { newId } from '../../lib/hoja-json';
 import {
   IDENTIFICADOR_RE,
+  problemaDeAlias,
   slugificar,
   VERSION_OBRA,
   type Bloque,
@@ -98,6 +99,15 @@ function sanearImportada(crudo: unknown): Importada | undefined {
       if (typeof v === 'string') formulas[k] = v;
     }
   }
+  // Un alias que no es un nombre de variable no se puede escribir en ninguna
+  // fórmula, así que publicarlo sería ofrecer algo inalcanzable. `problemaDeAlias`
+  // decide, que es la misma autoridad que usa el selector.
+  const publica: Record<string, string> = {};
+  if (typeof i.publica === 'object' && i.publica !== null) {
+    for (const [k, v] of Object.entries(i.publica)) {
+      if (typeof v === 'string' && !problemaDeAlias(v)) publica[k] = v.trim();
+    }
+  }
   return {
     slug: i.slug,
     // Un sello ilegible se trata como «sin sello»: no se avisa de un desfase
@@ -105,6 +115,7 @@ function sanearImportada(crudo: unknown): Importada | undefined {
     sha256: typeof i.sha256 === 'string' && /^[0-9a-f]{64}$/.test(i.sha256) ? i.sha256 : '',
     entradas,
     ...(Object.keys(formulas).length ? { formulas } : {}),
+    ...(Object.keys(publica).length ? { publica } : {}),
     ...(typeof i.salida === 'string' && i.salida ? { salida: i.salida } : {}),
   };
 }
