@@ -62,6 +62,15 @@ export interface AvisoDelOrigen {
   texto: ReactNode;
   /** Etiqueta del enlace que lo oculta. Sin esto no se puede cerrar a mano. */
   cierre?: string;
+  /**
+   * Botones que RESUELVEN el aviso: al pulsar uno, el hook lo retira de la lista.
+   *
+   * Esa regla es del hook y no del origen porque es él quien tiene el estado.
+   * La usa el aviso de la copia apartada: «Descargar» y «Descartar» las dos
+   * dejan de tener sentido en cuanto una se pulsa —la copia ya no está— y un
+   * aviso que sobrevive a su propia acción invita a pulsarla otra vez.
+   */
+  acciones?: AccionAviso[];
 }
 
 export interface AccionAviso {
@@ -99,6 +108,20 @@ export interface OrigenHoja {
   /** Síncrono: lo consume un `useState(inicializador)` en el primer render. */
   cargar(): Arranque;
   guardar(h: HojaParaGuardar): ResultadoGuardado;
+  /**
+   * Escribe una copia APARTE mientras el sitio principal está en pausa.
+   *
+   * Sin esto, un conflicto sin resolver era una trampa: la pausa impedía pisar
+   * al otro escritor —correcto— pero también tiraba todo lo que se escribiera
+   * después, y la tarjeta no bloquea la edición ni se repite. Media hora de
+   * trabajo desaparecía al cerrar la pestaña sin una sola señal.
+   *
+   * Solo hace falta en un origen que también tenga `vigilar`: sin vigilancia no
+   * hay conflicto, y sin conflicto no hay pausa.
+   */
+  apartar?(h: HojaParaGuardar): ResultadoGuardado;
+  /** Descarta esa copia. La llama el hook cuando el conflicto se resuelve a favor de esta hoja. */
+  olvidarApartada?(): void;
   /**
    * Avisa de que otro escritor tocó el mismo sitio. Devuelve cómo desuscribirse.
    * Sin `vigilar` no hay conflicto posible.
@@ -199,10 +222,7 @@ export function useHojaPersistida(
    * cuota de `localStorage` (~5 MB), y a partir de ahí todo lo que el usuario
    * escriba se perdería al recargar sin que nada lo indique.
    */
-  const guardar = useCallback((rs: Region[], editando: string | null) => {
-    // Otro escritor tocó el mismo sitio y el usuario todavía no ha elegido cuál
-    // se queda: escribir ahora pisaría su trabajo sin preguntar.
-    if (enPausaRef.current) return;
+  const guardar = useCallback((rs: Region[], editando: string | null): ResultadoGuardado => {
     // Solo se descarta la región EN EDICIÓN si está vacía: es la que puede
     // quedar a medio crear si se cierra la pestaña.
     //
@@ -211,8 +231,16 @@ export function useHojaPersistida(
     // autoguardado: la hoja se recolocaba sola tras un F5. Una región vacía que
     // no se está editando es una decisión del autor.
     const persistables = rs.filter((r) => r.id !== editando || r.src.trim() !== '');
-    const r = origenRef.current.guardar({ regions: rs, persistables, meta: metaRef.current });
+    const hoja = { regions: rs, persistables, meta: metaRef.current };
+    // Otro escritor tocó el mismo sitio y el usuario todavía no ha elegido cuál
+    // se queda: escribir ahora pisaría su trabajo sin preguntar. Pero tampoco se
+    // tira lo que se está escribiendo —la tarjeta no bloquea la edición—, así
+    // que va a una copia aparte hasta que el conflicto se resuelva.
+    const r = enPausaRef.current
+      ? (origenRef.current.apartar?.(hoja) ?? { ok: true as const })
+      : origenRef.current.guardar(hoja);
     setFallo(r.ok ? null : r.motivo);
+    return r;
   }, []);
 
   // Autoguardado con debounce.
@@ -230,7 +258,9 @@ export function useHojaPersistida(
   // también se dispara en cada pulsación y guardaría de forma síncrona en cada
   // tecla, que es justo lo que el debounce evita.
   useEffect(() => {
-    return () => guardar(regionsRef.current, activeIdRef.current);
+    return () => {
+      guardar(regionsRef.current, activeIdRef.current);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -272,6 +302,10 @@ export function useHojaPersistida(
   /** Trae la hoja del otro escritor y reanuda el guardado. */
   const traerLaDeAfuera = useCallback(() => {
     if (!conflicto) return;
+    // Todavía en pausa: esto escribe la copia aparte, no el sitio principal. Va
+    // antes de traer la otra hoja porque el debounce deja fuera la ráfaga de los
+    // últimos 300 ms, y esa ráfaga es justo lo que está a punto de reemplazarse.
+    guardar(regionsRef.current, activeIdRef.current);
     const { regions: rs, meta, avisos } = conflicto.traer();
     enPausaRef.current = false;
     setConflicto(null);
@@ -279,13 +313,18 @@ export function useHojaPersistida(
     setAvisosDelOrigen(avisos ?? []);
     alReemplazar();
     setRegions(rs);
-  }, [conflicto, alReemplazar]);
+  }, [conflicto, alReemplazar, guardar]);
 
   /** Se queda con esta: reanuda y la escribe encima, en el acto. */
   const quedarmeConEsta = useCallback(() => {
     enPausaRef.current = false;
     setConflicto(null);
-    guardar(regionsRef.current, activeIdRef.current);
+    // La copia apartada solo se descarta si la hoja llegó de verdad a su sitio.
+    // Con la cuota llena el guardado falla, y tirar la copia justo entonces
+    // dejaría el trabajo sin ningún respaldo.
+    if (guardar(regionsRef.current, activeIdRef.current).ok) {
+      origenRef.current.olvidarApartada?.();
+    }
   }, [guardar]);
 
   const guardarYa = useCallback(() => {
@@ -320,15 +359,20 @@ export function useHojaPersistida(
       });
     }
     for (const a of avisosDelOrigen) {
+      const retirar = () => setAvisosDelOrigen((prev) => prev.filter((x) => x.clave !== a.clave));
       lista.push({
         clave: a.clave,
         texto: a.texto,
-        cierre: a.cierre
-          ? {
-              etiqueta: a.cierre,
-              hacer: () => setAvisosDelOrigen((prev) => prev.filter((x) => x.clave !== a.clave)),
-            }
-          : undefined,
+        // Una acción del origen RESUELVE su aviso: se ejecuta y el aviso se va.
+        // Ver la nota de `AvisoDelOrigen.acciones`.
+        acciones: a.acciones?.map((accion) => ({
+          ...accion,
+          hacer: () => {
+            accion.hacer();
+            retirar();
+          },
+        })),
+        cierre: a.cierre ? { etiqueta: a.cierre, hacer: retirar } : undefined,
       });
     }
     return lista;
