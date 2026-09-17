@@ -28,8 +28,9 @@ interface Props {
   activo: boolean;
   sugerencias?: readonly Sugerencia[];
   onCambiar: (src: string) => void;
-  /** `avanzar`: crear el bloque siguiente y editarlo. */
-  onSalir: (avanzar: boolean) => void;
+  /** `avanzar`: crear el bloque siguiente y editarlo. `src` es el texto con el
+   *  que el bloque sale, que tras un Escape no es el que la hoja todavía tiene. */
+  onSalir: (avanzar: boolean, src: string) => void;
   onActivar: () => void;
   onBorrar: () => void;
 }
@@ -80,7 +81,7 @@ export default function BloqueMini({
     // Cambiar de pestaña o de ventana no es salir del bloque: si el documento no
     // tiene el foco, el blur no lo provocó el usuario.
     if (!document.hasFocus()) return;
-    onSalir(false);
+    onSalir(false, bloque.src);
   }
 
   function alTeclear(e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) {
@@ -91,8 +92,11 @@ export default function BloqueMini({
 
     if (e.key === 'Escape') {
       e.preventDefault();
+      // Los dos, y con el mismo texto: el de la hoja todavía es el editado, así
+      // que si no se lo pasamos, un bloque que se vació y se canceló se
+      // descartaría por vacío justo después de haberlo restaurado.
       onCambiar(srcAlEntrar.current);
-      onSalir(false);
+      onSalir(false, srcAlEntrar.current);
       return;
     }
     if (e.key === 'Enter') {
@@ -100,7 +104,7 @@ export default function BloqueMini({
       // líneas que partir, así que Enter siempre avanza.
       if (bloque.tipo === 'text' && (e.shiftKey || e.altKey)) return;
       e.preventDefault();
-      onSalir(true);
+      onSalir(true, bloque.src);
       return;
     }
     if (e.key === 'Backspace' && bloque.src === '') {

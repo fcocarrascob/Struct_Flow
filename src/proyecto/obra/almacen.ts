@@ -14,8 +14,10 @@
 // escribe sola sino dentro del conjunto, que es como está guardado.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { newId } from '../../lib/hoja-json';
 import {
   IDENTIFICADOR_RE,
+  slugificar,
   VERSION_OBRA,
   type Bloque,
   type Carga,
@@ -33,6 +35,27 @@ export type Resultado = { ok: true } | { ok: false; motivo: string };
 const MODULOS: ReadonlySet<string> = new Set<Modulo>(['cargas']);
 
 /**
+ * Los ids que ya se repartieron dentro de UNA obra.
+ *
+ * Es el `vistos` de `sanearRegiones` (`src/lib/hoja-json.ts:91`) y hace falta
+ * por lo mismo: los ids de bloque son las claves de `results` en la hoja global
+ * que arma `evaluacion.ts`, así que dos bloques con el mismo id comparten
+ * resultado, comparten `key` de React y rompen el filtro por posición del
+ * autocompletado, que busca la región activa por id y se queda con la primera.
+ *
+ * Antes los ids de rescate llevaban el índice **dentro de su padre**, así que
+ * dos partidas sin id daban las dos `s-recuperada-0` y los bloques colisionaban
+ * entre nodos a la primera. El `newId` compartido no puede repetir.
+ */
+type Vistos = Set<string>;
+
+function idUnico(crudo: unknown, vistos: Vistos): string {
+  const id = typeof crudo === 'string' && crudo && !vistos.has(crudo) ? crudo : newId();
+  vistos.add(id);
+  return id;
+}
+
+/**
  * Lo que se lee de `localStorage` es texto que escribió una versión anterior de
  * esta aplicación, no un `Obra`. Se sanea igual que `sanearRegiones` hace con
  * una hoja: lo que no calza se descarta en vez de reventar la pantalla.
@@ -40,15 +63,21 @@ const MODULOS: ReadonlySet<string> = new Set<Modulo>(['cargas']);
 /** `src` tiene que ser string sí o sí: `evaluateSheet` hace `region.src.trim()`
  *  sin red, así que un bloque con `src` de otro tipo rompería la evaluación
  *  entera de la carga en vez de estropear solo su propio bloque. */
-function sanearBloque(crudo: unknown, i: number): Bloque | null {
+function sanearBloque(crudo: unknown, vistos: Vistos): Bloque | null {
   if (typeof crudo !== 'object' || crudo === null) return null;
   const b = crudo as Partial<Bloque>;
   if (typeof b.src !== 'string') return null;
   return {
-    id: typeof b.id === 'string' && b.id ? b.id : `b-recuperado-${i}`,
+    id: idUnico(b.id, vistos),
     tipo: b.tipo === 'text' ? 'text' : 'math',
     src: b.src,
   };
+}
+
+function sanearBloques(crudo: unknown, vistos: Vistos): Bloque[] {
+  return (Array.isArray(crudo) ? crudo : [])
+    .map((b) => sanearBloque(b, vistos))
+    .filter((b): b is Bloque => b !== null);
 }
 
 /** Sin `slug` no hay nada que descargar, así que la referencia se descarta
@@ -80,7 +109,7 @@ function sanearImportada(crudo: unknown): Importada | undefined {
   };
 }
 
-function sanearSubcarga(crudo: unknown, i: number): Subcarga | null {
+function sanearSubcarga(crudo: unknown, vistos: Vistos): Subcarga | null {
   if (typeof crudo !== 'object' || crudo === null) return null;
   const s = crudo as Partial<Subcarga>;
   if (typeof s.nombre !== 'string') return null;
@@ -96,75 +125,100 @@ function sanearSubcarga(crudo: unknown, i: number): Subcarga | null {
         ? s.nombre.trim()
         : undefined;
   return {
-    id: typeof s.id === 'string' && s.id ? s.id : `s-recuperada-${i}`,
+    id: idUnico(s.id, vistos),
     nombre: s.nombre,
-    bloques: (Array.isArray(s.bloques) ? s.bloques : [])
-      .map(sanearBloque)
-      .filter((b): b is Bloque => b !== null),
+    bloques: sanearBloques(s.bloques, vistos),
     ...(variable ? { variable } : {}),
     ...(importada ? { importada } : {}),
   };
 }
 
-function sanearCalculo(crudo: unknown, i: number): NodoCalculo | null {
+function sanearCalculo(crudo: unknown, vistos: Vistos): NodoCalculo | null {
   if (typeof crudo !== 'object' || crudo === null) return null;
   const k = crudo as Partial<NodoCalculo>;
   const importada = sanearImportada(k.importada);
   return {
-    id: typeof k.id === 'string' && k.id ? k.id : `k-recuperado-${i}`,
+    id: idUnico(k.id, vistos),
     nombre: typeof k.nombre === 'string' ? k.nombre : 'Cálculo',
-    bloques: (Array.isArray(k.bloques) ? k.bloques : [])
-      .map(sanearBloque)
-      .filter((b): b is Bloque => b !== null),
+    bloques: sanearBloques(k.bloques, vistos),
     ...(importada ? { importada } : {}),
   };
 }
 
-function sanearCarga(crudo: unknown, i: number): Carga | null {
+function sanearCarga(crudo: unknown, vistos: Vistos): Carga | null {
   if (typeof crudo !== 'object' || crudo === null) return null;
   const c = crudo as Partial<Carga>;
   if (typeof c.nombre !== 'string') return null;
   return {
-    id: typeof c.id === 'string' && c.id ? c.id : `c-recuperada-${i}`,
+    id: idUnico(c.id, vistos),
     nombre: c.nombre,
     // El `tipo` de una obra guardada con el catálogo cerrado se ignora: la carga
     // ya no lo tiene, y el nombre —que es lo que la identifica— no dependía de él.
     // Una obra guardada antes del desglose no trae `subcargas`; no es un dato
     // corrupto, es una obra anterior, y abre sin desglose y sin avisos.
     subcargas: (Array.isArray(c.subcargas) ? c.subcargas : [])
-      .map(sanearSubcarga)
+      .map((s) => sanearSubcarga(s, vistos))
       .filter((s): s is Subcarga => s !== null),
   };
 }
 
-function sanearObra(crudo: unknown): Obra | null {
-  if (typeof crudo !== 'object' || crudo === null) return null;
+/**
+ * El id con el que una obra guardada se identifica y se enlaza.
+ *
+ * Viaja en la URL (`/obra/<id>`), así que tiene que pasar el alfabeto cerrado de
+ * `SLUG_PROYECTO_RE` (`src/lib/ruta.ts`): uno que no lo pase deja una obra que
+ * está guardada y es **inalcanzable**, porque `parsearRuta` rechaza la ruta y
+ * cae en el menú sin decir nada. Se slugifica en vez de descartar la obra.
+ *
+ * Es una función aparte porque la usan el saneo y `guardarObra`, que tiene que
+ * encontrar la misma entrada en el archivo crudo.
+ */
+export function idDeObra(crudo: unknown): string | null {
+  const id = (crudo as { id?: unknown } | null)?.id;
+  if (typeof id !== 'string' || !id) return null;
+  return /^[a-z0-9][a-z0-9-]*$/.test(id) ? id : slugificar(id) || null;
+}
+
+export function sanearObra(crudo: unknown): Obra | null {
+  const id = idDeObra(crudo);
+  if (id === null) return null;
   const o = crudo as Partial<Obra>;
-  if (typeof o.id !== 'string' || !o.id) return null;
+  // Un solo juego de ids por obra: cargas, partidas, cálculos y bloques
+  // comparten espacio porque todos acaban siendo claves de `results`.
+  const vistos: Vistos = new Set();
   return {
     version: VERSION_OBRA,
-    id: o.id,
-    nombre: typeof o.nombre === 'string' ? o.nombre : o.id,
+    id,
+    nombre: typeof o.nombre === 'string' ? o.nombre : id,
     creada: typeof o.creada === 'string' ? o.creada : new Date(0).toISOString(),
     modulos: (Array.isArray(o.modulos) ? o.modulos : []).filter((m): m is Modulo =>
       MODULOS.has(m as string),
     ),
     cargas: (Array.isArray(o.cargas) ? o.cargas : [])
-      .map(sanearCarga)
+      .map((c) => sanearCarga(c, vistos))
       .filter((c): c is Carga => c !== null),
     calculos: (Array.isArray(o.calculos) ? o.calculos : [])
-      .map(sanearCalculo)
+      .map((k) => sanearCalculo(k, vistos))
       .filter((k): k is NodoCalculo => k !== null),
   };
 }
 
-function leerTodo(): Obra[] {
+/**
+ * Las obras **tal como están escritas**, sin sanear.
+ *
+ * Existe para que guardar una obra no toque a las demás. `guardarObra` leía las
+ * saneadas y las volvía a volcar todas, y como eso ocurre cada 300 ms mientras
+ * se teclea, editar una obra le aplicaba la migración a las otras sin que nadie
+ * las abriera: un bloque con `src` que no es texto desaparecía, los ids de
+ * rescate se materializaban y los campos desconocidos se perdían. El saneo es
+ * defensivo **al leer**; al escribir era destructivo.
+ */
+function leerCrudo(): unknown[] {
   try {
-    const crudo = window.localStorage.getItem(CLAVE_OBRAS);
-    if (!crudo) return [];
-    const datos = JSON.parse(crudo) as { obras?: unknown };
-    if (!Array.isArray(datos?.obras)) return [];
-    return datos.obras.map(sanearObra).filter((o): o is Obra => o !== null);
+    const texto = window.localStorage.getItem(CLAVE_OBRAS);
+    if (!texto) return [];
+    const datos = JSON.parse(texto) as { obras?: unknown };
+    return Array.isArray(datos?.obras) ? datos.obras : [];
   } catch {
     // Modo privado, almacenamiento bloqueado o JSON corrupto. Abrir con la lista
     // vacía es mejor que no abrir; el error real aparece al intentar guardar,
@@ -173,7 +227,15 @@ function leerTodo(): Obra[] {
   }
 }
 
-function escribirTodo(obras: Obra[]): Resultado {
+function leerTodo(): Obra[] {
+  return leerCrudo()
+    .map(sanearObra)
+    .filter((o): o is Obra => o !== null);
+}
+
+/** Escribe el archivo entero. Las entradas que no se tocaron viajan **crudas**,
+ *  como estaban: ver la nota de `leerCrudo`. */
+function escribirTodo(obras: unknown[]): Resultado {
   try {
     window.localStorage.setItem(CLAVE_OBRAS, JSON.stringify({ version: VERSION_OBRA, obras }));
     return { ok: true };
@@ -205,15 +267,32 @@ export function leerObra(id: string): Obra | null {
   return leerTodo().find((o) => o.id === id) ?? null;
 }
 
-/** Inserta o reemplaza, conservando el sitio que la obra ya tenía en el archivo. */
-export function guardarObra(obra: Obra): Resultado {
-  const obras = leerTodo();
-  const i = obras.findIndex((o) => o.id === obra.id);
-  if (i >= 0) obras[i] = obra;
-  else obras.push(obra);
+/**
+ * Inserta o reemplaza **solo esta obra**, conservando su sitio en el archivo y
+ * el texto crudo de todas las demás.
+ *
+ * Con `crear`, una obra que ya existe es un fallo en vez de un reemplazo. Sin
+ * eso, dos pestañas abiertas en el índice proponían las dos el mismo id —cada
+ * una ve su propia lista— y la segunda en guardar **borraba** la obra de la
+ * primera sin decir una palabra.
+ */
+export function guardarObra(obra: Obra, { crear = false } = {}): Resultado {
+  const obras = leerCrudo();
+  const i = obras.findIndex((o) => idDeObra(o) === obra.id);
+  if (i >= 0) {
+    if (crear) {
+      return {
+        ok: false,
+        motivo: `Ya hay una obra con el id «${obra.id}» en este navegador, quizá creada en otra pestaña.`,
+      };
+    }
+    obras[i] = obra;
+  } else {
+    obras.push(obra);
+  }
   return escribirTodo(obras);
 }
 
 export function borrarObra(id: string): Resultado {
-  return escribirTodo(leerTodo().filter((o) => o.id !== id));
+  return escribirTodo(leerCrudo().filter((o) => idDeObra(o) !== id));
 }

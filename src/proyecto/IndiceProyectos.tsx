@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { listarProyectos } from './api';
 import type { ProyectoListado } from './contrato';
 import { borrarObra, guardarObra, listarObras } from './obra/almacen';
+import { olvidarLayout } from './layout';
 import { nuevaObra, NOMBRE_OBRA_POR_OMISION, type Obra } from './obra/modelo';
 import Enlace from '../components/Enlace';
 import { navegar } from '../lib/ruta';
@@ -80,14 +81,22 @@ export default function IndiceProyectos() {
     };
   }, []);
 
+  /**
+   * Los ids ocupados se leen del almacén **en este momento**, no del estado: si
+   * otra pestaña creó una obra desde que se montó esta lista, `obras` no lo
+   * sabe y las dos propondrían el mismo id. El `crear: true` es la segunda red,
+   * para la carrera que queda entre leer y escribir.
+   */
   function crearObra() {
+    const guardadas = listarObras();
     const obra = nuevaObra(
       NOMBRE_OBRA_POR_OMISION,
-      obras.map((o) => o.id),
+      guardadas.map((o) => o.id),
     );
-    const r = guardarObra(obra);
+    const r = guardarObra(obra, { crear: true });
     if (!r.ok) {
       setAvisoObras(r.motivo);
+      setObras(listarObras());
       return;
     }
     navegar({ vista: 'obra', id: obra.id });
@@ -99,6 +108,10 @@ export default function IndiceProyectos() {
       setAvisoObras(r.motivo);
       return;
     }
+    // El layout no es dato de la obra, pero se guarda con su clave: sin esto
+    // quedaría para siempre en `structflow.layout.proyecto.v1`, y una obra nueva
+    // que reutilizara el id heredaría posiciones de nodos que no son suyos.
+    olvidarLayout(`obra:${id}`);
     setObras(listarObras());
   }
 

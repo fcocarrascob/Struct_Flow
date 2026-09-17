@@ -184,6 +184,27 @@ function CanvasObra({ id }: { id: string }) {
     };
   }, []);
 
+  // Y al cerrar la pestaña, recargar o pasar a otra, que tampoco desmontan: React
+  // no se entera de que la página se va. Como el debounce se reinicia en cada
+  // tecla, lo que se pierde no son 300 ms sino la ráfaga entera desde la última
+  // pausa. Es la misma red que `MathCanvas.tsx`, con el mismo argumento:
+  // `visibilitychange` es la señal fiable en móvil, donde `pagehide` a veces no
+  // llega, y se escuchan las dos porque guardar dos veces lo mismo no cuesta nada.
+  useEffect(() => {
+    const vaciar = () => {
+      if (obraRef.current) guardarObra(obraRef.current);
+    };
+    const alOcultar = () => {
+      if (document.visibilityState === 'hidden') vaciar();
+    };
+    window.addEventListener('pagehide', vaciar);
+    document.addEventListener('visibilitychange', alOcultar);
+    return () => {
+      window.removeEventListener('pagehide', vaciar);
+      document.removeEventListener('visibilitychange', alOcultar);
+    };
+  }, []);
+
   // ── Nodos y aristas ────────────────────────────────────────────────────────
   // La posición que ya tenía un nodo manda sobre la automática: `colocar()`
   // centra cada columna respecto de la más alta, así que recalcularla en cada

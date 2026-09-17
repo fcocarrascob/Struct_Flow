@@ -36,8 +36,9 @@ const {
   problemaDeGrafo,
   resolverExpresion,
   moduloDeBiblioteca,
+  sanearObra,
+  idDeObra,
   idNodoDeCalculo,
-  idNodoDeSubcarga,
 } = motor;
 
 // ── Armar una obra ───────────────────────────────────────────────────────────
@@ -231,9 +232,117 @@ const CASOS = [
   },
 ];
 
+// ── El saneo de lo que estaba guardado ───────────────────────────────────────
+//
+// No necesita evaluar nada, así que van aparte: cada uno recibe una obra cruda
+// —lo que puede haber escrito una versión anterior de la aplicación— y comprueba
+// lo que sale.
+
+/** Todos los ids que reparte el saneo de una obra, en un solo array. */
+function idsDe(o) {
+  const ids = [];
+  for (const k of o.calculos) {
+    ids.push(k.id, ...k.bloques.map((b) => b.id));
+  }
+  for (const c of o.cargas) {
+    ids.push(c.id);
+    for (const s of c.subcargas) ids.push(s.id, ...s.bloques.map((b) => b.id));
+  }
+  return ids;
+}
+
+const CASOS_SANEO = [
+  {
+    nombre: 'dos bloques sin id no acaban con el mismo id de rescate',
+    // El fallo que cierra: los ids de rescate llevaban el índice DENTRO de su
+    // padre, así que la primera partida de cada carga era `s-recuperada-0` y los
+    // primeros bloques de cada nodo colisionaban entre sí. Dos bloques con el
+    // mismo id comparten entrada en `results` y `key` de React.
+    crudo: {
+      id: 'o',
+      calculos: [
+        { nombre: 'A', bloques: [{ src: 'a := 1' }, { src: 'b := 2' }] },
+        { nombre: 'B', bloques: [{ src: 'c := 3' }] },
+      ],
+      cargas: [
+        { nombre: 'C1', subcargas: [{ nombre: 'p', bloques: [{ src: 'x := 1' }] }] },
+        { nombre: 'C2', subcargas: [{ nombre: 'q', bloques: [{ src: 'y := 1' }] }] },
+      ],
+    },
+    ok: (o) => {
+      const ids = idsDe(o);
+      const repes = ids.filter((id, i) => ids.indexOf(id) !== i);
+      return repes.length ? `ids repetidos: ${[...new Set(repes)].join(', ')}` : null;
+    },
+  },
+  {
+    nombre: 'un id que ya venía se conserva, y solo el que choca se renombra',
+    crudo: {
+      id: 'o',
+      calculos: [
+        { id: 'k1', nombre: 'A', bloques: [{ id: 'b1', src: 'a := 1' }] },
+        { id: 'k2', nombre: 'B', bloques: [{ id: 'b1', src: 'b := 2' }] },
+      ],
+      cargas: [],
+    },
+    ok: (o) => {
+      if (o.calculos[0].bloques[0].id !== 'b1') return 'se renombró el primero, que no chocaba';
+      if (o.calculos[1].bloques[0].id === 'b1') return 'el segundo conservó el id repetido';
+      return null;
+    },
+  },
+  {
+    nombre: 'un id de obra que no cabe en una URL se slugifica en vez de dejar la obra inalcanzable',
+    // `/obra/<id>` pasa por el alfabeto cerrado de `SLUG_PROYECTO_RE`: un id que
+    // no lo cumple deja una obra guardada que `parsearRuta` rechaza, y el enlace
+    // cae en el menú sin decir nada.
+    crudo: { id: 'Galpón Altiplano', calculos: [], cargas: [] },
+    ok: (o) =>
+      o.id === 'galpon-altiplano' ? null : `dio «${o.id}», se esperaba «galpon-altiplano»`,
+  },
+  {
+    nombre: 'una obra sin id no se puede guardar ni enlazar, y se descarta',
+    crudo: { nombre: 'sin id' },
+    ok: (o) => (o === null ? null : `se aceptó una obra sin id: ${JSON.stringify(o)}`),
+  },
+  {
+    nombre: 'un bloque cuyo src no es texto se descarta y no tumba la evaluación',
+    // `evaluateSheet` hace `region.src.trim()` sin red.
+    crudo: {
+      id: 'o',
+      calculos: [{ id: 'k', nombre: 'A', bloques: [{ id: 'b1', src: 3 }, { id: 'b2', src: 'a := 1' }] }],
+      cargas: [],
+    },
+    ok: (o) => (o.calculos[0].bloques.length === 1 ? null : 'no se descartó el bloque sin src'),
+  },
+  {
+    nombre: 'el id crudo y el saneado se resuelven igual, para poder reescribir esa entrada',
+    // `guardarObra` busca la entrada en el archivo CRUDO por este id: si no
+    // coincidiera con el de la obra saneada, guardar insertaría un duplicado en
+    // vez de reemplazar.
+    crudo: { id: 'Galpón Altiplano', calculos: [], cargas: [] },
+    ok: (o, crudo) => (idDeObra(crudo) === o.id ? null : `${idDeObra(crudo)} ≠ ${o.id}`),
+  },
+];
+
 // ── Correr ───────────────────────────────────────────────────────────────────
 
 let fallos = 0;
+for (const caso of CASOS_SANEO) {
+  let motivo;
+  try {
+    motivo = caso.ok(sanearObra(caso.crudo), caso.crudo);
+  } catch (e) {
+    motivo = `lanzó: ${e.message}`;
+  }
+  if (motivo) {
+    fallos++;
+    console.log(`  [FALLA] ${caso.nombre}\n          ${motivo}`);
+  } else {
+    console.log(`  [ OK  ] ${caso.nombre}`);
+  }
+}
+
 for (const caso of CASOS) {
   let motivo;
   try {
@@ -251,5 +360,6 @@ for (const caso of CASOS) {
   }
 }
 
-console.log(`\n${fallos ? 'FALLA' : 'OK'}: ${CASOS.length - fallos} de ${CASOS.length} casos.\n`);
+const total = CASOS.length + CASOS_SANEO.length;
+console.log(`\n${fallos ? 'FALLA' : 'OK'}: ${total - fallos} de ${total} casos.\n`);
 process.exit(fallos ? 1 : 0);

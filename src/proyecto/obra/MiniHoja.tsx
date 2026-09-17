@@ -63,11 +63,15 @@ export default function MiniHoja({
     setActivo(b.id);
   }
 
-  function salir(id: string, avanzar: boolean) {
-    const b = bloques.find((x) => x.id === id);
+  // `src` es el texto con el que el bloque SALE, y lo dice quien sale: al
+  // cancelar con Escape, el editor restaura el texto que había al entrar y esa
+  // restauración todavía no llegó a `bloques`. Leyéndolo de aquí, un bloque que
+  // se vació y se canceló se borraba **con su contenido**: el `onCambiar` de la
+  // restauración y este partían del mismo array y el segundo pisaba al primero.
+  function salir(id: string, avanzar: boolean, src: string) {
     // Un bloque que queda vacío al salir se descarta, igual que en el canvas:
     // no es un hueco, es algo que se empezó a escribir y no se escribió.
-    if (b && b.src.trim() === '') {
+    if (src.trim() === '') {
       onCambiar(bloques.filter((x) => x.id !== id));
       setActivo(null);
       return;
@@ -92,7 +96,7 @@ export default function MiniHoja({
             sugerencias={activo === b.id ? sugerencias : undefined}
             onCambiar={(src) => cambiarUno(b.id, src)}
             onActivar={() => setActivo(b.id)}
-            onSalir={(avanzar) => salir(b.id, avanzar)}
+            onSalir={(avanzar, src) => salir(b.id, avanzar, src)}
             onBorrar={() => borrarUno(b.id)}
           />
         ))}
