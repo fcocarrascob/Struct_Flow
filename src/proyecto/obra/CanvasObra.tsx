@@ -18,6 +18,7 @@ import Enlace from '../../components/Enlace';
 import MathCanvas from '../../components/canvas/MathCanvas';
 import type { Region } from '../../lib/worksheet';
 import type { MetaPlanilla } from '../../lib/biblioteca/contrato';
+import type { ResultadoGuardado } from '../../components/canvas/useHojaPersistida';
 import { origenDeNodo } from './origen-nodo';
 import VistaHoja from './VistaHoja';
 import type { NodoGrafo, Severidad } from '../contrato';
@@ -123,6 +124,37 @@ function idsDeLaObra(obra: Obra): Set<string> {
     for (const s of c.subcargas) for (const r of s.hoja) vistos.add(r.id);
   }
   return vistos;
+}
+
+/**
+ * La hoja de un nodo sin ids que choquen con los de los DEMÁS nodos.
+ *
+ * El saneo del almacén (`almacen.ts`) impone esa unicidad al leer, y `desprender`
+ * al traer una genérica, pero «Importar» y «Pegar JSON» dentro de una pestaña no
+ * pasan por ninguno de los dos: el canvas no conoce la obra. Y las planillas
+ * publicadas numeran sus regiones `r000, r001, …`, así que dos pestañas con dos
+ * planillas cualesquiera chocaban desde el primer bloque. Como el id es la clave
+ * de `results` en la hoja global y la `key` de React, el panel de un nodo pasaba
+ * a pintar los bloques del otro, con su valor y todo.
+ *
+ * El id nuevo es **derivado, no aleatorio**: esta función corre en cada
+ * autoguardado y el canvas de la pestaña conserva los suyos, así que uno sorteado
+ * daría un id distinto cada 300 ms y el documento no pararía de moverse.
+ */
+function sinChocarConLaObra(hoja: Region[], obra: Obra, idNodo: string): Region[] {
+  const ajenos = new Set<string>();
+  for (const k of obra.calculos) {
+    if (idNodoDeCalculo(k.id) === idNodo) continue;
+    for (const r of k.hoja) ajenos.add(r.id);
+  }
+  for (const c of obra.cargas) {
+    for (const s of c.subcargas) {
+      if (idNodoDeSubcarga(s.id) === idNodo) continue;
+      for (const r of s.hoja) ajenos.add(r.id);
+    }
+  }
+  if (!hoja.some((r) => ajenos.has(r.id))) return hoja;
+  return hoja.map((r) => (ajenos.has(r.id) ? { ...r, id: `${idNodo}·${r.id}` } : r));
 }
 
 function CanvasObra({ id }: { id: string }) {
@@ -404,10 +436,30 @@ function CanvasObra({ id }: { id: string }) {
     [],
   );
 
-  const borrarUnaCarga = useCallback((idCarga: string) => {
-    setObra((o) => (o ? borrarCarga(o, idCarga) : o));
-    setSeleccion((s) => (s === idNodoDeCarga(idCarga) ? ID_NODO_CARGAS : s));
+  /**
+   * Cierra las pestañas de los nodos que acaban de dejar de existir.
+   *
+   * Va pegado al borrado, no al render: una pestaña sobre un nodo borrado se
+   * queda rotulada «(sin nombre)», abre un canvas vacío y se traga todo lo que se
+   * escriba en ella. El borrado de un cálculo lo hacía a medias —filtraba la
+   * lista y dejaba `activa` apuntando al hueco—, y el de una partida o el de una
+   * carga entera, con todas sus partidas dentro, no lo hacía en absoluto.
+   */
+  const cerrarPestanasDe = useCallback((idsNodo: readonly string[]) => {
+    const fuera = new Set(idsNodo);
+    setPestanas((p) => p.filter((x) => !fuera.has(x)));
+    setActiva((a) => (a !== null && fuera.has(a) ? null : a));
   }, []);
+
+  const borrarUnaCarga = useCallback(
+    (idCarga: string) => {
+      const carga = obraRef.current?.cargas.find((c) => c.id === idCarga);
+      cerrarPestanasDe((carga?.subcargas ?? []).map((s) => idNodoDeSubcarga(s.id)));
+      setObra((o) => (o ? borrarCarga(o, idCarga) : o));
+      setSeleccion((s) => (s === idNodoDeCarga(idCarga) ? ID_NODO_CARGAS : s));
+    },
+    [cerrarPestanasDe],
+  );
 
   // ── El desglose de una carga ───────────────────────────────────────────────
   // Todas las escrituras del desglose pasan por `conSubcargas`, que reemplaza la
@@ -438,19 +490,23 @@ function CanvasObra({ id }: { id: string }) {
     [],
   );
 
-  const borrarPartida = useCallback((idSub: string) => {
-    const actual = obraRef.current;
-    const carga = actual && cargaDeSubcarga(actual, idSub);
-    if (!actual || !carga) return;
-    setObra(
-      conSubcargas(
-        actual,
-        carga.id,
-        carga.subcargas.filter((s) => s.id !== idSub),
-      ),
-    );
-    setSeleccion(idNodoDeCarga(carga.id));
-  }, []);
+  const borrarPartida = useCallback(
+    (idSub: string) => {
+      const actual = obraRef.current;
+      const carga = actual && cargaDeSubcarga(actual, idSub);
+      if (!actual || !carga) return;
+      cerrarPestanasDe([idNodoDeSubcarga(idSub)]);
+      setObra(
+        conSubcargas(
+          actual,
+          carga.id,
+          carga.subcargas.filter((s) => s.id !== idSub),
+        ),
+      );
+      setSeleccion(idNodoDeCarga(carga.id));
+    },
+    [cerrarPestanasDe],
+  );
 
   // ── Importar una genérica ──────────────────────────────────────────────────
   // El sello se toma del MÓDULO ya cargado y no del índice: `cargarGenerica`
@@ -480,11 +536,14 @@ function CanvasObra({ id }: { id: string }) {
     [],
   );
 
-  const borrarUnCalculo = useCallback((idCalculo: string) => {
-    setObra((o) => (o ? borrarCalculo(o, idCalculo) : o));
-    setSeleccion(null);
-    setPestanas((p) => p.filter((x) => x !== idNodoDeCalculo(idCalculo)));
-  }, []);
+  const borrarUnCalculo = useCallback(
+    (idCalculo: string) => {
+      cerrarPestanasDe([idNodoDeCalculo(idCalculo)]);
+      setObra((o) => (o ? borrarCalculo(o, idCalculo) : o));
+      setSeleccion(null);
+    },
+    [cerrarPestanasDe],
+  );
 
   // ── Las pestañas ───────────────────────────────────────────────────────────
   //
@@ -529,17 +588,38 @@ function CanvasObra({ id }: { id: string }) {
     [],
   );
 
+  /**
+   * Escribe la hoja de un nodo, y dice si el nodo la aceptó.
+   *
+   * Devuelve un resultado y no `void` porque una pestaña podía quedarse abierta
+   * sobre un nodo ya borrado: `cambiarPartida` no encontraba su carga, devolvía
+   * la obra intacta, y el usuario escribía en el vacío sin una sola señal. Ahora
+   * el canvas de la pestaña recibe el fallo por el mismo camino que cualquier
+   * otro —la banda de aviso del hook— en vez de no recibir nada.
+   */
   const escribirHojaDeNodo = useCallback(
-    (idNodo: string, hoja: Region[], meta: MetaPlanilla | null) => {
+    (idNodo: string, hoja: Region[], meta: MetaPlanilla | null): ResultadoGuardado => {
+      const actual = obraRef.current;
+      if (!actual || !nodoDelDocumento(actual, idNodo)) {
+        return {
+          ok: false,
+          motivo:
+            'El nodo de esta pestaña ya no está en la obra. Lo que escribas acá no se guarda: ' +
+            'ciérrala, o llévate la hoja con «Exportar».',
+        };
+      }
       const conHoja = <T extends { hoja: Region[]; meta?: MetaPlanilla }>(n: T): T => ({
         ...n,
-        hoja,
+        hoja: sinChocarConLaObra(hoja, actual, idNodo),
         ...(meta ? { meta } : {}),
       });
       const idK = calculoDeNodo(idNodo);
-      if (idK) return cambiarUnCalculo(idK, conHoja);
-      const idS = subcargaDeNodo(idNodo);
-      if (idS) cambiarPartida(idS, conHoja);
+      if (idK) cambiarUnCalculo(idK, conHoja);
+      else {
+        const idS = subcargaDeNodo(idNodo);
+        if (idS) cambiarPartida(idS, conHoja);
+      }
+      return { ok: true };
     },
     [cambiarUnCalculo, cambiarPartida],
   );
@@ -795,6 +875,27 @@ function CanvasObra({ id }: { id: string }) {
             })}
           </div>
         )}
+
+        {/* El aviso de guardado va en la CABECERA, que es lo único que se ve
+            desde las tres vistas. Flotando sobre el lienzo del grafo —donde
+            estaba— quedaba dentro del contenedor que lleva `hidden` mientras hay
+            una pestaña abierta: existía en el DOM, nadie lo veía, y se podía
+            escribir una sesión entera en la hoja de un nodo con el
+            almacenamiento lleno sin una sola señal.
+
+            Acá sí empuja, y es lo correcto: no es el acuse efímero del canvas
+            —que se retira solo y haría saltar el papel dos veces—, sino un fallo
+            que se queda hasta que un guardado vuelva a funcionar. */}
+        {avisoGuardado && (
+          // `role="status"`: un aviso que sale solo y dice que lo que escribes
+          // no se está guardando tiene que llegar también a quien no lo ve.
+          <p
+            role="status"
+            className="mt-1 rounded border border-aviso bg-white px-3 py-1.5 text-[11px] leading-snug text-aviso"
+          >
+            No se pudo guardar la obra. {avisoGuardado}
+          </p>
+        )}
       </header>
 
       {activa && deLaBiblioteca && (
@@ -830,22 +931,6 @@ function CanvasObra({ id }: { id: string }) {
 
       <div className={`min-h-0 flex-1 ${activa ? 'hidden' : 'flex'}`}>
         <div className="relative min-w-0 flex-1">
-          {/* Los avisos flotan sobre el lienzo y no empujan la fila: como hermanos
-              del visor le robarían alto, y el canvas daría un salto al aparecer. */}
-          {avisoGuardado && (
-            <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-center p-2">
-              {/* `role="status"`: un aviso que sale solo y dice que lo que
-                  escribes no se está guardando tiene que llegar también a quien
-                  no lo ve. */}
-              <p
-                role="status"
-                className="pointer-events-auto max-w-md rounded border border-aviso bg-white px-3 py-2 text-[11px] leading-snug text-aviso shadow-sm"
-              >
-                No se pudo guardar la obra. {avisoGuardado}
-              </p>
-            </div>
-          )}
-
           {proyeccion.nodos.length === 0 && (
             <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
               <p className="max-w-sm text-center text-sm leading-relaxed text-muted">

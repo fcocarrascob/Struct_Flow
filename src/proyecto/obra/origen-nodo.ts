@@ -12,11 +12,15 @@
 //     persiste con su propio debounce, su guardado al desmontar y su `pagehide`
 //     (`CanvasObra.tsx`). Registrar los mismos eventos otra vez sería guardar la
 //     obra dos veces por el mismo motivo.
-//   - No falla por cuota. Si `localStorage` se llena, lo dice `guardarObra` y lo
-//     pinta la banda de la obra, que es donde vive esa decisión.
+//   - No decide sobre la cuota. Si `localStorage` se llena lo dice `guardarObra`,
+//     y la banda de la obra —que vive en la cabecera, visible desde cualquier
+//     pestaña— es donde esa decisión se pinta. Pero sí PROPAGA el resultado:
+//     devolver `{ ok: true }` pasara lo que pasara dejaba al canvas de la
+//     pestaña sin nada que avisar, y con el nodo ya borrado se podía escribir en
+//     el vacío sin una sola señal.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type { OrigenHoja } from '../../components/canvas/useHojaPersistida';
+import type { OrigenHoja, ResultadoGuardado } from '../../components/canvas/useHojaPersistida';
 import type { Region } from '../../lib/worksheet';
 import type { MetaPlanilla } from '../../lib/biblioteca/contrato';
 
@@ -33,18 +37,18 @@ export interface HojaDelNodo {
  * y para entonces el documento puede haber cambiado respecto del render en que se
  * construyó este origen.
  *
- * `escribir` recibe las regiones ya filtradas. Tiene que usar la forma con
- * actualizador de `setObra` —y por eso el que llama le pasa un escritor que lo
- * haga—: el hook guarda al desmontar desde un efecto con dependencias vacías, y
- * partir de una copia vieja de la obra resucitaría lo que se hubiera borrado en
- * el resto de los nodos.
+ * `escribir` recibe las regiones ya filtradas y devuelve si el nodo las aceptó.
+ * Tiene que usar la forma con actualizador de `setObra` —y por eso el que llama
+ * le pasa un escritor que lo haga—: el hook guarda al desmontar desde un efecto
+ * con dependencias vacías, y partir de una copia vieja de la obra resucitaría lo
+ * que se hubiera borrado en el resto de los nodos.
  */
 export function origenDeNodo({
   leer,
   escribir,
 }: {
   leer: () => HojaDelNodo | null;
-  escribir: (hoja: Region[], meta: MetaPlanilla | null) => void;
+  escribir: (hoja: Region[], meta: MetaPlanilla | null) => ResultadoGuardado;
 }): OrigenHoja {
   return {
     cargar() {
@@ -52,8 +56,7 @@ export function origenDeNodo({
       return { regions: n?.hoja ?? [], meta: n?.meta ?? null };
     },
     guardar({ persistables, meta }) {
-      escribir(persistables, meta);
-      return { ok: true };
+      return escribir(persistables, meta);
     },
   };
 }
