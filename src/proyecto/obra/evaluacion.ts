@@ -166,6 +166,12 @@ export function evaluarObra(obra: Obra): EvaluacionObra {
     const mios = new Set(define.get(h.idNodo) ?? []);
     const usa = new Set<string>();
     for (const b of h.bloques) {
+      // Solo las fórmulas, igual que `definicionesDe`. Un bloque de texto es
+      // prosa: escribir «el área de planta se midió en terreno» con `area`
+      // definida en otro nodo dibujaba una flecha que no existe y, si la otra
+      // dirección ya estaba, fabricaba un ciclo — dos nodos en rojo diciendo
+      // que se citan en círculo, por una palabra de un párrafo.
+      if (b.tipo !== 'math') continue;
       for (const id of identificadoresDe(b.src)) {
         const d = duenio.get(id);
         if (d && d !== h.idNodo && !mios.has(id)) usa.add(id);

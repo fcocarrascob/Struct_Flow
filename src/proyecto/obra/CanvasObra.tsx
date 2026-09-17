@@ -202,6 +202,7 @@ function CanvasObra({ id }: { id: string }) {
         position: antes.get(n.id) ?? guardado[n.id] ?? auto[n.id] ?? { x: 0, y: 0 },
         data: n as unknown as Record<string, unknown>,
         selected: n.id === seleccionRef.current,
+        deletable: false,
       }));
     });
   }, [proyeccion, claveLayout]);
@@ -490,6 +491,18 @@ function CanvasObra({ id }: { id: string }) {
             onNodesChange={alCambiarNodos}
             onNodeClick={(_, n) => setSeleccion(n.id)}
             onPaneClick={() => setSeleccion(null)}
+            // Un nodo es la PROYECCIÓN del documento, no un objeto del lienzo.
+            // Con los valores por omisión de React Flow, Backspace emitía un
+            // cambio `remove` que `applyNodeChanges` aplicaba al array: el nodo
+            // desaparecía, la carga seguía existiendo, y reaparecía al
+            // siguiente cambio del documento. Se borra desde el panel, que es
+            // donde está la confirmación. (El `deletable: false` de cada nodo
+            // cierra las demás vías; esto cierra la tecla.)
+            deleteKeyCode={null}
+            // Y las flechas se derivan de los nombres que viajan (`proyeccion.ts`):
+            // arrastrar una a mano dibujaría una relación que nadie guarda y que
+            // el siguiente render se lleva.
+            nodesConnectable={false}
             minZoom={0.05}
             proOptions={{ hideAttribution: false }}
           >

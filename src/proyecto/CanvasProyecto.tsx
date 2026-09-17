@@ -112,6 +112,7 @@ export default function CanvasProyecto({ slug }: { slug: string }) {
         position: guardado[n.id] ?? auto[n.id] ?? { x: 0, y: 0 },
         data: n as unknown as Record<string, unknown>,
         selected: n.id === seleccion,
+        deletable: false,
       })),
     );
     // `seleccion` se omite a propósito: marcarla no tiene que recolocar nada.
@@ -283,6 +284,14 @@ export default function CanvasProyecto({ slug }: { slug: string }) {
             onNodesChange={alCambiarNodos}
             onNodeClick={(_, n) => setSeleccion(n.id)}
             onPaneClick={() => setSeleccion(null)}
+            // Este canvas es un VISOR: lo que se dibuja sale de los archivos del
+            // proyecto y del otro lado sólo hay GET. Con los valores por omisión
+            // de React Flow, Backspace «borraba» del lienzo un nodo que es una
+            // proyección inmutable, y el Handle dejaba arrastrar una arista que
+            // el harness nunca dijo. (El `deletable: false` de cada nodo cierra
+            // las demás vías; esto cierra la tecla.)
+            deleteKeyCode={null}
+            nodesConnectable={false}
             fitView
             minZoom={0.05}
             proOptions={{ hideAttribution: false }}
