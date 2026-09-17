@@ -121,7 +121,7 @@ export default function FichaGenerica({
   estado,
   importada,
   scopeObra,
-  onEntradas,
+  onEntrada,
   onFormula,
   onSalida,
   onResellar,
@@ -131,7 +131,15 @@ export default function FichaGenerica({
   importada: Importada;
   /** El scope compartido de la obra: lo que pueden nombrar los campos atados. */
   scopeObra: Record<string, unknown>;
-  onEntradas: (entradas: Entradas) => void;
+  /**
+   * Un campo, no el juego entero. Los valores que pinta el formulario son los
+   * **efectivos** —los de la genérica, pisados por los guardados y por lo que
+   * resolvió cada campo atado—, así que devolverlos todos congelaba en el
+   * documento las omisiones de la genérica y el valor que en ese instante daba
+   * una fórmula. Con eso, desatar un campo ya no devolvía «el número que había»,
+   * que es lo que promete `modelo.ts`, sino el último calculado.
+   */
+  onEntrada: (nombre: string, valor: number) => void;
   onFormula: (campo: string, expr: string | undefined) => void;
   /** Solo en una partida de carga: cuál salida es su valor. */
   onSalida?: (nombre: string) => void;
@@ -251,7 +259,7 @@ export default function FichaGenerica({
               valores={valores}
               formulas={importada.formulas ?? {}}
               resueltos={resueltos}
-              onValor={(nombre, valor) => onEntradas({ ...valores, [nombre]: valor })}
+              onValor={onEntrada}
               onFormula={onFormula}
             />
           </>

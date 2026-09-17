@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import type { Region, SheetResults } from '../../lib/worksheet';
-import type { Entradas } from '../../lib/diseno/tipos';
 import type { EstadoGenerica } from './biblioteca';
 import FichaGenerica from './FichaGenerica';
 import MiniHoja from './MiniHoja';
@@ -30,7 +29,7 @@ export default function PanelCalculo({
   onNombre,
   onBloques,
   onImportar,
-  onEntradas,
+  onEntrada,
   onFormula,
   onResellar,
   onQuitarPlanilla,
@@ -50,7 +49,7 @@ export default function PanelCalculo({
   onNombre: (nombre: string) => void;
   onBloques: (bloques: Bloque[]) => void;
   onImportar: (slug: string) => void;
-  onEntradas: (entradas: Entradas) => void;
+  onEntrada: (nombre: string, valor: number) => void;
   onFormula: (campo: string, expr: string | undefined) => void;
   onResellar: (sha256: string) => void;
   onQuitarPlanilla: () => void;
@@ -103,7 +102,7 @@ export default function PanelCalculo({
             estado={estado}
             importada={calculo.importada}
             scopeObra={scopeObra}
-            onEntradas={onEntradas}
+            onEntrada={onEntrada}
             onFormula={onFormula}
             onResellar={onResellar}
             onQuitar={onQuitarPlanilla}

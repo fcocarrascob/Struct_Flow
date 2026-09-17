@@ -18,7 +18,6 @@ import Enlace from '../../components/Enlace';
 import type { NodoGrafo, Severidad } from '../contrato';
 import { colocar, guardarLayout, layoutGuardado, olvidarLayout, type Posicion } from '../layout';
 import { guardarObra, leerObra } from './almacen';
-import type { Entradas } from '../../lib/diseno/tipos';
 import { cargarGenerica, type Genericas } from './biblioteca';
 import { evaluarObra, problemaDeGrafo } from './evaluacion';
 import { variablesDePartida } from './calculo';
@@ -553,6 +552,13 @@ function CanvasObra({ id }: { id: string }) {
 
         {partida && cargaDeLaPartida && (
           <PanelSubcarga
+            // Por `key`, y no es cosmética: el panel tiene estado propio —la
+            // pestaña abierta, el selector de biblioteca, los borradores del
+            // formulario— y sin ella React reconcilia la misma instancia al
+            // saltar de un nodo a otro. Un número a medio teclear en la partida
+            // A quedaba en el campo homónimo de B y se escribía allí al perder
+            // el foco.
+            key={partida.id}
             carga={cargaDeLaPartida}
             subcarga={partida}
             evaluacion={
@@ -576,9 +582,17 @@ function CanvasObra({ id }: { id: string }) {
             onImportar={(slug) =>
               importar(slug, (imp) => cambiarPartida(partida.id, (s) => ({ ...s, importada: imp })))
             }
-            onEntradas={(entradas: Entradas) =>
+            onEntrada={(nombre, valor) =>
               cambiarPartida(partida.id, (s) =>
-                s.importada ? { ...s, importada: { ...s.importada, entradas } } : s,
+                s.importada
+                  ? {
+                      ...s,
+                      importada: {
+                        ...s.importada,
+                        entradas: { ...s.importada.entradas, [nombre]: valor },
+                      },
+                    }
+                  : s,
               )
             }
             onFormula={(campo, expr) =>
@@ -607,6 +621,7 @@ function CanvasObra({ id }: { id: string }) {
 
         {calculo && (
           <PanelCalculo
+            key={calculo.id}
             calculo={calculo}
             estado={calculo.importada ? genericas[calculo.importada.slug] : undefined}
             define={evaluacion.define.get(idNodoDeCalculo(calculo.id)) ?? []}
@@ -632,9 +647,17 @@ function CanvasObra({ id }: { id: string }) {
                 })),
               )
             }
-            onEntradas={(entradas: Entradas) =>
+            onEntrada={(nombre, valor) =>
               cambiarUnCalculo(calculo.id, (k) =>
-                k.importada ? { ...k, importada: { ...k.importada, entradas } } : k,
+                k.importada
+                  ? {
+                      ...k,
+                      importada: {
+                        ...k.importada,
+                        entradas: { ...k.importada.entradas, [nombre]: valor },
+                      },
+                    }
+                  : k,
               )
             }
             onFormula={(campo, expr) =>

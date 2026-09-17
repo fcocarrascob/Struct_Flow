@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import type { Region, SheetResults } from '../../lib/worksheet';
-import type { Entradas } from '../../lib/diseno/tipos';
 import type { EstadoGenerica } from './biblioteca';
 import FichaGenerica from './FichaGenerica';
 import MiniHoja from './MiniHoja';
@@ -32,7 +31,7 @@ export default function PanelSubcarga({
   onVariable,
   onBloques,
   onImportar,
-  onEntradas,
+  onEntrada,
   onFormula,
   onSalida,
   onResellar,
@@ -58,7 +57,7 @@ export default function PanelSubcarga({
   onVariable: (nombre: string) => void;
   onBloques: (bloques: Bloque[]) => void;
   onImportar: (slug: string) => void;
-  onEntradas: (entradas: Entradas) => void;
+  onEntrada: (nombre: string, valor: number) => void;
   onFormula: (campo: string, expr: string | undefined) => void;
   onSalida: (nombre: string) => void;
   onResellar: (sha256: string) => void;
@@ -157,7 +156,7 @@ export default function PanelSubcarga({
             estado={estado}
             importada={importada}
             scopeObra={scopeObra}
-            onEntradas={onEntradas}
+            onEntrada={onEntrada}
             onFormula={onFormula}
             onSalida={onSalida}
             onResellar={onResellar}
