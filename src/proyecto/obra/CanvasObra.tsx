@@ -17,7 +17,8 @@ import '@xyflow/react/dist/style.css';
 import Enlace from '../../components/Enlace';
 import type { NodoGrafo, Severidad } from '../contrato';
 import { colocar, guardarLayout, layoutGuardado, olvidarLayout, type Posicion } from '../layout';
-import { guardarObra, leerObra } from './almacen';
+import { archivoDeObra, guardarObra, leerObra, nombreDeArchivo } from './almacen';
+import { descargarHoja } from '../../lib/canvas-handoff';
 import { cargarGenerica, type Genericas } from './biblioteca';
 import { evaluarObra, problemaDeGrafo } from './evaluacion';
 import { variablesDePartida } from './calculo';
@@ -504,6 +505,16 @@ function CanvasObra({ id }: { id: string }) {
             className="ml-auto rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent disabled:opacity-40"
           >
             reordenar
+          </button>
+          {/* La obra vive en este navegador y en ningún otro sitio: el archivo
+              es la única forma de respaldarla o de llevarla a otro equipo. */}
+          <button
+            type="button"
+            onClick={() => descargarHoja(archivoDeObra(obra), nombreDeArchivo(obra))}
+            title="Descargar la obra como archivo"
+            className="rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent"
+          >
+            exportar
           </button>
         </div>
       </header>

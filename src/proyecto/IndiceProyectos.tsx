@@ -1,8 +1,16 @@
 import { useEffect, useState } from 'react';
 import { listarProyectos } from './api';
 import type { ProyectoListado } from './contrato';
-import { borrarObra, guardarObra, listarObras } from './obra/almacen';
+import {
+  archivoDeObra,
+  borrarObra,
+  guardarObra,
+  importarObra,
+  listarObras,
+  nombreDeArchivo,
+} from './obra/almacen';
 import { olvidarLayout } from './layout';
+import { descargarHoja } from '../lib/canvas-handoff';
 import { nuevaObra, NOMBRE_OBRA_POR_OMISION, type Obra } from './obra/modelo';
 import Enlace from '../components/Enlace';
 import { navegar } from '../lib/ruta';
@@ -22,7 +30,15 @@ import { navegar } from '../lib/ruta';
  * contrario de «no pude preguntar»: por eso el error se dice, no se calla.
  */
 
-function FichaObra({ obra, onBorrar }: { obra: Obra; onBorrar: (id: string) => void }) {
+function FichaObra({
+  obra,
+  onBorrar,
+  onExportar,
+}: {
+  obra: Obra;
+  onBorrar: (id: string) => void;
+  onExportar: (obra: Obra) => void;
+}) {
   const [confirmando, setConfirmando] = useState(false);
 
   // El «¿borrar?» se retira solo: un botón armado desde hace rato se pulsa por
@@ -47,18 +63,30 @@ function FichaObra({ obra, onBorrar }: { obra: Obra; onBorrar: (id: string) => v
         </p>
         <p className="mt-2 truncate font-mono text-[10px] text-muted">{obra.id}</p>
       </Enlace>
-      <button
-        type="button"
-        onClick={() => (confirmando ? onBorrar(obra.id) : setConfirmando(true))}
-        title={confirmando ? 'Confirmar el borrado' : `Borrar ${obra.nombre}`}
-        className={`absolute right-3 top-3 rounded border px-1.5 py-0.5 text-[10px] ${
-          confirmando
-            ? 'border-error bg-error text-white'
-            : 'border-border text-muted opacity-0 hover:border-error hover:text-error focus:opacity-100 group-hover:opacity-100'
-        }`}
-      >
-        {confirmando ? '¿borrar?' : '×'}
-      </button>
+      <div className="absolute right-3 top-3 flex items-center gap-1">
+        {/* Una obra vive en este navegador y en ningún otro sitio: el archivo es
+            la única forma de respaldarla o de llevarla a otro equipo. */}
+        <button
+          type="button"
+          onClick={() => onExportar(obra)}
+          title={`Descargar ${obra.nombre} como archivo`}
+          className="rounded border border-border px-1.5 py-0.5 text-[10px] text-muted opacity-0 hover:border-accent hover:text-accent focus:opacity-100 group-hover:opacity-100"
+        >
+          ↓
+        </button>
+        <button
+          type="button"
+          onClick={() => (confirmando ? onBorrar(obra.id) : setConfirmando(true))}
+          title={confirmando ? 'Confirmar el borrado' : `Borrar ${obra.nombre}`}
+          className={`rounded border px-1.5 py-0.5 text-[10px] ${
+            confirmando
+              ? 'border-error bg-error text-white'
+              : 'border-border text-muted opacity-0 hover:border-error hover:text-error focus:opacity-100 group-hover:opacity-100'
+          }`}
+        >
+          {confirmando ? '¿borrar?' : '×'}
+        </button>
+      </div>
     </div>
   );
 }
@@ -102,6 +130,37 @@ export default function IndiceProyectos() {
     navegar({ vista: 'obra', id: obra.id });
   }
 
+  function exportarObra(obra: Obra) {
+    descargarHoja(archivoDeObra(obra), nombreDeArchivo(obra));
+  }
+
+  /**
+   * Importar TRAE, nunca pisa: si el id ya está tomado, la obra entra con uno
+   * libre. Dos obras con el mismo nombre en la lista es lo correcto — son la
+   * misma en dos momentos distintos, y quien la trajo sabe cuál acaba de traer.
+   */
+  async function importar(archivo: File | undefined) {
+    if (!archivo) return;
+    let texto: string;
+    try {
+      texto = await archivo.text();
+    } catch {
+      setAvisoObras('No se pudo leer el archivo.');
+      return;
+    }
+    const leida = importarObra(texto);
+    if (!leida.ok) {
+      setAvisoObras(leida.motivo);
+      return;
+    }
+    const r = guardarObra(leida.obra, { crear: true });
+    if (!r.ok) {
+      setAvisoObras(r.motivo);
+      return;
+    }
+    navegar({ vista: 'obra', id: leida.obra.id });
+  }
+
   function quitarObra(id: string) {
     const r = borrarObra(id);
     if (!r.ok) {
@@ -138,13 +197,29 @@ export default function IndiceProyectos() {
           <h2 className="text-sm font-semibold text-ink">
             Obras <span className="font-normal text-muted">de este navegador</span>
           </h2>
-          <button
-            type="button"
-            onClick={crearObra}
-            className="rounded border border-accent bg-accent px-3 py-1 text-xs font-medium text-white hover:opacity-90"
-          >
-            + Nueva obra
-          </button>
+          <div className="flex items-center gap-2">
+            <label className="cursor-pointer rounded border border-border px-2 py-1 text-xs text-muted hover:border-accent hover:text-accent">
+              Importar…
+              <input
+                type="file"
+                accept="application/json,.json"
+                className="hidden"
+                onChange={(e) => {
+                  void importar(e.target.files?.[0]);
+                  // Se limpia para que volver a elegir el mismo archivo dispare
+                  // el cambio: sin esto, un segundo intento no hace nada.
+                  e.target.value = '';
+                }}
+              />
+            </label>
+            <button
+              type="button"
+              onClick={crearObra}
+              className="rounded border border-accent bg-accent px-3 py-1 text-xs font-medium text-white hover:opacity-90"
+            >
+              + Nueva obra
+            </button>
+          </div>
         </div>
 
         {avisoObras && (
@@ -162,7 +237,7 @@ export default function IndiceProyectos() {
           <ul className="grid gap-3 sm:grid-cols-2">
             {obras.map((o) => (
               <li key={o.id}>
-                <FichaObra obra={o} onBorrar={quitarObra} />
+                <FichaObra obra={o} onBorrar={quitarObra} onExportar={exportarObra} />
               </li>
             ))}
           </ul>

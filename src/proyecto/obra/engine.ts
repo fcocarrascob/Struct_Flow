@@ -13,7 +13,7 @@
 // es la misma operación que hace la aplicación después de descargarlo.
 
 export { evaluarObra, nodosDeLaObra, problemaDeGrafo } from './evaluacion';
-export { sanearObra, idDeObra } from './almacen';
+export { sanearObra, idDeObra, archivoDeObra, importarObra } from './almacen';
 export { proyectar } from './proyeccion';
 export { evaluarCarga, variablesDePartida } from './calculo';
 export {

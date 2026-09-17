@@ -307,3 +307,60 @@ export function guardarObra(obra: Obra, { crear = false } = {}): Resultado {
 export function borrarObra(id: string): Resultado {
   return escribirTodo(leerCrudo().filter((o) => idDeObra(o) !== id));
 }
+
+// ── Sacar una obra del navegador, y volver a meterla ─────────────────────────
+//
+// Una obra vive en el `localStorage` de UN navegador: no viaja a otro equipo, no
+// la ve nadie más, y desaparece al borrar los datos del sitio. Mientras el
+// harness no sepa recibirla, el archivo es la única forma de respaldarla, de
+// llevarla a otra máquina y de pasársela a alguien.
+//
+// No es el formato de una hoja del canvas y no se pretende que lo sea: una obra
+// es un grafo de nodos con referencias a la biblioteca, no una lista de
+// regiones. Lleva `tipo` para poder decirlo al leerlo.
+
+export const TIPO_ARCHIVO_OBRA = 'structflow.obra';
+
+export function archivoDeObra(obra: Obra): object {
+  return { version: VERSION_OBRA, tipo: TIPO_ARCHIVO_OBRA, obra };
+}
+
+export function nombreDeArchivo(obra: Obra): string {
+  return `obra-${obra.id}.json`;
+}
+
+export type Importacion = { ok: true; obra: Obra } | { ok: false; motivo: string };
+
+/**
+ * Una obra leída de un archivo, con un id libre.
+ *
+ * El id se renombra si ya está tomado en vez de reemplazar lo que hay: importar
+ * es traer algo, nunca pisar. El nombre se conserva tal cual, así que las dos
+ * se llaman igual en la lista — y eso es correcto, porque son la misma obra en
+ * dos momentos distintos y quien la importó sabe cuál acaba de traer.
+ */
+export function importarObra(texto: string): Importacion {
+  let crudo: unknown;
+  try {
+    crudo = JSON.parse(texto);
+  } catch {
+    return { ok: false, motivo: 'El archivo no es JSON válido.' };
+  }
+  // Se acepta el archivo entero o una obra suelta: quien edite esto a mano no
+  // tiene por qué saberse el envoltorio.
+  const dentro = (crudo as { obra?: unknown } | null)?.obra;
+  const obra = sanearObra(dentro ?? crudo);
+  if (!obra) {
+    return {
+      ok: false,
+      motivo: 'El archivo no tiene una obra dentro: falta el `id`, o no es un archivo de obra.',
+    };
+  }
+  const tomados = new Set(leerCrudo().map((o) => idDeObra(o)));
+  if (tomados.has(obra.id)) {
+    let id = '';
+    for (let i = 2; !id || tomados.has(id); i++) id = `${obra.id}-${i}`;
+    return { ok: true, obra: { ...obra, id } };
+  }
+  return { ok: true, obra };
+}

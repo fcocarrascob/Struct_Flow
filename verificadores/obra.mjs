@@ -38,6 +38,7 @@ const {
   moduloDeBiblioteca,
   problemaDeAlias,
   sanearObra,
+  archivoDeObra,
   idDeObra,
   idNodoDeCalculo,
 } = motor;
@@ -474,6 +475,81 @@ const CASOS_SANEO = [
       cargas: [],
     },
     ok: (o) => (o.calculos[0].bloques.length === 1 ? null : 'no se descartó el bloque sin src'),
+  },
+  {
+    nombre: 'una obra exportada y vuelta a leer es la misma obra',
+    // El archivo es la única forma de sacar una obra de este navegador, así que
+    // la ida y vuelta tiene que ser fiel hasta el último bloque y hasta el
+    // último alias publicado.
+    crudo: {
+      id: 'o',
+      nombre: 'Galpón',
+      creada: '2026-01-01T00:00:00.000Z',
+      modulos: ['cargas'],
+      calculos: [
+        {
+          id: 'k1',
+          nombre: 'Geometría',
+          bloques: [{ id: 'b1', tipo: 'math', src: 'A := 4 m * 3 m' }],
+        },
+        {
+          id: 'k2',
+          nombre: 'Placa',
+          bloques: [],
+          importada: {
+            slug: 'placa-base-generica',
+            sha256: 'a'.repeat(64),
+            entradas: { t_bp: 30 },
+            formulas: { L_bp: 'A / (1 m)' },
+            publica: { T_grupo: 'T_g' },
+          },
+        },
+      ],
+      cargas: [
+        {
+          id: 'c1',
+          nombre: 'D',
+          subcargas: [
+            { id: 's1', nombre: 'Cubierta', variable: 'CM_1', bloques: [{ id: 'b2', tipo: 'math', src: 'CM_1 := 3 tonf' }] },
+          ],
+        },
+      ],
+    },
+    ok: (o) => {
+      // `importarObra` necesita `localStorage` para saber qué ids están
+      // tomados, que en Node no existe; se compara el saneo de la ida y vuelta,
+      // que es lo que de verdad reconstruye la obra.
+      const texto = JSON.stringify(archivoDeObra(o));
+      const vuelta = sanearObra(JSON.parse(texto).obra);
+      return JSON.stringify(vuelta) === JSON.stringify(o)
+        ? null
+        : `la vuelta no coincide:\n          ida:    ${JSON.stringify(o)}\n          vuelta: ${JSON.stringify(vuelta)}`;
+    },
+  },
+  {
+    nombre: 'un alias que no se puede escribir en una fórmula no sobrevive al saneo',
+    crudo: {
+      id: 'o',
+      calculos: [
+        {
+          id: 'k',
+          nombre: 'P',
+          bloques: [],
+          importada: {
+            slug: 'x',
+            sha256: 'b'.repeat(64),
+            entradas: {},
+            publica: { u_max: '2malo', T_grupo: 'T_g', otra: 'min' },
+          },
+        },
+      ],
+      cargas: [],
+    },
+    ok: (o) => {
+      const pub = o.calculos[0].importada.publica;
+      const claves = Object.keys(pub).sort().join(',');
+      return claves === 'T_grupo' ? null : `quedaron: ${claves}`;
+    },
   },
   {
     nombre: 'el id crudo y el saneado se resuelven igual, para poder reescribir esa entrada',
