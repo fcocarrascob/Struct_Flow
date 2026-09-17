@@ -493,10 +493,23 @@ function resultToTex(value: unknown): string {
  * Evalúa todas las regiones matemáticas de la hoja en orden de lectura
  * (y ascendente, luego x) con un scope compartido, y devuelve el LaTeX y
  * el resultado o error de cada una.
+ *
+ * `scopeInicial` son variables que la hoja ve ya definidas, como si estuvieran
+ * escritas encima de la primera región. Lo usa el canvas de una obra
+ * (`src/proyecto/obra/evaluacion.ts`) para encadenar cálculos: lo que publica
+ * una planilla entra así en los nodos de aguas abajo, con su objeto `Unit`
+ * intacto — serializarlo a texto y volver a parsearlo perdería cifras.
+ *
+ * Se COPIA, no se usa el objeto de quien llama: el canvas lo va acumulando
+ * tramo a tramo, y escribir dentro filtraría las variables de un nodo a los de
+ * aguas arriba, con lo que el orden de lectura dejaría de significar nada.
  */
-export function evaluateSheet(regions: Region[]): SheetResults {
+export function evaluateSheet(
+  regions: Region[],
+  scopeInicial: Record<string, unknown> = {},
+): SheetResults {
   const results: SheetResults = {};
-  const scope: Record<string, unknown> = {};
+  const scope: Record<string, unknown> = { ...scopeInicial };
 
   // `text` no se evalúa: no aporta ni consume variables. `image` tampoco evalúa,
   // pero participa del orden de lectura: captura el scope visible en su posición

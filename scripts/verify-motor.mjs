@@ -210,6 +210,46 @@ const CASOS = [
     hoja: hoja(m('m := 2'), m('L := 450 cm = m')),
     ok: todas(esperaValor('r1', '4.5 m'), sinAviso('r1')),
   },
+
+  // --- Scope inicial --------------------------------------------------------
+  //
+  // Una hoja puede empezar con variables ya definidas. Lo usa el canvas de una
+  // obra (`src/proyecto/obra/evaluacion.ts`) para encadenar cálculos: lo que
+  // publica una planilla entra como scope inicial de los nodos de aguas abajo,
+  // y tiene que llegar como el `Unit` que es, no como un número serializado.
+  {
+    nombre: 'una variable del scope inicial se usa como cualquier otra, con sus unidades',
+    hoja: hoja(m('x := T_grupo*2 = kN')),
+    scope: () => scopeDe(m('T_grupo := 120 kN')),
+    ok: esperaValor('r0', '240 kN'),
+  },
+  {
+    nombre: 'la hoja manda: una definición propia pisa la del scope inicial',
+    hoja: hoja(m('a := 7'), m('b := a =')),
+    scope: () => scopeDe(m('a := 5')),
+    ok: esperaValor('r1', '7'),
+  },
+  {
+    nombre: 'una variable del scope inicial que tapa una unidad también avisa',
+    hoja: hoja(m('v := 3 m/s =')),
+    scope: () => scopeDe(m('s := 20 cm')),
+    ok: esperaAviso('r0', /«s»/),
+  },
+  // El objeto que recibe el motor es de quien lo llama, y el canvas de una obra
+  // lo va acumulando tramo a tramo: si `evaluateSheet` escribiera dentro, las
+  // variables de un nodo se filtrarían a los de aguas arriba y el orden de
+  // lectura dejaría de significar nada.
+  (() => {
+    const inicial = scopeDe(m('a := 5'));
+    return {
+      nombre: 'el scope inicial no se muta: la hoja no escribe en el del llamador',
+      hoja: hoja(m('a := 7'), m('nuevo := 1')),
+      scope: () => inicial,
+      ok: () =>
+        ('nuevo' in inicial ? 'la hoja definió una variable en el scope del llamador' : null) ??
+        (String(inicial.a) !== '5' ? `la hoja pisó «a» del llamador: ${inicial.a}` : null),
+    };
+  })(),
 ];
 
 // --- Esquema paramétrico: `data-repetir` ------------------------------------
@@ -388,7 +428,7 @@ for (const caso of CASOS) {
   const t0 = performance.now();
   let motivo;
   try {
-    const r = evaluateSheet(caso.hoja);
+    const r = evaluateSheet(caso.hoja, caso.scope?.());
     motivo = caso.ok(r);
     if (!motivo) {
       for (const [id, res] of Object.entries(r)) {
