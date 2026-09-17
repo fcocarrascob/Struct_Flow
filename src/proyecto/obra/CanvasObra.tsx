@@ -19,6 +19,7 @@ import MathCanvas from '../../components/canvas/MathCanvas';
 import type { Region } from '../../lib/worksheet';
 import type { MetaPlanilla } from '../../lib/biblioteca/contrato';
 import type { ResultadoGuardado } from '../../components/canvas/useHojaPersistida';
+import { useHistorial } from '../../components/canvas/useHistorial';
 import { origenDeNodo } from './origen-nodo';
 import VistaHoja from './VistaHoja';
 import type { NodoGrafo, Severidad } from '../contrato';
@@ -155,6 +156,38 @@ function sinChocarConLaObra(hoja: Region[], obra: Obra, idNodo: string): Region[
   }
   if (!hoja.some((r) => ajenos.has(r.id))) return hoja;
   return hoja.map((r) => (ajenos.has(r.id) ? { ...r, id: `${idNodo}·${r.id}` } : r));
+}
+
+/** ¿Ese nodo del grafo sigue existiendo en el documento? */
+function existeNodo(obra: Obra | null, idNodo: string): boolean {
+  if (!obra) return false;
+  if (idNodo === ID_NODO_CARGAS) return true;
+  const idCarga = cargaDeNodo(idNodo);
+  if (idCarga) return obra.cargas.some((c) => c.id === idCarga);
+  return nodoDelDocumento(obra, idNodo) !== undefined;
+}
+
+/**
+ * Cuántas piezas tiene la obra: los nodos del grafo y los bloques de sus hojas.
+ *
+ * Es lo que le dice al historial que un cambio fue una PÉRDIDA y tiene que
+ * registrarse en el acto, sin esperar los 400 ms de pausa. Sin esto, «quitar
+ * este nodo» y pulsar Ctrl+Z enseguida —que es lo que uno hace— encontraba el
+ * historial vacío, y el autoguardado de la obra (300 ms) ya había consolidado la
+ * pérdida.
+ *
+ * Cuenta también los bloques porque borrar el único bloque de una partida no
+ * cambia el número de nodos y se lleva el cálculo igual.
+ */
+function piezasDeLaObra(obra: Obra | null): number {
+  if (!obra) return 0;
+  let n = obra.modulos.length + obra.cargas.length + obra.calculos.length;
+  for (const k of obra.calculos) n += k.hoja.length;
+  for (const c of obra.cargas) {
+    n += c.subcargas.length;
+    for (const sub of c.subcargas) n += sub.hoja.length;
+  }
+  return n;
 }
 
 function CanvasObra({ id }: { id: string }) {
@@ -451,6 +484,72 @@ function CanvasObra({ id }: { id: string }) {
     setActiva((a) => (a !== null && fuera.has(a) ? null : a));
   }, []);
 
+  /**
+   * Deshacer y rehacer para la obra, con el mismo hook que la hoja.
+   *
+   * La obra no tenía ninguna red: «quitar este nodo» se llevaba la hoja entera de
+   * un cálculo en un clic, sin diálogo y sin retorno, y 300 ms después el
+   * autoguardado lo consolidaba. Y cada operación destructiva se inventaba su
+   * propia protección —borrar una carga confirma en dos tiempos, borrar un
+   * cálculo no confirmaba nada, quitar una planilla tampoco—: cinco políticas
+   * para el mismo problema.
+   *
+   * Observa `obra` entera, así que cubre los más de veinte sitios que la
+   * escriben sin que ninguno tenga que acordarse de registrarse.
+   */
+  const historial = useHistorial(obra, setObra, {
+    esPerdida: (nueva, asentada) => piezasDeLaObra(nueva) < piezasDeLaObra(asentada),
+    // El paso restaurado puede no tener el nodo que estaba seleccionado ni el que
+    // alguna pestaña estaba editando. La selección se conserva si sobrevive
+    // —perderla en cada Ctrl+Z obliga a volver a buscar el nodo—, y las pestañas
+    // huérfanas se cierran por el mismo camino que un borrado.
+    alRestaurar: (restaurada) => {
+      setSeleccion((s) => (s !== null && existeNodo(restaurada, s) ? s : null));
+      setPestanas((p) => p.filter((idNodo) => existeNodo(restaurada, idNodo)));
+      setActiva((a) => (a !== null && existeNodo(restaurada, a) ? a : null));
+    },
+  });
+
+  /**
+   * Ctrl+Z y Ctrl+Y, SOLO en el grafo.
+   *
+   * Con una pestaña de cálculo abierta el atajo es del `MathCanvas` que está
+   * dentro, que tiene su propio historial sobre su propia hoja. Y restaurar la
+   * obra por debajo de una pestaña montada la dejaría desincronizada: el hook de
+   * persistencia lee su origen UNA vez, al montar.
+   *
+   * Tampoco con el foco en un campo —el nombre de la obra, el de un nodo, una
+   * fórmula de la mini hoja—: ahí Ctrl+Z es el del navegador sobre ese texto, que
+   * es lo que espera quien está escribiendo.
+   */
+  // Espejado en un ref: `alRestaurar` es una función nueva en cada render, así que
+  // `historial` también, y con él en las dependencias el listener se volvería a
+  // suscribir en cada paneo del lienzo.
+  const historialRef = useRef(historial);
+  historialRef.current = historial;
+
+  useEffect(() => {
+    if (activa !== null) return;
+    const alTeclear = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+      const foco = document.activeElement;
+      const enCampo =
+        foco instanceof HTMLElement &&
+        (foco.tagName === 'INPUT' || foco.tagName === 'TEXTAREA' || foco.isContentEditable);
+      if (enCampo) return;
+      const k = e.key.toLowerCase();
+      if (k === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        historialRef.current.deshacer();
+      } else if (k === 'y' || (k === 'z' && e.shiftKey)) {
+        e.preventDefault();
+        historialRef.current.rehacer();
+      }
+    };
+    window.addEventListener('keydown', alTeclear);
+    return () => window.removeEventListener('keydown', alTeclear);
+  }, [activa]);
+
   const borrarUnaCarga = useCallback(
     (idCarga: string) => {
       const carga = obraRef.current?.cargas.find((c) => c.id === idCarga);
@@ -600,7 +699,8 @@ function CanvasObra({ id }: { id: string }) {
   const escribirHojaDeNodo = useCallback(
     (idNodo: string, hoja: Region[], meta: MetaPlanilla | null): ResultadoGuardado => {
       const actual = obraRef.current;
-      if (!actual || !nodoDelDocumento(actual, idNodo)) {
+      const nodo = actual ? nodoDelDocumento(actual, idNodo) : undefined;
+      if (!actual || !nodo) {
         return {
           ok: false,
           motivo:
@@ -608,9 +708,19 @@ function CanvasObra({ id }: { id: string }) {
             'ciérrala, o llévate la hoja con «Exportar».',
         };
       }
+      const hojaFinal = sinChocarConLaObra(hoja, actual, idNodo);
+      // Una escritura que no cambia nada NO toca el documento. Montar una pestaña
+      // y salir de ella sin escribir emitía un nodo nuevo con la misma hoja
+      // —`{ ...n }` basta para cambiar la identidad—, y el historial lo registraba
+      // como un paso: el primer Ctrl+Z del grafo parecía no hacer nada.
+      const sinCambios =
+        nodo.hoja.length === hojaFinal.length &&
+        nodo.hoja.every((r, i) => r === hojaFinal[i]) &&
+        (!meta || nodo.meta === meta);
+      if (sinCambios) return { ok: true };
       const conHoja = <T extends { hoja: Region[]; meta?: MetaPlanilla }>(n: T): T => ({
         ...n,
-        hoja: sinChocarConLaObra(hoja, actual, idNodo),
+        hoja: hojaFinal,
         ...(meta ? { meta } : {}),
       });
       const idK = calculoDeNodo(idNodo);
@@ -803,11 +913,35 @@ function CanvasObra({ id }: { id: string }) {
               onCerrar={() => setPaletaAbierta(false)}
             />
           )}
+          {/* Deshacer y rehacer. Con botones y no solo con el atajo: una obra se
+              maneja con el ratón, y un Ctrl+Z que nadie sabe que existe no
+              protege de nada. Se apagan con una pestaña abierta, donde el atajo
+              es del canvas que está dentro. */}
+          <button
+            type="button"
+            onClick={historial.deshacer}
+            disabled={activa !== null || !historial.puedeDeshacer}
+            title="Deshacer (Ctrl+Z)"
+            aria-label="Deshacer"
+            className="ml-auto rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent disabled:opacity-40"
+          >
+            ↶
+          </button>
+          <button
+            type="button"
+            onClick={historial.rehacer}
+            disabled={activa !== null || !historial.puedeRehacer}
+            title="Rehacer (Ctrl+Y)"
+            aria-label="Rehacer"
+            className="rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent disabled:opacity-40"
+          >
+            ↷
+          </button>
           <button
             type="button"
             onClick={reordenar}
             disabled={proyeccion.nodos.length === 0}
-            className="ml-auto rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent disabled:opacity-40"
+            className="rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent disabled:opacity-40"
           >
             reordenar
           </button>

@@ -15,7 +15,7 @@ import SiluetaPapel, {
 } from './SiluetaPapel';
 import CatalogoMenu from './CatalogoMenu';
 import { usePaginacion } from './usePaginacion';
-import { useHistorial } from './useHistorial';
+import { sinTransitorias, useHistorial } from './useHistorial';
 import { evaluateSheet, type Region, type RegionKind } from '../../lib/worksheet';
 import { FUNCIONES_BASE, variablesVisibles } from '../../lib/autocompletar';
 import {
@@ -279,7 +279,13 @@ export default function MathCanvas({
     [activeId, regions, results],
   );
 
-  const historial = useHistorial(regions, setRegions, trasRestaurar);
+  // Lo que la hoja aporta al historial genérico: qué cuenta como pérdida —menos
+  // regiones que antes— y qué limpiar al restaurar —los bloques a medio crear—.
+  const historial = useHistorial(regions, setRegions, {
+    alRestaurar: trasRestaurar,
+    esPerdida: (nuevas, asentadas) => nuevas.length < asentadas.length,
+    alRestaurarEstado: sinTransitorias,
+  });
 
   /**
    * Tamaño real de cada región, leído del DOM.

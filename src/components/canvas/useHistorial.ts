@@ -4,11 +4,11 @@ import type { Region } from '../../lib/worksheet';
 /**
  * Cuántos estados se recuerdan.
  *
- * Sale barato: `setRegions` siempre construye el array nuevo con `map`/`filter`
- * conservando los objetos de las regiones que no cambiaron, así que un
- * instantánea es un array de punteros (unos pocos kB en una hoja de 650
- * regiones), no una copia del contenido. Una imagen pegada en base64 se
- * comparte entre todas las instantáneas.
+ * Sale barato en los dos usuarios, y por la misma razón: tanto `setRegions` como
+ * `setObra` construyen el estado nuevo con `map`/`filter` y spreads, conservando
+ * los objetos que no cambiaron. Una instantánea es un árbol de punteros —unos
+ * pocos kB en una hoja de 650 regiones—, no una copia del contenido; una imagen
+ * pegada en base64 se comparte entre todas.
  */
 const MAX = 60;
 
@@ -28,42 +28,67 @@ export interface Historial {
   puedeRehacer: boolean;
 }
 
+export interface OpcionesHistorial<T> {
+  /**
+   * Corre DESPUÉS de aplicar el estado restaurado, y lo recibe.
+   *
+   * Lo necesitan los dos: la hoja para salir de edición, y la obra para soltar
+   * la selección y las pestañas de un nodo que el paso restaurado ya no tiene.
+   */
+  alRestaurar?: (estado: T) => void;
+  /**
+   * ¿Este cambio es una PÉRDIDA? Entonces entra en el historial en el acto, sin
+   * esperar la pausa.
+   *
+   * Es lo único que el hook no puede decidir solo: sabe que el estado cambió,
+   * no si el cambio quitó algo. Ver la nota de abajo, en el efecto.
+   */
+  esPerdida?: (nuevo: T, asentado: T) => boolean;
+  /** Se aplica al estado antes de restaurarlo. La hoja descarta sus bloques a medio crear. */
+  alRestaurarEstado?: (estado: T) => T;
+}
+
 /**
- * Deshacer y rehacer para la hoja.
+ * Deshacer y rehacer, sobre cualquier documento.
  *
- * Observa `regions` en vez de envolver los ocho sitios que la modifican: así no
- * hay forma de añadir una acción nueva y olvidarse de registrarla en el
- * historial.
+ * Observa el VALOR en vez de envolver los sitios que lo modifican —ocho en la
+ * hoja, más de veinte en una obra—: así no hay forma de añadir una acción nueva
+ * y olvidarse de registrarla en el historial.
  *
- * Hasta ahora no había ninguna red: `Supr` borraba la selección y 300 ms
- * después el autoguardado consolidaba la pérdida en `localStorage`. En una
- * planilla de 650 regiones eso era irreversible.
+ * Genérico porque los dos documentos lo necesitaban igual y solo se diferencian
+ * en dos puntos, los dos inyectados: qué cuenta como pérdida, y qué limpiar al
+ * restaurar. Escribir un segundo hook habría sido tener dos políticas de
+ * deshacer que se irían separando.
+ *
+ * En ninguno de los dos había red: `Supr` borraba la selección de una planilla
+ * de 650 regiones, o «quitar este nodo» se llevaba la hoja entera de un cálculo,
+ * y 300 ms después el autoguardado consolidaba la pérdida.
  */
-export function useHistorial(
-  regions: Region[],
-  setRegions: (r: Region[]) => void,
-  alRestaurar?: () => void,
+export function useHistorial<T>(
+  valor: T,
+  aplicar: (v: T) => void,
+  { alRestaurar, esPerdida, alRestaurarEstado }: OpcionesHistorial<T> = {},
 ): Historial {
-  const pasado = useRef<Region[][]>([]);
-  const futuro = useRef<Region[][]>([]);
+  const pasado = useRef<T[]>([]);
+  const futuro = useRef<T[]>([]);
   /** El último estado ya asentado en el historial. */
-  const asentado = useRef(regions);
+  const asentado = useRef(valor);
   /** El estado vigente, para poder archivarlo al deshacer sin esperar la pausa. */
-  const actual = useRef(regions);
+  const actual = useRef(valor);
   /** Evita que la propia restauración se registre como un cambio más. */
   const restaurando = useRef(false);
   /** Solo para que los botones se enteren de que hay algo que deshacer. */
   const [, revisar] = useState(0);
 
-  actual.current = regions;
+  actual.current = valor;
 
   useEffect(() => {
     if (restaurando.current) {
       restaurando.current = false;
-      asentado.current = regions;
+      asentado.current = valor;
       return;
     }
-    if (regions === asentado.current) return;
+    if (valor === asentado.current) return;
 
     const registrar = () => {
       pasado.current.push(asentado.current);
@@ -71,11 +96,11 @@ export function useHistorial(
       // Una edición nueva descarta el futuro: no se puede rehacer sobre una
       // rama distinta de la que se deshizo.
       futuro.current = [];
-      asentado.current = regions;
+      asentado.current = valor;
       revisar((n) => n + 1);
     };
 
-    // Un BORRADO entra en el acto, sin esperar la pausa.
+    // Una PÉRDIDA entra en el acto, sin esperar la pausa.
     //
     // Con la pausa para todo, seleccionar 300 bloques con el marco, pulsar Supr
     // y pulsar Ctrl+Z al instante —que es lo que uno hace, en bastante menos de
@@ -84,27 +109,32 @@ export function useHistorial(
     // ANTES que el registro (400 ms), así que recargar en esa ventana volvía la
     // pérdida irreversible.
     //
-    // Solo al borrar, y no en cualquier cambio del número de regiones: crear un
-    // bloque y escribir dentro seguiría siendo un solo Ctrl+Z, que es lo que
-    // espera quien acaba de teclear una fórmula. Perder una creación no es una
-    // pérdida; perder 300 bloques sí.
-    if (regions.length < asentado.current.length) {
+    // Solo al perder, y no en cualquier cambio de tamaño: crear un bloque y
+    // escribir dentro sigue siendo un solo Ctrl+Z, que es lo que espera quien
+    // acaba de teclear una fórmula. Perder una creación no es una pérdida;
+    // perder 300 bloques, o el nodo que alimentaba a media obra, sí.
+    if (esPerdida?.(valor, asentado.current)) {
       registrar();
       return;
     }
 
     const t = setTimeout(registrar, PAUSA_MS);
     return () => clearTimeout(t);
-  }, [regions]);
+    // `esPerdida` se lee del render en curso a propósito: es una función pura de
+    // sus dos argumentos, y meterla en las dependencias obligaría a memoizarla en
+    // cada usuario para no reiniciar la pausa en cada tecla.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [valor]);
 
   const restaurar = useCallback(
-    (estado: Region[]) => {
+    (estado: T) => {
+      const limpio = alRestaurarEstado ? alRestaurarEstado(estado) : estado;
       restaurando.current = true;
-      setRegions(sinTransitorias(estado));
-      alRestaurar?.();
+      aplicar(limpio);
+      alRestaurar?.(limpio);
       revisar((n) => n + 1);
     },
-    [setRegions, alRestaurar],
+    [aplicar, alRestaurar, alRestaurarEstado],
   );
 
   const deshacer = useCallback(() => {
@@ -154,7 +184,7 @@ export function useHistorial(
  * ancho, al que no se puede ni hacer clic y que el autoguardado ya no descarta.
  * Un texto vacío sí se conserva: es un espaciador, y ocupa sitio a propósito.
  */
-function sinTransitorias(estado: Region[]): Region[] {
+export function sinTransitorias(estado: Region[]): Region[] {
   const limpio = estado.filter((r) => r.kind === 'text' || r.kind === 'image' || r.src.trim() !== '');
   return limpio.length === estado.length ? estado : limpio;
 }

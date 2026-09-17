@@ -525,9 +525,10 @@ nodo, y `verify:obra`, que es la primera red que tiene esta capa.
 - **Publicar una salida de tipo `serie`.** Una matriz N×M no cabe en una variable que otro
   nodo multiplique, así que el selector la deja fuera. Cuando haga falta —el espectro que
   alimenta a otra hoja— hay que decidir qué significa nombrarla.
-- **Deshacer.** La obra no tiene `Ctrl+Z`. Borrar una carga con todas sus partidas es un clic
-  con confirmación y sin retorno. El armazón de `useHistorial` del canvas matemático se puede
-  reusar: observa el documento en vez de envolver a los ocho sitios que lo modifican.
+- ~~**Deshacer.** La obra no tiene `Ctrl+Z`~~ — **hecho**. `useHistorial` se generalizó a
+  cualquier documento (dos puntos inyectados: qué cuenta como pérdida y qué limpiar al
+  restaurar) y la obra lo usa sobre `obra` entera. `Ctrl+Z`/`Ctrl+Y` y botones ↶ ↷, **solo en
+  el grafo**: con una pestaña de cálculo abierta el atajo es del canvas que está dentro.
 - **Dos pestañas con la MISMA obra abierta se siguen pisando.** Crear ya no pisa, y guardar
   ya no toca las demás obras, pero no hay listener de `storage` como el que tiene
   `MathCanvas`: la última en guardar gana, sin aviso.
@@ -587,6 +588,11 @@ historial— y queda esto, todo **reproducido en el navegador**, no leído en el
   …`, el panel de un nodo pintaba **los bloques del otro, con su valor**. `escribirHojaDeNodo`
   los deriva ahora contra el resto de la obra.
 - Una pestaña sobrevivía al nodo que editaba y se tragaba lo que se escribiera en ella.
+- **La obra gana deshacer**, que es lo que vuelve reversible todo lo de arriba y lo que
+  quedaba abierto en §12. De paso, `escribirHojaDeNodo` dejó de tocar el documento cuando la
+  hoja no cambió: montar una pestaña y salir sin escribir emitía un nodo nuevo con la misma
+  hoja —`{ ...n }` basta para cambiar la identidad—, y el primer `Ctrl+Z` del grafo parecía
+  no hacer nada.
 
 ### Lo que sigue abierto
 
@@ -606,10 +612,12 @@ historial— y queda esto, todo **reproducido en el navegador**, no leído en el
 - **La barra espaciadora crea un bloque en vez de desplazar la hoja.** Reproducido: clic en
   el fondo, Espacio. El guard final acepta cualquier `e.key.length === 1` y `' '` mide uno
   (`MathCanvas.tsx:1228-1237`). Arreglo de una línea; la fricción es constante.
-- **Borrar un nodo de cálculo o una partida no pregunta nada y no se puede deshacer.**
-  Reproducido: cadena A→B, «quitar este nodo» sobre A. Se va con su hoja dentro, sin
-  diálogo (`PanelCalculo.tsx:212-219`, `PanelSubcarga.tsx:256-264`), mientras que borrar una
-  **carga** sí confirma en dos tiempos (`PanelCargas.tsx:147`). La asimetría es el bug.
+- **Borrar un nodo de cálculo o una partida no pregunta nada.** Reproducido: cadena A→B,
+  «quitar este nodo» sobre A. Se va con su hoja dentro, sin diálogo
+  (`PanelCalculo.tsx:212-219`, `PanelSubcarga.tsx:256-264`), mientras que borrar una **carga**
+  sí confirma en dos tiempos (`PanelCargas.tsx:147`). La asimetría es el bug. *Ya no es
+  irreversible —`Ctrl+Z` lo devuelve—, así que lo que queda por decidir es al revés: si con
+  deshacer hace falta seguir preguntando en los dos sitios que hoy preguntan.*
 - **Cuando la cadena se rompe, nadie dice de dónde venía el nombre.** B queda con «1
   bloque(s) con error» y, en el panel, «Undefined symbol A_planta»: mensaje del motor, en
   inglés, sin decir que `A_planta` desapareció porque borraste A. La flecha además se apaga
