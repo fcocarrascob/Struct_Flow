@@ -11,6 +11,19 @@ import { CanvasObraConProveedor } from './proyecto/obra/CanvasObra';
 import { useRuta } from './components/useRuta';
 import Calibrar from './components/dev/Calibrar';
 import { moduloPorId } from './lib/diseno/registro';
+import { STORAGE_KEY } from './lib/hoja-guardada';
+import { CLAVE_OBRAS } from './proyecto/obra/almacen';
+
+/**
+ * Qué rescata la pantalla de un fallo de render, por vista.
+ *
+ * Cada una guarda en su sitio, y el límite no lo sabe: sin esto, la pantalla de
+ * una obra rota se titulaba «El canvas se detuvo», su botón leía la hoja del
+ * canvas —y no hacía nada si no había ninguna— y el texto final pedía borrar esa
+ * misma clave, que no arregla la obra y sí se lleva el trabajo de la otra vista.
+ */
+const RESCATE_CANVAS = { clave: STORAGE_KEY, archivo: 'hoja-recuperada.json' };
+const RESCATE_OBRAS = { clave: CLAVE_OBRAS, archivo: 'obras-recuperadas.json' };
 
 /**
  * El conmutador de vistas.
@@ -25,9 +38,12 @@ import { moduloPorId } from './lib/diseno/registro';
  * De ahí la `key`, y no es cosmética. Sin ella, todas las vistas devuelven un
  * `ErrorBoundary` en la misma posición del árbol, React lo reconcilia como el
  * MISMO componente y `state.error` no se limpia nunca: si reventaba el catálogo,
- * navegar a los módulos seguía enseñando la pantalla roja —rotulada «El canvas
- * se detuvo»— y la única salida era recargar. Con una `key` distinta por vista,
- * cambiar de vista monta un límite nuevo y limpio.
+ * navegar a los módulos seguía enseñando la pantalla roja y la única salida era
+ * recargar. Con una `key` distinta por vista, cambiar de vista monta un límite
+ * nuevo y limpio.
+ *
+ * Y de ahí también el `rotulo` y el `rescate` de cada una: la pantalla tiene que
+ * decir qué se cayó y ofrecer descargar el trabajo DE ESA vista, no el de otra.
  */
 export default function App() {
   const ruta = useRuta();
@@ -35,7 +51,7 @@ export default function App() {
   switch (ruta.vista) {
     case 'planillas':
       return (
-        <ErrorBoundary key="planillas">
+        <ErrorBoundary key="planillas" rotulo="El catálogo">
           <CatalogoPagina />
         </ErrorBoundary>
       );
@@ -47,7 +63,7 @@ export default function App() {
         // definida. `#root` sigue siendo hijo directo de `<body>`, que es de lo
         // que depende la regla de impresión que oculta la interfaz.
         <div className="h-screen w-full overflow-hidden">
-          <ErrorBoundary key="canvas">
+          <ErrorBoundary key="canvas" rotulo="El canvas" rescate={RESCATE_CANVAS}>
             <MathCanvas />
           </ErrorBoundary>
         </div>
@@ -55,14 +71,14 @@ export default function App() {
 
     case 'diseno':
       return (
-        <ErrorBoundary key="diseno">
+        <ErrorBoundary key="diseno" rotulo="El índice de módulos">
           <IndiceDiseno />
         </ErrorBoundary>
       );
 
     case 'proyectos':
       return (
-        <ErrorBoundary key="proyectos">
+        <ErrorBoundary key="proyectos" rotulo="El índice de proyectos" rescate={RESCATE_OBRAS}>
           <IndiceProyectos />
         </ErrorBoundary>
       );
@@ -71,7 +87,7 @@ export default function App() {
     // cabecera, el lienzo y el panel lateral se reparten una altura definida.
     case 'proyecto':
       return (
-        <ErrorBoundary key={`proyecto:${ruta.slug}`}>
+        <ErrorBoundary key={`proyecto:${ruta.slug}`} rotulo="El proyecto">
           <CanvasProyectoConProveedor slug={ruta.slug} />
         </ErrorBoundary>
       );
@@ -80,7 +96,7 @@ export default function App() {
     // guarda en este navegador.
     case 'obra':
       return (
-        <ErrorBoundary key={`obra:${ruta.id}`}>
+        <ErrorBoundary key={`obra:${ruta.id}`} rotulo="La obra" rescate={RESCATE_OBRAS}>
           <CanvasObraConProveedor id={ruta.id} />
         </ErrorBoundary>
       );
@@ -92,7 +108,7 @@ export default function App() {
     case 'calibrar':
       if (!import.meta.env.DEV) break;
       return (
-        <ErrorBoundary key="calibrar">
+        <ErrorBoundary key="calibrar" rotulo="La calibración">
           <Calibrar />
         </ErrorBoundary>
       );
@@ -102,7 +118,7 @@ export default function App() {
     case 'modulo': {
       const modulo = moduloPorId(ruta.id);
       return (
-        <ErrorBoundary key={`modulo:${ruta.id}`}>
+        <ErrorBoundary key={`modulo:${ruta.id}`} rotulo="El módulo">
           {modulo ? <PaginaDiseno modulo={modulo} /> : <ModuloBiblioteca id={ruta.id} />}
         </ErrorBoundary>
       );
@@ -111,7 +127,7 @@ export default function App() {
   }
 
   return (
-    <ErrorBoundary key="inicio">
+    <ErrorBoundary key="inicio" rotulo="El menú">
       <Landing />
     </ErrorBoundary>
   );
