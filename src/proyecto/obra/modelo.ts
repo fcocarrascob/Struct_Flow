@@ -21,44 +21,70 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { INTRINSECOS } from '../../lib/canvas-handoff';
+import type { MetaPlanilla } from '../../lib/biblioteca/contrato';
+import type { Region } from '../../lib/worksheet';
+import { ORIGEN_X, ORIGEN_Y } from './hoja';
 
 /**
- * Un bloque de la mini hoja de una subcarga.
+ * De dónde salieron las regiones de un cálculo con frontera.
  *
- * NO LLEVA x/y A PROPÓSITO. Es una lista ordenada, y el orden del array es el
- * orden de lectura. El motor ordena por `(y, x)`, así que al evaluar se le
- * sintetizan coordenadas desde el índice; guardarlas sería guardar dos veces lo
- * mismo. Es además hacia donde va la hoja grande, según `docs/pendientes.md`.
+ * - `biblioteca`: una referencia al slug, que se instancia al abrir la obra. El
+ *   nodo no guarda la hoja; guarda el sello.
+ * - `propia`: regiones escritas aquí, guardadas en el documento. Sin sello,
+ *   porque no es una instancia de nada.
+ * - `derivada`: una copia de una genérica que ya se editó. El sello deja de
+ *   decir «soy esta genérica» y pasa a decir «salí de ella».
  */
-export interface Bloque {
-  id: string;
-  /** `program` e `image` quedan fuera: una partida de carga no los necesita. */
-  tipo: 'math' | 'text';
-  src: string;
-}
+export type Procedencia = 'biblioteca' | 'propia' | 'derivada';
 
 /**
- * Una genérica de `public/biblioteca/` traída a la obra.
+ * Un cálculo con frontera: se alimenta por `formulas` y entrega por `publica`.
  *
- * SE GUARDA UNA REFERENCIA CON SELLO, NO LA HOJA.
- * ----------------------------------------------
- * Lo que persiste es el slug, lo que el usuario escribió en el formulario y el
- * `sha256` que tenía la genérica **al importarla**. La hoja se vuelve a
- * descargar de `/biblioteca` al abrir la obra, así que siempre se instancia la
- * versión publicada y verificada, no una copia congelada que envejece a
- * escondidas.
+ * ES LO QUE DECIDE DÓNDE VIVE EL ESPACIO DE NOMBRES DEL NODO, y no es una
+ * preferencia. Una hoja libre —un nodo sin frontera— comparte scope con toda la
+ * obra, y esa es justamente su utilidad: es la geometría y los datos comunes.
+ * Pero `pedestal-generico` define más de 300 nombres —`d`, `As`, `phi`, `b`,
+ * `s`…—: si sus regiones entraran al scope compartido, cualquier nodo posterior
+ * colisionaría con media docena de ellos y el canvas se llenaría de rojos de
+ * «definida en 2 nodos» sin que nadie haya escrito nada mal. Un aviso que salta
+ * por lo que no es deja de leerse.
  *
- * El sello es lo que hace honesta esa decisión: si el archivo de hoy tiene otro
- * hash, el nodo lo dice. Es la misma señal con la que el harness detecta que una
- * instancia quedó atrás (`meta.origen.sha256`), y sin ella un cambio en la
- * genérica movería un número ya emitido sin que nadie se entere — la primera
- * clase de falla de la taxonomía: resultado plausible y falso.
+ * Generaliza a la `Importada` que había: `publica`, `formulas` y `salida` valen
+ * igual para las tres procedencias, y con ellos todo lo que ya cuelga de ellos
+ * —el orden topológico, las flechas derivadas, el aviso de alias repetido y la
+ * detección de ciclos—.
  */
-export interface Importada {
-  slug: string;
-  /** 64 hex. El de los bytes que se instanciaron el día que se importó. */
-  sha256: string;
-  entradas: Record<string, number>;
+export interface Frontera {
+  procedencia: Procedencia;
+  /**
+   * Solo `biblioteca`: el slug que se instancia al abrir la obra, y el `sha256`
+   * que tenía la genérica **al importarla**.
+   *
+   * SE GUARDA UNA REFERENCIA CON SELLO, NO LA HOJA. Se vuelve a descargar de
+   * `/biblioteca` al abrir, así que siempre se instancia la versión publicada y
+   * verificada, no una copia congelada que envejece a escondidas. El sello es lo
+   * que hace honesta esa decisión: si el archivo de hoy tiene otro hash, el nodo
+   * lo dice. Sin él, un cambio en la genérica movería un número ya emitido sin
+   * que nadie se entere — la primera clase de falla de la taxonomía: resultado
+   * plausible y falso.
+   */
+  slug?: string;
+  sha256?: string;
+  /**
+   * Solo `derivada`: de qué genérica salió la copia, y en qué versión.
+   *
+   * Mismo vocabulario que `meta.origen` de `src/lib/biblioteca/contrato.ts`, que
+   * es lo que hace que la memoria exportada siga sin mentir sobre su origen
+   * cuando entre a un proyecto del harness.
+   */
+  origen?: { slug: string; sha256: string; desvios?: string[] };
+  /**
+   * Solo `biblioteca`: los valores del formulario. Una derivada no los tiene,
+   * porque al desprenderse quedaron horneados en sus regiones `in_*`: una hoja
+   * editable no puede seguir teniendo una lista de campos declarados, porque el
+   * primer cambio la haría mentir.
+   */
+  entradas?: Record<string, number>;
   /**
    * Campos atados a una expresión de la obra, por nombre de campo.
    *
@@ -111,53 +137,64 @@ export interface Importada {
  * número dentro del cálculo—, además de obligar a escribir etiquetas con guion
  * bajo. Cuál variable aporta el valor lo dice `variable`.
  *
- * Dos respaldos posibles y excluyentes: la mini hoja propia (`bloques`) o una
- * genérica de la biblioteca (`importada`). Los `bloques` no se borran al
- * importar: quitar la planilla devuelve la hoja que había, que suele ser el
- * tanteo del que salió la decisión de buscar una genérica.
+ * Su respaldo es su `hoja`, y `frontera` decide si esa hoja comparte el scope de
+ * la obra o tiene el suyo.
  */
 export interface Subcarga {
   id: string;
   nombre: string;
-  bloques: Bloque[];
+  hoja: Region[];
+  /** El `meta` de la hoja, si lo trae. Ver `NodoCalculo`. */
+  meta?: MetaPlanilla;
   /** Cuál variable de su hoja libre es el valor de la partida. */
   variable?: string;
-  importada?: Importada;
+  frontera?: Frontera;
 }
 
 /**
  * Qué nombre aporta el valor de una partida, venga de donde venga.
  *
  * Los dos respaldos lo guardan en sitios distintos a propósito —`variable` es de
- * la hoja libre, `importada.salida` es de la planilla— para que cada uno se
- * borre con su respaldo: cambiar de genérica no puede dejar apuntando a una
- * salida que la nueva no tiene. Pero se LEE por acá y solo por acá, así que el
- * resto del código no tiene que saber cuál de los dos es.
+ * la hoja libre, `frontera.salida` es del cálculo con frontera— para que cada
+ * uno se borre con su respaldo: cambiar de genérica no puede dejar apuntando a
+ * una salida que la nueva no tiene. Pero se LEE por acá y solo por acá, así que
+ * el resto del código no tiene que saber cuál de los dos es.
  */
 export function variableDePartida(sub: Subcarga): string | undefined {
-  return sub.importada ? sub.importada.salida : sub.variable;
+  return sub.frontera ? sub.frontera.salida : sub.variable;
 }
 
 /**
- * Un cálculo suelto de la obra: una genérica de la biblioteca instanciada, que
- * no cuelga de ninguna carga.
+ * Un cálculo suelto de la obra, que no cuelga de ninguna carga.
  *
  * Es el caso de las costaneras, una zapata o un anclaje: cálculos que la obra
  * tiene que respaldar y que no producen una carga. Por eso no lleva variable de
- * salida —muestra las que la genérica declara— ni entra en ninguna suma.
+ * salida —muestra las que declara— ni entra en ninguna suma.
  */
 export interface NodoCalculo {
   id: string;
   /** Lo que se lee en el canvas. Al importar se propone el título de la genérica. */
   nombre: string;
   /**
-   * Su hoja libre. Es lo que convierte al canvas en un grafo de datos y no en
-   * una colección de planillas sueltas: un nodo «Geometría» que define
-   * `A_planta` y `h_losa` y del que cuelgan los demás no es ninguna planilla de
-   * la biblioteca, es el dato común de la obra.
+   * Su hoja.
+   *
+   * SIN `frontera` ES UNA HOJA LIBRE y sus regiones entran al scope compartido.
+   * Es lo que convierte al canvas en un grafo de datos y no en una colección de
+   * planillas sueltas: un nodo «Geometría» que define `A_planta` y `h_losa` y del
+   * que cuelgan los demás no es ninguna planilla de la biblioteca, es el dato
+   * común de la obra.
+   *
+   * Con `frontera` de procedencia `biblioteca` va vacía: la hoja se instancia al
+   * abrir desde el slug sellado.
    */
-  bloques: Bloque[];
-  importada?: Importada;
+  hoja: Region[];
+  /**
+   * El `meta` de la hoja, si lo trae: el mismo que lleva `metaRef` en el canvas
+   * matemático. Una derivada que se exporte desde la pestaña sigue siendo una
+   * planilla con su slug, sus normas y su origen.
+   */
+  meta?: MetaPlanilla;
+  frontera?: Frontera;
 }
 
 /**
@@ -195,7 +232,7 @@ export interface Carga {
 export type Modulo = 'cargas';
 
 export interface Obra {
-  version: 1;
+  version: number;
   id: string;
   nombre: string;
   /** ISO. Ordena el índice sin depender del orden en que se guardaron. */
@@ -205,7 +242,16 @@ export interface Obra {
   calculos: NodoCalculo[];
 }
 
-export const VERSION_OBRA = 1;
+/**
+ * La versión del documento.
+ *
+ * SE MIGRA POR FORMA, NO POR ESTE NÚMERO. `sanearObra` nunca lo ha leído —la
+ * migración de `variable` desde `nombre` ya va por forma—, así que confiar en él
+ * ahora sería confiar en un dato que nadie comprobó nunca. Está para que una
+ * versión futura pueda negarse a abrir un documento más nuevo del que entiende;
+ * las que ya están desplegadas no lo van a mirar.
+ */
+export const VERSION_OBRA = 2;
 
 let secuencia = 0;
 
@@ -259,7 +305,7 @@ export function nuevaObra(nombre: string, ocupados: readonly string[] = []): Obr
 }
 
 export function nuevoCalculo(): NodoCalculo {
-  return { id: nuevoId('k'), nombre: 'Cálculo', bloques: [] };
+  return { id: nuevoId('k'), nombre: 'Cálculo', hoja: [] };
 }
 
 /**
@@ -300,12 +346,14 @@ export function nuevaSubcarga(subcargas: readonly Subcarga[]): Subcarga {
     id: nuevoId('s'),
     nombre: `Partida ${n}`,
     variable,
-    bloques: [{ id: nuevoId('b'), tipo: 'math', src: `${variable} := ` }],
+    hoja: [nuevaRegion('math', `${variable} := `)],
   };
 }
 
-export function nuevoBloque(tipo: 'math' | 'text', src = ''): Bloque {
-  return { id: nuevoId('b'), tipo, src };
+/** Una región suelta, en el origen del papel. Dónde va de verdad lo decide
+ *  `insertarEnHoja` de `./hoja`, que es quien conoce el resto de la hoja. */
+export function nuevaRegion(kind: 'math' | 'text', src = ''): Region {
+  return { id: nuevoId('b'), kind, x: ORIGEN_X, y: ORIGEN_Y, src };
 }
 
 /**
@@ -373,13 +421,19 @@ export function borrarCalculo(obra: Obra, id: string): Obra {
   return { ...obra, calculos: obra.calculos.filter((k) => k.id !== id) };
 }
 
-/** Todos los slugs que la obra referencia, para saber qué hay que descargar. */
+/**
+ * Todos los slugs que la obra referencia, para saber qué hay que descargar.
+ *
+ * Solo los de procedencia `biblioteca`: una `derivada` recuerda de dónde salió,
+ * pero sus regiones ya están en el documento y no hay nada que traer.
+ */
 export function slugsImportados(obra: Obra): string[] {
   const s = new Set<string>();
-  for (const k of obra.calculos) if (k.importada) s.add(k.importada.slug);
-  for (const c of obra.cargas) {
-    for (const sub of c.subcargas) if (sub.importada) s.add(sub.importada.slug);
-  }
+  const tomar = (f?: Frontera) => {
+    if (f?.procedencia === 'biblioteca' && f.slug) s.add(f.slug);
+  };
+  for (const k of obra.calculos) tomar(k.frontera);
+  for (const c of obra.cargas) for (const sub of c.subcargas) tomar(sub.frontera);
   return [...s];
 }
 
@@ -390,9 +444,9 @@ export function slugsImportados(obra: Obra): string[] {
  * responde «¿este campo está atado?», y una cadena vacía diría que sí a una
  * pregunta cuya respuesta es que no.
  */
-export function conFormula(imp: Importada, campo: string, expr: string | undefined): Importada {
-  const { [campo]: _fuera, ...resto } = imp.formulas ?? {};
-  return { ...imp, formulas: expr === undefined ? resto : { ...resto, [campo]: expr } };
+export function conFormula(f: Frontera, campo: string, expr: string | undefined): Frontera {
+  const { [campo]: _fuera, ...resto } = f.formulas ?? {};
+  return { ...f, formulas: expr === undefined ? resto : { ...resto, [campo]: expr } };
 }
 
 /**
@@ -401,12 +455,12 @@ export function conFormula(imp: Importada, campo: string, expr: string | undefin
  * planilla?» y un alias vacío no es una respuesta.
  */
 export function conPublicacion(
-  imp: Importada,
+  f: Frontera,
   salida: string,
   alias: string | undefined,
-): Importada {
-  const { [salida]: _fuera, ...resto } = imp.publica ?? {};
-  return { ...imp, publica: alias === undefined ? resto : { ...resto, [salida]: alias } };
+): Frontera {
+  const { [salida]: _fuera, ...resto } = f.publica ?? {};
+  return { ...f, publica: alias === undefined ? resto : { ...resto, [salida]: alias } };
 }
 
 /**
@@ -432,10 +486,10 @@ export function problemaDeAlias(alias: string): string {
   return '';
 }
 
-/** Todas las hojas libres de la obra, con el id de nodo con que se pintan. */
+/** Una hoja de la obra, con el id de nodo con que se pinta. */
 export interface HojaDeNodo {
   /** El id del NODO del canvas, no el del documento: `partida:xxx`, `calculo:xxx`. */
   idNodo: string;
   etiqueta: string;
-  bloques: Bloque[];
+  hoja: Region[];
 }

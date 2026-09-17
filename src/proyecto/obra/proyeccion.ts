@@ -96,37 +96,16 @@ function aristasDeDatos(ev: EvaluacionObra): AristaGrafo[] {
   });
 }
 
-/**
- * Lo que hay que decir de la hoja libre de un nodo que ahora lleva planilla.
- *
- * Los bloques NO se borran al importar, a propósito: quitar la planilla
- * devuelve el tanteo del que salió la decisión de buscar una genérica. Pero
- * mientras tanto esa hoja no se evalúa, así que los nombres que definía dejaron
- * de existir para el resto de la obra — y los nodos que los usaban pasaban a
- * «variable indefinida» sin que nada dijera de dónde venía el apagón.
- */
-function avisoDeHojaTapada(bloques: { tipo: string; src: string }[]): string[] {
-  const nombres = bloques
-    .filter((b) => b.tipo === 'math')
-    .map((b) => parseMathRegion(b.src).varName)
-    .filter((v): v is string => Boolean(v));
-  if (nombres.length === 0) return [];
-  return [
-    `La hoja de este nodo no se evalúa mientras lo respalde una planilla: ` +
-      `${[...new Set(nombres)].join(', ')} ya no existe para el resto de la obra. ` +
-      'Publica lo que haga falta desde las salidas de la planilla.',
-  ];
-}
-
-/** El nodo de un cálculo suelto: una hoja libre o una genérica instanciada. */
+/** El nodo de un cálculo suelto: una hoja libre o un cálculo con frontera. */
 function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra): NodoGrafo {
   const id = idNodoDeCalculo(k.id);
   const base = { id, tipo: 'calculo', etiqueta: k.nombre || 'Cálculo' };
+  const f = k.frontera;
 
-  if (!k.importada) {
+  if (!f) {
     const define = ev.define.get(id) ?? [];
     const enGrafo = problemaDeGrafo(id, ev);
-    const errores = k.bloques.filter((b) => ev.results[b.id]?.error).length;
+    const errores = k.hoja.filter((r) => ev.results[r.id]?.error).length;
     const motivos: string[] = [];
     let severidad: Severidad = 'ok';
     if (enGrafo) {
@@ -141,69 +120,76 @@ function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra)
       ...base,
       subtitulo:
         define.length === 0
-          ? k.bloques.length === 0
+          ? k.hoja.length === 0
             ? 'hoja vacía'
             : 'no define ninguna variable'
           : define.join(', '),
-      campos: { define: define.length, bloques: k.bloques.length },
+      campos: { define: define.length, bloques: k.hoja.length },
       severidad,
       motivos,
     });
   }
 
-  const estado = genericas[k.importada.slug];
-  if (!estado || estado.fase === 'cargando') {
-    return nodo({ ...base, subtitulo: `${k.importada.slug} · cargando…` });
-  }
-  if (estado.fase === 'error') {
-    return nodo({ ...base, subtitulo: k.importada.slug, severidad: 'error', motivos: [estado.motivo] });
+  const estado = f.procedencia === 'biblioteca' && f.slug ? genericas[f.slug] : undefined;
+  if (f.procedencia === 'biblioteca') {
+    if (!estado || estado.fase === 'cargando') {
+      return nodo({ ...base, subtitulo: `${f.slug} · cargando…` });
+    }
+    if (estado.fase === 'error') {
+      return nodo({ ...base, subtitulo: f.slug ?? '', severidad: 'error', motivos: [estado.motivo] });
+    }
   }
 
-  const modulo = estado.modulo;
+  const modulo = estado?.fase === 'lista' ? estado.modulo : undefined;
   // La evaluación es la que hizo `evaluarObra` en el sitio de este nodo dentro
   // del orden de lectura, con los campos atados ya resueltos contra el scope que
   // había ahí. Reevaluar acá sería una segunda autoridad sobre el mismo número.
   const instancia = ev.importadas.get(id);
-  if (!instancia) return nodo({ ...base, subtitulo: `${k.importada.slug} · cargando…` });
-  const evg = instancia.ev;
+  if (!instancia) return nodo({ ...base, subtitulo: `${f.slug ?? k.nombre} · cargando…` });
   const motivos: string[] = [];
   let severidad: Severidad = 'ok';
 
-  // Un alias repetido o un ciclo le pasan a una planilla igual que a una hoja.
+  // Un alias repetido, un ciclo o un campo atado tapado le pasan a un cálculo con
+  // frontera igual que a una hoja libre.
   const enGrafo = problemaDeGrafo(id, ev);
   if (enGrafo) {
     motivos.push(enGrafo);
     severidad = 'error';
   }
-  motivos.push(...avisoDeHojaTapada(k.bloques));
 
-  if (motivos.length && severidad === 'ok') severidad = 'aviso';
-
-  if (quedoAtras(modulo, k.importada)) {
+  if (modulo && quedoAtras(modulo, f)) {
     motivos.push('La genérica cambió en la biblioteca desde que la importaste: revisa el resultado.');
     severidad = peor(severidad, 'aviso');
   }
-  if (evg.errores.length) {
-    motivos.push(`${evg.errores.length} región(es) con error: ${evg.errores[0].error}`);
+  const errores = modulo
+    ? (instancia.ev?.errores ?? [])
+    : k.hoja.filter((r) => ev.results[r.id]?.error).map((r) => ({ error: ev.results[r.id]!.error! }));
+  if (errores.length) {
+    motivos.push(`${errores.length} región(es) con error: ${errores[0].error}`);
     severidad = peor(severidad, 'error');
   }
 
-  const global = evg.scope.v_global;
+  const global = instancia.salidas.v_global;
   const veredicto = global === true ? 'CUMPLE' : global === false ? 'NO CUMPLE' : '';
   if (global === false) severidad = peor(severidad, 'error');
 
   // Lo que publica va en el subtítulo, como en un nodo de hoja libre: es lo que
   // el resto de la obra puede nombrar, y no verlo obliga a abrir el panel para
-  // saber si esta planilla alimenta a alguien.
+  // saber si este cálculo alimenta a alguien.
   const publica = ev.define.get(id) ?? [];
-  const veredictoTexto = veredicto ? `${modulo.norma || modulo.disciplina} · ${veredicto}` : modulo.norma;
+  const procedencia = modulo
+    ? modulo.norma || modulo.disciplina
+    : f.procedencia === 'derivada'
+      ? `derivada de ${f.origen?.slug ?? '?'}`
+      : 'hoja propia';
+  const veredictoTexto = veredicto ? `${procedencia} · ${veredicto}` : procedencia;
 
   return nodo({
     ...base,
     subtitulo: publica.length ? `${veredictoTexto} · publica ${publica.join(', ')}` : veredictoTexto,
     campos: {
-      planilla: k.importada.slug,
-      entradas: Object.keys(k.importada.entradas).length,
+      planilla: f.slug ?? f.origen?.slug ?? '',
+      entradas: modulo ? Object.keys(f.entradas ?? {}).length : k.hoja.length,
       publica: publica.join(', '),
     },
     severidad,
@@ -257,14 +243,10 @@ export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas =
           motivosSub.push(enGrafo);
           sevSub = peor(sevSub, 'error');
         }
-        if (sub.importada) {
-          const tapada = avisoDeHojaTapada(sub.bloques);
-          motivosSub.push(...tapada);
-          if (tapada.length) sevSub = peor(sevSub, 'aviso');
-        }
-
-        const estadoSub = sub.importada ? genericas[sub.importada.slug] : undefined;
-        if (sub.importada && estadoSub?.fase === 'lista' && quedoAtras(estadoSub.modulo, sub.importada)) {
+        const fSub = sub.frontera;
+        const estadoSub =
+          fSub?.procedencia === 'biblioteca' && fSub.slug ? genericas[fSub.slug] : undefined;
+        if (fSub && estadoSub?.fase === 'lista' && quedoAtras(estadoSub.modulo, fSub)) {
           motivosSub.push('La genérica cambió en la biblioteca desde que la importaste.');
           sevSub = peor(sevSub, 'aviso');
         }
@@ -276,13 +258,13 @@ export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas =
             etiqueta: sub.nombre.trim() || '(sin nombre)',
             // El valor y de qué variable sale, que ya no se deduce del nombre.
             subtitulo: v?.variable ? `${v.texto} · ${v.variable}` : (v?.texto ?? '—'),
-            campos: sub.importada
+            campos: fSub
               ? {
-                  planilla: sub.importada.slug,
-                  salida: sub.importada.salida ?? '',
+                  planilla: fSub.slug ?? fSub.origen?.slug ?? 'hoja propia',
+                  salida: fSub.salida ?? '',
                   publica: (ev.define.get(idSub) ?? []).join(', '),
                 }
-              : { bloques: sub.bloques.length, define: (ev.define.get(idSub) ?? []).join(', ') },
+              : { bloques: sub.hoja.length, define: (ev.define.get(idSub) ?? []).join(', ') },
             severidad: sevSub,
             motivos: motivosSub,
           }),

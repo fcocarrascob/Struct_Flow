@@ -9,7 +9,7 @@ import { camposResueltos, entradasEfectivas, quedoAtras, type EstadoGenerica } f
 import type { Instanciada } from './evaluacion';
 import FormularioAtable from './FormularioAtable';
 import Publicacion from './Publicacion';
-import type { Importada } from './modelo';
+import type { Frontera } from './modelo';
 
 /**
  * Las tres pestañas, y por qué el corte cae donde cae.
@@ -129,7 +129,7 @@ function Pestañas({
  */
 export default function FichaGenerica({
   estado,
-  importada,
+  frontera,
   instancia,
   otrosAlias,
   onEntrada,
@@ -140,7 +140,7 @@ export default function FichaGenerica({
   onQuitar,
 }: {
   estado: EstadoGenerica | undefined;
-  importada: Importada;
+  frontera: Frontera;
   /**
    * Lo que esta planilla produjo, ya evaluado por `evaluarObra` en el sitio que
    * le toca dentro del orden de lectura, y el scope de la obra visible ahí.
@@ -173,7 +173,7 @@ export default function FichaGenerica({
   if (!estado || estado.fase === 'cargando') {
     return (
       <p className="text-[11px] text-muted">
-        Cargando «<span className="font-mono">{importada.slug}</span>» desde la biblioteca…
+        Cargando «<span className="font-mono">{frontera.slug}</span>» desde la biblioteca…
       </p>
     );
   }
@@ -198,16 +198,16 @@ export default function FichaGenerica({
   // terminar de descargarse y el render va por delante— se pinta con el scope
   // vacío, que es lo que el nodo del canvas está enseñando en ese mismo momento.
   const scopeObra = instancia?.scope ?? {};
-  const valores = entradasEfectivas(modulo, importada, scopeObra);
-  const resueltos = camposResueltos(modulo, importada, scopeObra);
+  const valores = entradasEfectivas(modulo, frontera, scopeObra);
+  const resueltos = camposResueltos(modulo, frontera, scopeObra);
   const ev = instancia?.ev;
-  const atrasada = quedoAtras(modulo, importada);
-  const atados = Object.keys(importada.formulas ?? {}).length;
+  const atrasada = quedoAtras(modulo, frontera);
+  const atados = Object.keys(frontera.formulas ?? {}).length;
 
   if (!ev) {
     return (
       <p className="text-[11px] text-muted">
-        Calculando «<span className="font-mono">{importada.slug}</span>»…
+        Calculando «<span className="font-mono">{frontera.slug}</span>»…
       </p>
     );
   }
@@ -218,7 +218,7 @@ export default function FichaGenerica({
         <h3 className="text-xs font-semibold leading-snug text-ink">{modulo.titulo}</h3>
         <p className="mt-0.5 font-mono text-[10px] text-muted">{modulo.norma}</p>
         <p className="mt-0.5 font-mono text-[10px] text-muted">
-          {importada.slug} · {importada.sha256.slice(0, 12)}…
+          {frontera.slug} · {(frontera.sha256 ?? frontera.origen?.sha256 ?? "").slice(0, 12)}…
         </p>
       </header>
 
@@ -246,7 +246,7 @@ export default function FichaGenerica({
             Qué salida es el valor de la partida
           </span>
           <select
-            value={importada.salida ?? ''}
+            value={frontera.salida ?? ''}
             onChange={(e) => onSalida(e.target.value)}
             className="w-full rounded border border-border bg-white px-2 py-1 text-xs text-ink outline-none focus:border-accent"
           >
@@ -271,7 +271,7 @@ export default function FichaGenerica({
         activa={pestaña}
         onCambiar={setPestaña}
         atados={atados}
-        publicados={Object.keys(importada.publica ?? {}).length}
+        publicados={Object.keys(frontera.publica ?? {}).length}
         cuenta={{
           entradas: modulo.entradas.length,
           salidas: modulo.salidas.filter(ES_SALIDA).length,
@@ -291,7 +291,7 @@ export default function FichaGenerica({
             <FormularioAtable
               campos={modulo.entradas}
               valores={valores}
-              formulas={importada.formulas ?? {}}
+              formulas={frontera.formulas ?? {}}
               resueltos={resueltos}
               onValor={onEntrada}
               onFormula={onFormula}
@@ -327,7 +327,7 @@ export default function FichaGenerica({
                 una decisión que se toma mirando el número que va a viajar. */}
             <Publicacion
               modulo={modulo}
-              importada={importada}
+              frontera={frontera}
               scope={ev.scope}
               otrosAlias={otrosAlias}
               onPublicar={onPublicar}

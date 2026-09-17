@@ -21,7 +21,9 @@ import { evalExpr } from '../../lib/worksheet';
 import { cargarModuloDeBiblioteca, listarPromovibles } from '../../lib/diseno/biblioteca';
 import { evaluarModulo, type EvaluacionModulo } from '../../lib/diseno/evaluar';
 import type { Entradas, ModuloDiseno } from '../../lib/diseno/tipos';
-import type { Importada } from './modelo';
+import { sanearHoja } from './hoja';
+import { newId } from '../../lib/hoja-json';
+import type { Frontera, NodoCalculo, Subcarga } from './modelo';
 
 export { listarPromovibles };
 export type { EntradaIndice } from '../../lib/catalogo';
@@ -105,11 +107,11 @@ export function resolverExpresion(
 /** Qué da cada campo atado. Vacío si la planilla no tiene ninguno. */
 export function camposResueltos(
   modulo: ModuloDiseno<Entradas>,
-  importada: Importada,
+  frontera: Frontera,
   scope: Record<string, unknown>,
 ): Record<string, CampoResuelto> {
   const salida: Record<string, CampoResuelto> = {};
-  for (const [nombre, expr] of Object.entries(importada.formulas ?? {})) {
+  for (const [nombre, expr] of Object.entries(frontera.formulas ?? {})) {
     const campo = modulo.entradas.find((c) => c.nombre === nombre);
     if (!campo) continue;
     salida[nombre] = resolverExpresion(expr, campo.unidad, scope);
@@ -121,13 +123,13 @@ export function camposResueltos(
  *  final, por lo que dio cada campo atado a una expresión. */
 export function entradasEfectivas(
   modulo: ModuloDiseno<Entradas>,
-  importada: Importada,
+  frontera: Frontera,
   scope: Record<string, unknown> = {},
 ): Entradas {
   // Las entradas guardadas se completan con las de la genérica: una genérica que
   // estrena un campo no deja la obra sin ese valor, lo estrena con su omisión.
-  const entradas: Entradas = { ...modulo.porDefecto, ...importada.entradas };
-  for (const [nombre, r] of Object.entries(camposResueltos(modulo, importada, scope))) {
+  const entradas: Entradas = { ...modulo.porDefecto, ...frontera.entradas };
+  for (const [nombre, r] of Object.entries(camposResueltos(modulo, frontera, scope))) {
     // Un campo atado que no resuelve conserva su número: la planilla sigue
     // evaluando con el último valor bueno, y el error se ve donde se escribió.
     if (r.valor !== undefined) entradas[nombre] = r.valor;
@@ -137,11 +139,11 @@ export function entradasEfectivas(
 
 export function evaluarImportada(
   modulo: ModuloDiseno<Entradas>,
-  importada: Importada,
+  frontera: Frontera,
   scope: Record<string, unknown> = {},
 ): EvaluacionModulo {
-  const entradas = entradasEfectivas(modulo, importada, scope);
-  const k = clave(importada.slug, modulo.biblioteca?.sha256 ?? '', entradas);
+  const entradas = entradasEfectivas(modulo, frontera, scope);
+  const k = clave(frontera.slug ?? modulo.id, modulo.biblioteca?.sha256 ?? '', entradas);
   const guardada = CACHE.get(k);
   if (guardada) return guardada;
 
@@ -158,7 +160,56 @@ export function evaluarImportada(
  * la verificada. Es un aviso de que alguien tiene que mirar si el cambio afecta
  * a esta obra, exactamente como el lint del harness ante una instancia atrasada.
  */
-export function quedoAtras(modulo: ModuloDiseno<Entradas>, importada: Importada): boolean {
+export function quedoAtras(modulo: ModuloDiseno<Entradas>, frontera: Frontera): boolean {
+  // Solo una referencia a la biblioteca puede quedarse atrás. Una derivada ya no
+  // es una instancia de nada: avisar de un desfase respecto de algo de lo que la
+  // hoja se desprendió sería pedir que se «actualice» a una copia que el autor
+  // decidió no seguir.
+  if (frontera.procedencia !== 'biblioteca') return false;
   const hoy = modulo.biblioteca?.sha256;
-  return !!hoy && !!importada.sha256 && hoy !== importada.sha256;
+  return !!hoy && !!frontera.sha256 && hoy !== frontera.sha256;
+}
+
+/**
+ * Desprende una instancia de la biblioteca: deja de ser una referencia sellada y
+ * pasa a ser una copia con procedencia.
+ *
+ * `public/biblioteca/README.md` dice que la fuente de verdad de una genérica es
+ * su JSON y que no se edita encima de la que respalda una memoria. Esto no lo
+ * contradice: lo ordena. Al desprenderse, la hoja deja de decir «soy esta
+ * genérica» y pasa a decir «salí de ella, en esta versión».
+ *
+ * LAS ENTRADAS QUEDAN HORNEADAS en las regiones `in_*`, y por eso se construye
+ * la hoja una última vez con las efectivas. Una hoja editable no puede seguir
+ * teniendo una lista de campos declarados, porque el primer cambio la haría
+ * mentir — y así `propia` y `derivada` comparten un solo camino de evaluación.
+ *
+ * `vistos` es el de la obra: traer regiones a un nodo tiene que pasar por ahí, o
+ * dos nodos que desprendan la misma genérica se quedarían con los mismos ids, y
+ * los ids de región son las claves de `results` en la hoja global.
+ */
+export function desprender<T extends NodoCalculo | Subcarga>(
+  nodo: T,
+  modulo: ModuloDiseno<Entradas>,
+  scope: Record<string, unknown> = {},
+  vistos: Set<string> = new Set(),
+): T {
+  const f = nodo.frontera;
+  if (!f) return nodo;
+  const entradas = entradasEfectivas(modulo, f, scope);
+  const hoja = sanearHoja(modulo.construirHoja(entradas), vistos, newId);
+  const sello = f.sha256 || modulo.biblioteca?.sha256;
+  const slug = f.slug ?? modulo.id;
+  return {
+    ...nodo,
+    hoja,
+    ...(modulo.biblioteca?.meta ? { meta: modulo.biblioteca.meta } : {}),
+    frontera: {
+      procedencia: 'derivada',
+      ...(sello ? { origen: { slug, sha256: sello } } : {}),
+      ...(f.formulas ? { formulas: f.formulas } : {}),
+      ...(f.publica ? { publica: f.publica } : {}),
+      ...(f.salida ? { salida: f.salida } : {}),
+    },
+  };
 }

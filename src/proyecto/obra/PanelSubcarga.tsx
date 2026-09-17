@@ -7,7 +7,7 @@ import FichaGenerica from './FichaGenerica';
 import MiniHoja from './MiniHoja';
 import SelectorGenerica from './SelectorGenerica';
 import type { EvaluacionCarga } from './calculo';
-import type { Bloque, Carga, Subcarga } from './modelo';
+import type { Carga, Subcarga } from './modelo';
 
 /**
  * Una partida del desglose, con su cálculo.
@@ -32,7 +32,7 @@ export default function PanelSubcarga({
   estado,
   onRenombrar,
   onVariable,
-  onBloques,
+  onHoja,
   onImportar,
   onEntrada,
   onFormula,
@@ -61,7 +61,7 @@ export default function PanelSubcarga({
   estado: EstadoGenerica | undefined;
   onRenombrar: (nombre: string) => void;
   onVariable: (nombre: string) => void;
-  onBloques: (bloques: Bloque[]) => void;
+  onHoja: (hoja: Region[]) => void;
   onImportar: (slug: string) => void;
   onEntrada: (nombre: string, valor: number) => void;
   onFormula: (campo: string, expr: string | undefined) => void;
@@ -76,12 +76,12 @@ export default function PanelSubcarga({
   const [eligiendo, setEligiendo] = useState(false);
   useEscape(onCerrar);
   const valor = evaluacion.valores.find((v) => v.id === subcarga.id);
-  const importada = subcarga.importada;
+  const frontera = subcarga.frontera;
 
   return (
     <aside
       className={`flex h-full shrink-0 flex-col overflow-y-auto border-l border-border bg-white ${
-        importada || eligiendo ? 'w-[34rem]' : 'w-[30rem]'
+        frontera || eligiendo ? 'w-[34rem]' : 'w-[30rem]'
       }`}
     >
       <header className="sticky top-0 z-10 border-b border-border bg-white px-4 py-3">
@@ -116,8 +116,8 @@ export default function PanelSubcarga({
           {/* El nombre es una etiqueta; cuál variable aporta el valor se elige
               aparte. Con las dos cosas atadas había que llamar `CM_1` a una
               partida que en la memoria se lee «Equipos sala de bombas». */}
-          {importada ? (
-            <span className="text-[11px] text-muted">El valor sale de la planilla importada.</span>
+          {frontera ? (
+            <span className="text-[11px] text-muted">El valor sale del cálculo de esta partida.</span>
           ) : (
             <label className="flex min-w-0 items-baseline gap-1.5 text-[11px] text-muted">
               Valor de la partida
@@ -159,10 +159,10 @@ export default function PanelSubcarga({
       </header>
 
       <section className="flex min-h-0 flex-1 flex-col px-4 py-3">
-        {importada ? (
+        {frontera ? (
           <FichaGenerica
             estado={estado}
-            importada={importada}
+            frontera={frontera}
             instancia={instancia}
             otrosAlias={otrosAlias}
             onEntrada={onEntrada}
@@ -186,10 +186,10 @@ export default function PanelSubcarga({
                 se está mirando, y al saltar a otra no hay que arrastrarlo. */}
             <MiniHoja
               key={subcarga.id}
-              bloques={subcarga.bloques}
+              hoja={subcarga.hoja}
               regions={regions}
               results={results}
-              onCambiar={onBloques}
+              onCambiar={onHoja}
             />
             {/* La hoja libre sigue siendo el camino corto —un valor, un tanteo—
                 y traer una genérica es lo que se hace cuando ese tanteo se

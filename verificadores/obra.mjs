@@ -41,24 +41,38 @@ const {
   archivoDeObra,
   idDeObra,
   idNodoDeCalculo,
+  parseMathRegion,
+  // Lo que todavía no existe: estos casos se escriben antes que el modelo y
+  // fallan a propósito hasta que lo haya. `evaluarImportada` sí existe ya.
+  evaluarImportada,
+  evaluarHojaConFrontera,
+  desprender,
+  insertarEnHoja,
+  ordenDeLectura,
+  PASO_LECTURA,
 } = motor;
 
 // ── Armar una obra ───────────────────────────────────────────────────────────
 
+// Las regiones llevan coordenadas: el orden de lectura es `(y, x)`, y el paso de
+// 48 px es el de la cuadrícula del canvas. `calc` las reparte desde el origen del
+// papel, que es lo que hace `migrarBloques` con una obra guardada.
 let n = 0;
-const m = (src) => ({ id: `b${n++}`, tipo: 'math', src });
-const t = (src) => ({ id: `b${n++}`, tipo: 'text', src });
+let yCorrida = 40;
+const m = (src) => ({ id: `b${n++}`, kind: 'math', x: 40, y: (yCorrida += 48), src });
+const t = (src) => ({ id: `b${n++}`, kind: 'text', x: 40, y: (yCorrida += 48), src });
 
-/** Un nodo de cálculo con su hoja libre, o con una planilla importada. */
-function calc(id, ...bloques) {
-  return { id, nombre: id, bloques };
+/** Un nodo de cálculo con su hoja libre. */
+function calc(id, ...hoja) {
+  yCorrida = 40;
+  return { id, nombre: id, hoja: hoja.map((r, i) => ({ ...r, y: 40 + i * 48 })) };
 }
-function conPlanilla(id, importada) {
-  return { id, nombre: id, bloques: [], importada };
+function conPlanilla(id, frontera) {
+  return { id, nombre: id, hoja: [], frontera };
 }
 function obra(...calculos) {
   return {
-    version: 1,
+    version: 2,
     id: 'caso',
     nombre: 'Caso',
     creada: '2026-01-01T00:00:00.000Z',
@@ -143,15 +157,57 @@ async function generica(rel) {
 
 const PLACA = await generica('acero/placa-base-generica.json');
 const ZAPATA = await generica('hormigon/zapata-generica.json');
+/** La más grande del repo: 324 regiones y más de 300 nombres definidos. Es la
+ *  que hace falta para comprobar que una frontera de verdad contiene. */
+const PEDESTAL = await generica('hormigon/pedestal-generico.json');
 
 const genericas = {
   [PLACA.id]: { fase: 'lista', modulo: PLACA },
   [ZAPATA.id]: { fase: 'lista', modulo: ZAPATA },
+  [PEDESTAL.id]: { fase: 'lista', modulo: PEDESTAL },
 };
+
+/** Las regiones de una genérica, como quedan al desprenderla: instanciadas. */
+const hojaDe = (modulo) => modulo.construirHoja(modulo.porDefecto);
+
+/** Un nodo con su hoja de regiones y, si se le da, su frontera. */
+function conFrontera(id, hoja, frontera) {
+  return { id, nombre: id, hoja, frontera };
+}
+
+/** Una región con coordenadas, para los casos de la hoja del nodo. */
+const reg = (kind, src, y, x = 40) => ({ id: `b${n++}`, kind, x, y, src });
+
+/**
+ * Ningún nombre que la hoja define puede aparecer en el scope de la obra, salvo
+ * los alias que su `publica` declara.
+ *
+ * Es el caso que justifica el diseño entero. `pedestal-generico` define más de
+ * 300 nombres —`d`, `As`, `phi`, `b`, `s`…—: uno solo que se filtre deja al
+ * primer nodo que use esa letra en rojo por «definida en 2 nodos», y un aviso
+ * que salta por lo que no es deja de leerse.
+ */
+const noFiltra =
+  (hoja, ...salvo) =>
+  (ev) => {
+    const permitidos = new Set(salvo);
+    const fugados = [
+      ...new Set(
+        hoja
+          .filter((x) => x.kind === 'math')
+          .map((x) => parseMathRegion(x.src).varName)
+          .filter((nom) => nom && !permitidos.has(nom) && ev.scope[nom] !== undefined),
+      ),
+    ];
+    return fugados.length
+      ? `se filtraron ${fugados.length} nombres al scope común: ${fugados.slice(0, 8).join(', ')}…`
+      : null;
+  };
 
 /** Una referencia a una genérica, con sus entradas por omisión. */
 function importada(modulo, extra = {}) {
   return {
+    procedencia: 'biblioteca',
     slug: modulo.id,
     sha256: modulo.biblioteca.sha256,
     entradas: { ...modulo.porDefecto },
@@ -391,6 +447,128 @@ const CASOS = [
       return r.y < destino.y ? null : 'la región publicada no queda por encima de quien la usa';
     },
   },
+
+  // --- La hoja del nodo, con frontera ---------------------------------------
+  // Un nodo pasa a llevar su hoja como `Region[]`, y `frontera` decide dónde
+  // vive su espacio de nombres: sin ella comparte el de la obra, con ella tiene
+  // el suyo y solo cruza lo que `publica` declara.
+  {
+    nombre: 'una hoja con frontera propia no filtra ninguno de sus nombres al scope común',
+    obra: obra(
+      conFrontera('P', hojaDe(PEDESTAL), {
+        procedencia: 'derivada',
+        origen: { slug: PEDESTAL.id, sha256: PEDESTAL.biblioteca.sha256 },
+        publica: { u_max: 'u_ped' },
+      }),
+      calc('Q', m('q := u_ped * 2')),
+    ),
+    ok: todas(
+      noFiltra(hojaDe(PEDESTAL), 'u_ped'),
+      // Y lo publicado SÍ cruza, con su flecha: una frontera que no dejara pasar
+      // nada contendría igual de bien y no serviría para nada.
+      esperaArista('P', 'Q', 'u_ped'),
+      sinCiclo,
+    ),
+  },
+  {
+    nombre: 'una hoja libre sigue compartiendo el scope de la obra',
+    // La otra mitad de la decisión: sin `frontera` el nodo es la geometría y los
+    // datos comunes, y lo que define tiene que verlo todo el mundo.
+    obra: obra(
+      conFrontera('G', [reg('math', 'A_planta := 4 m * 3 m', 40)]),
+      calc('B', m('carga := A_planta * 5 kN/m^2')),
+    ),
+    ok: todas(esperaValor('carga', '60 kN'), esperaArista('G', 'B', 'A_planta')),
+  },
+  {
+    nombre: 'dos hojas con frontera pueden usar los mismos nombres sin chocar',
+    // Es lo que hoy no se puede: dos zapatas instanciadas definen las mismas
+    // letras, y sin frontera las dos quedarían sin dueño.
+    obra: obra(
+      conFrontera('Z1', hojaDe(ZAPATA), { procedencia: 'propia', publica: { u_max: 'u_z1' } }),
+      conFrontera('Z2', hojaDe(ZAPATA), { procedencia: 'propia', publica: { u_max: 'u_z2' } }),
+    ),
+    ok: (ev) =>
+      ev.repetidos.size === 0
+        ? null
+        : `se declararon repetidos: ${[...ev.repetidos.keys()].slice(0, 6).join(', ')}`,
+  },
+  {
+    nombre: 'un campo atado que la propia hoja vuelve a definir se declara como problema',
+    // El valor atado entra como scope inicial y la región lo pisa después, así
+    // que el campo no tiene efecto y nada lo diría.
+    obra: obra(
+      conFrontera('P', [reg('math', 'd := 2 m', 40), reg('math', 'r := d / 2', 88)], {
+        procedencia: 'propia',
+        formulas: { d: 'L_ext' },
+        publica: { r: 'radio' },
+      }),
+      calc('G', m('L_ext := 9 m')),
+    ),
+    ok: esperaProblema('P', /d/),
+  },
+];
+
+// ── La hoja de un nodo, como dato ────────────────────────────────────────────
+// Funciones puras que no son ni una obra evaluada ni un saneo: dónde cae un
+// bloque nuevo, y qué pasa al desprender una genérica de la biblioteca.
+
+const CASOS_HOJA = [
+  {
+    nombre: 'desprender una genérica da los mismos números, y el sello pasa a ser un origen',
+    ok: () => {
+      const imp = { ...importada(ZAPATA), procedencia: 'biblioteca', publica: { u_max: 'u' } };
+      const antes = evaluarImportada(ZAPATA, imp, {});
+      const nodo = desprender({ id: 'k', nombre: 'Z', hoja: [], frontera: imp }, ZAPATA);
+      const f = nodo.frontera;
+      if (f.procedencia !== 'derivada') return `procedencia «${f.procedencia}»`;
+      // Deja de decir «soy esta genérica» y pasa a decir «salí de ella»: con el
+      // sello puesto, `quedoAtras` avisaría de un desfase respecto de algo de lo
+      // que esta hoja ya no es una instancia.
+      if (f.sha256 !== undefined || f.slug !== undefined) return 'conservó el sello de instancia';
+      if (f.origen?.sha256 !== ZAPATA.biblioteca.sha256) return 'perdió el origen';
+      if (!nodo.hoja.length) return 'la copia se quedó sin regiones';
+      // Y las entradas quedaron horneadas en las regiones: la copia da el mismo
+      // número sin volver a instanciar nada.
+      const despues = evaluarHojaConFrontera(nodo.hoja, f, {});
+      return String(despues.scope.u_max) === String(antes.scope.u_max)
+        ? null
+        : `${despues.scope.u_max} ≠ ${antes.scope.u_max}`;
+    },
+  },
+  {
+    nombre: 'insertar detrás de un bloque no mueve nada de lo que está por encima',
+    // La mini hoja es una lista y la pestaña es el plano, y las dos editan el
+    // mismo dato: insertar no puede renumerar la hoja entera, o escribir una
+    // línea en el panel desharía la disposición hecha en el canvas.
+    ok: () => {
+      const a = reg('math', 'a := 1', 40);
+      const b = reg('math', 'b := 2', 88);
+      const c = reg('math', 'c := 3', 400);
+      const nueva = reg('math', 'x := 9', 0);
+      const salida = insertarEnHoja([a, b, c], nueva, a.id);
+      const por = (id) => salida.find((x) => x.id === id);
+      if (por(a.id).y !== 40) return `se movió lo de arriba: a quedó en ${por(a.id).y}`;
+      if (por(nueva.id).y !== a.y + PASO_LECTURA) return `la nueva cayó en ${por(nueva.id).y}`;
+      if (por(nueva.id).x !== a.x) return 'la nueva no heredó la columna de a';
+      const orden = ordenDeLectura(salida).map((x) => x.src.slice(0, 1)).join('');
+      return orden === 'axbc' ? null : `el orden de lectura dio «${orden}»`;
+    },
+  },
+  {
+    nombre: 'borrar un bloque no mueve ninguno de los demás',
+    // El hueco se queda, y es lo correcto: los huecos son deliberados —39
+    // espaciadores en el corpus, 16 solo en `anclajes-pedestal`— y renumerar una
+    // hoja de 650 regiones por borrar una línea la recolocaría entera.
+    ok: () => {
+      const a = reg('math', 'a := 1', 40);
+      const b = reg('math', 'b := 2', 88);
+      const c = reg('math', 'c := 3', 136);
+      const salida = [a, b, c].filter((x) => x.id !== b.id);
+      const movidos = salida.filter((x) => x.y !== { [a.id]: 40, [c.id]: 136 }[x.id]);
+      return movidos.length ? `se movieron: ${movidos.map((x) => x.src).join(', ')}` : null;
+    },
+  },
 ];
 
 // ── El saneo de lo que estaba guardado ───────────────────────────────────────
@@ -399,15 +577,18 @@ const CASOS = [
 // —lo que puede haber escrito una versión anterior de la aplicación— y comprueba
 // lo que sale.
 
+/** La hoja de un nodo, se llame como se llame en esta versión del documento. */
+const hojaDeNodo = (k) => k.hoja ?? k.bloques ?? [];
+
 /** Todos los ids que reparte el saneo de una obra, en un solo array. */
 function idsDe(o) {
   const ids = [];
   for (const k of o.calculos) {
-    ids.push(k.id, ...k.bloques.map((b) => b.id));
+    ids.push(k.id, ...hojaDeNodo(k).map((b) => b.id));
   }
   for (const c of o.cargas) {
     ids.push(c.id);
-    for (const s of c.subcargas) ids.push(s.id, ...s.bloques.map((b) => b.id));
+    for (const s of c.subcargas) ids.push(s.id, ...hojaDeNodo(s).map((b) => b.id));
   }
   return ids;
 }
@@ -447,8 +628,8 @@ const CASOS_SANEO = [
       cargas: [],
     },
     ok: (o) => {
-      if (o.calculos[0].bloques[0].id !== 'b1') return 'se renombró el primero, que no chocaba';
-      if (o.calculos[1].bloques[0].id === 'b1') return 'el segundo conservó el id repetido';
+      if (o.calculos[0].hoja[0].id !== 'b1') return 'se renombró el primero, que no chocaba';
+      if (o.calculos[1].hoja[0].id === 'b1') return 'el segundo conservó el id repetido';
       return null;
     },
   },
@@ -474,7 +655,7 @@ const CASOS_SANEO = [
       calculos: [{ id: 'k', nombre: 'A', bloques: [{ id: 'b1', src: 3 }, { id: 'b2', src: 'a := 1' }] }],
       cargas: [],
     },
-    ok: (o) => (o.calculos[0].bloques.length === 1 ? null : 'no se descartó el bloque sin src'),
+    ok: (o) => (o.calculos[0].hoja.length === 1 ? null : 'no se descartó el bloque sin src'),
   },
   {
     nombre: 'una obra exportada y vuelta a leer es la misma obra',
@@ -546,7 +727,7 @@ const CASOS_SANEO = [
       cargas: [],
     },
     ok: (o) => {
-      const pub = o.calculos[0].importada.publica;
+      const pub = o.calculos[0].frontera.publica;
       const claves = Object.keys(pub).sort().join(',');
       return claves === 'T_grupo' ? null : `quedaron: ${claves}`;
     },
@@ -559,6 +740,88 @@ const CASOS_SANEO = [
     crudo: { id: 'Galpón Altiplano', calculos: [], cargas: [] },
     ok: (o, crudo) => (idDeObra(crudo) === o.id ? null : `${idDeObra(crudo)} ≠ ${o.id}`),
   },
+  {
+    nombre: 'una obra con `bloques` se lee como `hoja` de regiones, en el mismo orden',
+    // `esRegion` exige `x` e `y` finitos: si el saneo validara ANTES de
+    // sintetizar las coordenadas, descartaría las tres y la obra abriría VACÍA,
+    // que es un modo de fallo que no avisa de nada.
+    crudo: {
+      id: 'o',
+      calculos: [
+        {
+          id: 'k',
+          nombre: 'A',
+          bloques: [
+            { id: 'b1', tipo: 'math', src: 'a := 1' },
+            { id: 'b2', tipo: 'text', src: 'nota' },
+            { id: 'b3', tipo: 'math', src: 'b := a + 1' },
+          ],
+        },
+      ],
+      cargas: [],
+    },
+    ok: (o) => {
+      const h = o.calculos[0].hoja;
+      if (!Array.isArray(h) || h.length !== 3) return `dio ${JSON.stringify(h)}`;
+      const sinCoords = h.filter((x) => !Number.isFinite(x.x) || !Number.isFinite(x.y));
+      if (sinCoords.length) return `sin coordenadas: ${sinCoords.map((x) => x.id).join(', ')}`;
+      if (h.find((x) => x.id === 'b2')?.kind !== 'text') return '«tipo» no se convirtió en «kind»';
+      // El orden del array ERA el orden de lectura, y el de la obra es lo que
+      // resuelve el scope: tiene que seguir siéndolo tras la migración.
+      const leido = [...h].sort((p, q) => p.y - q.y || p.x - q.x).map((x) => x.id).join(',');
+      return leido === 'b1,b2,b3' ? null : `el orden de lectura cambió: ${leido}`;
+    },
+  },
+  {
+    nombre: 'dos nodos que traen la misma región de una genérica no se quedan con el mismo id',
+    // Los ids de región son las claves de `results` en la hoja global de la
+    // obra: dos iguales comparten resultado y `key` de React. Es el paralelo del
+    // caso de los bloques, ahora que un nodo trae regiones copiadas.
+    crudo: {
+      id: 'o',
+      calculos: [
+        { id: 'k1', nombre: 'A', hoja: [{ id: 'b1', kind: 'math', x: 40, y: 40, src: 'a := 1' }] },
+        { id: 'k2', nombre: 'B', hoja: [{ id: 'b1', kind: 'math', x: 40, y: 40, src: 'b := 2' }] },
+      ],
+      cargas: [],
+    },
+    ok: (o) => {
+      if (o.calculos[0].hoja[0].id !== 'b1') return 'se renombró el primero, que no chocaba';
+      if (o.calculos[1].hoja[0].id === 'b1') return 'el segundo conservó el id repetido';
+      return null;
+    },
+  },
+  {
+    nombre: 'una `importada` guardada se lee como una frontera de la biblioteca',
+    // Es lo que hay en el `localStorage` de quien ya tiene obras: sin
+    // `procedencia`, pero con slug y sello, que es exactamente una referencia a
+    // la biblioteca.
+    crudo: {
+      id: 'o',
+      calculos: [
+        {
+          id: 'k',
+          nombre: 'Z',
+          bloques: [],
+          importada: {
+            slug: 'zapata-generica',
+            sha256: 'c'.repeat(64),
+            entradas: { B: 2 },
+            publica: { u_max: 'u_z' },
+          },
+        },
+      ],
+      cargas: [],
+    },
+    ok: (o) => {
+      const f = o.calculos[0].frontera;
+      if (!f) return 'no se convirtió en frontera';
+      if (f.procedencia !== 'biblioteca') return `procedencia «${f.procedencia}»`;
+      if (f.slug !== 'zapata-generica' || f.sha256 !== 'c'.repeat(64)) return 'perdió el sello';
+      if (f.publica?.u_max !== 'u_z') return 'perdió lo que publicaba';
+      return null;
+    },
+  },
 ];
 
 // ── Correr ───────────────────────────────────────────────────────────────────
@@ -568,6 +831,21 @@ for (const caso of CASOS_SANEO) {
   let motivo;
   try {
     motivo = caso.ok(sanearObra(caso.crudo), caso.crudo);
+  } catch (e) {
+    motivo = `lanzó: ${e.message}`;
+  }
+  if (motivo) {
+    fallos++;
+    console.log(`  [FALLA] ${caso.nombre}\n          ${motivo}`);
+  } else {
+    console.log(`  [ OK  ] ${caso.nombre}`);
+  }
+}
+
+for (const caso of CASOS_HOJA) {
+  let motivo;
+  try {
+    motivo = caso.ok();
   } catch (e) {
     motivo = `lanzó: ${e.message}`;
   }
@@ -596,6 +874,6 @@ for (const caso of CASOS) {
   }
 }
 
-const total = CASOS.length + CASOS_SANEO.length;
+const total = CASOS.length + CASOS_SANEO.length + CASOS_HOJA.length;
 console.log(`\n${fallos ? 'FALLA' : 'OK'}: ${total - fallos} de ${total} casos.\n`);
 process.exit(fallos ? 1 : 0);

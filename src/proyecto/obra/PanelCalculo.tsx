@@ -6,7 +6,7 @@ import { useEscape } from './useEscape';
 import FichaGenerica from './FichaGenerica';
 import MiniHoja from './MiniHoja';
 import SelectorGenerica from './SelectorGenerica';
-import type { Bloque, NodoCalculo } from './modelo';
+import type { NodoCalculo } from './modelo';
 
 /**
  * Un cálculo de la obra: su hoja libre, o una planilla de la biblioteca.
@@ -30,7 +30,7 @@ export default function PanelCalculo({
   instancia,
   otrosAlias,
   onNombre,
-  onBloques,
+  onHoja,
   onImportar,
   onEntrada,
   onFormula,
@@ -53,7 +53,7 @@ export default function PanelCalculo({
   instancia: Instanciada | undefined;
   otrosAlias: ReadonlySet<string>;
   onNombre: (nombre: string) => void;
-  onBloques: (bloques: Bloque[]) => void;
+  onHoja: (hoja: Region[]) => void;
   onImportar: (slug: string) => void;
   onEntrada: (nombre: string, valor: number) => void;
   onFormula: (campo: string, expr: string | undefined) => void;
@@ -88,7 +88,7 @@ export default function PanelCalculo({
                   Publica {define.length === 1 ? 'la variable ' : 'las variables '}
                   <span className="font-mono text-ink">{define.join(', ')}</span>
                 </>
-              ) : calculo.importada ? (
+              ) : calculo.frontera ? (
                 'Respaldado por una planilla. Marca en «Salidas» lo que tengan que ver los demás nodos.'
               ) : (
                 'Lo que definas acá queda disponible para los demás nodos.'
@@ -110,10 +110,10 @@ export default function PanelCalculo({
       </header>
 
       <section className="flex min-h-0 flex-1 flex-col px-4 py-3">
-        {calculo.importada ? (
+        {calculo.frontera ? (
           <FichaGenerica
             estado={estado}
-            importada={calculo.importada}
+            frontera={calculo.frontera}
             instancia={instancia}
             otrosAlias={otrosAlias}
             onEntrada={onEntrada}
@@ -134,10 +134,10 @@ export default function PanelCalculo({
           <>
             <MiniHoja
               key={calculo.id}
-              bloques={calculo.bloques}
+              hoja={calculo.hoja}
               regions={regions}
               results={results}
-              onCambiar={onBloques}
+              onCambiar={onHoja}
             />
             <button
               type="button"

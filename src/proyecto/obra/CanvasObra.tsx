@@ -15,6 +15,7 @@ import {
 import '@xyflow/react/dist/style.css';
 
 import Enlace from '../../components/Enlace';
+import type { Region } from '../../lib/worksheet';
 import type { NodoGrafo, Severidad } from '../contrato';
 import { colocar, guardarLayout, layoutGuardado, olvidarLayout, type Posicion } from '../layout';
 import { archivoDeObra, guardarObra, leerObra, nombreDeArchivo } from './almacen';
@@ -37,9 +38,8 @@ import {
   nuevaSubcarga,
   nuevoCalculo,
   slugsImportados,
-  type Bloque,
   type Carga,
-  type Importada,
+  type Frontera,
   type Modulo,
   type NodoCalculo,
   type Obra,
@@ -139,6 +139,7 @@ function CanvasObra({ id }: { id: string }) {
             usos: new Map(),
             define: new Map(),
             enCiclo: new Set<string>(),
+            atadosTapados: new Map(),
             importadas: new Map(),
           },
     [obraEval, genericas],
@@ -414,13 +415,14 @@ function CanvasObra({ id }: { id: string }) {
   // del índice haría que el nodo se declarara desfasado desde el primer
   // segundo si el índice fuera de otra compilación.
   const importar = useCallback(
-    async (slug: string, aplicar: (imp: Importada) => void) => {
+    async (slug: string, aplicar: (f: Frontera) => void) => {
       pedidas.current.add(slug);
       setGenericas((prev) => ({ ...prev, [slug]: { fase: 'cargando' } }));
       const estado = await cargarGenerica(slug);
       setGenericas((prev) => ({ ...prev, [slug]: estado }));
       if (estado.fase !== 'lista') return;
       aplicar({
+        procedencia: 'biblioteca',
         slug,
         sha256: estado.modulo.biblioteca?.sha256 ?? '',
         entradas: { ...estado.modulo.porDefecto },
@@ -657,25 +659,25 @@ function CanvasObra({ id }: { id: string }) {
             instancia={evaluacion.importadas.get(idNodoDeSubcarga(partida.id))}
             otrosAlias={aliasAjenos(idNodoDeSubcarga(partida.id))}
             problemaGrafo={problemaDeGrafo(idNodoDeSubcarga(partida.id), evaluacion)}
-            estado={partida.importada ? genericas[partida.importada.slug] : undefined}
+            estado={partida.frontera?.slug ? genericas[partida.frontera.slug] : undefined}
             onRenombrar={(nombre) => cambiarPartida(partida.id, (s) => ({ ...s, nombre }))}
             onVariable={(variable) =>
               cambiarPartida(partida.id, (s) => ({ ...s, variable: variable || undefined }))
             }
-            onBloques={(bloques: Bloque[]) =>
-              cambiarPartida(partida.id, (s) => ({ ...s, bloques }))
+            onHoja={(hoja: Region[]) =>
+              cambiarPartida(partida.id, (s) => ({ ...s, hoja }))
             }
             onImportar={(slug) =>
-              importar(slug, (imp) => cambiarPartida(partida.id, (s) => ({ ...s, importada: imp })))
+              importar(slug, (imp) => cambiarPartida(partida.id, (s) => ({ ...s, frontera: imp })))
             }
             onEntrada={(nombre, valor) =>
               cambiarPartida(partida.id, (s) =>
-                s.importada
+                s.frontera
                   ? {
                       ...s,
-                      importada: {
-                        ...s.importada,
-                        entradas: { ...s.importada.entradas, [nombre]: valor },
+                      frontera: {
+                        ...s.frontera,
+                        entradas: { ...s.frontera.entradas, [nombre]: valor },
                       },
                     }
                   : s,
@@ -683,26 +685,26 @@ function CanvasObra({ id }: { id: string }) {
             }
             onFormula={(campo, expr) =>
               cambiarPartida(partida.id, (s) =>
-                s.importada ? { ...s, importada: conFormula(s.importada, campo, expr) } : s,
+                s.frontera ? { ...s, frontera: conFormula(s.frontera, campo, expr) } : s,
               )
             }
             onPublicar={(salida, alias) =>
               cambiarPartida(partida.id, (s) =>
-                s.importada ? { ...s, importada: conPublicacion(s.importada, salida, alias) } : s,
+                s.frontera ? { ...s, frontera: conPublicacion(s.frontera, salida, alias) } : s,
               )
             }
             onSalida={(salida) =>
               cambiarPartida(partida.id, (s) =>
-                s.importada ? { ...s, importada: { ...s.importada, salida } } : s,
+                s.frontera ? { ...s, frontera: { ...s.frontera, salida } } : s,
               )
             }
             onResellar={(sha256) =>
               cambiarPartida(partida.id, (s) =>
-                s.importada ? { ...s, importada: { ...s.importada, sha256 } } : s,
+                s.frontera ? { ...s, frontera: { ...s.frontera, sha256 } } : s,
               )
             }
             onQuitarPlanilla={() =>
-              cambiarPartida(partida.id, ({ importada: _fuera, ...s }) => s)
+              cambiarPartida(partida.id, ({ frontera: _fuera, ...s }) => s)
             }
             onBorrar={() => borrarPartida(partida.id)}
             onIrACarga={() => setSeleccion(idNodoDeCarga(cargaDeLaPartida.id))}
@@ -714,7 +716,7 @@ function CanvasObra({ id }: { id: string }) {
           <PanelCalculo
             key={calculo.id}
             calculo={calculo}
-            estado={calculo.importada ? genericas[calculo.importada.slug] : undefined}
+            estado={calculo.frontera?.slug ? genericas[calculo.frontera.slug] : undefined}
             define={evaluacion.define.get(idNodoDeCalculo(calculo.id)) ?? []}
             problemaGrafo={problemaDeGrafo(idNodoDeCalculo(calculo.id), evaluacion)}
             regions={evaluacion.regions}
@@ -722,14 +724,14 @@ function CanvasObra({ id }: { id: string }) {
             instancia={evaluacion.importadas.get(idNodoDeCalculo(calculo.id))}
             otrosAlias={aliasAjenos(idNodoDeCalculo(calculo.id))}
             onNombre={(nombre) => cambiarUnCalculo(calculo.id, (k) => ({ ...k, nombre }))}
-            onBloques={(bloques: Bloque[]) =>
-              cambiarUnCalculo(calculo.id, (k) => ({ ...k, bloques }))
+            onHoja={(hoja: Region[]) =>
+              cambiarUnCalculo(calculo.id, (k) => ({ ...k, hoja }))
             }
             onImportar={(slug) =>
               importar(slug, (imp) =>
                 cambiarUnCalculo(calculo.id, (k) => ({
                   ...k,
-                  importada: imp,
+                  frontera: imp,
                   // El nodo se bautiza solo con el título de la planilla si
                   // todavía se llama como nació: un canvas con cuatro nodos
                   // «Cálculo» no dice nada.
@@ -739,12 +741,12 @@ function CanvasObra({ id }: { id: string }) {
             }
             onEntrada={(nombre, valor) =>
               cambiarUnCalculo(calculo.id, (k) =>
-                k.importada
+                k.frontera
                   ? {
                       ...k,
-                      importada: {
-                        ...k.importada,
-                        entradas: { ...k.importada.entradas, [nombre]: valor },
+                      frontera: {
+                        ...k.frontera,
+                        entradas: { ...k.frontera.entradas, [nombre]: valor },
                       },
                     }
                   : k,
@@ -752,21 +754,21 @@ function CanvasObra({ id }: { id: string }) {
             }
             onFormula={(campo, expr) =>
               cambiarUnCalculo(calculo.id, (k) =>
-                k.importada ? { ...k, importada: conFormula(k.importada, campo, expr) } : k,
+                k.frontera ? { ...k, frontera: conFormula(k.frontera, campo, expr) } : k,
               )
             }
             onPublicar={(salida, alias) =>
               cambiarUnCalculo(calculo.id, (k) =>
-                k.importada ? { ...k, importada: conPublicacion(k.importada, salida, alias) } : k,
+                k.frontera ? { ...k, frontera: conPublicacion(k.frontera, salida, alias) } : k,
               )
             }
             onResellar={(sha256) =>
               cambiarUnCalculo(calculo.id, (k) =>
-                k.importada ? { ...k, importada: { ...k.importada, sha256 } } : k,
+                k.frontera ? { ...k, frontera: { ...k.frontera, sha256 } } : k,
               )
             }
             onQuitarPlanilla={() =>
-              cambiarUnCalculo(calculo.id, ({ importada: _fuera, ...k }) => k)
+              cambiarUnCalculo(calculo.id, ({ frontera: _fuera, ...k }) => k)
             }
             onBorrar={() => borrarUnCalculo(calculo.id)}
             onCerrar={() => setSeleccion(null)}

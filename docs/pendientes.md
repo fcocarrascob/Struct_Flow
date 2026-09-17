@@ -503,9 +503,16 @@ nodo, y `verify:obra`, que es la primera red que tiene esta capa.
 
 - **Un nodo que se abre como hoja**, con el canvas entero dentro de una pestaña de la vista
   de obra: crear la planilla propia de un nodo, y abrir la de la biblioteca para verla o
-  apartarse de ella. El diseño está acordado y escrito en **`docs/pestanas-de-calculo.md`**,
-  con la decisión que lo define —una planilla del nodo tiene scope propio, no el de la obra—
-  y con lo que de verdad cuesta, que es hacer `MathCanvas` controlable.
+  apartarse de ella. El diseño está en **`docs/pestanas-de-calculo.md`**, con la decisión que
+  lo define —una planilla del nodo tiene scope propio, no el de la obra—.
+
+  **La fase 1 está hecha**, que es todo lo que no se ve: `MathCanvas` separado de su origen
+  (`useHojaPersistida` + `origen-local`, con `origen` y `deepLinks` como props) y el nodo
+  pasado a `hoja: Region[]` con `frontera?` de tres procedencias. Queda lo visible: la barra
+  de pestañas en el `<header>` de `CanvasObra` —con el patrón ARIA de `FichaGenerica`, y
+  montando **solo la pestaña activa**— y las tres entradas: crear una hoja `propia`, abrir
+  una de `biblioteca` para verla, y desprenderla a `derivada` para editarla. `desprender` ya
+  existe y `verify:obra` lo cubre; lo que falta es el botón.
 - **Combinaciones, modelo y documento.** Los tres están declarados como `POR_VENIR` en
   `PaletaNodos.tsx` y son el siguiente módulo. El encadenamiento que hay ahora es lo que una
   combinación va a citar: una carga ya es *un nombre y un desglose*, y ese nombre es el
@@ -524,6 +531,11 @@ nodo, y `verify:obra`, que es la primera red que tiene esta capa.
   (`CanvasObra.tsx`) dice que se extrae cuando aparezca un tercer lienzo, y se respeta — pero
   conviene saber que el Backspace que borraba nodos y el saneo del grafo hubo que pensarlos
   dos veces por eso.
+- **Una hoja con frontera no puede publicar lo que no calculó, y nadie lo comprueba.** Su
+  `publica` se lee del documento —a propósito, para que el grafo no se reordene cuando
+  termina una descarga—, así que un alias sobre una salida que la hoja dejó de definir
+  dibuja su flecha y deja al consumidor sin valor. Con una genérica el selector solo ofrece
+  salidas declaradas; con una hoja `propia`, que no declara nada, no hay quién lo acote.
 - **`identificadoresDe` es un tercer léxico** (`modelo.ts`), una regex propia para tokenizar
   lo que math.js ya sabe analizar. Hoy se compensa filtrando por «lo que algún nodo define»,
   así que una unidad o una función nunca se confunden con una dependencia; pero un nombre

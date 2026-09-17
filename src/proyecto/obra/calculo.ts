@@ -26,7 +26,7 @@ import { formatValor } from '../../lib/worksheet';
 import { type Genericas } from './biblioteca';
 import type { EvaluacionObra } from './evaluacion';
 import { idNodoDeSubcarga } from './ids';
-import { variableDePartida, type Carga, type Importada, type Subcarga } from './modelo';
+import { variableDePartida, type Carga, type Frontera, type Subcarga } from './modelo';
 
 export interface ValorSubcarga {
   id: string;
@@ -69,43 +69,50 @@ function resumirValores(valores: ValorSubcarga[]): string {
 }
 
 /**
- * El valor de una partida respaldada por una genérica: la salida elegida del
- * scope de esa hoja instanciada, que es otra hoja y otro scope.
+ * El valor de una partida respaldada por un cálculo con frontera: la salida
+ * elegida del scope de esa hoja, que es otra hoja y otro scope.
  *
  * Mientras la genérica se descarga NO es un fallo, y por eso `cargando` va
  * aparte de `problema`: pintar el nodo en rojo durante la descarga enseñaría un
  * error que se arregla solo un segundo después, y un rojo que se arregla solo es
  * un rojo que se deja de mirar.
  */
-function valorImportado(
+function valorConFrontera(
   sub: Subcarga,
-  imp: Importada,
+  f: Frontera,
   genericas: Genericas,
   ev: EvaluacionObra,
 ): ValorSubcarga {
-  const base = { id: sub.id, nombre: sub.nombre, variable: imp.salida };
-  const estado = genericas[imp.slug];
-  if (!estado || estado.fase === 'cargando') {
-    return { ...base, texto: '…', problema: '', cargando: true };
+  const base = { id: sub.id, nombre: sub.nombre, variable: f.salida };
+  const estado = f.procedencia === 'biblioteca' && f.slug ? genericas[f.slug] : undefined;
+  if (f.procedencia === 'biblioteca') {
+    if (!estado || estado.fase === 'cargando') {
+      return { ...base, texto: '…', problema: '', cargando: true };
+    }
+    if (estado.fase === 'error') return { ...base, texto: '—', problema: estado.motivo };
   }
-  if (estado.fase === 'error') return { ...base, texto: '—', problema: estado.motivo };
-  if (!imp.salida) {
+  if (!f.salida) {
     return {
       ...base,
       texto: '—',
-      problema: 'Elige cuál de las salidas de la planilla es el valor de la partida.',
+      problema: 'Elige cuál de las salidas de este cálculo es el valor de la partida.',
     };
   }
   // La evaluación la hizo `evaluarObra`, en el sitio que le toca a este nodo
   // dentro del orden de lectura. Reevaluarla acá con el scope final de la obra
-  // daría otro número el día que la planilla lea algo que se calcula debajo.
+  // daría otro número el día que el cálculo lea algo que se resuelve debajo.
   const instancia = ev.importadas.get(idNodoDeSubcarga(sub.id));
   if (!instancia) return { ...base, texto: '…', problema: '', cargando: true };
-  const valor = instancia.ev.scope[imp.salida];
+  const valor = instancia.salidas[f.salida];
   if (valor === undefined) {
-    return { ...base, texto: '—', problema: `La planilla no dejó valor en «${imp.salida}».` };
+    return { ...base, texto: '—', problema: `El cálculo no dejó valor en «${f.salida}».` };
   }
-  const unidad = estado.modulo.salidas.find((s) => s.nombre === imp.salida)?.unidad;
+  // La unidad declarada solo existe si hay un módulo detrás; una hoja propia
+  // entrega el `Unit` que el motor calculó, que ya la lleva.
+  const unidad =
+    estado?.fase === 'lista'
+      ? estado.modulo.salidas.find((s) => s.nombre === f.salida)?.unidad
+      : undefined;
   return {
     ...base,
     valor,
@@ -129,7 +136,7 @@ function valorLibre(sub: Subcarga, ev: EvaluacionObra): ValorSubcarga {
   if (valor === undefined) {
     // El error del bloque, si lo hay, dice más que «no está definida»: es el
     // motivo por el que el motor retiró la variable del scope.
-    const error = sub.bloques.map((b) => ev.results[b.id]?.error).find(Boolean);
+    const error = sub.hoja.map((r) => ev.results[r.id]?.error).find(Boolean);
     return {
       ...base,
       texto: '—',
@@ -145,7 +152,7 @@ export function evaluarCarga(
   genericas: Genericas = {},
 ): EvaluacionCarga {
   const valores = carga.subcargas.map((sub) =>
-    sub.importada ? valorImportado(sub, sub.importada, genericas, ev) : valorLibre(sub, ev),
+    sub.frontera ? valorConFrontera(sub, sub.frontera, genericas, ev) : valorLibre(sub, ev),
   );
 
   return { valores, resumen: resumirValores(valores) };

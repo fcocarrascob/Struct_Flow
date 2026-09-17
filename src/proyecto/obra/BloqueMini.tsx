@@ -2,8 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import BloqueDoc from '../../components/canvas/BloqueDoc';
 import { useAutocompletado } from '../../components/canvas/Autocompletado';
 import type { Sugerencia } from '../../lib/autocompletar';
-import type { RegionResult } from '../../lib/worksheet';
-import type { Bloque } from './modelo';
+import type { Region, RegionResult } from '../../lib/worksheet';
 
 /**
  * Un bloque de la mini hoja: editor cuando está activo, resultado cuando no.
@@ -23,7 +22,9 @@ import type { Bloque } from './modelo';
  */
 
 interface Props {
-  bloque: Bloque;
+  /** La región que pinta. En el panel es una lista, así que su `x`/`y` no se
+   *  usan para colocarla: solo para ordenarla, y de eso se encarga `MiniHoja`. */
+  bloque: Region;
   result?: RegionResult;
   activo: boolean;
   sugerencias?: readonly Sugerencia[];
@@ -72,10 +73,10 @@ export default function BloqueMini({
   // se edita por una rendija de una.
   useLayoutEffect(() => {
     const el = campo.current;
-    if (!activo || !el || bloque.tipo !== 'text') return;
+    if (!activo || !el || bloque.kind !== 'text') return;
     el.style.height = 'auto';
     el.style.height = `${el.scrollHeight}px`;
-  }, [activo, bloque.src, bloque.tipo]);
+  }, [activo, bloque.src, bloque.kind]);
 
   function alPerderFoco() {
     // Cambiar de pestaña o de ventana no es salir del bloque: si el documento no
@@ -102,7 +103,7 @@ export default function BloqueMini({
     if (e.key === 'Enter') {
       // En un texto, Shift/Alt+Enter parte la línea; en una fórmula no hay
       // líneas que partir, así que Enter siempre avanza.
-      if (bloque.tipo === 'text' && (e.shiftKey || e.altKey)) return;
+      if (bloque.kind === 'text' && (e.shiftKey || e.altKey)) return;
       e.preventDefault();
       onSalir(true, bloque.src);
       return;
@@ -133,7 +134,7 @@ export default function BloqueMini({
       // `relative` porque la lista de sugerencias se posiciona contra el
       // ancestro posicionado más cercano.
       <div className="relative py-0.5">
-        {bloque.tipo === 'text' ? (
+        {bloque.kind === 'text' ? (
           <textarea
             {...comunes}
             ref={(el) => {
@@ -172,10 +173,7 @@ export default function BloqueMini({
       {bloque.src.trim() === '' ? (
         <p className="font-mono text-[11px] text-muted/60">(vacío)</p>
       ) : (
-        <BloqueDoc
-          region={{ id: bloque.id, kind: bloque.tipo, x: 0, y: 0, src: bloque.src }}
-          result={result}
-        />
+        <BloqueDoc region={bloque} result={result} />
       )}
       {result?.aviso && <p className="text-[10px] leading-snug text-aviso">⚠ {result.aviso}</p>}
       <button

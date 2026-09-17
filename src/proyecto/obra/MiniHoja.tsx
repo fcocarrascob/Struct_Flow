@@ -2,16 +2,22 @@ import { useMemo, useState } from 'react';
 import { FUNCIONES_BASE, variablesVisibles } from '../../lib/autocompletar';
 import type { Region, SheetResults } from '../../lib/worksheet';
 import BloqueMini from './BloqueMini';
-import { nuevoBloque, type Bloque } from './modelo';
+import { insertarEnHoja, ordenDeLectura } from './hoja';
+import { nuevaRegion } from './modelo';
 
 /**
- * La mini hoja de una partida: una lista de bloques, editable, evaluada con el
- * motor de siempre.
+ * La hoja de un nodo, vista como una lista: editable, evaluada con el motor de
+ * siempre.
  *
- * ES UNA LISTA, NO UN LIENZO. No hay `x`/`y` que mover: el orden del array es el
- * orden de lectura, y Enter crea el siguiente bloque debajo. Es hacia donde va
- * la hoja grande según `docs/pendientes.md`, y acá se puede estrenar sin
- * arrastrar las 8.377 regiones del corpus.
+ * ES UNA VISTA EN ORDEN DE LECTURA, NO OTRO DATO. Las regiones llevan `x`/`y`
+ * —son las mismas que abre el canvas matemático— y acá se pintan ordenadas por
+ * `(y, x)`, que es el mismo criterio con el que el motor resuelve el scope. Las
+ * dos vistas editan lo mismo, así que el día que la hoja grande migre al flujo
+ * lineal las coordenadas desaparecen de las dos a la vez.
+ *
+ * Por eso insertar y borrar NO renumeran: las reglas están en `./hoja`, y son
+ * las que impiden que escribir una línea acá deshaga la disposición hecha en el
+ * canvas.
  *
  * Las sugerencias salen de `variablesVisibles`, que filtra por posición de
  * lectura: una partida ve lo que definieron las de más arriba de la misma carga,
@@ -20,17 +26,18 @@ import { nuevoBloque, type Bloque } from './modelo';
  */
 
 export default function MiniHoja({
-  bloques,
+  hoja,
   regions,
   results,
   onCambiar,
 }: {
-  bloques: Bloque[];
-  /** Las regiones sintetizadas de toda la carga, para el alcance de nombres. */
+  hoja: Region[];
+  /** Las regiones de toda la obra, para el alcance de nombres. */
   regions: Region[];
   results: SheetResults;
-  onCambiar: (bloques: Bloque[]) => void;
+  onCambiar: (hoja: Region[]) => void;
 }) {
+  const bloques = useMemo(() => ordenDeLectura(hoja), [hoja]);
   // Una partida recién creada trae su línea sembrada («CM_1 := ») y nada más.
   // Sin esto nace en rojo —«falta la expresión»— y hay que hacerle clic para
   // empezar: el error es correcto, pero llega antes de que nadie haya tenido
@@ -46,24 +53,20 @@ export default function MiniHoja({
   );
 
   function cambiarUno(id: string, src: string) {
-    onCambiar(bloques.map((b) => (b.id === id ? { ...b, src } : b)));
+    onCambiar(hoja.map((b) => (b.id === id ? { ...b, src } : b)));
   }
 
   function borrarUno(id: string) {
-    onCambiar(bloques.filter((b) => b.id !== id));
+    // Se quita y el hueco se queda. Renumerar el resto destruiría la disposición
+    // hecha en el canvas, y los huecos son deliberados: 39 espaciadores en el
+    // corpus, 16 solo en `anclajes-pedestal`.
+    onCambiar(hoja.filter((b) => b.id !== id));
     setActivo(null);
   }
 
-  function agregar(tipo: 'math' | 'text', despuesDe?: string) {
-    const b = nuevoBloque(tipo);
-    // Un `despuesDe` que ya no está en la lista da -1, y con él el bloque nuevo
-    // se insertaba al PRINCIPIO en vez de al final, que es lo contrario de lo
-    // que pide quien está escribiendo hacia abajo.
-    const hallado = despuesDe ? bloques.findIndex((x) => x.id === despuesDe) : -1;
-    const i = hallado >= 0 ? hallado : bloques.length - 1;
-    const siguientes = [...bloques];
-    siguientes.splice(i + 1, 0, b);
-    onCambiar(siguientes);
+  function agregar(kind: 'math' | 'text', despuesDe?: string) {
+    const b = nuevaRegion(kind);
+    onCambiar(insertarEnHoja(hoja, b, despuesDe));
     setActivo(b.id);
   }
 
@@ -76,7 +79,7 @@ export default function MiniHoja({
     // Un bloque que queda vacío al salir se descarta, igual que en el canvas:
     // no es un hueco, es algo que se empezó a escribir y no se escribió.
     if (src.trim() === '') {
-      onCambiar(bloques.filter((x) => x.id !== id));
+      onCambiar(hoja.filter((x) => x.id !== id));
       setActivo(null);
       return;
     }

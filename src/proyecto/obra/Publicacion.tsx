@@ -1,7 +1,7 @@
 import { formatValor } from '../../lib/worksheet';
 import type { MetaPlanilla } from '../../lib/biblioteca/contrato';
 import type { ModuloDiseno, Entradas, SalidaDef } from '../../lib/diseno/tipos';
-import { problemaDeAlias, type Importada } from './modelo';
+import { problemaDeAlias, type Frontera } from './modelo';
 
 /**
  * Qué salidas de esta planilla ve el resto de la obra, y con qué nombre.
@@ -37,19 +37,19 @@ function entregaA(meta: MetaPlanilla | undefined, nombre: string): string[] {
 
 export default function Publicacion({
   modulo,
-  importada,
+  frontera,
   scope,
   otrosAlias,
   onPublicar,
 }: {
   modulo: ModuloDiseno<Entradas>;
-  importada: Importada;
+  frontera: Frontera;
   /** El scope de la planilla evaluada, para enseñar el valor que viajaría. */
   scope: Record<string, unknown>;
   otrosAlias: ReadonlySet<string>;
   onPublicar: (salida: string, alias: string | undefined) => void;
 }) {
-  const publica = importada.publica ?? {};
+  const publica = frontera.publica ?? {};
   const meta = modulo.biblioteca?.meta;
   const salidas = modulo.salidas.filter(PUBLICABLE);
 

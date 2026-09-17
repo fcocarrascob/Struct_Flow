@@ -12,15 +12,22 @@
 // El verificador arma los módulos desde el archivo con `moduloDeBiblioteca`, que
 // es la misma operación que hace la aplicación después de descargarlo.
 
-export { evaluarObra, nodosDeLaObra, problemaDeGrafo } from './evaluacion';
+export {
+  evaluarObra,
+  evaluarHojaConFrontera,
+  nodosDeLaObra,
+  problemaDeGrafo,
+} from './evaluacion';
 export { sanearObra, idDeObra, archivoDeObra, importarObra } from './almacen';
 export { proyectar } from './proyeccion';
+export { insertarEnHoja, migrarBloques, ordenDeLectura, PASO_LECTURA } from './hoja';
 export { evaluarCarga, variablesDePartida } from './calculo';
 export {
   resolverExpresion,
   camposResueltos,
   entradasEfectivas,
   evaluarImportada,
+  desprender,
   quedoAtras,
 } from './biblioteca';
 export * from './ids';

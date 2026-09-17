@@ -15,17 +15,20 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { newId } from '../../lib/hoja-json';
+import type { MetaPlanilla } from '../../lib/biblioteca/contrato';
+import { metaDe } from '../../lib/hoja-json';
+import { migrarBloques, sanearHoja } from './hoja';
 import {
   IDENTIFICADOR_RE,
   problemaDeAlias,
   slugificar,
   VERSION_OBRA,
-  type Bloque,
   type Carga,
-  type Importada,
+  type Frontera,
   type Modulo,
   type NodoCalculo,
   type Obra,
+  type Procedencia,
   type Subcarga,
 } from './modelo';
 
@@ -61,32 +64,49 @@ function idUnico(crudo: unknown, vistos: Vistos): string {
  * esta aplicación, no un `Obra`. Se sanea igual que `sanearRegiones` hace con
  * una hoja: lo que no calza se descarta en vez de reventar la pantalla.
  */
-/** `src` tiene que ser string sí o sí: `evaluateSheet` hace `region.src.trim()`
- *  sin red, así que un bloque con `src` de otro tipo rompería la evaluación
- *  entera de la carga en vez de estropear solo su propio bloque. */
-function sanearBloque(crudo: unknown, vistos: Vistos): Bloque | null {
-  if (typeof crudo !== 'object' || crudo === null) return null;
-  const b = crudo as Partial<Bloque>;
-  if (typeof b.src !== 'string') return null;
-  return {
-    id: idUnico(b.id, vistos),
-    tipo: b.tipo === 'text' ? 'text' : 'math',
-    src: b.src,
-  };
+/**
+ * La hoja de un nodo, venga como venga guardada.
+ *
+ * MIGRACIÓN. Hasta la versión 1 un nodo guardaba `bloques`: una lista sin `x` ni
+ * `y`, cuyo ORDEN era el orden de lectura. `migrarBloques` les sintetiza
+ * coordenadas **antes** de validar nada, y ese orden importa: `esRegion` exige
+ * `x` e `y` finitos, así que validar primero descartaría las regiones de cada
+ * nodo y la obra abriría VACÍA, sin avisar de nada.
+ */
+function sanearHojaDeNodo(crudo: { hoja?: unknown; bloques?: unknown }, vistos: Vistos) {
+  const lista = Array.isArray(crudo.hoja) ? crudo.hoja : migrarBloques(crudo.bloques);
+  return sanearHoja(lista, vistos, newId);
 }
 
-function sanearBloques(crudo: unknown, vistos: Vistos): Bloque[] {
-  return (Array.isArray(crudo) ? crudo : [])
-    .map((b) => sanearBloque(b, vistos))
-    .filter((b): b is Bloque => b !== null);
-}
+const PROCEDENCIAS: ReadonlySet<string> = new Set<Procedencia>([
+  'biblioteca',
+  'propia',
+  'derivada',
+]);
 
-/** Sin `slug` no hay nada que descargar, así que la referencia se descarta
- *  entera y la partida vuelve a su hoja libre, que sí está guardada. */
-function sanearImportada(crudo: unknown): Importada | undefined {
+/** 64 hex, o nada. Un sello ilegible se trata como «sin sello»: no se avisa de
+ *  un desfase que no se puede comprobar. */
+const sello = (v: unknown): string | undefined =>
+  typeof v === 'string' && /^[0-9a-f]{64}$/.test(v) ? v : undefined;
+
+/**
+ * La frontera de un nodo.
+ *
+ * MIGRACIÓN. Lo guardado hasta la versión 1 era una `importada`: sin
+ * `procedencia`, pero con slug y sello, que es exactamente una referencia a la
+ * biblioteca. Una sin `slug` sí se descarta entera: no hay nada que descargar, y
+ * el nodo vuelve a ser una hoja libre con las regiones que sí están guardadas.
+ */
+function sanearFrontera(crudo: unknown): Frontera | undefined {
   if (typeof crudo !== 'object' || crudo === null) return undefined;
-  const i = crudo as Partial<Importada>;
-  if (typeof i.slug !== 'string' || !i.slug) return undefined;
+  const i = crudo as Partial<Frontera>;
+  const procedencia: Procedencia =
+    typeof i.procedencia === 'string' && PROCEDENCIAS.has(i.procedencia)
+      ? i.procedencia
+      : 'biblioteca';
+  const slug = typeof i.slug === 'string' && i.slug ? i.slug : undefined;
+  if (procedencia === 'biblioteca' && !slug) return undefined;
+
   const entradas: Record<string, number> = {};
   if (typeof i.entradas === 'object' && i.entradas !== null) {
     for (const [k, v] of Object.entries(i.entradas)) {
@@ -108,26 +128,50 @@ function sanearImportada(crudo: unknown): Importada | undefined {
       if (typeof v === 'string' && !problemaDeAlias(v)) publica[k] = v.trim();
     }
   }
+
+  const org = i.origen;
+  const origen =
+    procedencia === 'derivada' &&
+    typeof org === 'object' &&
+    org !== null &&
+    typeof org.slug === 'string' &&
+    sello(org.sha256)
+      ? {
+          slug: org.slug,
+          sha256: org.sha256,
+          ...(Array.isArray(org.desvios) && org.desvios.some((d) => typeof d === 'string')
+            ? { desvios: org.desvios.filter((d): d is string => typeof d === 'string') }
+            : {}),
+        }
+      : undefined;
+
   return {
-    slug: i.slug,
-    // Un sello ilegible se trata como «sin sello»: no se avisa de un desfase
-    // que no se puede comprobar, y se vuelve a sellar al primer cambio.
-    sha256: typeof i.sha256 === 'string' && /^[0-9a-f]{64}$/.test(i.sha256) ? i.sha256 : '',
-    entradas,
+    procedencia,
+    // El sello es de la instancia, así que solo tiene sentido en `biblioteca`;
+    // una derivada ya no es una instancia de nada y lo lleva en `origen`.
+    ...(procedencia === 'biblioteca' && slug ? { slug, sha256: sello(i.sha256) ?? '' } : {}),
+    ...(origen ? { origen } : {}),
+    ...(procedencia === 'biblioteca' ? { entradas } : {}),
     ...(Object.keys(formulas).length ? { formulas } : {}),
     ...(Object.keys(publica).length ? { publica } : {}),
     ...(typeof i.salida === 'string' && i.salida ? { salida: i.salida } : {}),
   };
 }
 
+/** El `meta` de la hoja de un nodo, con el mismo criterio que el del canvas. */
+function sanearMeta(crudo: unknown): MetaPlanilla | undefined {
+  return metaDe(crudo) ?? undefined;
+}
+
 function sanearSubcarga(crudo: unknown, vistos: Vistos): Subcarga | null {
   if (typeof crudo !== 'object' || crudo === null) return null;
-  const s = crudo as Partial<Subcarga>;
+  const s = crudo as Partial<Subcarga> & { bloques?: unknown; importada?: unknown };
   if (typeof s.nombre !== 'string') return null;
-  const importada = sanearImportada(s.importada);
-  // MIGRACIÓN. Hasta ahora el nombre de la partida ERA su variable. Una obra
-  // guardada entonces no trae `variable`, y adoptar el nombre viejo es lo único
-  // que conserva su valor: sin esto, todas sus partidas abrirían en rojo
+  const frontera = sanearFrontera(s.frontera ?? s.importada);
+  const meta = sanearMeta(s.meta);
+  // MIGRACIÓN. Hasta la versión 1 el nombre de la partida ERA su variable. Una
+  // obra guardada entonces no trae `variable`, y adoptar el nombre viejo es lo
+  // único que conserva su valor: sin esto, todas sus partidas abrirían en rojo
   // pidiendo que se elija una variable que ya estaba elegida.
   const variable =
     typeof s.variable === 'string' && s.variable
@@ -138,21 +182,24 @@ function sanearSubcarga(crudo: unknown, vistos: Vistos): Subcarga | null {
   return {
     id: idUnico(s.id, vistos),
     nombre: s.nombre,
-    bloques: sanearBloques(s.bloques, vistos),
+    hoja: sanearHojaDeNodo(s, vistos),
+    ...(meta ? { meta } : {}),
     ...(variable ? { variable } : {}),
-    ...(importada ? { importada } : {}),
+    ...(frontera ? { frontera } : {}),
   };
 }
 
 function sanearCalculo(crudo: unknown, vistos: Vistos): NodoCalculo | null {
   if (typeof crudo !== 'object' || crudo === null) return null;
-  const k = crudo as Partial<NodoCalculo>;
-  const importada = sanearImportada(k.importada);
+  const k = crudo as Partial<NodoCalculo> & { bloques?: unknown; importada?: unknown };
+  const frontera = sanearFrontera(k.frontera ?? k.importada);
+  const meta = sanearMeta(k.meta);
   return {
     id: idUnico(k.id, vistos),
     nombre: typeof k.nombre === 'string' ? k.nombre : 'Cálculo',
-    bloques: sanearBloques(k.bloques, vistos),
-    ...(importada ? { importada } : {}),
+    hoja: sanearHojaDeNodo(k, vistos),
+    ...(meta ? { meta } : {}),
+    ...(frontera ? { frontera } : {}),
   };
 }
 

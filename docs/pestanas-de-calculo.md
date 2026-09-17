@@ -1,7 +1,21 @@
 # Pestañas de cálculo: un nodo de obra que se abre como hoja
 
-**2026-09-17.** Diseño acordado, todavía sin implementar. Se escribe antes que el código
-porque la decisión que lo define no es la del canvas, y equivocarla se paga en el modelo.
+**2026-09-17.** Diseño acordado. Se escribió antes que el código porque la decisión que lo
+define no es la del canvas, y equivocarla se paga en el modelo.
+
+**Fase 1 hecha el mismo día**, que es todo lo que no se ve: el canvas separado de su origen
+(`useHojaPersistida` + `origen-local`) y el modelo del nodo pasado a `hoja: Region[]` con
+`frontera?`. Faltan las pestañas y las tres entradas. Tres decisiones que este documento
+dejaba abiertas y se cerraron al empezar:
+
+1. **Una sola hoja por nodo, con `frontera?` opcional.** Sin frontera es hoja libre y
+   comparte el scope de la obra; con frontera tiene scope propio y procedencia. Es la
+   simplificación que la sección «Con eso, los tres casos son uno solo» promete, y no dos
+   campos conviviendo. El precio está abajo, en «Lo que el cambio se llevó».
+2. **La pestaña activa vivirá en el estado de `CanvasObra`**, no en la ruta: `parsearRuta`
+   solo mira el `pathname` y la query es un canal de arranque que se autodestruye, así que
+   modelarla costaría extender `Ruta` y reabriría el 404 de recarga en despliegue estático.
+3. **Por fases, con parada tras la primera.**
 
 ## Qué se quiere
 
@@ -153,3 +167,30 @@ a mano y que hoy no comprueba nadie. Hay que probarlo en el navegador, no solo c
   con el scope de *su* posición. No conviene volver a una sola pasada.
 - `localStorage` no es el cuello de botella: la genérica más grande del repo pesa 81 KB, así
   que caben decenas de hojas propias en los ~5 MB. Con exportar e importar, alcanza.
+
+## Lo que el cambio se llevó, y lo que no
+
+**El aviso de «hoja tapada» ya no existe**, y con él la función que lo emitía. Decía qué
+nombres dejaba de ver la obra cuando un nodo con hoja libre pasaba a estar respaldado por
+una planilla. Con una sola hoja por nodo esa situación no se puede dar: o el nodo tiene
+frontera o no la tiene.
+
+**Lo que sí sobrevive es el tanteo.** La migración no borra nada: un nodo que traía
+`bloques` y `importada` se lee con esos bloques en su `hoja` y su `frontera` de procedencia
+`biblioteca`. La hoja no se evalúa mientras la frontera sea de la biblioteca —igual que
+antes—, y quitar la planilla la devuelve. Lo que se perdió es el aviso, no los datos.
+
+**`problemaDeGrafo` gana un diagnóstico**: un campo atado que la propia hoja vuelve a
+definir. El valor atado entra como scope inicial y la región lo pisa después, así que el
+campo no tiene ningún efecto y el número sale plausible y equivocado — la primera clase de
+falla de la taxonomía. Solo aplica a `propia` y `derivada`; en una de `biblioteca` un campo
+atado reescribe la región `in_*` que lo declara, así que no hay nada que tapar.
+
+**Una trampa que apareció al implementar, y no estaba escrita acá.** Las regiones de un nodo
+traen sus propias coordenadas y **todos los nodos empiezan en `y = 40`**: concatenarlas tal
+cual para armar la hoja global interleaveaba las hojas y rompía el orden topológico, que ES
+el orden de lectura. `evaluarObra` re-estampa cada hoja debajo de la anterior conservando su
+forma interna y su `x` —y con ella una segunda columna que el autor haya abierto en el
+canvas—, y avanza el paso **antes** de emitir: con el paso después, la primera región de un
+nodo empataba en `y` con la región fantasma de lo que publicó el nodo anterior, y el
+desempate lo decidía la `x`, que es la del papel y no dice nada del orden entre nodos.
