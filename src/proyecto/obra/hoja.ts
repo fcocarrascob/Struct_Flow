@@ -21,9 +21,11 @@
 // de todos sus proyectos. De `src/lib` se importa; no se toca.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type { Region, RegionKind } from '../../lib/worksheet';
+import { parseMathRegion, type Region, type RegionKind } from '../../lib/worksheet';
 import { abrirHueco, mismoOrdenDeLectura } from '../../lib/solapes';
 import { sanearRegiones } from '../../lib/hoja-json';
+import { INTRINSECOS } from '../../lib/canvas-handoff';
+import { identificadoresDe } from './modelo';
 
 /**
  * Dónde empieza una hoja. Son los mismos de `SiluetaPapel.tsx`, repetidos a
@@ -50,6 +52,50 @@ export const PASO_LECTURA = 48;
  */
 export function ordenDeLectura(hoja: readonly Region[]): Region[] {
   return [...hoja].sort((a, b) => a.y - b.y || a.x - b.x);
+}
+
+/**
+ * Lo que la hoja define, en orden de lectura.
+ *
+ * `parseMathRegion` es la MISMA función con la que el motor decide si una región
+ * define algo. Detectar el `:=` por nuestra cuenta sería una segunda gramática, y
+ * bastaría un caso raro para que discreparan.
+ */
+export function definicionesDe(hoja: readonly Region[]): string[] {
+  const nombres: string[] = [];
+  for (const r of ordenDeLectura(hoja)) {
+    if (r.kind !== 'math') continue;
+    const v = parseMathRegion(r.src).varName;
+    if (v && !nombres.includes(v)) nombres.push(v);
+  }
+  return nombres;
+}
+
+/**
+ * Los nombres que la hoja USA y no define: sus entradas, aunque nadie las haya
+ * declarado.
+ *
+ * Es lo que una hoja propia necesita para poder atarse a la obra. Una genérica
+ * declara sus campos en `meta.entradas` y el formulario sale de ahí; una hoja
+ * escrita a mano no declara nada, así que lo único honesto es leerlo de lo que
+ * está escrito: si una fórmula nombra `L_ext` y ninguna línea la define, esa es
+ * una entrada del cálculo.
+ *
+ * Se descartan las unidades y las funciones del motor con `INTRINSECOS`, que es
+ * la misma lista con la que `problemaDeAlias` impide llamar `m` o `min` a un
+ * alias. Sin ella, `kN` y `sqrt` aparecerían como entradas que faltan.
+ */
+export function nombresSueltos(hoja: readonly Region[]): string[] {
+  const define = new Set(definicionesDe(hoja));
+  const sueltos: string[] = [];
+  for (const r of ordenDeLectura(hoja)) {
+    if (r.kind !== 'math') continue;
+    for (const id of identificadoresDe(r.src)) {
+      if (define.has(id) || INTRINSECOS.has(id) || sueltos.includes(id)) continue;
+      sueltos.push(id);
+    }
+  }
+  return sueltos;
 }
 
 /** Un bloque de las obras guardadas antes de que el nodo llevara regiones. */

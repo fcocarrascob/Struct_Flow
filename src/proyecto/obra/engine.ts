@@ -20,7 +20,14 @@ export {
 } from './evaluacion';
 export { sanearObra, idDeObra, archivoDeObra, importarObra } from './almacen';
 export { proyectar } from './proyeccion';
-export { insertarEnHoja, migrarBloques, ordenDeLectura, PASO_LECTURA } from './hoja';
+export {
+  definicionesDe,
+  insertarEnHoja,
+  migrarBloques,
+  nombresSueltos,
+  ordenDeLectura,
+  PASO_LECTURA,
+} from './hoja';
 export { evaluarCarga, variablesDePartida } from './calculo';
 export {
   resolverExpresion,

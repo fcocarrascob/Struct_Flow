@@ -19,11 +19,12 @@ import MathCanvas from '../../components/canvas/MathCanvas';
 import type { Region } from '../../lib/worksheet';
 import type { MetaPlanilla } from '../../lib/biblioteca/contrato';
 import { origenDeNodo } from './origen-nodo';
+import VistaHoja from './VistaHoja';
 import type { NodoGrafo, Severidad } from '../contrato';
 import { colocar, guardarLayout, layoutGuardado, olvidarLayout, type Posicion } from '../layout';
 import { archivoDeObra, guardarObra, leerObra, nombreDeArchivo } from './almacen';
 import { descargarHoja } from '../../lib/canvas-handoff';
-import { cargarGenerica, type Genericas } from './biblioteca';
+import { cargarGenerica, desprender, type Genericas } from './biblioteca';
 import { evaluarObra, problemaDeGrafo } from './evaluacion';
 import { variablesDePartida } from './calculo';
 import {
@@ -96,6 +97,32 @@ const ENCUADRE = { padding: 0.25, duration: 250, maxZoom: 1 };
 function tituloCorto(slug: string): string {
   const base = slug.replace(/-generic[ao]$/, '').replace(/-/g, ' ');
   return base.charAt(0).toUpperCase() + base.slice(1);
+}
+
+/** El nodo del documento que hay detrás de un nodo del grafo. */
+function nodoDelDocumento(obra: Obra | null, idNodo: string): NodoCalculo | Subcarga | undefined {
+  if (!obra) return undefined;
+  const idK = calculoDeNodo(idNodo);
+  if (idK) return obra.calculos.find((k) => k.id === idK);
+  const idS = subcargaDeNodo(idNodo);
+  if (!idS) return undefined;
+  return cargaDeSubcarga(obra, idS)?.subcargas.find((s) => s.id === idS);
+}
+
+/**
+ * Todos los ids de región que la obra ya repartió.
+ *
+ * Los ids de región son las claves de `results` en la hoja global, así que traer
+ * las de una genérica a un nodo tiene que pasar por acá: dos nodos que
+ * desprendan la misma genérica se quedarían con las mismas.
+ */
+function idsDeLaObra(obra: Obra): Set<string> {
+  const vistos = new Set<string>();
+  for (const k of obra.calculos) for (const r of k.hoja) vistos.add(r.id);
+  for (const c of obra.cargas) {
+    for (const s of c.subcargas) for (const r of s.hoja) vistos.add(r.id);
+  }
+  return vistos;
 }
 
 function CanvasObra({ id }: { id: string }) {
@@ -241,6 +268,14 @@ function CanvasObra({ id }: { id: string }) {
   // tecla haría saltar el canvas entero mientras se escribe un nombre.
   const seleccionRef = useRef(seleccion);
   seleccionRef.current = seleccion;
+
+  // Espejos para las acciones que corren desde un manejador y no desde el
+  // render: desprender necesita el módulo descargado y el scope de la posición
+  // del nodo, y ninguno de los dos es estado de esta función.
+  const genericasRef = useRef(genericas);
+  genericasRef.current = genericas;
+  const evaluacionRef = useRef(evaluacion);
+  evaluacionRef.current = evaluacion;
 
   // Las posiciones guardadas se leen UNA vez, al abrir la obra. `layoutGuardado`
   // parsea el registro completo de todos los proyectos y todas las obras, y
@@ -509,6 +544,60 @@ function CanvasObra({ id }: { id: string }) {
     [cambiarUnCalculo, cambiarPartida],
   );
 
+  /**
+   * Le da frontera a la hoja de un nodo, y la abre para escribirla.
+   *
+   * Es «crear la planilla de cálculo de este nodo»: la hoja pasa a tener su
+   * propio espacio de nombres, y lo que defina deja de verse desde el resto de
+   * la obra salvo lo que publique. No se toca ni una región.
+   */
+  const crearPlanilla = useCallback(
+    (idNodo: string) => {
+      const conFrontera = <T extends { frontera?: Frontera }>(n: T): T => ({
+        ...n,
+        frontera: { procedencia: 'propia' as const, ...n.frontera },
+      });
+      const idK = calculoDeNodo(idNodo);
+      if (idK) cambiarUnCalculo(idK, conFrontera);
+      else {
+        const idS = subcargaDeNodo(idNodo);
+        if (idS) cambiarPartida(idS, conFrontera);
+      }
+      abrirPestana(idNodo);
+    },
+    [cambiarUnCalculo, cambiarPartida, abrirPestana],
+  );
+
+  /**
+   * Desprende la genérica de un nodo y abre la copia para editarla.
+   *
+   * `desprender` hace la transición —hornea las entradas en las regiones `in_*`,
+   * cambia el sello por una procedencia y renombra los ids que choquen con los
+   * de la obra—. Acá solo hace falta darle los ids ya tomados: dos nodos que
+   * desprendan la misma genérica no pueden quedarse con las mismas regiones.
+   */
+  const desprenderNodo = useCallback(
+    (idNodo: string) => {
+      const o = obraRef.current;
+      const n = nodoDelDocumento(o, idNodo);
+      const slug = n?.frontera?.slug;
+      const estado = slug ? genericasRef.current[slug] : undefined;
+      if (!o || !n || estado?.fase !== 'lista') return;
+      const vistos = idsDeLaObra(o);
+      const scope = evaluacionRef.current.importadas.get(idNodo)?.scope ?? {};
+      const cambio = <T extends NodoCalculo | Subcarga>(x: T): T =>
+        desprender(x, estado.modulo, scope, vistos);
+      const idK = calculoDeNodo(idNodo);
+      if (idK) cambiarUnCalculo(idK, cambio);
+      else {
+        const idS = subcargaDeNodo(idNodo);
+        if (idS) cambiarPartida(idS, cambio);
+      }
+      abrirPestana(idNodo);
+    },
+    [cambiarUnCalculo, cambiarPartida, abrirPestana],
+  );
+
   // El origen se rehace al cambiar de pestaña y no al cambiar el documento: sus
   // dos métodos leen y escriben por función, así que no cierra sobre ninguna
   // copia de la obra que pueda quedarse vieja.
@@ -577,6 +666,14 @@ function CanvasObra({ id }: { id: string }) {
   // Los nombres que publican los OTROS nodos: con eso el selector de salidas
   // propone un alias libre en vez de uno que deja los dos nodos en rojo en el
   // mismo clic que los conecta.
+  // Si la pestaña abierta es una de la biblioteca, lo que se pinta es su hoja
+  // instanciada, que la evaluación ya produjo en el sitio que le toca. No se
+  // vuelve a instanciar acá: sería una segunda autoridad sobre el mismo número.
+  const deLaBiblioteca =
+    activa && nodoDelDocumento(obra, activa)?.frontera?.procedencia === 'biblioteca'
+      ? evaluacion.importadas.get(activa)?.ev
+      : undefined;
+
   const aliasAjenos = (idNodo: string): ReadonlySet<string> => {
     const fuera = new Set<string>();
     for (const [id, nombres] of evaluacion.define) {
@@ -700,7 +797,23 @@ function CanvasObra({ id }: { id: string }) {
         )}
       </header>
 
-      {activa && origenPestana && (
+      {activa && deLaBiblioteca && (
+        // Una hoja de la biblioteca se LEE. Editarla en su sitio iría contra la
+        // regla de `public/biblioteca/README.md` —su fuente de verdad es su JSON,
+        // y no se edita encima de la que respalda una memoria—, así que para
+        // apartarse de ella primero hay que desprenderla.
+        <div className="min-h-0 flex-1">
+          <VistaHoja
+            key={activa}
+            hoja={deLaBiblioteca.regions}
+            results={deLaBiblioteca.results}
+            titulo={hojaDeNodo(activa)?.etiqueta ?? ''}
+            onDesprender={() => desprenderNodo(activa)}
+          />
+        </div>
+      )}
+
+      {activa && !deLaBiblioteca && origenPestana && (
         // `key` por nodo: cambiar de pestaña tiene que REMONTAR el canvas. Sin
         // ella React reconciliaría la misma instancia, y el hook de persistencia
         // —que lee su origen una sola vez, al montar— seguiría escribiendo en el
@@ -821,6 +934,9 @@ function CanvasObra({ id }: { id: string }) {
               cambiarPartida(partida.id, (s) => ({ ...s, hoja }))
             }
             onAbrirHoja={() => abrirPestana(idNodoDeSubcarga(partida.id))}
+            onCrearPlanilla={() => crearPlanilla(idNodoDeSubcarga(partida.id))}
+            onDesprender={() => desprenderNodo(idNodoDeSubcarga(partida.id))}
+            atados={evaluacion.scopeEnNodo.get(idNodoDeSubcarga(partida.id)) ?? {}}
             onImportar={(slug) =>
               importar(slug, (imp) => cambiarPartida(partida.id, (s) => ({ ...s, frontera: imp })))
             }
@@ -882,6 +998,9 @@ function CanvasObra({ id }: { id: string }) {
               cambiarUnCalculo(calculo.id, (k) => ({ ...k, hoja }))
             }
             onAbrirHoja={() => abrirPestana(idNodoDeCalculo(calculo.id))}
+            onCrearPlanilla={() => crearPlanilla(idNodoDeCalculo(calculo.id))}
+            onDesprender={() => desprenderNodo(idNodoDeCalculo(calculo.id))}
+            atados={evaluacion.scopeEnNodo.get(idNodoDeCalculo(calculo.id)) ?? {}}
             onImportar={(slug) =>
               importar(slug, (imp) =>
                 cambiarUnCalculo(calculo.id, (k) => ({

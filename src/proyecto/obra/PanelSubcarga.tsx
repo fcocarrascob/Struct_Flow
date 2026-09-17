@@ -4,8 +4,10 @@ import type { EstadoGenerica } from './biblioteca';
 import type { Instanciada } from './evaluacion';
 import { useEscape } from './useEscape';
 import FichaGenerica from './FichaGenerica';
+import FichaPropia from './FichaPropia';
 import MiniHoja from './MiniHoja';
 import SelectorGenerica from './SelectorGenerica';
+import { definicionesDe, nombresSueltos } from './hoja';
 import type { EvaluacionCarga } from './calculo';
 import type { Carga, Subcarga } from './modelo';
 
@@ -28,12 +30,15 @@ export default function PanelSubcarga({
   regions,
   results,
   instancia,
+  atados,
   otrosAlias,
   estado,
   onRenombrar,
   onVariable,
   onHoja,
   onAbrirHoja,
+  onCrearPlanilla,
+  onDesprender,
   onImportar,
   onEntrada,
   onFormula,
@@ -65,6 +70,12 @@ export default function PanelSubcarga({
   onHoja: (hoja: Region[]) => void;
   /** Abre esta hoja como pestaña, con el canvas matemático entero. */
   onAbrirHoja: () => void;
+  /** Le da frontera a la hoja: scope propio, y se abre para escribirla. */
+  onCrearPlanilla: () => void;
+  /** Copia la genérica al nodo para poder editarla, y la abre. */
+  onDesprender: () => void;
+  /** El scope con el que se evalúa su hoja: los campos atados ya resueltos. */
+  atados: Record<string, unknown>;
   onImportar: (slug: string) => void;
   onEntrada: (nombre: string, valor: number) => void;
   onFormula: (campo: string, expr: string | undefined) => void;
@@ -162,12 +173,28 @@ export default function PanelSubcarga({
       </header>
 
       <section className="flex min-h-0 flex-1 flex-col px-4 py-3">
-        {frontera ? (
+        {frontera && frontera.procedencia !== 'biblioteca' ? (
+          <FichaPropia
+            frontera={frontera}
+            define={definicionesDe(subcarga.hoja)}
+            sueltos={nombresSueltos(subcarga.hoja)}
+            atados={atados}
+            otrosAlias={otrosAlias}
+            conSalida
+            onAbrirHoja={onAbrirHoja}
+            onFormula={onFormula}
+            onPublicar={onPublicar}
+            onSalida={onSalida}
+            onQuitar={onQuitarPlanilla}
+          />
+        ) : frontera ? (
           <FichaGenerica
             estado={estado}
             frontera={frontera}
             instancia={instancia}
             otrosAlias={otrosAlias}
+            onAbrirHoja={onAbrirHoja}
+            onDesprender={onDesprender}
             onEntrada={onEntrada}
             onFormula={onFormula}
             onPublicar={onPublicar}
@@ -205,6 +232,14 @@ export default function PanelSubcarga({
                 className="rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent"
               >
                 abrir como hoja ↗
+              </button>
+              <button
+                type="button"
+                onClick={onCrearPlanilla}
+                title="La hoja pasa a tener su propio espacio de nombres: lo que defina deja de verse desde el resto de la obra salvo lo que publiques."
+                className="rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent"
+              >
+                crear planilla de cálculo
               </button>
               <button
                 type="button"

@@ -3,13 +3,11 @@
 **2026-09-17.** Diseño acordado. Se escribió antes que el código porque la decisión que lo
 define no es la del canvas, y equivocarla se paga en el modelo.
 
-**Fases 1 y 2 hechas el mismo día.** La 1 es todo lo que no se ve: el canvas separado de su
+**Hecho, en tres fases del mismo día.** La 1 es lo que no se ve: el canvas separado de su
 origen (`useHojaPersistida` + `origen-local`) y el modelo del nodo pasado a `hoja: Region[]`
-con `frontera?`. La 2 son las pestañas: cualquier nodo se abre como hoja con el canvas
-entero dentro. Falta la fase 3, que son las tres entradas del apartado «Qué se quiere»:
-crear una planilla `propia` desde un nodo vacío, abrir una de la biblioteca para verla, y
-desprenderla a `derivada` para editarla —`desprender` ya existe y `verify:obra` lo cubre; lo
-que falta es el botón—.
+con `frontera?`. La 2 son las pestañas. La 3 son las tres entradas de «Qué se quiere»:
+«crear planilla de cálculo» en un nodo, «abrir la hoja ↗» en una de la biblioteca, y
+«desprender para editarla…».
 
 Tres decisiones que este documento dejaba abiertas y se cerraron al empezar:
 
@@ -190,6 +188,15 @@ definir. El valor atado entra como scope inicial y la región lo pisa después, 
 campo no tiene ningún efecto y el número sale plausible y equivocado — la primera clase de
 falla de la taxonomía. Solo aplica a `propia` y `derivada`; en una de `biblioteca` un campo
 atado reescribe la región `in_*` que lo declara, así que no hay nada que tapar.
+
+**Un cálculo propio necesita su propio panel, y no estaba previsto.** `FichaGenerica` pinta
+un módulo: un formulario salido de `meta.entradas`, unas salidas declaradas y un esquema.
+Una hoja escrita a mano no declara nada, así que `FichaPropia` lo lee de lo que hay escrito:
+**las entradas son los nombres que la hoja usa y no define** —si una fórmula nombra `L_ext` y
+ninguna línea la define, esa es una entrada, la declare alguien o no—, y **lo publicable es
+lo que la hoja define**. `nombresSueltos` descarta las unidades y las funciones con
+`INTRINSECOS`, que es la misma lista con la que `problemaDeAlias` impide llamar `m` o `min` a
+un alias; sin ella, `kN` y `sqrt` saldrían como entradas que faltan.
 
 **La pestaña necesita el scope de su nodo, y eso no estaba previsto.** Una hoja abierta en el
 canvas matemático se evalúa sola, así que cada nombre que venga de otro nodo saldría como

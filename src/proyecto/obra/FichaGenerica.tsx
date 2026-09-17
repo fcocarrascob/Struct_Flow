@@ -132,6 +132,8 @@ export default function FichaGenerica({
   frontera,
   instancia,
   otrosAlias,
+  onAbrirHoja,
+  onDesprender,
   onEntrada,
   onFormula,
   onPublicar,
@@ -141,6 +143,10 @@ export default function FichaGenerica({
 }: {
   estado: EstadoGenerica | undefined;
   frontera: Frontera;
+  /** Abre la hoja instanciada para LEERLA. La biblioteca no se edita en su sitio. */
+  onAbrirHoja: () => void;
+  /** Copia la hoja al nodo y la abre para escribirla: de sellada a derivada. */
+  onDesprender: () => void;
   /**
    * Lo que esta planilla produjo, ya evaluado por `evaluarObra` en el sitio que
    * le toca dentro del orden de lectura, y el scope de la obra visible ahí.
@@ -220,6 +226,29 @@ export default function FichaGenerica({
         <p className="mt-0.5 font-mono text-[10px] text-muted">
           {frontera.slug} · {(frontera.sha256 ?? frontera.origen?.sha256 ?? "").slice(0, 12)}…
         </p>
+        {/* Verla y editarla son dos cosas distintas, y el orden importa. La
+            fuente de verdad de una genérica es su JSON, y no se edita encima de
+            la que respalda una memoria: para apartarse de ella hay que
+            desprenderla primero, y ahí deja de decir «soy esta genérica» y pasa
+            a decir «salí de ella, en esta versión». */}
+        <div className="mt-2 flex flex-wrap gap-1">
+          <button
+            type="button"
+            onClick={onAbrirHoja}
+            title="Abrir la hoja instanciada para leerla, entera"
+            className="rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent"
+          >
+            abrir la hoja ↗
+          </button>
+          <button
+            type="button"
+            onClick={onDesprender}
+            title="Copia la hoja al nodo para poder editarla. Sus entradas quedan escritas en ella y deja de volver a instanciarse."
+            className="rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent"
+          >
+            desprender para editarla…
+          </button>
+        </div>
       </header>
 
       {atrasada && (

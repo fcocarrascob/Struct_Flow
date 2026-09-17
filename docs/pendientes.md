@@ -506,17 +506,18 @@ nodo, y `verify:obra`, que es la primera red que tiene esta capa.
   apartarse de ella. El diseño está en **`docs/pestanas-de-calculo.md`**, con la decisión que
   lo define —una planilla del nodo tiene scope propio, no el de la obra—.
 
-  **Las fases 1 y 2 están hechas.** La 1 es lo que no se ve: `MathCanvas` separado de su
-  origen (`useHojaPersistida` + `origen-local`, con `origen`, `deepLinks` y `scopeInicial`
-  como props) y el nodo pasado a `hoja: Region[]` con `frontera?` de tres procedencias. La 2
-  son las pestañas: cualquier nodo se abre con «abrir como hoja ↗», y **solo se monta la
-  activa**.
+  **Hecho, en tres fases.** La 1 es lo que no se ve: `MathCanvas` separado de su origen
+  (`useHojaPersistida` + `origen-local`, con `origen`, `deepLinks` y `scopeInicial` como
+  props) y el nodo pasado a `hoja: Region[]` con `frontera?` de tres procedencias. La 2 son
+  las pestañas: cualquier nodo se abre con «abrir como hoja ↗», y **solo se monta la activa**.
+  La 3 son las tres entradas: «crear planilla de cálculo» —que le da frontera a la hoja y la
+  abre—, «abrir la hoja ↗» de una genérica, que la sirve en solo lectura con `VistaHoja`
+  (`BloqueDoc` en orden de lectura, no un `MathCanvas` apagado), y «desprender para
+  editarla…», que hace la transición a `derivada` y abre la copia editable. El panel de un
+  cálculo que lleva su hoja en el documento es `FichaPropia`, no `FichaGenerica`.
 
-  Queda la 3, las tres entradas del documento: crear una hoja `propia` desde un nodo vacío,
-  abrir una de `biblioteca` para verla —en solo lectura con `BloqueDoc`, no con un
-  `MathCanvas` de solo lectura que no existe— y desprenderla a `derivada` para editarla.
-  `desprender` ya existe y `verify:obra` lo cubre; lo que falta es el botón y el panel de un
-  cálculo `propia`, que hoy cae en `FichaGenerica` y esa espera un módulo.
+  Lo que queda son las dos cosas anotadas más abajo —el autocompletado de una pestaña y la
+  pestaña que no sobrevive a un F5— más lo del alias sobre una salida que ya no se calcula.
 - **Combinaciones, modelo y documento.** Los tres están declarados como `POR_VENIR` en
   `PaletaNodos.tsx` y son el siguiente módulo. El encadenamiento que hay ahora es lo que una
   combinación va a citar: una carga ya es *un nombre y un desglose*, y ese nombre es el

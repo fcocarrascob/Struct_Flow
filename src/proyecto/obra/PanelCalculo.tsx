@@ -4,8 +4,10 @@ import type { EstadoGenerica } from './biblioteca';
 import type { Instanciada } from './evaluacion';
 import { useEscape } from './useEscape';
 import FichaGenerica from './FichaGenerica';
+import FichaPropia from './FichaPropia';
 import MiniHoja from './MiniHoja';
 import SelectorGenerica from './SelectorGenerica';
+import { definicionesDe, nombresSueltos } from './hoja';
 import type { NodoCalculo } from './modelo';
 
 /**
@@ -28,10 +30,13 @@ export default function PanelCalculo({
   regions,
   results,
   instancia,
+  atados,
   otrosAlias,
   onNombre,
   onHoja,
   onAbrirHoja,
+  onCrearPlanilla,
+  onDesprender,
   onImportar,
   onEntrada,
   onFormula,
@@ -57,6 +62,12 @@ export default function PanelCalculo({
   onHoja: (hoja: Region[]) => void;
   /** Abre esta hoja como pestaña, con el canvas matemático entero. */
   onAbrirHoja: () => void;
+  /** Le da frontera a la hoja: scope propio, y se abre para escribirla. */
+  onCrearPlanilla: () => void;
+  /** Copia la genérica al nodo para poder editarla, y la abre. */
+  onDesprender: () => void;
+  /** El scope con el que se evalúa su hoja: los campos atados ya resueltos. */
+  atados: Record<string, unknown>;
   onImportar: (slug: string) => void;
   onEntrada: (nombre: string, valor: number) => void;
   onFormula: (campo: string, expr: string | undefined) => void;
@@ -91,8 +102,12 @@ export default function PanelCalculo({
                   Publica {define.length === 1 ? 'la variable ' : 'las variables '}
                   <span className="font-mono text-ink">{define.join(', ')}</span>
                 </>
-              ) : calculo.frontera ? (
+              ) : calculo.frontera?.procedencia === 'biblioteca' ? (
                 'Respaldado por una planilla. Marca en «Salidas» lo que tengan que ver los demás nodos.'
+              ) : calculo.frontera ? (
+                // Un cálculo con frontera tiene scope propio: lo que su hoja
+                // define no lo ve nadie hasta que se marque en «Publica».
+                'Este cálculo tiene su propio espacio de nombres. Marca en «Publica» lo que tengan que ver los demás nodos.'
               ) : (
                 'Lo que definas acá queda disponible para los demás nodos.'
               )}
@@ -113,12 +128,29 @@ export default function PanelCalculo({
       </header>
 
       <section className="flex min-h-0 flex-1 flex-col px-4 py-3">
-        {calculo.frontera ? (
+        {calculo.frontera && calculo.frontera.procedencia !== 'biblioteca' ? (
+          // Una hoja que vive en el documento no tiene módulo que leer, así que
+          // su panel es otro: sus entradas son lo que usa y no define, y lo
+          // publicable es lo que define.
+          <FichaPropia
+            frontera={calculo.frontera}
+            define={definicionesDe(calculo.hoja)}
+            sueltos={nombresSueltos(calculo.hoja)}
+            atados={atados}
+            otrosAlias={otrosAlias}
+            onAbrirHoja={onAbrirHoja}
+            onFormula={onFormula}
+            onPublicar={onPublicar}
+            onQuitar={onQuitarPlanilla}
+          />
+        ) : calculo.frontera ? (
           <FichaGenerica
             estado={estado}
             frontera={calculo.frontera}
             instancia={instancia}
             otrosAlias={otrosAlias}
+            onAbrirHoja={onAbrirHoja}
+            onDesprender={onDesprender}
             onEntrada={onEntrada}
             onFormula={onFormula}
             onPublicar={onPublicar}
@@ -153,6 +185,17 @@ export default function PanelCalculo({
                 className="rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent"
               >
                 abrir como hoja ↗
+              </button>
+              {/* Darle frontera a la hoja: pasa a tener scope propio y a
+                  entregar por `publica`. Es «crear la planilla de cálculo de
+                  este nodo», y lo primero que hace es abrirla para escribirla. */}
+              <button
+                type="button"
+                onClick={onCrearPlanilla}
+                title="La hoja pasa a tener su propio espacio de nombres: lo que defina deja de verse desde el resto de la obra salvo lo que publiques."
+                className="rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent"
+              >
+                crear planilla de cálculo
               </button>
               <button
                 type="button"

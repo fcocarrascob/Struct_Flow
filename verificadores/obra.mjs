@@ -49,6 +49,7 @@ const {
   desprender,
   insertarEnHoja,
   ordenDeLectura,
+  nombresSueltos,
   PASO_LECTURA,
 } = motor;
 
@@ -597,6 +598,23 @@ const CASOS_HOJA = [
       if (por(nueva.id).x !== a.x) return 'la nueva no heredó la columna de a';
       const orden = ordenDeLectura(salida).map((x) => x.src.slice(0, 1)).join('');
       return orden === 'axbc' ? null : `el orden de lectura dio «${orden}»`;
+    },
+  },
+  {
+    nombre: 'las entradas de una hoja propia son lo que usa y no define, sin unidades ni funciones',
+    // Una genérica declara sus campos en `meta.entradas`; una hoja escrita a mano
+    // no declara nada, así que lo único honesto es leerlo de lo que hay escrito.
+    // Sin descartar los intrínsecos, `kN` y `sqrt` saldrían como entradas que
+    // faltan, y el formulario pediría atar una unidad a algo.
+    ok: () => {
+      const hoja = [
+        reg('math', 'd := 2 * r', 40),
+        reg('math', 'A := pi * r^2', 88),
+        reg('math', 'F := sqrt(q) * 1 kN', 136),
+        reg('text', 'q es la presion de contacto', 184),
+      ];
+      const dio = nombresSueltos(hoja).join(',');
+      return dio === 'r,q' ? null : `dio «${dio}», se esperaba «r,q»`;
     },
   },
   {
