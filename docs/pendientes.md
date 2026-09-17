@@ -506,13 +506,17 @@ nodo, y `verify:obra`, que es la primera red que tiene esta capa.
   apartarse de ella. El diseño está en **`docs/pestanas-de-calculo.md`**, con la decisión que
   lo define —una planilla del nodo tiene scope propio, no el de la obra—.
 
-  **La fase 1 está hecha**, que es todo lo que no se ve: `MathCanvas` separado de su origen
-  (`useHojaPersistida` + `origen-local`, con `origen` y `deepLinks` como props) y el nodo
-  pasado a `hoja: Region[]` con `frontera?` de tres procedencias. Queda lo visible: la barra
-  de pestañas en el `<header>` de `CanvasObra` —con el patrón ARIA de `FichaGenerica`, y
-  montando **solo la pestaña activa**— y las tres entradas: crear una hoja `propia`, abrir
-  una de `biblioteca` para verla, y desprenderla a `derivada` para editarla. `desprender` ya
-  existe y `verify:obra` lo cubre; lo que falta es el botón.
+  **Las fases 1 y 2 están hechas.** La 1 es lo que no se ve: `MathCanvas` separado de su
+  origen (`useHojaPersistida` + `origen-local`, con `origen`, `deepLinks` y `scopeInicial`
+  como props) y el nodo pasado a `hoja: Region[]` con `frontera?` de tres procedencias. La 2
+  son las pestañas: cualquier nodo se abre con «abrir como hoja ↗», y **solo se monta la
+  activa**.
+
+  Queda la 3, las tres entradas del documento: crear una hoja `propia` desde un nodo vacío,
+  abrir una de `biblioteca` para verla —en solo lectura con `BloqueDoc`, no con un
+  `MathCanvas` de solo lectura que no existe— y desprenderla a `derivada` para editarla.
+  `desprender` ya existe y `verify:obra` lo cubre; lo que falta es el botón y el panel de un
+  cálculo `propia`, que hoy cae en `FichaGenerica` y esa espera un módulo.
 - **Combinaciones, modelo y documento.** Los tres están declarados como `POR_VENIR` en
   `PaletaNodos.tsx` y son el siguiente módulo. El encadenamiento que hay ahora es lo que una
   combinación va a citar: una carga ya es *un nombre y un desglose*, y ese nombre es el
@@ -531,6 +535,14 @@ nodo, y `verify:obra`, que es la primera red que tiene esta capa.
   (`CanvasObra.tsx`) dice que se extrae cuando aparezca un tercer lienzo, y se respeta — pero
   conviene saber que el Backspace que borraba nodos y el saneo del grafo hubo que pensarlos
   dos veces por eso.
+- **El autocompletado de una pestaña solo ve su propia hoja.** `scopeInicial` le da los
+  valores, así que los números salen bien, pero `variablesVisibles` lee lo que cada REGIÓN
+  define y las de los otros nodos no están en esa hoja: hay que saberse el nombre y
+  teclearlo entero. Es el mismo problema que resolvieron las regiones fantasma
+  `pub:<idNodo>:<alias>` dentro de la obra, y la salida probablemente sea la misma.
+- **Una pestaña no sobrevive a un F5**, porque vive en el estado de `CanvasObra`. Fue la
+  decisión del 2026-09-17 —el router solo mira el `pathname`— y el precio está escrito: sin
+  enlace compartible a una hoja, y sin atrás/adelante entre pestañas.
 - **Una hoja con frontera no puede publicar lo que no calculó, y nadie lo comprueba.** Su
   `publica` se lee del documento —a propósito, para que el grafo no se reordene cuando
   termina una descarga—, así que un alias sobre una salida que la hoja dejó de definir

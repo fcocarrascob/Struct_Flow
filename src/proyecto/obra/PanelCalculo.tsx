@@ -31,6 +31,7 @@ export default function PanelCalculo({
   otrosAlias,
   onNombre,
   onHoja,
+  onAbrirHoja,
   onImportar,
   onEntrada,
   onFormula,
@@ -54,6 +55,8 @@ export default function PanelCalculo({
   otrosAlias: ReadonlySet<string>;
   onNombre: (nombre: string) => void;
   onHoja: (hoja: Region[]) => void;
+  /** Abre esta hoja como pestaña, con el canvas matemático entero. */
+  onAbrirHoja: () => void;
   onImportar: (slug: string) => void;
   onEntrada: (nombre: string, valor: number) => void;
   onFormula: (campo: string, expr: string | undefined) => void;
@@ -139,13 +142,26 @@ export default function PanelCalculo({
               results={results}
               onCambiar={onHoja}
             />
-            <button
-              type="button"
-              onClick={() => setEligiendo(true)}
-              className="mt-3 self-start rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent"
-            >
-              respaldar con una planilla de la biblioteca…
-            </button>
+            <div className="mt-3 flex flex-wrap gap-1">
+              {/* La mini hoja es una lista y la pestaña es el plano, y las dos
+                  editan el MISMO dato: ahí se escribe con la paleta de símbolos,
+                  el autocompletado completo, deshacer y la vista del papel. */}
+              <button
+                type="button"
+                onClick={onAbrirHoja}
+                title="Abrir esta hoja en el canvas matemático, en una pestaña"
+                className="rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent"
+              >
+                abrir como hoja ↗
+              </button>
+              <button
+                type="button"
+                onClick={() => setEligiendo(true)}
+                className="rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent"
+              >
+                respaldar con una planilla de la biblioteca…
+              </button>
+            </div>
           </>
         )}
       </section>

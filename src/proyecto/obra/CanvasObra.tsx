@@ -15,7 +15,10 @@ import {
 import '@xyflow/react/dist/style.css';
 
 import Enlace from '../../components/Enlace';
+import MathCanvas from '../../components/canvas/MathCanvas';
 import type { Region } from '../../lib/worksheet';
+import type { MetaPlanilla } from '../../lib/biblioteca/contrato';
+import { origenDeNodo } from './origen-nodo';
 import type { NodoGrafo, Severidad } from '../contrato';
 import { colocar, guardarLayout, layoutGuardado, olvidarLayout, type Posicion } from '../layout';
 import { archivoDeObra, guardarObra, leerObra, nombreDeArchivo } from './almacen';
@@ -100,6 +103,10 @@ function CanvasObra({ id }: { id: string }) {
   const [nodos, setNodos] = useState<Node[]>([]);
   const [seleccion, setSeleccion] = useState<string | null>(null);
   const [paletaAbierta, setPaletaAbierta] = useState(false);
+  /** Los nodos abiertos como pestaña, por id de nodo del grafo. */
+  const [pestanas, setPestanas] = useState<string[]>([]);
+  /** Cuál se está mirando. `null` es el grafo. */
+  const [activa, setActiva] = useState<string | null>(null);
   const [avisoGuardado, setAvisoGuardado] = useState('');
   const { fitView } = useReactFlow();
   const medidos = useNodesInitialized();
@@ -140,6 +147,7 @@ function CanvasObra({ id }: { id: string }) {
             define: new Map(),
             enCiclo: new Set<string>(),
             atadosTapados: new Map(),
+            scopeEnNodo: new Map(),
             importadas: new Map(),
           },
     [obraEval, genericas],
@@ -440,7 +448,80 @@ function CanvasObra({ id }: { id: string }) {
   const borrarUnCalculo = useCallback((idCalculo: string) => {
     setObra((o) => (o ? borrarCalculo(o, idCalculo) : o));
     setSeleccion(null);
+    setPestanas((p) => p.filter((x) => x !== idNodoDeCalculo(idCalculo)));
   }, []);
+
+  // ── Las pestañas ───────────────────────────────────────────────────────────
+  //
+  // SOLO SE MONTA LA ACTIVA, y no es una optimización. Dos `MathCanvas` a la vez
+  // se pelean por `Ctrl+V` y por los dos `keydown` globales, y dejan dos
+  // `.worksheet-print` en el `<body>`, de los que `usePaginacion` mide el que
+  // encuentre primero. El propio canvas avisa en desarrollo si se rompe.
+  //
+  // El precio es que cambiar de pestaña remonta el canvas: se pierden el scroll,
+  // la selección y el punto de inserción, no los datos —el hook vacía al
+  // desmontar—. Es el precio correcto.
+  const abrirPestana = useCallback((idNodo: string) => {
+    setPestanas((p) => (p.includes(idNodo) ? p : [...p, idNodo]));
+    setActiva(idNodo);
+  }, []);
+
+  const cerrarPestana = useCallback((idNodo: string) => {
+    setPestanas((p) => p.filter((x) => x !== idNodo));
+    // Al cerrar la activa se vuelve al grafo, y no a la pestaña de al lado: el
+    // grafo es de donde se salió y es lo que da contexto de qué se acaba de
+    // editar.
+    setActiva((a) => (a === idNodo ? null : a));
+  }, []);
+
+  /** La hoja de un nodo del grafo, se llame como se llame en el documento. */
+  const hojaDeNodo = useCallback(
+    (idNodo: string): { etiqueta: string; hoja: Region[]; meta?: MetaPlanilla } | null => {
+      const o = obraRef.current;
+      if (!o) return null;
+      const idK = calculoDeNodo(idNodo);
+      if (idK) {
+        const k = o.calculos.find((x) => x.id === idK);
+        return k ? { etiqueta: k.nombre || 'Cálculo', hoja: k.hoja, meta: k.meta } : null;
+      }
+      const idS = subcargaDeNodo(idNodo);
+      if (idS) {
+        const s = cargaDeSubcarga(o, idS)?.subcargas.find((x) => x.id === idS);
+        return s ? { etiqueta: s.nombre || 'Partida', hoja: s.hoja, meta: s.meta } : null;
+      }
+      return null;
+    },
+    [],
+  );
+
+  const escribirHojaDeNodo = useCallback(
+    (idNodo: string, hoja: Region[], meta: MetaPlanilla | null) => {
+      const conHoja = <T extends { hoja: Region[]; meta?: MetaPlanilla }>(n: T): T => ({
+        ...n,
+        hoja,
+        ...(meta ? { meta } : {}),
+      });
+      const idK = calculoDeNodo(idNodo);
+      if (idK) return cambiarUnCalculo(idK, conHoja);
+      const idS = subcargaDeNodo(idNodo);
+      if (idS) cambiarPartida(idS, conHoja);
+    },
+    [cambiarUnCalculo, cambiarPartida],
+  );
+
+  // El origen se rehace al cambiar de pestaña y no al cambiar el documento: sus
+  // dos métodos leen y escriben por función, así que no cierra sobre ninguna
+  // copia de la obra que pueda quedarse vieja.
+  const origenPestana = useMemo(
+    () =>
+      activa
+        ? origenDeNodo({
+            leer: () => hojaDeNodo(activa),
+            escribir: (hoja, meta) => escribirHojaDeNodo(activa, hoja, meta),
+          })
+        : null,
+    [activa, hojaDeNodo, escribirHojaDeNodo],
+  );
 
   const reordenar = useCallback(() => {
     olvidarLayout(claveLayout);
@@ -564,9 +645,77 @@ function CanvasObra({ id }: { id: string }) {
             exportar
           </button>
         </div>
+
+        {/* La barra de pestañas. Solo aparece cuando hay alguna: una barra con
+            una sola pestaña siempre visible ocuparía alto para no decir nada.
+            El patrón ARIA es el de `FichaGenerica`, que es el que ya está en
+            este módulo. */}
+        {pestanas.length > 0 && (
+          <div role="tablist" aria-label="Hojas abiertas" className="mt-1.5 flex flex-wrap gap-1">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activa === null}
+              onClick={() => setActiva(null)}
+              className={`rounded-t border-x border-t px-2.5 py-1 text-[11px] ${
+                activa === null
+                  ? 'border-border bg-white font-medium text-ink'
+                  : 'border-transparent text-muted hover:text-accent'
+              }`}
+            >
+              Obra
+            </button>
+            {pestanas.map((id) => {
+              const n = hojaDeNodo(id);
+              return (
+                <span key={id} className="flex items-center">
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={activa === id}
+                    onClick={() => setActiva(id)}
+                    className={`rounded-t border-x border-t py-1 pl-2.5 pr-1 text-[11px] ${
+                      activa === id
+                        ? 'border-border bg-white font-medium text-ink'
+                        : 'border-transparent text-muted hover:text-accent'
+                    }`}
+                  >
+                    {n?.etiqueta ?? '(sin nombre)'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => cerrarPestana(id)}
+                    title="Cerrar esta pestaña"
+                    aria-label={`Cerrar ${n?.etiqueta ?? 'la pestaña'}`}
+                    className={`rounded-tr border-r border-t py-1 pl-0.5 pr-1.5 text-[11px] leading-none text-muted hover:text-error ${
+                      activa === id ? 'border-border bg-white' : 'border-transparent'
+                    }`}
+                  >
+                    ×
+                  </button>
+                </span>
+              );
+            })}
+          </div>
+        )}
       </header>
 
-      <div className="flex min-h-0 flex-1">
+      {activa && origenPestana && (
+        // `key` por nodo: cambiar de pestaña tiene que REMONTAR el canvas. Sin
+        // ella React reconciliaría la misma instancia, y el hook de persistencia
+        // —que lee su origen una sola vez, al montar— seguiría escribiendo en el
+        // nodo anterior.
+        <div className="min-h-0 flex-1">
+          <MathCanvas
+            key={activa}
+            origen={origenPestana}
+            deepLinks={false}
+            scopeInicial={evaluacion.scopeEnNodo.get(activa)}
+          />
+        </div>
+      )}
+
+      <div className={`min-h-0 flex-1 ${activa ? 'hidden' : 'flex'}`}>
         <div className="relative min-w-0 flex-1">
           {/* Los avisos flotan sobre el lienzo y no empujan la fila: como hermanos
               del visor le robarían alto, y el canvas daría un salto al aparecer. */}
@@ -625,7 +774,11 @@ function CanvasObra({ id }: { id: string }) {
           </ReactFlow>
         </div>
 
-        {panelDeCargas && (
+        {/* Los paneles no se montan con una pestaña abierta. El lienzo sí se
+            queda —oculto, para no perder el encuadre al volver—, pero un panel
+            montado detrás registra su Escape global, y ese Escape es del bloque
+            que se está editando en el canvas. */}
+        {!activa && panelDeCargas && (
           <PanelCargas
             cargas={obra.cargas}
             enfocada={idCargaSeleccionada}
@@ -639,7 +792,7 @@ function CanvasObra({ id }: { id: string }) {
           />
         )}
 
-        {partida && cargaDeLaPartida && (
+        {!activa && partida && cargaDeLaPartida && (
           <PanelSubcarga
             // Por `key`, y no es cosmética: el panel tiene estado propio —la
             // pestaña abierta, el selector de biblioteca, los borradores del
@@ -667,6 +820,7 @@ function CanvasObra({ id }: { id: string }) {
             onHoja={(hoja: Region[]) =>
               cambiarPartida(partida.id, (s) => ({ ...s, hoja }))
             }
+            onAbrirHoja={() => abrirPestana(idNodoDeSubcarga(partida.id))}
             onImportar={(slug) =>
               importar(slug, (imp) => cambiarPartida(partida.id, (s) => ({ ...s, frontera: imp })))
             }
@@ -712,7 +866,7 @@ function CanvasObra({ id }: { id: string }) {
           />
         )}
 
-        {calculo && (
+        {!activa && calculo && (
           <PanelCalculo
             key={calculo.id}
             calculo={calculo}
@@ -727,6 +881,7 @@ function CanvasObra({ id }: { id: string }) {
             onHoja={(hoja: Region[]) =>
               cambiarUnCalculo(calculo.id, (k) => ({ ...k, hoja }))
             }
+            onAbrirHoja={() => abrirPestana(idNodoDeCalculo(calculo.id))}
             onImportar={(slug) =>
               importar(slug, (imp) =>
                 cambiarUnCalculo(calculo.id, (k) => ({

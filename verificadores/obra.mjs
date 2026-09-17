@@ -494,6 +494,50 @@ const CASOS = [
         : `se declararon repetidos: ${[...ev.repetidos.keys()].slice(0, 6).join(', ')}`,
   },
   {
+    nombre: 'la hoja de un nodo abierta aparte ve lo que la obra define por encima, y nada más',
+    // Es lo que hace correcta una pestaña. Sin el scope de su posición, la hoja
+    // de un nodo abierta en el canvas matemático pintaría en rojo cada nombre
+    // que venga de otro nodo —un rojo que no es un error y que ni siquiera se
+    // puede arreglar desde donde se ve—. Y no puede ver lo de aguas abajo, o el
+    // canvas enseñaría un número que la obra no da.
+    obra: obra(
+      conFrontera('G', [reg('math', 'A := 4 m * 3 m', 40)]),
+      calc('M', m('carga := A * 5 kN/m^2')),
+      calc('Z', m('abajo := carga * 2')),
+    ),
+    ok: (ev) => {
+      const suyo = ev.scopeEnNodo.get(K('M'));
+      if (!suyo) return 'no se registró el scope de M';
+      if (suyo.A === undefined) return 'M no ve la «A» que define el nodo de más arriba';
+      if (suyo.carga !== undefined) return 'M se ve a sí mismo: eso lo define su propia hoja';
+      if (suyo.abajo !== undefined) return 'M ve lo que se calcula debajo de él';
+      // Y una hoja CON frontera solo ve sus campos atados, nunca el resto.
+      return null;
+    },
+  },
+  {
+    nombre: 'la hoja de un cálculo con frontera solo ve sus campos atados',
+    obra: obra(
+      calc('G', m('L_ext := 9 m'), m('otra := 3 m')),
+      conFrontera('P', [reg('math', 'r := d / 2', 40)], {
+        procedencia: 'propia',
+        formulas: { d: 'L_ext' },
+        publica: { r: 'radio' },
+      }),
+    ),
+    ok: todas(
+      (ev) => {
+        const suyo = ev.scopeEnNodo.get(K('P'));
+        if (!suyo) return 'no se registró el scope de P';
+        if (String(suyo.d) !== '9 m') return `el campo atado dio ${suyo.d}`;
+        if (suyo.otra !== undefined) return 'la frontera dejó pasar «otra», que no está atada';
+        if (suyo.L_ext !== undefined) return 'la frontera dejó pasar «L_ext»';
+        return null;
+      },
+      esperaValor('radio', '4.5 m'),
+    ),
+  },
+  {
     nombre: 'un campo atado que la propia hoja vuelve a definir se declara como problema',
     // El valor atado entra como scope inicial y la región lo pisa después, así
     // que el campo no tiene efecto y nada lo diría.

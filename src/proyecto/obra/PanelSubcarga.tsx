@@ -33,6 +33,7 @@ export default function PanelSubcarga({
   onRenombrar,
   onVariable,
   onHoja,
+  onAbrirHoja,
   onImportar,
   onEntrada,
   onFormula,
@@ -62,6 +63,8 @@ export default function PanelSubcarga({
   onRenombrar: (nombre: string) => void;
   onVariable: (nombre: string) => void;
   onHoja: (hoja: Region[]) => void;
+  /** Abre esta hoja como pestaña, con el canvas matemático entero. */
+  onAbrirHoja: () => void;
   onImportar: (slug: string) => void;
   onEntrada: (nombre: string, valor: number) => void;
   onFormula: (campo: string, expr: string | undefined) => void;
@@ -194,13 +197,23 @@ export default function PanelSubcarga({
             {/* La hoja libre sigue siendo el camino corto —un valor, un tanteo—
                 y traer una genérica es lo que se hace cuando ese tanteo se
                 convierte en un cálculo que hay que respaldar con una norma. */}
-            <button
-              type="button"
-              onClick={() => setEligiendo(true)}
-              className="mt-3 self-start rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent"
-            >
-              respaldar con una planilla de la biblioteca…
-            </button>
+            <div className="mt-3 flex flex-wrap gap-1">
+              <button
+                type="button"
+                onClick={onAbrirHoja}
+                title="Abrir esta hoja en el canvas matemático, en una pestaña"
+                className="rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent"
+              >
+                abrir como hoja ↗
+              </button>
+              <button
+                type="button"
+                onClick={() => setEligiendo(true)}
+                className="rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent"
+              >
+                respaldar con una planilla de la biblioteca…
+              </button>
+            </div>
           </>
         )}
       </section>

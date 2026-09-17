@@ -71,6 +71,19 @@ import { idNodoDeCalculo, idNodoDeSubcarga } from './ids';
 
 const CENTINELA = '__scope_final';
 
+/**
+ * Prefijo de los centinelas que capturan el scope con el que se evalúa la hoja
+ * de cada nodo.
+ *
+ * Es lo que una pestaña necesita para no pintar rojos que no lo son: la hoja de
+ * un nodo abierta en el canvas matemático tiene que ver lo mismo que ve dentro
+ * de la obra, o cada nombre que venga de otro nodo saldría como «variable
+ * indefinida». Van DENTRO del tramo, así que no cuestan una evaluación de más:
+ * una región `image` se registra sin evaluarse y captura el scope visible en su
+ * posición de lectura, que es exactamente lo que hay por encima de ese nodo.
+ */
+const POSICION = '__scope_en:';
+
 /** Separación entre nodos al concatenar la hoja global. Cualquier paso creciente
  *  sirve para el orden; este deja sitio de sobra. */
 const PASO = 100;
@@ -98,6 +111,12 @@ export interface Instanciada {
    * no puede alimentarse de lo que se calcula debajo de él.
    */
   scope: Record<string, unknown>;
+  /**
+   * El scope con el que se evalúa SU hoja: solo los campos atados. Es lo que
+   * hace falta para abrirla en el canvas matemático y que dé el mismo número,
+   * sin dejar entrar el resto de la obra por la puerta de atrás.
+   */
+  inicial: Record<string, unknown>;
   /** Solo la procedencia `biblioteca`: la evaluación del módulo, con su figura,
    *  sus errores y sus salidas declaradas, que es lo que pinta la ficha. */
   ev?: EvaluacionModulo;
@@ -123,6 +142,15 @@ export interface EvaluacionObra {
   enCiclo: Set<string>;
   /** id de nodo → el campo atado que su propia hoja vuelve a definir. */
   atadosTapados: Map<string, string>;
+  /**
+   * id de nodo → el scope con el que se evalúa SU hoja.
+   *
+   * Para una hoja libre es lo que la obra define por encima de ella; para un
+   * cálculo con frontera, solo sus campos atados. Es lo que hace falta para
+   * abrir esa hoja en el canvas matemático y que dé los mismos números que da
+   * dentro de la obra.
+   */
+  scopeEnNodo: Map<string, Record<string, unknown>>;
   /** id de nodo → lo que su cálculo con frontera produjo. Una sola evaluación
    *  por nodo, que es lo que impide que el canvas y el panel enseñen números
    *  distintos. */
@@ -277,7 +305,7 @@ export function evaluarHojaConFrontera(
   hoja: readonly Region[],
   frontera: Frontera,
   scopeObra: Record<string, unknown>,
-): { results: SheetResults; scope: Record<string, unknown> } {
+): { results: SheetResults; scope: Record<string, unknown>; inicial: Record<string, unknown> } {
   const orden = ordenDeLectura(hoja);
   const inicial = valoresAtados(frontera, scopeObra);
   const yFinal = (orden[orden.length - 1]?.y ?? 0) + 1e6;
@@ -285,7 +313,7 @@ export function evaluarHojaConFrontera(
   const res = evaluateSheet([...orden, centinela], inicial);
   const scope = res[CENTINELA]?.scope ?? {};
   delete res[CENTINELA];
-  return { results: res, scope };
+  return { results: res, scope, inicial };
 }
 
 /**
@@ -376,6 +404,7 @@ export function evaluarObra(obra: Obra, genericas: Genericas = {}): EvaluacionOb
   const regions: Region[] = [];
   const results: SheetResults = {};
   const importadas = new Map<string, Instanciada>();
+  const scopeEnNodo = new Map<string, Record<string, unknown>>();
   let scope: Record<string, unknown> = {};
   let y = 0;
 
@@ -389,8 +418,18 @@ export function evaluarObra(obra: Obra, genericas: Genericas = {}): EvaluacionOb
     const res = evaluateSheet([...tramo, centinela], scope);
     scope = res[CENTINELA]?.scope ?? scope;
     delete res[CENTINELA];
+    // Y los de posición, uno por nodo del tramo: cada uno se lleva el scope que
+    // había justo encima de su hoja.
+    for (const r of tramo) {
+      if (!r.id.startsWith(POSICION)) continue;
+      scopeEnNodo.set(r.id.slice(POSICION.length), res[r.id]?.scope ?? {});
+      delete res[r.id];
+    }
     Object.assign(results, res);
   };
+
+  /** El tramo sin los centinelas: no son de ninguna hoja y nadie los pinta. */
+  const sinCentinelas = (tramo: Region[]) => tramo.filter((r) => !r.id.startsWith(POSICION));
 
   let tramo: Region[] = [];
   for (const nodo of orden) {
@@ -411,6 +450,9 @@ export function evaluarObra(obra: Obra, genericas: Genericas = {}): EvaluacionOb
       // y no dice nada del orden entre nodos.
       y += PASO;
       const base = y;
+      // El centinela de posición va justo por encima de la primera región del
+      // nodo, con `x` negativa para ganar también el desempate.
+      tramo.push({ id: POSICION + nodo.idNodo, kind: 'image', x: -1, y: base - 1, src: '' });
       for (const r of propias) tramo.push({ ...r, y: base + (r.y - minY) });
       y = base + (maxY - minY);
       continue;
@@ -419,12 +461,13 @@ export function evaluarObra(obra: Obra, genericas: Genericas = {}): EvaluacionOb
     // Un cálculo con frontera corta el tramo: lo que publica tiene que estar en
     // el scope antes de que lo lea el nodo siguiente.
     cerrarTramo(tramo);
-    regions.push(...tramo);
+    regions.push(...sinCentinelas(tramo));
     tramo = [];
 
     const instancia = evaluarConFrontera(nodo, genericas, scope, results);
     if (!instancia) continue;
     importadas.set(nodo.idNodo, instancia);
+    scopeEnNodo.set(nodo.idNodo, instancia.inicial);
 
     for (const [salida, alias] of Object.entries(nodo.frontera.publica ?? {})) {
       const v = instancia.salidas[salida];
@@ -441,7 +484,7 @@ export function evaluarObra(obra: Obra, genericas: Genericas = {}): EvaluacionOb
     }
   }
   cerrarTramo(tramo);
-  regions.push(...tramo);
+  regions.push(...sinCentinelas(tramo));
 
   return {
     results,
@@ -453,6 +496,7 @@ export function evaluarObra(obra: Obra, genericas: Genericas = {}): EvaluacionOb
     define,
     enCiclo,
     atadosTapados,
+    scopeEnNodo,
     importadas,
   };
 }
@@ -481,11 +525,13 @@ function evaluarConFrontera(
     // dice en su tarjeta y la obra sigue.
     if (estado?.fase !== 'lista') return null;
     const ev = evaluarImportada(estado.modulo, { ...f, slug: f.slug!, sha256: f.sha256 ?? '', entradas: f.entradas ?? {} }, scope);
-    return { salidas: ev.scope, scope, ev };
+    // Una de la biblioteca se instancia desde su formulario: sus regiones `in_*`
+    // se reescriben con los valores, así que su hoja no necesita scope inicial.
+    return { salidas: ev.scope, scope, inicial: {}, ev };
   }
-  const { results: propios, scope: suyo } = evaluarHojaConFrontera(nodo.hoja, f, scope);
+  const { results: propios, scope: suyo, inicial } = evaluarHojaConFrontera(nodo.hoja, f, scope);
   Object.assign(results, propios);
-  return { salidas: suyo, scope };
+  return { salidas: suyo, scope, inicial };
 }
 
 /**

@@ -3,10 +3,15 @@
 **2026-09-17.** Diseño acordado. Se escribió antes que el código porque la decisión que lo
 define no es la del canvas, y equivocarla se paga en el modelo.
 
-**Fase 1 hecha el mismo día**, que es todo lo que no se ve: el canvas separado de su origen
-(`useHojaPersistida` + `origen-local`) y el modelo del nodo pasado a `hoja: Region[]` con
-`frontera?`. Faltan las pestañas y las tres entradas. Tres decisiones que este documento
-dejaba abiertas y se cerraron al empezar:
+**Fases 1 y 2 hechas el mismo día.** La 1 es todo lo que no se ve: el canvas separado de su
+origen (`useHojaPersistida` + `origen-local`) y el modelo del nodo pasado a `hoja: Region[]`
+con `frontera?`. La 2 son las pestañas: cualquier nodo se abre como hoja con el canvas
+entero dentro. Falta la fase 3, que son las tres entradas del apartado «Qué se quiere»:
+crear una planilla `propia` desde un nodo vacío, abrir una de la biblioteca para verla, y
+desprenderla a `derivada` para editarla —`desprender` ya existe y `verify:obra` lo cubre; lo
+que falta es el botón—.
+
+Tres decisiones que este documento dejaba abiertas y se cerraron al empezar:
 
 1. **Una sola hoja por nodo, con `frontera?` opcional.** Sin frontera es hoja libre y
    comparte el scope de la obra; con frontera tiene scope propio y procedencia. Es la
@@ -185,6 +190,15 @@ definir. El valor atado entra como scope inicial y la región lo pisa después, 
 campo no tiene ningún efecto y el número sale plausible y equivocado — la primera clase de
 falla de la taxonomía. Solo aplica a `propia` y `derivada`; en una de `biblioteca` un campo
 atado reescribe la región `in_*` que lo declara, así que no hay nada que tapar.
+
+**La pestaña necesita el scope de su nodo, y eso no estaba previsto.** Una hoja abierta en el
+canvas matemático se evalúa sola, así que cada nombre que venga de otro nodo saldría como
+«variable indefinida»: un rojo que no es un error y que ni siquiera se puede arreglar desde
+donde se ve. `MathCanvas` gana un prop `scopeInicial` —`evaluateSheet` ya lo aceptaba— y
+`evaluarObra` emite un `scopeEnNodo`: para una hoja libre, lo que la obra define **por
+encima** de ella; para un cálculo con frontera, solo sus campos atados. No cuesta una
+evaluación de más, porque se captura con un centinela `image` **dentro** del tramo, que es
+el mismo truco con el que ya se capturaba el scope final.
 
 **Una trampa que apareció al implementar, y no estaba escrita acá.** Las regiones de un nodo
 traen sus propias coordenadas y **todos los nodos empiezan en `y = 40`**: concatenarlas tal

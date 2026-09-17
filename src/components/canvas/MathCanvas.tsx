@@ -102,11 +102,24 @@ export interface PropsMathCanvas {
    * sesión volverían a descargar la planilla y a preguntar cada vez.
    */
   deepLinks?: boolean;
+  /**
+   * Variables que la hoja ve ya definidas, como si estuvieran escritas encima de
+   * la primera región.
+   *
+   * Lo necesita una hoja que no vive sola: la de un nodo de una obra usa nombres
+   * que definen los nodos de aguas arriba, y sin ellos el canvas la pintaría
+   * entera en rojo por «variable indefinida» — un rojo que no es un error y que,
+   * peor, no se puede arreglar desde donde se ve.
+   */
+  scopeInicial?: Record<string, unknown>;
 }
+
+const SIN_SCOPE: Record<string, unknown> = {};
 
 export default function MathCanvas({
   origen = ORIGEN_LOCAL,
   deepLinks = true,
+  scopeInicial = SIN_SCOPE,
 }: PropsMathCanvas = {}) {
   useEffect(() => {
     montados++;
@@ -246,7 +259,10 @@ export default function MathCanvas({
     return () => clearTimeout(t);
   }, [regions]);
 
-  const results = useMemo(() => evaluateSheet(regionsEval), [regionsEval]);
+  const results = useMemo(
+    () => evaluateSheet(regionsEval, scopeInicial),
+    [regionsEval, scopeInicial],
+  );
 
   /**
    * Lo que el autocompletado ofrece en la región en edición: lo que la hoja
