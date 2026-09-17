@@ -112,10 +112,24 @@ function CanvasObra({ id }: { id: string }) {
   // valores, las dependencias entre nodos y las flechas—. Recibe `genericas`
   // porque las planillas también son nodos de esa cadena: publican al scope
   // común lo que su `publica` declara.
+  //
+  // Se evalúa una copia APLAZADA del documento, como hace `MathCanvas` con sus
+  // regiones: evaluar la obra son el orden topológico, la síntesis de la hoja y
+  // una pasada de math.js por tramo, más cada planilla importada. Atado al
+  // documento en vivo, eso corría con **cada tecla** — incluidas las del nombre
+  // de la obra, de una carga o de una partida, que no participan de ningún
+  // cálculo. El grafo se dibuja con el documento en vivo, así que un nodo nuevo
+  // aparece en el acto y su valor llega en la siguiente pausa.
+  const [obraEval, setObraEval] = useState(obra);
+  useEffect(() => {
+    const t = window.setTimeout(() => setObraEval(obra), 120);
+    return () => window.clearTimeout(t);
+  }, [obra]);
+
   const evaluacion = useMemo(
     () =>
-      obra
-        ? evaluarObra(obra, genericas)
+      obraEval
+        ? evaluarObra(obraEval, genericas)
         : {
             results: {},
             regions: [],
@@ -127,7 +141,7 @@ function CanvasObra({ id }: { id: string }) {
             enCiclo: new Set<string>(),
             importadas: new Map(),
           },
-    [obra, genericas],
+    [obraEval, genericas],
   );
 
   const proyeccion = useMemo(
@@ -146,7 +160,6 @@ function CanvasObra({ id }: { id: string }) {
   const pedidas = useRef(new Set<string>());
   useEffect(() => {
     if (!slugs) return;
-    let vivo = true;
     for (const slug of slugs.split('|')) {
       // El registro de lo ya pedido va en una ref y no en el estado: si
       // dependiera de `genericas`, cada descarga terminada volvería a disparar
@@ -154,13 +167,18 @@ function CanvasObra({ id }: { id: string }) {
       if (pedidas.current.has(slug)) continue;
       pedidas.current.add(slug);
       setGenericas((prev) => ({ ...prev, [slug]: { fase: 'cargando' } }));
+      // Sin guarda de cancelación, y es lo correcto: `pedidas` es permanente
+      // pero un `vivo` sería por ejecución del efecto, así que bastaba con
+      // borrar una partida mientras otra planilla se descargaba —el efecto se
+      // reejecuta y el cleanup pone `vivo = false`— para que la respuesta se
+      // descartara y el `continue` impidiera volver a pedirla: el nodo se
+      // quedaba en «cargando…» hasta recargar la página. Aquí no hay nada que
+      // cancelar: `cargarModuloDeBiblioteca` cachea la promesa y esta escritura
+      // es idempotente por slug.
       cargarGenerica(slug).then((estado) => {
-        if (vivo) setGenericas((prev) => ({ ...prev, [slug]: estado }));
+        setGenericas((prev) => ({ ...prev, [slug]: estado }));
       });
     }
-    return () => {
-      vivo = false;
-    };
   }, [slugs]);
 
   // ── Persistencia ───────────────────────────────────────────────────────────
@@ -215,12 +233,21 @@ function CanvasObra({ id }: { id: string }) {
   const seleccionRef = useRef(seleccion);
   seleccionRef.current = seleccion;
 
+  // Las posiciones guardadas se leen UNA vez, al abrir la obra. `layoutGuardado`
+  // parsea el registro completo de todos los proyectos y todas las obras, y
+  // llamarlo desde el efecto de abajo —que depende de la proyección— lo hacía en
+  // cada tecla.
+  const guardadoRef = useRef<Record<string, Posicion>>({});
+  useEffect(() => {
+    guardadoRef.current = layoutGuardado(claveLayout);
+  }, [claveLayout]);
+
   useEffect(() => {
     // Con las aristas: la columna de un nodo es su tipo más su sitio en la
     // cadena, así que dos cálculos encadenados se dibujan uno a la derecha del
     // otro y la flecha se lee. Sin ellas caían los dos en la misma columna.
     const auto = colocar(proyeccion.nodos, proyeccion.aristas);
-    const guardado = layoutGuardado(claveLayout);
+    const guardado = guardadoRef.current;
     setNodos((previos) => {
       const antes = new Map(previos.map((n) => [n.id, n.position]));
       return proyeccion.nodos.map((n) => ({
@@ -246,8 +273,10 @@ function CanvasObra({ id }: { id: string }) {
   // flecha de datos es indistinguible de la que solo dice «esta partida compone
   // esta carga», y el grafo vuelve a ser un organigrama.
   const aristas: Edge[] = useMemo(() => {
-    return proyeccion.aristas.map((a, i) => ({
-      id: `${a.desde}->${a.hasta}:${i}`,
+    // El id no lleva el índice del array: insertar una arista al principio
+    // renombraba todas las posteriores y React Flow las recreaba enteras.
+    return proyeccion.aristas.map((a) => ({
+      id: `${a.desde}->${a.hasta}:${a.tipo}`,
       source: a.desde,
       target: a.hasta,
       label: a.etiqueta || undefined,
@@ -413,10 +442,22 @@ function CanvasObra({ id }: { id: string }) {
 
   const reordenar = useCallback(() => {
     olvidarLayout(claveLayout);
+    guardadoRef.current = {};
     const auto = colocar(proyeccion.nodos, proyeccion.aristas);
     setNodos((previos) => previos.map((n) => ({ ...n, position: auto[n.id] ?? n.position })));
-    window.setTimeout(() => fitView(ENCUADRE), 30);
+    // El temporizador se guarda: sin esto, salir del canvas en esos 30 ms
+    // llamaba a `fitView` contra un proveedor ya desmontado.
+    if (temporizadorEncuadre.current) window.clearTimeout(temporizadorEncuadre.current);
+    temporizadorEncuadre.current = window.setTimeout(() => fitView(ENCUADRE), 30);
   }, [claveLayout, proyeccion, fitView]);
+
+  const temporizadorEncuadre = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      if (temporizadorEncuadre.current) window.clearTimeout(temporizadorEncuadre.current);
+    },
+    [],
+  );
 
   // ── La obra que no existe ──────────────────────────────────────────────────
   if (!obra) {
@@ -471,7 +512,11 @@ function CanvasObra({ id }: { id: string }) {
           <input
             type="text"
             value={obra.nombre}
-            onChange={(e) => setObra({ ...obra, nombre: e.target.value })}
+            // Con actualizador, como el resto de los escritores: partir del
+            // `obra` de la closure pierde lo que haya escrito entre el render y
+            // el evento —por ejemplo el `aplicar()` de una importación que
+            // acaba de resolver—.
+            onChange={(e) => setObra((o) => (o ? { ...o, nombre: e.target.value } : o))}
             aria-label="Nombre de la obra"
             className="w-64 rounded border border-transparent px-1 py-0.5 text-sm font-semibold text-ink outline-none hover:border-border focus:border-accent"
           />
@@ -525,7 +570,13 @@ function CanvasObra({ id }: { id: string }) {
               del visor le robarían alto, y el canvas daría un salto al aparecer. */}
           {avisoGuardado && (
             <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-center p-2">
-              <p className="pointer-events-auto max-w-md rounded border border-aviso bg-white px-3 py-2 text-[11px] leading-snug text-aviso shadow-sm">
+              {/* `role="status"`: un aviso que sale solo y dice que lo que
+                  escribes no se está guardando tiene que llegar también a quien
+                  no lo ve. */}
+              <p
+                role="status"
+                className="pointer-events-auto max-w-md rounded border border-aviso bg-white px-3 py-2 text-[11px] leading-snug text-aviso shadow-sm"
+              >
                 No se pudo guardar la obra. {avisoGuardado}
               </p>
             </div>

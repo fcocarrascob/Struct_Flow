@@ -185,7 +185,9 @@ export default function BloqueMini({
           onBorrar();
         }}
         title="Quitar este bloque"
-        className="absolute right-0 top-0 hidden rounded border border-border bg-white px-1 text-[10px] leading-4 text-muted hover:border-error hover:text-error group-hover:block"
+        // `opacity` y no `hidden`: un botón con `display: none` no puede recibir
+        // el foco, así que por teclado el bloque no se podía quitar.
+        className="absolute right-0 top-0 rounded border border-border bg-white px-1 text-[10px] leading-4 text-muted opacity-0 hover:border-error hover:text-error focus:opacity-100 group-hover:opacity-100"
       >
         ×
       </button>

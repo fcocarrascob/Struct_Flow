@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Region, SheetResults } from '../../lib/worksheet';
 import type { EstadoGenerica } from './biblioteca';
 import type { Instanciada } from './evaluacion';
+import { useEscape } from './useEscape';
 import FichaGenerica from './FichaGenerica';
 import MiniHoja from './MiniHoja';
 import SelectorGenerica from './SelectorGenerica';
@@ -73,6 +74,7 @@ export default function PanelSubcarga({
   onCerrar: () => void;
 }) {
   const [eligiendo, setEligiendo] = useState(false);
+  useEscape(onCerrar);
   const valor = evaluacion.valores.find((v) => v.id === subcarga.id);
   const importada = subcarga.importada;
 

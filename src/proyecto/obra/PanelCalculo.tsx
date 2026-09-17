@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Region, SheetResults } from '../../lib/worksheet';
 import type { EstadoGenerica } from './biblioteca';
 import type { Instanciada } from './evaluacion';
+import { useEscape } from './useEscape';
 import FichaGenerica from './FichaGenerica';
 import MiniHoja from './MiniHoja';
 import SelectorGenerica from './SelectorGenerica';
@@ -63,6 +64,7 @@ export default function PanelCalculo({
   onCerrar: () => void;
 }) {
   const [eligiendo, setEligiendo] = useState(false);
+  useEscape(onCerrar);
 
   return (
     <aside className="flex h-full w-[34rem] shrink-0 flex-col overflow-y-auto border-l border-border bg-white">

@@ -223,7 +223,10 @@ export default function IndiceProyectos() {
         </div>
 
         {avisoObras && (
-          <p className="mb-3 rounded border border-aviso bg-white px-3 py-2 text-xs leading-snug text-aviso">
+          <p
+            role="status"
+            className="mb-3 rounded border border-aviso bg-white px-3 py-2 text-xs leading-snug text-aviso"
+          >
             {avisoObras}
           </p>
         )}

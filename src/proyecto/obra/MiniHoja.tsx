@@ -56,7 +56,11 @@ export default function MiniHoja({
 
   function agregar(tipo: 'math' | 'text', despuesDe?: string) {
     const b = nuevoBloque(tipo);
-    const i = despuesDe ? bloques.findIndex((x) => x.id === despuesDe) : bloques.length - 1;
+    // Un `despuesDe` que ya no está en la lista da -1, y con él el bloque nuevo
+    // se insertaba al PRINCIPIO en vez de al final, que es lo contrario de lo
+    // que pide quien está escribiendo hacia abajo.
+    const hallado = despuesDe ? bloques.findIndex((x) => x.id === despuesDe) : -1;
+    const i = hallado >= 0 ? hallado : bloques.length - 1;
     const siguientes = [...bloques];
     siguientes.splice(i + 1, 0, b);
     onCambiar(siguientes);

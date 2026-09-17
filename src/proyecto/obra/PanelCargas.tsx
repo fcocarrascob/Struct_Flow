@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import type { EvaluacionCarga } from './calculo';
-import { problemaDeNombre, type Carga } from './modelo';
+import { nuevaCarga, problemaDeNombre, type Carga } from './modelo';
+import { useEscape } from './useEscape';
 
 /**
  * El CRUD de los patrones de carga, al estilo de «Define → Load Patterns».
@@ -21,6 +22,13 @@ import { problemaDeNombre, type Carga } from './modelo';
 
 const CAMPO =
   'w-full rounded border bg-white px-2 py-1 text-xs text-ink outline-none focus:border-accent';
+
+/** ¿Es el nombre que propuso `nuevaCarga` y que nadie ha reescrito todavía? Se
+ *  pregunta a la misma función que lo propone, para que no haya dos formatos. */
+function esPropuesto(nombre: string): boolean {
+  const propuesto = nuevaCarga([]).nombre.replace(/\d+$/, '');
+  return new RegExp(`^${propuesto}\\d+$`).test(nombre.trim());
+}
 
 export default function PanelCargas({
   cargas,
@@ -48,6 +56,7 @@ export default function PanelCargas({
 }) {
   const [porBorrar, setPorBorrar] = useState<string | null>(null);
   const nombres = useRef(new Map<string, HTMLInputElement>());
+  useEscape(onCerrar);
 
   // El «¿borrar?» se retira solo. Sin esto quedaría armado indefinidamente, y un
   // botón que dice «¿borrar?» desde hace cinco minutos se pulsa por inercia.
@@ -60,15 +69,17 @@ export default function PanelCargas({
   }, [porBorrar]);
 
   // Traer a la vista la fila del nodo seleccionado, y dejar el nombre listo para
-  // reemplazar: al agregar una carga el nombre viene propuesto («C1», «C2»), y lo
-  // primero que se hace casi siempre es escribir otro encima.
+  // reemplazar **solo si sigue siendo el propuesto** («C1», «C2»…), que es lo
+  // primero que se reescribe al crear una carga. Seleccionándolo siempre, volver
+  // a una carga ya bautizada dejaba su nombre entero seleccionado y la siguiente
+  // tecla se lo llevaba.
   useEffect(() => {
     if (!enfocada) return;
     const campo = nombres.current.get(enfocada);
     if (!campo) return;
     campo.scrollIntoView({ block: 'nearest' });
     campo.focus();
-    campo.select();
+    if (esPropuesto(campo.value)) campo.select();
   }, [enfocada]);
 
   const cargaEnfocada = cargas.find((c) => c.id === enfocada) ?? null;

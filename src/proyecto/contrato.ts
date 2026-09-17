@@ -101,6 +101,51 @@ export type Veredicto =
   | { ok: true; grafo: Grafo }
   | { ok: false; motivo: string; detalle: string };
 
+const SEVERIDADES: ReadonlySet<string> = new Set<Severidad>(['ok', 'aviso', 'error']);
+
+/**
+ * Un nodo utilizable, o `null`.
+ *
+ * Hay que comprobarlo de verdad, nodo por nodo, por lo mismo que `esRegion` lo
+ * hace con una región (`src/lib/hoja-json.ts`): quien lo consume no tiene red.
+ * `NodoHarness` hace `motivos.join()`, `PanelLateral` hace
+ * `Object.entries(campos)` y `colocar` hace `etiqueta.localeCompare()`; con
+ * cualquiera de los tres ausente, la vista entera cae en el `ErrorBoundary` y
+ * el usuario ve la pantalla de error sin saber que el problema está del otro
+ * lado. Comprobar la versión del contrato y luego hacer un cast de la forma era
+ * media defensa.
+ */
+function sanearNodo(crudo: unknown): NodoGrafo | null {
+  if (typeof crudo !== 'object' || crudo === null) return null;
+  const n = crudo as Partial<NodoGrafo>;
+  if (typeof n.id !== 'string' || !n.id) return null;
+  return {
+    id: n.id,
+    tipo: typeof n.tipo === 'string' ? n.tipo : 'desconocido',
+    etiqueta: typeof n.etiqueta === 'string' ? n.etiqueta : n.id,
+    subtitulo: typeof n.subtitulo === 'string' ? n.subtitulo : '',
+    campos: typeof n.campos === 'object' && n.campos !== null ? n.campos : {},
+    severidad: SEVERIDADES.has(n.severidad as string) ? n.severidad! : 'ok',
+    archivo: typeof n.archivo === 'string' ? n.archivo : '',
+    linea: Number.isFinite(n.linea) ? (n.linea as number) : 0,
+    editable: n.editable === true,
+    motivos: Array.isArray(n.motivos) ? n.motivos.filter((m): m is string => typeof m === 'string') : [],
+  };
+}
+
+function sanearArista(crudo: unknown): AristaGrafo | null {
+  if (typeof crudo !== 'object' || crudo === null) return null;
+  const a = crudo as Partial<AristaGrafo>;
+  if (typeof a.desde !== 'string' || typeof a.hasta !== 'string' || !a.desde || !a.hasta) return null;
+  return {
+    desde: a.desde,
+    hasta: a.hasta,
+    tipo: typeof a.tipo === 'string' ? a.tipo : '',
+    etiqueta: typeof a.etiqueta === 'string' ? a.etiqueta : '',
+    severidad: SEVERIDADES.has(a.severidad as string) ? a.severidad! : 'ok',
+  };
+}
+
 /**
  * Valida lo que llegó del servidor. Devuelve un veredicto en vez de lanzar
  * porque el motivo del rechazo es lo que hay que mostrar en pantalla: «no puedo
@@ -138,7 +183,36 @@ export function validarGrafo(crudo: unknown): Veredicto {
       detalle: 'Contrato declarado ' + g.contrato + ', pero la forma no corresponde.',
     };
   }
-  return { ok: true, grafo: g as Grafo };
+
+  // Los ids se deduplican como hace `sanearRegiones` con las regiones: dos nodos
+  // con el mismo id se pisan en `colocar()` —que devuelve un objeto por id— y
+  // comparten `key` de React.
+  const vistos = new Set<string>();
+  const nodos: NodoGrafo[] = [];
+  for (const crudoNodo of g.nodos) {
+    const n = sanearNodo(crudoNodo);
+    if (!n || vistos.has(n.id)) continue;
+    vistos.add(n.id);
+    nodos.push(n);
+  }
+
+  return {
+    ok: true,
+    grafo: {
+      contrato: g.contrato,
+      generado: typeof g.generado === 'string' ? g.generado : '',
+      proyecto: typeof g.proyecto === 'string' ? g.proyecto : '',
+      ruta: typeof g.ruta === 'string' ? g.ruta : '',
+      modelo_vigente: typeof g.modelo_vigente === 'string' ? g.modelo_vigente : '',
+      nodos,
+      // Una arista hacia un nodo que no llegó no se pinta: React Flow la
+      // descarta con un aviso en consola, y es ruido que nadie va a leer.
+      aristas: g.aristas
+        .map(sanearArista)
+        .filter((a): a is AristaGrafo => a !== null && vistos.has(a.desde) && vistos.has(a.hasta)),
+      avisos: Array.isArray(g.avisos) ? g.avisos.filter((m): m is string => typeof m === 'string') : [],
+    },
+  };
 }
 
 /** El peor de dos severidades. El orden importa: un nodo con varios desfases
