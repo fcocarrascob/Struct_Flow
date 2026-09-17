@@ -47,71 +47,11 @@ import {
   isImageFile,
 } from '../../lib/canvas-image';
 import { regionTitulo, seImprime } from '../../lib/bloque';
-import { STORAGE_KEY, hayTrabajoGuardado } from '../../lib/hoja-guardada';
+import { hayTrabajoGuardado } from '../../lib/hoja-guardada';
 import { descargarHoja } from '../../lib/canvas-handoff';
+import { useHojaPersistida, type OrigenHoja } from './useHojaPersistida';
+import { ORIGEN_LOCAL } from './origen-local';
 import Enlace from '../Enlace';
-
-/** Hoja de ejemplo para la primera visita (se reemplaza al editar). */
-const DEMO: Region[] = [
-  { id: 'demo-t', kind: 'text', x: ORIGEN_PAPEL_X, y: ORIGEN_PAPEL_Y, src: 'Ejemplo: momento máximo de una viga biapoyada' },
-  { id: 'demo-1', kind: 'math', x: ORIGEN_PAPEL_X, y: 144, src: 'F := 30 kN' },
-  { id: 'demo-2', kind: 'math', x: ORIGEN_PAPEL_X, y: 192, src: 'L := 6 m' },
-  { id: 'demo-3', kind: 'math', x: ORIGEN_PAPEL_X, y: 240, src: 'M := F*L/4 = kN*m' },
-  { id: 'demo-4', kind: 'math', x: ORIGEN_PAPEL_X, y: 288, src: 'M <= 60 kN*m =' },
-];
-
-/** Dónde se aparta una hoja guardada que no se pudo leer. */
-export const CLAVE_APARTADA = `${STORAGE_KEY}.apartada`;
-
-interface Arranque {
-  regions: Region[];
-  /** El `meta` de la hoja guardada, si lo traía. */
-  meta: MetaPlanilla | null;
-  /** Había algo guardado, no se pudo leer como hoja, y se apartó. */
-  apartada: boolean;
-}
-
-function loadInitial(): Arranque {
-  if (typeof window === 'undefined') return { regions: DEMO, meta: null, apartada: false };
-  let raw: string | null = null;
-  try {
-    raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const data = JSON.parse(raw);
-      // Si lo guardado es la hoja de ejemplo sin tocar, se devuelve DEMO por
-      // referencia: así el autoguardado la sigue reconociendo y no empieza a
-      // contarla como trabajo del usuario a partir de la segunda visita.
-      if (data?.demo) return { regions: DEMO, meta: null, apartada: false };
-      if (Array.isArray(data?.regions)) {
-        // Saneadas también aquí: el localStorage puede traer una hoja escrita
-        // por una versión anterior, o a medio escribir.
-        //
-        // Sin filtrar las vacías: una región vacía que llegó a guardarse es
-        // DELIBERADA —39 del corpus se usan como espaciador, 16 de ellas en
-        // `anclajes-pedestal`—, y las transitorias no llegan aquí porque el
-        // autoguardado descarta la que está en edición. Filtrarlas hacía que la
-        // hoja se recolocara sola en el primer F5.
-        return { regions: sanearRegiones(data.regions), meta: metaDe(data), apartada: false };
-      }
-    }
-  } catch {
-    // Cae abajo: había algo y no se pudo leer.
-  }
-
-  // Había algo guardado que no se lee como hoja —un JSON truncado, que es lo
-  // típico cuando una escritura anterior chocó con la cuota— y en 300 ms el
-  // autoguardado va a escribir la demo encima. Se aparta ANTES, porque una vez
-  // sobrescrito no hay de dónde recuperarlo.
-  if (raw) {
-    try {
-      localStorage.setItem(CLAVE_APARTADA, raw);
-      return { regions: DEMO, meta: null, apartada: true };
-    } catch {
-      // Si no cabe la copia, no hay nada mejor que hacer que seguir.
-    }
-  }
-  return { regions: DEMO, meta: null, apartada: false };
-}
 
 /**
  * Quita el parámetro de deep-link de la URL, ya consumido.
@@ -141,17 +81,47 @@ const toolBtn =
 const tarjetaAviso =
   'pointer-events-auto flex flex-col rounded border px-3 py-2 text-xs shadow-sm';
 
-export default function MathCanvas() {
-  const [arranque] = useState(loadInitial);
-  const [regions, setRegions] = useState<Region[]>(arranque.regions);
+/**
+ * Cuántos canvas hay montados a la vez.
+ *
+ * Tiene que ser uno. Dos se pelean por `Ctrl+V` y por los dos `keydown`
+ * globales, y dejan dos `.worksheet-print` en el `<body>`, de los que
+ * `usePaginacion` mide el que encuentre primero. Es un fallo de montaje y no de
+ * este componente, y sin este aviso se manifiesta como «la paginación va mal»,
+ * que manda a buscar a otro archivo.
+ */
+let montados = 0;
+
+export interface PropsMathCanvas {
+  /** De dónde sale la hoja y a dónde se guarda. Por omisión, `localStorage`. */
+  origen?: OrigenHoja;
   /**
-   * El `meta` de la hoja abierta: título, slug, clase, normas, entradas… Viaja
-   * con la hoja —al exportar y al autoguardar— pero no es estado de la vista:
-   * nada lo pinta y deshacer no lo toca, por eso es un ref y no un `useState`.
-   * Lo fija `cargarHoja`; una hoja sin `meta` (una plantilla, la demo) lo deja
-   * en `null`.
+   * Atender `?planilla=` y `?plantilla=` al montar. Solo tiene sentido en
+   * `/canvas`: los dos efectos corren con `[]` y llevan un `confirm()` dentro,
+   * así que en una vista donde el canvas se monta y se desmonta varias veces por
+   * sesión volverían a descargar la planilla y a preguntar cada vez.
    */
-  const metaRef = useRef<MetaPlanilla | null>(arranque.meta);
+  deepLinks?: boolean;
+}
+
+export default function MathCanvas({
+  origen = ORIGEN_LOCAL,
+  deepLinks = true,
+}: PropsMathCanvas = {}) {
+  useEffect(() => {
+    montados++;
+    if (import.meta.env.DEV && montados > 1) {
+      console.warn(
+        `[MathCanvas] hay ${montados} canvas montados a la vez. Tiene que haber uno: dos se ` +
+          'pelean por el teclado y el portapapeles, y dejan dos documentos de impresión en el ' +
+          '<body>, así que la paginación mide el que no es.',
+      );
+    }
+    return () => {
+      montados--;
+    };
+  }, []);
+
   const [activeId, setActiveId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   /**
@@ -168,8 +138,6 @@ export default function MathCanvas() {
   const [pasteOpen, setPasteOpen] = useState(false);
   const [pasteText, setPasteText] = useState('');
   const [pasteError, setPasteError] = useState<string | null>(null);
-  /** Aviso del autoguardado (cuota llena, storage deshabilitado). */
-  const [storageWarn, setStorageWarn] = useState<string | null>(null);
   /**
    * Acuse de una acción que no deja rastro en la hoja.
    *
@@ -177,15 +145,6 @@ export default function MathCanvas() {
    * `malo` distingue el acuse del fallo, porque un «no se copió» hay que verlo.
    */
   const [aviso, setAviso] = useState<{ texto: string; malo?: boolean } | null>(null);
-  /**
-   * Al arrancar había una hoja guardada ilegible y se apartó.
-   *
-   * Tiene su propio estado y no comparte el de `storageWarn`: ese es del
-   * autoguardado, que lo limpia en cuanto consigue escribir —o sea 300 ms
-   * después—, y este aviso apunta a datos recuperables, así que tiene que
-   * quedarse hasta que alguien lo cierre.
-   */
-  const [apartada, setApartada] = useState(() => arranque.apartada);
   /** Hay un archivo sobrevolando la hoja (realce de la zona de soltado). */
   const [dropping, setDropping] = useState(false);
   /** Panel de inspección de variables abierto. */
@@ -208,19 +167,14 @@ export default function MathCanvas() {
   // pegado y de teclado se suscriben una sola vez y necesitan el valor vigente
   // sin volver a suscribirse en cada pulsación.
   const insertRef = useRef(insertAt);
-  const regionsRef = useRef(regions);
   /**
    * Espejo de la selección. El arrastre en grupo la necesita **síncrona**: el
    * grupo se congela dentro del primer `pointermove`, y el `selected` del estado
    * de React todavía sería el del render anterior.
    */
   const selectedRef = useRef(selected);
-  /** Espejo de la región en edición: lo necesita el guardado al desmontar. */
+  /** Espejo de la región en edición: lo leen `cargarHoja` y el teclado global. */
   const activeIdRef = useRef(activeId);
-  /** El autoguardado está en pausa porque otra pestaña escribió la hoja. */
-  const enPausaRef = useRef(false);
-  /** Lo último que esta pestaña escribió en `localStorage`. */
-  const escritoRef = useRef<string | null>(null);
   /** Espejo de las medidas: `nextSpot` se suscribe una vez y necesita las vigentes. */
   const medidasRef = useRef<{ alto: Map<string, number>; ancho: Map<string, number> }>({
     alto: new Map(),
@@ -229,9 +183,6 @@ export default function MathCanvas() {
   useEffect(() => {
     insertRef.current = insertAt;
   }, [insertAt]);
-  useEffect(() => {
-    regionsRef.current = regions;
-  }, [regions]);
   useEffect(() => {
     selectedRef.current = selected;
   }, [selected]);
@@ -244,6 +195,36 @@ export default function MathCanvas() {
     selectedRef.current = ids;
     setSelected(ids);
   }, []);
+
+  // Al restaurar la hoja entera —deshacer, o traer la de otra pestaña— se sale
+  // de edición y se limpia la selección: los ids que hubiera seleccionados
+  // pueden no existir en el estado que llega.
+  const trasRestaurar = useCallback(() => {
+    setActiveId(null);
+    seleccionar(new Set());
+  }, [seleccionar]);
+
+  /**
+   * La hoja y su persistencia: de dónde sale al montar, cuándo se escribe y qué
+   * pasa si otra pestaña la toca o si lo guardado no se pudo leer.
+   *
+   * Va aquí arriba porque `regions` es el estado del que cuelga todo lo demás;
+   * lo único que necesita por delante es `trasRestaurar`.
+   */
+  const { regions, setRegions, metaRef, avisos: avisosDeLaHoja } = useHojaPersistida(origen, {
+    activeId,
+    alReemplazar: trasRestaurar,
+  });
+
+  /**
+   * Espejo de las regiones. Se declara acá abajo, y no con los demás espejos,
+   * porque `regions` nace del hook: así arranca con la hoja cargada y no con un
+   * array vacío que el primer efecto tendría que corregir.
+   */
+  const regionsRef = useRef(regions);
+  useEffect(() => {
+    regionsRef.current = regions;
+  }, [regions]);
 
   /**
    * Las regiones sobre las que se evalúa, un paso por detrás de las que se
@@ -282,12 +263,6 @@ export default function MathCanvas() {
     [activeId, regions, results],
   );
 
-  // Al deshacer se sale de edición y se limpia la selección: los ids que
-  // hubiera seleccionados pueden no existir en el estado que se restaura.
-  const trasRestaurar = useCallback(() => {
-    setActiveId(null);
-    seleccionar(new Set());
-  }, [seleccionar]);
   const historial = useHistorial(regions, setRegions, trasRestaurar);
 
   /**
@@ -523,6 +498,7 @@ export default function MathCanvas() {
 
   // Deep-link: /herramientas/canvas?plantilla=<id> abre esa plantilla al entrar.
   useEffect(() => {
+    if (!deepLinks) return;
     const id = new URLSearchParams(window.location.search).get('plantilla');
     if (!id) return;
     const tpl = TEMPLATES.find((t) => t.id === id);
@@ -570,6 +546,7 @@ export default function MathCanvas() {
 
   // Deep-link: /?planilla=<slug> abre esa planilla al entrar.
   useEffect(() => {
+    if (!deepLinks) return;
     const slug = new URLSearchParams(window.location.search).get('planilla');
     if (!slug) return;
     const señal = { cancelado: false };
@@ -579,117 +556,6 @@ export default function MathCanvas() {
       señal.cancelado = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  /**
-   * Escribe la hoja en `localStorage`. Una sola implementación, porque la usan
-   * el autoguardado con debounce y el vaciado al desmontar.
-   *
-   * El fallo NO es silencioso: una hoja con imágenes pegadas puede superar la
-   * cuota de `localStorage` (~5 MB), y a partir de ahí todo lo que el usuario
-   * escriba se perdería al recargar sin que nada lo indique.
-   */
-  const guardarHoja = useCallback((rs: Region[], editando: string | null) => {
-    // Otra pestaña escribió la hoja y el usuario todavía no ha elegido cuál se
-    // queda: escribir ahora pisaría su trabajo sin preguntar (ver el efecto de
-    // `storage` más abajo).
-    if (enPausaRef.current) return;
-    try {
-      // Solo se descarta la región EN EDICIÓN si está vacía: es la que puede
-      // quedar a medio crear si se cierra la pestaña.
-      //
-      // Antes se descartaban todas las vacías, y eso borraba los espaciadores
-      // —39 en el corpus, 16 solo en `anclajes-pedestal`— en el primer
-      // autoguardado: la hoja se recolocaba sola tras un F5. Una región vacía
-      // que no se está editando es una decisión del autor.
-      const persistable = rs.filter((r) => r.id !== editando || r.src.trim() !== '');
-      // Se marca la hoja de ejemplo intacta para que `hayTrabajoGuardado` no la
-      // confunda con trabajo del usuario (ver el comentario de esa función).
-      const demo = rs === DEMO;
-      const meta = metaRef.current;
-      const texto = JSON.stringify({
-        version: 1,
-        ...(meta ? { meta } : {}),
-        regions: persistable,
-        ...(demo ? { demo: true } : {}),
-      });
-      localStorage.setItem(STORAGE_KEY, texto);
-      escritoRef.current = texto;
-      setStorageWarn(null);
-    } catch (err) {
-      const quota =
-        err instanceof DOMException &&
-        (err.name === 'QuotaExceededError' || err.name === 'NS_ERROR_DOM_QUOTA_REACHED');
-      setStorageWarn(
-        quota
-          ? 'La hoja superó la cuota del navegador y dejó de autoguardarse. Exporta el JSON y borra alguna imagen.'
-          : 'No se pudo autoguardar la hoja en este navegador. Exporta el JSON para no perder el trabajo.',
-      );
-    }
-  }, []);
-
-  // Autoguardado con debounce.
-  useEffect(() => {
-    const t = setTimeout(() => guardarHoja(regions, activeId), 300);
-    return () => clearTimeout(t);
-  }, [regions, activeId, guardarHoja]);
-
-  // Y un guardado al desmontar, que el debounce por sí solo no da: su `cleanup`
-  // cancela el temporizador pendiente, así que teclear y pulsar «← Inicio»
-  // dentro de los 300 ms perdía lo último escrito sin que nada lo indicara.
-  //
-  // Va en su propio efecto con dependencias vacías —y leyendo de los espejos—
-  // para que corra SOLO al desmontar: en el efecto de arriba, el `cleanup`
-  // también se dispara en cada pulsación y guardaría de forma síncrona en cada
-  // tecla, que es justo lo que el debounce evita.
-  useEffect(() => {
-    return () => guardarHoja(regionsRef.current, activeIdRef.current);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Y al cerrar la pestaña, recargar o pasar a otra, que tampoco desmontan: React
-  // no se entera de que la página se va. Como el debounce se reinicia en cada
-  // tecla, lo que se perdía no eran 300 ms sino la ráfaga entera desde la última
-  // pausa — escribir un párrafo sin parar y pulsar F5 se lo llevaba completo.
-  // `visibilitychange` es la señal fiable en móvil, donde `pagehide` a veces no
-  // llega; se escuchan las dos porque guardar dos veces lo mismo no cuesta nada.
-  useEffect(() => {
-    const vaciar = () => guardarHoja(regionsRef.current, activeIdRef.current);
-    const alOcultar = () => {
-      if (document.visibilityState === 'hidden') vaciar();
-    };
-    window.addEventListener('pagehide', vaciar);
-    document.addEventListener('visibilitychange', alOcultar);
-    return () => {
-      window.removeEventListener('pagehide', vaciar);
-      document.removeEventListener('visibilitychange', alOcultar);
-    };
-  }, [guardarHoja]);
-
-  /**
-   * Otra pestaña escribió la hoja guardada.
-   *
-   * Hay una sola clave para la hoja y cada pestaña guarda su copia en memoria
-   * sobre ella: con dos abiertas, basta con volver a la vieja y entrar y salir de
-   * un bloque para que su autoguardado escriba encima de todo lo hecho en la
-   * otra. Ahora esta pestaña se pone en pausa —no escribe— y pregunta cuál de las
-   * dos se queda.
-   *
-   * No se compara contra lo escrito por la propia pestaña: el evento `storage`
-   * solo llega a las DEMÁS, así que cualquiera que se reciba es de fuera. Sí se
-   * ignora el que trae exactamente lo que esta pestaña ya tiene, que es lo que
-   * pasa cuando otra acaba de abrir la misma hoja y la guarda sin tocarla.
-   */
-  const [otraPestana, setOtraPestana] = useState(false);
-  useEffect(() => {
-    const onStorage = (e: StorageEvent) => {
-      if (e.key !== STORAGE_KEY || e.storageArea !== window.localStorage) return;
-      if (e.newValue !== null && e.newValue === escritoRef.current) return;
-      enPausaRef.current = true;
-      setOtraPestana(true);
-    };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
   }, []);
 
   // Un archivo soltado FUERA de la hoja —sobre la barra, la paleta, un panel o
@@ -713,24 +579,6 @@ export default function MathCanvas() {
       window.removeEventListener('drop', onDrop);
     };
   }, []);
-
-  /** Trae la hoja que dejó la otra pestaña y reanuda el autoguardado. */
-  const cargarDeOtraPestana = useCallback(() => {
-    enPausaRef.current = false;
-    setOtraPestana(false);
-    const { regions: rs, meta } = loadInitial();
-    metaRef.current = meta;
-    setActiveId(null);
-    seleccionar(new Set());
-    setRegions(rs);
-  }, [seleccionar]);
-
-  /** Se queda con la de esta pestaña: reanuda y la escribe encima, en el acto. */
-  const quedarmeConEsta = useCallback(() => {
-    enPausaRef.current = false;
-    setOtraPestana(false);
-    guardarHoja(regionsRef.current, activeIdRef.current);
-  }, [guardarHoja]);
 
   // El acuse se retira solo: es información de un momento, y una banda que se
   // queda obliga a cerrarla. El fallo dura más porque hay que llegar a leerlo.
@@ -1792,52 +1640,38 @@ export default function MathCanvas() {
               </div>
             )}
 
-            {storageWarn && (
-              <div className={`${tarjetaAviso} border-amber-300 bg-amber-50 text-amber-900`}>
-                <span>⚠ {storageWarn}</span>
-                <button className="mt-1.5 self-end underline" onClick={() => setStorageWarn(null)}>
-                  Ocultar
-                </button>
-              </div>
-            )}
-
-            {otraPestana && (
-              <div className={`${tarjetaAviso} border-amber-300 bg-amber-50 text-amber-900`}>
-                <span>
-                  ⚠ La hoja guardada <strong>cambió en otra pestaña</strong>. Esta dejó de
-                  autoguardarse para no pisarla: elige con cuál te quedas.
-                </span>
-                <span className="mt-1.5 flex justify-end gap-2">
-                  <button
-                    className="rounded border border-amber-400 px-2 py-0.5 font-medium hover:bg-amber-100"
-                    onClick={cargarDeOtraPestana}
-                    title="Reemplaza esta hoja por la de la otra pestaña. Se deshace con Ctrl+Z."
-                  >
-                    Cargar la de la otra pestaña
+            {/* Los avisos de la persistencia —no se pudo guardar, la hoja
+                cambió en otra pestaña, la guardada no se pudo leer— salen de
+                `useHojaPersistida` ya ordenados. Se pintan con un bucle y no
+                uno a uno: eran tres tarjetas con el mismo aspecto y dos
+                botoneras, y cada aviso nuevo era una cuarta copia. */}
+            {avisosDeLaHoja.map((a) => (
+              <div
+                key={a.clave}
+                className={`${tarjetaAviso} border-amber-300 bg-amber-50 text-amber-900`}
+              >
+                <span>⚠ {a.texto}</span>
+                {a.acciones && (
+                  <span className="mt-1.5 flex justify-end gap-2">
+                    {a.acciones.map((ac) => (
+                      <button
+                        key={ac.etiqueta}
+                        className="rounded border border-amber-400 px-2 py-0.5 font-medium hover:bg-amber-100"
+                        onClick={ac.hacer}
+                        title={ac.titulo}
+                      >
+                        {ac.etiqueta}
+                      </button>
+                    ))}
+                  </span>
+                )}
+                {a.cierre && (
+                  <button className="mt-1.5 self-end underline" onClick={a.cierre.hacer}>
+                    {a.cierre.etiqueta}
                   </button>
-                  <button
-                    className="rounded border border-amber-400 px-2 py-0.5 font-medium hover:bg-amber-100"
-                    onClick={quedarmeConEsta}
-                    title="Guarda esta hoja encima de la de la otra pestaña."
-                  >
-                    Quedarme con esta
-                  </button>
-                </span>
+                )}
               </div>
-            )}
-
-            {apartada && (
-              <div className={`${tarjetaAviso} border-amber-300 bg-amber-50 text-amber-900`}>
-                <span>
-                  ⚠ La hoja que había guardada <strong>no se pudo leer</strong> y se abrió el
-                  ejemplo. La copia sin tocar quedó en <code>{CLAVE_APARTADA}</code> del
-                  almacenamiento local del navegador, por si hay algo que rescatar.
-                </span>
-                <button className="mt-1.5 self-end underline" onClick={() => setApartada(false)}>
-                  Entendido
-                </button>
-              </div>
-            )}
+            ))}
 
             {aviso && (
               <div
