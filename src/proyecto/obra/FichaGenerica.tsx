@@ -211,7 +211,10 @@ export default function FichaGenerica({
           >
             <option value="">— elige una —</option>
             {modulo.salidas
-              // Un veredicto no es una carga: no se puede sumar en un desglose.
+              // Lo que resume una partida es un número: un veredicto es un ✓/✗,
+              // un texto es una frase y una serie es una tabla entera. Ninguno
+              // de los tres cabe en la línea con la que el nodo se lee de un
+              // vistazo.
               .filter((s) => s.tipo === 'valor' || s.tipo === 'uso')
               .map((s) => (
                 <option key={s.nombre} value={s.nombre}>

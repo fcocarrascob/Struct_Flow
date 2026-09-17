@@ -182,8 +182,8 @@ export default function PanelCargas({
 }
 
 /**
- * El desglose de una carga: sus partidas con el valor que produjo la
- * hoja de cada una, y el total.
+ * El desglose de una carga: sus partidas con el valor que produjo la hoja de
+ * cada una. No hay total, porque una carga agrupa sus partidas y no las suma.
  *
  * No se edita acá. Una partida se abre en su propio panel, que es donde está su
  * cálculo; esta lista es el índice, y por eso cada fila es un botón que lleva a
@@ -206,7 +206,11 @@ function Desglose({
         <h3 className="text-[10px] font-semibold uppercase tracking-wide text-muted">
           Desglose de {carga.nombre || 'la carga'}
         </h3>
-        <span className="font-mono text-xs text-ink">{evaluacion?.totalTexto ?? '—'}</span>
+        {/* El recuento y no un total: una carga agrupa sus partidas, no las
+            suma. Cada valor está en su fila, que es donde significa algo. */}
+        <span className="shrink-0 text-[10px] text-muted">
+          {carga.subcargas.length} partida{carga.subcargas.length === 1 ? '' : 's'}
+        </span>
       </div>
 
       {carga.subcargas.length === 0 ? (
@@ -242,9 +246,6 @@ function Desglose({
         </ul>
       )}
 
-      {evaluacion?.problemaTotal && (
-        <p className="mt-1 text-[10px] leading-snug text-error">{evaluacion.problemaTotal}</p>
-      )}
 
       <button
         type="button"

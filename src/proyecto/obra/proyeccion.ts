@@ -15,8 +15,8 @@
 //
 // LA VALIDACIÓN VIAJA COMO SEVERIDAD, NO COMO BLOQUEO
 // ---------------------------------------------------
-// Nombres repetidos entre nodos, ciclos, unidades que no suman, una partida sin
-// variable elegida: nada de eso impide escribir. Pinta el nodo en rojo con su
+// Nombres repetidos entre nodos, ciclos, una partida sin variable elegida: nada
+// de eso impide escribir. Pinta el nodo en rojo con su
 // motivo. Bloquear el editor mientras se teclea obliga a pelear con él en cada
 // letra; el color dice lo mismo y deja trabajar.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -182,22 +182,19 @@ export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas =
       const motivos = problemaNombre ? [problemaNombre] : [];
       let severidad: Severidad = problemaNombre ? 'error' : 'ok';
       // Toda carga se desglosa: una nieve y un viento se respaldan con partidas
-      // igual que una permanente, y el subtítulo es lo que suman.
+      // igual que una permanente. El subtítulo es lo que hay dentro, no un total:
+      // una carga agrupa sus partidas y no las suma (ver `calculo.ts`).
       const evc = evaluarCarga(c, ev, genericas);
       evaluaciones[c.id] = evc;
-      const subtitulo = evc.totalTexto;
+      const subtitulo = evc.resumen;
 
       if (c.subcargas.length === 0) {
-        motivos.push('Sin partidas: agrega el desglose para que la carga tenga un valor.');
+        motivos.push('Sin partidas: agrega el desglose para respaldar la carga.');
         severidad = peor(severidad, 'aviso');
       } else {
         const rotas = evc.valores.filter((v) => v.problema).length;
         if (rotas > 0) {
           motivos.push(`${rotas} partida(s) sin valor.`);
-          severidad = peor(severidad, 'error');
-        }
-        if (evc.problemaTotal) {
-          motivos.push(evc.problemaTotal);
           severidad = peor(severidad, 'error');
         }
       }

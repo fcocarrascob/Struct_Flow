@@ -522,11 +522,7 @@ function CanvasObra({ id }: { id: string }) {
             carga={cargaDeLaPartida}
             subcarga={partida}
             evaluacion={
-              proyeccion.evaluaciones[cargaDeLaPartida.id] ?? {
-                valores: [],
-                totalTexto: '—',
-                problemaTotal: '',
-              }
+              proyeccion.evaluaciones[cargaDeLaPartida.id] ?? { valores: [], resumen: '' }
             }
             variables={variablesDePartida(partida, evaluacion)}
             regions={evaluacion.regions}

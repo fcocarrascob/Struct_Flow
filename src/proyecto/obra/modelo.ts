@@ -71,9 +71,11 @@ export interface Importada {
    */
   formulas?: Record<string, string>;
   /**
-   * Cuál de las salidas declaradas es el valor que la partida aporta al total.
-   * Solo tiene sentido dentro de una partida; un nodo de cálculo suelto muestra
-   * todas sus salidas y no elige ninguna.
+   * Cuál de las salidas declaradas es el valor con el que la partida se resume.
+   * No se suma con nada —una carga agrupa sus partidas, ver `calculo.ts`—: es lo
+   * que se lee en el nodo sin abrir la planilla. Solo tiene sentido dentro de
+   * una partida; un nodo de cálculo suelto muestra todas sus salidas y no elige
+   * ninguna.
    */
   salida?: string;
 }

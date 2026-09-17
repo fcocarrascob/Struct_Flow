@@ -1,17 +1,28 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// El desglose de una carga: qué aporta cada partida y cuánto suma.
+// El desglose de una carga: qué valor muestra cada partida.
 //
 // Acá ya no se evalúa ninguna hoja. La hoja es una sola y la evalúa
 // `evaluacion.ts` para toda la obra; esto solo LEE del scope compartido el
-// nombre que cada partida declaró como su valor, y suma.
+// nombre que cada partida declaró como su valor.
 //
-// El total NO se suma en JavaScript: se arma la expresión `A + B + C` y la
-// evalúa el mismo motor, con los mismos objetos `Unit`. Así sumar `30 tonf` con
-// `4 kN/m²` falla como tiene que fallar en vez de dar un número que no significa
-// nada.
+// UNA CARGA NO SUMA SUS PARTIDAS, Y ESO ES EL MODELO, NO UNA CARENCIA.
+// --------------------------------------------------------------------
+// Hubo un total: se armaba `v0 + v1 + v2` y lo evaluaba el motor, para que
+// sumar `30 tonf` con `4 kN/m²` fallara en vez de dar un número sin sentido.
+// Servía para el caso que lo originó —una permanente que es la suma de los pesos
+// de cubierta, instalaciones y muros— y estorbaba en todos los demás, porque la
+// suma era FORZOSA y su fracaso era un error rojo que subía hasta el nodo de las
+// definiciones.
+//
+// Una carga con un espectro, un corte basal y un factor de utilización dentro no
+// está mal escrita: está ORGANIZADA. El desglose agrupa, y lo que haya que sumar
+// se suma dentro de la hoja de un nodo, que es donde el motor puede hacerlo con
+// sus unidades a la vista. Además, al sumar de a una, el error acusaba a la
+// primera partida que rompía EN EL ORDEN DEL ARRAY: reordenar el desglose movía
+// la culpa de sitio, que es la señal de que no estaba describiendo un defecto.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { evalExpr, formatValor } from '../../lib/worksheet';
+import { formatValor } from '../../lib/worksheet';
 import { evaluarImportada, type Genericas } from './biblioteca';
 import type { EvaluacionObra } from './evaluacion';
 import { idNodoDeSubcarga } from './ids';
@@ -35,10 +46,26 @@ export interface ValorSubcarga {
 
 export interface EvaluacionCarga {
   valores: ValorSubcarga[];
-  total?: unknown;
-  totalTexto: string;
-  /** Por qué no hay total: unidades que no casan, partidas sin valor… */
-  problemaTotal: string;
+  /** Qué hay dentro, para el subtítulo del nodo: los valores encadenados. */
+  resumen: string;
+}
+
+/** Cuántos valores caben en el resumen antes de resumirlos con un «+N». */
+const MAX_EN_RESUMEN = 4;
+
+/**
+ * Lo que un nodo de carga enseña bajo su nombre.
+ *
+ * Los valores de sus partidas, en orden y separados por `·`. No es un total —una
+ * carga no suma—, es un vistazo a lo que hay dentro sin abrirla. Con más de
+ * cuatro partidas la cadena dejaría de leerse antes de decir nada, así que se
+ * corta y se cuenta el resto.
+ */
+function resumirValores(valores: ValorSubcarga[]): string {
+  if (valores.length === 0) return 'sin partidas';
+  const visibles = valores.slice(0, MAX_EN_RESUMEN).map((v) => v.texto);
+  const resto = valores.length - visibles.length;
+  return resto > 0 ? `${visibles.join(' · ')} +${resto}` : visibles.join(' · ');
 }
 
 /**
@@ -119,58 +146,7 @@ export function evaluarCarga(
       : valorLibre(sub, ev),
   );
 
-  const sumables = valores.filter((v) => !v.problema && v.valor !== undefined);
-  let total: unknown;
-  let totalTexto = '—';
-  let problemaTotal = '';
-
-  if (sumables.length === 0) {
-    problemaTotal =
-      carga.subcargas.length === 0 || valores.some((v) => v.cargando)
-        ? ''
-        : 'Ninguna partida entrega un valor.';
-    return { valores, total, totalTexto, problemaTotal };
-  }
-
-  // El scope de la suma se arma aparte y no se toma del de la hoja: las partidas
-  // importadas no están ahí —su cálculo es otra hoja— y aun así suman. Las
-  // claves son sintéticas (`v0`, `v1`) y no los nombres de las variables: dos
-  // partidas pueden apuntar a la misma variable, y entonces un scope por nombre
-  // las contaría una sola vez.
-  const scopeSuma: Record<string, unknown> = {};
-  sumables.forEach((v, i) => {
-    scopeSuma[`v${i}`] = v.valor;
-  });
-
-  // Se suma DE A UNA, y no todo de un golpe, para poder decir cuál es la que
-  // rompe. Sumar `A + B + C` de una vez deja el mensaje crudo de math.js
-  // —«Units do not match»—, que es cierto y no dice qué mirar entre veinte
-  // partidas.
-  let acumulado = 'v0';
-  total = sumables[0].valor;
-  for (let i = 1; i < sumables.length; i++) {
-    const v = sumables[i];
-    try {
-      total = evalExpr(`${acumulado} + v${i}`, scopeSuma);
-      acumulado = `${acumulado} + v${i}`;
-    } catch {
-      problemaTotal =
-        `«${v.nombre}» (${v.texto}) no suma con lo anterior (${formatValor(total)}): ` +
-        'no son la misma magnitud.';
-      total = undefined;
-      break;
-    }
-  }
-  totalTexto = total === undefined ? '—' : formatValor(total);
-
-  // Una partida que todavía se está descargando no cuenta como «sin valor»: el
-  // total se completa solo en cuanto llegue.
-  const faltan = valores.filter((v) => v.valor === undefined && !v.cargando).length;
-  if (faltan > 0 && !problemaTotal) {
-    problemaTotal = `El total deja fuera ${faltan} partida(s) sin valor.`;
-  }
-
-  return { valores, total, totalTexto, problemaTotal };
+  return { valores, resumen: resumirValores(valores) };
 }
 
 /** Las variables que una partida de hoja libre puede ofrecer como su valor. */
