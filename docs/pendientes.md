@@ -564,3 +564,53 @@ nodo, y `verify:obra`, que es la primera red que tiene esta capa.
   punto de los cuatro debounces (sección 8). **Muere con el cambio de modelo.**
 - Pegar un fragmento no evita solapes: usa el punto de inserción tal cual. **Muere con el
   cambio de modelo.**
+
+## 13. De la prueba de estrés en el navegador, 2026-09-17
+
+Sesión con Chrome sobre `/canvas` y `/obra/<id>`, con la aplicación corriendo. Se
+arreglaron cuatro —los cuatro de pérdida o corrupción silenciosa de trabajo, que están en el
+historial— y queda esto, todo **reproducido en el navegador**, no leído en el código.
+
+### Lo que se arregló ese día, para no volver a buscarlo
+
+- Dentro de una pestaña de cálculo el aviso «No se pudo guardar la obra» existía en el DOM
+  y no se veía: vivía en el contenedor del grafo, que lleva `hidden` mientras hay una
+  pestaña abierta. Ahora vive en la cabecera.
+- **La pausa por conflicto entre pestañas del navegador dejó de ser una trampa.** Mientras
+  el guardado está en pausa, lo que se escribe va a una copia aparte
+  (`structpad.worksheet.v1.sin-guardar`) en vez de tirarse; la tarjeta lo dice; «Quedarme
+  con esta» la descarta al escribir la hoja en su sitio; y al abrir con una copia pendiente
+  sale un aviso con «Descargar la copia» y «Descartar». El hook gana `apartar` y
+  `olvidarApartada`, que solo necesita un origen que también tenga `vigilar`.
+- Los ids de región chocaban entre nodos: «Pegar JSON» en dos pestañas distintas entraba
+  sin pasar por el saneo de la obra, y como las planillas publicadas numeran `r000, r001,
+  …`, el panel de un nodo pintaba **los bloques del otro, con su valor**. `escribirHojaDeNodo`
+  los deriva ahora contra el resto de la obra.
+- Una pestaña sobrevivía al nodo que editaba y se tragaba lo que se escribiera en ella.
+
+### Lo que sigue abierto
+
+- **La copia de una pausa no se vuelve a abrir sola.** Se descarga, no se restaura en la
+  hoja. Restaurarla querría decidir qué pasa con la que ya está abierta, que es otra
+  pregunta; con el archivo en el disco, importarlo es un clic.
+- **«Limpiar» conserva el `meta` de la planilla anterior.** Reproducido: cargar
+  `?planilla=zapata-aislada`, «Limpiar», `Ctrl+S`. Se descarga **`zapata-aislada.json` con
+  cero regiones** —el nombre exacto del archivo publicado en `public/biblioteca/`—, y el
+  autoguardado deja `{meta: zapata-aislada, regions: []}`. `metaRef` no participa del
+  historial ni de «Limpiar» (`MathCanvas.tsx:506`, `1551-1563`).
+- **La importación descarta bloques en silencio.** Reproducido: pegar un JSON de 8 regiones
+  con 5 malformadas carga 3, sin un solo mensaje. `esHoja` acepta el archivo si **una sola**
+  región es válida y `sanearRegiones` filtra el resto (`hoja-json.ts:78-100`). Con la vía
+  principal de entrada siendo «pegar el JSON que acaba de escribir un chat», la pérdida
+  silenciosa es el caso esperado. *Toca `src/lib`: obliga a resellar el motor.*
+- **La barra espaciadora crea un bloque en vez de desplazar la hoja.** Reproducido: clic en
+  el fondo, Espacio. El guard final acepta cualquier `e.key.length === 1` y `' '` mide uno
+  (`MathCanvas.tsx:1228-1237`). Arreglo de una línea; la fricción es constante.
+- **Borrar un nodo de cálculo o una partida no pregunta nada y no se puede deshacer.**
+  Reproducido: cadena A→B, «quitar este nodo» sobre A. Se va con su hoja dentro, sin
+  diálogo (`PanelCalculo.tsx:212-219`, `PanelSubcarga.tsx:256-264`), mientras que borrar una
+  **carga** sí confirma en dos tiempos (`PanelCargas.tsx:147`). La asimetría es el bug.
+- **Cuando la cadena se rompe, nadie dice de dónde venía el nombre.** B queda con «1
+  bloque(s) con error» y, en el panel, «Undefined symbol A_planta»: mensaje del motor, en
+  inglés, sin decir que `A_planta` desapareció porque borraste A. La flecha además se apaga
+  justo cuando haría falta, porque `duenio` deja de tener el nombre (`evaluacion.ts`).
