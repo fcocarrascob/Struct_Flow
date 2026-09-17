@@ -501,6 +501,11 @@ nodo, y `verify:obra`, que es la primera red que tiene esta capa.
 
 ### Lo que queda
 
+- **Un nodo que se abre como hoja**, con el canvas entero dentro de una pestaña de la vista
+  de obra: crear la planilla propia de un nodo, y abrir la de la biblioteca para verla o
+  apartarse de ella. El diseño está acordado y escrito en **`docs/pestanas-de-calculo.md`**,
+  con la decisión que lo define —una planilla del nodo tiene scope propio, no el de la obra—
+  y con lo que de verdad cuesta, que es hacer `MathCanvas` controlable.
 - **Combinaciones, modelo y documento.** Los tres están declarados como `POR_VENIR` en
   `PaletaNodos.tsx` y son el siguiente módulo. El encadenamiento que hay ahora es lo que una
   combinación va a citar: una carga ya es *un nombre y un desglose*, y ese nombre es el
