@@ -19,11 +19,17 @@ npm run verify:planilla -- <archivo.json> [--md]
 npm run verify:modulos   # evalúa los módulos de diseño (TS y declarativos) y sus memorias exportadas
 npm run verify:motor     # casos de regresión del motor: hojas mínimas con su resultado
 npm run verify:biblioteca          # el contrato de genérica y los casos de public/biblioteca/
+npm run verify:obra                # el grafo de cálculo de una obra: orden, ciclos, encadenamiento
 npm run indice:planillas           # regenera los dos índices (lo corren dev y build)
 npm run render:planilla -- <json> --pdf <salida>
 ```
 
-**No hay tests unitarios.** La red de seguridad son los tres verificadores.
+**No hay tests unitarios.** La red de seguridad son los verificadores.
+
+`verify:obra` es el único que **no** vive en `scripts/`, y es a propósito: el harness sella el
+motor como el hash de árbol de `src/lib` + `scripts`, y un verificador de la capa de obra no
+tiene por qué disparar esa cascada. Vive en `verificadores/` por la misma razón por la que
+`src/proyecto/` no está dentro de `src/lib/`.
 
 `verify:motor` cubre lo que el corpus no ejercita: formas de escribir que ninguna planilla
 usa y que daban un número equivocado **sin error**. Cada caso es una hoja mínima y lo que

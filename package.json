@@ -16,7 +16,8 @@
     "render:planilla": "node scripts/render-planilla.mjs",
     "verify:biblioteca": "node scripts/verify-biblioteca.mjs",
     "verify:modulos": "node scripts/verify-modulos.mjs",
-    "verify:motor": "node scripts/verify-motor.mjs"
+    "verify:motor": "node scripts/verify-motor.mjs",
+    "verify:obra": "node verificadores/obra.mjs"
   },
   "dependencies": {
     "@xyflow/react": "^12.11.6",
