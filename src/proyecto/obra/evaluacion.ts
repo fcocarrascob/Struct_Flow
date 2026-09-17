@@ -200,17 +200,32 @@ function ordenar(
     }
   }
 
-  // Sin dependencias, el orden es el de creación: estable y predecible.
-  const cola = nodos.filter((h) => pendientes.get(h.idNodo)!.size === 0).map((h) => h.idNodo);
+  // Entre los que ya se pueden calcular manda el ORDEN DE CREACIÓN, no el orden
+  // en que quedaron libres. No es un capricho de estabilidad: ese orden es el de
+  // lectura de la hoja global, y de él sale lo que el autocompletado ofrece en
+  // cada nodo. Con una cola FIFO, un nodo creado al final pero sin dependencias
+  // se colaba delante de una planilla que sí las tenía, y entonces no veía lo
+  // que esa planilla publica — justo cuando lo que se está haciendo es
+  // escribirlo. Había que saberse el nombre de memoria y teclearlo entero para
+  // que el reordenamiento lo pusiera a la vista.
+  const creacion = new Map(nodos.map((h, i) => [h.idNodo, i]));
+  const libres = nodos.filter((h) => pendientes.get(h.idNodo)!.size === 0).map((h) => h.idNodo);
+  const porCreacion = (a: string, b: string) => creacion.get(a)! - creacion.get(b)!;
+  libres.sort(porCreacion);
+
   const orden: NodoObra[] = [];
-  // Índice en vez de `shift()`: sacar del principio de un array es O(n).
-  for (let i = 0; i < cola.length; i++) {
-    const id = cola[i];
+  while (libres.length) {
+    const id = libres.shift()!;
     orden.push(porId.get(id)!);
+    const nuevos: string[] = [];
     for (const c of consumidores.get(id) ?? []) {
       const p = pendientes.get(c)!;
       p.delete(id);
-      if (p.size === 0) cola.push(c);
+      if (p.size === 0) nuevos.push(c);
+    }
+    if (nuevos.length) {
+      libres.push(...nuevos);
+      libres.sort(porCreacion);
     }
   }
 

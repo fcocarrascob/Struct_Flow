@@ -215,7 +215,10 @@ function CanvasObra({ id }: { id: string }) {
   seleccionRef.current = seleccion;
 
   useEffect(() => {
-    const auto = colocar(proyeccion.nodos);
+    // Con las aristas: la columna de un nodo es su tipo más su sitio en la
+    // cadena, así que dos cálculos encadenados se dibujan uno a la derecha del
+    // otro y la flecha se lee. Sin ellas caían los dos en la misma columna.
+    const auto = colocar(proyeccion.nodos, proyeccion.aristas);
     const guardado = layoutGuardado(claveLayout);
     setNodos((previos) => {
       const antes = new Map(previos.map((n) => [n.id, n.position]));
@@ -263,11 +266,19 @@ function CanvasObra({ id }: { id: string }) {
   // `maxZoom: 1` porque una obra empieza con un nodo: sin tope, encuadrar uno
   // solo lo amplía hasta llenar la pantalla, y la tarjeta queda del tamaño de un
   // cartel. Alejar está bien; acercar más allá del tamaño natural, no.
+  //
+  // La marca va DENTRO del temporizador, no antes: React Flow mide los nodos de
+  // forma incremental, así que `nodos.length` cambia dentro de esos 30 ms, el
+  // cleanup cancela el temporizador y con la marca puesta ya no se reprograma
+  // nunca. Una obra con tres nodos abría con el lienzo en otro sitio y los nodos
+  // fuera de la pantalla — visibles solo en el minimapa.
   const encuadrado = useRef(false);
   useEffect(() => {
     if (!medidos || encuadrado.current || nodos.length === 0) return;
-    encuadrado.current = true;
-    const t = window.setTimeout(() => fitView(ENCUADRE), 30);
+    const t = window.setTimeout(() => {
+      encuadrado.current = true;
+      fitView(ENCUADRE);
+    }, 30);
     return () => window.clearTimeout(t);
   }, [medidos, nodos.length, fitView]);
 
@@ -401,7 +412,7 @@ function CanvasObra({ id }: { id: string }) {
 
   const reordenar = useCallback(() => {
     olvidarLayout(claveLayout);
-    const auto = colocar(proyeccion.nodos);
+    const auto = colocar(proyeccion.nodos, proyeccion.aristas);
     setNodos((previos) => previos.map((n) => ({ ...n, position: auto[n.id] ?? n.position })));
     window.setTimeout(() => fitView(ENCUADRE), 30);
   }, [claveLayout, proyeccion, fitView]);

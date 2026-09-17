@@ -17,7 +17,7 @@
 // habría dos copias del estado del proyecto y la segunda divergiría sin avisar.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type { NodoGrafo } from './contrato';
+import type { AristaGrafo, NodoGrafo } from './contrato';
 
 export interface Posicion {
   x: number;
@@ -60,24 +60,74 @@ export function columnaDe(tipo: string): number {
 }
 
 /**
+ * A qué distancia está cada nodo del principio de la cadena, siguiendo las
+ * flechas. Un nodo del que nadie depende está en 0; el que usa lo que produce
+ * otro está uno más allá.
+ *
+ * Es Kahn otra vez, y por la misma razón que en `evaluacion.ts`: lo que no sale
+ * de la cola está en un ciclo, y se queda en el nivel que tuviera. Un ciclo ya
+ * se pinta en rojo con su motivo; que además descoloque el canvas no agregaría
+ * información.
+ */
+function niveles(nodos: NodoGrafo[], aristas: readonly AristaGrafo[]): Map<string, number> {
+  const vivos = new Set(nodos.map((n) => n.id));
+  const salientes = new Map<string, string[]>();
+  const grado = new Map<string, number>(nodos.map((n) => [n.id, 0]));
+  for (const a of aristas) {
+    if (!vivos.has(a.desde) || !vivos.has(a.hasta) || a.desde === a.hasta) continue;
+    salientes.set(a.desde, [...(salientes.get(a.desde) ?? []), a.hasta]);
+    grado.set(a.hasta, (grado.get(a.hasta) ?? 0) + 1);
+  }
+
+  const nivel = new Map<string, number>(nodos.map((n) => [n.id, 0]));
+  const cola = [...grado].filter(([, g]) => g === 0).map(([id]) => id);
+  for (let i = 0; i < cola.length; i++) {
+    const id = cola[i];
+    for (const s of salientes.get(id) ?? []) {
+      nivel.set(s, Math.max(nivel.get(s) ?? 0, (nivel.get(id) ?? 0) + 1));
+      const g = (grado.get(s) ?? 0) - 1;
+      grado.set(s, g);
+      if (g === 0) cola.push(s);
+    }
+  }
+  return nivel;
+}
+
+/**
  * Coloca por columnas, centrando cada una respecto de la más alta. Sin centrar,
  * una columna de 27 cargas junto a una de 2 documentos deja el documento pegado
  * al borde superior y aparentemente desconectado de todo.
+ *
+ * **Con `aristas`, la columna es el tipo MÁS la posición en la cadena.** Sin
+ * eso, los nodos del mismo tipo caen todos en la misma columna, así que una
+ * cadena de cuatro cálculos encadenados —que es de lo que trata una obra— se
+ * dibujaba como una pila vertical con las flechas dando la vuelta por los lados,
+ * porque los puertos son fijos: salen por la derecha y entran por la izquierda.
+ * Las columnas se compactan después, para que sumar el nivel no deje huecos.
  */
-export function colocar(nodos: NodoGrafo[]): Record<string, Posicion> {
+export function colocar(
+  nodos: NodoGrafo[],
+  aristas?: readonly AristaGrafo[],
+): Record<string, Posicion> {
+  const nivel = aristas ? niveles(nodos, aristas) : null;
   const porColumna = new Map<number, NodoGrafo[]>();
   for (const n of nodos) {
-    const c = columnaDe(n.tipo);
+    const c = columnaDe(n.tipo) + (nivel?.get(n.id) ?? 0);
     const lista = porColumna.get(c) ?? [];
     lista.push(n);
     porColumna.set(c, lista);
   }
 
+  // Compactar: las columnas que quedaron vacías no dejan un hueco de 350 px.
+  const usadas = [...porColumna.keys()].sort((a, b) => a - b);
+  const compacta = new Map(usadas.map((c, i) => [c, nivel ? i : c]));
+
   const alto = Math.max(1, ...[...porColumna.values()].map((l) => l.length));
   const centro = ((alto - 1) * PASO_Y) / 2;
 
   const salida: Record<string, Posicion> = {};
-  for (const [c, lista] of porColumna) {
+  for (const [columna, lista] of porColumna) {
+    const c = compacta.get(columna)!;
     // Dentro de la columna, primero lo que tiene desfase: lo que hay que mirar
     // no puede quedar al fondo de una lista de 27.
     const orden = [...lista].sort((a, b) => {

@@ -363,6 +363,18 @@ const CASOS = [
     },
   },
   {
+    nombre: 'entre nodos que ya se pueden calcular manda el orden de creación',
+    // Ese orden es el de lectura de la hoja global, y de él sale lo que el
+    // autocompletado ofrece. Con una cola FIFO, `C` —creado al final y sin
+    // dependencias— se colaba delante de `B`, que las tenía, y por eso `C` no
+    // veía lo que `B` define justo mientras se escribía.
+    obra: obra(calc('A', m('a := 1')), calc('B', m('b := a + 1')), calc('C', m('c := 5'))),
+    ok: (ev) => {
+      const y = (src) => ev.regions.find((r) => r.src.startsWith(src))?.y;
+      return y('b :=') < y('c :=') ? null : 'el nodo creado al final se coló delante';
+    },
+  },
+  {
     nombre: 'lo que publica una planilla se ofrece en el autocompletado de aguas abajo',
     // `variablesVisibles` lee lo que cada región DEFINE, y las regiones de una
     // planilla no están en esta hoja: sin una región que lo represente, la única
