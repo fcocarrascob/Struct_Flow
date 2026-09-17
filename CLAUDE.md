@@ -72,8 +72,9 @@ está marcado como tal en `docs/pendientes.md`.
 La separación es estricta y hay que mantenerla:
 
 **Vistas** (`src/App.tsx` + `src/lib/ruta.ts`): `/` es el menú, `/planillas` el catálogo,
-`/canvas` la hoja y `/diseno/<id>` un módulo. `/calibrar` es una quinta vista **solo de
-desarrollo** (`src/components/dev/`): mide cuántas páginas ocupa cada planilla y calibra
+`/canvas` la hoja, `/diseno/<id>` un módulo, `/proyectos` el índice de obras y proyectos,
+`/obra/<id>` el grafo de una obra y `/proyecto/<slug>` el de un proyecto del harness.
+`/calibrar` es una vista **solo de desarrollo** (`src/components/dev/`): mide cuántas páginas ocupa cada planilla y calibra
 `A4_ALTO_UTIL_PX` contra un PDF real. Vive dentro de la aplicación porque mide con el
 documento de impresión de verdad, y `App.tsx` la deja fuera con `import.meta.env.DEV`, así
 que no llega al bundle de producción. Los resultados están en `docs/linea-base-pagina.md`. El router es propio y son ~70 líneas puras;
@@ -102,6 +103,47 @@ derivar**: una propiedad escrita a mano es un número que hay que creer, y el pu
 memoria es poder auditarla de arriba abajo. Y **lo que el módulo no cubre se declara**, con
 un veredicto marcado `aviso` que lo señale en pantalla. Un aviso no es un incumplimiento: no dice que la sección falle, dice que el
 resultado puede no ser válido, y por eso no vota en el CUMPLE / NO CUMPLE.
+
+**Proyectos** (`src/proyecto/`): dos canvas de React Flow que comparten el contrato de nodo
+(`contrato.ts`) y el layout (`layout.ts`), y nada más. El del **harness**
+(`/proyecto/<slug>`) pinta lo que `harness.grafo` proyecta desde archivos versionados, lo
+sirve `python -m harness.servidor` por `/api` y **no escribe nada**; se niega a pintar un
+`contrato` que no conoce, porque un grafo más chico se ve perfecto y está viejo. El de una
+**obra** (`/obra/<id>`) es un documento del usuario en `localStorage`.
+
+Vive **fuera de `src/lib/`** por una razón mecánica: el harness sella el motor como el hash
+de árbol de `src/lib` + `scripts`, y mover ese hash marca `eval_de_otro_motor` en todas las
+planillas de todos sus proyectos. Una obra no evalúa ninguna planilla publicada. Por lo
+mismo, `verify:obra` vive en `verificadores/` y no en `scripts/`.
+
+Una obra es un **grafo de cálculo**, y su fin es encadenar: la salida de un cálculo es la
+entrada de otro. Las piezas, y por qué están separadas:
+
+- `obra/modelo.ts` — el documento y sus operaciones, puro. Un nodo es una **hoja libre**
+  (lista de bloques, sin `x`/`y`: el orden del array es el orden de lectura) o una
+  **planilla** de `public/biblioteca/` referenciada por slug **con su sha256**, no copiada:
+  se vuelve a descargar al abrir, así que siempre se instancia la versión publicada y
+  verificada, y el sello es lo que permite avisar de que la genérica avanzó.
+- `obra/evaluacion.ts` — **el corazón**. La obra entera es una cadena: se decide quién define
+  qué y quién usa qué, se ordena topológicamente (Kahn, desempatando por **orden de
+  creación**, que es el que ve el autocompletado) y se recorre **por tramos** acumulando un
+  scope. Las hojas libres consecutivas van juntas a `evaluateSheet(tramo, scope)`; cada
+  planilla se evalúa con el scope de **su** posición y deja en él lo que publica, como el
+  objeto `Unit` que es. Por eso `evaluateSheet` acepta un scope inicial.
+- `obra/proyeccion.ts` — de la obra al grafo. **Los nodos y las flechas no se guardan: se
+  derivan.** Una flecha de A a B es «B nombra esto que publica A», así que borrar la línea
+  que lo usaba borra la flecha.
+- `obra/biblioteca.ts` — el puente con `src/lib/diseno/`. No reimplementa nada: instanciar
+  una genérica es la misma operación que `/diseno/<slug>` y que `harness.planilla
+  instanciar`. Un campo atado convierte unidades **dividiendo por `1 <unidad>` en el propio
+  motor**, no con una tabla de factores.
+- `obra/almacen.ts` — `localStorage` (`structflow.obras.v1`). Acá el almacenamiento **es** el
+  dato, así que guardar devuelve un resultado y quien llama lo muestra. Se sanea al leer,
+  nunca al escribir: guardar una obra no puede tocar las demás.
+
+Dos cosas que cuesta caro romper: **los ids de bloque son las claves de `results`** de la
+hoja global, así que el saneo los deduplica como `sanearRegiones`; y **el orden topológico
+es el orden de lectura**, así que reordenarlo cambia lo que cada nodo ve.
 
 **Capa UI** (`src/components/canvas/`, React):
 - `MathCanvas.tsx` — raíz: mantiene el estado `Region[]`, autoguarda en `localStorage`

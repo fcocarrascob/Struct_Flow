@@ -25,6 +25,7 @@ npm run dev              # http://localhost:5173
 npm run build            # typecheck + build de producción
 npm run verify:planillas # evalúa las 33 planillas fuera del navegador
 npm run verify:modulos   # evalúa los módulos de diseño y sus memorias exportadas
+npm run verify:obra      # el grafo de cálculo de una obra: orden, ciclos, encadenamiento
 ```
 
 Requiere Node >= 22.12.0.
@@ -37,9 +38,12 @@ Requiere Node >= 22.12.0.
 | `/planillas` | el catálogo de las 33 memorias publicadas |
 | `/canvas` | la hoja |
 | `/diseno` · `/diseno/<id>` | los módulos de diseño |
+| `/proyectos` | las obras de este navegador y los proyectos del harness |
+| `/obra/<id>` | una obra: el grafo de cálculo, editable |
+| `/proyecto/<slug>` | un proyecto del harness, **solo lectura** |
 | `/calibrar` | herramientas de calibración de la A4 — **solo en desarrollo** |
 
-La navegación es un micro-router propio (`src/lib/ruta.ts`, ~70 líneas): para cinco vistas
+La navegación es un micro-router propio (`src/lib/ruta.ts`, ~100 líneas): para ocho vistas
 no se justifica una dependencia más. Al servir la aplicación en producción hace falta el
 *fallback* de SPA —cualquier ruta devuelve `index.html`—, que `vite dev` y `vite preview`
 ya hacen solos.
@@ -98,6 +102,32 @@ Un módulo declara qué queda **fuera de su alcance** y lo señala en pantalla e
 devolver un número de aspecto válido fuera de su dominio. Esa clase de aviso es distinta de
 un incumplimiento —`SalidaDef.aviso`—: no dice que la sección falle, dice que el número de
 al lado puede no significar lo que parece.
+
+### Proyectos: cálculos encadenados
+
+Una **obra** (`/obra/<id>`) es un grafo de cálculo, y su fin es que la salida de un cálculo
+sea la entrada de otro sin copiar un número a mano. Un nodo es una **hoja libre** —una mini
+hoja del mismo motor, para la geometría y los datos comunes— o una **planilla genérica de
+`public/biblioteca/`** instanciada.
+
+Lo que los une son los nombres, en los dos sentidos:
+
+- un nodo publica lo que su hoja define, y una planilla publica las salidas que marques,
+  con el nombre que elijas (`meta.entrega` de la genérica propone cuáles);
+- una fórmula nombra lo que publicó otro nodo, y un campo de una planilla se ata con **ƒ** a
+  una expresión de la obra, que se convierte a la unidad que el campo declara.
+
+**Las flechas no se dibujan: se derivan.** Una flecha de A a B es «B nombra esto que
+publica A», así que borrar la línea que lo usaba borra la flecha. De ahí sale también el
+orden en que se calcula todo —un orden topológico—, y los dos fallos que ese modelo puede
+tener se dicen en el nodo: un nombre definido en dos sitios y un ciclo.
+
+De cada planilla instanciada sale su **memoria**, la misma que exporta `/diseno/<slug>`: una
+instancia estampada con el sha256 de la genérica, que pasa `verify:planilla` sin retoques.
+
+Una obra vive en el `localStorage` de un navegador, así que se exporta y se importa como
+archivo. Los **proyectos del harness** (`/proyecto/<slug>`) son otra cosa: se proyectan desde
+archivos versionados, los sirve `python -m harness.servidor` y no se escribe nada de vuelta.
 
 ### El catálogo
 
@@ -171,10 +201,17 @@ src/
 │   └── diseno/              el armazón de un módulo (4 archivos)
 ├── lib/                     puro, sin React
 │   └── diseno/              contrato de módulo, registro y módulos
+├── proyecto/                el canvas del harness (solo lectura) y el contrato del grafo
+│   └── obra/                una obra: documento, evaluación, proyección y paneles
 └── styles/global.css        tokens Tailwind + documento de impresión
 public/
-├── planillas/               33 planillas de diseño + ESQUEMA.md (el contrato)
+├── planillas/               33 planillas de diseño
+├── biblioteca/              las genéricas, por disciplina
 └── esquemas/                28 esquemas SVG paramétricos
 scripts/                     verify-planilla.mjs, verify-modulos.mjs, lib/motor.mjs
+verificadores/               verify:obra — fuera de scripts/ para no mover el sello del motor
 docs/                        ESQUEMA-PLANILLA.md, canvas-planillas-roadmap.md
 ```
+
+`src/proyecto/` está fuera de `src/lib/` a propósito: el harness sella el motor como el hash
+de árbol de `src/lib` + `scripts`, y una obra no evalúa ninguna planilla publicada.

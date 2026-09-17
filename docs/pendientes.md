@@ -483,6 +483,52 @@ Ordenados por gravedad:
 
 - No hay desplazamiento automático al arrastrar cerca del borde del visor: llevar un bloque de
   la página 1 a la 3 son varios arrastres.
+
+## 12. De la revisión de Proyectos, 2026-09-17
+
+El módulo (`src/proyecto/`) nació el 16 y se revisó entero el 17. Lo que se arregló está en
+los commits de ese día; lo que importa dejar aquí es **lo que no**.
+
+**Lo que se hizo, en una línea.** El encadenamiento que le faltaba —una planilla publica sus
+salidas y el resto de la obra las nombra, con `evaluateSheet` aceptando un scope inicial—,
+las cinco vías por las que se perdía trabajo (Escape sobre un bloque vaciado, ids de rescate
+repetidos, guardar una obra reescribía las demás, dos pestañas pisándose el id, la ráfaga
+perdida al cerrar), las dos por las que el canvas enseñaba algo que el documento no decía
+(Backspace borraba un nodo del lienzo, la prosa de un bloque de texto fabricaba ciclos), el
+orden topológico que escondía nombres al autocompletado, el layout que apilaba una cadena en
+vertical, la evaluación por tecla, exportar/importar una obra, la memoria descargable de un
+nodo, y `verify:obra`, que es la primera red que tiene esta capa.
+
+### Lo que queda
+
+- **Combinaciones, modelo y documento.** Los tres están declarados como `POR_VENIR` en
+  `PaletaNodos.tsx` y son el siguiente módulo. El encadenamiento que hay ahora es lo que una
+  combinación va a citar: una carga ya es *un nombre y un desglose*, y ese nombre es el
+  identificador.
+- **Publicar una salida de tipo `serie`.** Una matriz N×M no cabe en una variable que otro
+  nodo multiplique, así que el selector la deja fuera. Cuando haga falta —el espectro que
+  alimenta a otra hoja— hay que decidir qué significa nombrarla.
+- **Deshacer.** La obra no tiene `Ctrl+Z`. Borrar una carga con todas sus partidas es un clic
+  con confirmación y sin retorno. El armazón de `useHistorial` del canvas matemático se puede
+  reusar: observa el documento en vez de envolver a los ocho sitios que lo modifican.
+- **Dos pestañas con la MISMA obra abierta se siguen pisando.** Crear ya no pisa, y guardar
+  ya no toca las demás obras, pero no hay listener de `storage` como el que tiene
+  `MathCanvas`: la última en guardar gana, sin aviso.
+- **El armazón común de los dos canvas.** `CanvasObra` y `CanvasProyecto` comparten ~120
+  líneas, y `NodoObra` y `NodoHarness` son casi el mismo archivo. La regla escrita
+  (`CanvasObra.tsx`) dice que se extrae cuando aparezca un tercer lienzo, y se respeta — pero
+  conviene saber que el Backspace que borraba nodos y el saneo del grafo hubo que pensarlos
+  dos veces por eso.
+- **`identificadoresDe` es un tercer léxico** (`modelo.ts`), una regex propia para tokenizar
+  lo que math.js ya sabe analizar. Hoy se compensa filtrando por «lo que algún nodo define»,
+  así que una unidad o una función nunca se confunden con una dependencia; pero un nombre
+  dentro de una cadena de texto de una fórmula sí cuenta.
+- **El panel no atrapa el foco.** Escape ya cierra, pero no hay `role="dialog"` ni recorrido
+  de foco, y las pestañas de una ficha no se mueven con las flechas.
+- **Un nodo del canvas no se puede recorrer ni abrir con el teclado**: la selección es un
+  `onNodeClick`. React Flow trae navegación propia, y no está configurada.
+- **La caché de evaluación de genéricas es FIFO, no LRU** (`biblioteca.ts`), así que la
+  entrada más usada puede ser la primera en caer. Con veinte cálculos no se nota.
 - El `ResizeObserver` de las medidas se reconecta con cada cambio de `regions`, así que un
   arrastre remide las ~650 regiones en **cada** `pointermove`, no solo en cada pausa. Matiza el
   punto de los cuatro debounces (sección 8). **Muere con el cambio de modelo.**
