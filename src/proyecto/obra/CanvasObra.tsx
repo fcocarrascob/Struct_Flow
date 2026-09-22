@@ -27,7 +27,7 @@ import { colocar, guardarLayout, layoutGuardado, olvidarLayout, type Posicion } 
 import { archivoDeObra, guardarObra, leerObra, nombreDeArchivo } from './almacen';
 import { descargarHoja } from '../../lib/canvas-handoff';
 import { cargarGenerica, desprender, type Genericas } from './biblioteca';
-import { evaluarObra, problemaDeGrafo } from './evaluacion';
+import { evaluarObra, problemaDeGrafo, rupturaPorQuitar } from './evaluacion';
 import { variablesDePartida } from './calculo';
 import {
   agregarCalculo,
@@ -182,12 +182,61 @@ function existeNodo(obra: Obra | null, idNodo: string): boolean {
 function piezasDeLaObra(obra: Obra | null): number {
   if (!obra) return 0;
   let n = obra.modulos.length + obra.cargas.length + obra.calculos.length;
-  for (const k of obra.calculos) n += k.hoja.length;
+  for (const k of obra.calculos) n += k.hoja.length + piezasDeFrontera(k.frontera);
   for (const c of obra.cargas) {
     n += c.subcargas.length;
-    for (const sub of c.subcargas) n += sub.hoja.length;
+    for (const sub of c.subcargas) n += sub.hoja.length + piezasDeFrontera(sub.frontera);
   }
   return n;
+}
+
+/**
+ * Lo que una frontera aporta a la cuenta: ella misma, cada entrada del
+ * formulario, cada campo atado y cada alias publicado.
+ *
+ * Sin esto, «quitar la planilla» NO contaba como pérdida, y es la que más se
+ * lleva: en una de la biblioteca la hoja está VACÍA —las regiones se instancian
+ * al evaluar—, así que borrar la frontera se llevaba el slug, el sello, el
+ * formulario de entradas rellenado a mano y los alias que el resto de la obra
+ * está nombrando, dejando el número idéntico. El paso entraba en el historial
+ * tras la pausa de 400 ms y el autoguardado consolidaba a los 300: pulsar Ctrl+Z
+ * enseguida, que es lo que uno hace, no devolvía nada.
+ */
+/** Cuántos nodos afectados se citan por su nombre antes de resumir. Es el mismo
+ *  corte que `NOMBRES_EN_FLECHA` de `proyeccion.ts`, y por lo mismo: con ocho,
+ *  la frase deja de decir nada. */
+const NODOS_EN_AVISO = 3;
+
+/**
+ * Qué se fue y quién se quedó sin qué, en una frase.
+ *
+ * Es lo que paga la confirmación que se quitó: un borrado que no pregunta tiene
+ * que decir qué rompió y ofrecer la vuelta en el mismo gesto. Y es la única
+ * ventana en que se puede decir: una flecha no se guarda, ES la entrada de
+ * `duenio`, así que en cuanto el nodo se va solo queda un «Undefined symbol» sin
+ * remitente en los nodos de aguas abajo.
+ */
+function fraseDeRuptura(quitado: string, rota: { nodo: string; nombres: string[] }[]): string {
+  const cual = `Quitaste «${quitado}».`;
+  if (rota.length === 0) return cual;
+  const citados = rota.slice(0, NODOS_EN_AVISO).map((r) => `«${r.nodo}»`);
+  const resto = rota.length - citados.length;
+  const partes = resto > 0 ? [...citados, `${resto} más`] : citados;
+  const lista =
+    partes.length === 1 ? partes[0] : `${partes.slice(0, -1).join(', ')} y ${partes[partes.length - 1]}`;
+  const verbo = rota.length === 1 ? 'se quedó' : 'se quedaron';
+  const nombres = [...new Set(rota.flatMap((r) => r.nombres))].map((n) => `«${n}»`).join(', ');
+  return `${cual} ${lista} ${verbo} sin ${nombres}.`;
+}
+
+function piezasDeFrontera(f: Frontera | undefined): number {
+  if (!f) return 0;
+  return (
+    1 +
+    Object.keys(f.entradas ?? {}).length +
+    Object.keys(f.formulas ?? {}).length +
+    Object.keys(f.publica ?? {}).length
+  );
 }
 
 function CanvasObra({ id }: { id: string }) {
@@ -236,9 +285,11 @@ function CanvasObra({ id }: { id: string }) {
             duenio: new Map(),
             repetidos: new Map(),
             usos: new Map(),
+            etiquetas: new Map(),
             define: new Map(),
             enCiclo: new Set<string>(),
             atadosTapados: new Map(),
+            nombresRotos: new Map(),
             scopeEnNodo: new Map(),
             importadas: new Map(),
           },
@@ -337,6 +388,13 @@ function CanvasObra({ id }: { id: string }) {
   // Espejos para las acciones que corren desde un manejador y no desde el
   // render: desprender necesita el módulo descargado y el scope de la posición
   // del nodo, y ninguno de los dos es estado de esta función.
+  //
+  // `evaluacionRef` lo leen además los tres borradores, para saber quién
+  // dependía del nodo que se va. Va 120 ms por detrás de `obra` —el debounce de
+  // `obraEval`— y está bien que así sea: reevaluar dentro de un manejador de
+  // clic, solo para redactar una frase, costaría el orden topológico entero. Lo
+  // peor que pasa desfasado es que la lista salga vacía y el aviso diga solo
+  // «Quitaste «X»», que es cierto y conserva el deshacer. NO lo recalcules.
   const genericasRef = useRef(genericas);
   genericasRef.current = genericas;
   const evaluacionRef = useRef(evaluacion);
@@ -511,6 +569,37 @@ function CanvasObra({ id }: { id: string }) {
   });
 
   /**
+   * Lo que el último borrado se llevó por delante, con el deshacer al lado.
+   *
+   * Vive en la CABECERA y no flotando sobre el lienzo, como los del canvas: ahí
+   * dentro quedaría en el contenedor que lleva `hidden` mientras hay una pestaña
+   * abierta —el mismo bug que tuvo el aviso de guardado—, y en el grafo no hay
+   * papel al que hacerle dar un salto, que era la razón de la pila flotante.
+   */
+  const [avisoBorrado, setAvisoBorrado] = useState<string | null>(null);
+  /**
+   * La obra que dejó ese borrado.
+   *
+   * «↶ Deshacer» llama al historial, que deshace el ÚLTIMO paso —no el borrado—.
+   * Si el aviso sobreviviera a cualquier otro cambio, su botón desharía ESE otro
+   * cambio y el borrado seguiría ahí: un deshacer que deshace otra cosa es peor
+   * que no ofrecerlo. Así que el aviso solo existe mientras el borrado siga
+   * siendo lo último que pasó. Por eso caduca con la obra y no con un reloj.
+   */
+  const obraDelAviso = useRef<Obra | null>(null);
+
+  const anunciarBorrado = useCallback((siguiente: Obra, texto: string) => {
+    obraDelAviso.current = siguiente;
+    setAvisoBorrado(texto);
+  }, []);
+
+  useEffect(() => {
+    if (obraDelAviso.current === null || obra === obraDelAviso.current) return;
+    obraDelAviso.current = null;
+    setAvisoBorrado(null);
+  }, [obra]);
+
+  /**
    * Ctrl+Z y Ctrl+Y, SOLO en el grafo.
    *
    * Con una pestaña de cálculo abierta el atajo es del `MathCanvas` que está
@@ -552,12 +641,24 @@ function CanvasObra({ id }: { id: string }) {
 
   const borrarUnaCarga = useCallback(
     (idCarga: string) => {
-      const carga = obraRef.current?.cargas.find((c) => c.id === idCarga);
-      cerrarPestanasDe((carga?.subcargas ?? []).map((s) => idNodoDeSubcarga(s.id)));
-      setObra((o) => (o ? borrarCarga(o, idCarga) : o));
+      const actual = obraRef.current;
+      const carga = actual?.cargas.find((c) => c.id === idCarga);
+      if (!actual || !carga) return;
+      // Una carga no es un nodo de la cadena —sus partidas sí—, así que se
+      // pregunta por todas juntas: las que se citan entre ellas se van a la vez y
+      // no cuentan como rotas.
+      const idsNodo = carga.subcargas.map((s) => idNodoDeSubcarga(s.id));
+      const frase = fraseDeRuptura(
+        carga.nombre || 'una carga',
+        rupturaPorQuitar(idsNodo, evaluacionRef.current),
+      );
+      cerrarPestanasDe(idsNodo);
+      const siguiente = borrarCarga(actual, idCarga);
+      setObra(siguiente);
+      anunciarBorrado(siguiente, frase);
       setSeleccion((s) => (s === idNodoDeCarga(idCarga) ? ID_NODO_CARGAS : s));
     },
-    [cerrarPestanasDe],
+    [cerrarPestanasDe, anunciarBorrado],
   );
 
   // ── El desglose de una carga ───────────────────────────────────────────────
@@ -594,17 +695,25 @@ function CanvasObra({ id }: { id: string }) {
       const actual = obraRef.current;
       const carga = actual && cargaDeSubcarga(actual, idSub);
       if (!actual || !carga) return;
-      cerrarPestanasDe([idNodoDeSubcarga(idSub)]);
-      setObra(
-        conSubcargas(
-          actual,
-          carga.id,
-          carga.subcargas.filter((s) => s.id !== idSub),
-        ),
+      const partida = carga.subcargas.find((s) => s.id === idSub);
+      const idNodo = idNodoDeSubcarga(idSub);
+      // Antes de aplicar: después, esta partida ya no define nada y `usos` no
+      // tiene de dónde sacar quién dependía de ella.
+      const frase = fraseDeRuptura(
+        partida?.nombre || 'una partida',
+        rupturaPorQuitar([idNodo], evaluacionRef.current),
       );
+      cerrarPestanasDe([idNodo]);
+      const siguiente = conSubcargas(
+        actual,
+        carga.id,
+        carga.subcargas.filter((s) => s.id !== idSub),
+      );
+      setObra(siguiente);
+      anunciarBorrado(siguiente, frase);
       setSeleccion(idNodoDeCarga(carga.id));
     },
-    [cerrarPestanasDe],
+    [cerrarPestanasDe, anunciarBorrado],
   );
 
   // ── Importar una genérica ──────────────────────────────────────────────────
@@ -637,11 +746,21 @@ function CanvasObra({ id }: { id: string }) {
 
   const borrarUnCalculo = useCallback(
     (idCalculo: string) => {
-      cerrarPestanasDe([idNodoDeCalculo(idCalculo)]);
-      setObra((o) => (o ? borrarCalculo(o, idCalculo) : o));
+      const actual = obraRef.current;
+      if (!actual) return;
+      const calculo = actual.calculos.find((k) => k.id === idCalculo);
+      const idNodo = idNodoDeCalculo(idCalculo);
+      const frase = fraseDeRuptura(
+        calculo?.nombre || 'un cálculo',
+        rupturaPorQuitar([idNodo], evaluacionRef.current),
+      );
+      cerrarPestanasDe([idNodo]);
+      const siguiente = borrarCalculo(actual, idCalculo);
+      setObra(siguiente);
+      anunciarBorrado(siguiente, frase);
       setSeleccion(null);
     },
-    [cerrarPestanasDe],
+    [cerrarPestanasDe, anunciarBorrado],
   );
 
   // ── Las pestañas ───────────────────────────────────────────────────────────
@@ -1028,6 +1147,39 @@ function CanvasObra({ id }: { id: string }) {
             className="mt-1 rounded border border-aviso bg-white px-3 py-1.5 text-[11px] leading-snug text-aviso"
           >
             No se pudo guardar la obra. {avisoGuardado}
+          </p>
+        )}
+
+        {/* Lo que se acaba de romper, con la vuelta atrás al lado. Reemplaza al
+            «¿seguro?» que borrar ya no pregunta: dice qué se llevó el clic —que es
+            lo que una confirmación nunca llegó a decir— y ofrece deshacerlo. */}
+        {avisoBorrado && (
+          <p
+            role="status"
+            className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 rounded border border-border bg-white px-3 py-1.5 text-[11px] leading-snug text-muted"
+          >
+            <span>{avisoBorrado}</span>
+            <button
+              type="button"
+              onClick={() => {
+                historial.deshacer();
+                setAvisoBorrado(null);
+                obraDelAviso.current = null;
+              }}
+              className="rounded border border-border px-1.5 py-0.5 text-[10px] text-ink hover:border-accent hover:text-accent"
+            >
+              ↶ Deshacer
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setAvisoBorrado(null);
+                obraDelAviso.current = null;
+              }}
+              className="text-[10px] underline hover:text-accent"
+            >
+              Ocultar
+            </button>
           </p>
         )}
       </header>

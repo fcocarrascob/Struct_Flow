@@ -34,6 +34,7 @@ const {
   evaluarObra,
   proyectar,
   problemaDeGrafo,
+  rupturaPorQuitar,
   resolverExpresion,
   moduloDeBiblioteca,
   problemaDeAlias,
@@ -551,6 +552,42 @@ const CASOS = [
       calc('G', m('L_ext := 9 m')),
     ),
     ok: esperaProblema('P', /d/),
+  },
+  {
+    nombre: 'antes de quitar un nodo se sabe quién se queda sin qué',
+    // Es la única ventana en que la respuesta existe: la flecha ES la entrada de
+    // `duenio`, así que en cuanto A se va, nadie puede decir de dónde venía.
+    obra: obra(
+      calc('A', m('A_planta := 4 m * 3 m')),
+      calc('B', m('carga := A_planta * 5 kN/m^2')),
+      calc('C', m('suelto := 2 m')),
+    ),
+    ok: (ev) => {
+      const rota = rupturaPorQuitar([K('A')], ev);
+      if (rota.length !== 1) return `se rompieron ${rota.length} nodos, se esperaba 1`;
+      if (rota[0].nodo !== 'B') return `se señaló a «${rota[0].nodo}» en vez de a «B»`;
+      if (rota[0].nombres.join() !== 'A_planta') return `nombres: ${rota[0].nombres.join()}`;
+      // Y quitar al que no alimenta a nadie no rompe nada, así que no hay aviso.
+      return rupturaPorQuitar([K('C')], ev).length === 0 ? null : 'C rompió algo sin alimentar a nadie';
+    },
+  },
+  {
+    nombre: 'un nombre que ningún nodo define se dice en español, no «Undefined symbol»',
+    // Es lo que queda tras borrar el nodo que lo publicaba: el consumidor sigue
+    // citándolo y el motor solo sabe decir que no existe, en inglés.
+    obra: obra(calc('B', m('total := A_planta * 2'))),
+    ok: esperaProblema('B', /Ningún nodo de la obra define «A_planta»/),
+  },
+  {
+    nombre: 'si el nombre SÍ tiene dueño, el diagnóstico manda a arreglar ESE nodo',
+    // La cascada: A no logró calcular lo que publica, así que B se queda sin
+    // valor. Decirle a B que «nadie define A_planta» sería falso y lo mandaría a
+    // buscar donde no está.
+    obra: obra(calc('A', m('A_planta := falta * 2')), calc('B', m('total := A_planta * 2'))),
+    ok: todas(
+      esperaProblema('B', /«A_planta» la define «A»/),
+      esperaProblema('A', /Ningún nodo de la obra define «falta»/),
+    ),
   },
 ];
 

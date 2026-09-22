@@ -17,6 +17,7 @@ export {
   evaluarHojaConFrontera,
   nodosDeLaObra,
   problemaDeGrafo,
+  rupturaPorQuitar,
 } from './evaluacion';
 export { sanearObra, idDeObra, archivoDeObra, importarObra } from './almacen';
 export { proyectar } from './proyeccion';

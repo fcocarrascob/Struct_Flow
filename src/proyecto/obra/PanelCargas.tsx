@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef } from 'react';
 import type { EvaluacionCarga } from './calculo';
 import { nuevaCarga, problemaDeNombre, type Carga } from './modelo';
 import { useEscape } from './useEscape';
@@ -11,9 +11,9 @@ import { useEscape } from './useEscape';
  * de ida y vuelta para cambiar una letra.
  *
  * El panel es CONTROLADO DESDE FUERA, como `SeccionesPanel` y `VariablePanel`:
- * no guarda ninguna carga, solo el rastro de qué fila está a punto de borrarse.
- * El documento de la obra vive en el canvas, que es quien lo persiste; tenerlo
- * también acá daría dos copias y la segunda divergiría.
+ * no guarda ninguna carga. El documento de la obra vive en el canvas, que es
+ * quien lo persiste; tenerlo también acá daría dos copias y la segunda
+ * divergiría.
  *
  * Un nombre repetido o vacío NO se rechaza mientras se escribe: se marca. El
  * mismo motivo aparece en el nodo del canvas, que sale rojo, porque las dos
@@ -54,19 +54,8 @@ export default function PanelCargas({
   onIrAPartida: (idSub: string) => void;
   onCerrar: () => void;
 }) {
-  const [porBorrar, setPorBorrar] = useState<string | null>(null);
   const nombres = useRef(new Map<string, HTMLInputElement>());
   useEscape(onCerrar);
-
-  // El «¿borrar?» se retira solo. Sin esto quedaría armado indefinidamente, y un
-  // botón que dice «¿borrar?» desde hace cinco minutos se pulsa por inercia.
-  // Tampoco sirve retirarlo al perder el foco: el `blur` llega ANTES del `click`
-  // del propio botón, así que la confirmación se desarmaría justo al confirmar.
-  useEffect(() => {
-    if (!porBorrar) return;
-    const t = window.setTimeout(() => setPorBorrar(null), 4000);
-    return () => window.clearTimeout(t);
-  }, [porBorrar]);
 
   // Traer a la vista la fila del nodo seleccionado, y dejar el nombre listo para
   // reemplazar **solo si sigue siendo el propuesto** («C1», «C2»…), que es lo
@@ -126,7 +115,6 @@ export default function PanelCargas({
 
             {cargas.map((c) => {
               const problema = problemaDeNombre(c, cargas);
-              const confirmando = porBorrar === c.id;
               return (
                 <Fragment key={c.id}>
                   <div className="flex items-center gap-2">
@@ -142,18 +130,23 @@ export default function PanelCargas({
                       aria-invalid={problema ? true : undefined}
                       className={`${CAMPO} min-w-0 flex-1 font-mono ${problema ? 'border-error' : 'border-border'}`}
                     />
+                    {/* Un clic y se va. Acá había un «¿borrar?» en dos tiempos, que
+                        era la única protección de la obra cuando no había deshacer:
+                        quitar un nodo de cálculo o una partida no preguntaba nada y
+                        se llevaba la hoja entera, así que la carga estaba defendida
+                        y lo caro no. Con `Ctrl+Z` y los botones ↶ ↷ en la cabecera
+                        hay una sola respuesta a «¿seguro?», y es la misma para todo
+                        lo que vive dentro del documento de la obra. La confirmación
+                        sigue donde sí hace falta: borrar una obra ENTERA, en
+                        `IndiceProyectos`, que está fuera de lo que ve el historial. */}
                     <button
                       type="button"
-                      onClick={() => (confirmando ? onBorrar(c.id) : setPorBorrar(c.id))}
-                      aria-label={confirmando ? 'Confirmar el borrado' : `Borrar ${c.nombre}`}
-                      title={confirmando ? 'Confirmar el borrado' : `Borrar ${c.nombre}`}
-                      className={`shrink-0 rounded border px-1.5 py-1 text-[10px] ${
-                        confirmando
-                          ? 'border-error bg-error text-white'
-                          : 'border-border text-muted hover:border-error hover:text-error'
-                      }`}
+                      onClick={() => onBorrar(c.id)}
+                      aria-label={`Borrar ${c.nombre}`}
+                      title={`Borrar ${c.nombre}`}
+                      className="shrink-0 rounded border border-border px-1.5 py-1 text-[10px] text-muted hover:border-error hover:text-error"
                     >
-                      {confirmando ? '¿borrar?' : '×'}
+                      ×
                     </button>
                   </div>
 

@@ -165,7 +165,15 @@ function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra)
     ? (instancia.ev?.errores ?? [])
     : k.hoja.filter((r) => ev.results[r.id]?.error).map((r) => ({ error: ev.results[r.id]!.error! }));
   if (errores.length) {
-    motivos.push(`${errores.length} región(es) con error: ${errores[0].error}`);
+    // El mensaje crudo del motor, SOLO si no hay uno del grafo que ya lo
+    // explique. Con los dos, el nodo repetía en inglés —«Undefined symbol
+    // A_planta»— lo que la línea de arriba acababa de decir en español, y en la
+    // tarjeta del lienzo solo se ve el primer motivo.
+    motivos.push(
+      enGrafo
+        ? `${errores.length} región(es) con error.`
+        : `${errores.length} región(es) con error: ${errores[0].error}`,
+    );
     severidad = peor(severidad, 'error');
   }
 

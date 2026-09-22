@@ -136,12 +136,23 @@ export interface EvaluacionObra {
   repetidos: Map<string, string[]>;
   /** id de nodo → nombres que toma de otros nodos. */
   usos: Map<string, Set<string>>;
+  /** id de nodo → su nombre visible. Un diagnóstico que dice «lo definía
+   *  `k_3f8a`» no sirve para ir a arreglarlo. */
+  etiquetas: Map<string, string>;
   /** id de nodo → nombres que define (o publica, si es una planilla), en orden. */
   define: Map<string, string[]>;
   /** Nodos que no tienen orden posible porque se citan en círculo. */
   enCiclo: Set<string>;
   /** id de nodo → el campo atado que su propia hoja vuelve a definir. */
   atadosTapados: Map<string, string>;
+  /**
+   * id de nodo → los nombres que su hoja pidió y no existen.
+   *
+   * Salen del mensaje del motor y no de `usos`, que filtra por `duenio` a
+   * propósito: sin ese filtro, `sqrt` y `kN` entrarían como dependencias rotas.
+   * Un nombre que el motor declara indefinido sí lo está, sea del grafo o no.
+   */
+  nombresRotos: Map<string, string[]>;
   /**
    * id de nodo → el scope con el que se evalúa SU hoja.
    *
@@ -217,6 +228,23 @@ function fuentesDeUso(nodo: NodoObra): string[] {
   // dibujaba una flecha que no existe y, si la otra dirección ya estaba,
   // fabricaba un ciclo — dos nodos en rojo por una palabra de un párrafo.
   return nodo.hoja.filter((r) => r.kind === 'math').map((r) => r.src);
+}
+
+/**
+ * Los nombres que el motor declaró indefinidos en un mensaje de error.
+ *
+ * Es la única señal fiable de «este nombre no está». No se puede listar «lo que
+ * el nodo usa y nadie define» porque `usos` filtra por `duenio` a propósito: sin
+ * ese filtro, media biblioteca de math.js —`sqrt`, `kN`, `pi`— pasaría por
+ * dependencia rota. El motor, en cambio, ya resolvió funciones y unidades cuando
+ * se queja.
+ */
+const RE_INDEFINIDO = /Undefined symbol ([A-Za-z_]\w*)/g;
+
+function simbolosIndefinidos(mensaje: string): string[] {
+  const nombres: string[] = [];
+  for (const m of mensaje.matchAll(RE_INDEFINIDO)) nombres.push(m[1]);
+  return nombres;
 }
 
 /**
@@ -486,6 +514,27 @@ export function evaluarObra(obra: Obra, genericas: Genericas = {}): EvaluacionOb
   cerrarTramo(tramo);
   regions.push(...sinCentinelas(tramo));
 
+  // ── Los nombres que se pidieron y no estaban ───────────────────────────────
+  const nombresRotos = new Map<string, string[]>();
+  for (const h of nodos) {
+    const rotos = new Set<string>();
+    for (const r of h.hoja) {
+      const e = results[r.id]?.error;
+      if (e) for (const n of simbolosIndefinidos(e)) rotos.add(n);
+    }
+    // Una de la biblioteca tiene la hoja vacía: sus errores viven en la
+    // evaluación del módulo, no en `results` por id de bloque.
+    for (const { error } of importadas.get(h.idNodo)?.ev?.errores ?? []) {
+      for (const n of simbolosIndefinidos(error)) rotos.add(n);
+    }
+    // Lo que el propio nodo define NO está roto, aunque el motor se queje de
+    // ello: una definición que falla se retira del scope, así que las líneas de
+    // más abajo que la nombran fallan en cascada. El nombre a señalar es el
+    // primero, el que de verdad falta, no los diez que se cayeron detrás.
+    for (const n of define.get(h.idNodo) ?? []) rotos.delete(n);
+    if (rotos.size > 0) nombresRotos.set(h.idNodo, [...rotos]);
+  }
+
   return {
     results,
     regions,
@@ -493,9 +542,11 @@ export function evaluarObra(obra: Obra, genericas: Genericas = {}): EvaluacionOb
     duenio,
     repetidos,
     usos,
+    etiquetas: new Map(nodos.map((h) => [h.idNodo, h.etiqueta])),
     define,
     enCiclo,
     atadosTapados,
+    nombresRotos,
     scopeEnNodo,
     importadas,
   };
@@ -554,6 +605,36 @@ export function problemaDeGrafo(idNodo: string, ev: EvaluacionObra): string {
       'calcula el canvas, no tú. Renómbrala en uno de ellos.'
     );
   }
+  // Un nombre que este nodo pide y no existe. Va DESPUÉS del choque propio y
+  // antes del atado tapado: si este nodo define dos veces algo, eso es lo que
+  // hay que arreglar primero, y lo de abajo se resuelve solo.
+  const rotos = ev.nombresRotos.get(idNodo) ?? [];
+  if (rotos.length > 0) {
+    const [n] = rotos;
+    const yMas = rotos.length > 1 ? ` (y ${rotos.length - 1} más)` : '';
+    // TRES causas que hasta acá se veían igual, con un «Undefined symbol» en
+    // inglés que no decía de dónde venía el nombre. La respuesta útil es
+    // distinta en cada una, y en la primera es ir a OTRO nodo.
+    const duenio = ev.duenio.get(n);
+    if (duenio) {
+      const quien = ev.etiquetas.get(duenio) ?? duenio;
+      return (
+        `«${n}»${yMas} la define «${quien}», pero ahí no llegó a dar valor. ` +
+        'Arregla ese nodo y este se arregla solo.'
+      );
+    }
+    const cuantos = ev.repetidos.get(n)?.length;
+    if (cuantos) {
+      return (
+        `«${n}»${yMas} la definen ${cuantos} nodos, así que ninguno es su dueño y acá llega ` +
+        'sin valor. Renómbrala en todos menos uno.'
+      );
+    }
+    return (
+      `Ningún nodo de la obra define «${n}»${yMas}. Si venía de un cálculo que quitaste, ` +
+      'deshaz el borrado con Ctrl+Z.'
+    );
+  }
   const tapado = ev.atadosTapados.get(idNodo);
   if (tapado) {
     return (
@@ -562,6 +643,37 @@ export function problemaDeGrafo(idNodo: string, ev: EvaluacionObra): string {
     );
   }
   return '';
+}
+
+/**
+ * Qué nodos se quedan sin qué nombres si estos desaparecen.
+ *
+ * Se pregunta ANTES de aplicar el borrado, que es el único momento en que la
+ * respuesta existe: una flecha no se guarda, ES la entrada de `duenio`, así que
+ * en cuanto el nodo se va nadie puede decir de dónde venía el nombre que falta.
+ * Después solo queda un «Undefined symbol» sin remitente.
+ *
+ * Devuelve ya las ETIQUETAS y no los ids: quien lo llama arma una frase.
+ */
+export function rupturaPorQuitar(
+  idsNodo: readonly string[],
+  ev: EvaluacionObra,
+): { nodo: string; nombres: string[] }[] {
+  const fuera = new Set(idsNodo);
+  const rota: { nodo: string; nombres: string[] }[] = [];
+  for (const [consumidor, nombres] of ev.usos) {
+    // Un nodo que también se va no «se queda» sin nada: borrar una carga se
+    // lleva todas sus partidas de una vez, y se citan entre ellas.
+    if (fuera.has(consumidor)) continue;
+    const perdidos = [...nombres].filter((n) => {
+      const d = ev.duenio.get(n);
+      return d !== undefined && fuera.has(d);
+    });
+    if (perdidos.length > 0) {
+      rota.push({ nodo: ev.etiquetas.get(consumidor) ?? consumidor, nombres: perdidos });
+    }
+  }
+  return rota;
 }
 
 /**
