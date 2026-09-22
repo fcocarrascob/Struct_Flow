@@ -135,6 +135,29 @@ lugar en él.
   separando los espacios de nombres. Toca el motor —y obliga a resellar—, pero es la primera
   fricción que nota quien viene de SMath o Mathcad.
 
+## Propuestas tras la obra autocontenida
+
+**2026-09-22.** La obra autocontenida del Pachón (`docs/obra-pachon/`, 35 nodos) se revisó en
+el navegador. Lo que se arregló en ese momento es la lectura del grafo, que no toca el motor:
+la clase de cada nodo (carga, cálculo, biblioteca, resumen) con su ícono, grupos de color
+libres, el trazo del nodo enfocado por encima de las tarjetas, las etiquetas de las flechas
+solo de cerca o en el trazo, y pestañas con límites.
+
+Quedó fuera, a propósito, lo que muestra **valores** en vez de relaciones:
+
+- **Bloque tabla en la hoja.** Celdas con expresiones y encabezados. Sirve para dos cosas
+  que hoy se escriben mal: el resumen de lo que va al modelo (en el Pachón son 55 líneas
+  `x = unidad` seguidas) y las tablas de norma con interpolación (el `Cp_cub` de la Fig. 3
+  del CIRSOC 102 es un `program` con `if/else`). Es una región nueva: toca `src/lib`,
+  `render-html.ts`, `verify:motor` y obliga a resellar.
+- **Valores en la tarjeta y nodo Datos.** La tarjeta se expande con lo que el nodo publica,
+  con su valor y su unidad, sin abrir la hoja. Un nodo Datos es una grilla de
+  nombre · valor · unidad · fuente que por dentro genera `x := valor`: los supuestos y los
+  datos de entrada de una obra, con su cita en una columna. No toca el motor.
+- **Bloque gráfico.** Una función o una serie sobre un rango, dibujada en SVG, igual en el
+  canvas y en el PDF. El caso que lo pide es el espectro Sa(T) de la hoja del CIRSOC 103.
+  Toca `src/lib` como la tabla.
+
 ## Riesgos
 
 - **El alcance.** Un editor de flujos genérico tipo n8n es un producto en sí mismo. La fuerza

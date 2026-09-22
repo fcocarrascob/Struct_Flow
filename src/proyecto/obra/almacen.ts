@@ -19,12 +19,14 @@ import type { MetaPlanilla } from '../../lib/biblioteca/contrato';
 import { metaDe } from '../../lib/hoja-json';
 import { migrarBloques, sanearHoja } from './hoja';
 import {
+  COLOR_RE,
   IDENTIFICADOR_RE,
   problemaDeAlias,
   slugificar,
   VERSION_OBRA,
   type Carga,
   type Frontera,
+  type Grupo,
   type Modulo,
   type NodoCalculo,
   type Obra,
@@ -189,7 +191,31 @@ function sanearSubcarga(crudo: unknown, vistos: Vistos): Subcarga | null {
   };
 }
 
-function sanearCalculo(crudo: unknown, vistos: Vistos): NodoCalculo | null {
+/**
+ * Los grupos de la obra. Uno sin color legible se descarta entero, en vez de
+ * inventarle uno: un color distinto del que se eligió es un dato equivocado, y
+ * sus miembros quedan sin grupo, que se ve y se corrige.
+ */
+function sanearGrupos(crudo: unknown): Grupo[] {
+  const vistos = new Set<string>();
+  const grupos: Grupo[] = [];
+  for (const g of Array.isArray(crudo) ? crudo : []) {
+    if (typeof g !== 'object' || g === null) continue;
+    const { id, nombre, color } = g as Partial<Grupo>;
+    if (typeof id !== 'string' || !id || vistos.has(id)) continue;
+    if (typeof color !== 'string' || !COLOR_RE.test(color)) continue;
+    vistos.add(id);
+    grupos.push({ id, nombre: typeof nombre === 'string' ? nombre : 'Grupo', color });
+  }
+  return grupos;
+}
+
+/** El `grupo` de un nodo, solo si apunta a uno que existe. */
+function grupoDe(crudo: unknown, grupos: ReadonlySet<string>): { grupo?: string } {
+  return typeof crudo === 'string' && grupos.has(crudo) ? { grupo: crudo } : {};
+}
+
+function sanearCalculo(crudo: unknown, vistos: Vistos, grupos: ReadonlySet<string>): NodoCalculo | null {
   if (typeof crudo !== 'object' || crudo === null) return null;
   const k = crudo as Partial<NodoCalculo> & { bloques?: unknown; importada?: unknown };
   const frontera = sanearFrontera(k.frontera ?? k.importada);
@@ -200,16 +226,18 @@ function sanearCalculo(crudo: unknown, vistos: Vistos): NodoCalculo | null {
     hoja: sanearHojaDeNodo(k, vistos),
     ...(meta ? { meta } : {}),
     ...(frontera ? { frontera } : {}),
+    ...grupoDe(k.grupo, grupos),
   };
 }
 
-function sanearCarga(crudo: unknown, vistos: Vistos): Carga | null {
+function sanearCarga(crudo: unknown, vistos: Vistos, grupos: ReadonlySet<string>): Carga | null {
   if (typeof crudo !== 'object' || crudo === null) return null;
   const c = crudo as Partial<Carga>;
   if (typeof c.nombre !== 'string') return null;
   return {
     id: idUnico(c.id, vistos),
     nombre: c.nombre,
+    ...grupoDe(c.grupo, grupos),
     // El `tipo` de una obra guardada con el catálogo cerrado se ignora: la carga
     // ya no lo tiene, y el nombre —que es lo que la identifica— no dependía de él.
     // Una obra guardada antes del desglose no trae `subcargas`; no es un dato
@@ -244,6 +272,9 @@ export function sanearObra(crudo: unknown): Obra | null {
   // Un solo juego de ids por obra: cargas, partidas, cálculos y bloques
   // comparten espacio porque todos acaban siendo claves de `results`.
   const vistos: Vistos = new Set();
+  // Los grupos van primero: los miembros solo conservan un `grupo` que exista.
+  const grupos = sanearGrupos(o.grupos);
+  const idsGrupo = new Set(grupos.map((g) => g.id));
   return {
     version: VERSION_OBRA,
     id,
@@ -253,11 +284,12 @@ export function sanearObra(crudo: unknown): Obra | null {
       MODULOS.has(m as string),
     ),
     cargas: (Array.isArray(o.cargas) ? o.cargas : [])
-      .map((c) => sanearCarga(c, vistos))
+      .map((c) => sanearCarga(c, vistos, idsGrupo))
       .filter((c): c is Carga => c !== null),
     calculos: (Array.isArray(o.calculos) ? o.calculos : [])
-      .map((k) => sanearCalculo(k, vistos))
+      .map((k) => sanearCalculo(k, vistos, idsGrupo))
       .filter((k): k is NodoCalculo => k !== null),
+    ...(grupos.length ? { grupos } : {}),
   };
 }
 

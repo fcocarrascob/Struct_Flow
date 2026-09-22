@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { Region, SheetResults } from '../../lib/worksheet';
 import type { EstadoGenerica } from './biblioteca';
 import type { Instanciada } from './evaluacion';
@@ -49,8 +49,11 @@ export default function PanelSubcarga({
   onBorrar,
   onIrACarga,
   onCerrar,
+  grupo,
 }: {
   carga: Carga;
+  /** El selector del grupo de la CARGA: una partida no tiene grupo propio. */
+  grupo?: ReactNode;
   subcarga: Subcarga;
   evaluacion: EvaluacionCarga;
   /** Las variables que su hoja define, para elegir cuál es el valor. */
@@ -125,6 +128,8 @@ export default function PanelSubcarga({
             cerrar
           </button>
         </div>
+
+        {grupo && <div className="mt-1.5 px-1.5">{grupo}</div>}
 
         <div className="mt-1.5 flex items-baseline justify-between gap-2">
           {/* El nombre es una etiqueta; cuál variable aporta el valor se elige

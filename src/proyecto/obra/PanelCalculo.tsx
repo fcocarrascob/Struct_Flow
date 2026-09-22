@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { Region, SheetResults } from '../../lib/worksheet';
 import type { EstadoGenerica } from './biblioteca';
 import type { Instanciada } from './evaluacion';
@@ -45,8 +45,11 @@ export default function PanelCalculo({
   onQuitarPlanilla,
   onBorrar,
   onCerrar,
+  grupo,
 }: {
   calculo: NodoCalculo;
+  /** El selector de grupo. Llega armado porque los grupos son de la obra. */
+  grupo?: ReactNode;
   estado: EstadoGenerica | undefined;
   /** Los nombres que su hoja publica al resto de la obra. */
   define: string[];
@@ -121,6 +124,8 @@ export default function PanelCalculo({
             cerrar
           </button>
         </div>
+
+        {grupo && <div className="mt-1.5 px-1.5">{grupo}</div>}
 
         {problemaGrafo && (
           <p className="mt-1 text-[10px] leading-snug text-error">{problemaGrafo}</p>

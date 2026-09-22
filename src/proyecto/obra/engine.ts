@@ -49,7 +49,11 @@ export {
   slugificar,
   nuevaObra,
   IDENTIFICADOR_RE,
+  agregarGrupo,
+  asignarGrupo,
+  borrarGrupo,
 } from './modelo';
+export { trazoDe, ladoDe } from './trazo';
 
 // El motor y el armado de una genérica, en el mismo bundle.
 export { evaluateSheet, formatValor, parseMathRegion } from '../../lib/worksheet';

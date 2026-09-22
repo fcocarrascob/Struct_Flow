@@ -43,7 +43,11 @@ const {
   archivoDeObra,
   idDeObra,
   idNodoDeCalculo,
+  idNodoDeSubcarga,
   parseMathRegion,
+  trazoDe,
+  ladoDe,
+  borrarGrupo,
   // Lo que todavía no existe: estos casos se escriben antes que el modelo y
   // fallan a propósito hasta que lo haya. `evaluarImportada` sí existe ya.
   evaluarImportada,
@@ -662,6 +666,74 @@ const CASOS = [
       esperaProblema('A', /Ningún nodo de la obra define «falta»/),
     ),
   },
+
+  // --- Cómo se dibuja ---------------------------------------------------------
+  {
+    nombre: 'la clase del nodo se deriva: la hoja que solo cita es un resumen',
+    // El «Resumen de cargas del modelo» del Pachón: 55 líneas `x =` sin un solo
+    // `:=`. Una hoja que no define nada y no usa nada es una nota, no un resumen.
+    obra: obra(
+      calc('A', m('a := 1')),
+      calc('R', m('a =')),
+      calc('N', t('una nota')),
+    ),
+    ok: (ev, proy) => {
+      const clase = (id) => proy.nodos.find((x) => x.id === K(id))?.clase;
+      if (clase('A') !== 'calculo') return `A es «${clase('A')}»`;
+      if (clase('R') !== 'resumen') return `R es «${clase('R')}», se esperaba «resumen»`;
+      if (clase('N') !== 'calculo') return `N es «${clase('N')}»: una nota no resume nada`;
+      return null;
+    },
+  },
+  {
+    nombre: 'el trazo de un nodo es la cadena entera, y solo sus eslabones',
+    // A → B → C, y además A → C directo, y D suelto que usa A. Con el foco en B:
+    // arriba A, abajo C. La flecha A → C une un nodo de arriba con uno de abajo
+    // sin pasar por B, así que no es parte del trazo; A → D tampoco.
+    obra: obra(
+      calc('A', m('a := 1')),
+      calc('B', m('b := a + 1')),
+      calc('C', m('c := b + a')),
+      calc('D', m('d := a * 3')),
+    ),
+    ok: (ev, proy) => {
+      const t = trazoDe(K('B'), proy.aristas);
+      const lista = (s) => [...s].sort().join(',');
+      if (lista(t.arriba) !== K('A')) return `arriba: ${lista(t.arriba)}`;
+      if (lista(t.abajo) !== K('C')) return `abajo: ${lista(t.abajo)}`;
+      const lado = (d, h) => {
+        const a = proy.aristas.find((x) => x.desde === K(d) && x.hasta === K(h));
+        return a ? ladoDe(a, t) : 'sin flecha';
+      };
+      if (lado('A', 'B') !== 'arriba') return `A→B es «${lado('A', 'B')}»`;
+      if (lado('B', 'C') !== 'abajo') return `B→C es «${lado('B', 'C')}»`;
+      if (lado('A', 'C') !== null) return `A→C es «${lado('A', 'C')}» y no pasa por B`;
+      if (lado('A', 'D') !== null) return `A→D es «${lado('A', 'D')}» y D no es de la cadena`;
+      return null;
+    },
+  },
+  {
+    nombre: 'una partida lleva el grupo de su carga, y el grupo no toca la evaluación',
+    obra: {
+      ...obra(calc('K', m('q_k := 3 kN/m^2'))),
+      modulos: ['cargas'],
+      grupos: [{ id: 'g1', nombre: 'Viento', color: '#2563eb' }],
+      cargas: [
+        {
+          id: 'c1',
+          nombre: 'W',
+          grupo: 'g1',
+          subcargas: [{ id: 's1', nombre: 'Presión', variable: 'q_w', hoja: [reg('math', 'q_w := q_k', 40)] }],
+        },
+      ],
+    },
+    ok: (ev, proy) => {
+      const sub = proy.nodos.find((x) => x.id === idNodoDeSubcarga('s1'));
+      if (sub?.grupo?.nombre !== 'Viento') return `la partida trae ${JSON.stringify(sub?.grupo)}`;
+      if (proy.nodos.find((x) => x.id === K('K'))?.grupo) return 'K no tiene grupo y apareció con uno';
+      return en(ev.scope, 'q_w', 'kN/m^2') === 3 ? null : 'q_w dejó de valer 3 kN/m²';
+    },
+  },
 ];
 
 // ── La hoja de un nodo, como dato ────────────────────────────────────────────
@@ -1006,6 +1078,48 @@ const CASOS_SANEO = [
       if (f.publica?.u_max !== 'u_z') return 'perdió lo que publicaba';
       return null;
     },
+  },
+  {
+    nombre: 'los grupos sobreviven a guardar y releer, y una referencia rota se descarta',
+    // g2 no tiene un color legible: se descarta entero en vez de inventarle uno,
+    // y su miembro queda sin grupo. k3 apunta a un grupo que no existe.
+    crudo: {
+      id: 'o',
+      grupos: [
+        { id: 'g1', nombre: 'Sismo', color: '#DC2626' },
+        { id: 'g2', nombre: 'Roto', color: 'rojo' },
+        { id: 'g1', nombre: 'Repetido', color: '#000000' },
+      ],
+      calculos: [
+        { id: 'k1', nombre: 'A', hoja: [], grupo: 'g1' },
+        { id: 'k2', nombre: 'B', hoja: [], grupo: 'g2' },
+        { id: 'k3', nombre: 'C', hoja: [], grupo: 'fantasma' },
+      ],
+      cargas: [{ id: 'c1', nombre: 'E', subcargas: [], grupo: 'g1' }],
+    },
+    ok: (o) => {
+      const g = (o.grupos ?? []).map((x) => `${x.id}:${x.nombre}`).join(',');
+      if (g !== 'g1:Sismo') return `grupos: ${g}`;
+      const de = (id) => o.calculos.find((k) => k.id === id)?.grupo;
+      if (de('k1') !== 'g1') return 'k1 perdió su grupo';
+      if (de('k2') !== undefined) return 'k2 conservó un grupo descartado';
+      if (de('k3') !== undefined) return 'k3 conservó un grupo que no existe';
+      if (o.cargas[0].grupo !== 'g1') return 'la carga perdió su grupo';
+      // Ida y vuelta por el archivo, que es lo que hace exportar e importar.
+      const vuelta = sanearObra(archivoDeObra(o).obra);
+      if (JSON.stringify(vuelta.grupos) !== JSON.stringify(o.grupos)) return 'el archivo cambió los grupos';
+      if (vuelta.calculos[0].grupo !== 'g1') return 'el archivo perdió la asignación';
+      // Borrar el grupo se lleva también las referencias.
+      const sin = borrarGrupo(o, 'g1');
+      if (sin.grupos.length || sin.calculos[0].grupo || sin.cargas[0].grupo) return 'borrarGrupo dejó referencias';
+      return null;
+    },
+  },
+  {
+    nombre: 'una obra sin grupos no gana un `grupos: []` al sanearse',
+    // Guardar una obra no puede cambiarla si nadie la tocó.
+    crudo: { id: 'o', calculos: [], cargas: [] },
+    ok: (o) => ('grupos' in o ? 'apareció `grupos`' : null),
   },
 ];
 

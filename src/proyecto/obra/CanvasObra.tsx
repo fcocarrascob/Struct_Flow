@@ -8,6 +8,7 @@ import {
   applyNodeChanges,
   useNodesInitialized,
   useReactFlow,
+  useStore,
   type Edge,
   type Node,
   type NodeChange,
@@ -22,7 +23,7 @@ import type { ResultadoGuardado } from '../../components/canvas/useHojaPersistid
 import { useHistorial } from '../../components/canvas/useHistorial';
 import { origenDeNodo } from './origen-nodo';
 import VistaHoja from './VistaHoja';
-import type { NodoGrafo, Severidad } from '../contrato';
+import type { Severidad } from '../contrato';
 import { colocar, guardarLayout, layoutGuardado, olvidarLayout, type Posicion } from '../layout';
 import { archivoDeObra, guardarObra, leerObra, nombreDeArchivo } from './almacen';
 import { descargarHoja } from '../../lib/canvas-handoff';
@@ -32,11 +33,15 @@ import { variablesDePartida } from './calculo';
 import {
   agregarCalculo,
   agregarCarga,
+  agregarGrupo,
   agregarModulo,
+  asignarGrupo,
   borrarCalculo,
   borrarCarga,
+  borrarGrupo,
   cambiarCalculo,
   cambiarCarga,
+  cambiarGrupo,
   cargaDeSubcarga,
   conFormula,
   conPublicacion,
@@ -52,6 +57,10 @@ import {
   type Subcarga,
 } from './modelo';
 import NodoObra from './NodoObra';
+import IconoClase from './IconoClase';
+import LeyendaGrupos from './LeyendaGrupos';
+import SelectorGrupo from './SelectorGrupo';
+import { ladoDe, trazoDe, type Lado } from './trazo';
 import PaletaNodos, { type EntradaPaleta } from './PaletaNodos';
 import PanelCalculo from './PanelCalculo';
 import PanelCargas from './PanelCargas';
@@ -65,6 +74,7 @@ import {
   idNodoDeSubcarga,
   proyectar,
   subcargaDeNodo,
+  type NodoDeObra,
 } from './proyeccion';
 
 /**
@@ -93,6 +103,38 @@ const COLOR: Record<Severidad, string> = {
 };
 
 const ENCUADRE = { padding: 0.25, duration: 250, maxZoom: 1 };
+
+/** El trazo de un nodo: lo que entra (de qué depende) en el acento, y lo que sale
+ *  (a quién afecta) en verde. Con un solo color, una flecha larga no dice de qué
+ *  lado del foco está. */
+const COLOR_LADO: Record<Lado, string> = {
+  arriba: '#2563eb',
+  abajo: '#059669',
+};
+
+/** Por debajo de este zoom las etiquetas de las flechas no se leen y solo tapan:
+ *  se muestran las del trazo resaltado y ninguna más. */
+const ZOOM_ETIQUETAS = 0.9;
+
+/** La pestaña del grafo. No se cierra: es de donde se sale y a donde se vuelve. */
+function PestanaObra({ activa, onElegir }: { activa: boolean; onElegir: () => void }) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={activa}
+      onClick={onElegir}
+      className={`flex items-center gap-1.5 rounded-t-md border border-border px-2.5 py-1 text-[11px] ${
+        activa
+          ? '-mb-px border-b-white border-t-2 border-t-accent bg-white font-medium text-ink'
+          : 'bg-surface text-muted hover:bg-white hover:text-ink'
+      }`}
+    >
+      <IconoClase clase="obra" className="h-3 w-3 shrink-0" />
+      Obra
+    </button>
+  );
+}
 
 /** «zapata-generica» → «Zapata». Para bautizar un nodo recién importado sin
  *  esperar a que la genérica termine de descargarse. */
@@ -181,7 +223,9 @@ function existeNodo(obra: Obra | null, idNodo: string): boolean {
  */
 function piezasDeLaObra(obra: Obra | null): number {
   if (!obra) return 0;
-  let n = obra.modulos.length + obra.cargas.length + obra.calculos.length;
+  // Los grupos cuentan: quitar uno se lleva su nombre, su color y la asignación
+  // de todos sus miembros, y su aviso ofrece deshacer.
+  let n = obra.modulos.length + obra.cargas.length + obra.calculos.length + (obra.grupos?.length ?? 0);
   for (const k of obra.calculos) n += k.hoja.length + piezasDeFrontera(k.frontera);
   for (const c of obra.cargas) {
     n += c.subcargas.length;
@@ -243,6 +287,11 @@ function CanvasObra({ id }: { id: string }) {
   const [obra, setObra] = useState<Obra | null>(() => leerObra(id));
   const [nodos, setNodos] = useState<Node[]>([]);
   const [seleccion, setSeleccion] = useState<string | null>(null);
+  /** El nodo bajo el puntero: da la misma vista del trazo que seleccionar, sin
+   *  abrir el panel. Solo cuenta mientras no hay nada seleccionado. */
+  const [bajoPuntero, setBajoPuntero] = useState<string | null>(null);
+  /** El grupo que la leyenda está resaltando. */
+  const [grupoEnfocado, setGrupoEnfocado] = useState<string | null>(null);
   const [paletaAbierta, setPaletaAbierta] = useState(false);
   /** Los nodos abiertos como pestaña, por id de nodo del grafo. */
   const [pestanas, setPestanas] = useState<string[]>([]);
@@ -436,24 +485,96 @@ function CanvasObra({ id }: { id: string }) {
     );
   }, [seleccion]);
 
+  // ── El trazo ───────────────────────────────────────────────────────────────
+  // Qué se resalta: la cadena del nodo seleccionado (o del que está bajo el
+  // puntero), o si no hay ninguno, los miembros del grupo enfocado. Todo lo
+  // demás se atenúa. Es presentación: no toca el documento ni la evaluación.
+  const foco = seleccion ?? bajoPuntero;
+  const trazo = useMemo(
+    () => (foco ? trazoDe(foco, proyeccion.aristas) : null),
+    [foco, proyeccion.aristas],
+  );
+  const delGrupo = useMemo(() => {
+    if (!grupoEnfocado) return null;
+    return new Set(
+      proyeccion.nodos.filter((n) => n.grupo?.id === grupoEnfocado).map((n) => n.id),
+    );
+  }, [grupoEnfocado, proyeccion.nodos]);
+  const visibles: ReadonlySet<string> | null = trazo?.nodos ?? delGrupo;
+
+  // Los nodos fuera de lo resaltado se atenúan con una clase en su envoltorio de
+  // React Flow. Depende de `visibles`, que se recalcula con la proyección: el
+  // efecto de arriba recrea los nodos sin clase y este se la vuelve a poner.
+  useEffect(() => {
+    setNodos((previos) =>
+      previos.map((n) => {
+        const clase = visibles && !visibles.has(n.id) ? 'opacity-30 transition-opacity' : undefined;
+        return n.className === clase ? n : { ...n, className: clase };
+      }),
+    );
+  }, [visibles]);
+
+  const etiquetasLegibles = useStore((s) => s.transform[2] >= ZOOM_ETIQUETAS);
+  const colorGrupo = grupoEnfocado
+    ? obra?.grupos?.find((g) => g.id === grupoEnfocado)?.color
+    : undefined;
+
   // Las flechas llevan el nombre que viaja por ellas: sin la etiqueta, una
   // flecha de datos es indistinguible de la que solo dice «esta partida compone
-  // esta carga», y el grafo vuelve a ser un organigrama.
+  // esta carga», y el grafo vuelve a ser un organigrama. Pero ciento veinte
+  // etiquetas a la vez se tapan entre ellas: se ven de cerca, o las del trazo.
   const aristas: Edge[] = useMemo(() => {
     // El id no lleva el índice del array: insertar una arista al principio
     // renombraba todas las posteriores y React Flow las recreaba enteras.
-    return proyeccion.aristas.map((a) => ({
-      id: `${a.desde}->${a.hasta}:${a.tipo}`,
-      source: a.desde,
-      target: a.hasta,
-      label: a.etiqueta || undefined,
-      style: {
-        stroke: COLOR[a.severidad] ?? COLOR.ok,
-        strokeWidth: a.severidad === 'ok' ? 1 : 1.6,
-      },
-      labelStyle: { fontSize: 9, fill: '#6b7280' },
-    }));
-  }, [proyeccion]);
+    return proyeccion.aristas.map((a): Edge => {
+      const base = {
+        id: `${a.desde}->${a.hasta}:${a.tipo}`,
+        source: a.desde,
+        target: a.hasta,
+      };
+      const colorSev = COLOR[a.severidad] ?? COLOR.ok;
+      const lado = trazo
+        ? ladoDe(a, trazo)
+        : delGrupo && delGrupo.has(a.desde) && delGrupo.has(a.hasta)
+          ? 'arriba'
+          : null;
+
+      if (!visibles) {
+        return {
+          ...base,
+          label: etiquetasLegibles ? a.etiqueta || undefined : undefined,
+          style: { stroke: colorSev, strokeWidth: a.severidad === 'ok' ? 1 : 1.6 },
+          labelStyle: { fontSize: 9, fill: '#6b7280' },
+        };
+      }
+      if (!lado) {
+        return { ...base, style: { stroke: colorSev, strokeWidth: 1, opacity: 0.12 } };
+      }
+      const directa = trazo !== null && (a.desde === trazo.foco || a.hasta === trazo.foco);
+      // Una flecha rota sigue en su color de severidad: el trazo no puede tapar
+      // un error. Dentro de un grupo enfocado, el color es el del grupo.
+      const stroke =
+        a.severidad !== 'ok' ? colorSev : trazo ? COLOR_LADO[lado] : (colorGrupo ?? COLOR_LADO[lado]);
+      return {
+        ...base,
+        label: a.etiqueta || undefined,
+        // Por encima de las tarjetas: una flecha resaltada que pasa por detrás
+        // de un nodo se corta justo donde más importa seguirla.
+        zIndex: 1001,
+        animated: directa,
+        style: { stroke, strokeWidth: directa ? 2.2 : 1.4 },
+        labelStyle: { fontSize: 10, fill: stroke, fontWeight: 600 },
+        labelBgStyle: { fill: '#ffffff', fillOpacity: 0.9 },
+      };
+    });
+  }, [proyeccion.aristas, trazo, delGrupo, visibles, etiquetasLegibles, colorGrupo]);
+
+  /** Cuántos nodos del grafo lleva cada grupo, para la leyenda. */
+  const miembrosPorGrupo = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const n of proyeccion.nodos) if (n.grupo) m.set(n.grupo.id, (m.get(n.grupo.id) ?? 0) + 1);
+    return m;
+  }, [proyeccion.nodos]);
 
   // Encuadra una sola vez, al medir los primeros nodos. A diferencia del canvas
   // del harness —que se re-encuadra al filtrar, porque el conjunto visible
@@ -763,6 +884,54 @@ function CanvasObra({ id }: { id: string }) {
     [cerrarPestanasDe, anunciarBorrado],
   );
 
+  // ── Los grupos ─────────────────────────────────────────────────────────────
+  // Todos pasan por `setObra`, así que el historial los cubre como a cualquier
+  // otro cambio del documento.
+  const asignarUnGrupo = useCallback(
+    (idDoc: string, idGrupo: string | undefined) =>
+      setObra((o) => (o ? asignarGrupo(o, idDoc, idGrupo) : o)),
+    [],
+  );
+
+  // Fuera del actualizador, como `nuevaCargaEnObra`: el id del grupo nuevo se
+  // sortea, y un actualizador que React llame dos veces sortearía dos.
+  const crearGrupoPara = useCallback((idDoc: string, nombre: string, color: string) => {
+    const actual = obraRef.current;
+    if (!actual) return;
+    const { obra: conGrupo, grupo } = agregarGrupo(actual, nombre, color);
+    setObra(asignarGrupo(conGrupo, idDoc, grupo.id));
+  }, []);
+
+  const cambiarUnGrupo = useCallback(
+    (idGrupo: string, nombre: string, color: string) =>
+      setObra((o) => (o ? cambiarGrupo(o, idGrupo, { nombre, color }) : o)),
+    [],
+  );
+
+  const borrarUnGrupo = useCallback(
+    (idGrupo: string) => {
+      const actual = obraRef.current;
+      const grupo = actual?.grupos?.find((g) => g.id === idGrupo);
+      if (!actual || !grupo) return;
+      const siguiente = borrarGrupo(actual, idGrupo);
+      setObra(siguiente);
+      anunciarBorrado(siguiente, `Quitaste el grupo «${grupo.nombre}». Sus nodos siguen en la obra, sin grupo.`);
+      setGrupoEnfocado((g) => (g === idGrupo ? null : g));
+    },
+    [anunciarBorrado],
+  );
+
+  /** El selector de grupo de una carga o de un cálculo, por su id de documento. */
+  const selectorGrupo = (idDoc: string, actual: string | undefined, rotulo?: string) => (
+    <SelectorGrupo
+      grupos={obra?.grupos ?? []}
+      valor={actual}
+      rotulo={rotulo}
+      onElegir={(id) => asignarUnGrupo(idDoc, id)}
+      onCrear={(nombre, color) => crearGrupoPara(idDoc, nombre, color)}
+    />
+  );
+
   // ── Las pestañas ───────────────────────────────────────────────────────────
   //
   // SOLO SE MONTA LA ACTIVA, y no es una optimización. Dos `MathCanvas` a la vez
@@ -798,8 +967,14 @@ function CanvasObra({ id }: { id: string }) {
       }
       const idS = subcargaDeNodo(idNodo);
       if (idS) {
-        const s = cargaDeSubcarga(o, idS)?.subcargas.find((x) => x.id === idS);
-        return s ? { etiqueta: s.nombre || 'Partida', hoja: s.hoja, meta: s.meta } : null;
+        const c = cargaDeSubcarga(o, idS);
+        const s = c?.subcargas.find((x) => x.id === idS);
+        if (!c || !s) return null;
+        // Una carga de una sola partida se dibuja plegada, con el nombre de la
+        // CARGA encima (`proyeccion.ts`): su pestaña se tiene que llamar igual,
+        // o el «RSX» del grafo abre una pestaña «Espectral en X».
+        const etiqueta = c.subcargas.length === 1 ? c.nombre.trim() || 'Carga' : s.nombre || 'Partida';
+        return { etiqueta, hoja: s.hoja, meta: s.meta };
       }
       return null;
     },
@@ -1007,7 +1182,11 @@ function CanvasObra({ id }: { id: string }) {
             // acaba de resolver—.
             onChange={(e) => setObra((o) => (o ? { ...o, nombre: e.target.value } : o))}
             aria-label="Nombre de la obra"
-            className="w-64 rounded border border-transparent px-1 py-0.5 text-sm font-semibold text-ink outline-none hover:border-border focus:border-accent"
+            title={obra.nombre}
+            // A lo ancho del nombre: con un ancho fijo, «Pachón — Taller de
+            // soldadura (cargas a SAP)» se cortaba con media cabecera vacía.
+            style={{ width: `${Math.max(16, obra.nombre.length + 2)}ch` }}
+            className="min-w-0 max-w-[min(48rem,60vw)] rounded border border-transparent px-1 py-0.5 text-sm font-semibold text-ink outline-none hover:border-border focus:border-accent"
           />
           <span className="font-mono text-[10px] text-muted">{obra.id}</span>
           <span className="ml-auto text-[10px] text-muted">
@@ -1081,46 +1260,63 @@ function CanvasObra({ id }: { id: string }) {
             una sola pestaña siempre visible ocuparía alto para no decir nada.
             El patrón ARIA es el de `FichaGenerica`, que es el que ya está en
             este módulo. */}
+        {/* Cada pestaña es UNA caja con su título y su ×. Eran dos botones
+            hermanos con bordes partidos sobre el mismo blanco de la cabecera:
+            la inactiva no tenía borde y la hilera se leía como texto corrido. La
+            barra lleva fondo propio, y la activa se funde con lo de abajo tapando
+            el borde inferior de la cabecera (`-mb-px`). */}
         {pestanas.length > 0 && (
-          <div role="tablist" aria-label="Hojas abiertas" className="mt-1.5 flex flex-wrap gap-1">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activa === null}
-              onClick={() => setActiva(null)}
-              className={`rounded-t border-x border-t px-2.5 py-1 text-[11px] ${
-                activa === null
-                  ? 'border-border bg-white font-medium text-ink'
-                  : 'border-transparent text-muted hover:text-accent'
-              }`}
-            >
-              Obra
-            </button>
+          <div
+            role="tablist"
+            aria-label="Hojas abiertas"
+            // Con un aviso debajo, la barra no llega al borde de la cabecera y
+            // la pestaña activa no tiene con qué fundirse: se cierra con su borde.
+            className={`-mx-4 mt-1.5 flex flex-wrap items-end gap-1 border-y border-border bg-slate-100 px-4 pt-1.5 ${
+              avisoGuardado || avisoBorrado ? '' : '-mb-2 border-b-0'
+            }`}
+          >
+            <PestanaObra activa={activa === null} onElegir={() => setActiva(null)} />
             {pestanas.map((id) => {
               const n = hojaDeNodo(id);
+              const clase = proyeccion.nodos.find((x) => x.id === id)?.clase ?? 'calculo';
+              const etiqueta = n?.etiqueta ?? '(sin nombre)';
+              const esActiva = activa === id;
               return (
-                <span key={id} className="flex items-center">
+                <span
+                  key={id}
+                  // El botón central cierra, como en un navegador.
+                  onAuxClick={(e) => {
+                    if (e.button === 1) cerrarPestana(id);
+                  }}
+                  onMouseDown={(e) => {
+                    // Sin esto, el botón central activa el desplazamiento automático.
+                    if (e.button === 1) e.preventDefault();
+                  }}
+                  className={`flex max-w-[16rem] items-center rounded-t-md border border-border ${
+                    esActiva
+                      ? '-mb-px border-b-white border-t-2 border-t-accent bg-white text-ink'
+                      : 'bg-surface text-muted hover:bg-white hover:text-ink'
+                  }`}
+                >
                   <button
                     type="button"
                     role="tab"
-                    aria-selected={activa === id}
+                    aria-selected={esActiva}
                     onClick={() => setActiva(id)}
-                    className={`rounded-t border-x border-t py-1 pl-2.5 pr-1 text-[11px] ${
-                      activa === id
-                        ? 'border-border bg-white font-medium text-ink'
-                        : 'border-transparent text-muted hover:text-accent'
+                    title={etiqueta}
+                    className={`flex min-w-0 items-center gap-1.5 py-1 pl-2.5 pr-1 text-[11px] ${
+                      esActiva ? 'font-medium' : ''
                     }`}
                   >
-                    {n?.etiqueta ?? '(sin nombre)'}
+                    <IconoClase clase={clase} className="h-3 w-3 shrink-0" />
+                    <span className="truncate">{etiqueta}</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => cerrarPestana(id)}
-                    title="Cerrar esta pestaña"
-                    aria-label={`Cerrar ${n?.etiqueta ?? 'la pestaña'}`}
-                    className={`rounded-tr border-r border-t py-1 pl-0.5 pr-1.5 text-[11px] leading-none text-muted hover:text-error ${
-                      activa === id ? 'border-border bg-white' : 'border-transparent'
-                    }`}
+                    title="Cerrar esta pestaña (clic central)"
+                    aria-label={`Cerrar ${etiqueta}`}
+                    className="mr-1 rounded px-1 text-[12px] leading-none text-muted hover:bg-slate-200 hover:text-error"
                   >
                     ×
                   </button>
@@ -1233,7 +1429,12 @@ function CanvasObra({ id }: { id: string }) {
             nodeTypes={TIPOS_NODO}
             onNodesChange={alCambiarNodos}
             onNodeClick={(_, n) => setSeleccion(n.id)}
-            onPaneClick={() => setSeleccion(null)}
+            onPaneClick={() => {
+              setSeleccion(null);
+              setGrupoEnfocado(null);
+            }}
+            onNodeMouseEnter={(_, n) => setBajoPuntero(n.id)}
+            onNodeMouseLeave={() => setBajoPuntero(null)}
             // Un nodo es la PROYECCIÓN del documento, no un objeto del lienzo.
             // Con los valores por omisión de React Flow, Backspace emitía un
             // cambio `remove` que `applyNodeChanges` aplicaba al array: el nodo
@@ -1254,9 +1455,26 @@ function CanvasObra({ id }: { id: string }) {
             <MiniMap
               pannable
               zoomable
-              nodeColor={(n) => COLOR[(n.data as unknown as NodoGrafo).severidad] ?? COLOR.ok}
+              // Un error manda sobre el grupo, igual que en la tarjeta.
+              nodeColor={(n) => {
+                const d = n.data as unknown as NodoDeObra;
+                return d.severidad === 'ok' && d.grupo ? d.grupo.color : (COLOR[d.severidad] ?? COLOR.ok);
+              }}
             />
           </ReactFlow>
+
+          <LeyendaGrupos
+            grupos={obra.grupos ?? []}
+            miembros={miembrosPorGrupo}
+            enfocado={grupoEnfocado}
+            onEnfocar={(id) => {
+              setGrupoEnfocado(id);
+              // Enfocar un grupo es otra pregunta que la del nodo seleccionado.
+              if (id) setSeleccion(null);
+            }}
+            onCambiar={cambiarUnGrupo}
+            onBorrar={borrarUnGrupo}
+          />
         </div>
 
         {/* Los paneles no se montan con una pestaña abierta. El lienzo sí se
@@ -1351,6 +1569,13 @@ function CanvasObra({ id }: { id: string }) {
             onBorrar={() => borrarPartida(partida.id)}
             onIrACarga={() => setSeleccion(idNodoDeCarga(cargaDeLaPartida.id))}
             onCerrar={() => setSeleccion(null)}
+            grupo={selectorGrupo(
+              cargaDeLaPartida.id,
+              cargaDeLaPartida.grupo,
+              cargaDeLaPartida.subcargas.length > 1
+                ? `Grupo de ${cargaDeLaPartida.nombre || 'la carga'}`
+                : undefined,
+            )}
           />
         )}
 
@@ -1418,6 +1643,7 @@ function CanvasObra({ id }: { id: string }) {
             }
             onBorrar={() => borrarUnCalculo(calculo.id)}
             onCerrar={() => setSeleccion(null)}
+            grupo={selectorGrupo(calculo.id, calculo.grupo)}
           />
         )}
       </div>

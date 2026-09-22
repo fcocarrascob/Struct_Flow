@@ -32,12 +32,31 @@ import {
   idNodoDeCarga,
   idNodoDeSubcarga,
 } from './ids';
-import { problemaDeNombre, type NodoCalculo, type Obra } from './modelo';
+import { grupoPorId, problemaDeNombre, type Grupo, type NodoCalculo, type Obra } from './modelo';
 
 export * from './ids';
 
+/**
+ * Qué ES el nodo, para dibujarlo: el ícono y el rótulo de la tarjeta.
+ *
+ * SE DERIVA, NO SE DECLARA. Una carga es una carga por estar en `cargas`; una
+ * biblioteca, por su frontera; y un resumen es la hoja libre que solo cita lo que
+ * publican los demás (no define nada y usa algo). Declararlo sería un campo más
+ * que puede contradecir a la hoja.
+ */
+export type ClaseNodo = 'definiciones' | 'carga' | 'calculo' | 'biblioteca' | 'resumen';
+
+/**
+ * El nodo de una obra: el del contrato, más lo que solo este lienzo dibuja.
+ * `contrato.ts` no cambia porque lo comparte el canvas del harness.
+ */
+export interface NodoDeObra extends NodoGrafo {
+  clase: ClaseNodo;
+  grupo?: Grupo;
+}
+
 export interface Proyeccion {
-  nodos: NodoGrafo[];
+  nodos: NodoDeObra[];
   aristas: AristaGrafo[];
   /** El desglose ya resuelto, por id de carga. Se emite junto al grafo porque el
    *  panel lo necesita entero y calcularlo dos veces daría dos totales. */
@@ -46,7 +65,9 @@ export interface Proyeccion {
 
 /** Un nodo de obra no sale de ningún archivo y siempre se puede editar; el resto
  *  del contrato se completa acá para no repetirlo en cada caso. */
-function nodo(parcial: Partial<NodoGrafo> & Pick<NodoGrafo, 'id' | 'tipo' | 'etiqueta'>): NodoGrafo {
+function nodo(
+  parcial: Partial<NodoDeObra> & Pick<NodoDeObra, 'id' | 'tipo' | 'etiqueta' | 'clase'>,
+): NodoDeObra {
   return {
     subtitulo: '',
     campos: {},
@@ -97,13 +118,16 @@ function aristasDeDatos(ev: EvaluacionObra): AristaGrafo[] {
 }
 
 /** El nodo de un cálculo suelto: una hoja libre o un cálculo con frontera. */
-function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra): NodoGrafo {
+function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra, obra: Obra): NodoDeObra {
   const id = idNodoDeCalculo(k.id);
-  const base = { id, tipo: 'calculo', etiqueta: k.nombre || 'Cálculo' };
   const f = k.frontera;
+  const define = ev.define.get(id) ?? [];
+  const usa = [...(ev.usos.get(id) ?? [])];
+  const clase: ClaseNodo =
+    f?.procedencia === 'biblioteca' ? 'biblioteca' : !f && define.length === 0 && usa.length > 0 ? 'resumen' : 'calculo';
+  const base = { id, tipo: 'calculo', etiqueta: k.nombre || 'Cálculo', clase, grupo: grupoPorId(obra, k.grupo) };
 
   if (!f) {
-    const define = ev.define.get(id) ?? [];
     const enGrafo = problemaDeGrafo(id, ev);
     const errores = k.hoja.filter((r) => ev.results[r.id]?.error).length;
     const motivos: string[] = [];
@@ -122,7 +146,9 @@ function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra)
         define.length === 0
           ? k.hoja.length === 0
             ? 'hoja vacía'
-            : 'no define ninguna variable'
+            : clase === 'resumen'
+              ? `resume ${usa.length} valor${usa.length === 1 ? '' : 'es'} de la obra`
+              : 'no define ninguna variable'
           : define.join(', '),
       campos: { define: define.length, bloques: k.hoja.length },
       severidad,
@@ -206,11 +232,11 @@ function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra)
 }
 
 export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas = {}): Proyeccion {
-  const nodos: NodoGrafo[] = [];
+  const nodos: NodoDeObra[] = [];
   const aristas: AristaGrafo[] = [];
   const evaluaciones: Record<string, EvaluacionCarga> = {};
 
-  for (const k of obra.calculos) nodos.push(nodoDeCalculo(k, genericas, ev));
+  for (const k of obra.calculos) nodos.push(nodoDeCalculo(k, genericas, ev, obra));
 
   if (obra.modulos.includes('cargas')) {
     let peorDeLasCargas: Severidad = 'ok';
@@ -218,6 +244,8 @@ export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas =
 
     for (const c of obra.cargas) {
       const problemaNombre = problemaDeNombre(c, obra.cargas);
+      // Las partidas llevan el grupo de su carga: se agrupa el patrón entero.
+      const grupo = grupoPorId(obra, c.grupo);
       const motivos = problemaNombre ? [problemaNombre] : [];
       let severidad: Severidad = problemaNombre ? 'error' : 'ok';
       // Toda carga se desglosa: una nieve y un viento se respaldan con partidas
@@ -282,6 +310,8 @@ export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas =
           nodo({
             id: idSub,
             tipo: plegada ? 'carga-plegada' : 'subcarga',
+            clase: 'carga',
+            grupo,
             etiqueta: plegada ? c.nombre.trim() || '(sin nombre)' : sub.nombre.trim() || '(sin nombre)',
             subtitulo: plegada ? `${sub.nombre.trim() || '(sin nombre)'} · ${valorSub}` : valorSub,
             campos: fSub
@@ -310,6 +340,8 @@ export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas =
         nodo({
           id: idNodoDeCarga(c.id),
           tipo: 'carga',
+          clase: 'carga',
+          grupo,
           etiqueta: c.nombre.trim() || '(sin nombre)',
           subtitulo,
           campos: { nombre: c.nombre, partidas: c.subcargas.length },
@@ -330,6 +362,7 @@ export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas =
       nodo({
         id: ID_NODO_CARGAS,
         tipo: 'cargas',
+        clase: 'definiciones',
         etiqueta: 'Cargas',
         subtitulo:
           obra.cargas.length === 0

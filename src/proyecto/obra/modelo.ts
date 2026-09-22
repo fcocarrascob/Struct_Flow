@@ -195,7 +195,38 @@ export interface NodoCalculo {
    */
   meta?: MetaPlanilla;
   frontera?: Frontera;
+  /** El id de su `Grupo`, si el usuario lo agrupó. */
+  grupo?: string;
 }
+
+/**
+ * Un grupo de nodos, con el color que el usuario elija.
+ *
+ * ES PRESENTACIÓN Y NADA MÁS: no toca el scope, el orden de lectura ni las
+ * flechas. Sirve para que en una obra de treinta nodos se vea de un vistazo qué
+ * es viento, qué es sismo y qué es la grúa. El color del grupo va en la franja de
+ * la tarjeta y no en el borde, que sigue siendo la severidad.
+ */
+export interface Grupo {
+  id: string;
+  nombre: string;
+  /** `#rrggbb`. */
+  color: string;
+}
+
+/** Los colores que se proponen al crear un grupo; el usuario puede elegir otro. */
+export const COLORES_GRUPO = [
+  '#2563eb',
+  '#0891b2',
+  '#059669',
+  '#65a30d',
+  '#d97706',
+  '#dc2626',
+  '#9333ea',
+  '#db2777',
+] as const;
+
+export const COLOR_RE = /^#[0-9a-f]{6}$/i;
 
 /**
  * Una carga de la obra.
@@ -220,6 +251,9 @@ export interface Carga {
   nombre: string;
   /** El desglose, siempre disponible: cualquier carga se respalda con partidas. */
   subcargas: Subcarga[];
+  /** El id de su `Grupo`. Va en la carga y no en la partida: un patrón no puede
+   *  quedar partido entre dos grupos, y una carga plegada se dibuja como su partida. */
+  grupo?: string;
 }
 
 /**
@@ -240,6 +274,8 @@ export interface Obra {
   modulos: Modulo[];
   cargas: Carga[];
   calculos: NodoCalculo[];
+  /** Ausente en una obra que nunca agrupó nada. */
+  grupos?: Grupo[];
 }
 
 /**
@@ -419,6 +455,48 @@ export function cambiarCalculo(obra: Obra, id: string, cambio: (k: NodoCalculo) 
 
 export function borrarCalculo(obra: Obra, id: string): Obra {
   return { ...obra, calculos: obra.calculos.filter((k) => k.id !== id) };
+}
+
+// ── Grupos ───────────────────────────────────────────────────────────────────
+
+export function agregarGrupo(obra: Obra, nombre: string, color: string): { obra: Obra; grupo: Grupo } {
+  const grupo: Grupo = { id: nuevoId('g'), nombre: nombre.trim() || 'Grupo', color };
+  return { obra: { ...obra, grupos: [...(obra.grupos ?? []), grupo] }, grupo };
+}
+
+export function cambiarGrupo(obra: Obra, id: string, campos: Partial<Omit<Grupo, 'id'>>): Obra {
+  return { ...obra, grupos: (obra.grupos ?? []).map((g) => (g.id === id ? { ...g, ...campos } : g)) };
+}
+
+/** Borra el grupo y la referencia de cada miembro: un `grupo` que no apunta a
+ *  nada lo descartaría el saneo al releer, pero hasta entonces sería un dato roto. */
+export function borrarGrupo(obra: Obra, id: string): Obra {
+  const sin = <T extends { grupo?: string }>(x: T): T => {
+    if (x.grupo !== id) return x;
+    const { grupo: _, ...resto } = x;
+    return resto as T;
+  };
+  return {
+    ...obra,
+    grupos: (obra.grupos ?? []).filter((g) => g.id !== id),
+    cargas: obra.cargas.map(sin),
+    calculos: obra.calculos.map(sin),
+  };
+}
+
+/** Pone o quita (`undefined`) el grupo de una carga o de un cálculo, por el id
+ *  del DOCUMENTO (no el del nodo del grafo). */
+export function asignarGrupo(obra: Obra, id: string, grupo: string | undefined): Obra {
+  const poner = <T extends { id: string; grupo?: string }>(x: T): T => {
+    if (x.id !== id) return x;
+    const { grupo: _, ...resto } = x;
+    return (grupo ? { ...resto, grupo } : resto) as T;
+  };
+  return { ...obra, cargas: obra.cargas.map(poner), calculos: obra.calculos.map(poner) };
+}
+
+export function grupoPorId(obra: Obra, id: string | undefined): Grupo | undefined {
+  return id ? obra.grupos?.find((g) => g.id === id) : undefined;
 }
 
 /**
