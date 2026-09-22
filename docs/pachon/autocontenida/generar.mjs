@@ -2,12 +2,12 @@
 // definidos los valores de carga que se ingresan a SAP2000, sin comparar contra
 // ningún modelo existente. Lo que no tiene respaldo va como SUPUESTO.
 //
-//   node docs/obra-pachon/generar.mjs
+//   node docs/pachon/autocontenida/generar.mjs
 //
 // Es el punto de partida de la capa de SAP2000: cada partida publica el valor que
 // se escribe en el modelo y la resultante que el modelo tiene que devolver (R_*),
 // que es lo que esa capa va a comparar sola después de empujar y analizar. La
-// auditoría contra v44 es otra obra: docs/estudio-obra-pachon/.
+// auditoría contra v44 es otra obra: docs/pachon/auditoria/.
 import { writeFile } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -15,7 +15,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const AQUI = path.dirname(fileURLToPath(import.meta.url));
-const REPO = path.resolve(AQUI, '../..').replace(/\\/g, '/');
+const REPO = path.resolve(AQUI, '../../..').replace(/\\/g, '/');
 process.chdir(REPO);
 const { compilarEntrada } = await import(pathToFileURL(`${REPO}/scripts/lib/motor.mjs`).href);
 const motor = await compilarEntrada('src/proyecto/obra/engine.ts');

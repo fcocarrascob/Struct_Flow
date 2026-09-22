@@ -1,15 +1,20 @@
 # La obra con un proyecto real: el taller de soldadura de El Pachón
 
 **2026-09-22.** Cierre del estudio que puso a prueba la obra con un proyecto de verdad, antes
-de decidir si pasa a ser la forma en que se organiza un proyecto (`docs/obra-como-centro.md`).
-Sin tocar el motor: la pregunta era qué se puede hacer **hoy** y qué falta.
+de decidir si pasa a ser la forma en que se organiza un proyecto. Sin tocar el motor: la
+pregunta era qué se puede hacer **hoy** y qué falta. Lo que falta, y el orden en que se
+resuelve, está en `docs/rumbo.md`; aquí queda el estudio y lo que encontró en el proyecto.
+
+Hay dos obras del mismo proyecto. Esta es la **auditoría**: contrasta cada patrón contra el
+modelo v44. La **autocontenida** (`../autocontenida/`) calcula los mismos valores sin mirar
+ningún modelo, citando solo norma y supuestos, y es la que va a la memoria del cliente.
 
 ## El método
 
 Se tomó el taller de soldadura del harness (`proyectos/2026-bechtel-pachon-taller-soldadura`,
 modelo vigente `v44_PORTONES_2026-09-16.sdb`, ingeniería básica) y se llevó a una obra **patrón
 de carga por patrón de carga**, en el orden en que dependen unos de otros. Cada paso se escribió
-en `estudio-obra-pachon/generar.mjs`, se evaluó con el mismo motor de la obra que corre en el
+en `generar.mjs`, se evaluó con el mismo motor de la obra que corre en el
 navegador, se contrastó contra lo que mide el modelo o contra el memo del proyecto y se revisó en
 la aplicación. Cada fricción se anotó en el momento en que apareció, que es lo que este documento
 reúne.
@@ -17,10 +22,11 @@ reúne.
 Para reproducirlo:
 
 ```sh
-node docs/estudio-obra-pachon/generar.mjs   # evalúa y reescribe el .json
+node docs/pachon/auditoria/generar.mjs      # evalúa y reescribe el .json
+node docs/pachon/autocontenida/generar.mjs  # lo mismo para la autocontenida
 ```
 
-y se importa `estudio-obra-pachon/obra-pachon-taller-soldadura.json` desde `/proyectos`.
+y se importa el `.json` de cada carpeta desde `/proyectos`.
 
 ## Lo que la obra cubre
 
@@ -93,91 +99,11 @@ Ninguno cambia un veredicto emitido. Todos son de la clase que no da síntoma.
 | 11 | `costaneras.py` | El área efectiva del muro usa la luz de 8,0 m de la cubierta y no los 8,5 del hastial (conservador, 1,2 %); dos textos viejos («S_NB», «L = 6,6 m») | anotar |
 | 12 | Espectro | N_a y N_v siguen siendo supuestos: el operador de [3.11] y [3.12] no se lee en el PDF | ya declarado |
 
-## Los límites de la obra, y qué hacer con cada uno
+## Lo que el estudio concluyó
 
-En orden de lo que más frena que el harness pueda leer desde aquí.
-
-### 1. La obra vive en `localStorage`
-
-Para el estudio hubo que mover el archivo a mano entre la carpeta y el navegador, y cualquier
-limpieza del navegador lo borra. Es la **etapa 1** de `obra-como-centro.md`, y el estudio la
-confirma como la primera: sin ella, nada de lo demás puede leerlo el harness.
-
-### 2. Las medidas del modelo se escriben a mano
-
-Hay **21 valores** de SAP copiados de dos `.result.json` distintos: reacciones, periodos, cortes
-basales, el acero modelado, áreas de muro. No llevan sello, así que si v45 cambia algo, nada
-avisa. Es justo el lugar donde más se nota, porque un contraste existe para comparar contra el
-modelo. Hace falta un **nodo de modelo** con sello que publique lo medido (etapa 5), aunque sea
-primero leyendo los `.result.json` del harness y no SAP en vivo.
-
-### 3. Falta cómo se aplica una carga al modelo
-
-El tipo SAP del patrón, las áreas o barras, la dirección, las posiciones del carro de la grúa y
-la diferencia entre un **patrón** y un **caso** (espectral o estático con factores) solo caben
-como texto. Cada patrón lo repite en prosa. Un bloque estructurado de «aplicación» en la
-partida —tipo, objetos, dirección— es lo mínimo para que la obra pueda empujar cargas al modelo
-y no solo describirlas.
-
-### 4. No hay combinaciones
-
-Las 165 del proyecto no tienen dónde vivir. Las cargas ya se llaman como se citan, así que un
-módulo de combinaciones que cite esos nombres es el paso natural.
-
-### 5. Faltan dos tipos de nodo: nota y verificación
-
-- Un nodo de **contraste** publica todos sus nombres aunque no alimente a nadie: el de `CM`
-  mete 17 al scope, y hubo que renombrar `C_a` para que no chocara con el espectro.
-- A un nodo de **biblioteca** no se le puede agregar una nota: la explicación de por qué la viga
-  no daba lo del proyecto quedó en el nodo de la grúa.
-- Las decisiones, supuestos y hallazgos (`D-`, `S-`, `H-`) solo se citan como texto.
-
-### 6. Criterios compartidos entre obras
-
-Soldadura toma de neumáticos el S-19, el D-24 y la nomenclatura de cargas, y los dos leen el
-mismo DSC. Hoy eso es copiar el número. Hace falta un lugar común de criterios del cliente que
-las dos obras referencien, con el mismo sello que una genérica.
-
-### 7. La biblioteca argentina está vacía
-
-Todo lo CIRSOC se escribió como hoja libre o propia: nieve 104, viento de componentes 102,
-espectro 103, costaneras AISC y las cargas de grúa del 4.14. Cada una ya está escrita,
-contrastada y con sus citas en esta obra: son las candidatas naturales a genéricas. La costanera
-además está escrita dos veces (techo y muro), que es el `H-33` del proyecto reproducido; como
-genérica, sería una.
-
-### 8. Fricciones menores
-
-- **Un campo atado no puede leer otra entrada de su planilla.** Para el peso propio de la vía
-  hubo que repetir las áreas del perfil y del canal en la expresión.
-- **El alto de cada bloque se estima.** El generador tuvo que calcularlo para no tapar bloques;
-  la genérica de la viga ya traía 10 pares tapados en el canvas. Lo resuelve la hoja en flujo
-  lineal (etapa 2).
-- **Las líneas del nodo «Cargas» pasan por detrás de «Geometría y sitio»** y parecen
-  alimentarla.
-- **Del motor**, anotadas y no tocadas: `atan` devuelve un número sin unidad, `f(x) := …` en una
-  región `math` da un «Value expected (char 10)» que no explica que tiene que ir en un
-  `program`, y el formato elige unidades por su cuenta (1.108 kN sale como «1,108 MN»).
-
-## Recomendación
-
-**Sí a la obra como centro, en el orden de `obra-como-centro.md`, con dos ajustes.**
-
-El estudio muestra que la obra ya puede llevar un proyecto real de punta a punta en lo que es
+**Sí a la obra como centro.** Ya puede llevar un proyecto real de punta a punta en lo que es
 cálculo: cada número tiene su respaldo, su cadena y su contraste, y encontró más defectos en el
 proyecto y en la biblioteca que los que costó armarla. Lo que no puede es **reemplazar al
-harness**, porque todo lo que viene del modelo entra a mano y no hay dónde declarar cómo se
-aplica una carga.
-
-Los dos ajustes al plan:
-
-1. **El nodo de modelo sube de prioridad**, al lado de la obra en disco. No hace falta el
-   enlace COM para empezar: un nodo que lea los `.result.json` sellados del harness ya
-   eliminaría los 21 valores escritos a mano.
-2. **El bloque de aplicación de una carga** —tipo SAP, objetos, dirección— entra en el modelo
-   de la partida antes que las combinaciones, porque es lo que deja escribir una combinación
-   que se pueda empujar al modelo.
-
-Y como caso de regresión de la capa de obra (etapa 4), esta obra es mejor candidata que el
-galpón simulado: es un proyecto real, con 24 contrastes contra un modelo existente, y ya
-destapó defectos que el caso simulado no tenía cómo encontrar.
+harness**: todo lo que viene del modelo entra a mano y no hay dónde declarar cómo se aplica una
+carga. Los límites que encontró, y el orden en que se resuelven, están en `docs/rumbo.md`
+(«Lo que enseñó el Pachón» y «Las etapas»).

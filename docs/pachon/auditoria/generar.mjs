@@ -1,14 +1,14 @@
 // Arma la obra del taller de soldadura de El Pachón, la evalúa con el motor de la
 // obra —el mismo que corre en el navegador— y escribe el archivo para importar en
-// /proyectos. Es el estudio de docs/estudio-obra-pachon.md.
+// /proyectos. Es el estudio de docs/pachon/auditoria/README.md.
 //
-//   node docs/estudio-obra-pachon/generar.mjs
+//   node docs/pachon/auditoria/generar.mjs
 //
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..').replace(/\\/g, '/');
+const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..').replace(/\\/g, '/');
 process.chdir(REPO);
 const { compilarEntrada } = await import(pathToFileURL(`${REPO}/scripts/lib/motor.mjs`).href);
 const motor = await compilarEntrada('src/proyecto/obra/engine.ts');

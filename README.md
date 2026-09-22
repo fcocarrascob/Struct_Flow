@@ -210,7 +210,7 @@ public/
 └── esquemas/                28 esquemas SVG paramétricos
 scripts/                     verify-planilla.mjs, verify-modulos.mjs, lib/motor.mjs
 verificadores/               verify:obra — fuera de scripts/ para no mover el sello del motor
-docs/                        ESQUEMA-PLANILLA.md, canvas-planillas-roadmap.md
+docs/                        rumbo.md, pendientes.md, ESQUEMA-PLANILLA.md, historial/, pachon/
 ```
 
 `src/proyecto/` está fuera de `src/lib/` a propósito: el harness sella el motor como el hash

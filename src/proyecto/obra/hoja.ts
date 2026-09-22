@@ -9,7 +9,7 @@
 // aparecerían los bugs. La mini hoja del panel es una vista en ORDEN DE LECTURA
 // sobre estas regiones y la pestaña es la vista en el plano: las dos editan el
 // mismo dato. El día que la hoja grande migre al flujo lineal
-// (`docs/pendientes.md`, «El norte cambió»), las `x`/`y` desaparecen de los dos
+// (`docs/rumbo.md`, «La hoja va hacia el flujo lineal»), las `x`/`y` desaparecen de los dos
 // sitios a la vez y ninguna de las dos vistas se entera.
 //
 // POR QUÉ ESTE ARCHIVO, Y AQUÍ

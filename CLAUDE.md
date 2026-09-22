@@ -53,7 +53,7 @@ diseño que no cumple es un resultado legítimo, al revés que en una planilla p
 **El modelo de SMath está descartado.** Posición libre en un plano y bloque impreso en el
 sitio exacto: se implementó entero (rama `canvas-papel`, fases 4 y 5) y se revirtió, porque
 desordena las planillas y el objetivo del canvas es lo contrario. Las medidas que costó
-obtener están en `docs/impresion-absoluta-descartada.md`; la rama ya no existe.
+obtener están en `docs/historial/impresion-absoluta-descartada.md`; la rama ya no existe.
 
 Lo decide el corpus: las **8.377** regiones publicadas están en `x = 40`, sin una sola
 excepción, y **7.471** de los 8.344 saltos verticales miden exactamente 48 px. Nadie usaba
@@ -66,6 +66,20 @@ orden del array. Con eso desaparecen `solapes.ts`, la anticolisión del punto de
 el botón ① y buena parte de `MathCanvas.tsx`. **Todavía no está hecho.** Mientras tanto, al
 tocar el canvas conviene preguntarse si lo que se arregla sobrevive al cambio; lo que no,
 está marcado como tal en `docs/pendientes.md`.
+
+## Documentos
+
+El rumbo de la aplicación —la obra como centro, las etapas en orden, SAP2000, informes,
+lanzamiento— está en **`docs/rumbo.md`**, y lo abierto en **`docs/pendientes.md`**. Son los
+dos únicos documentos vivos: **una decisión nueva entra como sección de `rumbo.md`, y un
+defecto o deuda como entrada de `pendientes.md`; no se crea un archivo de rumbo aparte.** Lo
+que se cierra sale de `pendientes.md` (queda en git), y un registro cerrado que valga la pena
+conservar va a `docs/historial/`.
+
+`docs/ESQUEMA-PLANILLA.md` y `docs/linea-base-pagina.md` **no se mueven ni se renombran**: los
+citan `scripts/verify-planilla.mjs` y `src/lib/paginacion.ts`, y cambiar esas líneas resella
+el motor. `docs/pachon/` guarda las dos obras del taller de soldadura (la auditoría contra el
+modelo y la autocontenida), con su generador.
 
 ## Arquitectura
 

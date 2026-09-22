@@ -38,8 +38,8 @@ artículo americano equivalente, leído antes de citarlo.
 
 **Auditadas el 2026-09-15 y corregidas el 16.** Se releyó del PDF cada artículo que citan
 —102 páginas— y se juzgaron los siete esquemas sobre los PNG rendidos. Los dos informes,
-con el estado de aplicación de cada hallazgo, están en `docs/auditoria-normativa-biblioteca.md`
-y `docs/auditoria-esquemas-biblioteca.md`. Lo que cambió números: el descascaramiento de
+con el estado de aplicación de cada hallazgo, están en `docs/historial/auditoria-normativa-biblioteca.md`
+y `docs/historial/auditoria-esquemas-biblioteca.md`. Lo que cambió números: el descascaramiento de
 grupo del anclaje, la interacción de corte biaxial y el confinamiento de la cabeza del
 pedestal, la compacidad del alma de la carrilera por el caso 16 y su `l_b` del §5.8.4, y la
 rotura en corte del §J4.2 en la llave y la silla.
