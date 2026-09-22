@@ -50,6 +50,20 @@ export interface EvaluacionCarga {
   resumen: string;
 }
 
+const SUPERINDICE: Record<string, string> = { '2': '²', '3': '³', '4': '⁴' };
+
+/**
+ * Un valor formateado por el motor, legible en una tarjeta: `kN / m^2` pasa a
+ * `kN/m²`.
+ *
+ * Acá y no en `formatValor`: aquel es del motor, y cambiarlo resellaría todas las
+ * planillas del harness por un asunto de tipografía. En la hoja no hace falta,
+ * porque la hoja pinta LaTeX; la tarjeta es texto plano.
+ */
+export function legible(texto: string): string {
+  return texto.replace(/\^([234])(?!\d)/g, (_, d: string) => SUPERINDICE[d]).replace(/ \/ /g, '/');
+}
+
 /** Cuántos valores caben en el resumen antes de resumirlos con un «+N». */
 const MAX_EN_RESUMEN = 4;
 
@@ -116,7 +130,7 @@ function valorConFrontera(
   return {
     ...base,
     valor,
-    texto: unidad ? `${formatValor(valor, unidad)} ${unidad}` : formatValor(valor),
+    texto: legible(unidad ? `${formatValor(valor, unidad)} ${unidad}` : formatValor(valor)),
     problema: '',
   };
 }
@@ -143,7 +157,7 @@ function valorLibre(sub: Subcarga, ev: EvaluacionObra): ValorSubcarga {
       problema: error ?? `La hoja de esta partida no define «${variable}».`,
     };
   }
-  return { ...base, valor, texto: formatValor(valor), problema: '' };
+  return { ...base, valor, texto: legible(formatValor(valor)), problema: '' };
 }
 
 export function evaluarCarga(

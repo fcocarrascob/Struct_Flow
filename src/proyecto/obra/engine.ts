@@ -21,6 +21,7 @@ export {
 } from './evaluacion';
 export { sanearObra, idDeObra, archivoDeObra, importarObra } from './almacen';
 export { proyectar } from './proyeccion';
+export { colocar } from '../layout';
 export {
   definicionesDe,
   insertarEnHoja,

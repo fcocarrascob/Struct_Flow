@@ -59,14 +59,16 @@
 import {
   evaluateSheet,
   formatValor,
-  parseMathRegion,
   type Region,
   type SheetResults,
 } from '../../lib/worksheet';
 import type { EvaluacionModulo } from '../../lib/diseno/evaluar';
 import { evaluarImportada, type Genericas } from './biblioteca';
 import { identificadoresDe, type Frontera, type Obra } from './modelo';
-import { ordenDeLectura } from './hoja';
+// `definicionesDe` es una sola, la de `./hoja`: había una copia acá que solo
+// miraba las regiones `math`, y el panel y el grafo discrepaban sobre qué
+// define una hoja en cuanto aparecía un programa.
+import { definicionesDe, ordenDeLectura } from './hoja';
 import { idNodoDeCalculo, idNodoDeSubcarga } from './ids';
 
 const CENTINELA = '__scope_final';
@@ -190,19 +192,6 @@ export function nodosDeLaObra(obra: Obra): NodoObra[] {
     }
   }
   return nodos;
-}
-
-function definicionesDe(hoja: readonly Region[]): string[] {
-  const nombres: string[] = [];
-  for (const r of hoja) {
-    if (r.kind !== 'math') continue;
-    // `parseMathRegion` es la MISMA función con la que el motor decide si una
-    // región define algo. Detectar el `:=` por nuestra cuenta sería una segunda
-    // gramática, y bastaría un caso raro para que discreparan.
-    const v = parseMathRegion(r.src).varName;
-    if (v && !nombres.includes(v)) nombres.push(v);
-  }
-  return nombres;
 }
 
 /**

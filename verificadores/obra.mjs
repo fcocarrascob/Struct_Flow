@@ -33,6 +33,7 @@ const motor = await compilarEntrada('src/proyecto/obra/engine.ts');
 const {
   evaluarObra,
   proyectar,
+  colocar,
   problemaDeGrafo,
   rupturaPorQuitar,
   resolverExpresion,
@@ -63,6 +64,7 @@ let n = 0;
 let yCorrida = 40;
 const m = (src) => ({ id: `b${n++}`, kind: 'math', x: 40, y: (yCorrida += 48), src });
 const t = (src) => ({ id: `b${n++}`, kind: 'text', x: 40, y: (yCorrida += 48), src });
+const pr = (src) => ({ id: `b${n++}`, kind: 'program', x: 40, y: (yCorrida += 48), src });
 
 /** Un nodo de cálculo con su hoja libre. */
 function calc(id, ...hoja) {
@@ -236,6 +238,77 @@ const CASOS = [
       calc('A', m('a := 10')),
     ),
     ok: todas(esperaValor('c', '22'), esperaArista('A', 'B'), esperaArista('B', 'C'), sinCiclo),
+  },
+  {
+    nombre: 'una función definida en un programa tiene dueño, y quien la llama va después',
+    // `f(x) := …` solo se puede escribir en una región `program`: en una `math`
+    // es un error de sintaxis. Si el grafo solo mirara las `math`, la función no
+    // tendría dueño, no habría flecha, y el nodo que la llama podía quedar
+    // delante en el orden de lectura y fallar con «Undefined function».
+    obra: obra(calc('B', m('y := dobla(3) =')), calc('A', pr('dobla(u) := 2 * u'))),
+    ok: todas(esperaValor('y', '6'), esperaArista('A', 'B', 'dobla'), sinCiclo),
+  },
+  {
+    nombre: 'ninguna flecha de datos apunta hacia atrás en el canvas',
+    // La columna era la del TIPO más el nivel en la cadena. Un cálculo parte de
+    // una columna más a la derecha que una partida, así que una partida que usa
+    // lo que publica un cálculo quedaba A SU IZQUIERDA y la flecha volvía hacia
+    // atrás — el caso de las costaneras, cuyo peso es una carga.
+    obra: {
+      ...obra(calc('K', m('q_k := 3 kN/m^2'))),
+      modulos: ['cargas'],
+      cargas: [
+        {
+          id: 'c1',
+          nombre: 'CM',
+          subcargas: [{ id: 's1', nombre: 'Peso', variable: 'q_cm', hoja: [reg('math', 'q_cm := q_k', 40)] }],
+        },
+      ],
+    },
+    ok: (ev, proy) => {
+      const pos = colocar(proy.nodos, proy.aristas);
+      const atras = proy.aristas
+        .filter((a) => pos[a.desde] && pos[a.hasta] && pos[a.hasta].x <= pos[a.desde].x)
+        .map((a) => `${a.desde}→${a.hasta}`);
+      return atras.length ? `flechas hacia atrás: ${atras.join(' · ')}` : null;
+    },
+  },
+  {
+    nombre: 'una carga con una sola partida se dibuja como un solo nodo',
+    // Un patrón de SAP respaldado por una sola hoja dibujaba dos tarjetas con el
+    // mismo número: la de la carga y la de su partida. En el taller de soldadura
+    // eran 16 de 21 nodos. Con varias partidas la carga sí agrupa, y se queda.
+    obra: {
+      ...obra(calc('G', m('A_g := 10 m^2'))),
+      modulos: ['cargas'],
+      cargas: [
+        {
+          id: 'c1',
+          nombre: 'SDL',
+          subcargas: [{ id: 's1', nombre: 'Revestimiento', variable: 'q_1', hoja: [reg('math', 'q_1 := 1 kN/m^2', 40), reg('math', 'R_1 := q_1 * A_g', 88)] }],
+        },
+        {
+          id: 'c2',
+          nombre: 'D',
+          subcargas: [
+            { id: 's2', nombre: 'Uno', variable: 'q_2', hoja: [reg('math', 'q_2 := 2 kN/m^2', 40)] },
+            { id: 's3', nombre: 'Dos', variable: 'q_3', hoja: [reg('math', 'q_3 := 3 kN/m^2', 40)] },
+          ],
+        },
+      ],
+    },
+    ok: (ev, proy) => {
+      const ids = new Set(proy.nodos.map((x) => x.id));
+      if (ids.has('carga:c1')) return 'la carga de una partida sigue teniendo su propio nodo';
+      const plegada = proy.nodos.find((x) => x.id === 'partida:s1');
+      if (!plegada) return 'desapareció la partida, que es la que abre la hoja';
+      if (plegada.etiqueta !== 'SDL') return `la tarjeta dice «${plegada.etiqueta}», se esperaba el nombre de la carga`;
+      if (!plegada.subtitulo.includes('Revestimiento')) return `el subtítulo no nombra la partida: «${plegada.subtitulo}»`;
+      if (!proy.aristas.some((a) => a.desde === 'cargas' && a.hasta === 'partida:s1')) return 'no cuelga de Cargas';
+      if (!proy.aristas.some((a) => a.desde === 'calculo:G' && a.hasta === 'partida:s1' && a.tipo === 'dato')) return 'perdió la flecha de datos';
+      if (!ids.has('carga:c2') || !ids.has('partida:s2') || !ids.has('partida:s3')) return 'la carga de dos partidas se plegó';
+      return null;
+    },
   },
   {
     nombre: 'dos nodos que se citan en círculo quedan marcados y no se evalúan',
@@ -652,6 +725,19 @@ const CASOS_HOJA = [
       ];
       const dio = nombresSueltos(hoja).join(',');
       return dio === 'r,q' ? null : `dio «${dio}», se esperaba «r,q»`;
+    },
+  },
+  {
+    nombre: 'una función que la propia hoja define en un programa no es una entrada',
+    // El panel ofrecía atar `Cb_seg`, `m_r` y `phiMn` de la costanera como si
+    // vinieran de fuera. Atar una habría tapado la función con un número.
+    ok: () => {
+      const hoja = [
+        reg('program', 'f(x) := 2 * x', 40),
+        reg('math', 'y := f(a) + g_ext', 88),
+      ];
+      const dio = nombresSueltos(hoja).join(',');
+      return dio === 'a,g_ext' ? null : `dio «${dio}», se esperaba «a,g_ext»`;
     },
   },
   {

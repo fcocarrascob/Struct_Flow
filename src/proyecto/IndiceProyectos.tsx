@@ -59,6 +59,8 @@ function FichaObra({
           {obra.cargas.length === 0
             ? 'sin cargas'
             : `${obra.cargas.length} carga${obra.cargas.length === 1 ? '' : 's'}`}
+          {obra.calculos.length > 0 &&
+            ` · ${obra.calculos.length} cálculo${obra.calculos.length === 1 ? '' : 's'}`}
           {obra.modulos.length === 0 && ' · canvas vacío'}
         </p>
         <p className="mt-2 truncate font-mono text-[10px] text-muted">{obra.id}</p>

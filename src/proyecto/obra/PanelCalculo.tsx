@@ -127,7 +127,10 @@ export default function PanelCalculo({
         )}
       </header>
 
-      <section className="flex min-h-0 flex-1 flex-col px-4 py-3">
+      {/* Sin `min-h-0`: el que se desplaza es el `aside`. Con él, la sección se
+          encogía por debajo de su contenido y el pie —«quitar este nodo»— se
+          montaba encima de la lista de lo publicable. */}
+      <section className="flex flex-1 flex-col px-4 py-3">
         {calculo.frontera && calculo.frontera.procedencia !== 'biblioteca' ? (
           // Una hoja que vive en el documento no tiene módulo que leer, así que
           // su panel es otro: sus entradas son lo que usa y no define, y lo

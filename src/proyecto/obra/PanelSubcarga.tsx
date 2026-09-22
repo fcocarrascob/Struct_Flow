@@ -172,7 +172,9 @@ export default function PanelSubcarga({
         )}
       </header>
 
-      <section className="flex min-h-0 flex-1 flex-col px-4 py-3">
+      {/* Sin `min-h-0`, por lo mismo que en `PanelCalculo`: el pie se montaba
+          encima del contenido largo. */}
+      <section className="flex flex-1 flex-col px-4 py-3">
         {frontera && frontera.procedencia !== 'biblioteca' ? (
           <FichaPropia
             frontera={frontera}

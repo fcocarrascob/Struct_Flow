@@ -238,6 +238,15 @@ export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas =
         }
       }
 
+      // UNA CARGA DE UNA SOLA PARTIDA SE PLIEGA SOBRE ELLA. Un patrón respaldado
+      // por una hoja dibujaba dos tarjetas con el mismo número —en el taller de
+      // soldadura, 16 de 21 nodos—, y la de la carga no agregaba nada: agrupar es
+      // lo suyo, y con una sola partida no hay qué agrupar. Queda el nodo de la
+      // PARTIDA, que es el que abre la hoja, con el nombre de la carga encima; su
+      // panel sigue llevando a la carga para renombrarla o sumarle partidas. Se
+      // despliega sola en cuanto tiene dos.
+      const plegada = c.subcargas.length === 1;
+
       for (const sub of c.subcargas) {
         const idSub = idNodoDeSubcarga(sub.id);
         const v = evc.valores.find((x) => x.id === sub.id);
@@ -259,13 +268,22 @@ export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas =
           sevSub = peor(sevSub, 'aviso');
         }
 
+        // El valor y de qué variable sale, que ya no se deduce del nombre.
+        const valorSub = v?.variable ? `${v.texto} · ${v.variable}` : (v?.texto ?? '—');
+        if (plegada && problemaNombre) {
+          // La carga ya no se pinta, así que un nombre vacío o repetido tiene que
+          // verse en esta tarjeta. Solo eso: el «1 partida sin valor» de la
+          // carga repetiría el motivo que la partida ya da con más detalle.
+          motivosSub.unshift(problemaNombre);
+          sevSub = peor(sevSub, 'error');
+        }
+
         nodos.push(
           nodo({
             id: idSub,
-            tipo: 'subcarga',
-            etiqueta: sub.nombre.trim() || '(sin nombre)',
-            // El valor y de qué variable sale, que ya no se deduce del nombre.
-            subtitulo: v?.variable ? `${v.texto} · ${v.variable}` : (v?.texto ?? '—'),
+            tipo: plegada ? 'carga-plegada' : 'subcarga',
+            etiqueta: plegada ? c.nombre.trim() || '(sin nombre)' : sub.nombre.trim() || '(sin nombre)',
+            subtitulo: plegada ? `${sub.nombre.trim() || '(sin nombre)'} · ${valorSub}` : valorSub,
             campos: fSub
               ? {
                   planilla: fSub.slug ?? fSub.origen?.slug ?? 'hoja propia',
@@ -277,17 +295,16 @@ export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas =
             motivos: motivosSub,
           }),
         );
-        aristas.push({
-          desde: idNodoDeCarga(c.id),
-          hasta: idSub,
-          tipo: 'compone',
-          etiqueta: '',
-          severidad: sevSub,
-        });
+        aristas.push(
+          plegada
+            ? { desde: ID_NODO_CARGAS, hasta: idSub, tipo: 'define', etiqueta: '', severidad: sevSub }
+            : { desde: idNodoDeCarga(c.id), hasta: idSub, tipo: 'compone', etiqueta: '', severidad: sevSub },
+        );
       }
 
       if (severidad !== 'ok') conProblema++;
       peorDeLasCargas = peor(peorDeLasCargas, severidad);
+      if (plegada) continue;
 
       nodos.push(
         nodo({

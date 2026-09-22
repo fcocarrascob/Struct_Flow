@@ -1012,7 +1012,8 @@ function CanvasObra({ id }: { id: string }) {
           <span className="font-mono text-[10px] text-muted">{obra.id}</span>
           <span className="ml-auto text-[10px] text-muted">
             {proyeccion.nodos.length} nodo{proyeccion.nodos.length === 1 ? '' : 's'} ·{' '}
-            {obra.cargas.length} carga{obra.cargas.length === 1 ? '' : 's'}
+            {obra.cargas.length} carga{obra.cargas.length === 1 ? '' : 's'} ·{' '}
+            {obra.calculos.length} cálculo{obra.calculos.length === 1 ? '' : 's'}
           </span>
         </div>
 

@@ -1,4 +1,5 @@
 import { formatValor } from '../../lib/worksheet';
+import { legible } from './calculo';
 import { problemaDeAlias, type Frontera } from './modelo';
 
 /**
@@ -123,7 +124,7 @@ export default function FichaPropia({
                       }`}
                       title={v === undefined && expr ? 'La expresión no se pudo resolver' : ''}
                     >
-                      {v !== undefined ? formatValor(v) : expr ? 'sin resolver' : '—'}
+                      {v !== undefined ? legible(formatValor(v)) : expr ? 'sin resolver' : '—'}
                     </span>
                   </li>
                 );

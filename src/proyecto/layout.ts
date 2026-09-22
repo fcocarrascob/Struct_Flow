@@ -36,7 +36,9 @@ const COLUMNAS: string[][] = [
   // `cargas` (el nodo de definiciones de una obra local) comparte columna con la
   // acción: las dos son el origen de las cargas que vienen a su derecha.
   ['accion', 'cargas'],
-  ['carga'],
+  // `carga-plegada` es una carga de obra con una sola partida, dibujada como un
+  // solo nodo (ver `obra/proyeccion.ts`): ocupa el sitio de la carga.
+  ['carga', 'carga-plegada'],
   // `subcarga` es una partida del desglose de una carga: cuelga de su
   // carga, así que va a su derecha. El harness no emite este tipo.
   ['familia-combinacion', 'subcarga'],
@@ -60,16 +62,24 @@ export function columnaDe(tipo: string): number {
 }
 
 /**
- * A qué distancia está cada nodo del principio de la cadena, siguiendo las
- * flechas. Un nodo del que nadie depende está en 0; el que usa lo que produce
- * otro está uno más allá.
+ * La columna de cada nodo siguiendo las flechas: la de su tipo, o una más que
+ * la de cualquier nodo del que depende, la que quede más a la derecha.
+ *
+ * ES UN MÁXIMO, NO UNA SUMA. Antes la columna era la del tipo MÁS la distancia al
+ * principio de la cadena, y eso no garantiza nada cuando los tipos difieren: un
+ * cálculo parte de una columna más a la derecha que una partida, así que una
+ * partida que usa lo que publica un cálculo —el peso de las costaneras, que es
+ * una carga— caía A SU IZQUIERDA y la flecha volvía hacia atrás. Con el máximo,
+ * el destino de una flecha está siempre a la derecha de su origen, que es lo
+ * que los puertos fijos necesitan: salen por la derecha y entran por la
+ * izquierda.
  *
  * Es Kahn otra vez, y por la misma razón que en `evaluacion.ts`: lo que no sale
- * de la cola está en un ciclo, y se queda en el nivel que tuviera. Un ciclo ya
+ * de la cola está en un ciclo, y se queda en la columna que tuviera. Un ciclo ya
  * se pinta en rojo con su motivo; que además descoloque el canvas no agregaría
  * información.
  */
-function niveles(nodos: NodoGrafo[], aristas: readonly AristaGrafo[]): Map<string, number> {
+function columnasEnCadena(nodos: NodoGrafo[], aristas: readonly AristaGrafo[]): Map<string, number> {
   const vivos = new Set(nodos.map((n) => n.id));
   const salientes = new Map<string, string[]>();
   const grado = new Map<string, number>(nodos.map((n) => [n.id, 0]));
@@ -79,18 +89,18 @@ function niveles(nodos: NodoGrafo[], aristas: readonly AristaGrafo[]): Map<strin
     grado.set(a.hasta, (grado.get(a.hasta) ?? 0) + 1);
   }
 
-  const nivel = new Map<string, number>(nodos.map((n) => [n.id, 0]));
+  const columna = new Map<string, number>(nodos.map((n) => [n.id, columnaDe(n.tipo)]));
   const cola = [...grado].filter(([, g]) => g === 0).map(([id]) => id);
   for (let i = 0; i < cola.length; i++) {
     const id = cola[i];
     for (const s of salientes.get(id) ?? []) {
-      nivel.set(s, Math.max(nivel.get(s) ?? 0, (nivel.get(id) ?? 0) + 1));
+      columna.set(s, Math.max(columna.get(s) ?? 0, (columna.get(id) ?? 0) + 1));
       const g = (grado.get(s) ?? 0) - 1;
       grado.set(s, g);
       if (g === 0) cola.push(s);
     }
   }
-  return nivel;
+  return columna;
 }
 
 /**
@@ -98,21 +108,21 @@ function niveles(nodos: NodoGrafo[], aristas: readonly AristaGrafo[]): Map<strin
  * una columna de 27 cargas junto a una de 2 documentos deja el documento pegado
  * al borde superior y aparentemente desconectado de todo.
  *
- * **Con `aristas`, la columna es el tipo MÁS la posición en la cadena.** Sin
- * eso, los nodos del mismo tipo caen todos en la misma columna, así que una
- * cadena de cuatro cálculos encadenados —que es de lo que trata una obra— se
- * dibujaba como una pila vertical con las flechas dando la vuelta por los lados,
- * porque los puertos son fijos: salen por la derecha y entran por la izquierda.
- * Las columnas se compactan después, para que sumar el nivel no deje huecos.
+ * **Con `aristas`, la columna depende también de la posición en la cadena**
+ * (ver `columnasEnCadena`). Sin eso, los nodos del mismo tipo caen todos en la
+ * misma columna, así que una cadena de cuatro cálculos encadenados —que es de lo
+ * que trata una obra— se dibujaba como una pila vertical con las flechas dando
+ * la vuelta por los lados. Las columnas se compactan después, para no dejar
+ * huecos.
  */
 export function colocar(
   nodos: NodoGrafo[],
   aristas?: readonly AristaGrafo[],
 ): Record<string, Posicion> {
-  const nivel = aristas ? niveles(nodos, aristas) : null;
+  const enCadena = aristas ? columnasEnCadena(nodos, aristas) : null;
   const porColumna = new Map<number, NodoGrafo[]>();
   for (const n of nodos) {
-    const c = columnaDe(n.tipo) + (nivel?.get(n.id) ?? 0);
+    const c = enCadena?.get(n.id) ?? columnaDe(n.tipo);
     const lista = porColumna.get(c) ?? [];
     lista.push(n);
     porColumna.set(c, lista);
@@ -120,7 +130,7 @@ export function colocar(
 
   // Compactar: las columnas que quedaron vacías no dejan un hueco de 350 px.
   const usadas = [...porColumna.keys()].sort((a, b) => a - b);
-  const compacta = new Map(usadas.map((c, i) => [c, nivel ? i : c]));
+  const compacta = new Map(usadas.map((c, i) => [c, enCadena ? i : c]));
 
   const alto = Math.max(1, ...[...porColumna.values()].map((l) => l.length));
   const centro = ((alto - 1) * PASO_Y) / 2;

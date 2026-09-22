@@ -103,7 +103,7 @@ export default function PanelCargas({
         corrido una posición. Con una fila por carga no hay forma de que se
         desfase: el botón vive dentro de la fila a la que borra.
       */}
-      <section className="flex min-h-0 flex-1 flex-col px-4 py-3">
+      <section className="flex flex-1 flex-col px-4 py-3">
         {cargas.length === 0 ? (
           <p className="text-[11px] leading-snug text-muted">
             Cada carga que definas aparece como su propio nodo en el canvas. El nombre es con el

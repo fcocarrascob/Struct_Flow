@@ -31,6 +31,7 @@ const PUNTO: Record<string, string> = {
 const TIPO: Record<string, string> = {
   cargas: 'definiciones',
   carga: 'carga',
+  'carga-plegada': 'carga',
   subcarga: 'partida',
   calculo: 'cálculo',
 };

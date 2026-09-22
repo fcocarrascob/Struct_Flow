@@ -22,6 +22,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { parseMathRegion, type Region, type RegionKind } from '../../lib/worksheet';
+import { parseProgram } from '../../lib/program';
 import { abrirHueco, mismoOrdenDeLectura } from '../../lib/solapes';
 import { sanearRegiones } from '../../lib/hoja-json';
 import { INTRINSECOS } from '../../lib/canvas-handoff';
@@ -57,18 +58,33 @@ export function ordenDeLectura(hoja: readonly Region[]): Region[] {
 /**
  * Lo que la hoja define, en orden de lectura.
  *
- * `parseMathRegion` es la MISMA función con la que el motor decide si una región
- * define algo. Detectar el `:=` por nuestra cuenta sería una segunda gramática, y
- * bastaría un caso raro para que discreparan.
+ * `parseMathRegion` y `parseProgram` son las MISMAS funciones con las que el
+ * motor decide si una región define algo. Detectar el `:=` por nuestra cuenta
+ * sería una segunda gramática, y bastaría un caso raro para que discreparan.
+ *
+ * LOS PROGRAMAS CUENTAN. Una función de usuario solo se puede escribir en una
+ * región `program` —en una `math`, `f(x) := …` es un error de sintaxis—, así que
+ * mirar solo las `math` dejaba a toda función sin dueño: el nodo que la llamaba
+ * no recibía flecha, podía quedar delante en el orden de lectura y fallar con
+ * «Undefined function», y el panel ofrecía atarla como si fuera una entrada.
  */
 export function definicionesDe(hoja: readonly Region[]): string[] {
   const nombres: string[] = [];
   for (const r of ordenDeLectura(hoja)) {
-    if (r.kind !== 'math') continue;
-    const v = parseMathRegion(r.src).varName;
+    const v = r.kind === 'math' ? parseMathRegion(r.src).varName : r.kind === 'program' ? cabeceraDePrograma(r.src) : undefined;
     if (v && !nombres.includes(v)) nombres.push(v);
   }
   return nombres;
+}
+
+/** El nombre que define un programa por su cabecera, o nada. Un programa que no
+ *  parsea no define nada: el motor dirá por qué en su propio bloque. */
+function cabeceraDePrograma(src: string): string | undefined {
+  try {
+    return parseProgram(src).name;
+  } catch {
+    return undefined;
+  }
 }
 
 /**
