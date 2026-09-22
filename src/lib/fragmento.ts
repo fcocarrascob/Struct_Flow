@@ -7,7 +7,7 @@
 // están pegando. Exigirla es lo que deja convivir los dos pegados.
 
 import type { Region } from './worksheet';
-import { esRegion, parsearJson } from './hoja-json';
+import { motivoDeRegion, parsearJson, type RegionDescartada } from './hoja-json';
 
 /** Marca del formato. Se versiona junto al de la hoja. */
 export const FRAGMENTO_VERSION = 1;
@@ -37,13 +37,43 @@ export function aFragmento(regions: readonly Region[], ids: ReadonlySet<string>)
   };
 }
 
-/** El fragmento de un texto pegado, o `null` si no lo es. */
-export function parsearFragmento(text: string): Fragmento | null {
+/** Un fragmento leído, con lo que se quedó por el camino. */
+export interface LecturaFragmento {
+  frag: Fragmento;
+  descartadas: RegionDescartada[];
+}
+
+/**
+ * El fragmento de un texto pegado, o `null` si no lo es.
+ *
+ * Devuelve también lo descartado por el mismo motivo que `sanearConInforme`: un
+ * fragmento también llega pegado desde una conversación, y quedarse con tres de
+ * ocho bloques sin decirlo es la misma pérdida silenciosa, solo que por la otra
+ * puerta.
+ */
+export function parsearFragmento(text: string): LecturaFragmento | null {
   const data = parsearJson(text) as Partial<Fragmento> | null;
   if (!data || data.fragmento !== true || !Array.isArray(data.regions)) return null;
-  const regions = data.regions.filter(esRegion);
+  const regions: Region[] = [];
+  const descartadas: RegionDescartada[] = [];
+  data.regions.forEach((r, i) => {
+    const motivo = motivoDeRegion(r);
+    if (motivo === null) {
+      regions.push(r as Region);
+      return;
+    }
+    const kind = (r as { kind?: unknown } | null)?.kind;
+    descartadas.push({
+      posicion: i + 1,
+      motivo,
+      ...(motivo === 'kind' && typeof kind === 'string' ? { kind } : {}),
+    });
+  });
   if (regions.length === 0) return null;
-  return { version: Number(data.version) || FRAGMENTO_VERSION, fragmento: true, regions };
+  return {
+    frag: { version: Number(data.version) || FRAGMENTO_VERSION, fragmento: true, regions },
+    descartadas,
+  };
 }
 
 /**

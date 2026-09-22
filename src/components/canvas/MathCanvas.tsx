@@ -25,7 +25,15 @@ import {
   abrirHueco,
   ALTO_POR_DEFECTO,
 } from '../../lib/solapes';
-import { esHoja, metaDe, newId, parsearHoja, sanearRegiones } from '../../lib/hoja-json';
+import {
+  esHoja,
+  metaDe,
+  newId,
+  parsearHoja,
+  sanearConInforme,
+  type InformeSaneo,
+} from '../../lib/hoja-json';
+import { detalleDeDescartes, resumirDescartes } from './informe-descartes';
 import { RE_SLUG, type MetaPlanilla } from '../../lib/biblioteca/contrato';
 import { rutaDePlanilla } from '../../lib/catalogo';
 import {
@@ -116,6 +124,18 @@ export interface PropsMathCanvas {
 
 const SIN_SCOPE: Record<string, unknown> = {};
 
+/**
+ * Lo que el historial de la hoja observa.
+ *
+ * Se declara acá y no en `useHojaPersistida` a propósito: es el DOCUMENTO que se
+ * deshace, no lo que el hook persiste —que lleva además las `persistables`, sin
+ * la región a medio crear—. Son dos recortes distintos de la misma hoja.
+ */
+interface EstadoHoja {
+  regions: Region[];
+  meta: MetaPlanilla | null;
+}
+
 export default function MathCanvas({
   origen = ORIGEN_LOCAL,
   deepLinks = true,
@@ -158,6 +178,16 @@ export default function MathCanvas({
    * `malo` distingue el acuse del fallo, porque un «no se copió» hay que verlo.
    */
   const [aviso, setAviso] = useState<{ texto: string; malo?: boolean } | null>(null);
+  /**
+   * Lo que el último saneo dejó fuera, mientras no se cierre. `null` = nada que
+   * decir.
+   *
+   * No va por `setAviso`: ese canal es el acuse de una acción que no deja rastro
+   * —se retira solo a los 2,5 s, u 8 si es un fallo— y esto es un diagnóstico
+   * que hay que leer entero y poder copiar. Un aviso que se va mientras lo lees
+   * no sirve para volver al chat a pedir la corrección.
+   */
+  const [descartes, setDescartes] = useState<InformeSaneo | null>(null);
   /** Hay un archivo sobrevolando la hoja (realce de la zona de soltado). */
   const [dropping, setDropping] = useState(false);
   /** Panel de inspección de variables abierto. */
@@ -224,7 +254,14 @@ export default function MathCanvas({
    * Va aquí arriba porque `regions` es el estado del que cuelga todo lo demás;
    * lo único que necesita por delante es `trasRestaurar`.
    */
-  const { regions, setRegions, metaRef, avisos: avisosDeLaHoja } = useHojaPersistida(origen, {
+  const {
+    regions,
+    setRegions,
+    meta,
+    metaRef,
+    fijarMeta,
+    avisos: avisosDeLaHoja,
+  } = useHojaPersistida(origen, {
     activeId,
     alReemplazar: trasRestaurar,
   });
@@ -279,12 +316,37 @@ export default function MathCanvas({
     [activeId, regions, results],
   );
 
+  /**
+   * El documento que el historial observa: los bloques Y el `meta`.
+   *
+   * No son solo los bloques. El `meta` decide con qué nombre sale la hoja al
+   * exportar y qué contrato lleva dentro, así que restaurar uno sin el otro
+   * devolvía una hoja tuya vestida de genérica: abrir `zapata-aislada`, pulsar
+   * Ctrl+Z y guardar bajaba TUS bloques como `zapata-aislada.json`, con sus
+   * normas y sus casos —un archivo que parece legítimo y no lo es—.
+   */
+  const hoja = useMemo(() => ({ regions, meta }), [regions, meta]);
+
+  const aplicarHoja = useCallback(
+    (h: EstadoHoja) => {
+      fijarMeta(h.meta);
+      setRegions(h.regions);
+    },
+    [fijarMeta, setRegions],
+  );
+
   // Lo que la hoja aporta al historial genérico: qué cuenta como pérdida —menos
   // regiones que antes— y qué limpiar al restaurar —los bloques a medio crear—.
-  const historial = useHistorial(regions, setRegions, {
+  const historial = useHistorial(hoja, aplicarHoja, {
     alRestaurar: trasRestaurar,
-    esPerdida: (nuevas, asentadas) => nuevas.length < asentadas.length,
-    alRestaurarEstado: sinTransitorias,
+    esPerdida: (nueva, asentada) => nueva.regions.length < asentada.regions.length,
+    // Se conserva la IDENTIDAD cuando no hay nada que filtrar: envolver siempre
+    // en un objeto nuevo dejaría el historial con dos identidades para el mismo
+    // paso, y la comparación del hook es por `===`.
+    alRestaurarEstado: (h) => {
+      const limpias = sinTransitorias(h.regions);
+      return limpias === h.regions ? h : { ...h, regions: limpias };
+    },
   });
 
   /**
@@ -505,11 +567,18 @@ export default function MathCanvas({
       ) {
         return false;
       }
-      // `sanearRegiones` clona (una plantilla de la galería es un objeto
-      // compartido y editarla en la hoja no debe mutarlo), descarta las
-      // malformadas y reasigna los ids repetidos.
-      setRegions(sanearRegiones(data.regions));
-      metaRef.current = metaDe(data);
+      // El saneo clona (una plantilla de la galería es un objeto compartido y
+      // editarla en la hoja no debe mutarlo), descarta las malformadas y
+      // reasigna los ids repetidos —y ahora DICE lo que descartó—.
+      //
+      // El informe se emite acá y no en cada llamador porque esta función es el
+      // embudo de las cinco vías de entrada: plantilla, importar un archivo,
+      // pegar, deep-link y soltar. En cada puerta serían cinco copias del mismo
+      // aviso, y la que se olvidara volvería a perder bloques en silencio.
+      const informe = sanearConInforme(data.regions);
+      setRegions(informe.regions);
+      setDescartes(informe.descartadas.length > 0 ? informe : null);
+      fijarMeta(metaDe(data));
       seleccionar(new Set());
       setActiveId(null);
       setInsertAt(null);
@@ -888,14 +957,37 @@ export default function MathCanvas({
     }
   }, []);
 
+  /**
+   * Escribe un texto en el portapapeles. `false` si no se pudo.
+   *
+   * Sin `?.`, por la misma razón que `copiarSeleccion`: `navigator.clipboard?.
+   * writeText(t).catch(…)` cortocircuita la cadena entera —el `.catch`
+   * incluido— en un contexto no seguro, y el fallo pasa inadvertido.
+   */
+  const copiarTexto = useCallback(async (texto: string): Promise<boolean> => {
+    try {
+      if (!navigator.clipboard) return false;
+      await navigator.clipboard.writeText(texto);
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
   /** Pega un fragmento en el punto de inserción. Devuelve si el texto lo era. */
   const pegarFragmento = useCallback(
     (texto: string): boolean => {
-      const frag = parsearFragmento(texto);
-      if (!frag) return false;
+      const leido = parsearFragmento(texto);
+      if (!leido) return false;
+      const { frag, descartadas } = leido;
       const at = insertRef.current ?? nextSpot();
       const nuevas = desdeFragmento(frag, at, newId);
       setRegions((prev) => [...prev, ...nuevas]);
+      // Un fragmento también puede venir de una conversación, con bloques a medio
+      // escribir: se pegan los buenos y se dice cuántos no lo eran.
+      setDescartes(
+        descartadas.length > 0 ? { regions: frag.regions, descartadas, idsReasignados: 0 } : null,
+      );
       seleccionar(new Set(nuevas.map((r) => r.id)));
       setActiveId(null);
       // El punto de inserción baja por debajo de lo pegado: sin esto, pegar dos
@@ -1232,6 +1324,13 @@ export default function MathCanvas({
       // excepción no había forma de empezar una fórmula con una matriz.
       const altGr = e.getModifierState?.('AltGraph');
       if ((!altGr && (e.ctrlKey || e.metaKey || e.altKey)) || e.key.length !== 1) return;
+      // ...salvo el Espacio, que mide un carácter y no es ninguno. Ninguna fórmula
+      // empieza por un espacio, así que lo único que conseguía era dejar un bloque
+      // en blanco cada vez que se pulsaba la barra para desplazar la hoja, que es
+      // lo que hace cualquier visor. Se deja pasar el evento en vez de anularlo:
+      // el contenedor con scroll no toma el foco, así que hoy no desplaza nada,
+      // pero anularlo cerraría esa puerta sin ganar nada.
+      if (e.key === ' ') return;
       // ...salvo con el foco en un control, donde el teclado es suyo. El caso
       // que importa es el Espacio: mide un carácter, así que pulsarlo sobre un
       // botón de la barra al que se llegó con Tab no lo activaba — insertaba un
@@ -1557,11 +1656,18 @@ export default function MathCanvas({
         <button
           className={`${toolBtn} hover:!border-red-400 hover:!text-red-600`}
           onClick={() => {
+            // Vaciar es CARGAR UNA HOJA VACÍA, no un `setRegions([])` con la
+            // limpieza repetida al lado. `cargarHoja` es el único camino que
+            // escribe `metaRef`, así que vaciando por fuera el `meta` de la
+            // planilla anterior sobrevivía: tras abrir `?planilla=zapata-aislada`
+            // y limpiar, Ctrl+S bajaba `zapata-aislada.json` CON CERO REGIONES
+            // —el nombre exacto del archivo publicado en `public/biblioteca/`— y
+            // el autoguardado dejaba esa misma cáscara en el almacenamiento.
+            //
+            // `hayTrabajo: false` porque el «¿seguro?» ya lo pregunta este botón;
+            // sin eso salen dos diálogos seguidos para una sola acción.
             if (confirm('¿Vaciar toda la hoja?')) {
-              setRegions([]);
-              seleccionar(new Set());
-              setActiveId(null);
-              setInsertAt(null);
+              cargarHoja({ version: 1, regions: [] }, { hayTrabajo: false });
             }
           }}
         >
@@ -1637,6 +1743,37 @@ export default function MathCanvas({
                 ⚠ {paginacion.largos.length === 1 ? 'Un bloque es' : `${paginacion.largos.length} bloques son`}{' '}
                 más alto que una A4 completa: al imprimir se desborda de la página. Suele ser una
                 figura — achícala arrastrando su esquina.
+              </div>
+            )}
+
+            {/* Lo que la última carga descartó. Persiste hasta que se cierra: hay
+                que poder leerlo entero y copiarlo para volver a pedir la
+                corrección donde se escribió el JSON. */}
+            {descartes && (
+              <div className={`${tarjetaAviso} border-amber-300 bg-amber-50 text-amber-900`}>
+                <span>⚠ {resumirDescartes(descartes)}</span>
+                <div className="mt-1.5 flex justify-end gap-1.5">
+                  <button
+                    className="rounded border border-amber-400 px-2 py-0.5 font-medium hover:bg-amber-100"
+                    onClick={() => {
+                      void copiarTexto(detalleDeDescartes(descartes)).then((ok) =>
+                        setAviso(
+                          ok
+                            ? { texto: 'Detalle copiado.' }
+                            : { texto: 'No se pudo copiar el detalle.', malo: true },
+                        ),
+                      );
+                    }}
+                  >
+                    Copiar el detalle
+                  </button>
+                  <button
+                    className="rounded border border-amber-400 px-2 py-0.5 hover:bg-amber-100"
+                    onClick={() => setDescartes(null)}
+                  >
+                    Ocultar
+                  </button>
+                </div>
               </div>
             )}
 

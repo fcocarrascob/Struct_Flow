@@ -19,7 +19,8 @@ import type {
   ResultadoGuardado,
 } from './useHojaPersistida';
 import type { Region } from '../../lib/worksheet';
-import { metaDe, sanearRegiones } from '../../lib/hoja-json';
+import { metaDe, sanearConInforme } from '../../lib/hoja-json';
+import { detalleDeDescartes, resumirDescartes } from './informe-descartes';
 import { STORAGE_KEY } from '../../lib/hoja-guardada';
 import { descargarHoja } from '../../lib/canvas-handoff';
 
@@ -72,7 +73,23 @@ function cargar(): Arranque {
         // `anclajes-pedestal`—, y las transitorias no llegan aquí porque el
         // guardado descarta la que está en edición. Filtrarlas hacía que la
         // hoja se recolocara sola en el primer F5.
-        return { regions: sanearRegiones(data.regions), meta: metaDe(data), avisos };
+        const informe = sanearConInforme(data.regions);
+        // Lo que hay en esta clave lo escribió `guardar` de esta misma
+        // aplicación, con regiones YA saneadas. Que al volver a leerla sobren
+        // bloques quiere decir que algo la corrompió —y no que un chat escribiera
+        // mal un JSON—, así que es trabajo propio encogiendo. En 300 ms el
+        // autoguardado escribe la versión corta encima: se aparta el texto crudo
+        // ANTES, por el mismo camino y a la misma clave que una hoja ilegible,
+        // porque una vez sobrescrito no hay de dónde sacarlo.
+        if (informe.descartadas.length > 0) {
+          try {
+            localStorage.setItem(CLAVE_APARTADA, raw);
+          } catch {
+            /* si no cabe la copia, el aviso igual tiene que salir */
+          }
+          avisos.push(avisoDeBloquesPerdidos(resumirDescartes(informe), detalleDeDescartes(informe)));
+        }
+        return { regions: informe.regions, meta: metaDe(data), avisos };
       }
     }
   } catch {
@@ -164,6 +181,47 @@ function apartar({ persistables, meta }: HojaParaGuardar): ResultadoGuardado {
         'lo que escribas ahora no se está guardando. Exporta el JSON.',
     };
   }
+}
+
+/**
+ * La hoja guardada perdió bloques al leerla.
+ *
+ * Se abre con lo bueno —caer a la demo sería cambiar una pérdida parcial por una
+ * total— y el aviso ofrece bajar la copia sin tocar. Lleva el detalle aparte
+ * porque el resumen cabe en la tarjeta y la lista de posiciones no.
+ */
+function avisoDeBloquesPerdidos(resumen: string, detalle: string): AvisoDelOrigen {
+  return {
+    clave: 'bloques-perdidos',
+    cierre: 'Entendido',
+    texto: (
+      <>
+        La hoja guardada <strong>perdió bloques al abrirse</strong>. {resumen} La copia sin
+        tocar quedó apartada, por si hay algo que rescatar.
+      </>
+    ),
+    acciones: [
+      {
+        etiqueta: 'Descargar la copia',
+        titulo: 'Baja la hoja tal como estaba guardada, con los bloques malformados incluidos.',
+        hacer: () => {
+          let crudo: string | null = null;
+          try {
+            crudo = localStorage.getItem(CLAVE_APARTADA);
+          } catch {
+            /* sin copia: se baja lo que se sabe */
+          }
+          let hoja: unknown;
+          try {
+            hoja = crudo === null ? { detalle } : JSON.parse(crudo);
+          } catch {
+            hoja = { crudo, detalle };
+          }
+          descargarHoja(hoja, 'hoja-con-bloques-perdidos.json');
+        },
+      },
+    ],
+  };
 }
 
 /** La copia deja de tener sentido en cuanto la hoja vuelve a estar en su sitio. */

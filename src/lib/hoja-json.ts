@@ -36,15 +36,33 @@ const KINDS: ReadonlySet<string> = new Set(['math', 'text', 'program', 'image'])
  * es pegar el JSON que acaba de escribir un chat.
  */
 export function esRegion(r: unknown): r is Region {
-  if (!r || typeof r !== 'object') return false;
+  return motivoDeRegion(r) === null;
+}
+
+/** Por qué una entrada del JSON no sirve como región. Códigos, no prosa: la
+ *  redacción vive fuera de `src/lib`, donde cambiarla no mueve el sello del
+ *  motor ni obliga a resellar las 33 planillas por afinar una frase. */
+export type MotivoDescarte = 'no-es-objeto' | 'sin-src' | 'kind' | 'coordenadas';
+
+/**
+ * Por qué esa entrada no sirve, o `null` si sirve.
+ *
+ * Es la primitiva, y `esRegion` su envoltorio, para que el motivo que se le
+ * enseña al usuario y la decisión de descartarla salgan de LA MISMA
+ * comprobación. Con dos, bastaría añadir un `kind` en una para que el aviso
+ * dijera algo que el filtro no hace.
+ *
+ * El orden de las ramas es el de la comprobación original y se devuelve al
+ * primer fallo: un bloque sin `src` y además sin `x` se reporta como `sin-src`,
+ * que es el problema que hay que arreglar primero.
+ */
+export function motivoDeRegion(r: unknown): MotivoDescarte | null {
+  if (!r || typeof r !== 'object') return 'no-es-objeto';
   const c = r as Partial<Region>;
-  return (
-    typeof c.src === 'string' &&
-    typeof c.kind === 'string' &&
-    KINDS.has(c.kind) &&
-    Number.isFinite(c.x) &&
-    Number.isFinite(c.y)
-  );
+  if (typeof c.src !== 'string') return 'sin-src';
+  if (typeof c.kind !== 'string' || !KINDS.has(c.kind)) return 'kind';
+  if (!Number.isFinite(c.x) || !Number.isFinite(c.y)) return 'coordenadas';
+  return null;
 }
 
 /**
@@ -88,15 +106,71 @@ export function esHoja(data: unknown): data is HojaSuelta {
  * entrada en `results` (que es un Record por id): las dos regiones muestran el
  * mismo resultado, comparten `key` de React y `updateRegion` las edita a la vez.
  */
-export function sanearRegiones(regions: unknown[]): Region[] {
+export const sanearRegiones = (regions: unknown[]): Region[] => sanearConInforme(regions).regions;
+
+/** Una entrada que no llegó a ser región. */
+export interface RegionDescartada {
+  /** Su posición en el array `regions` del JSON, empezando en 1. Es lo único que
+   *  la identifica —una región sin `id` válido no tiene otro nombre— y es lo que
+   *  hay que citar para pedir la corrección donde se escribió el JSON. */
+  posicion: number;
+  motivo: MotivoDescarte;
+  /** El `kind` tal como venía, si era una cadena. `"formula"` en vez de `"math"`
+   *  es el error que más manda un chat, y nombrarlo ahorra el viaje. */
+  kind?: string;
+}
+
+export interface InformeSaneo {
+  regions: Region[];
+  descartadas: RegionDescartada[];
+  /** Cuántos ids hubo que reasignar. No es una pérdida —la región entra igual—,
+   *  pero explica por qué los ids del archivo no son los de la hoja. */
+  idsReasignados: number;
+}
+
+/**
+ * Lo mismo que `sanearRegiones`, diciendo qué se quedó por el camino.
+ *
+ * `sanearRegiones` se implementa ENCIMA de esta y no al lado: así los cuatro
+ * consumidores que no quieren el informe conservan por construcción los mismos
+ * ids, el mismo orden y el mismo clonado. Dos implementaciones paralelas serían
+ * dos contratos, que es justo lo que se evitó al sacar este archivo de
+ * `MathCanvas.tsx`.
+ *
+ * Hace falta porque la pérdida es el caso ESPERADO y no un accidente: `esHoja`
+ * acepta el archivo con una sola región válida —rechazarlo entero por una mala
+ * sería peor que perder esa una—, y la vía principal de entrada es pegar el JSON
+ * que acaba de escribir un chat. Hasta ahora se cargaban 3 de 8 sin una palabra.
+ */
+export function sanearConInforme(regions: unknown[]): InformeSaneo {
   const vistos = new Set<string>();
-  return regions.filter(esRegion).map((r) => {
+  const buenas: Region[] = [];
+  const descartadas: RegionDescartada[] = [];
+  let idsReasignados = 0;
+  regions.forEach((r, i) => {
+    const motivo = motivoDeRegion(r);
+    if (motivo !== null) {
+      // El `kind` solo cuando ES el problema, y solo si era una cadena: con
+      // `kind: 3` se interpolaría un «3» como si fuera algo que alguien escribió,
+      // y en un bloque sin `src` el `kind` correcto no explica nada.
+      const kind = (r as { kind?: unknown } | null)?.kind;
+      descartadas.push({
+        posicion: i + 1,
+        motivo,
+        ...(motivo === 'kind' && typeof kind === 'string' ? { kind } : {}),
+      });
+      return;
+    }
+    const reg = r as Region;
     // Un id que no es texto (`{}`, un número) se convierte en clave de `results`
     // por su `String()`: dos `{}` compartirían «[object Object]».
-    const id = typeof r.id === 'string' && r.id && !vistos.has(r.id) ? r.id : newId();
+    const propio = typeof reg.id === 'string' && reg.id !== '' && !vistos.has(reg.id);
+    if (!propio) idsReasignados++;
+    const id = propio ? reg.id : newId();
     vistos.add(id);
-    return { ...r, id };
+    buenas.push({ ...reg, id });
   });
+  return { regions: buenas, descartadas, idsReasignados };
 }
 
 /**

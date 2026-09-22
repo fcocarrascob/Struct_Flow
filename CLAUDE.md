@@ -282,9 +282,14 @@ testeable y portable):
   píxeles enteros, y usar el teórico adelanta un corte cada varias páginas.
 - `esquema.ts` — esquemas SVG paramétricos: sustituye tokens `{{expr:unidad}}` contra el
   scope de la hoja.
-- `hoja-json.ts` — el contrato JSON de una hoja: `esRegion`, `esHoja`, `sanearRegiones`,
-  `parsearHoja`. Salió de `MathCanvas.tsx` cuando el portapapeles de fragmentos pasó a
-  necesitar las mismas comprobaciones: tenerlas dos veces sería tener dos contratos.
+- `hoja-json.ts` — el contrato JSON de una hoja: `motivoDeRegion`, `esRegion`, `esHoja`,
+  `sanearConInforme`, `sanearRegiones`, `parsearHoja`. Salió de `MathCanvas.tsx` cuando el
+  portapapeles de fragmentos pasó a necesitar las mismas comprobaciones: tenerlas dos veces
+  sería tener dos contratos. Por lo mismo `esRegion` es un envoltorio de `motivoDeRegion` y
+  `sanearRegiones` lo es de `sanearConInforme`: el motivo que se le enseña al usuario y la
+  decisión de descartar el bloque salen de la misma comprobación. **Devuelve códigos, nunca
+  prosa** —la redacción vive en `src/components/canvas/informe-descartes.ts`—, porque afinar
+  una frase dentro de `src/lib` resellaría el motor.
 - `seleccion.ts` — la caja de una región, qué toca el marco de selección, y el anclaje del
   arrastre en grupo. El delta se ajusta a la cuadrícula y se acota **una sola vez, sobre la
   región agarrada**; hacerlo región por región deforma el grupo.

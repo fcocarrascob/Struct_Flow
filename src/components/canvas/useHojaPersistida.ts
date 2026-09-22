@@ -15,7 +15,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { Dispatch, ReactNode, RefObject, SetStateAction } from 'react';
+import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import type { Region } from '../../lib/worksheet';
 import type { MetaPlanilla } from '../../lib/biblioteca/contrato';
 
@@ -144,12 +144,29 @@ export interface HojaPersistida {
    */
   setRegions: Dispatch<SetStateAction<Region[]>>;
   /**
-   * El `meta` de la hoja abierta: título, slug, clase, normas, entradas… Viaja
-   * con la hoja —al exportar y al guardar— pero no es estado de la vista: nada
-   * lo pinta y deshacer no lo toca, por eso es un ref y no un `useState`. Lo
-   * fija `cargarHoja`; una hoja sin `meta` lo deja en `null`.
+   * El `meta` de la hoja abierta: título, slug, clase, normas, entradas…
+   *
+   * Es VALOR, y no solo un ref, porque **el historial lo observa**: una hoja es
+   * sus regiones Y su `meta`, y restaurar solo la mitad dejaba la hoja del
+   * usuario exportándose como `<slug>.json` de la planilla que había abierto
+   * antes —con sus normas, sus entradas y sus casos dentro—. Tres caminos lo
+   * hacían: cargar una planilla y deshacer, vaciar la hoja y deshacer, y traer
+   * la de la otra pestaña, que además prometía por escrito «Se deshace con
+   * Ctrl+Z».
    */
-  metaRef: RefObject<MetaPlanilla | null>;
+  meta: MetaPlanilla | null;
+  /**
+   * El mismo `meta`, espejado, y de solo lectura.
+   *
+   * Lo lee `guardar`, que es un `useCallback` con dependencias vacías a
+   * propósito —lo consumen el vaciado al desmontar y el de `pagehide`—: con el
+   * valor en sus dependencias volvería a suscribirse en cada tecla, que es justo
+   * lo que el debounce evita. Escribirlo por acá se saltaría el historial, así
+   * que no se puede: para eso está `fijarMeta`.
+   */
+  readonly metaRef: { readonly current: MetaPlanilla | null };
+  /** Cambia el `meta` y deja que el historial lo vea. */
+  fijarMeta: (meta: MetaPlanilla | null) => void;
   /** Lo que hay que enseñar, en orden: el fallo al guardar, el conflicto, y lo del origen. */
   avisos: AvisoHoja[];
   /** Escribe ya, sin esperar el debounce. */
@@ -174,7 +191,14 @@ export function useHojaPersistida(
 ): HojaPersistida {
   const [arranque] = useState(() => origen.cargar());
   const [regions, setRegions] = useState<Region[]>(arranque.regions);
+  const [meta, setMeta] = useState<MetaPlanilla | null>(arranque.meta);
   const metaRef = useRef<MetaPlanilla | null>(arranque.meta);
+  // El ref se escribe síncrono porque el autoguardado de 300 ms lo lee sin pasar
+  // por el render; el estado, para que el historial se entere.
+  const fijarMeta = useCallback((m: MetaPlanilla | null) => {
+    metaRef.current = m;
+    setMeta(m);
+  }, []);
   /** El fallo del último intento de guardar, si lo hubo. */
   const [fallo, setFallo] = useState<string | null>(null);
   const [conflicto, setConflicto] = useState<Conflicto | null>(null);
@@ -309,11 +333,11 @@ export function useHojaPersistida(
     const { regions: rs, meta, avisos } = conflicto.traer();
     enPausaRef.current = false;
     setConflicto(null);
-    metaRef.current = meta;
+    fijarMeta(meta);
     setAvisosDelOrigen(avisos ?? []);
     alReemplazar();
     setRegions(rs);
-  }, [conflicto, alReemplazar, guardar]);
+  }, [conflicto, alReemplazar, guardar, fijarMeta]);
 
   /** Se queda con esta: reanuda y la escribe encima, en el acto. */
   const quedarmeConEsta = useCallback(() => {
@@ -378,5 +402,5 @@ export function useHojaPersistida(
     return lista;
   }, [fallo, conflicto, avisosDelOrigen, traerLaDeAfuera, quedarmeConEsta]);
 
-  return { regions, setRegions, metaRef, avisos, guardarYa };
+  return { regions, setRegions, meta, metaRef, fijarMeta, avisos, guardarYa };
 }
