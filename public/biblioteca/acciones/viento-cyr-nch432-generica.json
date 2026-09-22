@@ -1,0 +1,1504 @@
+{
+  "version": 1,
+  "meta": {
+    "titulo": "Viento de NCh432:2025 — componentes y revestimiento: costaneras y largueros de un galpón a dos aguas",
+    "slug": "viento-cyr-nch432-generica",
+    "clase": "generica",
+    "disciplina": "acciones",
+    "resumen": "Presiones de diseño de las costaneras de techo y los largueros de muro de un galpón rectangular a dos aguas por la cláusula 9, Parte 1, de NCh432:2025. Envolvente de todas las zonas: la succión y la presión máximas por elemento, con su área efectiva, la presión interna de la Tabla 7 y el mínimo de §9.2.2.",
+    "normas": [
+      {
+        "clave": "CL/NCh432-2025",
+        "rol": "acción de viento sobre componentes y revestimiento",
+        "articulos": [
+          "§3.4",
+          "§5.3",
+          "§5.4",
+          "§5.5",
+          "§5.7",
+          "§5.8",
+          "§5.10",
+          "§5.11",
+          "§9.2.2",
+          "§9.2.3",
+          "§9.3.2",
+          "Tabla 1",
+          "Tabla 2",
+          "Tabla 3",
+          "Tabla 4",
+          "Tabla 5",
+          "Tabla 6",
+          "Tabla 7",
+          "Figura 24",
+          "Figura 26",
+          "Figura 27",
+          "Figura 28",
+          "Figura 29"
+        ]
+      }
+    ],
+    "entradas": [
+      {
+        "nombre": "zona",
+        "etiqueta": "Zona de viento",
+        "grupo": "Sitio",
+        "ayuda": "Tabla 1, por latitud y altitud; Figura 2. Fija V",
+        "opciones": [
+          {
+            "valor": 1,
+            "etiqueta": "I-A — V = 27 m/s"
+          },
+          {
+            "valor": 2,
+            "etiqueta": "I-B — V = 30 m/s"
+          },
+          {
+            "valor": 3,
+            "etiqueta": "II-A — V = 27 m/s"
+          },
+          {
+            "valor": 4,
+            "etiqueta": "II-B — V = 35 m/s"
+          },
+          {
+            "valor": 5,
+            "etiqueta": "III-A — V = 34 m/s"
+          },
+          {
+            "valor": 6,
+            "etiqueta": "III-B — V = 35 m/s"
+          },
+          {
+            "valor": 7,
+            "etiqueta": "IV-A — V = 37 m/s"
+          },
+          {
+            "valor": 8,
+            "etiqueta": "IV-B — V = 40 m/s"
+          },
+          {
+            "valor": 9,
+            "etiqueta": "V — V = 40 m/s"
+          },
+          {
+            "valor": 10,
+            "etiqueta": "VI — V = 44 m/s"
+          },
+          {
+            "valor": 11,
+            "etiqueta": "NC1 — V = 32 m/s"
+          },
+          {
+            "valor": 12,
+            "etiqueta": "NC2 — V = 50 m/s"
+          },
+          {
+            "valor": 13,
+            "etiqueta": "NC3 — V = 60 m/s"
+          }
+        ]
+      },
+      {
+        "nombre": "cat_oc",
+        "etiqueta": "Categoría de ocupación",
+        "grupo": "Sitio",
+        "ayuda": "NCh3171; fija el factor de importancia de la Tabla 2",
+        "opciones": [
+          {
+            "valor": 1,
+            "etiqueta": "I — I = 0,87"
+          },
+          {
+            "valor": 2,
+            "etiqueta": "II — I = 1,00"
+          },
+          {
+            "valor": 3,
+            "etiqueta": "III — I = 1,15"
+          },
+          {
+            "valor": 4,
+            "etiqueta": "IV — I = 1,22"
+          }
+        ]
+      },
+      {
+        "nombre": "expo",
+        "etiqueta": "Exposición",
+        "grupo": "Sitio",
+        "ayuda": "§5.5.3; fija α, z_g y z_mín de la Tabla 6",
+        "opciones": [
+          {
+            "valor": 1,
+            "etiqueta": "B"
+          },
+          {
+            "valor": 2,
+            "etiqueta": "C"
+          },
+          {
+            "valor": 3,
+            "etiqueta": "D"
+          }
+        ]
+      },
+      {
+        "nombre": "z_e",
+        "etiqueta": "Altitud del sitio",
+        "unidad": "m",
+        "grupo": "Sitio",
+        "min": 0,
+        "max": 5000,
+        "paso": 1,
+        "ayuda": "Sobre el nivel del mar; fija K_e de la Tabla 4"
+      },
+      {
+        "nombre": "K_zt",
+        "etiqueta": "Factor topográfico K_zt",
+        "grupo": "Sitio",
+        "min": 1,
+        "max": 3,
+        "paso": 0.01,
+        "ayuda": "§5.6. Vale 1 si el sitio no cumple las condiciones de 5.6.1; si no, se calcula aparte con la Figura 3"
+      },
+      {
+        "nombre": "B_tr",
+        "etiqueta": "Ancho, normal a la cumbrera",
+        "unidad": "m",
+        "grupo": "Geometría",
+        "min": 1,
+        "max": 200,
+        "paso": 0.1
+      },
+      {
+        "nombre": "L_lg",
+        "etiqueta": "Largo, paralelo a la cumbrera",
+        "unidad": "m",
+        "grupo": "Geometría",
+        "min": 1,
+        "max": 500,
+        "paso": 0.1
+      },
+      {
+        "nombre": "h_al",
+        "etiqueta": "Altura de alero",
+        "unidad": "m",
+        "grupo": "Geometría",
+        "min": 1,
+        "max": 60,
+        "paso": 0.05
+      },
+      {
+        "nombre": "theta",
+        "etiqueta": "Pendiente del techo θ",
+        "unidad": "deg",
+        "grupo": "Geometría",
+        "min": 0,
+        "max": 45,
+        "paso": 0.1,
+        "ayuda": "Elige la figura: 26 (≤ 7°), 27 (≤ 20°), 28 (≤ 27°) o 29 (≤ 45°)"
+      },
+      {
+        "nombre": "cerr",
+        "etiqueta": "Clasificación del cerramiento",
+        "grupo": "Cerramiento",
+        "ayuda": "§5.10; fija GC_pi de la Tabla 7. El abierto queda fuera",
+        "opciones": [
+          {
+            "valor": 1,
+            "etiqueta": "Cerrado — ±0,18"
+          },
+          {
+            "valor": 2,
+            "etiqueta": "Parcialmente cerrado — ±0,55·R_i"
+          },
+          {
+            "valor": 3,
+            "etiqueta": "Parcialmente abierto — ±0,18"
+          }
+        ]
+      },
+      {
+        "nombre": "A_og",
+        "etiqueta": "Área total de aberturas A_og",
+        "unidad": "m^2",
+        "grupo": "Cerramiento",
+        "min": 0,
+        "max": 5000,
+        "paso": 0.5,
+        "ayuda": "Ec. (3); solo cuenta en el parcialmente cerrado"
+      },
+      {
+        "nombre": "V_i",
+        "etiqueta": "Volumen interno sin particiones V_i",
+        "unidad": "m^3",
+        "grupo": "Cerramiento",
+        "min": 0,
+        "max": 1000000,
+        "paso": 1,
+        "ayuda": "Ec. (3); solo cuenta en el parcialmente cerrado"
+      },
+      {
+        "nombre": "L_cos",
+        "etiqueta": "Luz de las costaneras",
+        "unidad": "m",
+        "grupo": "Elementos",
+        "min": 0.5,
+        "max": 30,
+        "paso": 0.05,
+        "ayuda": "Normalmente, la separación entre marcos"
+      },
+      {
+        "nombre": "s_cos",
+        "etiqueta": "Espaciamiento de las costaneras",
+        "unidad": "m",
+        "grupo": "Elementos",
+        "min": 0.2,
+        "max": 10,
+        "paso": 0.05
+      },
+      {
+        "nombre": "L_lar",
+        "etiqueta": "Luz de los largueros",
+        "unidad": "m",
+        "grupo": "Elementos",
+        "min": 0.5,
+        "max": 30,
+        "paso": 0.05,
+        "ayuda": "Normalmente, la separación entre pilares"
+      },
+      {
+        "nombre": "s_lar",
+        "etiqueta": "Espaciamiento de los largueros",
+        "unidad": "m",
+        "grupo": "Elementos",
+        "min": 0.2,
+        "max": 10,
+        "paso": 0.05
+      }
+    ],
+    "salidas": [
+      {
+        "nombre": "v_global",
+        "etiqueta": "La hoja es aplicable al caso",
+        "tipo": "veredicto"
+      },
+      {
+        "nombre": "p_cos_suc",
+        "etiqueta": "Costaneras: succión de diseño",
+        "unidad": "kgf/m^2",
+        "tipo": "valor"
+      },
+      {
+        "nombre": "p_cos_pre",
+        "etiqueta": "Costaneras: presión de diseño",
+        "unidad": "kgf/m^2",
+        "tipo": "valor"
+      },
+      {
+        "nombre": "p_lar_suc",
+        "etiqueta": "Largueros: succión de diseño",
+        "unidad": "kgf/m^2",
+        "tipo": "valor"
+      },
+      {
+        "nombre": "p_lar_pre",
+        "etiqueta": "Largueros: presión de diseño",
+        "unidad": "kgf/m^2",
+        "tipo": "valor"
+      },
+      {
+        "nombre": "A_cos",
+        "etiqueta": "Área efectiva de las costaneras",
+        "unidad": "m^2",
+        "tipo": "valor"
+      },
+      {
+        "nombre": "A_lar",
+        "etiqueta": "Área efectiva de los largueros",
+        "unidad": "m^2",
+        "tipo": "valor"
+      },
+      {
+        "nombre": "rot_fig",
+        "etiqueta": "Figura de techo que aplica",
+        "tipo": "texto"
+      },
+      {
+        "nombre": "zona_cos",
+        "etiqueta": "Zona de techo que gobierna la succión",
+        "tipo": "texto"
+      },
+      {
+        "nombre": "GCt_suc",
+        "etiqueta": "(GC_p) de techo, succión",
+        "tipo": "valor"
+      },
+      {
+        "nombre": "GCt_pre",
+        "etiqueta": "(GC_p) de techo, presión",
+        "tipo": "valor"
+      },
+      {
+        "nombre": "GCm_suc",
+        "etiqueta": "(GC_p) de muro, succión",
+        "tipo": "valor"
+      },
+      {
+        "nombre": "GCm_pre",
+        "etiqueta": "(GC_p) de muro, presión",
+        "tipo": "valor"
+      },
+      {
+        "nombre": "q_h",
+        "etiqueta": "Presión de velocidad q_h",
+        "unidad": "kgf/m^2",
+        "tipo": "valor"
+      },
+      {
+        "nombre": "qK",
+        "etiqueta": "q_h·K_d",
+        "unidad": "kgf/m^2",
+        "tipo": "valor"
+      },
+      {
+        "nombre": "GC_pi",
+        "etiqueta": "GC_pi, en valor absoluto",
+        "tipo": "valor"
+      },
+      {
+        "nombre": "a_tec",
+        "etiqueta": "Ancho de las zonas de borde del techo, a",
+        "unidad": "m",
+        "tipo": "valor"
+      },
+      {
+        "nombre": "a_mur",
+        "etiqueta": "Ancho de las zonas de esquina del muro, a",
+        "unidad": "m",
+        "tipo": "valor"
+      },
+      {
+        "nombre": "v_zona_valida",
+        "etiqueta": "Zona de la Tabla 1",
+        "tipo": "veredicto"
+      },
+      {
+        "nombre": "v_cat_valida",
+        "etiqueta": "Categoría de la Tabla 2",
+        "tipo": "veredicto"
+      },
+      {
+        "nombre": "v_expo_valida",
+        "etiqueta": "Exposición de la Tabla 6",
+        "tipo": "veredicto"
+      },
+      {
+        "nombre": "v_cerr_valida",
+        "etiqueta": "Cerramiento de la Tabla 7",
+        "tipo": "veredicto"
+      },
+      {
+        "nombre": "v_aberturas",
+        "etiqueta": "A_og y V_i definidos para el parcialmente cerrado",
+        "tipo": "veredicto"
+      },
+      {
+        "nombre": "v_parte1",
+        "etiqueta": "h ≤ 18,3 m: Parte 1 de la cláusula 9",
+        "tipo": "veredicto"
+      },
+      {
+        "nombre": "v_theta_rango",
+        "etiqueta": "θ entre 0° y 45°",
+        "tipo": "veredicto"
+      },
+      {
+        "nombre": "v_geometria",
+        "etiqueta": "Dimensiones positivas",
+        "tipo": "veredicto"
+      },
+      {
+        "nombre": "v_trib_cos",
+        "etiqueta": "Costaneras con área tributaria ≤ 65 m²",
+        "tipo": "veredicto",
+        "aviso": true,
+        "avisoTexto": "Más de 65 m² de área tributaria: §9.2.3 permite diseñar la costanera con las presiones del SPRFV"
+      },
+      {
+        "nombre": "v_trib_lar",
+        "etiqueta": "Largueros con área tributaria ≤ 65 m²",
+        "tipo": "veredicto",
+        "aviso": true,
+        "avisoTexto": "Más de 65 m² de área tributaria: §9.2.3 permite diseñar el larguero con las presiones del SPRFV"
+      },
+      {
+        "nombre": "v_min_cos",
+        "etiqueta": "Costaneras sobre el mínimo de §9.2.2",
+        "tipo": "veredicto",
+        "aviso": true,
+        "avisoTexto": "Una presión de las costaneras queda bajo 0,25 kN/m²: gobierna el mínimo de §9.2.2"
+      },
+      {
+        "nombre": "v_min_lar",
+        "etiqueta": "Largueros sobre el mínimo de §9.2.2",
+        "tipo": "veredicto",
+        "aviso": true,
+        "avisoTexto": "Una presión de los largueros queda bajo 0,25 kN/m²: gobierna el mínimo de §9.2.2"
+      }
+    ],
+    "fronteras": [
+      "h > 18,3 m: Parte 2 de la cláusula 9",
+      "Techos de pendiente única, a cuatro aguas, escalonados, de varias luces, en dientes de sierra, cúpulas y arqueados",
+      "Edificio abierto (Parte 3) y edificios elevados (§9.3.2.1)",
+      "Aleros y parapetos (§9.6 y §9.7, Nota 5 de la Figura 26)",
+      "Planchas de revestimiento y sus fijaciones: otra área efectiva",
+      "K_zt es un dato: la Figura 3 no se evalúa en la hoja"
+    ],
+    "hipotesis": [
+      "Una sola sección por elemento: se diseña con la zona más desfavorable de todo el techo o de todo el muro",
+      "q_i = q_h para la presión interna",
+      "En las Figuras 26 a 29, h es la altura del alero, como dice su notación; q_h va a la altura media del techo (Ec. (19))",
+      "Sin parapetos de 0,9 m o más"
+    ],
+    "entrega": {},
+    "casos": [
+      {
+        "nombre": "galpón simulado con puente grúa — θ = 11,3°, Figura 27, costaneras y largueros de 7,5 m a 1,5 m",
+        "entradas": {},
+        "cumple": true
+      },
+      {
+        "nombre": "galpón cerrado de techo plano en la zona V — Figura 26",
+        "entradas": {
+          "zona": 9,
+          "cerr": 1,
+          "theta": 0
+        },
+        "cumple": true
+      },
+      {
+        "nombre": "pendiente de 25° — Figura 28",
+        "entradas": {
+          "theta": 25
+        },
+        "cumple": true
+      },
+      {
+        "nombre": "pendiente de 35° — Figura 29",
+        "entradas": {
+          "theta": 35
+        },
+        "cumple": true
+      },
+      {
+        "nombre": "nave de más de 18,3 m — fuera de la Parte 1",
+        "entradas": {
+          "h_al": 20
+        },
+        "cumple": false,
+        "esperadoFalso": [
+          "v_global",
+          "v_parte1"
+        ]
+      }
+    ]
+  },
+  "regions": [
+    {
+      "id": "r001",
+      "kind": "text",
+      "x": 40,
+      "y": 32,
+      "src": "Presión de viento de diseño de las COSTANERAS de techo y los LARGUEROS de muro de un galpón\nrectangular con techo a dos aguas, por la Parte 1 de la cláusula 9 de NCh432:2025 (componentes y\nrevestimiento, h ≤ 18,3 m). Entrega, por elemento, la succión y la presión máximas de diseño."
+    },
+    {
+      "id": "r002",
+      "kind": "text",
+      "x": 40,
+      "y": 144,
+      "src": "Es la ENVOLVENTE de todas las zonas del techo o del muro: una sola sección de costanera y una sola\nde larguero, del lado seguro. Las presiones promedio del sistema principal no sirven para estos\nelementos: las succiones de borde y de esquina son bastante mayores."
+    },
+    {
+      "id": "r003",
+      "kind": "text",
+      "x": 40,
+      "y": 256,
+      "src": "━━ DATOS · SITIO ━━"
+    },
+    {
+      "id": "in_zona",
+      "kind": "math",
+      "x": 40,
+      "y": 304,
+      "src": "zona := 6"
+    },
+    {
+      "id": "in_cat_oc",
+      "kind": "math",
+      "x": 40,
+      "y": 352,
+      "src": "cat_oc := 2"
+    },
+    {
+      "id": "in_expo",
+      "kind": "math",
+      "x": 40,
+      "y": 400,
+      "src": "expo := 2"
+    },
+    {
+      "id": "in_z_e",
+      "kind": "math",
+      "x": 40,
+      "y": 448,
+      "src": "z_e := 1125 m"
+    },
+    {
+      "id": "in_K_zt",
+      "kind": "math",
+      "x": 40,
+      "y": 496,
+      "src": "K_zt := 1"
+    },
+    {
+      "id": "r004",
+      "kind": "text",
+      "x": 40,
+      "y": 544,
+      "src": "━━ DATOS · GEOMETRÍA ━━"
+    },
+    {
+      "id": "in_B_tr",
+      "kind": "math",
+      "x": 40,
+      "y": 592,
+      "src": "B_tr := 25 m"
+    },
+    {
+      "id": "in_L_lg",
+      "kind": "math",
+      "x": 40,
+      "y": 640,
+      "src": "L_lg := 30 m"
+    },
+    {
+      "id": "in_h_al",
+      "kind": "math",
+      "x": 40,
+      "y": 688,
+      "src": "h_al := 10.5 m"
+    },
+    {
+      "id": "in_theta",
+      "kind": "math",
+      "x": 40,
+      "y": 736,
+      "src": "theta := 11.309932474020215 deg"
+    },
+    {
+      "id": "r005",
+      "kind": "text",
+      "x": 40,
+      "y": 784,
+      "src": "━━ DATOS · CERRAMIENTO ━━"
+    },
+    {
+      "id": "in_cerr",
+      "kind": "math",
+      "x": 40,
+      "y": 832,
+      "src": "cerr := 2"
+    },
+    {
+      "id": "in_A_og",
+      "kind": "math",
+      "x": 40,
+      "y": 880,
+      "src": "A_og := 50 m^2"
+    },
+    {
+      "id": "in_V_i",
+      "kind": "math",
+      "x": 40,
+      "y": 928,
+      "src": "V_i := 8812.5 m^3"
+    },
+    {
+      "id": "r006",
+      "kind": "text",
+      "x": 40,
+      "y": 976,
+      "src": "━━ DATOS · ELEMENTOS ━━"
+    },
+    {
+      "id": "in_L_cos",
+      "kind": "math",
+      "x": 40,
+      "y": 1024,
+      "src": "L_cos := 7.5 m"
+    },
+    {
+      "id": "in_s_cos",
+      "kind": "math",
+      "x": 40,
+      "y": 1072,
+      "src": "s_cos := 1.5 m"
+    },
+    {
+      "id": "in_L_lar",
+      "kind": "math",
+      "x": 40,
+      "y": 1120,
+      "src": "L_lar := 7.5 m"
+    },
+    {
+      "id": "in_s_lar",
+      "kind": "math",
+      "x": 40,
+      "y": 1168,
+      "src": "s_lar := 1.5 m"
+    },
+    {
+      "id": "r007",
+      "kind": "text",
+      "x": 40,
+      "y": 1216,
+      "src": "━━ 1 — PRESIÓN DE VELOCIDAD · NCh432:2025 §5.3 a §5.8, Ec. (2) ━━"
+    },
+    {
+      "id": "r008",
+      "kind": "math",
+      "x": 40,
+      "y": 1264,
+      "src": "V_tab := [27, 30, 27, 35, 34, 35, 37, 40, 40, 44, 32, 50, 60]"
+    },
+    {
+      "id": "r009",
+      "kind": "text",
+      "x": 40,
+      "y": 1312,
+      "src": "↑ Tabla 1, V en m/s, en el orden I-A · I-B · II-A · II-B · III-A · III-B · IV-A · IV-B · V · VI · NC1 · NC2 · NC3."
+    },
+    {
+      "id": "r010",
+      "kind": "math",
+      "x": 40,
+      "y": 1360,
+      "src": "V_b := V_tab[min(max(round(zona), 1), 13)] * (1 m/s) = m/s"
+    },
+    {
+      "id": "v_zona_valida",
+      "kind": "math",
+      "x": 40,
+      "y": 1408,
+      "src": "v_zona_valida := zona >= 1 and zona <= 13 and round(zona) == zona ="
+    },
+    {
+      "id": "r011",
+      "kind": "math",
+      "x": 40,
+      "y": 1456,
+      "src": "I_tab := [0.87, 1.00, 1.15, 1.22]"
+    },
+    {
+      "id": "r012",
+      "kind": "text",
+      "x": 40,
+      "y": 1504,
+      "src": "↑ Tabla 2, factor de importancia por categoría de ocupación I a IV."
+    },
+    {
+      "id": "r013",
+      "kind": "math",
+      "x": 40,
+      "y": 1552,
+      "src": "I_w := I_tab[min(max(round(cat_oc), 1), 4)] ="
+    },
+    {
+      "id": "v_cat_valida",
+      "kind": "math",
+      "x": 40,
+      "y": 1600,
+      "src": "v_cat_valida := cat_oc >= 1 and cat_oc <= 4 and round(cat_oc) == cat_oc ="
+    },
+    {
+      "id": "r014",
+      "kind": "math",
+      "x": 40,
+      "y": 1648,
+      "src": "K_d := 0.85 ="
+    },
+    {
+      "id": "r015",
+      "kind": "text",
+      "x": 40,
+      "y": 1696,
+      "src": "↑ Tabla 3, SPRFV de edificios. K_d NO entra en q: multiplica en la Ec. (4)."
+    },
+    {
+      "id": "r016",
+      "kind": "program",
+      "x": 40,
+      "y": 1744,
+      "src": "par_expo(k) :=\n    if k == 1\n        return [7.5, 1000, 10]\n    else if k == 2\n        return [9.8, 750, 5]\n    else\n        return [11.5, 590, 2]"
+    },
+    {
+      "id": "r017",
+      "kind": "text",
+      "x": 40,
+      "y": 1936,
+      "src": "↑ Tabla 6, exposiciones B · C · D, en el orden α · z_g · z_mín, con z en m."
+    },
+    {
+      "id": "r018",
+      "kind": "math",
+      "x": 40,
+      "y": 1984,
+      "src": "par_ex := par_expo(expo)"
+    },
+    {
+      "id": "r019",
+      "kind": "math",
+      "x": 40,
+      "y": 2032,
+      "src": "alfa := par_ex[1] ="
+    },
+    {
+      "id": "r020",
+      "kind": "math",
+      "x": 40,
+      "y": 2080,
+      "src": "z_g := par_ex[2] * (1 m) = m"
+    },
+    {
+      "id": "r021",
+      "kind": "math",
+      "x": 40,
+      "y": 2128,
+      "src": "z_min := par_ex[3] * (1 m) = m"
+    },
+    {
+      "id": "v_expo_valida",
+      "kind": "math",
+      "x": 40,
+      "y": 2176,
+      "src": "v_expo_valida := expo >= 1 and expo <= 3 and round(expo) == expo ="
+    },
+    {
+      "id": "r022",
+      "kind": "math",
+      "x": 40,
+      "y": 2224,
+      "src": "h_cum := h_al + B_tr/2 * tan(theta) = m"
+    },
+    {
+      "id": "r023",
+      "kind": "program",
+      "x": 40,
+      "y": 2272,
+      "src": "altura_ref() :=\n    if theta <= 10 deg\n        return h_al\n    return (h_al + h_cum)/2"
+    },
+    {
+      "id": "r024",
+      "kind": "text",
+      "x": 40,
+      "y": 2400,
+      "src": "↑ Figura 4: h es la altura media del techo, salvo con θ ≤ 10°, en que se usa la del alero."
+    },
+    {
+      "id": "r025",
+      "kind": "math",
+      "x": 40,
+      "y": 2448,
+      "src": "h_m := altura_ref() = m"
+    },
+    {
+      "id": "r026",
+      "kind": "math",
+      "x": 40,
+      "y": 2496,
+      "src": "z_K := min(max(h_m, z_min), z_g) = m"
+    },
+    {
+      "id": "r027",
+      "kind": "math",
+      "x": 40,
+      "y": 2544,
+      "src": "K_z := 2.41 * (z_K/z_g)^(2/alfa) ="
+    },
+    {
+      "id": "r028",
+      "kind": "text",
+      "x": 40,
+      "y": 2592,
+      "src": "↑ Tabla 5, Nota 1, con z acotado a z_mín (Nota 3) y a z_g (Nota 4)."
+    },
+    {
+      "id": "r029",
+      "kind": "math",
+      "x": 40,
+      "y": 2640,
+      "src": "K_e := exp(-0.000119 * z_e/(1 m)) ="
+    },
+    {
+      "id": "r030",
+      "kind": "text",
+      "x": 40,
+      "y": 2688,
+      "src": "↑ Tabla 4, con la altitud del sitio."
+    },
+    {
+      "id": "r031",
+      "kind": "math",
+      "x": 40,
+      "y": 2736,
+      "src": "coef613 := 0.613 N*s^2/m^4"
+    },
+    {
+      "id": "r032",
+      "kind": "math",
+      "x": 40,
+      "y": 2784,
+      "src": "q_h := coef613 * I_w * K_z * K_zt * K_e * V_b^2 = kgf/m^2"
+    },
+    {
+      "id": "r033",
+      "kind": "text",
+      "x": 40,
+      "y": 2832,
+      "src": "━━ 2 — PRESIÓN INTERNA · §5.10, §5.11, Tabla 7 y Ec. (3) ━━"
+    },
+    {
+      "id": "r034",
+      "kind": "math",
+      "x": 40,
+      "y": 2880,
+      "src": "GCpi_tab := [0.18, 0.55, 0.18]"
+    },
+    {
+      "id": "r035",
+      "kind": "text",
+      "x": 40,
+      "y": 2928,
+      "src": "↑ Tabla 7, en el orden cerrado · parcialmente cerrado · parcialmente abierto. El edificio abierto queda fuera de la hoja."
+    },
+    {
+      "id": "v_cerr_valida",
+      "kind": "math",
+      "x": 40,
+      "y": 2976,
+      "src": "v_cerr_valida := cerr >= 1 and cerr <= 3 and round(cerr) == cerr ="
+    },
+    {
+      "id": "v_aberturas",
+      "kind": "math",
+      "x": 40,
+      "y": 3024,
+      "src": "v_aberturas := cerr != 2 or (A_og > 0 m^2 and V_i > 0 m^3) ="
+    },
+    {
+      "id": "r036",
+      "kind": "program",
+      "x": 40,
+      "y": 3072,
+      "src": "reduccion_Ri() :=\n    if cerr != 2\n        return 1\n    return min(0.5*(1 + 1/sqrt(1 + V_i/(6950 m * A_og))), 1)"
+    },
+    {
+      "id": "r037",
+      "kind": "text",
+      "x": 40,
+      "y": 3200,
+      "src": "↑ Ec. (3): R_i solo reduce al parcialmente cerrado de un único volumen sin particiones."
+    },
+    {
+      "id": "r038",
+      "kind": "math",
+      "x": 40,
+      "y": 3248,
+      "src": "R_i := reduccion_Ri() ="
+    },
+    {
+      "id": "r039",
+      "kind": "math",
+      "x": 40,
+      "y": 3296,
+      "src": "GC_pi := GCpi_tab[min(max(round(cerr), 1), 3)] * R_i ="
+    },
+    {
+      "id": "r040",
+      "kind": "text",
+      "x": 40,
+      "y": 3344,
+      "src": "↑ Tabla 7, Nota 3: se evalúan los dos signos, +GC_pi y −GC_pi, en todas las superficies internas."
+    },
+    {
+      "id": "r041",
+      "kind": "text",
+      "x": 40,
+      "y": 3392,
+      "src": "━━ 3 — ÁREA EFECTIVA · §3.4 y §9.2.3 ━━"
+    },
+    {
+      "id": "r042",
+      "kind": "math",
+      "x": 40,
+      "y": 3440,
+      "src": "A_cos := L_cos * max(s_cos, L_cos/3) = m^2"
+    },
+    {
+      "id": "r043",
+      "kind": "math",
+      "x": 40,
+      "y": 3488,
+      "src": "A_lar := L_lar * max(s_lar, L_lar/3) = m^2"
+    },
+    {
+      "id": "r044",
+      "kind": "text",
+      "x": 40,
+      "y": 3536,
+      "src": "↑ §3.4: la luz por un ancho efectivo que no necesita ser menor que un tercio de la luz. Es el\nárea con que se entra a las curvas, no el área tributaria."
+    },
+    {
+      "id": "v_trib_cos",
+      "kind": "math",
+      "x": 40,
+      "y": 3616,
+      "src": "v_trib_cos := L_cos * s_cos <= 65 m^2 ="
+    },
+    {
+      "id": "v_trib_lar",
+      "kind": "math",
+      "x": 40,
+      "y": 3664,
+      "src": "v_trib_lar := L_lar * s_lar <= 65 m^2 ="
+    },
+    {
+      "id": "r045",
+      "kind": "text",
+      "x": 40,
+      "y": 3712,
+      "src": "↑ §9.2.3: con más de 65 m² de área tributaria, el elemento se puede diseñar como SPRFV."
+    },
+    {
+      "id": "r046",
+      "kind": "text",
+      "x": 40,
+      "y": 3760,
+      "src": "━━ 4 — ZONAS · Figuras 24 y 26 a 29 ━━"
+    },
+    {
+      "id": "r047",
+      "kind": "program",
+      "x": 40,
+      "y": 3808,
+      "src": "figura_de() :=\n    if theta <= 7 deg\n        return 1\n    else if theta <= 20 deg\n        return 2\n    else if theta <= 27 deg\n        return 3\n    return 4"
+    },
+    {
+      "id": "r048",
+      "kind": "math",
+      "x": 40,
+      "y": 4016,
+      "src": "fig := figura_de() ="
+    },
+    {
+      "id": "r049",
+      "kind": "text",
+      "x": 40,
+      "y": 4064,
+      "src": "↑ 1: Figura 26 (θ ≤ 7°) · 2: Figura 27 (7° < θ ≤ 20°) · 3: Figura 28 (20° < θ ≤ 27°) ·\n4: Figura 29 (27° < θ ≤ 45°)."
+    },
+    {
+      "id": "r050",
+      "kind": "math",
+      "x": 40,
+      "y": 4144,
+      "src": "B_min := min(B_tr, L_lg) = m"
+    },
+    {
+      "id": "r051",
+      "kind": "math",
+      "x": 40,
+      "y": 4192,
+      "src": "a_mur := max(min(0.1*B_min, 0.4*h_m), max(0.04*B_min, 0.9 m)) = m"
+    },
+    {
+      "id": "r052",
+      "kind": "math",
+      "x": 40,
+      "y": 4240,
+      "src": "a_tec := max(min(0.1*B_min, 0.4*h_al), max(0.04*B_min, 0.9 m)) = m"
+    },
+    {
+      "id": "r053",
+      "kind": "text",
+      "x": 40,
+      "y": 4288,
+      "src": "↑ Ancho de las zonas de borde y esquina. En los muros h es la altura media del techo (Figura 24);\nen las Figuras 26 a 29 es la del alero. La envolvente no depende de a: se informa para ubicar las\nzonas en el modelo."
+    },
+    {
+      "id": "r054",
+      "kind": "text",
+      "x": 40,
+      "y": 4400,
+      "src": "━━ 5 — COEFICIENTES (GC_p) · Figuras 24 y 26 a 29 ━━"
+    },
+    {
+      "id": "r055",
+      "kind": "program",
+      "x": 40,
+      "y": 4448,
+      "src": "curva(Aa, A1, g1, A2, g2) :=\n    if Aa <= A1\n        return g1\n    if Aa >= A2\n        return g2\n    return g1 + (g2 - g1)*log10(Aa/A1)/log10(A2/A1)"
+    },
+    {
+      "id": "r056",
+      "kind": "text",
+      "x": 40,
+      "y": 4624,
+      "src": "↑ Las curvas son rectas en escala logarítmica del área: constantes fuera de sus quiebres."
+    },
+    {
+      "id": "r057",
+      "kind": "program",
+      "x": 40,
+      "y": 4672,
+      "src": "gcp_muro(Aa) :=\n    z4 := curva(Aa, 0.9, -1.1, 46.5, -0.8)\n    z5 := curva(Aa, 0.9, -1.4, 46.5, -0.8)\n    zp := curva(Aa, 0.9, 1.0, 46.5, 0.7)\n    return [z4, z5, zp]"
+    },
+    {
+      "id": "r058",
+      "kind": "text",
+      "x": 40,
+      "y": 4816,
+      "src": "↑ Figura 24, en el orden zona 4 · zona 5 · positiva (4 y 5), con A en m²."
+    },
+    {
+      "id": "r059",
+      "kind": "program",
+      "x": 40,
+      "y": 4864,
+      "src": "gcp_techo(Aa) :=\n    if fig == 1\n        return [curva(Aa, 0.9, -1.7, 46.5, -1.0), curva(Aa, 0.9, -2.3, 46.5, -1.4), curva(Aa, 0.9, -3.2, 46.5, -1.4), curva(Aa, 0.9, 0.3, 9.3, 0.2)]\n    else if fig == 2\n        return [curva(Aa, 0.9, -2.0, 27.9, -0.5), curva(Aa, 0.9, -2.7, 18.6, -1.0), curva(Aa, 0.9, -3.6, 9.3, -1.8), curva(Aa, 0.9, 0.6, 18.6, 0.3)]\n    else if fig == 3\n        return [curva(Aa, 0.9, -1.5, 18.6, -0.8), curva(Aa, 0.9, -2.5, 9.3, -1.2), curva(Aa, 0.9, -3.0, 9.3, -1.4), curva(Aa, 0.9, 0.6, 18.6, 0.3)]\n    return [curva(Aa, 0.9, -1.8, 9.3, -0.8), curva(Aa, 0.9, -2.0, 18.6, -1.0), curva(Aa, 0.9, -2.5, 18.6, -1.0), curva(Aa, 0.9, 0.9, 18.6, 0.5)]"
+    },
+    {
+      "id": "r060",
+      "kind": "text",
+      "x": 40,
+      "y": 5072,
+      "src": "↑ Figuras 26 a 29, en el orden zona 1 · zona 2 · zona 3 · positiva (todas las zonas). La zona 1'\nde la Figura 26 es menos severa que la 1 y no entra en la envolvente."
+    },
+    {
+      "id": "r061",
+      "kind": "program",
+      "x": 40,
+      "y": 5152,
+      "src": "red_muro() :=\n    if theta <= 10 deg\n        return 0.9\n    return 1.0"
+    },
+    {
+      "id": "r062",
+      "kind": "math",
+      "x": 40,
+      "y": 5280,
+      "src": "f_mur := red_muro() ="
+    },
+    {
+      "id": "r063",
+      "kind": "text",
+      "x": 40,
+      "y": 5328,
+      "src": "↑ Figura 24, Nota 5: los (GC_p) de muros se reducen un 10 % con θ ≤ 10°."
+    },
+    {
+      "id": "r064",
+      "kind": "math",
+      "x": 40,
+      "y": 5376,
+      "src": "gt := gcp_techo(A_cos/(1 m^2)) ="
+    },
+    {
+      "id": "r065",
+      "kind": "math",
+      "x": 40,
+      "y": 5424,
+      "src": "gm := f_mur * gcp_muro(A_lar/(1 m^2)) ="
+    },
+    {
+      "id": "r066",
+      "kind": "math",
+      "x": 40,
+      "y": 5472,
+      "src": "GCt_suc := min(gt[1], gt[2], gt[3]) ="
+    },
+    {
+      "id": "r067",
+      "kind": "math",
+      "x": 40,
+      "y": 5520,
+      "src": "GCt_pre := gt[4] ="
+    },
+    {
+      "id": "r068",
+      "kind": "math",
+      "x": 40,
+      "y": 5568,
+      "src": "GCm_suc := min(gm[1], gm[2]) ="
+    },
+    {
+      "id": "r069",
+      "kind": "math",
+      "x": 40,
+      "y": 5616,
+      "src": "GCm_pre := gm[3] ="
+    },
+    {
+      "id": "r070",
+      "kind": "text",
+      "x": 40,
+      "y": 5664,
+      "src": "↑ ENVOLVENTE: el (GC_p) más negativo de todas las zonas y el positivo. Una sección para todo el\ntecho y otra para todos los muros, del lado seguro."
+    },
+    {
+      "id": "r071",
+      "kind": "text",
+      "x": 40,
+      "y": 5744,
+      "src": "━━ 6 — PRESIONES DE DISEÑO · §9.3.2, Ec. (19), y §9.2.2 ━━"
+    },
+    {
+      "id": "r072",
+      "kind": "math",
+      "x": 40,
+      "y": 5792,
+      "src": "qK := q_h * K_d = kgf/m^2"
+    },
+    {
+      "id": "r073",
+      "kind": "text",
+      "x": 40,
+      "y": 5840,
+      "src": "↑ Ec. (19): p = q_h·K_d·[(GC_p) − (GC_pi)]. La succión máxima va con +GC_pi y la presión máxima\ncon −GC_pi. Signo + hacia la superficie y − alejándose de ella."
+    },
+    {
+      "id": "r074",
+      "kind": "math",
+      "x": 40,
+      "y": 5920,
+      "src": "pc_suc := qK*(GCt_suc - GC_pi) = kgf/m^2"
+    },
+    {
+      "id": "r075",
+      "kind": "math",
+      "x": 40,
+      "y": 5968,
+      "src": "pc_pre := qK*(GCt_pre + GC_pi) = kgf/m^2"
+    },
+    {
+      "id": "r076",
+      "kind": "math",
+      "x": 40,
+      "y": 6016,
+      "src": "pl_suc := qK*(GCm_suc - GC_pi) = kgf/m^2"
+    },
+    {
+      "id": "r077",
+      "kind": "math",
+      "x": 40,
+      "y": 6064,
+      "src": "pl_pre := qK*(GCm_pre + GC_pi) = kgf/m^2"
+    },
+    {
+      "id": "r078",
+      "kind": "math",
+      "x": 40,
+      "y": 6112,
+      "src": "p_min := 0.25 kN/m^2 = kgf/m^2"
+    },
+    {
+      "id": "v_min_cos",
+      "kind": "math",
+      "x": 40,
+      "y": 6160,
+      "src": "v_min_cos := -pc_suc >= p_min and pc_pre >= p_min ="
+    },
+    {
+      "id": "v_min_lar",
+      "kind": "math",
+      "x": 40,
+      "y": 6208,
+      "src": "v_min_lar := -pl_suc >= p_min and pl_pre >= p_min ="
+    },
+    {
+      "id": "r079",
+      "kind": "text",
+      "x": 40,
+      "y": 6256,
+      "src": "↑ §9.2.2: ninguna presión neta de diseño puede ser menor que 0,25 kN/m², en cualquier sentido."
+    },
+    {
+      "id": "r080",
+      "kind": "math",
+      "x": 40,
+      "y": 6304,
+      "src": "p_cos_suc := min(pc_suc, -p_min) = kgf/m^2"
+    },
+    {
+      "id": "r081",
+      "kind": "math",
+      "x": 40,
+      "y": 6352,
+      "src": "p_cos_pre := max(pc_pre, p_min) = kgf/m^2"
+    },
+    {
+      "id": "r082",
+      "kind": "math",
+      "x": 40,
+      "y": 6400,
+      "src": "p_lar_suc := min(pl_suc, -p_min) = kgf/m^2"
+    },
+    {
+      "id": "r083",
+      "kind": "math",
+      "x": 40,
+      "y": 6448,
+      "src": "p_lar_pre := max(pl_pre, p_min) = kgf/m^2"
+    },
+    {
+      "id": "r084",
+      "kind": "text",
+      "x": 40,
+      "y": 6496,
+      "src": "↑ Las presiones de diseño de las costaneras y de los largueros, con el mínimo aplicado. Se cargan\ncomo presión normal a la cubierta o al muro sobre el ancho tributario de cada elemento."
+    },
+    {
+      "id": "r085",
+      "kind": "program",
+      "x": 40,
+      "y": 6576,
+      "src": "zona_suc_techo() :=\n    if gt[3] <= gt[1] and gt[3] <= gt[2]\n        return \"zona 3\"\n    else if gt[2] <= gt[1]\n        return \"zona 2\"\n    return \"zona 1\""
+    },
+    {
+      "id": "r086",
+      "kind": "math",
+      "x": 40,
+      "y": 6752,
+      "src": "zona_cos := zona_suc_techo()"
+    },
+    {
+      "id": "r087",
+      "kind": "program",
+      "x": 40,
+      "y": 6800,
+      "src": "nombre_figura() :=\n    nombres := [\"Figura 26\", \"Figura 27\", \"Figura 28\", \"Figura 29\"]\n    return nombres[fig]"
+    },
+    {
+      "id": "r088",
+      "kind": "math",
+      "x": 40,
+      "y": 6912,
+      "src": "rot_fig := nombre_figura()"
+    },
+    {
+      "id": "r089",
+      "kind": "text",
+      "x": 40,
+      "y": 6960,
+      "src": "━━ RESUMEN ━━"
+    },
+    {
+      "id": "v_parte1",
+      "kind": "math",
+      "x": 40,
+      "y": 7008,
+      "src": "v_parte1 := h_m <= 18.3 m ="
+    },
+    {
+      "id": "v_theta_rango",
+      "kind": "math",
+      "x": 40,
+      "y": 7056,
+      "src": "v_theta_rango := theta >= 0 deg and theta <= 45 deg ="
+    },
+    {
+      "id": "v_geometria",
+      "kind": "math",
+      "x": 40,
+      "y": 7104,
+      "src": "v_geometria := B_tr > 0 m and L_lg > 0 m and h_al > 0 m and L_cos > 0 m and s_cos > 0 m and L_lar > 0 m and s_lar > 0 m ="
+    },
+    {
+      "id": "v_global",
+      "kind": "math",
+      "x": 40,
+      "y": 7152,
+      "src": "v_global := v_zona_valida and v_cat_valida and v_expo_valida and v_cerr_valida and v_aberturas and v_parte1 and v_theta_rango and v_geometria ="
+    },
+    {
+      "id": "r090",
+      "kind": "text",
+      "x": 40,
+      "y": 7200,
+      "src": "━━ ESQUEMA · MAPEO A PÍXELES ━━",
+      "imprimir": false
+    },
+    {
+      "id": "r091",
+      "kind": "math",
+      "x": 40,
+      "y": 7248,
+      "src": "x_0 := 70",
+      "imprimir": false
+    },
+    {
+      "id": "r092",
+      "kind": "math",
+      "x": 40,
+      "y": 7296,
+      "src": "x_1 := 330",
+      "imprimir": false
+    },
+    {
+      "id": "r093",
+      "kind": "math",
+      "x": 40,
+      "y": 7344,
+      "src": "y_top := 90",
+      "imprimir": false
+    },
+    {
+      "id": "r094",
+      "kind": "math",
+      "x": 40,
+      "y": 7392,
+      "src": "y_bot := 330",
+      "imprimir": false
+    },
+    {
+      "id": "r095",
+      "kind": "math",
+      "x": 40,
+      "y": 7440,
+      "src": "g_top := -4",
+      "imprimir": false
+    },
+    {
+      "id": "r096",
+      "kind": "math",
+      "x": 40,
+      "y": 7488,
+      "src": "g_bot := 1.2",
+      "imprimir": false
+    },
+    {
+      "id": "r097",
+      "kind": "program",
+      "x": 40,
+      "y": 7536,
+      "src": "xl_px(Aa) :=\n    return x_0 + (log10(Aa) - log10(0.1))/(log10(100) - log10(0.1))*(x_1 - x_0)",
+      "imprimir": false
+    },
+    {
+      "id": "r098",
+      "kind": "program",
+      "x": 40,
+      "y": 7616,
+      "src": "yg_px(gv) :=\n    return y_top + (gv - g_top)/(g_bot - g_top)*(y_bot - y_top)",
+      "imprimir": false
+    },
+    {
+      "id": "r099",
+      "kind": "program",
+      "x": 40,
+      "y": 7696,
+      "src": "curva_px_de(tipo) :=\n    Q := zeros(61, 2)\n    for ii in 1:61\n        Ax := 10^(-1 + 3*(ii - 1)/60)\n        gtt := gcp_techo(Ax)\n        gmm := f_mur*gcp_muro(Ax)\n        gg := tipo == 1 ? min(gtt[1], gtt[2], gtt[3]) : (tipo == 2 ? gtt[4] : (tipo == 3 ? min(gmm[1], gmm[2]) : gmm[3]))\n        Q[ii, 1] = xl_px(Ax)\n        Q[ii, 2] = yg_px(gg)\n    Q",
+      "imprimir": false
+    },
+    {
+      "id": "r100",
+      "kind": "math",
+      "x": 40,
+      "y": 7952,
+      "src": "ct_suc_px := curva_px_de(1)",
+      "imprimir": false
+    },
+    {
+      "id": "r101",
+      "kind": "math",
+      "x": 40,
+      "y": 8000,
+      "src": "ct_pre_px := curva_px_de(2)",
+      "imprimir": false
+    },
+    {
+      "id": "r102",
+      "kind": "math",
+      "x": 40,
+      "y": 8048,
+      "src": "cm_suc_px := curva_px_de(3)",
+      "imprimir": false
+    },
+    {
+      "id": "r103",
+      "kind": "math",
+      "x": 40,
+      "y": 8096,
+      "src": "cm_pre_px := curva_px_de(4)",
+      "imprimir": false
+    },
+    {
+      "id": "r104",
+      "kind": "math",
+      "x": 40,
+      "y": 8144,
+      "src": "xc_px := xl_px(A_cos/(1 m^2))",
+      "imprimir": false
+    },
+    {
+      "id": "r105",
+      "kind": "math",
+      "x": 40,
+      "y": 8192,
+      "src": "xm_px := xl_px(A_lar/(1 m^2))",
+      "imprimir": false
+    },
+    {
+      "id": "r106",
+      "kind": "program",
+      "x": 40,
+      "y": 8240,
+      "src": "rot_zona_de() :=\n    nombres := [\"I-A\", \"I-B\", \"II-A\", \"II-B\", \"III-A\", \"III-B\", \"IV-A\", \"IV-B\", \"V\", \"VI\", \"NC1\", \"NC2\", \"NC3\"]\n    return nombres[min(max(round(zona), 1), 13)]",
+      "imprimir": false
+    },
+    {
+      "id": "r107",
+      "kind": "math",
+      "x": 40,
+      "y": 8352,
+      "src": "rot_zona := rot_zona_de()",
+      "imprimir": false
+    },
+    {
+      "id": "r108",
+      "kind": "program",
+      "x": 40,
+      "y": 8400,
+      "src": "rot_cerr_de() :=\n    nombres := [\"cerrado\", \"parcialmente cerrado\", \"parcialmente abierto\"]\n    return nombres[min(max(round(cerr), 1), 3)]",
+      "imprimir": false
+    },
+    {
+      "id": "r109",
+      "kind": "math",
+      "x": 40,
+      "y": 8512,
+      "src": "rot_cerr := rot_cerr_de()",
+      "imprimir": false
+    },
+    {
+      "id": "img_esq",
+      "kind": "image",
+      "x": 40,
+      "y": 8560,
+      "src": "/esquemas/viento-cyr-nch432-generica.svg",
+      "w": 680,
+      "h": 400
+    }
+  ]
+}

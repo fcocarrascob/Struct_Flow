@@ -34,6 +34,22 @@
       "resumen": "Presiones de viento del SPRFV de un galpón rectangular con techo a dos aguas por la cláusula 6 de NCh432:2025. Una presión uniforme por cara —los cuatro muros y cada agua, nombrados por los ejes del modelo— para diez estados de carga: WXP, WXN, WYP, WYN, sus variantes de techo WXP2 a WYN2, y WPI y WPIN. Con la fuerza longitudinal de 7.3.7 para el arriostramiento, los factores y torsores de la Figura 11 y el mínimo de §6.1.5."
     },
     {
+      "slug": "viento-cyr-nch432-generica",
+      "titulo": "Viento de NCh432:2025 — componentes y revestimiento: costaneras y largueros de un galpón a dos aguas",
+      "clase": "generica",
+      "disciplina": "acciones",
+      "ruta": "/biblioteca/acciones/viento-cyr-nch432-generica.json",
+      "regiones": 139,
+      "normas": [
+        "CL/NCh432-2025"
+      ],
+      "entradas": 16,
+      "salidas": 30,
+      "promovible": true,
+      "sha256": "c4c5d6703b99a8ddec765bafa04c9b2f51311bf8250019739a1e11f32769805b",
+      "resumen": "Presiones de diseño de las costaneras de techo y los largueros de muro de un galpón rectangular a dos aguas por la cláusula 9, Parte 1, de NCh432:2025. Envolvente de todas las zonas: la succión y la presión máximas por elemento, con su área efectiva, la presión interna de la Tabla 7 y el mínimo de §9.2.2."
+    },
+    {
       "slug": "llave-corte-generica",
       "titulo": "Llave de corte bajo placa base — los siete estados límite, con una chapa por dirección o dos paralelas",
       "clase": "generica",

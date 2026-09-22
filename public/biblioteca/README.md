@@ -72,6 +72,7 @@ su rango—, no de resistencia.
 |---|---|---|---:|
 | `espectro-nch2369-generica` | El espectro de una dirección de análisis: ordenada de diseño en T\*, ordenada de referencia de §6.1, factor de escala del caso espectral, banda de corte basal y el **espectro tabulado** listo para copiar al modelo. Cubre la dirección **horizontal y la vertical** con la misma hoja (`es_vert`), y deriva los parámetros de sitio de la zona, el suelo y la categoría | NCh2369:2025 §4.3.2, §5.4.1, §5.4.2, §5.12, §5.13, §6.1 · Tablas 3, 6 y 7 | 8 |
 | `viento-caras-nch432-generica` | Viento del SPRFV de un galpón rectangular a dos aguas por el procedimiento **direccional**, organizado como se carga en SAP2000: **diez estados de carga** —WXP, WXN, WYP, WYN, sus variantes de techo WXP2 a WYN2, y la presión interna WPI y WPIN— con **una presión uniforme por cara**, las caras nombradas por los ejes del modelo (muros X−, X+, Y−, Y+ y las dos aguas), en kgf/m². La orientación de la cumbrera es una entrada. Donde la Figura 4 da franjas, el C_p es el **promedio ponderado por longitud**. Suma la **fuerza longitudinal de 7.3.7** para el arriostramiento del parcialmente cerrado, el mínimo de §6.1.5 y la excentricidad y el torsor de los casos 2 y 4 de la Figura 11 | NCh432:2025 §5.3 a §5.11, §6.1.5, §6.3.1, §6.3.2, §6.3.5, 7.3.7 · Tablas 1 a 7 · Figuras 4, 11 y 12 | 15 |
+| `viento-cyr-nch432-generica` | Componentes y revestimiento de un galpón a dos aguas (cláusula 9, Parte 1, h ≤ 18,3 m): **la succión y la presión de diseño de las costaneras de techo y de los largueros de muro**, como la **envolvente de todas sus zonas**, con el área efectiva de §3.4, las curvas (GC_p) interpoladas en log(A), la reducción del 10 % en muros con θ ≤ 10° y el mínimo de §9.2.2. Misma cadena de q_h y GC_pi que la de caras, con las mismas entradas | NCh432:2025 §3.4, §9.2.2, §9.2.3, §9.3.2 · Tablas 1 a 7 · Figuras 24 y 26 a 29 | 16 |
 
 La tabla es una salida de tipo **`serie`** (`docs/ESQUEMA-PLANILLA.md` §10): una matriz del
 scope que `PanelResultados` pinta con encabezados y copia entera al portapapeles, en la
@@ -108,6 +109,12 @@ taller de neumáticos cuando se instancien por segunda vez. El viento por NCh432
 > encuentra y concluye que no existe. En el galpón simulado, `F_long` es 1,38 veces la fuerza
 > longitudinal que traen los estados; la hoja entrega esa razón para amplificar los esfuerzos
 > del arriostramiento.
+
+> 🔴 **Las costaneras y los largueros no se diseñan con la hoja de caras.** Sus presiones son
+> promedios del SPRFV; la cláusula 9 da a los componentes coeficientes por zona y por área
+> efectiva, con succiones de borde y esquina mucho mayores. En el galpón simulado la costanera
+> de `viento-cyr-nch432-generica` lleva −137,9 kgf/m², contra −73,2 del agua más cargada en la
+> de caras.
 
 > 🔴 **La que entra al espectro es `A_r`, no `A_0`.** El encabezado de la tercera columna
 > de la Tabla 3 es literalmente «A_r = 1,4 A_0», y las Ec. (3), (12) y (13) usan la de
@@ -361,3 +368,12 @@ recorre la cadena de sitio por otro camino (la cláusula 7):
 Los C_p del procedimiento direccional no tienen contraparte en esa hoja de valores, que usa
 el envolvente. Se contrastaron a mano: la interpolación en θ y h/L de la succión del agua de
 barlovento (−0,8236) y el promedio de franjas en la dirección longitudinal (−0,6133).
+
+**Quinta pasada, 2026-09-22: componentes y revestimiento.** `viento-cyr-nch432-generica` se
+escribió contra la cláusula 9, Parte 1, leída del PDF para esta hoja: §3.4, §9.2.2 a §9.3.2 y
+las curvas de las Figuras 24 y 26 a 29, trece páginas registradas en el acta. Las secciones 1 y
+2 (q_h y GC_pi) son copia literal de la de caras, así que reproducen los mismos valores del
+galpón simulado. Las curvas se contrastaron a mano contra el raster: en la Figura 27, con
+A = 18,75 m², zona 1 = −0,674 (la curva pasa por −1,0 en 9,3 m², que el gráfico marca), zona 2
+= −1,0 y zona 3 = −1,8; en la Figura 24, zona 5 = −0,938. La curva se interpola en log(A), que
+es como están dibujadas.
