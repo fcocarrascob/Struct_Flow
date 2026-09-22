@@ -568,9 +568,11 @@ nodo, y `verify:obra`, que es la primera red que tiene esta capa.
 
 ## 13. De la prueba de estrés en el navegador, 2026-09-17
 
-Sesión con Chrome sobre `/canvas` y `/obra/<id>`, con la aplicación corriendo. Se
-arreglaron cuatro —los cuatro de pérdida o corrupción silenciosa de trabajo, que están en el
-historial— y queda esto, todo **reproducido en el navegador**, no leído en el código.
+Sesión con Chrome sobre `/canvas` y `/obra/<id>`, con la aplicación corriendo. El 17 se
+arreglaron cuatro —los cuatro de pérdida o corrupción silenciosa de trabajo— y quedaron
+cinco anotados, todos **reproducidos en el navegador**, no leídos en el código. **Los cinco
+se cerraron el 2026-09-21**; lo que sigue abierto son los límites que ese cierre dejó a la
+vista, no los hallazgos originales.
 
 ### Lo que se arregló ese día, para no volver a buscarlo
 
@@ -599,26 +601,70 @@ historial— y queda esto, todo **reproducido en el navegador**, no leído en el
 - **La copia de una pausa no se vuelve a abrir sola.** Se descarga, no se restaura en la
   hoja. Restaurarla querría decidir qué pasa con la que ya está abierta, que es otra
   pregunta; con el archivo en el disco, importarlo es un clic.
-- **«Limpiar» conserva el `meta` de la planilla anterior.** Reproducido: cargar
-  `?planilla=zapata-aislada`, «Limpiar», `Ctrl+S`. Se descarga **`zapata-aislada.json` con
-  cero regiones** —el nombre exacto del archivo publicado en `public/biblioteca/`—, y el
-  autoguardado deja `{meta: zapata-aislada, regions: []}`. `metaRef` no participa del
-  historial ni de «Limpiar» (`MathCanvas.tsx:506`, `1551-1563`).
-- **La importación descarta bloques en silencio.** Reproducido: pegar un JSON de 8 regiones
-  con 5 malformadas carga 3, sin un solo mensaje. `esHoja` acepta el archivo si **una sola**
-  región es válida y `sanearRegiones` filtra el resto (`hoja-json.ts:78-100`). Con la vía
-  principal de entrada siendo «pegar el JSON que acaba de escribir un chat», la pérdida
-  silenciosa es el caso esperado. *Toca `src/lib`: obliga a resellar el motor.*
-- **La barra espaciadora crea un bloque en vez de desplazar la hoja.** Reproducido: clic en
-  el fondo, Espacio. El guard final acepta cualquier `e.key.length === 1` y `' '` mide uno
-  (`MathCanvas.tsx:1228-1237`). Arreglo de una línea; la fricción es constante.
-- **Borrar un nodo de cálculo o una partida no pregunta nada.** Reproducido: cadena A→B,
-  «quitar este nodo» sobre A. Se va con su hoja dentro, sin diálogo
-  (`PanelCalculo.tsx:212-219`, `PanelSubcarga.tsx:256-264`), mientras que borrar una **carga**
-  sí confirma en dos tiempos (`PanelCargas.tsx:147`). La asimetría es el bug. *Ya no es
-  irreversible —`Ctrl+Z` lo devuelve—, así que lo que queda por decidir es al revés: si con
-  deshacer hace falta seguir preguntando en los dos sitios que hoy preguntan.*
-- **Cuando la cadena se rompe, nadie dice de dónde venía el nombre.** B queda con «1
-  bloque(s) con error» y, en el panel, «Undefined symbol A_planta»: mensaje del motor, en
-  inglés, sin decir que `A_planta` desapareció porque borraste A. La flecha además se apaga
-  justo cuando haría falta, porque `duenio` deja de tener el nombre (`evaluacion.ts`).
+- **El historial de la obra vive en memoria y cabe 60 pasos.** `useHistorial` guarda en dos
+  `useRef`, así que un F5 lo vacía, y `MAX = 60` deja caer por el fondo lo más viejo. Ahora
+  que «dentro de la obra manda deshacer» es la única política, esos dos límites son el
+  contorno de la red: borras un nodo, recargas, y no hay vuelta. El aviso del borrado lo
+  compensa en la ventana que importa —aparece justo cuando el deshacer es seguro—, pero un
+  historial que sobreviva a la recarga sigue siendo lo que faltaría.
+- **La ruptura se avisa, pero no se puede consultar después.** El aviso caduca en cuanto la
+  obra vuelve a cambiar, a propósito: «↶ Deshacer» llama al historial, que deshace el
+  último paso, y uno que sobreviviera a otro cambio desharía ESE otro cambio. Quien lo cierra
+  sin leerlo se queda con el motivo del nodo roto, que ya está en español, pero sin la frase
+  que nombraba al nodo que se fue.
+- **`sanearConInforme` no tiene caso de regresión.** Es código de contrato, no de evaluación:
+  no encaja en la forma de `verify:motor` —una hoja y su resultado— ni pertenece a la capa de
+  `verify:obra`. Se comprobó a mano sobre ocho entradas con los cuatro motivos, ids repetidos
+  y ausentes. Le falta su sitio.
+- **El error crudo del motor sigue saliendo bloque a bloque.** `BloqueDoc` pinta
+  `result.error` y lo comparten el canvas y los paneles de la obra, así que traducirlo ahí
+  metería conocimiento del grafo en la capa del canvas. Lo que se traduce es el motivo DEL
+  NODO (`problemaDeGrafo`), que es el que sale en la tarjeta del lienzo y en la cabecera del
+  panel; la línea que falló sigue diciendo «Undefined symbol» al lado, que ahí es correcto.
+
+### Lo que se cerró el 2026-09-21
+
+- ~~**«Limpiar» conserva el `meta` de la planilla anterior.**~~ **Hecho, y más ancho de lo
+  anotado.** Vaciar pasa a ser CARGAR UNA HOJA VACÍA por `cargarHoja`, que es el único camino
+  que escribe el `meta`. Al buscarlo apareció que el desfase ya se pagaba en dos caminos más:
+  cargar una planilla y pulsar Ctrl+Z devolvía TUS bloques con SU `meta` —un
+  `zapata-aislada.json` con tu hoja dentro, con sus normas y sus casos, que parece legítimo y
+  no lo es—, y «Cargar la de la otra pestaña» prometía por escrito «Se deshace con Ctrl+Z» y
+  solo deshacía las regiones. Así que el `meta` pasó a ser parte del documento que observa el
+  historial: `useHojaPersistida` devuelve `meta` y `fijarMeta`, y el `metaRef` se queda como
+  espejo de solo lectura porque `guardar` tiene dependencias vacías a propósito.
+- ~~**La importación descarta bloques en silencio.**~~ **Hecho.** `motivoDeRegion` es la
+  primitiva y `esRegion` su envoltorio, para que el motivo que se enseña y la decisión de
+  descartar salgan de la misma comprobación; `sanearConInforme` devuelve qué se cayó, con la
+  posición en el array original, y `sanearRegiones` se implementa encima, así que los otros
+  tres consumidores no cambian. La prosa vive en `informe-descartes.ts`, **fuera de
+  `src/lib`**, para que afinar una frase no resselle el motor. El aviso lo emite `cargarHoja`,
+  que es el embudo de las cinco vías de entrada, en una banda propia con «Copiar el detalle»:
+  el canal de `setAviso` se retira solo a los 8 s y esto hay que leerlo entero. Cubre también
+  `parsearFragmento` y —lo más grave, que no estaba anotado— la lectura del `localStorage`:
+  lo que hay ahí lo escribió `guardar` con regiones ya saneadas, así que perder bloques al
+  leerlas es trabajo PROPIO encogiendo, y el autoguardado consolida la versión corta 300 ms
+  después. Ahora se aparta el crudo antes y el aviso ofrece bajarlo.
+- ~~**La barra espaciadora crea un bloque.**~~ **Hecho**, excluyendo `' '` del guard. **No
+  desplaza la hoja**, y no se finge que lo haga: el contenedor con scroll no lleva `tabIndex`
+  y el documento no se desplaza en `/canvas`, así que no hay nada que el navegador pueda hacer
+  con esa tecla. Se deja pasar sin `preventDefault` por si algún día lo hay.
+- ~~**Borrar un nodo de cálculo o una partida no pregunta nada.**~~ **Resuelto al revés, que
+  es como el propio documento dejaba la pregunta.** Una sola política: dentro de la obra manda
+  deshacer, fuera confirma. El «¿borrar?» en dos tiempos sale de `PanelCargas`, no se añade a
+  los dos que no lo tenían, y se queda en `IndiceProyectos`, donde borrar una obra entera está
+  fuera del documento que observa el historial. Con eso el patrón duplicado carácter por
+  carácter colapsa a un solo sitio. De paso se tapó el agujero que lo hacía arriesgado:
+  `piezasDeLaObra` no contaba la `frontera`, así que quitar la planilla de un nodo —que en una
+  de la biblioteca se lleva el slug, el sello y el formulario de entradas, con la hoja
+  VACÍA— no se leía como pérdida y esperaba la pausa de 400 ms mientras el autoguardado
+  consolidaba a los 300.
+- ~~**Cuando la cadena se rompe, nadie dice de dónde venía el nombre.**~~ **Hecho, en dos
+  mitades.** Al borrar, un aviso en la cabecera dice qué se fue y quién se quedó sin qué
+  —`rupturaPorQuitar` se pregunta ANTES de aplicar, que es la única ventana en que la
+  respuesta existe: la flecha no se guarda, ES la entrada de `duenio`— y ofrece «↶ Deshacer».
+  Y `problemaDeGrafo` distingue tres causas que antes se veían igual: que el nombre tenga
+  dueño y ese nodo no llegara a dar valor —y entonces manda a arreglar ESE nodo, nombrándolo—,
+  que lo definan dos, o que no lo defina nadie. La señal es el «Undefined symbol» del motor,
+  no «lo que el nodo usa y nadie define»: `usos` filtra por `duenio` a propósito, y sin ese
+  filtro `sqrt` y `kN` entrarían como dependencias rotas.
