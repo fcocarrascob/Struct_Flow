@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 420" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="ej" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#555"/>
+    </marker>
+  </defs>
+  <rect width="680" height="420" fill="#ffffff"/>
+
+  <text x="340" y="22" font-size="13.5" text-anchor="middle" fill="#222" font-weight="bold">Viento de NCh432:2025 — estados de carga por cara</text>
+  <text x="340" y="38" font-size="9.5" text-anchor="middle" fill="#888">zona {{rot_zona}} · V = {{V_b:m/s}} m/s · I = {{I_w}} · exposición {{rot_expo}} · K_zt = {{K_zt}} · K_e = {{K_e}} · {{rot_cerr}}</text>
+
+  <!-- ═══ A · planta con los nombres de las caras ═══ -->
+  <text x="20" y="64" font-size="11" fill="#1a63a8" font-weight="bold">A · Planta — cumbrera {{rot_ag[3]}}</text>
+  <rect x="60" y="100" width="220" height="140" fill="#f4f7fa" stroke="#333" stroke-width="1.8"/>
+  <line x1="{{cum_px[1]:svg}}" y1="{{cum_px[2]:svg}}" x2="{{cum_px[3]:svg}}" y2="{{cum_px[4]:svg}}" stroke="#999" stroke-width="1" stroke-dasharray="5 4"/>
+  <text x="{{ag_px[1]:svg}}" y="{{ag_px[2]:svg}}" font-size="9.5" text-anchor="middle" fill="#555">agua {{rot_ag[1]}}</text>
+  <text x="{{ag_px[3]:svg}}" y="{{ag_px[4]:svg}}" font-size="9.5" text-anchor="middle" fill="#555">agua {{rot_ag[2]}}</text>
+  <text x="54" y="174" font-size="9.5" text-anchor="end" fill="#222" font-weight="bold">X−</text>
+  <text x="286" y="174" font-size="9.5" fill="#222" font-weight="bold">X+</text>
+  <text x="170" y="254" font-size="9.5" text-anchor="middle" fill="#222" font-weight="bold">Y−</text>
+  <text x="170" y="94" font-size="9.5" text-anchor="middle" fill="#222" font-weight="bold">Y+</text>
+  <!-- ejes -->
+  <line x1="36" y1="290" x2="76" y2="290" stroke="#555" stroke-width="1.2" marker-end="url(#ej)"/>
+  <line x1="36" y1="290" x2="36" y2="250" stroke="#555" stroke-width="1.2" marker-end="url(#ej)"/>
+  <text x="82" y="294" font-size="9.5" fill="#555">X</text>
+  <text x="32" y="244" font-size="9.5" fill="#555">Y</text>
+  <text x="100" y="286" font-size="9" fill="#777">X: {{dim_X:m}} m · Y: {{dim_Y:m}} m · h = {{h_m:m}} m · θ = {{theta:deg}}°</text>
+  <text x="100" y="300" font-size="9" fill="#777">WXP: viento hacia +X, recibe el muro X−</text>
+
+  <!-- ═══ B · tabla de estados ═══ -->
+  <line x1="306" y1="56" x2="306" y2="310" stroke="#e4e4e4"/>
+  <text x="320" y="64" font-size="11" fill="#1a63a8" font-weight="bold">B · Presión por cara, kgf/m²</text>
+  <text x="320" y="78" font-size="8.5" fill="#999">+ hacia la cara (presión) · − alejándose (succión)</text>
+  <text x="418" y="90" font-size="9" text-anchor="end" fill="#555">muro X−</text>
+  <text x="462" y="90" font-size="9" text-anchor="end" fill="#555">muro X+</text>
+  <text x="506" y="90" font-size="9" text-anchor="end" fill="#555">muro Y−</text>
+  <text x="550" y="90" font-size="9" text-anchor="end" fill="#555">muro Y+</text>
+  <text x="604" y="90" font-size="9" text-anchor="end" fill="#555">agua {{rot_ag[1]}}</text>
+  <text x="660" y="90" font-size="9" text-anchor="end" fill="#555">agua {{rot_ag[2]}}</text>
+  <line x1="320" y1="96" x2="664" y2="96" stroke="#ccc"/>
+  <rect x="320" y="99" width="344" height="19" fill="#f6f8fa"/>
+  <text x="326" y="112" font-size="9.5" fill="#222" font-weight="bold">WXP</text>
+  <text x="418" y="112" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[1, 2]}}</text>
+  <text x="462" y="112" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[1, 3]}}</text>
+  <text x="506" y="112" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[1, 4]}}</text>
+  <text x="550" y="112" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[1, 5]}}</text>
+  <text x="604" y="112" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[1, 6]}}</text>
+  <text x="660" y="112" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[1, 7]}}</text>
+  <text x="326" y="131" font-size="9.5" fill="#222" font-weight="bold">WXN</text>
+  <text x="418" y="131" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[2, 2]}}</text>
+  <text x="462" y="131" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[2, 3]}}</text>
+  <text x="506" y="131" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[2, 4]}}</text>
+  <text x="550" y="131" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[2, 5]}}</text>
+  <text x="604" y="131" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[2, 6]}}</text>
+  <text x="660" y="131" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[2, 7]}}</text>
+  <rect x="320" y="137" width="344" height="19" fill="#f6f8fa"/>
+  <text x="326" y="150" font-size="9.5" fill="#222" font-weight="bold">WYP</text>
+  <text x="418" y="150" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[3, 2]}}</text>
+  <text x="462" y="150" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[3, 3]}}</text>
+  <text x="506" y="150" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[3, 4]}}</text>
+  <text x="550" y="150" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[3, 5]}}</text>
+  <text x="604" y="150" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[3, 6]}}</text>
+  <text x="660" y="150" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[3, 7]}}</text>
+  <text x="326" y="169" font-size="9.5" fill="#222" font-weight="bold">WYN</text>
+  <text x="418" y="169" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[4, 2]}}</text>
+  <text x="462" y="169" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[4, 3]}}</text>
+  <text x="506" y="169" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[4, 4]}}</text>
+  <text x="550" y="169" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[4, 5]}}</text>
+  <text x="604" y="169" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[4, 6]}}</text>
+  <text x="660" y="169" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[4, 7]}}</text>
+  <rect x="320" y="175" width="344" height="19" fill="#f6f8fa"/>
+  <text x="326" y="188" font-size="9.5" fill="#222" font-weight="bold">WXP2</text>
+  <text x="418" y="188" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[5, 2]}}</text>
+  <text x="462" y="188" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[5, 3]}}</text>
+  <text x="506" y="188" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[5, 4]}}</text>
+  <text x="550" y="188" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[5, 5]}}</text>
+  <text x="604" y="188" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[5, 6]}}</text>
+  <text x="660" y="188" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[5, 7]}}</text>
+  <text x="326" y="207" font-size="9.5" fill="#222" font-weight="bold">WXN2</text>
+  <text x="418" y="207" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[6, 2]}}</text>
+  <text x="462" y="207" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[6, 3]}}</text>
+  <text x="506" y="207" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[6, 4]}}</text>
+  <text x="550" y="207" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[6, 5]}}</text>
+  <text x="604" y="207" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[6, 6]}}</text>
+  <text x="660" y="207" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[6, 7]}}</text>
+  <rect x="320" y="213" width="344" height="19" fill="#f6f8fa"/>
+  <text x="326" y="226" font-size="9.5" fill="#222" font-weight="bold">WYP2</text>
+  <text x="418" y="226" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[7, 2]}}</text>
+  <text x="462" y="226" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[7, 3]}}</text>
+  <text x="506" y="226" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[7, 4]}}</text>
+  <text x="550" y="226" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[7, 5]}}</text>
+  <text x="604" y="226" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[7, 6]}}</text>
+  <text x="660" y="226" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[7, 7]}}</text>
+  <text x="326" y="245" font-size="9.5" fill="#222" font-weight="bold">WYN2</text>
+  <text x="418" y="245" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[8, 2]}}</text>
+  <text x="462" y="245" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[8, 3]}}</text>
+  <text x="506" y="245" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[8, 4]}}</text>
+  <text x="550" y="245" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[8, 5]}}</text>
+  <text x="604" y="245" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[8, 6]}}</text>
+  <text x="660" y="245" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[8, 7]}}</text>
+  <line x1="320" y1="251" x2="664" y2="251" stroke="#ccc"/>
+  <rect x="320" y="251" width="344" height="19" fill="#f6f8fa"/>
+  <text x="326" y="264" font-size="9.5" fill="#222" font-weight="bold">WPI</text>
+  <text x="418" y="264" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[9, 2]}}</text>
+  <text x="462" y="264" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[9, 3]}}</text>
+  <text x="506" y="264" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[9, 4]}}</text>
+  <text x="550" y="264" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[9, 5]}}</text>
+  <text x="604" y="264" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[9, 6]}}</text>
+  <text x="660" y="264" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[9, 7]}}</text>
+  <text x="326" y="283" font-size="9.5" fill="#222" font-weight="bold">WPIN</text>
+  <text x="418" y="283" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[10, 2]}}</text>
+  <text x="462" y="283" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[10, 3]}}</text>
+  <text x="506" y="283" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[10, 4]}}</text>
+  <text x="550" y="283" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[10, 5]}}</text>
+  <text x="604" y="283" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[10, 6]}}</text>
+  <text x="660" y="283" font-size="9.5" text-anchor="end" fill="#222">{{tabla_estados[10, 7]}}</text>
+  <text x="320" y="304" font-size="8.5" fill="#999">{{rot_var2}}</text>
+
+  <!-- ═══ C · la cadena, combinaciones, mínimo y Figura 11 ═══ -->
+  <line x1="20" y1="320" x2="660" y2="320" stroke="#ddd"/>
+  <text x="20" y="338" font-size="10" fill="#222">q_h = 0,613 · I · K_z · K_zt · K_e · V² = <tspan font-weight="bold" fill="#c0392b">{{q_h:kgf/m^2}} kgf/m²</tspan>   ·   K_d = {{K_d}} · G = {{G_r}} · K_z = {{K_z}} · GC_pi = ±{{round(GC_pi*1000)/1000}}</text>
+  <text x="20" y="356" font-size="9.5" fill="#555">Combinaciones: UN estado externo (WXP … WYN2) más UN interno (WPI o WPIN) — 16 pares. Figura 11, caso 3: 0,75·(X + Y).</text>
+  <text x="20" y="372" font-size="9.5" fill="#555">Neta de muros: {{dp_X:kgf/m^2}} (X) y {{dp_Y:kgf/m^2}} (Y) kgf/m², contra el mínimo de §6.1.5 de {{p_min_muro:kgf/m^2}} kgf/m²</text>
+  <text x="20" y="388" font-size="9.5" fill="#555">Figura 11: e = {{e_X:m}} m (X) y {{e_Y:m}} m (Y) · M_z por metro de altura: {{Mz2_X:kgf}} y {{Mz2_Y:kgf}} (caso 2), {{Mz4:kgf}} kgf·m/m (caso 4)</text>
+  <text x="20" y="404" font-size="9.5" fill="#555">Arriostramiento longitudinal (7.3.7): F = <tspan font-weight="bold" fill="#c0392b">{{F_long:kgf}} kgf</tspan>, {{round(r_long*100)/100}} veces la de los estados · K_B = {{K_B}} · K_S = {{K_S}}</text>
+</svg>

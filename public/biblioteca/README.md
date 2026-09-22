@@ -71,12 +71,13 @@ su rango—, no de resistencia.
 | Plantilla | Qué entrega | Norma | Entradas |
 |---|---|---|---:|
 | `espectro-nch2369-generica` | El espectro de una dirección de análisis: ordenada de diseño en T\*, ordenada de referencia de §6.1, factor de escala del caso espectral, banda de corte basal y el **espectro tabulado** listo para copiar al modelo. Cubre la dirección **horizontal y la vertical** con la misma hoja (`es_vert`), y deriva los parámetros de sitio de la zona, el suelo y la categoría | NCh2369:2025 §4.3.2, §5.4.1, §5.4.2, §5.12, §5.13, §6.1 · Tablas 3, 6 y 7 | 8 |
+| `viento-caras-nch432-generica` | Viento del SPRFV de un galpón rectangular a dos aguas por el procedimiento **direccional**, organizado como se carga en SAP2000: **diez estados de carga** —WXP, WXN, WYP, WYN, sus variantes de techo WXP2 a WYN2, y la presión interna WPI y WPIN— con **una presión uniforme por cara**, las caras nombradas por los ejes del modelo (muros X−, X+, Y−, Y+ y las dos aguas), en kgf/m². La orientación de la cumbrera es una entrada. Donde la Figura 4 da franjas, el C_p es el **promedio ponderado por longitud**. Suma la **fuerza longitudinal de 7.3.7** para el arriostramiento del parcialmente cerrado, el mínimo de §6.1.5 y la excentricidad y el torsor de los casos 2 y 4 de la Figura 11 | NCh432:2025 §5.3 a §5.11, §6.1.5, §6.3.1, §6.3.2, §6.3.5, 7.3.7 · Tablas 1 a 7 · Figuras 4, 11 y 12 | 15 |
 
 La tabla es una salida de tipo **`serie`** (`docs/ESQUEMA-PLANILLA.md` §10): una matriz del
 scope que `PanelResultados` pinta con encabezados y copia entera al portapapeles, en la
 página del módulo y en la ficha del nodo de una obra. Es el camino para que una hoja de
 acciones entregue una curva y no solo un número, y cualquier genérica futura la usa
-declarándola —el perfil de presiones por altura de una hoja de viento es la siguiente.
+declarándola, como hace `tabla_estados` en la de viento.
 
 > 🔴 **La columna que va al modelo es `S_aH`, no `Sa_dis`.** La primera es el espectro de
 > referencia puro en g y viaja con el factor de escala que la hoja calcula
@@ -84,7 +85,29 @@ declarándola —el perfil de presiones por altura de una hoja de viento es la s
 > aplicarle el factor cuenta los tres dos veces, y el corte basal sale plausible.
 
 Siguen pendientes **viento** y **nieve por ASCE 7**, que se destilan de las hojas del
-taller de neumáticos cuando se instancien por segunda vez.
+taller de neumáticos cuando se instancien por segunda vez. El viento por NCh432 ya está.
+
+> 🔴 **`K_d` no va dentro de `q_h`.** La Ec. (2) de NCh432:2025 no lo lleva; entra en la
+> Ec. (4), una sola vez, a través de `qK = q_h·K_d`. Meterlo en los dos sitios deja todas las
+> presiones un 15 % bajas y nada lo delata.
+
+> 🟠 **El muro de barlovento lleva `q_h`, no `q_z`.** Es del lado seguro —bajo la altura h,
+> `q_z ≤ q_h`— y es lo que permite una sola presión por cara. Una hoja que quiera el perfil
+> por altura del muro de barlovento es otra hoja.
+
+> 🔴 **Los estados de viento se superponen: uno externo más uno interno, nunca dos del mismo
+> grupo.** La Ec. (4) es la suma de un término externo y uno interno, y por eso la hoja los
+> entrega separados: ocho externos (WXP … WYN2) y dos internos (WPI, WPIN), 16 pares en las
+> combinaciones. Las variantes 2 no son opcionales: las notas c y d de la Figura 4 exigen los
+> dos casos de techo, y el segundo, sumado a WPIN, deja el techo **cargado hacia abajo**. Con
+> solo WXP … WYN ese efecto no existe en el modelo y nada lo delata.
+
+> 🔴 **En el parcialmente cerrado, el arriostramiento longitudinal no se diseña con los
+> estados.** §6.3.2 manda a una fuerza horizontal paralela a la cumbrera, y su remisión apunta
+> a 7.3.5, que es Aleros: la disposición es la **7.3.7**. Quien sigue la remisión no la
+> encuentra y concluye que no existe. En el galpón simulado, `F_long` es 1,38 veces la fuerza
+> longitudinal que traen los estados; la hoja entrega esa razón para amplificar los esfuerzos
+> del arriostramiento.
 
 > 🔴 **La que entra al espectro es `A_r`, no `A_0`.** El encabezado de la tercera columna
 > de la Tabla 3 es literalmente «A_r = 1,4 A_0», y las Ec. (3), (12) y (13) usan la de
@@ -322,3 +345,19 @@ exacto. **Las tablas 3 y 6 se releyeron del PDF** para poder derivarlas en vez d
 la Tabla 6 entera (suelos A a E) vive ahora en un `program` de la hoja, y los seis
 parámetros del suelo del altiplano y los del simulado salieron de ella idénticos a los que
 las dos fuentes traían escritos a mano.
+
+**Cuarta pasada, 2026-09-22: viento por NCh432.** `viento-caras-nch432-generica` se escribió
+contra la cláusula 6 leída del PDF para esta hoja: nueve páginas, registradas en el acta de
+`CL/NCh432-2025` del harness. La Ec. (2) de `q_h` se copió de
+`public/planillas/galpon-altiplano-viento-sitio-nch432.json`. El caso de referencia es el
+galpón simulado, y reproduce el `viento_nch432.valores.json` de su hoja de valores, que
+recorre la cadena de sitio por otro camino (la cláusula 7):
+
+| Con | Da | Que es el de |
+|---|---|---|
+| simulado · III-B, C, 1 125 m, 25 × 30 m, alero 10,5 m, θ = 11,31°, parcialmente cerrado | `h` = 11,75 m · `K_z` = 1,0319 · `K_e` = 0,8747 · `q_h` = 69,116 kgf/m² (677,80 N/m²) · `R_i` = 0,99378 · `GC_pi` = 0,54658 · `qK` = 58,749 kgf/m² | `h`, `K_h`, `K_e`, `q_h`, `R_i`, `GCpi` y `qK`, a las cinco cifras que muestra la hoja |
+| el mismo, 5 marcos, hastial revestido (φ = 1) | `dGC` = 0,76 · `K_B` = 0,975 · `K_S` = 1,996 · `A_E` = 293,75 m² · `F_long` = 25 524 kgf (250,3 kN) | `dif_c2_pond`, `K_B`, `K_S`, `A_E` y `F_737` |
+
+Los C_p del procedimiento direccional no tienen contraparte en esa hoja de valores, que usa
+el envolvente. Se contrastaron a mano: la interpolación en θ y h/L de la succión del agua de
+barlovento (−0,8236) y el promedio de franjas en la dirección longitudinal (−0,6133).
