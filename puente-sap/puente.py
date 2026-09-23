@@ -19,6 +19,8 @@ Rutas:
     POST /conectar   -> {modelo, ruta, version}   o 409 con {motivo}
     GET  /patrones   -> {modelo, ruta, patrones: [{nombre, tipo, pesoPropio}]}
     GET  /grupos     -> {modelo, ruta, grupos: [{nombre, barras, areas}]}
+    GET  /cargas     -> {modelo, ruta, cargas: [{patron, clase, valor, dir, ..., n}]}
+                     (las cargas asignadas, agrupadas por patrón y valor)
     POST /aplicaciones/leer {aplicaciones} -> la carga de cada patrón sobre su grupo
                      (POST solo porque la lista viaja en el cuerpo: no modifica nada)
 
@@ -266,6 +268,116 @@ def leer_aplicaciones(cuerpo):
     return {"modelo": nombre, "ruta": ruta, "aplicaciones": resultado}
 
 
+# ── Todas las cargas asignadas, por patrón ───────────────────────────────────
+
+GRUPO = 1  # eItemType.Group: con el grupo "ALL", todos los objetos del modelo
+TODO = "ALL"
+COMPONENTES_NUDO = ("F1", "F2", "F3", "M1", "M2", "M3")
+
+
+def _num(v):
+    """Un float estable para agrupar: 0,3 y 0,30000000000000004 son la misma carga."""
+    return float(f"{float(v):.9g}")
+
+
+def _leer(llamada, que):
+    r = llamada(TODO, ItemType=GRUPO)
+    if r[-1] != 0:
+        raise ErrorPuente(502, f"SAP2000 no entregó {que}.")
+    return r
+
+
+def _cargas_del_modelo(modelo):
+    """Cada carga asignada, una por objeto, en kN-m-C.
+
+    Cubre lo que un modelo de naves usa: distribuida y puntual en barras,
+    uniforme en áreas, uniforme de área repartida a barras, fuerzas en nudos y
+    temperatura en barras. Lo que no está aquí (presión de viento automática,
+    gravedad, tensiones...) no se lee, y el panel lo dice.
+    """
+    salida = []
+
+    # [n, barra, patrón, tipo, csys, dir, rd1, rd2, d1, d2, v1, v2, ret]
+    n, objs, pats, tipos, csys, dirs, rd1, rd2, _, _, v1, v2, _ = _leer(
+        modelo.FrameObj.GetLoadDistributed, "las cargas distribuidas en barras")
+    for i in range(n):
+        uniforme = abs(v1[i] - v2[i]) < 1e-9 and abs(rd1[i]) < 1e-9 and abs(rd2[i] - 1) < 1e-9
+        salida.append({
+            "patron": str(pats[i]), "objeto": str(objs[i]), "clase": "barra-distribuida",
+            "momento": tipos[i] == 2, "csys": str(csys[i]), "dir": int(dirs[i]),
+            "valor": _num(v1[i]),
+            **({} if uniforme else {"valor2": _num(v2[i]), "desde": _num(rd1[i]), "hasta": _num(rd2[i])}),
+        })
+
+    # [n, barra, patrón, tipo, csys, dir, rel, dist, valor, ret]
+    n, objs, pats, tipos, csys, dirs, rel, _, val, _ = _leer(
+        modelo.FrameObj.GetLoadPoint, "las cargas puntuales en barras")
+    for i in range(n):
+        salida.append({
+            "patron": str(pats[i]), "objeto": str(objs[i]), "clase": "barra-puntual",
+            "momento": tipos[i] == 2, "csys": str(csys[i]), "dir": int(dirs[i]),
+            "valor": _num(val[i]), "en": _num(rel[i]),
+        })
+
+    # [n, área, patrón, csys, dir, valor, ret]
+    n, objs, pats, csys, dirs, val, _ = _leer(modelo.AreaObj.GetLoadUniform, "las cargas uniformes en áreas")
+    for i in range(n):
+        salida.append({
+            "patron": str(pats[i]), "objeto": str(objs[i]), "clase": "area-uniforme",
+            "csys": str(csys[i]), "dir": int(dirs[i]), "valor": _num(val[i]),
+        })
+
+    # [n, área, patrón, csys, dir, valor, distribución, ret]
+    n, objs, pats, csys, dirs, val, dist, _ = _leer(
+        modelo.AreaObj.GetLoadUniformToFrame, "las cargas de área repartidas a barras")
+    for i in range(n):
+        salida.append({
+            "patron": str(pats[i]), "objeto": str(objs[i]), "clase": "area-a-barras",
+            "csys": str(csys[i]), "dir": int(dirs[i]), "valor": _num(val[i]), "dist": int(dist[i]),
+        })
+
+    # [n, nudo, patrón, paso, csys, F1, F2, F3, M1, M2, M3, ret]: una entrada por
+    # componente no nula, que es como se lee y como se justifica.
+    r = _leer(modelo.PointObj.GetLoadForce, "las fuerzas en nudos")
+    n, objs, pats, _, csys = r[:5]
+    comps = r[5:11]
+    for i in range(n):
+        for nombre, c in zip(COMPONENTES_NUDO, comps):
+            if abs(c[i]) > 0:
+                salida.append({
+                    "patron": str(pats[i]), "objeto": str(objs[i]), "clase": "nudo",
+                    "csys": str(csys[i]), "componente": nombre, "valor": _num(c[i]),
+                })
+
+    # [n, barra, patrón, tipo, valor, patrón de nudos, ret]
+    n, objs, pats, tipos, val, _, _ = _leer(modelo.FrameObj.GetLoadTemperature, "las temperaturas en barras")
+    for i in range(n):
+        salida.append({
+            "patron": str(pats[i]), "objeto": str(objs[i]), "clase": "barra-temperatura",
+            "tipoTemperatura": int(tipos[i]), "valor": _num(val[i]),
+        })
+    return salida
+
+
+def cargas():
+    """Las cargas asignadas en el modelo, por patrón, agrupadas por valor. Solo lee.
+
+    Dos objetos con la misma carga (clase, dirección, valor...) son UNA fila con
+    `n` = cuántos la llevan: «SDL_CUB: 0,5 kN/m² en 33 áreas» es lo que se
+    justifica, no cada área por separado. Las unidades son kN, m y °C.
+    """
+    modelo, ruta, nombre = _modelo_guardado()
+    with _EnKnM(modelo):
+        todas = _cargas_del_modelo(modelo)
+    grupos = {}
+    for c in todas:
+        firma = json.dumps({k: v for k, v in c.items() if k != "objeto"}, sort_keys=True)
+        grupos.setdefault(firma, []).append(c["objeto"])
+    lista = [{**json.loads(f), "n": len(objs)} for f, objs in grupos.items()]
+    lista.sort(key=lambda c: (c["patron"], c["clase"], -abs(c["valor"])))
+    return {"modelo": nombre, "ruta": ruta, "cargas": lista}
+
+
 class Manejador(BaseHTTPRequestHandler):
     def _responder(self, codigo, cuerpo):
         datos = json.dumps(cuerpo, ensure_ascii=False).encode("utf-8")
@@ -327,7 +439,7 @@ class Manejador(BaseHTTPRequestHandler):
             return self._responder(500, {"motivo": f"El puente falló: {e}"})
 
     def do_GET(self):  # noqa: N802
-        self._atender({"/salud": lambda: {"ok": True}, "/patrones": patrones, "/grupos": grupos})
+        self._atender({"/salud": lambda: {"ok": True}, "/patrones": patrones, "/grupos": grupos, "/cargas": cargas})
 
     def _cuerpo(self):
         largo = int(self.headers.get("Content-Length") or 0)

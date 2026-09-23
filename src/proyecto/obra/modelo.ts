@@ -251,6 +251,55 @@ export interface ConexionSap {
   leido: string;
   /** La última lectura de los Load Patterns. */
   patrones?: LecturaPatrones;
+  /** La última lectura de las cargas asignadas, por patrón. */
+  cargas?: LecturaCargas;
+}
+
+/** Cómo está aplicada una carga en el modelo. */
+export type ClaseCarga =
+  | 'barra-distribuida'
+  | 'barra-puntual'
+  | 'area-uniforme'
+  | 'area-a-barras'
+  | 'nudo'
+  | 'barra-temperatura';
+
+/**
+ * Una carga asignada en el modelo, y cuántos objetos la llevan igual.
+ *
+ * Los valores vienen en kN, m y °C: el puente lee con esas unidades, sean cuales
+ * sean las que el usuario tenga en pantalla. Solo están los campos que la clase
+ * usa.
+ */
+export interface CargaAsignada {
+  patron: string;
+  clase: ClaseCarga;
+  valor: number;
+  /** Cuántos objetos la llevan. */
+  n: number;
+  /** Código de dirección de la API: 1-3 locales, 4-6 X/Y/Z, 7-9 proyectadas, 10 gravedad. */
+  dir?: number;
+  csys?: string;
+  /** Distribuida o puntual: es un momento y no una fuerza. */
+  momento?: boolean;
+  /** Distribuida no uniforme: el valor final y el tramo, en distancia relativa. */
+  valor2?: number;
+  desde?: number;
+  hasta?: number;
+  /** Puntual en barra: dónde, en distancia relativa. */
+  en?: number;
+  /** Área a barras: 1 en una dirección, 2 en dos. */
+  dist?: number;
+  /** Nudo: `F1`…`M3`. */
+  componente?: string;
+  tipoTemperatura?: number;
+}
+
+export interface LecturaCargas {
+  modelo: string;
+  /** ISO. */
+  leido: string;
+  lista: CargaAsignada[];
 }
 
 /** Un Load Pattern tal como está en el modelo. */

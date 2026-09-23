@@ -65,7 +65,16 @@ retirar.
 
 **En la rama `grupos-sin-cargas` la comparación de patrones y la aplicación se retiraron** con
 las cargas (`rumbo.md`, «Experimento: el grupo es la única forma de organizar la obra»); lo de
-abajo queda como estaba en `master`, para cuando vuelvan.
+abajo queda como estaba en `master`, para cuando vuelvan. Lo que hay en la rama:
+
+- **El nodo SAP2000 lista los patrones y sus cargas asignadas, sin compararlas con nada.** La
+  lectura (`/cargas` del puente) cubre distribuidas y puntuales en barras, uniformes en áreas,
+  áreas a barras, fuerzas en nudos y temperatura en barras. No lee presión de viento
+  automática, gravedad ni temperatura en áreas: un patrón que solo tenga eso sale sin cargas.
+- **Las cargas se agrupan por valor, no por objeto.** «0,769 kN/m en 22 barras» no dice cuáles
+  son las 22; para justificar un valor alcanza, para ubicarlo en el modelo no.
+- **Falta el paso que da sentido a la lectura:** atar cada carga a una expresión de la obra y
+  decir si coincide (como un campo atado, convirtiendo con el motor), y leer el espectro.
 
 Lo que dejó a la vista la primera comparación de Load Patterns contra el modelo del Pachón,
 para la sesión de ajustes:

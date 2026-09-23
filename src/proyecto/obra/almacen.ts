@@ -31,7 +31,10 @@ import {
   VERSION_OBRA,
   type ConexionSap,
   type Frontera,
+  type CargaAsignada,
+  type ClaseCarga,
   type Grupo,
+  type LecturaCargas,
   type LecturaPatrones,
   type Modulo,
   type PatronLeido,
@@ -70,6 +73,44 @@ function sanearLectura(crudo: unknown): LecturaPatrones | undefined {
   return { modelo: texto(l.modelo), leido: texto(l.leido), lista };
 }
 
+const CLASES_CARGA: ReadonlySet<string> = new Set<ClaseCarga>([
+  'barra-distribuida',
+  'barra-puntual',
+  'area-uniforme',
+  'area-a-barras',
+  'nudo',
+  'barra-temperatura',
+]);
+
+const esNumero = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+
+/**
+ * Una lectura de cargas asignadas. Una carga sin patrón, sin una clase conocida o
+ * sin valor no dice nada que se pueda justificar y se descarta; de los campos
+ * opcionales se conserva solo lo que tiene el tipo correcto.
+ */
+function sanearCargas(crudo: unknown): LecturaCargas | undefined {
+  if (typeof crudo !== 'object' || crudo === null) return undefined;
+  const l = crudo as Partial<LecturaCargas>;
+  if (!Array.isArray(l.lista)) return undefined;
+  const lista: CargaAsignada[] = [];
+  for (const x of l.lista) {
+    const c = (x ?? {}) as Partial<CargaAsignada>;
+    if (typeof c.patron !== 'string' || !c.patron) continue;
+    if (typeof c.clase !== 'string' || !CLASES_CARGA.has(c.clase)) continue;
+    if (!esNumero(c.valor) || !esNumero(c.n)) continue;
+    const carga: CargaAsignada = { patron: c.patron, clase: c.clase, valor: c.valor, n: c.n };
+    for (const k of ['dir', 'valor2', 'desde', 'hasta', 'en', 'dist', 'tipoTemperatura'] as const) {
+      if (esNumero(c[k])) carga[k] = c[k];
+    }
+    if (typeof c.csys === 'string') carga.csys = c.csys;
+    if (typeof c.componente === 'string') carga.componente = c.componente;
+    if (typeof c.momento === 'boolean') carga.momento = c.momento;
+    lista.push(carga);
+  }
+  return { modelo: texto(l.modelo), leido: texto(l.leido), lista };
+}
+
 /**
  * La última conexión a SAP2000. Una sin modelo no dice nada y se descarta. Los
  * grupos leídos que traiga una obra anterior se descartan: eran para aplicar
@@ -80,6 +121,7 @@ function sanearSap(crudo: unknown): { sap?: ConexionSap } {
   const s = crudo as Partial<ConexionSap>;
   if (typeof s.modelo !== 'string' || !s.modelo) return {};
   const patrones = sanearLectura(s.patrones);
+  const cargas = sanearCargas(s.cargas);
   return {
     sap: {
       modelo: s.modelo,
@@ -87,6 +129,7 @@ function sanearSap(crudo: unknown): { sap?: ConexionSap } {
       version: texto(s.version),
       leido: texto(s.leido),
       ...(patrones ? { patrones } : {}),
+      ...(cargas ? { cargas } : {}),
     },
   };
 }

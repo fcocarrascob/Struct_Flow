@@ -63,6 +63,10 @@ const {
   unirObra,
   marcarRevision,
   porRevisar,
+  valorDe,
+  comoDe,
+  objetosDe,
+  cargasPorPatron,
 } = motor;
 
 // ── Armar una obra ───────────────────────────────────────────────────────────
@@ -1164,6 +1168,56 @@ const CASOS_SANEO = [
       if (dio !== 'DEAD:Dead:1,LIVE:Live:0') return `lista: ${dio}`;
       const vuelta = sanearObra(archivoDeObra(o).obra);
       return JSON.stringify(vuelta) === JSON.stringify(o) ? null : 'la lectura cambió en la ida y vuelta';
+    },
+  },
+  {
+    nombre: 'las cargas asignadas leídas del modelo sobreviven al saneo, y cada una se lee en palabras',
+    // Los valores son del modelo de prueba del Pachón, en kN, m y °C, como los
+    // entrega el puente.
+    crudo: {
+      id: 'o',
+      modulos: ['sap'],
+      calculos: [],
+      sap: {
+        modelo: 'm.sdb',
+        cargas: {
+          modelo: 'm.sdb',
+          leido: '2026-09-23T12:00:00.000Z',
+          lista: [
+            { patron: 'SDL_CUB', clase: 'area-a-barras', csys: 'GLOBAL', dir: 10, dist: 1, valor: 0.0980665, n: 33 },
+            { patron: 'CM_VIA', clase: 'barra-distribuida', csys: 'GLOBAL', dir: 10, momento: false, valor: 0.769, n: 22 },
+            { patron: 'CLV_P1', clase: 'barra-puntual', csys: 'GLOBAL', dir: 10, momento: false, en: 0.125, valor: 190.416, n: 1 },
+            { patron: 'WPI', clase: 'area-uniforme', csys: 'Local', dir: 3, valor: 0.407, n: 2 },
+            { patron: 'X', clase: 'barra-distribuida', dir: 10, valor: 1, valor2: 3, desde: 0, hasta: 0.5, n: 1 },
+            { patron: 'N', clase: 'nudo', csys: 'GLOBAL', componente: 'M3', valor: -2.5, n: 4 },
+            { patron: 'TEMP', clase: 'barra-temperatura', tipoTemperatura: 1, valor: 10, n: 381 },
+            { patron: 'MALA', clase: 'inventada', valor: 1, n: 1 },
+            { patron: '', clase: 'nudo', valor: 1, n: 1 },
+            { patron: 'SIN', clase: 'nudo', n: 1 },
+          ],
+        },
+      },
+    },
+    ok: (o) => {
+      const l = o.sap.cargas?.lista ?? [];
+      if (l.length !== 7) return `quedaron ${l.length} cargas, se esperaban 7`;
+      const vuelta = sanearObra(archivoDeObra(o).obra);
+      if (JSON.stringify(vuelta) !== JSON.stringify(o)) return 'la lectura cambió en la ida y vuelta';
+      const esperado = [
+        '0,09807 kN/m² · área a barras, una dirección · gravedad · 33 áreas',
+        '0,769 kN/m · distribuida en barra · gravedad · 22 barras',
+        '190,4 kN · puntual en barra, a 0,125 de la longitud · gravedad · 1 barra',
+        '0,407 kN/m² · uniforme en área · local 3 (Local) · 2 áreas',
+        '1 → 3 kN/m · distribuida en barra, de 0 a 0,5 de la longitud · gravedad · 1 barra',
+        '-2,5 kN·m · en nudo, M3 · 4 nudos',
+        '10 °C · temperatura en barra · 381 barras',
+      ];
+      for (const [i, c] of l.entries()) {
+        const dio = `${valorDe(c)} · ${comoDe(c)} · ${objetosDe(c)}`;
+        if (dio !== esperado[i]) return `«${dio}», se esperaba «${esperado[i]}»`;
+      }
+      const porPatron = cargasPorPatron(l);
+      return porPatron.get('SDL_CUB')?.length === 1 && porPatron.size === 7 ? null : 'mal agrupadas por patrón';
     },
   },
   {

@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import type { ConexionSap, LecturaPatrones } from './modelo';
+import { Fragment, useState } from 'react';
+import type { CargaAsignada, ConexionSap, LecturaCargas, LecturaPatrones } from './modelo';
+import { cargasPorPatron, comoDe, objetosDe, valorDe } from './sap-cargas';
 import { useEscape } from './useEscape';
 
 /**
@@ -49,23 +50,61 @@ async function alPuente<T>(ruta: string, cuerpo?: unknown): Promise<T> {
 /** Cómo se lee un multiplicador: `1,3`, no `1.3`. */
 const numero = (n: number): string => String(n).replace('.', ',');
 
+/** Lo último leído del modelo: los patrones y, si se pudieron leer, sus cargas. */
+export interface LecturaSap {
+  patrones: LecturaPatrones;
+  cargas?: LecturaCargas;
+}
+
+/** Las cargas de un patrón, una fila por valor distinto. */
+function CargasDelPatron({ cargas }: { cargas: readonly CargaAsignada[] }) {
+  return (
+    <tr>
+      <td colSpan={4} className="pb-2 pl-4 pt-0.5">
+        <ul className="space-y-0.5 border-l border-border pl-2">
+          {cargas.map((c, i) => (
+            <li key={i} className="flex flex-wrap items-baseline gap-x-2 text-[10px] leading-snug">
+              <span className="font-mono text-ink">{valorDe(c)}</span>
+              <span className="text-muted">{comoDe(c)}</span>
+              <span className="ml-auto whitespace-nowrap text-muted">{objetosDe(c)}</span>
+            </li>
+          ))}
+        </ul>
+      </td>
+    </tr>
+  );
+}
+
 /**
- * Los Load Patterns del modelo, tal como están: nombre, tipo y multiplicador de
- * peso propio (SWF). Solo se listan; se definen y se corrigen en SAP.
+ * Los Load Patterns del modelo, tal como están: nombre, tipo, multiplicador de
+ * peso propio (SWF) y las cargas que tiene asignadas. Solo se listan; se definen
+ * y se corrigen en SAP.
  */
 function PatronesSap({
   lectura,
+  cargas,
   modeloConectado,
   leyendo,
   error,
   onLeer,
 }: {
   lectura: LecturaPatrones | undefined;
+  cargas: LecturaCargas | undefined;
   modeloConectado: string | undefined;
   leyendo: boolean;
   error: string;
   onLeer: () => void;
 }) {
+  const [abiertos, setAbiertos] = useState<ReadonlySet<string>>(new Set());
+  const porPatron = cargasPorPatron(cargas?.lista ?? []);
+  const alternar = (nombre: string) =>
+    setAbiertos((a) => {
+      const s = new Set(a);
+      if (s.has(nombre)) s.delete(nombre);
+      else s.add(nombre);
+      return s;
+    });
+
   return (
     <section className="border-t border-border px-5 py-4">
       <div className="mb-2 flex items-baseline justify-between gap-2">
@@ -99,7 +138,10 @@ function PatronesSap({
             {modeloConectado && lectura.modelo !== modeloConectado && (
               <span className="text-aviso"> — no es el modelo de la última conexión ({modeloConectado})</span>
             )}
-            .
+            .{' '}
+            {cargas
+              ? 'Pulsa un patrón para ver sus cargas asignadas (en kN, m y °C).'
+              : 'Las cargas asignadas no se pudieron leer.'}
           </p>
           {lectura.lista.length > 0 && (
             <table className="w-full text-[11px]">
@@ -110,16 +152,39 @@ function PatronesSap({
                   <th className="text-right font-semibold" title="Multiplicador de peso propio (self weight multiplier)">
                     SWF
                   </th>
+                  <th className="text-right font-semibold" title="Cargas distintas asignadas, y en cuántos objetos">
+                    Cargas
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {lectura.lista.map((p) => (
-                  <tr key={p.nombre} className="border-t border-border/60">
-                    <td className="py-1 pr-2 font-mono text-ink">{p.nombre}</td>
-                    <td className="pr-2 text-muted">{p.tipo || '—'}</td>
-                    <td className="text-right font-mono text-muted">{numero(p.pesoPropio)}</td>
-                  </tr>
-                ))}
+                {lectura.lista.map((p) => {
+                  const suyas = porPatron.get(p.nombre) ?? [];
+                  const abierto = abiertos.has(p.nombre);
+                  const objetos = suyas.reduce((s, c) => s + c.n, 0);
+                  return (
+                    <Fragment key={p.nombre}>
+                      <tr
+                        onClick={suyas.length ? () => alternar(p.nombre) : undefined}
+                        className={`border-t border-border/60 ${suyas.length ? 'cursor-pointer hover:bg-accent/5' : ''}`}
+                      >
+                        <td className="py-1 pr-2 font-mono text-ink">
+                          <span className="inline-block w-3 text-muted">{suyas.length ? (abierto ? '▾' : '▸') : ''}</span>
+                          {p.nombre}
+                        </td>
+                        <td className="pr-2 text-muted">{p.tipo || '—'}</td>
+                        <td className="text-right font-mono text-muted">{numero(p.pesoPropio)}</td>
+                        <td
+                          className="text-right text-muted"
+                          title={suyas.length ? `${suyas.length} carga(s) distinta(s) en ${objetos} objeto(s)` : undefined}
+                        >
+                          {!cargas ? '' : suyas.length ? suyas.length : '—'}
+                        </td>
+                      </tr>
+                      {abierto && suyas.length > 0 && <CargasDelPatron cargas={suyas} />}
+                    </Fragment>
+                  );
+                })}
               </tbody>
             </table>
           )}
@@ -132,12 +197,12 @@ function PatronesSap({
 export default function PanelSap({
   sap,
   onConectado,
-  onPatronesLeidos,
+  onLeido,
   onCerrar,
 }: {
   sap: ConexionSap | undefined;
   onConectado: (sap: ConexionSap) => void;
-  onPatronesLeidos: (lectura: LecturaPatrones) => void;
+  onLeido: (lectura: LecturaSap) => void;
   onCerrar: () => void;
 }) {
   useEscape(onCerrar);
@@ -147,13 +212,30 @@ export default function PanelSap({
   const [leyendo, setLeyendo] = useState(false);
   const [errorPatrones, setErrorPatrones] = useState('');
 
-  const leerPatrones = () => {
+  /**
+   * Los patrones y después sus cargas: de a una, porque el puente atiende de a
+   * una petición. Si las cargas fallan —un puente anterior no tiene `/cargas`—,
+   * los patrones se guardan igual y el error lo dice.
+   */
+  const leerPatrones = async () => {
     setLeyendo(true);
     setErrorPatrones('');
-    alPuente<{ modelo?: string; patrones?: LecturaPatrones['lista'] }>('/patrones')
-      .then((d) => onPatronesLeidos({ modelo: d.modelo ?? '', leido: new Date().toISOString(), lista: d.patrones ?? [] }))
-      .catch((e: Error) => setErrorPatrones(e.message))
-      .finally(() => setLeyendo(false));
+    try {
+      const p = await alPuente<{ modelo?: string; patrones?: LecturaPatrones['lista'] }>('/patrones');
+      const patrones = { modelo: p.modelo ?? '', leido: new Date().toISOString(), lista: p.patrones ?? [] };
+      let cargas: LecturaCargas | undefined;
+      try {
+        const c = await alPuente<{ modelo?: string; cargas?: LecturaCargas['lista'] }>('/cargas');
+        cargas = { modelo: c.modelo ?? '', leido: new Date().toISOString(), lista: c.cargas ?? [] };
+      } catch (e) {
+        setErrorPatrones(`Las cargas asignadas no se pudieron leer: ${(e as Error).message}`);
+      }
+      onLeido({ patrones, ...(cargas ? { cargas } : {}) });
+    } catch (e) {
+      setErrorPatrones((e as Error).message);
+    } finally {
+      setLeyendo(false);
+    }
   };
 
   const conectar = () => {
@@ -168,7 +250,7 @@ export default function PanelSap({
         setEstado({ fase: 'quieto' });
         // Conectar es querer ver el modelo: los patrones vienen con él. Va
         // después de la conexión porque el puente atiende de a una petición.
-        leerPatrones();
+        void leerPatrones();
       },
       (e: Error) => setEstado({ fase: 'error', motivo: e.message }),
     );
@@ -235,10 +317,11 @@ export default function PanelSap({
       {sap && (
         <PatronesSap
           lectura={sap.patrones}
+          cargas={sap.cargas}
           modeloConectado={sap.modelo}
           leyendo={leyendo}
           error={errorPatrones}
-          onLeer={leerPatrones}
+          onLeer={() => void leerPatrones()}
         />
       )}
     </aside>

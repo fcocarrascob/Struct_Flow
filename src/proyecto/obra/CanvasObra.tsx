@@ -1553,12 +1553,20 @@ function CanvasObra({
             // La lectura anterior se conserva hasta que llegue la nueva: dice de
             // qué modelo salió, y el panel avisa si no es el conectado.
             onConectado={(sap) =>
-              setObra((o) =>
-                o ? { ...o, sap: { ...sap, ...(o.sap?.patrones ? { patrones: o.sap.patrones } : {}) } } : o,
-              )
+              setObra((o) => {
+                if (!o) return o;
+                const { patrones, cargas } = o.sap ?? {};
+                return { ...o, sap: { ...sap, ...(patrones ? { patrones } : {}), ...(cargas ? { cargas } : {}) } };
+              })
             }
-            onPatronesLeidos={(patrones) =>
-              setObra((o) => (o?.sap ? { ...o, sap: { ...o.sap, patrones } } : o))
+            // Una lectura sin cargas —las del puente fallaron— no deja las
+            // anteriores: serían de otro momento y no lo dirían.
+            onLeido={({ patrones, cargas }) =>
+              setObra((o) => {
+                if (!o?.sap) return o;
+                const { cargas: _vieja, ...resto } = o.sap;
+                return { ...o, sap: { ...resto, patrones, ...(cargas ? { cargas } : {}) } };
+              })
             }
             onCerrar={() => setSeleccion(null)}
           />
