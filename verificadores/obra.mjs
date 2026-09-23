@@ -57,6 +57,8 @@ const {
   ordenDeLectura,
   nombresSueltos,
   PASO_LECTURA,
+  partirObra,
+  unirObra,
 } = motor;
 
 // ── Armar una obra ───────────────────────────────────────────────────────────
@@ -1123,9 +1125,151 @@ const CASOS_SANEO = [
   },
 ];
 
+// ── La obra en disco: una carpeta ────────────────────────────────────────────
+//
+// `partirObra` reparte una obra en `obra.json` más una hoja por nodo, y
+// `unirObra` la vuelve a armar. El caso de regresión es la obra autocontenida
+// del Pachón, que es un proyecto real de punta a punta: si sobrevive a la ida y
+// vuelta sin cambiar un byte ni un resultado, la carpeta no pierde nada.
+
+const PACHON = sanearObra(
+  JSON.parse(await readFile(path.join(ROOT, 'docs/pachon/autocontenida/obra-pachon-soldadura.json'), 'utf8')).obra,
+);
+const CARRILERA = await generica('acero/viga-carrilera-generica.json');
+const genericasPachon = { [CARRILERA.id]: { fase: 'lista', modulo: CARRILERA } };
+
+/** Lo que se lee de la carpeta, saneado como lo hace la aplicación. */
+const releer = (archivos) => sanearObra(unirObra(archivos).crudo);
+
+const CASOS_CARPETA = [
+  {
+    nombre: 'la obra del Pachón sale de su carpeta igual que entró',
+    ok: () => {
+      const vuelta = releer(partirObra(PACHON));
+      return JSON.stringify(vuelta) === JSON.stringify(PACHON) ? null : 'la obra releída no coincide con la escrita';
+    },
+  },
+  {
+    nombre: 'y calcula lo mismo: ningún resultado cambia por pasar por el disco',
+    ok: () => {
+      const antes = evaluarObra(PACHON, genericasPachon);
+      const despues = evaluarObra(releer(partirObra(PACHON)), genericasPachon);
+      const a = JSON.stringify(antes.results);
+      if (!Object.keys(antes.results).length) return 'la obra no evaluó nada: el caso no prueba nada';
+      return a === JSON.stringify(despues.results) ? null : 'los resultados cambiaron tras la ida y vuelta';
+    },
+  },
+  {
+    nombre: 'una hoja por nodo, además de obra.json, y ninguna hoja dentro de obra.json',
+    ok: () => {
+      const archivos = partirObra(PACHON);
+      const nodos = PACHON.calculos.length + PACHON.cargas.reduce((s, c) => s + c.subcargas.length, 0);
+      const hojas = Object.keys(archivos).filter((r) => r.startsWith('hojas/'));
+      if (!('obra.json' in archivos)) return 'falta obra.json';
+      if (hojas.length !== nodos) return `${hojas.length} hojas para ${nodos} nodos`;
+      const grafo = JSON.parse(archivos['obra.json']).obra;
+      const conRegiones = [...grafo.calculos, ...grafo.cargas.flatMap((c) => c.subcargas)].filter(
+        (k) => typeof k.hoja !== 'string',
+      );
+      return conRegiones.length ? `obra.json lleva regiones en ${conRegiones.map((k) => k.id).join(', ')}` : null;
+    },
+  },
+  {
+    nombre: 'la carpeta es determinista, con LF y salto final: git no ve cambios donde no los hay',
+    ok: () => {
+      const uno = partirObra(PACHON);
+      const dos = partirObra(releer(uno));
+      for (const [ruta, texto] of Object.entries(uno)) {
+        if (dos[ruta] !== texto) return `${ruta} cambió al reescribirla sin tocarla`;
+        if (texto.includes('\r')) return `${ruta} lleva CR`;
+        if (!texto.endsWith('\n')) return `${ruta} no termina en salto de línea`;
+      }
+      return Object.keys(dos).length === Object.keys(uno).length ? null : 'cambió el número de archivos';
+    },
+  },
+  {
+    nombre: 'una hoja de nodo es una hoja del canvas: {version, meta, regions}',
+    ok: () => {
+      const o = sanearObra({
+        id: 'o',
+        calculos: [
+          {
+            id: 'k1',
+            nombre: 'A',
+            meta: { titulo: 'Hoja A' },
+            hoja: [{ id: 'b1', kind: 'math', x: 40, y: 40, src: 'a := 1' }],
+          },
+        ],
+        cargas: [],
+      });
+      const [ruta] = Object.keys(partirObra(o)).filter((r) => r.startsWith('hojas/'));
+      const hoja = JSON.parse(partirObra(o)[ruta]);
+      if (hoja.version !== 1) return `version ${hoja.version}`;
+      if (hoja.meta?.titulo !== 'Hoja A') return 'el meta no viajó con la hoja';
+      return hoja.regions?.[0]?.src === 'a := 1' ? null : 'las regiones no están en `regions`';
+    },
+  },
+  {
+    nombre: 'un id de nodo que no es nombre de archivo no escapa de hojas/ ni choca con otro',
+    ok: () => {
+      const o = sanearObra({
+        id: 'o',
+        calculos: [
+          { id: '../fuera', nombre: 'A', hoja: [{ id: 'b1', kind: 'math', x: 40, y: 40, src: 'a := 1' }] },
+          { id: '__fuera', nombre: 'B', hoja: [{ id: 'b2', kind: 'math', x: 40, y: 40, src: 'b := 2' }] },
+          { id: 'CON', nombre: 'C', hoja: [] },
+        ],
+        cargas: [],
+      });
+      const archivos = partirObra(o);
+      const hojas = Object.keys(archivos).filter((r) => r !== 'obra.json');
+      const malas = hojas.filter((r) => !/^hojas\/[a-z0-9-]+\.json$/.test(r));
+      if (malas.length) return `rutas inseguras: ${malas.join(', ')}`;
+      if (new Set(hojas).size !== 3) return `chocaron: ${hojas.join(', ')}`;
+      return JSON.stringify(releer(archivos)) === JSON.stringify(o) ? null : 'la vuelta no coincide';
+    },
+  },
+  {
+    nombre: 'una hoja que falta en la carpeta se dice, y la obra abre igual',
+    ok: () => {
+      const archivos = partirObra(PACHON);
+      const ruta = JSON.parse(archivos['obra.json']).obra.calculos[0].hoja;
+      delete archivos[ruta];
+      const { crudo, problemas } = unirObra(archivos);
+      const o = sanearObra(crudo);
+      if (!o) return 'la obra no abrió';
+      if (o.calculos[0].hoja.length) return 'el nodo inventó regiones';
+      if (o.calculos.length !== PACHON.calculos.length) return 'se perdió el nodo, no solo su hoja';
+      return problemas.some((p) => p.includes(ruta)) ? null : `no se dijo nada: ${JSON.stringify(problemas)}`;
+    },
+  },
+  {
+    nombre: 'sin obra.json no hay obra, y se dice por qué',
+    ok: () => {
+      const { crudo, problemas } = unirObra({ 'hojas/k.json': '{}' });
+      if (crudo !== null) return 'devolvió una obra';
+      return problemas.length ? null : 'no dio motivo';
+    },
+  },
+];
+
 // ── Correr ───────────────────────────────────────────────────────────────────
 
 let fallos = 0;
+for (const caso of CASOS_CARPETA) {
+  let motivo;
+  try {
+    motivo = caso.ok();
+  } catch (e) {
+    motivo = `lanzó: ${e.message}`;
+  }
+  if (motivo) {
+    fallos++;
+    console.log(`  [FALLA] ${caso.nombre}\n          ${motivo}`);
+  } else {
+    console.log(`  [ OK  ] ${caso.nombre}`);
+  }
+}
 for (const caso of CASOS_SANEO) {
   let motivo;
   try {
@@ -1173,6 +1317,6 @@ for (const caso of CASOS) {
   }
 }
 
-const total = CASOS.length + CASOS_SANEO.length + CASOS_HOJA.length;
+const total = CASOS.length + CASOS_SANEO.length + CASOS_HOJA.length + CASOS_CARPETA.length;
 console.log(`\n${fallos ? 'FALLA' : 'OK'}: ${total - fallos} de ${total} casos.\n`);
 process.exit(fallos ? 1 : 0);

@@ -160,9 +160,15 @@ function sanearFrontera(crudo: unknown): Frontera | undefined {
   };
 }
 
-/** El `meta` de la hoja de un nodo, con el mismo criterio que el del canvas. */
+/**
+ * El `meta` de la hoja de un nodo, con el mismo criterio que el del canvas.
+ *
+ * `metaDe` recibe la HOJA y mira su `.meta`; acá lo que llega ya es el `meta`,
+ * así que se envuelve. Pasárselo directo lo buscaba en `meta.meta`, y el `meta`
+ * de cada nodo se perdía en silencio en cada relectura.
+ */
 function sanearMeta(crudo: unknown): MetaPlanilla | undefined {
-  return metaDe(crudo) ?? undefined;
+  return metaDe({ meta: crudo }) ?? undefined;
 }
 
 function sanearSubcarga(crudo: unknown, vistos: Vistos): Subcarga | null {

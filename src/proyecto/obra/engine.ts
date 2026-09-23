@@ -20,6 +20,7 @@ export {
   rupturaPorQuitar,
 } from './evaluacion';
 export { sanearObra, idDeObra, archivoDeObra, importarObra } from './almacen';
+export { partirObra, unirObra } from './carpeta';
 export { proyectar } from './proyeccion';
 export { colocar } from '../layout';
 export {
