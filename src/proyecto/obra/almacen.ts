@@ -34,6 +34,7 @@ import {
   type CargaAsignada,
   type ClaseCarga,
   type Grupo,
+  type Justificacion,
   type LecturaCargas,
   type LecturaPatrones,
   type Modulo,
@@ -109,6 +110,24 @@ function sanearCargas(crudo: unknown): LecturaCargas | undefined {
     lista.push(carga);
   }
   return { modelo: texto(l.modelo), leido: texto(l.leido), lista };
+}
+
+/**
+ * Las justificaciones. Una sin expresión no respalda nada y se descarta; un id
+ * repetido también, porque es lo que las distingue al editarlas.
+ */
+function sanearJustificaciones(crudo: unknown): { justificaciones?: Justificacion[] } {
+  const vistos = new Set<string>();
+  const lista: Justificacion[] = [];
+  for (const x of Array.isArray(crudo) ? crudo : []) {
+    const j = (x ?? {}) as Partial<Justificacion>;
+    if (typeof j.id !== 'string' || !j.id || vistos.has(j.id)) continue;
+    if (typeof j.patron !== 'string' || typeof j.firma !== 'string' || !esNumero(j.valor)) continue;
+    if (typeof j.expr !== 'string' || !j.expr.trim()) continue;
+    vistos.add(j.id);
+    lista.push({ id: j.id, patron: j.patron, firma: j.firma, valor: j.valor, expr: j.expr.trim() });
+  }
+  return lista.length ? { justificaciones: lista } : {};
 }
 
 /**
@@ -423,6 +442,7 @@ export function sanearObra(crudo: unknown): Obra | null {
       .filter((k): k is NodoCalculo => k !== null),
     ...(grupos.length ? { grupos } : {}),
     ...sanearSap(o.sap),
+    ...sanearJustificaciones(o.justificaciones),
   };
 }
 

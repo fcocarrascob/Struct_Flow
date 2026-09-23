@@ -26,7 +26,8 @@ import { peor, type AristaGrafo, type NodoGrafo, type Severidad } from '../contr
 import { quedoAtras, type Genericas } from './biblioteca';
 import { problemaDeGrafo, type EvaluacionObra } from './evaluacion';
 import { ID_NODO_SAP, idNodoDeCalculo } from './ids';
-import { grupoPorId, type Grupo, type NodoCalculo, type Obra, type Revision } from './modelo';
+import { grupoPorId, identificadoresDe, type Grupo, type NodoCalculo, type Obra, type Revision } from './modelo';
+import { resumirJustificaciones } from './sap-cargas';
 
 export * from './ids';
 
@@ -104,6 +105,35 @@ function aristasDeDatos(ev: EvaluacionObra): AristaGrafo[] {
         nombres.length > NOMBRES_EN_FLECHA
           ? `${visibles} +${nombres.length - NOMBRES_EN_FLECHA}`
           : visibles,
+      severidad: 'ok' as Severidad,
+    };
+  });
+}
+
+/**
+ * Las flechas hacia el nodo SAP2000: de cada nodo que define un nombre que una
+ * justificación usa. Mismo criterio que las de datos —una por par, con los
+ * nombres que viajan—, así que el trazo de un cálculo llega hasta el modelo.
+ */
+function aristasDeJustificaciones(obra: Obra, ev: EvaluacionObra): AristaGrafo[] {
+  const porNodo = new Map<string, Set<string>>();
+  for (const j of obra.justificaciones ?? []) {
+    for (const n of identificadoresDe(j.expr)) {
+      const d = ev.duenio.get(n);
+      if (!d) continue;
+      const s = porNodo.get(d) ?? new Set<string>();
+      s.add(n);
+      porNodo.set(d, s);
+    }
+  }
+  return [...porNodo].map(([desde, nombres]) => {
+    const lista = [...nombres].sort();
+    const visibles = lista.slice(0, NOMBRES_EN_FLECHA).join(', ');
+    return {
+      desde,
+      hasta: ID_NODO_SAP,
+      tipo: 'dato',
+      etiqueta: lista.length > NOMBRES_EN_FLECHA ? `${visibles} +${lista.length - NOMBRES_EN_FLECHA}` : visibles,
       severidad: 'ok' as Severidad,
     };
   });
@@ -236,21 +266,39 @@ export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas =
 
   for (const k of obra.calculos) nodos.push(nodoDeCalculo(k, genericas, ev, obra));
 
-  // El modelo de SAP2000. Por ahora solo dice con qué modelo se conectó: todavía
-  // no publica nada, así que no tiene flechas.
+  // El modelo de SAP2000: con qué modelo se conectó y cuántas de sus cargas
+  // respalda la obra. No publica nada; RECIBE las flechas de los nodos que
+  // definen lo que nombran sus justificaciones, como cualquier nodo que usa.
   if (obra.modulos.includes('sap')) {
+    const r = resumirJustificaciones(obra, ev.scope);
+    const motivos: string[] = [];
+    let severidad: Severidad = 'ok';
+    if (r.difieren) {
+      motivos.push(`${r.difieren} carga(s) del modelo no coinciden con lo que calcula la obra.`);
+      severidad = 'error';
+    }
+    if (r.errores) {
+      motivos.push(`${r.errores} justificación(es) no se pudieron evaluar.`);
+      severidad = 'error';
+    }
+    if (r.huerfanas.length) {
+      motivos.push(`${r.huerfanas.length} justificación(es) sin su carga en el modelo leído.`);
+      severidad = peor(severidad, 'aviso');
+    }
+    const modelo = obra.sap ? obra.sap.modelo : 'sin conectar';
     nodos.push(
       nodo({
         id: ID_NODO_SAP,
         tipo: 'modelo',
         clase: 'modelo',
         etiqueta: 'SAP2000',
-        subtitulo: obra.sap ? obra.sap.modelo : 'sin conectar',
+        subtitulo: r.cargas ? `${modelo} · ${r.justificadas} de ${r.cargas} cargas justificadas` : modelo,
         campos: obra.sap ? { modelo: obra.sap.modelo, version: obra.sap.version } : {},
-        severidad: 'ok',
-        motivos: [],
+        severidad,
+        motivos,
       }),
     );
+    aristas.push(...aristasDeJustificaciones(obra, ev));
   }
 
   // Las flechas de datos van al final y solo entre nodos que existen: un uso

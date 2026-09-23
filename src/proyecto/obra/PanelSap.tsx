@@ -1,6 +1,15 @@
 import { Fragment, useState } from 'react';
-import type { CargaAsignada, ConexionSap, LecturaCargas, LecturaPatrones } from './modelo';
-import { cargasPorPatron, comoDe, objetosDe, valorDe } from './sap-cargas';
+import type { CargaAsignada, ConexionSap, Justificacion, LecturaCargas, LecturaPatrones } from './modelo';
+import {
+  cargaDe,
+  cargasPorPatron,
+  cifra,
+  comoDe,
+  justificacionDe,
+  objetosDe,
+  valorDe,
+  verificar,
+} from './sap-cargas';
 import { useEscape } from './useEscape';
 
 /**
@@ -56,22 +65,125 @@ export interface LecturaSap {
   cargas?: LecturaCargas;
 }
 
+/** Lo que hace falta para justificar: la obra, sus justificaciones y el gesto. */
+export interface Justificar {
+  scope: Record<string, unknown>;
+  justificaciones: readonly Justificacion[];
+  /** Ata la carga a la expresión, o la desata con `undefined`. `actual` es la
+   *  justificación que ya tenía, si la tenía. */
+  onJustificar: (carga: CargaAsignada, expr: string | undefined, actual: Justificacion | undefined) => void;
+}
+
+/**
+ * Una carga del modelo y la expresión de la obra que la respalda.
+ *
+ * Se escribe en el campo y se aplica al salir de él, como un campo atado: una
+ * expresión a medio escribir no tiene nada que verificar.
+ */
+function CargaJustificable({
+  carga,
+  todas,
+  justificar,
+}: {
+  carga: CargaAsignada;
+  todas: readonly CargaAsignada[];
+  justificar: Justificar;
+}) {
+  const j = justificacionDe(carga, todas, justificar.justificaciones);
+  const v = j ? verificar(j.expr, carga, justificar.scope) : undefined;
+  return (
+    <li className="text-[10px] leading-snug">
+      <div className="flex flex-wrap items-baseline gap-x-2">
+        <span className="font-mono text-ink">{valorDe(carga)}</span>
+        <span className="text-muted">{comoDe(carga)}</span>
+        <span className="ml-auto whitespace-nowrap text-muted">{objetosDe(carga)}</span>
+      </div>
+      <div className="mt-0.5 flex items-center gap-1.5">
+        <span
+          className={`w-3 shrink-0 text-center ${
+            !v ? 'text-muted' : v.estado === 'coincide' ? 'text-emerald-600' : 'text-error'
+          }`}
+          aria-hidden
+        >
+          {!v ? '·' : v.estado === 'coincide' ? '✓' : '✗'}
+        </span>
+        <input
+          type="text"
+          // Por `key`: si la justificación cambia por fuera (Ctrl+Z, otra lectura),
+          // el campo se rehace con lo que dice el documento.
+          key={`${j?.id ?? 'nueva'}:${j?.expr ?? ''}`}
+          defaultValue={j?.expr ?? ''}
+          onBlur={(e) => {
+            const t = e.target.value.trim();
+            if (t !== (j?.expr ?? '')) justificar.onJustificar(carga, t || undefined, j);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.currentTarget.blur();
+          }}
+          placeholder="justificar con una expresión de la obra"
+          aria-label={`Expresión que justifica ${valorDe(carga)} de ${carga.patron}`}
+          className="min-w-0 flex-1 rounded border border-border px-1.5 py-0.5 font-mono text-[10px] text-ink outline-none placeholder:font-sans placeholder:text-muted/70 focus:border-accent"
+        />
+      </div>
+      {v && (
+        <p className={`ml-[18px] mt-0.5 ${v.estado === 'coincide' ? 'text-muted' : 'text-error'}`}>
+          {v.detalle}
+        </p>
+      )}
+    </li>
+  );
+}
+
 /** Las cargas de un patrón, una fila por valor distinto. */
-function CargasDelPatron({ cargas }: { cargas: readonly CargaAsignada[] }) {
+function CargasDelPatron({
+  cargas,
+  todas,
+  justificar,
+}: {
+  cargas: readonly CargaAsignada[];
+  todas: readonly CargaAsignada[];
+  justificar: Justificar;
+}) {
   return (
     <tr>
       <td colSpan={4} className="pb-2 pl-4 pt-0.5">
-        <ul className="space-y-0.5 border-l border-border pl-2">
+        <ul className="space-y-1.5 border-l border-border pl-2">
           {cargas.map((c, i) => (
-            <li key={i} className="flex flex-wrap items-baseline gap-x-2 text-[10px] leading-snug">
-              <span className="font-mono text-ink">{valorDe(c)}</span>
-              <span className="text-muted">{comoDe(c)}</span>
-              <span className="ml-auto whitespace-nowrap text-muted">{objetosDe(c)}</span>
-            </li>
+            <CargaJustificable key={i} carga={c} todas={todas} justificar={justificar} />
           ))}
         </ul>
       </td>
     </tr>
+  );
+}
+
+/**
+ * Las justificaciones cuya carga ya no está en el modelo leído: el valor cambió
+ * y hay más de una candidata, o la carga se borró. No se descartan solas —son
+ * trabajo del ingeniero—; se ven aquí y se quitan a mano.
+ */
+function Huerfanas({ huerfanas, onQuitar }: { huerfanas: readonly Justificacion[]; onQuitar: (id: string) => void }) {
+  if (!huerfanas.length) return null;
+  return (
+    <div className="mt-3 rounded border border-aviso px-3 py-2">
+      <p className="mb-1 text-[11px] font-semibold text-aviso">Justificaciones sin su carga en el modelo</p>
+      <ul className="space-y-1">
+        {huerfanas.map((j) => (
+          <li key={j.id} className="flex items-baseline gap-2 text-[10px]">
+            <span className="font-mono text-ink">{j.patron}</span>
+            <span className="text-muted">era {cifra(j.valor)}</span>
+            <span className="font-mono text-muted">{j.expr}</span>
+            <button
+              type="button"
+              onClick={() => onQuitar(j.id)}
+              className="ml-auto rounded border border-border px-1.5 text-muted hover:border-error hover:text-error"
+            >
+              quitar
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -87,6 +199,8 @@ function PatronesSap({
   leyendo,
   error,
   onLeer,
+  justificar,
+  onQuitarJustificacion,
 }: {
   lectura: LecturaPatrones | undefined;
   cargas: LecturaCargas | undefined;
@@ -94,9 +208,25 @@ function PatronesSap({
   leyendo: boolean;
   error: string;
   onLeer: () => void;
+  justificar: Justificar;
+  onQuitarJustificacion: (id: string) => void;
 }) {
   const [abiertos, setAbiertos] = useState<ReadonlySet<string>>(new Set());
-  const porPatron = cargasPorPatron(cargas?.lista ?? []);
+  const todas = cargas?.lista ?? [];
+  const porPatron = cargasPorPatron(todas);
+  const huerfanas = justificar.justificaciones.filter((j) => !cargaDe(j, todas));
+  /** Por patrón: cuántas cargas coinciden y si alguna no. */
+  const estadoDe = (suyas: readonly CargaAsignada[]) => {
+    let ok = 0;
+    let mal = 0;
+    for (const c of suyas) {
+      const j = justificacionDe(c, todas, justificar.justificaciones);
+      if (!j) continue;
+      if (verificar(j.expr, c, justificar.scope).estado === 'coincide') ok++;
+      else mal++;
+    }
+    return { ok, mal };
+  };
   const alternar = (nombre: string) =>
     setAbiertos((a) => {
       const s = new Set(a);
@@ -152,8 +282,8 @@ function PatronesSap({
                   <th className="text-right font-semibold" title="Multiplicador de peso propio (self weight multiplier)">
                     SWF
                   </th>
-                  <th className="text-right font-semibold" title="Cargas distintas asignadas, y en cuántos objetos">
-                    Cargas
+                  <th className="text-right font-semibold" title="Cargas justificadas por la obra, de las distintas que tiene el patrón">
+                    Justif.
                   </th>
                 </tr>
               </thead>
@@ -162,6 +292,7 @@ function PatronesSap({
                   const suyas = porPatron.get(p.nombre) ?? [];
                   const abierto = abiertos.has(p.nombre);
                   const objetos = suyas.reduce((s, c) => s + c.n, 0);
+                  const { ok, mal } = estadoDe(suyas);
                   return (
                     <Fragment key={p.nombre}>
                       <tr
@@ -175,19 +306,29 @@ function PatronesSap({
                         <td className="pr-2 text-muted">{p.tipo || '—'}</td>
                         <td className="text-right font-mono text-muted">{numero(p.pesoPropio)}</td>
                         <td
-                          className="text-right text-muted"
-                          title={suyas.length ? `${suyas.length} carga(s) distinta(s) en ${objetos} objeto(s)` : undefined}
+                          className={`whitespace-nowrap text-right font-mono ${
+                            mal ? 'text-error' : suyas.length && ok === suyas.length ? 'text-emerald-600' : 'text-muted'
+                          }`}
+                          title={
+                            suyas.length
+                              ? `${suyas.length} carga(s) distinta(s) en ${objetos} objeto(s); ${ok} justificada(s)` +
+                                (mal ? `, ${mal} que no coincide(n)` : '')
+                              : undefined
+                          }
                         >
-                          {!cargas ? '' : suyas.length ? suyas.length : '—'}
+                          {!cargas ? '' : suyas.length ? `${ok}/${suyas.length}${mal ? ' ✗' : ''}` : '—'}
                         </td>
                       </tr>
-                      {abierto && suyas.length > 0 && <CargasDelPatron cargas={suyas} />}
+                      {abierto && suyas.length > 0 && (
+                        <CargasDelPatron cargas={suyas} todas={todas} justificar={justificar} />
+                      )}
                     </Fragment>
                   );
                 })}
               </tbody>
             </table>
           )}
+          {cargas && <Huerfanas huerfanas={huerfanas} onQuitar={onQuitarJustificacion} />}
         </>
       )}
     </section>
@@ -198,11 +339,15 @@ export default function PanelSap({
   sap,
   onConectado,
   onLeido,
+  justificar,
+  onQuitarJustificacion,
   onCerrar,
 }: {
   sap: ConexionSap | undefined;
   onConectado: (sap: ConexionSap) => void;
   onLeido: (lectura: LecturaSap) => void;
+  justificar: Justificar;
+  onQuitarJustificacion: (id: string) => void;
   onCerrar: () => void;
 }) {
   useEscape(onCerrar);
@@ -322,6 +467,8 @@ export default function PanelSap({
           leyendo={leyendo}
           error={errorPatrones}
           onLeer={() => void leerPatrones()}
+          justificar={justificar}
+          onQuitarJustificacion={onQuitarJustificacion}
         />
       )}
     </aside>

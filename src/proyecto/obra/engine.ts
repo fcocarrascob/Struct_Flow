@@ -55,7 +55,16 @@ export {
   porRevisar,
 } from './modelo';
 export { trazoDe, ladoDe } from './trazo';
-export { valorDe, comoDe, objetosDe, cargasPorPatron } from './sap-cargas';
+export {
+  valorDe,
+  comoDe,
+  objetosDe,
+  cargasPorPatron,
+  firmaDe,
+  cargaDe,
+  verificar,
+  resumirJustificaciones,
+} from './sap-cargas';
 
 // El motor y el armado de una genérica, en el mismo bundle.
 export { evaluateSheet, formatValor, parseMathRegion } from '../../lib/worksheet';

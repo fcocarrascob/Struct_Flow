@@ -40,6 +40,9 @@ import {
   cambiarCalculo,
   cambiarGrupo,
   conFormula,
+  conJustificacion,
+  nuevaJustificacion,
+  quitarJustificacion,
   marcarRevision,
   porRevisar,
   conPublicacion,
@@ -54,6 +57,7 @@ import {
 import NodoObra from './NodoObra';
 import MarcaRevision from './MarcaRevision';
 import PanelSap from './PanelSap';
+import { firmaDe } from './sap-cargas';
 import IconoClase from './IconoClase';
 import LeyendaGrupos from './LeyendaGrupos';
 import SelectorGrupo from './SelectorGrupo';
@@ -217,7 +221,9 @@ function piezasDeLaObra(obra: Obra | null): number {
   if (!obra) return 0;
   // Los grupos cuentan: quitar uno se lleva su nombre, su color y la asignación
   // de todos sus miembros, y su aviso ofrece deshacer.
-  let n = obra.modulos.length + obra.calculos.length + (obra.grupos?.length ?? 0);
+  // Una justificación también: quitarla se lleva una expresión escrita a mano.
+  let n =
+    obra.modulos.length + obra.calculos.length + (obra.grupos?.length ?? 0) + (obra.justificaciones?.length ?? 0);
   for (const k of obra.calculos) n += k.hoja.length + piezasDeFrontera(k.frontera);
   return n;
 }
@@ -1568,6 +1574,26 @@ function CanvasObra({
                 return { ...o, sap: { ...resto, patrones, ...(cargas ? { cargas } : {}) } };
               })
             }
+            // El scope final de la obra: una carga del modelo se justifica con lo
+            // que la obra entera ya calculó, igual que un campo atado.
+            justificar={{
+              scope: evaluacion.scope,
+              justificaciones: obra.justificaciones ?? [],
+              onJustificar: (carga, expr, actual) => {
+                const o = obraRef.current;
+                if (!o) return;
+                if (!expr) {
+                  if (actual) setObra(quitarJustificacion(o, actual.id));
+                  return;
+                }
+                // Fuera del actualizador: una justificación nueva sortea su id.
+                const j = actual
+                  ? { ...actual, expr, valor: carga.valor }
+                  : nuevaJustificacion({ patron: carga.patron, firma: firmaDe(carga), valor: carga.valor, expr });
+                setObra(conJustificacion(o, j));
+              },
+            }}
+            onQuitarJustificacion={(id) => setObra((o) => (o ? quitarJustificacion(o, id) : o))}
             onCerrar={() => setSeleccion(null)}
           />
         )}

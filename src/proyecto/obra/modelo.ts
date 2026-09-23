@@ -331,6 +331,49 @@ export interface Obra {
   grupos?: Grupo[];
   /** Ausente mientras el nodo SAP2000 no se haya conectado nunca. */
   sap?: ConexionSap;
+  /** Las cargas del modelo que la obra respalda. Ausente mientras no haya ninguna. */
+  justificaciones?: Justificacion[];
+}
+
+/**
+ * Una carga asignada en SAP2000, respaldada por una expresión de la obra.
+ *
+ * ES DE LA OBRA, NO DE LA LECTURA: vive fuera de `sap`, que es una foto del modelo
+ * y no entra en el historial. Atar una carga es una decisión del ingeniero y se
+ * deshace con Ctrl+Z.
+ *
+ * La carga se encuentra por `patron` y `firma` —todo lo que la describe salvo el
+ * valor y cuántos objetos la llevan—, y `valor` es el que tenía al atarla. Así un
+ * valor cambiado en SAP no suelta la justificación: la deja en rojo diciendo en
+ * cuánto se aparta, que es justo lo que tiene que decir (`sap-cargas.ts`,
+ * `cargaDe`).
+ */
+export interface Justificacion {
+  id: string;
+  patron: string;
+  firma: string;
+  valor: number;
+  /** Se evalúa en el scope de la obra: `q_cub`, `CM_via * 1.0`… */
+  expr: string;
+}
+
+export function nuevaJustificacion(campos: Omit<Justificacion, 'id'>): Justificacion {
+  return { id: nuevoId('j'), ...campos };
+}
+
+/** Pone una justificación, reemplazando la del mismo id si ya estaba. */
+export function conJustificacion(obra: Obra, j: Justificacion): Obra {
+  const lista = obra.justificaciones ?? [];
+  const i = lista.findIndex((x) => x.id === j.id);
+  return { ...obra, justificaciones: i < 0 ? [...lista, j] : lista.map((x) => (x.id === j.id ? j : x)) };
+}
+
+/** Quita una justificación. Sin ninguna, la lista desaparece: una obra que nunca
+ *  justificó nada no gana un `justificaciones: []` al guardarse. */
+export function quitarJustificacion(obra: Obra, id: string): Obra {
+  const lista = (obra.justificaciones ?? []).filter((x) => x.id !== id);
+  const { justificaciones: _, ...resto } = obra;
+  return lista.length ? { ...resto, justificaciones: lista } : resto;
 }
 
 /**

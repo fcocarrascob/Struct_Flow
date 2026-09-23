@@ -73,8 +73,15 @@ abajo queda como estaba en `master`, para cuando vuelvan. Lo que hay en la rama:
   automática, gravedad ni temperatura en áreas: un patrón que solo tenga eso sale sin cargas.
 - **Las cargas se agrupan por valor, no por objeto.** «0,769 kN/m en 22 barras» no dice cuáles
   son las 22; para justificar un valor alcanza, para ubicarlo en el modelo no.
-- **Falta el paso que da sentido a la lectura:** atar cada carga a una expresión de la obra y
-  decir si coincide (como un campo atado, convirtiendo con el motor), y leer el espectro.
+- **Una carga se justifica con una expresión de la obra** (`obra.justificaciones`, verificada
+  en `sap-cargas.ts` con la conversión de los campos atados y una tolerancia de 0,5 %). Queda
+  abierto:
+  - **El espectro** no se lee ni se compara todavía.
+  - **El campo no autocompleta** los nombres de la obra, al revés que una fórmula de la hoja.
+  - **Una carga de dos valores** (distribuida trapezoidal) solo justifica el primero.
+  - **Una justificación huérfana** (su carga cambió de valor y hay más de una candidata, o se
+    borró) no se reasigna: se ve en el panel y se quita a mano.
+  - **La tolerancia es una sola** para toda carga; no se puede declarar por carga.
 
 Lo que dejó a la vista la primera comparación de Load Patterns contra el modelo del Pachón,
 para la sesión de ajustes:

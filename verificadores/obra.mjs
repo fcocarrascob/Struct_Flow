@@ -67,6 +67,9 @@ const {
   comoDe,
   objetosDe,
   cargasPorPatron,
+  firmaDe,
+  cargaDe,
+  verificar,
 } = motor;
 
 // ── Armar una obra ───────────────────────────────────────────────────────────
@@ -231,6 +234,11 @@ function importada(modulo, extra = {}) {
     ...extra,
   };
 }
+
+// ── Dos cargas del modelo de prueba del Pachón, como las entrega el puente ────
+
+const CARGA_CUB = { patron: 'SDL_CUB', clase: 'area-a-barras', csys: 'GLOBAL', dir: 10, dist: 1, valor: 0.0980665, n: 33 };
+const CARGA_VIA = { patron: 'CM_VIA', clase: 'barra-distribuida', csys: 'GLOBAL', dir: 10, momento: false, valor: 0.769, n: 22 };
 
 // ── Los casos ────────────────────────────────────────────────────────────────
 
@@ -696,6 +704,41 @@ const CASOS = [
     },
   },
   {
+    nombre: 'una carga del modelo se justifica con una expresión de la obra, y el nodo SAP2000 lo dice',
+    // SDL_CUB es 10 kgf/m² en el modelo del Pachón, leído como 0,0980665 kN/m²:
+    // la obra lo escribe en kgf y el motor convierte. CM_VIA no coincide.
+    obra: {
+      ...obra(calc('G', m('q_cub := 10 kgf/m^2'), m('w_via := 0.75 kN/m'))),
+      modulos: ['sap'],
+      sap: {
+        modelo: 'm.sdb',
+        ruta: '',
+        version: '',
+        leido: '',
+        cargas: {
+          modelo: 'm.sdb',
+          leido: '',
+          lista: [CARGA_CUB, CARGA_VIA, { ...CARGA_VIA, valor: 2, n: 3 }],
+        },
+      },
+      justificaciones: [
+        { id: 'j1', patron: 'SDL_CUB', firma: firmaDe(CARGA_CUB), valor: CARGA_CUB.valor, expr: 'q_cub' },
+        { id: 'j2', patron: 'CM_VIA', firma: firmaDe(CARGA_VIA), valor: CARGA_VIA.valor, expr: 'w_via' },
+      ],
+    },
+    ok: (ev, proy) => {
+      const sap = proy.nodos.find((x) => x.id === 'sap');
+      if (!sap) return 'no está el nodo SAP2000';
+      if (sap.subtitulo !== 'm.sdb · 1 de 3 cargas justificadas') return `subtítulo: «${sap.subtitulo}»`;
+      if (sap.severidad !== 'error' || !sap.motivos[0]?.includes('no coinciden')) return `severidad ${sap.severidad}: ${sap.motivos}`;
+      const a = proy.aristas.find((x) => x.desde === K('G') && x.hasta === 'sap');
+      if (!a) return 'falta la flecha de G al nodo SAP2000';
+      if (a.etiqueta !== 'q_cub, w_via') return `la flecha dice «${a.etiqueta}»`;
+      const v = verificar('w_via', CARGA_VIA, ev.scope);
+      return v.estado === 'difiere' && v.detalle.includes('-2,471 %') ? null : `CM_VIA: ${JSON.stringify(v)}`;
+    },
+  },
+  {
     nombre: 'reordenar pone cada grupo en su franja, en el orden de la lista, y los sin grupo al final',
     // Los grupos van al revés de la cadena a propósito: «Viento» usa lo que
     // publica «Geometría», pero va primero en la lista. La franja la decide la
@@ -737,6 +780,36 @@ const CASOS = [
 // bloque nuevo, y qué pasa al desprender una genérica de la biblioteca.
 
 const CASOS_HOJA = [
+  {
+    nombre: 'una justificación sigue a su carga cuando el valor cambia en SAP, y se suelta cuando no se sabe cuál es',
+    ok: () => {
+      const j = { id: 'j', patron: 'CM_VIA', firma: firmaDe(CARGA_VIA), valor: 0.769, expr: 'w' };
+      // El modelo pasó de 0,769 a 0,8: única candidata, la sigue.
+      const cambiada = { ...CARGA_VIA, valor: 0.8 };
+      if (cargaDe(j, [cambiada, CARGA_CUB]) !== cambiada) return 'perdió la carga cuyo valor cambió';
+      // Dos candidatas y ninguna con el valor atado: no se adivina.
+      if (cargaDe(j, [cambiada, { ...CARGA_VIA, valor: 2 }]) !== undefined) return 'adivinó entre dos candidatas';
+      // Con el valor atado entre varias, esa.
+      if (cargaDe(j, [{ ...CARGA_VIA, valor: 2 }, CARGA_VIA]) !== CARGA_VIA) return 'no eligió la del valor atado';
+      // Otra dirección es otra carga, aunque tenga el mismo valor.
+      if (cargaDe(j, [{ ...CARGA_VIA, dir: 6 }, { ...CARGA_VIA, dir: 5 }]) !== undefined) return 'confundió la dirección';
+      return null;
+    },
+  },
+  {
+    nombre: 'la verificación convierte con el motor, respeta el signo y falla con otra dimensión',
+    ok: () => {
+      const scope = evaluarObra(obra(calc('A', m('q := 10 kgf/m^2'), m('w := 0.7691 kN/m'), m('h := 3 m'))), {}).scope;
+      if (verificar('q', CARGA_CUB, scope).estado !== 'coincide') return '10 kgf/m² no coincidió con 0,0980665 kN/m²';
+      if (verificar('w', CARGA_VIA, scope).estado !== 'coincide') return 'un redondeo de 0,01 % no coincidió';
+      if (verificar('-q', CARGA_CUB, scope).estado !== 'difiere') return 'el signo contrario coincidió';
+      const dim = verificar('h', CARGA_CUB, scope);
+      if (dim.estado !== 'error') return `una longitud contra una presión dio ${dim.estado}`;
+      const temp = { patron: 'TEMP', clase: 'barra-temperatura', tipoTemperatura: 1, valor: 10, n: 381 };
+      if (verificar('10', temp, scope).estado !== 'coincide') return 'una temperatura sin unidades no coincidió';
+      return verificar('10 K', temp, scope).estado === 'coincide' ? null : 'una diferencia en K no coincidió';
+    },
+  },
   {
     nombre: 'desprender una genérica da los mismos números, y el sello pasa a ser un origen',
     ok: () => {
@@ -1218,6 +1291,26 @@ const CASOS_SANEO = [
       }
       const porPatron = cargasPorPatron(l);
       return porPatron.get('SDL_CUB')?.length === 1 && porPatron.size === 7 ? null : 'mal agrupadas por patrón';
+    },
+  },
+  {
+    nombre: 'las justificaciones sobreviven al saneo; una sin expresión o con id repetido, no',
+    crudo: {
+      id: 'o',
+      calculos: [],
+      justificaciones: [
+        { id: 'j1', patron: 'SDL_CUB', firma: '[]', valor: 0.0980665, expr: '  q_cub ' },
+        { id: 'j1', patron: 'X', firma: '[]', valor: 1, expr: 'x' },
+        { id: 'j2', patron: 'Y', firma: '[]', valor: 1, expr: '   ' },
+        { id: 'j3', patron: 'Z', firma: '[]', valor: 'uno', expr: 'z' },
+      ],
+    },
+    ok: (o) => {
+      const l = o.justificaciones ?? [];
+      if (l.length !== 1 || l[0].expr !== 'q_cub') return `quedaron: ${JSON.stringify(l)}`;
+      const vuelta = sanearObra(archivoDeObra(o).obra);
+      if (JSON.stringify(vuelta) !== JSON.stringify(o)) return 'cambió en la ida y vuelta';
+      return 'justificaciones' in sanearObra({ id: 'o', calculos: [] }) ? 'apareció `justificaciones` sin haber' : null;
     },
   },
   {

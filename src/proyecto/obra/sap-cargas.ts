@@ -4,7 +4,8 @@
 // comprueba. Los valores llegan del puente en kN, m y °C (`puente-sap/puente.py`,
 // `cargas`), así que la unidad sale de la clase y no hay que convertir nada.
 
-import type { CargaAsignada } from './modelo';
+import { resolverExpresion } from './biblioteca';
+import type { CargaAsignada, Justificacion, Obra } from './modelo';
 
 /** Los códigos de dirección de la API de SAP2000. */
 const DIRECCION: Record<number, string> = {
@@ -98,6 +99,127 @@ export function objetosDe(c: CargaAsignada): string {
         ? ['nudo', 'nudos']
         : ['barra', 'barras'];
   return `${c.n} ${c.n === 1 ? uno : varios}`;
+}
+
+// ── Justificar una carga con una expresión de la obra ────────────────────────
+
+/**
+ * Todo lo que describe una carga salvo su valor y cuántos objetos la llevan, en
+ * un texto estable: las claves en orden, para que la misma carga leída dos veces
+ * dé la misma firma.
+ */
+export function firmaDe(c: CargaAsignada): string {
+  const { patron: _p, valor: _v, n: _n, ...resto } = c;
+  const orden = Object.keys(resto).sort() as (keyof typeof resto)[];
+  return JSON.stringify(orden.map((k) => [k, resto[k]]));
+}
+
+const MISMO = (a: number, b: number) => Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(b));
+
+/**
+ * La carga que respalda una justificación, o `undefined` si ya no está.
+ *
+ * Primero la del mismo patrón, firma y valor. Si el valor cambió en SAP, la
+ * ÚNICA del mismo patrón y firma: sigue siendo esa carga, con otro número, y la
+ * verificación dirá en cuánto se aparta. Con dos o más candidatas no se adivina.
+ */
+export function cargaDe(j: Justificacion, cargas: readonly CargaAsignada[]): CargaAsignada | undefined {
+  const candidatas = cargas.filter((c) => c.patron === j.patron && firmaDe(c) === j.firma);
+  return candidatas.find((c) => MISMO(c.valor, j.valor)) ?? (candidatas.length === 1 ? candidatas[0] : undefined);
+}
+
+/** La justificación de una carga, si la tiene. */
+export function justificacionDe(
+  c: CargaAsignada,
+  cargas: readonly CargaAsignada[],
+  justificaciones: readonly Justificacion[],
+): Justificacion | undefined {
+  return justificaciones.find((j) => cargaDe(j, cargas) === c);
+}
+
+/**
+ * Cuánto se puede apartar la obra del modelo y seguir coincidiendo: 0,5 %.
+ *
+ * No es cero porque el modelo guarda lo que el ingeniero tecleó —0,769 kN/m— y la
+ * obra lo calcula con todas sus cifras. Medio por ciento está muy por debajo de
+ * cualquier incertidumbre de una carga, y muy por encima de un redondeo.
+ */
+export const TOLERANCIA = 0.005;
+
+/** La unidad del motor en la que se compara cada clase. */
+function unidadMotor(c: CargaAsignada): string | undefined {
+  switch (c.clase) {
+    case 'barra-distribuida':
+      return c.momento ? 'kN*m/m' : 'kN/m';
+    case 'barra-puntual':
+      return c.momento ? 'kN*m' : 'kN';
+    case 'area-uniforme':
+    case 'area-a-barras':
+      return 'kN/m^2';
+    case 'nudo':
+      return c.componente?.startsWith('M') ? 'kN*m' : 'kN';
+    case 'barra-temperatura':
+      // Un cambio de temperatura se escribe como número (en °C) o en K: los
+      // grados Celsius del motor tienen origen, y una DIFERENCIA no lo tiene.
+      return undefined;
+  }
+}
+
+export type EstadoJustificacion = 'coincide' | 'difiere' | 'error';
+
+export interface Verificacion {
+  estado: EstadoJustificacion;
+  /** Lo que da la obra, en la unidad de la carga. */
+  obra?: number;
+  detalle: string;
+}
+
+/** Lo que da la expresión contra lo que tiene el modelo. */
+export function verificar(expr: string, c: CargaAsignada, scope: Record<string, unknown>): Verificacion {
+  const unidad = unidadMotor(c);
+  let r = resolverExpresion(expr, unidad, scope);
+  if (c.clase === 'barra-temperatura' && r.error) r = resolverExpresion(expr, 'K', scope);
+  if (r.error || r.valor === undefined) return { estado: 'error', detalle: r.error ?? 'Sin valor.' };
+  const obra = r.valor;
+  const escala = Math.max(Math.abs(c.valor), 1e-12);
+  const desvio = (obra - c.valor) / escala;
+  if (Math.abs(obra - c.valor) <= TOLERANCIA * escala) {
+    return { estado: 'coincide', obra, detalle: `la obra da ${cifra(obra)} ${unidadDe(c)}` };
+  }
+  const pct = c.valor === 0 ? '' : ` (${desvio > 0 ? '+' : ''}${cifra(desvio * 100)} %)`;
+  return {
+    estado: 'difiere',
+    obra,
+    detalle: `la obra da ${cifra(obra)} ${unidadDe(c)} y el modelo ${cifra(c.valor)}${pct}`,
+  };
+}
+
+export interface ResumenJustificaciones {
+  /** Cargas leídas del modelo. */
+  cargas: number;
+  justificadas: number;
+  difieren: number;
+  errores: number;
+  /** Justificaciones cuya carga ya no está en el modelo. */
+  huerfanas: Justificacion[];
+}
+
+/** Cómo va la obra respaldando el modelo, para la tarjeta del nodo SAP2000. */
+export function resumirJustificaciones(obra: Obra, scope: Record<string, unknown>): ResumenJustificaciones {
+  const cargas = obra.sap?.cargas?.lista ?? [];
+  const r: ResumenJustificaciones = { cargas: cargas.length, justificadas: 0, difieren: 0, errores: 0, huerfanas: [] };
+  for (const j of obra.justificaciones ?? []) {
+    const c = cargaDe(j, cargas);
+    if (!c) {
+      r.huerfanas.push(j);
+      continue;
+    }
+    const v = verificar(j.expr, c, scope);
+    if (v.estado === 'coincide') r.justificadas++;
+    else if (v.estado === 'difiere') r.difieren++;
+    else r.errores++;
+  }
+  return r;
 }
 
 /** Las cargas de cada patrón, en el orden en que llegaron. */
