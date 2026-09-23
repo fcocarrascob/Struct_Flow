@@ -11,7 +11,17 @@
 // porque decidir que son lo mismo es trabajo del ingeniero, no de una regla.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { agregarModulo, nuevaCarga, type Carga, type Obra, type PatronLeido, type PatronSap } from './modelo';
+import {
+  agregarModulo,
+  nuevaCarga,
+  type AplicacionSap,
+  type Carga,
+  type Obra,
+  type PatronLeido,
+  type PatronSap,
+} from './modelo';
+import { resolverExpresion } from './biblioteca';
+import type { EvaluacionCarga } from './calculo';
 
 export type EstadoPatron =
   /** Nombre, tipo y peso propio coinciden. */
@@ -166,6 +176,90 @@ export function planEmpuje(
     }
   }
   return { cambios, omitidas };
+}
+
+// ── La aplicación de una partida sobre los objetos del modelo ────────────────
+
+/** La unidad en que SAP recibe cada tipo de carga (el puente trabaja en kN-m). */
+export const UNIDAD_APLICACION: Record<AplicacionSap['tipo'], string> = {
+  'area-a-barras': 'kN/m^2',
+  'barra-distribuida': 'kN/m',
+};
+
+export interface FilaAplicacion {
+  /** El id de la partida. */
+  id: string;
+  /** El nombre de su carga, que es el del Load Pattern. */
+  patron: string;
+  partida: string;
+  aplicacion: AplicacionSap;
+  unidad: string;
+  /** El valor de la partida en `unidad`. */
+  valor?: number;
+  error?: string;
+}
+
+/**
+ * Las partidas que dicen dónde van en SAP, con su valor en la unidad de SAP.
+ *
+ * El valor es el de la partida —el mismo que muestra su nodo— convertido por el
+ * motor (`resolverExpresion`, la conversión de un campo atado): una partida en
+ * kN/m aplicada como carga de área es un error, no un número.
+ */
+export function aplicacionesDeObra(obra: Obra, evaluaciones: Record<string, EvaluacionCarga>): FilaAplicacion[] {
+  const filas: FilaAplicacion[] = [];
+  for (const c of obra.cargas) {
+    for (const s of c.subcargas) {
+      if (!s.aplicacion) continue;
+      const unidad = UNIDAD_APLICACION[s.aplicacion.tipo];
+      const base = { id: s.id, patron: c.nombre.trim(), partida: s.nombre, aplicacion: s.aplicacion, unidad };
+      const v = evaluaciones[c.id]?.valores.find((x) => x.id === s.id);
+      if (!v || v.problema || v.valor === undefined) {
+        filas.push({ ...base, error: v?.problema || 'La partida no tiene valor.' });
+        continue;
+      }
+      const r = resolverExpresion('v', unidad, { v: v.valor });
+      filas.push(r.error ? { ...base, error: `No se puede expresar en ${unidad}: ${r.error}` } : { ...base, valor: r.valor });
+    }
+  }
+  return filas;
+}
+
+/** Lo que el puente leyó para una aplicación. */
+export interface LeidaAplicacion {
+  objetos?: number;
+  sinCarga?: number;
+  cargas?: { valor: number; dir: number; dist?: number; uniforme?: boolean; fuerza?: boolean; n: number }[];
+  error?: string;
+}
+
+const MISMO_VALOR = (a: number, b: number) => Math.abs(a - b) <= 1e-6 * Math.max(1, Math.abs(b));
+
+/**
+ * La aplicación de Flow contra lo que el patrón tiene hoy sobre el grupo. Es
+ * `igual` solo si TODOS los objetos del grupo llevan exactamente una carga de
+ * ese patrón, con el valor, la dirección y la distribución de Flow.
+ */
+export function compararAplicacion(
+  f: FilaAplicacion,
+  l: LeidaAplicacion,
+): { estado: 'igual' | 'difiere' | 'sin-objetos' | 'error'; detalle: string } {
+  if (l.error) return { estado: 'error', detalle: l.error };
+  if (f.error) return { estado: 'error', detalle: f.error };
+  const objetos = l.objetos ?? 0;
+  const clase = f.aplicacion.tipo === 'area-a-barras' ? 'áreas' : 'barras';
+  if (objetos === 0) return { estado: 'sin-objetos', detalle: `El grupo ${f.aplicacion.grupo} no tiene ${clase}.` };
+  const cargas = l.cargas ?? [];
+  const coincide = (c: NonNullable<LeidaAplicacion['cargas']>[number]) =>
+    MISMO_VALOR(c.valor, f.valor ?? NaN) &&
+    c.dir === f.aplicacion.direccion &&
+    (f.aplicacion.tipo === 'area-a-barras' ? c.dist === f.aplicacion.distribucion : c.uniforme === true && c.fuerza === true);
+  if ((l.sinCarga ?? 0) === 0 && cargas.length === 1 && cargas[0].n === objetos && coincide(cargas[0])) {
+    return { estado: 'igual', detalle: '' };
+  }
+  const partes = cargas.map((c) => `${numero(Number(c.valor.toPrecision(4)))} en ${c.n} de ${objetos}`);
+  if (l.sinCarga) partes.push(`sin carga en ${l.sinCarga} de ${objetos}`);
+  return { estado: 'difiere', detalle: `SAP: ${partes.join('; ') || 'sin carga'}` };
 }
 
 /** Las cargas de Flow que ya dicen cómo es su patrón, en la forma de `avisosPesoPropio`. */

@@ -17,7 +17,10 @@ Rutas:
     POST /conectar   -> {modelo, ruta, version}   o 409 con {motivo}
     GET  /patrones   -> {modelo, ruta, patrones: [{nombre, tipo, pesoPropio}]}
     POST /patrones   {modelo, cambios} -> {hechos, modelo, ruta, patrones}
-                     (lo único que escribe; ver `empujar`)
+                     (escribe patrones; ver `empujar`)
+    GET  /grupos     -> {modelo, grupos: [{nombre, barras, areas}]}
+    POST /grupos     {nombre} -> crea un grupo con la selección actual de SAP
+    POST /aplicaciones/leer {aplicaciones} -> la carga de cada patrón sobre su grupo
 
 Una sola instancia viva, como en el harness: con dos SAP2000.exe, una colgada
 mantiene bloqueados los archivos y no se sabe a cuál se engancharía.
@@ -189,6 +192,151 @@ def empujar(cuerpo):
     return {"hechos": hechos, **lectura}
 
 
+# ── Grupos y cargas sobre objetos ────────────────────────────────────────────
+
+# Tipos de objeto de `GroupDef.GetAssignments` y `SelectObj.GetSelected`.
+OBJ_BARRA, OBJ_AREA = 2, 5
+KN_M_C = 6  # eUnits.kN_m_C
+
+
+class _EnKnM:
+    """Lee y escribe en kN-m, y devuelve al usuario las unidades que tenía.
+
+    Los valores de la API salen en las unidades de PANTALLA: sin esto, 0,3 kN/m²
+    se leería como 0,03 si el usuario estaba mirando en tonf. Y cambiarle las
+    unidades sin devolverlas le cambiaría la vista del modelo.
+    """
+
+    def __init__(self, modelo):
+        self.modelo = modelo
+
+    def __enter__(self):
+        self.antes = self.modelo.GetPresentUnits()
+        if self.antes != KN_M_C:
+            self.modelo.SetPresentUnits(KN_M_C)
+        return self.modelo
+
+    def __exit__(self, *_):
+        if self.antes != KN_M_C:
+            self.modelo.SetPresentUnits(self.antes)
+
+
+def _asignados(modelo, grupo):
+    """Las barras y las áreas de un grupo."""
+    _, tipos, nombres, ret = modelo.GroupDef.GetAssignments(grupo)
+    if ret != 0:
+        raise ErrorPuente(404, f"No hay un grupo «{grupo}» en el modelo.")
+    barras = [str(n) for t, n in zip(tipos or [], nombres or []) if t == OBJ_BARRA]
+    areas = [str(n) for t, n in zip(tipos or [], nombres or []) if t == OBJ_AREA]
+    return barras, areas
+
+
+def grupos():
+    """Los grupos del modelo, con cuántas barras y áreas tiene cada uno."""
+    modelo = _modelo_abierto()
+    _, nombre = _nombre_modelo(modelo)
+    _, nombres, ret = modelo.GroupDef.GetNameList()
+    if ret != 0:
+        raise ErrorPuente(502, "SAP2000 no entregó la lista de grupos.")
+    lista = []
+    for g in nombres or []:
+        barras, areas = _asignados(modelo, g)
+        lista.append({"nombre": str(g), "barras": len(barras), "areas": len(areas)})
+    return {"modelo": nombre, "grupos": lista}
+
+
+def grupo_con_seleccion(cuerpo):
+    """Crea un grupo nuevo con lo que el usuario tiene seleccionado en SAP.
+
+    Solo CREA: si el nombre ya existe se niega, porque reasignar un grupo que
+    otras cargas usan cambiaría dónde caen sin que nadie lo vea.
+    """
+    grupo = str(cuerpo.get("nombre", "")).strip()
+    if not grupo:
+        raise ErrorPuente(400, "Falta el nombre del grupo.")
+    modelo = _modelo_abierto()
+    if grupo in set(modelo.GroupDef.GetNameList()[1] or []):
+        raise ErrorPuente(409, f"Ya hay un grupo «{grupo}» en el modelo. Elige otro nombre.")
+    _, tipos, nombres, ret = modelo.SelectObj.GetSelected()
+    sel = [(t, str(n)) for t, n in zip(tipos or [], nombres or []) if t in (OBJ_BARRA, OBJ_AREA)]
+    if ret != 0 or not sel:
+        raise ErrorPuente(409, "No hay barras ni áreas seleccionadas en SAP2000.")
+    if modelo.GroupDef.SetGroup(grupo) != 0:
+        raise ErrorPuente(502, f"SAP2000 no dejó crear el grupo «{grupo}».")
+    for t, n in sel:
+        objeto = modelo.FrameObj if t == OBJ_BARRA else modelo.AreaObj
+        if objeto.SetGroupAssign(n, grupo) != 0:
+            raise ErrorPuente(502, f"SAP2000 no dejó asignar «{n}» al grupo «{grupo}».")
+    return {
+        "nombre": grupo,
+        "barras": sum(1 for t, _ in sel if t == OBJ_BARRA),
+        "areas": sum(1 for t, _ in sel if t == OBJ_AREA),
+    }
+
+
+def _cargas_area_a_barras(modelo, area, patron):
+    r = modelo.AreaObj.GetLoadUniformToFrame(area)
+    n, _, pats, _, dirs, vals, dists = r[:7]
+    return [
+        {"valor": float(v), "dir": int(d), "dist": int(t)}
+        for p, d, v, t in zip(pats or [], dirs or [], vals or [], dists or [])
+        if p == patron
+    ][: n or 0]
+
+
+def _cargas_barra(modelo, barra, patron):
+    r = modelo.FrameObj.GetLoadDistributed(barra)
+    n, _, pats, tipos, _, dirs, rd1, rd2, _, _, v1, v2 = r[:12]
+    salida = []
+    for i in range(n or 0):
+        if pats[i] != patron:
+            continue
+        uniforme = abs(v1[i] - v2[i]) < 1e-9 and abs(rd1[i]) < 1e-9 and abs(rd2[i] - 1) < 1e-9
+        salida.append({"valor": float(v1[i]), "dir": int(dirs[i]), "uniforme": uniforme, "fuerza": tipos[i] == 1})
+    return salida
+
+
+def leer_aplicaciones(cuerpo):
+    """Lo que cada patrón tiene HOY sobre los objetos de su grupo. Solo lee.
+
+    `aplicaciones`: [{id, patron, tipo: 'area-a-barras' | 'barra-distribuida', grupo}].
+    Por cada una devuelve cuántos objetos del tipo que corresponde tiene el
+    grupo y la carga que ese patrón les pone, agrupada por valor.
+    """
+    pedidas = cuerpo.get("aplicaciones")
+    if not isinstance(pedidas, list):
+        raise ErrorPuente(400, "Faltan las aplicaciones.")
+    modelo = _modelo_abierto()
+    _, nombre = _nombre_modelo(modelo)
+    existentes = set(modelo.GroupDef.GetNameList()[1] or [])
+    resultado = []
+    with _EnKnM(modelo):
+        for a in pedidas:
+            ident, patron, tipo, grupo = a.get("id"), a.get("patron"), a.get("tipo"), a.get("grupo")
+            if grupo not in existentes:
+                resultado.append({"id": ident, "error": f"No hay un grupo «{grupo}» en el modelo."})
+                continue
+            barras, areas = _asignados(modelo, grupo)
+            objetos = areas if tipo == "area-a-barras" else barras
+            leer = _cargas_area_a_barras if tipo == "area-a-barras" else _cargas_barra
+            conteo = {}
+            sin_carga = 0
+            for o in objetos:
+                cargas = leer(modelo, o, patron)
+                if not cargas:
+                    sin_carga += 1
+                for c in cargas:
+                    clave = json.dumps(c, sort_keys=True)
+                    conteo[clave] = conteo.get(clave, 0) + 1
+            resultado.append({
+                "id": ident,
+                "objetos": len(objetos),
+                "sinCarga": sin_carga,
+                "cargas": [{**json.loads(k), "n": v} for k, v in conteo.items()],
+            })
+    return {"modelo": nombre, "aplicaciones": resultado}
+
+
 class Manejador(BaseHTTPRequestHandler):
     def _responder(self, codigo, cuerpo):
         datos = json.dumps(cuerpo, ensure_ascii=False).encode("utf-8")
@@ -215,7 +363,7 @@ class Manejador(BaseHTTPRequestHandler):
             return self._responder(500, {"motivo": f"El puente falló: {e}"})
 
     def do_GET(self):  # noqa: N802
-        self._atender({"/salud": lambda: {"ok": True}, "/patrones": patrones})
+        self._atender({"/salud": lambda: {"ok": True}, "/patrones": patrones, "/grupos": grupos})
 
     def _cuerpo(self):
         largo = int(self.headers.get("Content-Length") or 0)
@@ -230,6 +378,8 @@ class Manejador(BaseHTTPRequestHandler):
         self._atender({
             "/conectar": conectar,
             "/patrones": lambda: empujar(self._cuerpo()),
+            "/grupos": lambda: grupo_con_seleccion(self._cuerpo()),
+            "/aplicaciones/leer": lambda: leer_aplicaciones(self._cuerpo()),
         })
 
     def log_message(self, formato, *args):

@@ -51,12 +51,15 @@ export default function PanelSubcarga({
   onCerrar,
   grupo,
   revision,
+  aplicacion,
 }: {
   carga: Carga;
   /** El selector del grupo de la CARGA: una partida no tiene grupo propio. */
   grupo?: ReactNode;
   /** La marca «Revisar» de la PARTIDA, que sí es suya: se revisa su respaldo. */
   revision?: ReactNode;
+  /** Dónde va la partida en el modelo de SAP2000. */
+  aplicacion?: ReactNode;
   subcarga: Subcarga;
   evaluacion: EvaluacionCarga;
   /** Las variables que su hoja define, para elegir cuál es el valor. */
@@ -134,6 +137,7 @@ export default function PanelSubcarga({
 
         {grupo && <div className="mt-1.5 px-1.5">{grupo}</div>}
         {revision && <div className="mt-1.5 px-1.5">{revision}</div>}
+        {aplicacion && <div className="mt-1.5 px-1.5">{aplicacion}</div>}
 
         <div className="mt-1.5 flex items-baseline justify-between gap-2">
           {/* El nombre es una etiqueta; cuál variable aporta el valor se elige

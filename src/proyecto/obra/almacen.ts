@@ -30,7 +30,10 @@ import {
   slugificar,
   VERSION_OBRA,
   type Carga,
+  type AplicacionSap,
   type ConexionSap,
+  DIRECCIONES_SAP,
+  type GrupoSap,
   type Frontera,
   type LecturaPatrones,
   type PatronLeido,
@@ -77,12 +80,43 @@ function sanearLectura(crudo: unknown): LecturaPatrones | undefined {
   return { modelo: texto(l.modelo), leido: texto(l.leido), lista };
 }
 
+function sanearGruposSap(crudo: unknown): GrupoSap[] | undefined {
+  if (!Array.isArray(crudo)) return undefined;
+  const n = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
+  return crudo
+    .filter((g): g is Partial<GrupoSap> => typeof g === 'object' && g !== null)
+    .filter((g) => typeof g.nombre === 'string' && g.nombre)
+    .map((g) => ({ nombre: g.nombre as string, barras: n(g.barras), areas: n(g.areas) }));
+}
+
+/**
+ * Dónde va una partida en SAP. Sin grupo o con un tipo desconocido no dice
+ * nada que se pueda aplicar y se descarta; una dirección que no se reconoce
+ * vuelve a gravedad, que es la de casi todas.
+ */
+function sanearAplicacion(crudo: unknown): { aplicacion?: AplicacionSap } {
+  if (typeof crudo !== 'object' || crudo === null) return {};
+  const a = crudo as Partial<AplicacionSap>;
+  if (a.tipo !== 'area-a-barras' && a.tipo !== 'barra-distribuida') return {};
+  if (typeof a.grupo !== 'string' || !a.grupo.trim()) return {};
+  const direccion = DIRECCIONES_SAP.some((d) => d.codigo === a.direccion) ? (a.direccion as number) : 10;
+  return {
+    aplicacion: {
+      tipo: a.tipo,
+      grupo: a.grupo.trim(),
+      direccion,
+      ...(a.tipo === 'area-a-barras' ? { distribucion: a.distribucion === 2 ? 2 : 1 } : {}),
+    },
+  };
+}
+
 /** La última conexión a SAP2000. Una sin modelo no dice nada y se descarta. */
 function sanearSap(crudo: unknown): { sap?: ConexionSap } {
   if (typeof crudo !== 'object' || crudo === null) return {};
   const s = crudo as Partial<ConexionSap>;
   if (typeof s.modelo !== 'string' || !s.modelo) return {};
   const patrones = sanearLectura(s.patrones);
+  const gruposSap = sanearGruposSap(s.grupos);
   return {
     sap: {
       modelo: s.modelo,
@@ -90,6 +124,7 @@ function sanearSap(crudo: unknown): { sap?: ConexionSap } {
       version: texto(s.version),
       leido: texto(s.leido),
       ...(patrones ? { patrones } : {}),
+      ...(gruposSap ? { grupos: gruposSap } : {}),
     },
   };
 }
@@ -263,6 +298,7 @@ function sanearSubcarga(crudo: unknown, vistos: Vistos): Subcarga | null {
     ...(variable ? { variable } : {}),
     ...(frontera ? { frontera } : {}),
     ...sanearRevision(s.revisar),
+    ...sanearAplicacion(s.aplicacion),
   };
 }
 

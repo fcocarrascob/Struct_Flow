@@ -1,8 +1,11 @@
 import { useState } from 'react';
-import type { Carga, ConexionSap, LecturaPatrones, PatronSap } from './modelo';
+import type { Carga, ConexionSap, GrupoSap, LecturaPatrones, PatronSap } from './modelo';
 import {
   avisosPesoPropio,
+  compararAplicacion,
   compararPatrones,
+  type FilaAplicacion,
+  type LeidaAplicacion,
   numero,
   patronesDeFlow,
   planEmpuje,
@@ -194,6 +197,190 @@ function EmpujeSap({
   );
 }
 
+/** Una llamada al puente, con los mismos mensajes para todas. */
+async function alPuente<T>(ruta: string, cuerpo?: unknown): Promise<T> {
+  let r: Response;
+  try {
+    r = await fetch(`/sap-api${ruta}`, {
+      method: cuerpo === undefined ? 'GET' : 'POST',
+      headers: cuerpo === undefined ? undefined : { 'Content-Type': 'application/json' },
+      body: cuerpo === undefined ? undefined : JSON.stringify(cuerpo),
+    });
+  } catch {
+    throw new Error('El puente de SAP no responde.');
+  }
+  const datos = await r.json().catch(() => null);
+  if (!datos) throw new Error('El puente de SAP no está corriendo. Arráncalo con `npm run puente-sap`.');
+  if (!r.ok) throw new Error(datos.motivo ?? `El puente respondió ${r.status}.`);
+  return datos as T;
+}
+
+/**
+ * Los grupos del modelo, y crear uno con lo que está seleccionado en SAP. Los
+ * leídos quedan en la obra para ofrecerlos al aplicar una partida.
+ */
+function GruposSap({
+  grupos,
+  onLeidos,
+}: {
+  grupos: readonly GrupoSap[] | undefined;
+  onLeidos: (grupos: GrupoSap[]) => void;
+}) {
+  const [nombre, setNombre] = useState('');
+  const [aviso, setAviso] = useState<{ error: boolean; texto: string } | null>(null);
+  const [ocupado, setOcupado] = useState(false);
+
+  const leer = () =>
+    alPuente<{ grupos: GrupoSap[] }>('/grupos').then((d) => onLeidos(d.grupos));
+
+  const correr = (accion: () => Promise<unknown>) => {
+    setOcupado(true);
+    setAviso(null);
+    accion()
+      .catch((e: Error) => setAviso({ error: true, texto: e.message }))
+      .finally(() => setOcupado(false));
+  };
+
+  const crear = () =>
+    correr(async () => {
+      const g = await alPuente<GrupoSap>('/grupos', { nombre: nombre.trim() });
+      setAviso({ error: false, texto: `Grupo ${g.nombre} creado con ${g.areas} áreas y ${g.barras} barras.` });
+      setNombre('');
+      await leer();
+    });
+
+  return (
+    <section className="border-t border-border px-5 py-4">
+      <div className="mb-2 flex items-baseline justify-between gap-2">
+        <h3 className="text-xs font-semibold text-ink">Grupos</h3>
+        <button
+          type="button"
+          onClick={() => correr(leer)}
+          disabled={ocupado}
+          className="rounded border border-border px-2 py-0.5 text-[11px] text-muted hover:border-accent hover:text-accent disabled:opacity-50"
+        >
+          {grupos ? 'Volver a leer' : 'Leer del modelo'}
+        </button>
+      </div>
+      {grupos && (
+        <p className="mb-2 font-mono text-[10px] leading-relaxed text-muted">
+          {grupos.map((g) => `${g.nombre} (${g.areas} á · ${g.barras} b)`).join(' · ')}
+        </p>
+      )}
+      <div className="flex items-center gap-1.5">
+        <input
+          type="text"
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
+          placeholder="Nombre del grupo nuevo"
+          aria-label="Nombre del grupo nuevo"
+          className="w-44 rounded border border-border px-1.5 py-0.5 font-mono text-[11px] outline-none focus:border-accent"
+        />
+        <button
+          type="button"
+          onClick={crear}
+          disabled={ocupado || !nombre.trim()}
+          title="Selecciona en SAP2000 las barras o áreas y crea el grupo con ellas"
+          className="rounded border border-border px-2 py-0.5 text-[11px] text-muted hover:border-accent hover:text-accent disabled:opacity-50"
+        >
+          Crear con la selección de SAP
+        </button>
+      </div>
+      {aviso && (
+        <p role="status" className={`mt-1.5 text-[11px] ${aviso.error ? 'text-aviso' : 'text-muted'}`}>
+          {aviso.texto}
+        </p>
+      )}
+    </section>
+  );
+}
+
+/**
+ * Las partidas aplicadas, contra lo que su patrón tiene hoy sobre el grupo.
+ * Solo lee. La lectura no se guarda: se hace cuando se quiere mirar.
+ */
+function AplicacionesSap({ filas }: { filas: readonly FilaAplicacion[] }) {
+  const [leidas, setLeidas] = useState<{ modelo: string; porId: Record<string, LeidaAplicacion> } | null>(null);
+  const [error, setError] = useState('');
+  const [leyendo, setLeyendo] = useState(false);
+
+  const leer = () => {
+    setLeyendo(true);
+    setError('');
+    alPuente<{ modelo: string; aplicaciones: (LeidaAplicacion & { id: string })[] }>('/aplicaciones/leer', {
+      aplicaciones: filas.map((f) => ({
+        id: f.id,
+        patron: f.patron,
+        tipo: f.aplicacion.tipo,
+        grupo: f.aplicacion.grupo,
+      })),
+    })
+      .then((d) => setLeidas({ modelo: d.modelo, porId: Object.fromEntries(d.aplicaciones.map((a) => [a.id, a])) }))
+      .catch((e: Error) => setError(e.message))
+      .finally(() => setLeyendo(false));
+  };
+
+  const COLOR = { igual: 'text-muted', difiere: 'text-error', 'sin-objetos': 'text-aviso', error: 'text-error' };
+
+  return (
+    <section className="border-t border-border px-5 py-4">
+      <div className="mb-2 flex items-baseline justify-between gap-2">
+        <h3 className="text-xs font-semibold text-ink">Cargas aplicadas</h3>
+        <button
+          type="button"
+          onClick={leer}
+          disabled={leyendo || filas.length === 0}
+          className="rounded border border-border px-2 py-0.5 text-[11px] text-muted hover:border-accent hover:text-accent disabled:opacity-50"
+        >
+          {leyendo ? 'Leyendo…' : 'Comparar con el modelo'}
+        </button>
+      </div>
+      {error && <p className="mb-2 text-[11px] text-aviso">{error}</p>}
+      {filas.length === 0 ? (
+        <p className="text-[11px] leading-snug text-muted">
+          Ninguna partida dice todavía dónde va en SAP. Se define en el panel de cada partida:
+          «Aplicación en SAP».
+        </p>
+      ) : (
+        <>
+          {leidas && <p className="mb-1 text-[10px] text-muted">Leído de {leidas.modelo}. Solo lectura.</p>}
+          <table className="w-full text-[11px]">
+            <thead>
+              <tr className="text-left text-[10px] uppercase tracking-wide text-muted">
+                <th className="py-1 font-semibold">Patrón · partida</th>
+                <th className="font-semibold">Grupo</th>
+                <th className="font-semibold">Flow</th>
+                <th className="font-semibold">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filas.map((f) => {
+                const l = leidas?.porId[f.id];
+                const c = l ? compararAplicacion(f, l) : null;
+                return (
+                  <tr key={f.id} className="border-t border-border/60 align-top">
+                    <td className="py-1 pr-2 font-mono text-ink">
+                      {f.patron} · {f.partida}
+                    </td>
+                    <td className="pr-2 font-mono text-muted">{f.aplicacion.grupo || '—'}</td>
+                    <td className={`pr-2 font-mono ${f.error ? 'text-error' : 'text-muted'}`}>
+                      {f.error ? 'sin valor' : `${numero(Number(f.valor!.toPrecision(4)))} ${f.unidad.replace('^2', '²')}`}
+                    </td>
+                    <td className={c ? COLOR[c.estado] : 'text-muted'}>
+                      {c ? (c.estado === 'sin-objetos' ? 'grupo vacío' : c.estado) : '—'}
+                      {c?.detalle && <span className="block text-[10px] text-muted">{c.detalle}</span>}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </>
+      )}
+    </section>
+  );
+}
+
 const ESTADO: Record<EstadoPatron, { texto: string; clase: string }> = {
   igual: { texto: 'igual', clase: 'text-muted' },
   difiere: { texto: 'difiere', clase: 'text-error font-medium' },
@@ -366,10 +553,14 @@ export default function PanelSap({
   onPatronesLeidos,
   onTraer,
   onAdoptar,
+  aplicaciones,
+  onGruposLeidos,
   onCerrar,
 }: {
   sap: ConexionSap | undefined;
   cargas: readonly Carga[];
+  aplicaciones: readonly FilaAplicacion[];
+  onGruposLeidos: (grupos: GrupoSap[]) => void;
   onConectado: (sap: ConexionSap) => void;
   onPatronesLeidos: (ruta: string, lectura: LecturaPatrones) => void;
   onTraer: (nombres: string[]) => void;
@@ -463,6 +654,8 @@ export default function PanelSap({
         onTraer={onTraer}
         onAdoptar={onAdoptar}
       />
+      <GruposSap grupos={sap?.grupos} onLeidos={onGruposLeidos} />
+      <AplicacionesSap filas={aplicaciones} />
     </aside>
   );
 }

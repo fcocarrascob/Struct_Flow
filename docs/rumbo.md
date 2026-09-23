@@ -144,6 +144,13 @@ antes de dar el siguiente:
    ajusta tipo y peso propio de los que difieren, tras mostrar la lista exacta y confirmarla.
    Nunca borra ni guarda, y se niega si el modelo abierto no es el comparado o está bloqueado.
    Es lo primero que Flow escribe en un modelo.
+1. **La aplicación de una partida sobre los objetos** — primer paso **hecho** (2026-09-23), solo
+   lectura: cada partida dice sobre qué **grupo** del modelo va (uno solo, para que cada
+   componente sea su partida), si es área repartida a barras o distribuida en barra, la
+   dirección y la distribución. El valor no se escribe: es el de la partida, convertido a
+   kN/m² o kN/m por el motor, y una dimensión que no calza es un error. El nodo SAP2000 lee los
+   grupos, crea uno con la selección de SAP y compara cada aplicación con lo que su patrón
+   tiene hoy sobre el grupo. Sigue escribir las cargas, reemplazando lo del patrón en el grupo.
 2. Leer lo medido (reacciones por caso, periodos, cortes basales) con su sello, y publicarlo
    como nombres que las hojas usan en vez de copiarlos a mano.
 3. Marcar la lectura atrasada cuando el `.sdb` cambió después de leerla.

@@ -68,6 +68,8 @@ const {
   traerDeSap,
   adoptarDeSap,
   planEmpuje,
+  aplicacionesDeObra,
+  compararAplicacion,
 } = motor;
 
 // ── Armar una obra ───────────────────────────────────────────────────────────
@@ -1481,6 +1483,57 @@ const CASOS_PATRONES = [
       if (txt !== esperado) return `cambios: ${txt}`;
       if (omitidas.map((o) => o.nombre).join(',') !== 'EV') return `omitidas: ${JSON.stringify(omitidas)}`;
       return cambios.some((c) => c.nombre === 'TEMP') ? 'tocó un patrón que solo está en SAP' : null;
+    },
+  },
+  {
+    nombre: 'una partida aplicada da su valor en la unidad de SAP; con otra dimensión, un error',
+    ok: () => {
+      const partida = (id, src, aplicacion) => ({
+        id,
+        nombre: id,
+        variable: id,
+        hoja: [{ id: `b-${id}`, kind: 'math', x: 40, y: 40, src }],
+        aplicacion,
+      });
+      const o = {
+        ...obra(),
+        modulos: ['cargas'],
+        cargas: [
+          {
+            id: 'c1',
+            nombre: 'SDL_CUB',
+            subcargas: [
+              partida('q_cub', 'q_cub := 10 kgf/m^2', { tipo: 'area-a-barras', grupo: 'CUB', direccion: 10, distribucion: 1 }),
+              partida('q_mal', 'q_mal := 2 kN/m', { tipo: 'area-a-barras', grupo: 'CUB', direccion: 10, distribucion: 1 }),
+              partida('q_sin', 'q_sin := 1 kN/m'),
+            ],
+          },
+          { id: 'c2', nombre: 'CM_VIA', subcargas: [partida('w_via', 'w_via := 0.769 kN/m', { tipo: 'barra-distribuida', grupo: 'VIA', direccion: 10 })] },
+        ],
+      };
+      const ev = evaluarObra(o, {});
+      const filas = aplicacionesDeObra(o, proyectar(o, ev, {}).evaluaciones);
+      if (filas.map((f) => f.partida).join(',') !== 'q_cub,q_mal,w_via') return `filas: ${filas.map((f) => f.partida)}`;
+      const [cub, mal, via] = filas;
+      if (cub.patron !== 'SDL_CUB' || Math.abs(cub.valor - 0.0980665) > 1e-9) return `cub: ${JSON.stringify(cub)}`;
+      if (!mal.error || mal.valor !== undefined) return `una carga de barra aplicada a un área no falló: ${JSON.stringify(mal)}`;
+      if (Math.abs(via.valor - 0.769) > 1e-12 || via.unidad !== 'kN/m') return `via: ${JSON.stringify(via)}`;
+      return null;
+    },
+  },
+  {
+    nombre: 'la aplicación contra el modelo: igual, otro valor, objetos sin carga, grupo vacío',
+    ok: () => {
+      const f = { id: 's', patron: 'SDL_CUB', partida: 'q', unidad: 'kN/m^2', valor: 0.0980665, aplicacion: { tipo: 'area-a-barras', grupo: 'CUB', direccion: 10, distribucion: 1 } };
+      const c = (valor, extra = {}) => ({ valor, dir: 10, dist: 1, n: 33, ...extra });
+      const e = (l) => compararAplicacion(f, l).estado;
+      if (e({ objetos: 33, sinCarga: 0, cargas: [c(0.09806649999606519)] }) !== 'igual') return 'un valor igual no dio «igual»';
+      if (e({ objetos: 33, sinCarga: 0, cargas: [c(0.2)] }) !== 'difiere') return 'otro valor no difiere';
+      if (e({ objetos: 33, sinCarga: 0, cargas: [c(0.0980665, { dist: 2 })] }) !== 'difiere') return 'otra distribución no difiere';
+      const parcial = compararAplicacion(f, { objetos: 61, sinCarga: 28, cargas: [c(0.0980665)] });
+      if (parcial.estado !== 'difiere' || !parcial.detalle.includes('28')) return `parcial: ${JSON.stringify(parcial)}`;
+      if (e({ objetos: 0, sinCarga: 0, cargas: [] }) !== 'sin-objetos') return 'un grupo vacío no se dijo';
+      return e({ error: 'No hay un grupo' }) === 'error' ? null : 'el error del puente se perdió';
     },
   },
 ];

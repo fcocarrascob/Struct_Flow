@@ -63,7 +63,8 @@ import {
 import NodoObra from './NodoObra';
 import MarcaRevision from './MarcaRevision';
 import PanelSap from './PanelSap';
-import { adoptarDeSap, traerDeSap } from './sap';
+import { adoptarDeSap, aplicacionesDeObra, traerDeSap } from './sap';
+import AplicacionEnSap from './AplicacionEnSap';
 import IconoClase from './IconoClase';
 import LeyendaGrupos from './LeyendaGrupos';
 import SelectorGrupo from './SelectorGrupo';
@@ -1157,6 +1158,9 @@ function CanvasObra({
 
   const soloLectura = estadoSesion.conflicto === 'escritor';
   const revisables = porRevisar(obra);
+  // Las partidas que dicen dónde van en SAP, con su valor ya en la unidad de SAP.
+  // Sale de la misma evaluación que pinta los nodos.
+  const aplicaciones = aplicacionesDeObra(obra, proyeccion.evaluaciones);
 
   const idCargaSeleccionada = seleccion ? cargaDeNodo(seleccion) : null;
   const idPartidaSeleccionada = seleccion ? subcargaDeNodo(seleccion) : null;
@@ -1750,6 +1754,18 @@ function CanvasObra({
                 : undefined,
             )}
             revision={marcaRevision(partida.id, partida.revisar)}
+            aplicacion={
+              obra.modulos.includes('sap') ? (
+                <AplicacionEnSap
+                  valor={partida.aplicacion}
+                  grupos={obra.sap?.grupos}
+                  fila={aplicaciones.find((f) => f.id === partida.id)}
+                  onCambiar={(a) =>
+                    cambiarPartida(partida.id, ({ aplicacion: _fuera, ...s }) => (a ? { ...s, aplicacion: a } : s))
+                  }
+                />
+              ) : undefined
+            }
           />
         )}
 
@@ -1782,6 +1798,8 @@ function CanvasObra({
             onAdoptar={(nombres) =>
               setObra((o) => (o?.sap?.patrones ? adoptarDeSap(o, nombres, o.sap.patrones.lista) : o))
             }
+            aplicaciones={aplicaciones}
+            onGruposLeidos={(grupos) => setObra((o) => (o?.sap ? { ...o, sap: { ...o.sap, grupos } } : o))}
             onCerrar={() => setSeleccion(null)}
           />
         )}

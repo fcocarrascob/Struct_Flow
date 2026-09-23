@@ -154,7 +154,32 @@ export interface Subcarga {
   frontera?: Frontera;
   /** Marcada para revisar. Ver `Revision`. */
   revisar?: Revision;
+  /** Dónde y cómo va en el modelo de SAP2000. Ver `AplicacionSap`. */
+  aplicacion?: AplicacionSap;
 }
+
+/**
+ * Cómo se aplica el valor de una partida en SAP2000: sobre UN grupo del modelo,
+ * para que cada componente —cubierta, muro, carrilera— sea su propia partida.
+ * El valor no se escribe acá: es el de la partida, convertido por el motor.
+ */
+export interface AplicacionSap {
+  /** `area-a-barras`: carga uniforme de área repartida a sus barras
+   *  (`SetLoadUniformToFrame`); `barra-distribuida`: carga uniforme de barra. */
+  tipo: 'area-a-barras' | 'barra-distribuida';
+  grupo: string;
+  /** El código de dirección de la API: 10 gravedad, 4/5/6 X/Y/Z globales. */
+  direccion: number;
+  /** Solo en `area-a-barras`: 1 en una dirección, 2 en dos. */
+  distribucion?: 1 | 2;
+}
+
+export const DIRECCIONES_SAP: readonly { codigo: number; texto: string }[] = [
+  { codigo: 10, texto: 'gravedad' },
+  { codigo: 4, texto: 'X global' },
+  { codigo: 5, texto: 'Y global' },
+  { codigo: 6, texto: 'Z global' },
+];
 
 /**
  * Un nodo marcado para revisar, con la razón en una nota breve.
@@ -357,6 +382,14 @@ export interface ConexionSap {
   /** La última lectura de los Load Patterns del modelo, para compararla con las
    *  cargas aunque el puente no esté corriendo. */
   patrones?: LecturaPatrones;
+  /** Los grupos del modelo, para ofrecerlos al aplicar una partida. */
+  grupos?: GrupoSap[];
+}
+
+export interface GrupoSap {
+  nombre: string;
+  barras: number;
+  areas: number;
 }
 
 /** Un Load Pattern tal como está en el modelo. */
