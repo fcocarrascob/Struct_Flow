@@ -1,17 +1,17 @@
 import { useState } from 'react';
-import type { ConexionSap } from './modelo';
+import type { ConexionSap, LecturaPatrones } from './modelo';
 import { useEscape } from './useEscape';
 
 /**
- * El panel del nodo SAP2000: leer qué modelo está abierto.
+ * El panel del nodo SAP2000: qué modelo está abierto y qué Load Patterns tiene.
  *
  * SOLO LEE (`docs/rumbo.md`, «Flow no escribe en el modelo»). Habla con el
  * puente de Flow (`puente-sap/puente.py`) por `/sap-api`, que es un proceso
- * aparte: sin él, el panel lo dice y muestra la última conexión guardada.
+ * aparte: sin él, el panel lo dice y muestra la última lectura guardada.
  *
- * En la rama `grupos-sin-cargas` la comparación de Load Patterns y de cargas
- * aplicadas se retiró junto con las cargas, de las que colgaba: queda la
- * conexión.
+ * Los patrones se listan tal como están en el modelo; no se comparan con nada.
+ * Son la base del paso siguiente: que una variable de la obra justifique una
+ * carga asignada en el modelo, o el espectro.
  */
 
 /**
@@ -46,19 +46,115 @@ async function alPuente<T>(ruta: string, cuerpo?: unknown): Promise<T> {
   return datos as T;
 }
 
+/** Cómo se lee un multiplicador: `1,3`, no `1.3`. */
+const numero = (n: number): string => String(n).replace('.', ',');
+
+/**
+ * Los Load Patterns del modelo, tal como están: nombre, tipo y multiplicador de
+ * peso propio (SWF). Solo se listan; se definen y se corrigen en SAP.
+ */
+function PatronesSap({
+  lectura,
+  modeloConectado,
+  leyendo,
+  error,
+  onLeer,
+}: {
+  lectura: LecturaPatrones | undefined;
+  modeloConectado: string | undefined;
+  leyendo: boolean;
+  error: string;
+  onLeer: () => void;
+}) {
+  return (
+    <section className="border-t border-border px-5 py-4">
+      <div className="mb-2 flex items-baseline justify-between gap-2">
+        <h3 className="text-xs font-semibold text-ink">Load Patterns</h3>
+        <button
+          type="button"
+          onClick={onLeer}
+          disabled={leyendo}
+          className="rounded border border-border px-2 py-0.5 text-[11px] text-muted hover:border-accent hover:text-accent disabled:opacity-50"
+        >
+          {leyendo ? 'Leyendo…' : lectura ? 'Volver a leer' : 'Leer del modelo'}
+        </button>
+      </div>
+
+      {error && (
+        <p role="status" className="mb-2 rounded border border-aviso px-3 py-2 text-xs leading-snug text-aviso">
+          {error}
+        </p>
+      )}
+
+      {!lectura ? (
+        <p className="text-[11px] leading-snug text-muted">
+          Todavía no se leyeron. Se leen solos al conectar.
+        </p>
+      ) : (
+        <>
+          <p className="mb-2 text-[11px] leading-snug text-muted">
+            {lectura.lista.length === 1 ? '1 patrón leído' : `${lectura.lista.length} patrones leídos`} de{' '}
+            <span className="font-mono text-ink">{lectura.modelo || '(sin guardar)'}</span> el{' '}
+            {new Date(lectura.leido).toLocaleString()}
+            {modeloConectado && lectura.modelo !== modeloConectado && (
+              <span className="text-aviso"> — no es el modelo de la última conexión ({modeloConectado})</span>
+            )}
+            .
+          </p>
+          {lectura.lista.length > 0 && (
+            <table className="w-full text-[11px]">
+              <thead>
+                <tr className="border-b border-border text-left text-[10px] uppercase tracking-wide text-muted">
+                  <th className="py-1 font-semibold">Nombre</th>
+                  <th className="font-semibold">Tipo</th>
+                  <th className="text-right font-semibold" title="Multiplicador de peso propio (self weight multiplier)">
+                    SWF
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {lectura.lista.map((p) => (
+                  <tr key={p.nombre} className="border-t border-border/60">
+                    <td className="py-1 pr-2 font-mono text-ink">{p.nombre}</td>
+                    <td className="pr-2 text-muted">{p.tipo || '—'}</td>
+                    <td className="text-right font-mono text-muted">{numero(p.pesoPropio)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+
 export default function PanelSap({
   sap,
   onConectado,
+  onPatronesLeidos,
   onCerrar,
 }: {
   sap: ConexionSap | undefined;
   onConectado: (sap: ConexionSap) => void;
+  onPatronesLeidos: (lectura: LecturaPatrones) => void;
   onCerrar: () => void;
 }) {
   useEscape(onCerrar);
   const [estado, setEstado] = useState<{ fase: 'quieto' | 'conectando' } | { fase: 'error'; motivo: string }>({
     fase: 'quieto',
   });
+  const [leyendo, setLeyendo] = useState(false);
+  const [errorPatrones, setErrorPatrones] = useState('');
+
+  const leerPatrones = () => {
+    setLeyendo(true);
+    setErrorPatrones('');
+    alPuente<{ modelo?: string; patrones?: LecturaPatrones['lista'] }>('/patrones')
+      .then((d) => onPatronesLeidos({ modelo: d.modelo ?? '', leido: new Date().toISOString(), lista: d.patrones ?? [] }))
+      .catch((e: Error) => setErrorPatrones(e.message))
+      .finally(() => setLeyendo(false));
+  };
 
   const conectar = () => {
     setEstado({ fase: 'conectando' });
@@ -70,6 +166,9 @@ export default function PanelSap({
         }
         onConectado({ modelo: d.modelo, ruta: d.ruta, version: d.version, leido: new Date().toISOString() });
         setEstado({ fase: 'quieto' });
+        // Conectar es querer ver el modelo: los patrones vienen con él. Va
+        // después de la conexión porque el puente atiende de a una petición.
+        leerPatrones();
       },
       (e: Error) => setEstado({ fase: 'error', motivo: e.message }),
     );
@@ -132,6 +231,16 @@ export default function PanelSap({
           </p>
         )}
       </div>
+
+      {sap && (
+        <PatronesSap
+          lectura={sap.patrones}
+          modeloConectado={sap.modelo}
+          leyendo={leyendo}
+          error={errorPatrones}
+          onLeer={leerPatrones}
+        />
+      )}
     </aside>
   );
 }

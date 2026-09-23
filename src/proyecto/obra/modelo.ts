@@ -235,10 +235,12 @@ export type Modulo = 'sap';
 /**
  * Lo último que el nodo SAP2000 leyó del modelo abierto, por el puente de Flow
  * (`puente-sap/puente.py`). Se guarda para que la obra diga con qué modelo se
- * conectó aunque el puente no esté corriendo.
+ * conectó, y qué tenía, aunque el puente no esté corriendo.
  *
- * Sin patrones ni aplicaciones: colgaban de la carga (una carga era un Load
- * Pattern), y en la rama `grupos-sin-cargas` se retiraron con ella.
+ * ES SOLO LECTURA. Los Load Patterns no son de la obra: son del modelo, y Flow
+ * los lista tal como están. El paso siguiente es que una variable de la obra
+ * justifique una carga asignada en el modelo (o el espectro); para eso la obra
+ * tiene que saber qué patrones hay, no decidirlos.
  */
 export interface ConexionSap {
   /** El nombre del archivo, `v46_FUND_2026-09-23.sdb`. */
@@ -247,6 +249,25 @@ export interface ConexionSap {
   version: string;
   /** ISO: cuándo se leyó. */
   leido: string;
+  /** La última lectura de los Load Patterns. */
+  patrones?: LecturaPatrones;
+}
+
+/** Un Load Pattern tal como está en el modelo. */
+export interface PatronLeido {
+  nombre: string;
+  /** El nombre de `eLoadPatternType` en la API: `Dead`, `Live`, `Wind`… */
+  tipo: string;
+  /** El multiplicador de peso propio (SWF). */
+  pesoPropio: number;
+}
+
+export interface LecturaPatrones {
+  /** De qué modelo se leyeron: puede no ser el de la última conexión. */
+  modelo: string;
+  /** ISO. */
+  leido: string;
+  lista: PatronLeido[];
 }
 
 export interface Obra {

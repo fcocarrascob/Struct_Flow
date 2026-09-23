@@ -32,7 +32,9 @@ import {
   type ConexionSap,
   type Frontera,
   type Grupo,
+  type LecturaPatrones,
   type Modulo,
+  type PatronLeido,
   type NodoCalculo,
   type Obra,
   type Procedencia,
@@ -50,20 +52,41 @@ const MODULOS: ReadonlySet<string> = new Set<Modulo>(['sap']);
 const texto = (v: unknown) => (typeof v === 'string' ? v : '');
 
 /**
+ * Una lectura de Load Patterns. Un patrón sin nombre no se puede citar y se
+ * descarta; un tipo ilegible queda vacío y un peso propio ilegible en 0, que es
+ * lo que SAP asume.
+ */
+function sanearLectura(crudo: unknown): LecturaPatrones | undefined {
+  if (typeof crudo !== 'object' || crudo === null) return undefined;
+  const l = crudo as Partial<LecturaPatrones>;
+  if (!Array.isArray(l.lista)) return undefined;
+  const lista: PatronLeido[] = [];
+  for (const x of l.lista) {
+    const p = (x ?? {}) as Partial<PatronLeido>;
+    if (typeof p.nombre !== 'string' || !p.nombre) continue;
+    const peso = typeof p.pesoPropio === 'number' && Number.isFinite(p.pesoPropio) ? p.pesoPropio : 0;
+    lista.push({ nombre: p.nombre, tipo: texto(p.tipo), pesoPropio: peso });
+  }
+  return { modelo: texto(l.modelo), leido: texto(l.leido), lista };
+}
+
+/**
  * La última conexión a SAP2000. Una sin modelo no dice nada y se descarta. Los
- * patrones y grupos leídos que traiga una obra anterior se descartan: eran para
- * comparar cargas, que ya no existen.
+ * grupos leídos que traiga una obra anterior se descartan: eran para aplicar
+ * cargas, que ya no existen.
  */
 function sanearSap(crudo: unknown): { sap?: ConexionSap } {
   if (typeof crudo !== 'object' || crudo === null) return {};
   const s = crudo as Partial<ConexionSap>;
   if (typeof s.modelo !== 'string' || !s.modelo) return {};
+  const patrones = sanearLectura(s.patrones);
   return {
     sap: {
       modelo: s.modelo,
       ruta: texto(s.ruta),
       version: texto(s.version),
       leido: texto(s.leido),
+      ...(patrones ? { patrones } : {}),
     },
   };
 }

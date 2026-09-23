@@ -1135,6 +1135,38 @@ const CASOS_SANEO = [
     },
   },
   {
+    nombre: 'la lectura de Load Patterns sobrevive al saneo; un patrón sin nombre, no',
+    // Los grupos de SAP que traiga una obra anterior se descartan: servían para
+    // aplicar cargas, que ya no existen.
+    crudo: {
+      id: 'o',
+      modulos: ['sap'],
+      calculos: [],
+      sap: {
+        modelo: 'm.sdb',
+        grupos: [{ nombre: 'CUB', barras: 3, areas: 1 }],
+        patrones: {
+          modelo: 'm.sdb',
+          leido: '2026-09-23T12:00:00.000Z',
+          lista: [
+            { nombre: 'DEAD', tipo: 'Dead', pesoPropio: 1 },
+            { nombre: 'LIVE', tipo: 'Live', pesoPropio: 'x' },
+            { nombre: '', tipo: 'Dead' },
+            { tipo: 'Wind' },
+          ],
+        },
+      },
+    },
+    ok: (o) => {
+      if ('grupos' in o.sap) return 'sobrevivieron los grupos de SAP';
+      const l = o.sap.patrones?.lista ?? [];
+      const dio = l.map((p) => `${p.nombre}:${p.tipo}:${p.pesoPropio}`).join(',');
+      if (dio !== 'DEAD:Dead:1,LIVE:Live:0') return `lista: ${dio}`;
+      const vuelta = sanearObra(archivoDeObra(o).obra);
+      return JSON.stringify(vuelta) === JSON.stringify(o) ? null : 'la lectura cambió en la ida y vuelta';
+    },
+  },
+  {
     nombre: 'las cargas de una obra anterior se migran a cálculos y grupos sin perder un número',
     // Una carga de UNA partida se dibujaba plegada con el nombre de la carga: el
     // cálculo toma ese nombre. Una de varias agrupaba: si no tenía grupo, se le
