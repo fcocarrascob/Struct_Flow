@@ -1,0 +1,5 @@
+# El sha256 de una genérica se calcula sobre los bytes del archivo en disco, y
+# el harness lo compara con el del índice versionado. Con core.autocrlf=true la
+# copia de trabajo salía con CRLF y el hash no coincidía con el del mismo blob en
+# otra máquina: el harness veía desfasada una genérica que no había cambiado.
+public/**/*.json text eol=lf
