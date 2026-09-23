@@ -30,6 +30,7 @@ import {
   slugificar,
   VERSION_OBRA,
   type Carga,
+  type ConexionSap,
   type Frontera,
   type Grupo,
   type Modulo,
@@ -44,7 +45,16 @@ export const CLAVE_OBRAS = 'structflow.obras.v1';
 
 export type Resultado = { ok: true } | { ok: false; motivo: string };
 
-const MODULOS: ReadonlySet<string> = new Set<Modulo>(['cargas']);
+const MODULOS: ReadonlySet<string> = new Set<Modulo>(['cargas', 'sap']);
+
+/** La última conexión a SAP2000. Una sin modelo no dice nada y se descarta. */
+function sanearSap(crudo: unknown): { sap?: ConexionSap } {
+  if (typeof crudo !== 'object' || crudo === null) return {};
+  const s = crudo as Partial<ConexionSap>;
+  if (typeof s.modelo !== 'string' || !s.modelo) return {};
+  const texto = (v: unknown) => (typeof v === 'string' ? v : '');
+  return { sap: { modelo: s.modelo, ruta: texto(s.ruta), version: texto(s.version), leido: texto(s.leido) } };
+}
 
 /**
  * Los ids que ya se repartieron dentro de UNA obra.
@@ -318,6 +328,7 @@ export function sanearObra(crudo: unknown): Obra | null {
       .map((k) => sanearCalculo(k, vistos, idsGrupo))
       .filter((k): k is NodoCalculo => k !== null),
     ...(grupos.length ? { grupos } : {}),
+    ...sanearSap(o.sap),
   };
 }
 

@@ -27,6 +27,7 @@ interface Entrada {
 
 const ENTRADAS: Entrada[] = [
   { clave: 'cargas', titulo: 'Cargas', detalle: 'los patrones de carga de la obra', unico: true },
+  { clave: 'sap', titulo: 'SAP2000', detalle: 'el modelo abierto en SAP2000', unico: true },
   {
     clave: 'calculo',
     titulo: 'Cálculo',
@@ -35,7 +36,7 @@ const ENTRADAS: Entrada[] = [
   },
 ];
 
-const POR_VENIR = ['Combinaciones', 'Modelo', 'Documento'];
+const POR_VENIR = ['Combinaciones', 'Documento'];
 
 export default function PaletaNodos({
   puestos,

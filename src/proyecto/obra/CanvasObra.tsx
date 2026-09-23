@@ -62,6 +62,7 @@ import {
 } from './modelo';
 import NodoObra from './NodoObra';
 import MarcaRevision from './MarcaRevision';
+import PanelSap from './PanelSap';
 import IconoClase from './IconoClase';
 import LeyendaGrupos from './LeyendaGrupos';
 import SelectorGrupo from './SelectorGrupo';
@@ -74,6 +75,7 @@ import {
   calculoDeNodo,
   cargaDeNodo,
   ID_NODO_CARGAS,
+  ID_NODO_SAP,
   idNodoDeCalculo,
   idNodoDeCarga,
   idNodoDeSubcarga,
@@ -209,6 +211,7 @@ function sinChocarConLaObra(hoja: Region[], obra: Obra, idNodo: string): Region[
 function existeNodo(obra: Obra | null, idNodo: string): boolean {
   if (!obra) return false;
   if (idNodo === ID_NODO_CARGAS) return true;
+  if (idNodo === ID_NODO_SAP) return obra.modulos.includes('sap');
   const idCarga = cargaDeNodo(idNodo);
   if (idCarga) return obra.cargas.some((c) => c.id === idCarga);
   return nodoDelDocumento(obra, idNodo) !== undefined;
@@ -651,7 +654,7 @@ function CanvasObra({
       return;
     }
     setObra(agregarModulo(actual, clave as Modulo));
-    setSeleccion(ID_NODO_CARGAS);
+    setSeleccion(clave === 'sap' ? ID_NODO_SAP : ID_NODO_CARGAS);
   }, []);
 
   // Se calcula fuera del actualizador de `setObra` a propósito: un actualizador
@@ -1746,6 +1749,14 @@ function CanvasObra({
                 : undefined,
             )}
             revision={marcaRevision(partida.id, partida.revisar)}
+          />
+        )}
+
+        {!activa && seleccion === ID_NODO_SAP && obra.modulos.includes('sap') && (
+          <PanelSap
+            sap={obra.sap}
+            onConectado={(sap) => setObra((o) => (o ? { ...o, sap } : o))}
+            onCerrar={() => setSeleccion(null)}
           />
         )}
 

@@ -123,9 +123,19 @@ y validador, la marca «Revisar» (hecha), y las propuestas que el usuario acept
 Después, el nodo Modelo. En la auditoría del Pachón hay **21 valores** de SAP copiados a mano
 de dos `.result.json`: reacciones, periodos, cortes basales. Sin sello, si el modelo cambia
 nada avisa. Un nodo Modelo publica lo medido con el sello del modelo (hash del `.sdb` y fecha
-del análisis). **No hace falta COM** para empezar, y tampoco depender del Harness: Flow lee un
-formato de resultados sellado, lo produzca el Harness con su MCP de SAP2000 o el puente de la
-etapa 6.
+del análisis).
+
+**Flow habla con SAP2000 por su propio puente** (`puente-sap/`, Python con comtypes, en
+`localhost`), no leyendo lo que produce el Harness: un formato que solo el Harness sabe
+escribir es depender del Harness aunque se lo llame contrato. Los `.result.json` del Harness
+son suyos y Flow no los abre. **Se construye paso a paso**, probándolo en el trabajo diario
+antes de dar el siguiente:
+
+1. Conectarse al SAP2000 abierto y mostrar el nombre del modelo — **hecho** (2026-09-23).
+   Solo se engancha y lee: no lanza SAP, no guarda ni analiza, y se niega con dos instancias.
+2. Leer lo medido (reacciones por caso, periodos, cortes basales) con su sello, y publicarlo
+   como nombres que las hojas usan en vez de copiarlos a mano.
+3. Marcar la lectura atrasada cuando el `.sdb` cambió después de leerla.
 
 ### 3. La hoja en flujo lineal
 

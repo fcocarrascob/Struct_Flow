@@ -311,7 +311,21 @@ export interface Carga {
  * SAP—; `calculo` no, y por eso no vive acá sino en su propia lista: de un
  * cálculo suelto puede haber tantos como la obra necesite.
  */
-export type Modulo = 'cargas';
+export type Modulo = 'cargas' | 'sap';
+
+/**
+ * Lo último que el nodo SAP2000 leyó del modelo abierto, por el puente de Flow
+ * (`puente-sap/puente.py`). Se guarda para que la obra diga con qué modelo se
+ * conectó aunque el puente no esté corriendo.
+ */
+export interface ConexionSap {
+  /** El nombre del archivo, `v46_FUND_2026-09-23.sdb`. */
+  modelo: string;
+  ruta: string;
+  version: string;
+  /** ISO: cuándo se leyó. */
+  leido: string;
+}
 
 export interface Obra {
   version: number;
@@ -324,6 +338,8 @@ export interface Obra {
   calculos: NodoCalculo[];
   /** Ausente en una obra que nunca agrupó nada. */
   grupos?: Grupo[];
+  /** Ausente mientras el nodo SAP2000 no se haya conectado nunca. */
+  sap?: ConexionSap;
 }
 
 /**

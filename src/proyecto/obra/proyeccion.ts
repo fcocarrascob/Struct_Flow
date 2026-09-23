@@ -28,6 +28,7 @@ import { quedoAtras, type Genericas } from './biblioteca';
 import { problemaDeGrafo, type EvaluacionObra } from './evaluacion';
 import {
   ID_NODO_CARGAS,
+  ID_NODO_SAP,
   idNodoDeCalculo,
   idNodoDeCarga,
   idNodoDeSubcarga,
@@ -51,7 +52,7 @@ export * from './ids';
  * publican los demás (no define nada y usa algo). Declararlo sería un campo más
  * que puede contradecir a la hoja.
  */
-export type ClaseNodo = 'definiciones' | 'carga' | 'calculo' | 'biblioteca' | 'resumen';
+export type ClaseNodo = 'definiciones' | 'carga' | 'calculo' | 'biblioteca' | 'resumen' | 'modelo';
 
 /**
  * El nodo de una obra: el del contrato, más lo que solo este lienzo dibuja.
@@ -391,6 +392,23 @@ export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas =
           conProblema > 0
             ? [`${conProblema} carga${conProblema === 1 ? '' : 's'} con algo que mirar.`]
             : [],
+      }),
+    );
+  }
+
+  // El modelo de SAP2000. Por ahora solo dice con qué modelo se conectó: todavía
+  // no publica nada, así que no tiene flechas.
+  if (obra.modulos.includes('sap')) {
+    nodos.push(
+      nodo({
+        id: ID_NODO_SAP,
+        tipo: 'modelo',
+        clase: 'modelo',
+        etiqueta: 'SAP2000',
+        subtitulo: obra.sap ? obra.sap.modelo : 'sin conectar',
+        campos: obra.sap ? { modelo: obra.sap.modelo, version: obra.sap.version } : {},
+        severidad: 'ok',
+        motivos: [],
       }),
     );
   }

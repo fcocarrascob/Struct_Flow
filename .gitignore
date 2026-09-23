@@ -4,6 +4,9 @@ dist/
 # obras del servidor local (servidor/obras.mjs): trabajo de clientes, no del repo
 obras/
 
+# el puente con SAP2000 es Python
+__pycache__/
+
 # dependencies
 node_modules/
 

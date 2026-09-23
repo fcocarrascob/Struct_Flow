@@ -8,6 +8,7 @@
 // de él tiene que poder deducirse qué clase de panel abrir.
 
 export const ID_NODO_CARGAS = 'cargas';
+export const ID_NODO_SAP = 'sap';
 
 const PREFIJO_CARGA = 'carga:';
 const PREFIJO_SUBCARGA = 'partida:';

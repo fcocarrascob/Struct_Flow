@@ -12,6 +12,7 @@ export const ROTULO_CLASE: Record<ClaseNodo, string> = {
   calculo: 'cálculo',
   biblioteca: 'biblioteca',
   resumen: 'resumen',
+  modelo: 'modelo',
 };
 
 export default function IconoClase({
@@ -59,6 +60,13 @@ export default function IconoClase({
       return (
         <svg {...comun}>
           <path d="M12.5 3h-9l5 5-5 5h9" />
+        </svg>
+      );
+    // Un pórtico: el modelo de SAP2000.
+    case 'modelo':
+      return (
+        <svg {...comun}>
+          <path d="M2.5 14V4.5h11V14M2.5 9h11M8 4.5V14M1.5 14h13" />
         </svg>
       );
     // Tres nodos enlazados: el grafo.

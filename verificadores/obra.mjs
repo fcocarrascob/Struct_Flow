@@ -1145,6 +1145,22 @@ const CASOS_SANEO = [
     },
   },
   {
+    nombre: 'el nodo SAP2000 y su última conexión sobreviven al saneo; una sin modelo, no',
+    crudo: {
+      id: 'o',
+      modulos: ['cargas', 'sap', 'inventado'],
+      sap: { modelo: 'v46_FUND.sdb', ruta: 'C:\\x\\v46_FUND.sdb', version: 27, leido: '2026-09-23T12:00:00.000Z' },
+      calculos: [],
+      cargas: [],
+    },
+    ok: (o, crudo) => {
+      if (o.modulos.join(',') !== 'cargas,sap') return `módulos: ${o.modulos.join(',')}`;
+      if (o.sap?.modelo !== 'v46_FUND.sdb' || o.sap.version !== '') return `sap: ${JSON.stringify(o.sap)}`;
+      const sinModelo = sanearObra({ ...crudo, sap: { ruta: 'x' } });
+      return 'sap' in sinModelo ? 'una conexión sin modelo sobrevivió' : null;
+    },
+  },
+  {
     nombre: 'una obra sin grupos no gana un `grupos: []` al sanearse',
     // Guardar una obra no puede cambiarla si nadie la tocó.
     crudo: { id: 'o', calculos: [], cargas: [] },

@@ -40,6 +40,16 @@ export default defineConfig({
         target: 'http://127.0.0.1:8787',
         changeOrigin: false,
       },
+      /**
+       * El puente de Flow con SAP2000 (`npm run puente-sap`, 127.0.0.1:8789).
+       * Es de este repo, no del harness: la aplicación habla con SAP sin que el
+       * asistente esté corriendo.
+       */
+      '/sap-api': {
+        target: 'http://127.0.0.1:8789',
+        changeOrigin: false,
+        rewrite: (ruta) => ruta.replace(/^\/sap-api/, ''),
+      },
     },
   },
 });
