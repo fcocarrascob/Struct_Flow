@@ -160,6 +160,15 @@ function escribirBorrador(id: string, b: Borrador): void {
   }
 }
 
+/** El borrador de una obra en disco tal como está escrito, o `null`. Ver `obraCruda`. */
+export function borradorCrudo(id: string): string | null {
+  try {
+    return window.localStorage.getItem(CLAVE_BORRADOR + id);
+  } catch {
+    return null;
+  }
+}
+
 function olvidarBorrador(id: string): void {
   try {
     window.localStorage.removeItem(CLAVE_BORRADOR + id);

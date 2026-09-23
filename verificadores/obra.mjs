@@ -1583,9 +1583,23 @@ const CASOS_PATRONES = [
       // Dos partidas iguales esperan la misma carga dos veces por objeto.
       const gemelas = [fila('g1', 1), fila('g2', 1)];
       const dobles = { objetos: 10, sinCarga: 0, cargas: [c(1, 20)] };
-      return compararAplicacion(gemelas[0], dobles, hermanasDe(gemelas, gemelas[0])).estado === 'igual'
-        ? null
-        : 'dos partidas iguales no dieron «igual»';
+      if (compararAplicacion(gemelas[0], dobles, hermanasDe(gemelas, gemelas[0])).estado !== 'igual') {
+        return 'dos partidas iguales no dieron «igual»';
+      }
+      // Con firmas, el reparto por objeto cuenta: 2 objetos, uno con 2+2 y otro
+      // con 1+1, suman lo mismo que dos con 2+1 y el conteo no lo ve.
+      const f = (valor) => ({ valor, dir: 10, dist: 1 });
+      const bien = { objetos: 2, sinCarga: 0, cargas: [c(2, 2), c(1, 2)], firmas: [{ cargas: [f(1), f(2)], n: 2 }] };
+      if (compararAplicacion(losa, bien, h).estado !== 'igual') return 'la firma correcta no dio «igual»';
+      const cruzado = {
+        objetos: 2,
+        sinCarga: 0,
+        cargas: [c(2, 2), c(1, 2)],
+        firmas: [{ cargas: [f(2), f(2)], n: 1 }, { cargas: [f(1), f(1)], n: 1 }],
+      };
+      const x = compararAplicacion(losa, cruzado, h);
+      if (x.estado !== 'difiere') return 'un reparto cruzado entre objetos dio «igual»';
+      return x.detalle.includes('2 formas') ? null : `el detalle no dice el reparto: ${x.detalle}`;
     },
   },
   {

@@ -12,10 +12,24 @@ import { Component, type ErrorInfo, type ReactNode } from 'react';
  * arregla la obra y sí se lleva el trabajo de la otra vista.
  */
 export interface Rescate {
-  /** La clave de `localStorage` donde está lo que hay que salvar. */
-  clave: string;
+  /**
+   * Lee lo que hay que salvar, CRUDO —sin pasar por el saneo ni el motor que
+   * acaban de fallar—, o `null` si no hay nada.
+   *
+   * Una función y no una clave: una obra no es una clave entera sino una entrada
+   * dentro de `structflow.obras.v1` —o su borrador, si vive en disco—, y leer la
+   * clave entera ofrecía descargar todas las obras del navegador menos la rota.
+   */
+  leer: () => string | null;
   /** Nombre del archivo descargado. */
   archivo: string;
+  /**
+   * La clave que se sugiere borrar si al recargar vuelve a fallar. Sin ella no se
+   * sugiere nada: borrar una clave compartida se llevaría trabajo ajeno.
+   */
+  clave?: string;
+  /** Lo que se dice cuando no hay nada en el navegador que descargar. */
+  siNoHay?: string;
 }
 
 interface Props {
@@ -67,7 +81,7 @@ export default class ErrorBoundary extends Component<Props, State> {
     const rescate = this.props.rescate;
     if (!rescate) return;
     try {
-      const raw = localStorage.getItem(rescate.clave);
+      const raw = rescate.leer();
       if (!raw) return;
       const url = URL.createObjectURL(new Blob([raw], { type: 'application/json' }));
       const a = document.createElement('a');
@@ -92,7 +106,7 @@ export default class ErrorBoundary extends Component<Props, State> {
     const rescate = this.props.rescate;
     if (!rescate) return false;
     try {
-      return !!localStorage.getItem(rescate.clave);
+      return !!rescate.leer();
     } catch {
       return false;
     }
@@ -118,6 +132,8 @@ export default class ErrorBoundary extends Component<Props, State> {
               <strong>Tu trabajo no se ha perdido</strong>: sigue guardado en el navegador.
               Descárgalo antes de recargar.
             </>
+          ) : rescate?.siNoHay ? (
+            <>{rescate.siNoHay}</>
           ) : (
             <>Lo último que hayas escrito puede no haberse guardado.</>
           )}
@@ -152,7 +168,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             ← Inicio
           </a>
         </div>
-        {rescate && rescatable && (
+        {rescate?.clave && rescatable && (
           <p className="mt-3 text-xs text-red-800">
             Si al recargar vuelve a fallar, lo guardado es la causa: bórralo con{' '}
             <code className="font-mono">localStorage.removeItem('{rescate.clave}')</code> en la

@@ -1,6 +1,6 @@
 import { useLayoutEffect } from 'react';
 import MathCanvas from './components/canvas/MathCanvas';
-import ErrorBoundary from './components/ErrorBoundary';
+import ErrorBoundary, { type Rescate } from './components/ErrorBoundary';
 import Landing from './components/Landing';
 import CatalogoPagina from './components/CatalogoPagina';
 import IndiceDiseno from './components/diseno/IndiceDiseno';
@@ -14,7 +14,8 @@ import Calibrar from './components/dev/Calibrar';
 import { moduloPorId } from './lib/diseno/registro';
 import type { Ruta } from './lib/ruta';
 import { STORAGE_KEY } from './lib/hoja-guardada';
-import { CLAVE_OBRAS } from './proyecto/obra/almacen';
+import { obraCruda } from './proyecto/obra/almacen';
+import { borradorCrudo } from './proyecto/obra/almacen-disco';
 
 /**
  * Qué rescata la pantalla de un fallo de render, por vista.
@@ -24,8 +25,25 @@ import { CLAVE_OBRAS } from './proyecto/obra/almacen';
  * canvas —y no hacía nada si no había ninguna— y el texto final pedía borrar esa
  * misma clave, que no arregla la obra y sí se lleva el trabajo de la otra vista.
  */
-const RESCATE_CANVAS = { clave: STORAGE_KEY, archivo: 'hoja-recuperada.json' };
-const RESCATE_OBRAS = { clave: CLAVE_OBRAS, archivo: 'obras-recuperadas.json' };
+const RESCATE_CANVAS: Rescate = {
+  leer: () => localStorage.getItem(STORAGE_KEY),
+  archivo: 'hoja-recuperada.json',
+  clave: STORAGE_KEY,
+};
+
+/**
+ * Una obra es SU entrada, no la clave entera de las obras del navegador: esa
+ * ofrecía bajar todas las demás y ninguna de disco. Una obra en disco solo deja
+ * aquí su borrador; lo demás sigue en su carpeta, y al desmontarse el canvas
+ * vacía lo pendiente al disco.
+ */
+const rescateDeObra = (id: string): Rescate => ({
+  leer: () => obraCruda(id) ?? borradorCrudo(id),
+  archivo: `${id}-recuperada.json`,
+  siNoHay:
+    'Si la obra está en su carpeta del disco, lo guardado sigue ahí; lo que no alcanzó a ' +
+    'llegar se ofrece como borrador al volver a abrirla.',
+});
 
 /**
  * El conmutador de vistas.
@@ -136,7 +154,7 @@ export default function App() {
     // guarda en este navegador.
     case 'obra':
       return (
-        <ErrorBoundary key={`obra:${ruta.id}`} rotulo="La obra" rescate={RESCATE_OBRAS}>
+        <ErrorBoundary key={`obra:${ruta.id}`} rotulo="La obra" rescate={rescateDeObra(ruta.id)}>
           <CanvasObraConProveedor id={ruta.id} />
         </ErrorBoundary>
       );

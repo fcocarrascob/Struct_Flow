@@ -229,9 +229,16 @@ export function aplicacionesDeObra(obra: Obra, evaluaciones: Record<string, Eval
 export interface LeidaAplicacion {
   objetos?: number;
   sinCarga?: number;
-  cargas?: { valor: number; dir: number; dist?: number; uniforme?: boolean; fuerza?: boolean; n: number }[];
+  cargas?: CargaLeida[];
+  /**
+   * Cuántos objetos llevan cada combinación exacta de cargas del patrón. Un
+   * puente anterior no la manda, y entonces se compara solo por conteo.
+   */
+  firmas?: { cargas: Omit<CargaLeida, 'n'>[]; n: number }[];
   error?: string;
 }
+
+type CargaLeida = { valor: number; dir: number; dist?: number; uniforme?: boolean; fuerza?: boolean; n: number };
 
 const MISMO_VALOR = (a: number, b: number) => Math.abs(a - b) <= 1e-6 * Math.max(1, Math.abs(b));
 
@@ -260,10 +267,10 @@ export function hermanasDe(filas: readonly FilaAplicacion[], f: FilaAplicacion):
  * dirección y su distribución: dos partidas de 2 y 1 kN/m² sobre `CUB` esperan
  * leer las dos en todos los objetos, no un 3 ni un 2 solo.
  *
- * El puente lee cuántas veces aparece cada carga, no qué objeto lleva cuál. Con
- * los objetos todos cargados y cada carga en exactamente tantos como hermanas la
- * piden, la única forma de no coincidir es un reparto hecho a mano en SAP que
- * cambie cargas iguales de sitio: ese caso no se distingue.
+ * Con `firmas` —la combinación de cargas de cada objeto— la comparación es
+ * exacta: todos los objetos tienen que llevar la misma, y esa ser una carga por
+ * hermana. Sin ellas (un puente anterior) se compara por conteo, que no
+ * distingue un reparto hecho a mano en SAP que cambie cargas iguales de objeto.
  */
 export function compararAplicacion(
   f: FilaAplicacion,
@@ -276,27 +283,46 @@ export function compararAplicacion(
   const clase = f.aplicacion.tipo === 'area-a-barras' ? 'áreas' : 'barras';
   if (objetos === 0) return { estado: 'sin-objetos', detalle: `El grupo ${f.aplicacion.grupo} no tiene ${clase}.` };
   const cargas = l.cargas ?? [];
-  const coincide = (c: NonNullable<LeidaAplicacion['cargas']>[number], h: FilaAplicacion) =>
+  const coincide = (c: Omit<CargaLeida, 'n'>, h: FilaAplicacion) =>
     MISMO_VALOR(c.valor, h.valor ?? NaN) &&
     c.dir === h.aplicacion.direccion &&
     (h.aplicacion.tipo === 'area-a-barras' ? c.dist === h.aplicacion.distribucion : c.uniforme === true && c.fuerza === true);
 
-  // Cada hermana consume `objetos` apariciones de una carga que coincide con
-  // ella; al final no tiene que sobrar ninguna.
-  const quedan = cargas.map((c) => c.n);
-  const cuadra =
-    (l.sinCarga ?? 0) === 0 &&
-    hermanas.every((h) => {
-      const i = cargas.findIndex((c, j) => quedan[j] >= objetos && coincide(c, h));
+  /** ¿Estas cargas son exactamente una por hermana, ni más ni menos? */
+  const esLaFirma = (cs: readonly Omit<CargaLeida, 'n'>[]) => {
+    const libres = [...cs];
+    for (const h of hermanas) {
+      const i = libres.findIndex((c) => coincide(c, h));
       if (i < 0) return false;
-      quedan[i] -= objetos;
-      return true;
-    }) &&
-    quedan.every((n) => n === 0);
+      libres.splice(i, 1);
+    }
+    return libres.length === 0;
+  };
+
+  // Por conteo: cada hermana consume `objetos` apariciones de una carga que
+  // coincide con ella, y al final no tiene que sobrar ninguna.
+  const porConteo = () => {
+    const quedan = cargas.map((c) => c.n);
+    return (
+      (l.sinCarga ?? 0) === 0 &&
+      hermanas.every((h) => {
+        const i = cargas.findIndex((c, j) => quedan[j] >= objetos && coincide(c, h));
+        if (i < 0) return false;
+        quedan[i] -= objetos;
+        return true;
+      }) &&
+      quedan.every((n) => n === 0)
+    );
+  };
+  const cuadra = l.firmas
+    ? l.firmas.length === 1 && l.firmas[0].n === objetos && esLaFirma(l.firmas[0].cargas)
+    : porConteo();
   if (cuadra) return { estado: 'igual', detalle: '' };
 
   const partes = cargas.map((c) => `${numero(Number(c.valor.toPrecision(4)))} en ${c.n} de ${objetos}`);
   if (l.sinCarga) partes.push(`sin carga en ${l.sinCarga} de ${objetos}`);
+  const conCarga = (l.firmas ?? []).filter((f) => f.cargas.length > 0).length;
+  if (conCarga > 1) partes.push(`repartidas de ${conCarga} formas distintas entre los objetos`);
   const flow =
     hermanas.length > 1
       ? ` · Flow: ${hermanas.map((h) => numero(Number((h.valor ?? NaN).toPrecision(4)))).join(' + ')} en cada objeto`

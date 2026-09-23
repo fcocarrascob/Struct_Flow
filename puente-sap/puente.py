@@ -363,19 +363,27 @@ def leer_aplicaciones(cuerpo):
             objetos = areas if tipo == "area-a-barras" else barras
             leer = _cargas_area_a_barras if tipo == "area-a-barras" else _cargas_barra
             conteo = {}
+            firmas = {}
             sin_carga = 0
             for o in objetos:
                 cargas = leer(modelo, o, patron)
                 if not cargas:
                     sin_carga += 1
-                for c in cargas:
-                    clave = json.dumps(c, sort_keys=True)
+                claves = sorted(json.dumps(c, sort_keys=True) for c in cargas)
+                for clave in claves:
                     conteo[clave] = conteo.get(clave, 0) + 1
+                # La firma de un objeto: TODAS sus cargas de este patrón, juntas.
+                # El conteo dice cuántas veces aparece cada carga en el grupo, no
+                # quién la lleva; con la firma, un objeto con dos cargas de 2 y
+                # otro con dos de 1 ya no se confunden con dos objetos de 2 + 1.
+                firma = json.dumps(claves)
+                firmas[firma] = firmas.get(firma, 0) + 1
             resultado.append({
                 "id": ident,
                 "objetos": len(objetos),
                 "sinCarga": sin_carga,
                 "cargas": [{**json.loads(k), "n": v} for k, v in conteo.items()],
+                "firmas": [{"cargas": [json.loads(c) for c in json.loads(f)], "n": v} for f, v in firmas.items()],
             })
     return {"modelo": nombre, "ruta": ruta, "aplicaciones": resultado}
 

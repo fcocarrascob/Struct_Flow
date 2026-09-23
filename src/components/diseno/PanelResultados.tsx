@@ -12,6 +12,42 @@ interface Props {
 const VERDE = '#15803d';
 const ROJO = '#b91c1c';
 
+/**
+ * Un valor en la unidad que declara su salida.
+ *
+ * Si no se puede expresar en ella —una genérica que declara `kN` para algo en
+ * kN·m, o una unidad para un número puro—, `formatValor` lanza, y sin esto el
+ * panel entero se caía en cada recarga: el valor por defecto era el que fallaba.
+ * Se muestra en su propia unidad, marcado: es un defecto de la declaración, y
+ * esconder el número no lo arregla.
+ */
+function ValorEnUnidad({ v, unidad, conUnidad }: { v: unknown; unidad?: string; conUnidad: boolean }) {
+  try {
+    const texto = formatValor(v, unidad);
+    return (
+      <>
+        {texto}
+        {unidad && conUnidad && <span className="ml-1 text-[10px] text-muted">{unidad}</span>}
+      </>
+    );
+  } catch (e) {
+    let crudo: string;
+    try {
+      crudo = formatValor(v);
+    } catch {
+      crudo = String(v);
+    }
+    return (
+      <span
+        style={{ color: ROJO }}
+        title={`La salida declara «${unidad}», y este valor no se puede expresar en esa unidad: ${(e as Error).message}`}
+      >
+        {crudo} ⚠
+      </span>
+    );
+  }
+}
+
 /** El uso, si el símbolo trae un número; `null` si no se pudo calcular. */
 function uso(v: unknown): number | null {
   return typeof v === 'number' && Number.isFinite(v) ? v : null;
@@ -302,12 +338,7 @@ export default function PanelResultados({ salidas, scope, errores }: Props) {
                     {v === undefined ? (
                       <span className="text-muted">—</span>
                     ) : (
-                      <>
-                        {formatValor(v, s.unidad)}
-                        {s.unidad && s.tipo === 'valor' && (
-                          <span className="ml-1 text-[10px] text-muted">{s.unidad}</span>
-                        )}
-                      </>
+                      <ValorEnUnidad v={v} unidad={s.unidad} conUnidad={s.tipo === 'valor'} />
                     )}
                   </dd>
                 </div>

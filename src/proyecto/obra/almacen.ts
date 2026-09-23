@@ -433,6 +433,16 @@ function leerCrudo(): unknown[] {
   }
 }
 
+/**
+ * Una obra del navegador tal como está escrita, en JSON, o `null`. Es lo que
+ * descarga la pantalla de un fallo de render: sin pasar por `sanearObra`, que
+ * puede ser justo lo que falló.
+ */
+export function obraCruda(id: string): string | null {
+  const cruda = leerCrudo().find((o) => idDeObra(o) === id);
+  return cruda === undefined ? null : JSON.stringify(cruda, null, 2);
+}
+
 function leerTodo(): Obra[] {
   return leerCrudo()
     .map(sanearObra)

@@ -113,6 +113,9 @@ const COLOR: Record<Severidad, string> = {
 
 const ENCUADRE = { padding: 0.25, duration: 250, maxZoom: 1 };
 
+/** Cuánto tiempo tras abrir se sigue re-encuadrando mientras los nodos crecen. */
+const ASIENTO_MS = 4000;
+
 /** El trazo de un nodo: lo que entra (de qué depende) en el acento, y lo que sale
  *  (a quién afecta) en verde. Con un solo color, una flecha larga no dice de qué
  *  lado del foco está. */
@@ -638,14 +641,32 @@ function CanvasObra({
   // nunca. Una obra con tres nodos abría con el lienzo en otro sitio y los nodos
   // fuera de la pantalla — visibles solo en el minimapa.
   const encuadrado = useRef(false);
+  /** Cuándo se encuadró por primera vez: ver el efecto siguiente. */
+  const encuadradoEn = useRef(0);
+  /** El usuario movió o hizo zoom en el lienzo: desde ahí el encuadre es suyo. */
+  const lienzoTocado = useRef(false);
   useEffect(() => {
     if (!medidos || encuadrado.current || nodos.length === 0) return;
     const t = window.setTimeout(() => {
       encuadrado.current = true;
+      encuadradoEn.current = performance.now();
       fitView(ENCUADRE);
     }, 30);
     return () => window.clearTimeout(t);
   }, [medidos, nodos.length, fitView]);
+
+  // Y se vuelve a encuadrar MIENTRAS EL CONTENIDO SE ASIENTA. Las planillas de
+  // la biblioteca llegan después del primer encuadre, sus nodos crecen y la
+  // columna se alarga por debajo: el Pachón abría con la última fila cortada por
+  // el borde. Solo en los primeros segundos y solo si nadie tocó el lienzo, para
+  // no quitarle al usuario el encuadre que eligió.
+  const firmaDeTamanos = nodos.map((n) => `${n.measured?.height ?? 0}:${Math.round(n.position.y)}`).join(',');
+  useEffect(() => {
+    if (!encuadrado.current || lienzoTocado.current) return;
+    if (performance.now() - encuadradoEn.current > ASIENTO_MS) return;
+    const t = window.setTimeout(() => fitView(ENCUADRE), 60);
+    return () => window.clearTimeout(t);
+  }, [firmaDeTamanos, fitView]);
 
   const alCambiarNodos = useCallback(
     (cambios: NodeChange[]) => {
@@ -1654,6 +1675,11 @@ function CanvasObra({
             // arrastrar una a mano dibujaría una relación que nadie guarda y que
             // el siguiente render se lleva.
             nodesConnectable={false}
+            // `event` solo viene cuando el movimiento lo hizo el usuario; el de
+            // `fitView` llega sin él.
+            onMoveStart={(event) => {
+              if (event) lienzoTocado.current = true;
+            }}
             minZoom={0.05}
             proOptions={{ hideAttribution: false }}
           >

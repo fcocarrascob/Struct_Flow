@@ -59,6 +59,7 @@ import { hayTrabajoGuardado } from '../../lib/hoja-guardada';
 import { descargarHoja } from '../../lib/canvas-handoff';
 import { useHojaPersistida, type OrigenHoja } from './useHojaPersistida';
 import { esHojaDemo, ORIGEN_LOCAL } from './origen-local';
+import { tomarEntrante } from './abrir-en-canvas';
 import Enlace from '../Enlace';
 
 /**
@@ -589,6 +590,17 @@ export default function MathCanvas({
     },
     [seleccionar],
   );
+
+  // La hoja que mandó otra vista («Abrir en el canvas» de un módulo o de un nodo
+  // de obra). Se abre como una planilla del catálogo, por `cargarHoja`, así que
+  // Ctrl+Z devuelve la hoja que había. `hayTrabajo: false` porque el «¿reemplazar?»
+  // ya lo preguntó quien la mandó.
+  useEffect(() => {
+    if (!deepLinks) return;
+    const entrante = tomarEntrante();
+    if (entrante) cargarHoja(entrante, { hayTrabajo: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Deep-link: /canvas?plantilla=<id> abre esa plantilla al entrar.
   useEffect(() => {
@@ -1471,6 +1483,18 @@ export default function MathCanvas({
         >
           ← Inicio
         </Enlace>
+        {/* La mayoría de las planillas se abren desde el catálogo, y volver a
+            él pasaba por el menú. Solo en la hoja suelta: dentro de una obra, el
+            catálogo no es de donde se vino. */}
+        {deepLinks && (
+          <Enlace
+            a={{ vista: 'planillas' }}
+            className={`${toolBtn} no-underline`}
+            title="Volver al catálogo de planillas"
+          >
+            Catálogo
+          </Enlace>
+        )}
         <span className="mx-0.5 h-5 w-px bg-border" />
         <button
           className={toolBtn}
