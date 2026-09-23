@@ -124,7 +124,7 @@ export default function AplicacionEnSap({
       {valor && fila && (
         <p className={`mt-1 font-mono text-[10px] ${fila.error ? 'text-error' : 'text-muted'}`}>
           {fila.error ??
-            `valor en SAP: ${numero(Number(fila.valor!.toPrecision(6)))} ${fila.unidad.replace('^2', '²')}, ${sentido(valor.direccion, fila.valor!)}`}
+            `aplica en SAP: ${numero(Number(fila.valor!.toPrecision(6)))} ${fila.unidad.replace('^2', '²')}, ${sentido(valor.direccion, fila.valor!)}`}
         </p>
       )}
       {valor && !valor.grupo.trim() && <p className="mt-1 text-[10px] text-aviso">Falta el grupo.</p>}

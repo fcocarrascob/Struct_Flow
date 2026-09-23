@@ -67,11 +67,9 @@ const {
   avisosPesoPropio,
   traerDeSap,
   adoptarDeSap,
-  planEmpuje,
   aplicacionesDeObra,
   compararAplicacion,
   hermanasDe,
-  planAplicaciones,
 } = motor;
 
 // ── Armar una obra ───────────────────────────────────────────────────────────
@@ -1468,26 +1466,6 @@ const CASOS_PATRONES = [
     },
   },
   {
-    nombre: 'el empuje crea lo que falta, ajusta lo que difiere, omite lo indefinido y nunca borra',
-    ok: () => {
-      const { cambios, omitidas } = planEmpuje(
-        [
-          carga('DEAD', { tipo: 'Dead', pesoPropio: 1 }),
-          carga('LR', { tipo: 'Rooflive', pesoPropio: 0 }),
-          carga('RSX', { tipo: 'Quake', pesoPropio: 0 }),
-          carga('EV'),
-          carga('S', { tipo: 'Snow', pesoPropio: 0 }),
-        ],
-        [leido('DEAD', 'Dead', 1.3), leido('LR', 'Live'), leido('S', 'Snow'), leido('TEMP', 'Temperature')],
-      );
-      const txt = cambios.map((c) => `${c.accion}:${c.nombre}:${c.tipo}:${c.pesoPropio}`).join(' ');
-      const esperado = 'ajustar:DEAD:Dead:1 ajustar:LR:Rooflive:0 crear:RSX:Quake:0';
-      if (txt !== esperado) return `cambios: ${txt}`;
-      if (omitidas.map((o) => o.nombre).join(',') !== 'EV') return `omitidas: ${JSON.stringify(omitidas)}`;
-      return cambios.some((c) => c.nombre === 'TEMP') ? 'tocó un patrón que solo está en SAP' : null;
-    },
-  },
-  {
     nombre: 'una partida aplicada da su valor en la unidad de SAP; con otra dimensión, un error',
     ok: () => {
       const partida = (id, src, aplicacion) => ({
@@ -1539,29 +1517,7 @@ const CASOS_PATRONES = [
     },
   },
   {
-    nombre: 'escribir cargas: un patrón que cambia se reescribe entero, lo igual se deja, lo roto se omite',
-    ok: () => {
-      const ap = (tipo, grupo) => ({ tipo, grupo, direccion: 10, ...(tipo === 'area-a-barras' ? { distribucion: 1 } : {}) });
-      const fila = (id, patron, valor, extra = {}) => ({ id, patron, partida: id, unidad: 'kN/m^2', valor, aplicacion: ap('area-a-barras', 'CUB'), ...extra });
-      const filas = [
-        fila('a1', 'SDL_CUB', 0.1),
-        fila('a2', 'SDL_CUB', 0.05, { aplicacion: ap('area-a-barras', 'CUB2') }),
-        fila('b1', 'S', 0.5),
-        fila('c1', 'LR', undefined, { error: 'sin valor' }),
-        fila('d1', 'POLVO', 0.2, { aplicacion: ap('area-a-barras', '  ') }),
-      ];
-      const estados = { a1: 'igual', a2: 'difiere', b1: 'igual' };
-      const { escribir, omitidas } = planAplicaciones(filas, (f) => estados[f.id]);
-      const ids = escribir.map((f) => f.id).join(',');
-      if (ids !== 'a1,a2') return `escribe: ${ids} (tiene que ser el patrón SDL_CUB entero, y nada de S)`;
-      const om = omitidas.map((o) => o.id).join(',');
-      if (om !== 'c1,d1') return `omitidas: ${om}`;
-      // Sin comparación no se sabe qué está igual: se escribe todo lo que se puede.
-      return planAplicaciones(filas, () => undefined).escribir.length === 3 ? null : 'sin comparar no escribió todo';
-    },
-  },
-  {
-    nombre: 'dos partidas del mismo patrón sobre el mismo grupo quedan «igual» tras escribirse',
+    nombre: 'dos partidas del mismo patrón sobre el mismo grupo quedan «igual» cuando el modelo tiene las dos',
     ok: () => {
       const ap = { tipo: 'area-a-barras', grupo: 'CUB', direccion: 10, distribucion: 1 };
       const fila = (id, valor) => ({ id, patron: 'CM', partida: id, unidad: 'kN/m^2', valor, aplicacion: ap });
@@ -1569,7 +1525,7 @@ const CASOS_PATRONES = [
       const [losa, term] = filas;
       const h = hermanasDe(filas, losa);
       if (h.length !== 2) return `hermanas: ${h.length}`;
-      // Lo que el puente deja: las dos cargas en cada uno de los 10 objetos.
+      // Lo que el ingeniero tiene que dejar: las dos cargas en cada uno de los 10 objetos.
       const c = (valor, n) => ({ valor, dir: 10, dist: 1, n });
       const escrito = { objetos: 10, sinCarga: 0, cargas: [c(2, 10), c(1, 10)] };
       if (compararAplicacion(losa, escrito, h).estado !== 'igual') return 'la primera no dio «igual»';
@@ -1600,22 +1556,6 @@ const CASOS_PATRONES = [
       const x = compararAplicacion(losa, cruzado, h);
       if (x.estado !== 'difiere') return 'un reparto cruzado entre objetos dio «igual»';
       return x.detalle.includes('2 formas') ? null : `el detalle no dice el reparto: ${x.detalle}`;
-    },
-  },
-  {
-    nombre: 'una partida sin valor bloquea su patrón: reescribirlo borraría su carga del modelo',
-    ok: () => {
-      const ap = { tipo: 'area-a-barras', grupo: 'LOSA', direccion: 10, distribucion: 1 };
-      const filas = [
-        { id: 'a', patron: 'CM', partida: 'A', unidad: 'kN/m^2', valor: 2, aplicacion: ap },
-        { id: 'b', patron: 'CM', partida: 'B', unidad: 'kN/m^2', error: 'La partida no tiene valor.', aplicacion: ap },
-        { id: 'c', patron: 'SC', partida: 'C', unidad: 'kN/m^2', valor: 1, aplicacion: ap },
-      ];
-      const { escribir, omitidas, bloqueados } = planAplicaciones(filas, () => 'difiere');
-      if (escribir.map((f) => f.id).join(',') !== 'c') return `escribe: ${escribir.map((f) => f.id)} (CM no puede ir)`;
-      if (omitidas.map((o) => o.id).join(',') !== 'b') return `omitidas: ${omitidas.map((o) => o.id)}`;
-      const b = bloqueados.map((x) => `${x.patron}:${x.partidas.join('+')}`).join(',');
-      return b === 'CM:B' ? null : `bloqueados: ${b}`;
     },
   },
 ];

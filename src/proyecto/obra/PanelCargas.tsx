@@ -92,6 +92,8 @@ function CeldasPatron({
  * pantallas salen de `problemaDeNombre` y no de dos comprobaciones distintas.
  */
 
+const ID_PATRONES = 'patrones-sap-leidos';
+
 const CAMPO =
   'w-full rounded border bg-white px-2 py-1 text-xs text-ink outline-none focus:border-accent';
 
@@ -117,8 +119,15 @@ export default function PanelCargas({
   onAgregarPartida,
   onIrAPartida,
   onCerrar,
+  patronesLeidos = [],
 }: {
   cargas: readonly Carga[];
+  /**
+   * Los Load Patterns de la última lectura del modelo. El nombre de una carga los
+   * sugiere —los que la obra todavía no usa—: una carga es el patrón del mismo
+   * nombre, y escribirlo a mano es la forma más fácil de que no coincidan.
+   */
+  patronesLeidos?: readonly string[];
   /** La carga cuyo nodo está seleccionado en el canvas, para traerla a la vista. */
   enfocada: string | null;
   /** El desglose ya evaluado, por id de carga. Viene de la proyección, que es la
@@ -150,6 +159,8 @@ export default function PanelCargas({
 
   const cargaEnfocada = cargas.find((c) => c.id === enfocada) ?? null;
   const avisos = avisosPesoPropio(patronesDeFlow(cargas));
+  const usados = new Set(cargas.map((c) => c.nombre.trim()));
+  const sugeridos = patronesLeidos.filter((p) => !usados.has(p));
 
   return (
     <aside className="flex h-full w-[32rem] shrink-0 flex-col overflow-y-auto border-l border-border bg-white">
@@ -214,6 +225,7 @@ export default function PanelCargas({
                         else nombres.current.delete(c.id);
                       }}
                       type="text"
+                      list={sugeridos.length ? ID_PATRONES : undefined}
                       value={c.nombre}
                       onChange={(e) => onCambiar(c.id, { nombre: e.target.value })}
                       aria-label="Nombre de la carga"
@@ -249,6 +261,14 @@ export default function PanelCargas({
             })}
           </div>
         )}
+
+        <datalist id={ID_PATRONES}>
+          {sugeridos.map((p) => (
+            <option key={p} value={p}>
+              patrón del modelo
+            </option>
+          ))}
+        </datalist>
 
         <div className="mt-3">
           <button

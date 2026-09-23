@@ -3,8 +3,10 @@
 //
 // FLOW MANDA. La obra dice qué patrones debería tener el modelo —nombre, tipo y
 // multiplicador de peso propio— y esto dice en qué se aparta el modelo leído.
-// Es puro: la lectura la trae el puente (`puente-sap/`), y compararla no
-// necesita SAP ni navegador, así que `verify:obra` la prueba.
+// Flow no corrige el modelo: lo corrige el ingeniero en SAP, y Flow vuelve a
+// leer (`docs/rumbo.md`, «Flow no escribe en el modelo»). Es puro: la lectura
+// la trae el puente (`puente-sap/`), y compararla no necesita SAP ni
+// navegador, así que `verify:obra` la prueba.
 //
 // Una carga de Flow es un patrón de SAP con el MISMO NOMBRE. No se adivinan
 // equivalencias: `CLV` en Flow y `CLV_P1` en SAP salen como dos filas sueltas,
@@ -147,37 +149,6 @@ export function adoptarDeSap(obra: Obra, nombres: readonly string[], lista: read
   };
 }
 
-export interface CambioPatron extends PatronSap {
-  nombre: string;
-  accion: 'crear' | 'ajustar';
-}
-
-/**
- * Lo que empujar a SAP escribiría: crear los patrones que faltan en el modelo y
- * ajustar el tipo y el peso propio de los que difieren. Nada más.
- *
- * - Un patrón que solo está en SAP NO se toca, y menos se borra: puede ser un
- *   caso que Flow todavía no conoce, y borrarlo en SAP es decisión del usuario.
- * - Una carga que falta en SAP pero no dice su tipo se OMITE y se dice: crearla
- *   con un tipo inventado sería escribir en el modelo algo que nadie decidió.
- */
-export function planEmpuje(
-  cargas: readonly Carga[],
-  lista: readonly PatronLeido[],
-): { cambios: CambioPatron[]; omitidas: { nombre: string; motivo: string }[] } {
-  const cambios: CambioPatron[] = [];
-  const omitidas: { nombre: string; motivo: string }[] = [];
-  for (const f of compararPatrones(cargas, lista)) {
-    if (f.estado === 'solo-flow') {
-      if (f.flow) cambios.push({ nombre: f.nombre, accion: 'crear', ...f.flow });
-      else omitidas.push({ nombre: f.nombre, motivo: 'no dice su tipo SAP' });
-    } else if (f.estado === 'difiere' && f.flow) {
-      cambios.push({ nombre: f.nombre, accion: 'ajustar', ...f.flow });
-    }
-  }
-  return { cambios, omitidas };
-}
-
 // ── La aplicación de una partida sobre los objetos del modelo ────────────────
 
 /** La unidad en que SAP recibe cada tipo de carga (el puente trabaja en kN-m). */
@@ -244,8 +215,9 @@ const MISMO_VALOR = (a: number, b: number) => Math.abs(a - b) <= 1e-6 * Math.max
 
 /**
  * Las partidas que caen sobre los mismos objetos con el mismo patrón y el mismo
- * tipo de carga. El puente las escribe juntas —la primera reemplaza, las demás se
- * suman—, así que cada objeto del grupo termina con UNA carga por cada una.
+ * tipo de carga. En el modelo se suman: cada objeto del grupo tiene que llevar UNA
+ * carga por cada una, y así es como el ingeniero las aplica en SAP (asignar
+ * «añadir a las existentes», no «reemplazar»).
  */
 export function hermanasDe(filas: readonly FilaAplicacion[], f: FilaAplicacion): FilaAplicacion[] {
   return filas.filter(
@@ -328,49 +300,6 @@ export function compararAplicacion(
       ? ` · Flow: ${hermanas.map((h) => numero(Number((h.valor ?? NaN).toPrecision(4)))).join(' + ')} en cada objeto`
       : '';
   return { estado: 'difiere', detalle: `SAP: ${partes.join('; ') || 'sin carga'}${flow}` };
-}
-
-/**
- * Qué aplicaciones escribir en SAP.
- *
- * SE ESCRIBE POR PATRÓN ENTERO. El puente reemplaza lo que el patrón tenía en
- * cada objeto con la primera partida que lo toca: si solo se mandara la partida
- * que cambió, el reemplazo borraría a sus hermanas del mismo patrón que estaban
- * iguales. Un patrón en el que todo está `igual` no se toca.
- *
- * `estado` dice cómo quedó cada fila en la última comparación; sin comparación
- * (`undefined`) no se sabe, y se escribe.
- *
- * Una fila sin valor o sin grupo se omite y se dice. Y su patrón entero se
- * BLOQUEA: reescribirlo sin ella reemplazaría —borraría— la carga que esa
- * partida tenga hoy en el modelo, y la confirmación no lo diría.
- */
-export function planAplicaciones(
-  filas: readonly FilaAplicacion[],
-  estado: (f: FilaAplicacion) => string | undefined,
-): {
-  escribir: FilaAplicacion[];
-  omitidas: { id: string; partida: string; motivo: string }[];
-  bloqueados: { patron: string; partidas: string[] }[];
-} {
-  const omitidas: { id: string; partida: string; motivo: string; patron: string }[] = [];
-  const validas: FilaAplicacion[] = [];
-  for (const f of filas) {
-    const o = { id: f.id, partida: f.partida, patron: f.patron };
-    if (f.error || f.valor === undefined) omitidas.push({ ...o, motivo: f.error ?? 'sin valor' });
-    else if (!f.aplicacion.grupo.trim()) omitidas.push({ ...o, motivo: 'sin grupo' });
-    else validas.push(f);
-  }
-  const rotos = new Map<string, string[]>();
-  for (const o of omitidas) rotos.set(o.patron, [...(rotos.get(o.patron) ?? []), o.partida]);
-  const cambian = new Set(validas.filter((f) => estado(f) !== 'igual').map((f) => f.patron));
-  return {
-    escribir: validas.filter((f) => cambian.has(f.patron) && !rotos.has(f.patron)),
-    omitidas: omitidas.map(({ patron: _, ...o }) => o),
-    bloqueados: [...rotos]
-      .filter(([patron]) => cambian.has(patron))
-      .map(([patron, partidas]) => ({ patron, partidas })),
-  };
 }
 
 /** Las cargas de Flow que ya dicen cómo es su patrón, en la forma de `avisosPesoPropio`. */

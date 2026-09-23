@@ -15,8 +15,7 @@ retirar.
   Con el servidor no pasa.
 - **Solo lectura no impide editar.** La pestaña sin candado deja tocar la obra y lo dice en
   la banda, pero lo escrito se descarta al tomar el control. Bloquear la edición significa
-  llegar a los paneles y al canvas de cada pestaña de hoja. Lo que no se descarta —escribir
-  en SAP— ya está bloqueado sin el candado.
+  llegar a los paneles y al canvas de cada pestaña de hoja.
 - **El candado vive en la memoria del servidor.** Dos servidores sobre la misma raíz (`npm run
   dev` y `npm run obras`) no lo comparten, y reiniciar el servidor lo suelta.
 - **Escribir una obra no es atómico entre archivos**: cada archivo se escribe entero (temporal
@@ -58,6 +57,7 @@ retirar.
   antes si `/proyecto/<slug>` desaparece (etapa 1).
 - **`sanearConInforme` no tiene caso de regresión**: no encaja en `verify:motor` ni en
   `verify:obra`. Se comprobó a mano; le falta su sitio.
+
 ## SAP2000
 
 Lo que dejó a la vista la primera comparación de Load Patterns contra el modelo del Pachón,
@@ -74,6 +74,12 @@ para la sesión de ajustes:
 - La tabla de patrones es larga (33 filas en el Pachón) y no se filtra por estado.
 - **El tope de 30 s es del navegador, no de SAP.** Si una llamada COM se cuelga, Flow deja de
   esperar pero el puente —que atiende de a una— sigue ocupado hasta que SAP responda.
+- **La aplicación no cubre todo lo que el Pachón usa**: cargas puntuales (las ruedas de la
+  grúa), una carga que son varios patrones (una por posición del carro) y las franjas de
+  viento sobre parte de la cubierta. Hoy esas partidas no se pueden verificar.
+- **Lo aplicado fuera de los grupos declarados no se ve.** La comparación mira los objetos del
+  grupo de cada partida; un patrón que además carga objetos que ninguna partida menciona pasa
+  por «igual».
 
 ## Motor
 

@@ -746,10 +746,10 @@ function CanvasObra({
    */
   const historial = useHistorial(obra, setObra, {
     esPerdida: (nueva, asentada) => piezasDeLaObra(nueva) < piezasDeLaObra(asentada),
-    // Lo leído de SAP es una foto del modelo, no una edición: Ctrl+Z tras
-    // «Escribir en SAP» no deshace nada en SAP, y volver a la lectura anterior
-    // ofrecería otra vez escribir lo que ya está escrito. Ni entra en el
-    // historial ni se restaura: cualquier paso vuelve con la lectura de hoy.
+    // Lo leído de SAP es una foto del modelo, no una edición: Ctrl+Z no deshace
+    // nada en SAP, y volver a la lectura anterior mostraría un modelo que ya no
+    // es el que hay. Ni entra en el historial ni se restaura: cualquier paso
+    // vuelve con la lectura de hoy.
     esLectura: soloCambiaSap,
     alRestaurarEstado: (restaurada) => {
       if (!restaurada) return restaurada;
@@ -1717,6 +1717,7 @@ function CanvasObra({
         {!activa && panelDeCargas && (
           <PanelCargas
             cargas={obra.cargas}
+            patronesLeidos={obra.sap?.patrones?.lista.map((p) => p.nombre)}
             enfocada={idCargaSeleccionada}
             evaluaciones={proyeccion.evaluaciones}
             onCambiar={cambiarUnaCarga}
@@ -1885,7 +1886,6 @@ function CanvasObra({
                   : o,
               )
             }
-            soloLectura={soloLectura}
             onCerrar={() => setSeleccion(null)}
           />
         )}

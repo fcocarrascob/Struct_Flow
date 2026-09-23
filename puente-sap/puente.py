@@ -7,29 +7,26 @@ Vite). Es de Flow y de nadie más: no importa nada de Struct_Harness, así la
 aplicación funciona con SAP2000 sin que el asistente esté corriendo
 (`docs/rumbo.md`, «Flow es la aplicación; el Harness, el asistente que la usa»).
 
-SE ENGANCHA, LEE Y ESCRIBE LO MÍNIMO. Nunca lanza SAP2000, nunca abre una
-segunda instancia, nunca guarda ni analiza: se engancha al SAP2000 que el
-usuario ya tiene abierto. Lo que escribe —Load Patterns, grupos nuevos y las
-cargas de las partidas— lo escribe solo tras una confirmación del usuario en
-Flow, y nunca borra un patrón ni guarda el archivo.
+SOLO LEE. Nunca escribe en el modelo, nunca lo guarda ni lo analiza, nunca
+lanza SAP2000 ni abre una segunda instancia: se engancha al que el usuario ya
+tiene abierto y le pregunta qué hay. Las cargas las aplica el ingeniero; Flow
+declara lo que el modelo tiene que tener y verifica que lo tenga
+(`docs/rumbo.md`, «Flow no escribe en el modelo»). Lo único que toca son las
+unidades de pantalla, para leer en kN-m, y las devuelve al terminar.
 
 Rutas:
     GET  /salud      -> {ok}
     POST /conectar   -> {modelo, ruta, version}   o 409 con {motivo}
     GET  /patrones   -> {modelo, ruta, patrones: [{nombre, tipo, pesoPropio}]}
-    POST /patrones   {modelo, cambios} -> {hechos, modelo, ruta, patrones}
-                     (escribe patrones; ver `empujar`)
-    GET  /grupos     -> {modelo, grupos: [{nombre, barras, areas}]}
-    POST /grupos     {nombre, modelo, ruta} -> crea un grupo con la selección actual de SAP
+    GET  /grupos     -> {modelo, ruta, grupos: [{nombre, barras, areas}]}
     POST /aplicaciones/leer {aplicaciones} -> la carga de cada patrón sobre su grupo
-    POST /aplicaciones {modelo, aplicaciones} -> escribe las cargas (ver `escribir_aplicaciones`)
+                     (POST solo porque la lista viaja en el cuerpo: no modifica nada)
 
 Una sola instancia viva, como en el harness: con dos SAP2000.exe, una colgada
 mantiene bloqueados los archivos y no se sabe a cuál se engancharía.
 """
 
 import json
-import os
 import subprocess
 from urllib.parse import urlsplit
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -90,40 +87,14 @@ SIN_GUARDAR = "SAP2000 está abierto, pero el modelo no está guardado todavía.
 def _modelo_guardado():
     """Como `_modelo_abierto`, pero exige un modelo con archivo.
 
-    Lo que Flow lee lo guarda en la obra con el nombre del modelo, y lo que
-    escribe lo exige de vuelta: un modelo sin guardar no tiene nombre que
-    comparar, y leerlo dejaría una lectura que después no deja escribir.
+    Lo que Flow lee lo guarda en la obra con el nombre y la ruta del modelo de
+    donde salió: una verificación que no dice contra qué modelo se hizo no
+    verifica nada, y un modelo sin guardar no tiene nombre.
     """
     modelo = _modelo_abierto()
     ruta, nombre = _nombre_modelo(modelo)
     if not ruta:
         raise ErrorPuente(409, SIN_GUARDAR)
-    return modelo, ruta, nombre
-
-
-def _misma_ruta(a, b):
-    return os.path.normcase(os.path.normpath(a)) == os.path.normcase(os.path.normpath(b))
-
-
-def _modelo_esperado(cuerpo, que):
-    """El modelo abierto, si es el mismo con el que Flow comparó. Si no, un 409.
-
-    Compara la RUTA completa cuando Flow la manda: dos copias de `v46.sdb` en
-    carpetas distintas tienen el mismo nombre, y escribir en la que no es no se
-    deshace. Sin ruta (una lectura guardada antes de que Flow la enviara) cae al
-    nombre.
-    """
-    modelo, ruta, nombre = _modelo_guardado()
-    esperada, esperado = cuerpo.get("ruta"), cuerpo.get("modelo")
-    if esperada:
-        ok = _misma_ruta(ruta, str(esperada))
-    else:
-        ok = bool(esperado) and nombre == esperado
-    if not ok:
-        raise ErrorPuente(
-            409,
-            f"El modelo abierto es «{ruta}» y {que} se hizo con «{esperada or esperado or '(ninguno)'}». "
-            "Vuelve a leer antes de escribir.")
     return modelo, ruta, nombre
 
 
@@ -173,78 +144,15 @@ def patrones():
     return {"modelo": nombre, "ruta": ruta, "patrones": lista}
 
 
-def empujar(cuerpo):
-    """Escribe en el modelo abierto los Load Patterns que Flow manda.
-
-    Lo PRIMERO que escribe el puente, así que va con tres resguardos:
-
-    - el modelo abierto tiene que ser el que Flow espera (`modelo`): el usuario
-      pudo cambiar de modelo en SAP entre la comparación y la confirmación;
-    - un modelo bloqueado (con resultados) se rechaza: desbloquearlo borra los
-      resultados, y eso lo decide el usuario en SAP, no el puente;
-    - nunca borra un patrón ni guarda el archivo. El .sdb queda modificado en
-      SAP y quien lo usa decide si lo guarda.
-
-    `cambios`: [{nombre, accion: 'crear' | 'ajustar', tipo, pesoPropio}]. Crear
-    agrega también el caso estático lineal del mismo nombre, como hace SAP al
-    definir un patrón a mano, salvo que ya exista un caso con ese nombre.
-    """
-    cambios = cuerpo.get("cambios")
-    if not isinstance(cambios, list) or not cambios:
-        raise ErrorPuente(400, "No hay cambios que escribir.")
-
-    modelo, _, _ = _modelo_esperado(cuerpo, "la lectura de los patrones")
-    if modelo.GetModelIsLocked():
-        raise ErrorPuente(
-            409,
-            "El modelo está bloqueado porque tiene resultados. Desbloquéalo en SAP (se borran los "
-            "resultados) y vuelve a intentar.")
-
-    codigos = {v: k for k, v in _tipos_de_patron().items()}
-    existentes = set(modelo.LoadPatterns.GetNameList()[1] or [])
-    # Un patrón nuevo lleva su caso estático lineal SOLO si no hay ya un caso con
-    # ese nombre. En el modelo del Pachón `RSX` es un caso de espectro: pedirle a
-    # SAP el caso igual lo creaba con el nombre corrido (`RSX1`), un caso estático
-    # que nadie pidió. El caso que existe se respeta tal cual.
-    casos = set(modelo.LoadCases.GetNameList()[1] or [])
-    hechos = []
-    for c in cambios:
-        p, tipo = str(c.get("nombre", "")), str(c.get("tipo", ""))
-        peso = c.get("pesoPropio")
-        if not p or tipo not in codigos or not isinstance(peso, (int, float)):
-            raise ErrorPuente(400, f"Cambio mal formado: {c!r}")
-        if p in existentes:
-            r1 = modelo.LoadPatterns.SetLoadType(p, codigos[tipo])
-            r2 = modelo.LoadPatterns.SetSelfWTMultiplier(p, float(peso))
-            ok = r1 == 0 and r2 == 0
-            accion = "ajustado"
-        else:
-            ok = modelo.LoadPatterns.Add(p, codigos[tipo], float(peso), p not in casos) == 0
-            accion = "creado"
-        if not ok:
-            # Lo hecho hasta aquí queda hecho: se dice exactamente hasta dónde se llegó.
-            hechos_txt = ", ".join(h["nombre"] for h in hechos) or "ninguno"
-            raise ErrorPuente(502, f"SAP2000 rechazó «{p}». Antes se escribieron: {hechos_txt}.")
-        hechos.append({"nombre": p, "accion": accion})
-
-    # Lo escrito ya está en el modelo: si la relectura falla, se dice como aviso
-    # y no como error, o Flow informaría que no se escribió lo que sí.
-    try:
-        lectura = patrones()
-    except ErrorPuente as e:
-        return {"hechos": hechos, "aviso": f"Se escribió, pero no se pudo volver a leer: {e.motivo}"}
-    return {"hechos": hechos, **lectura}
-
-
 # ── Grupos y cargas sobre objetos ────────────────────────────────────────────
 
-# Tipos de objeto de `GroupDef.GetAssignments` y `SelectObj.GetSelected`.
+# Tipos de objeto de `GroupDef.GetAssignments`.
 OBJ_BARRA, OBJ_AREA = 2, 5
 KN_M_C = 6  # eUnits.kN_m_C
 
 
 class _EnKnM:
-    """Lee y escribe en kN-m, y devuelve al usuario las unidades que tenía.
+    """Lee en kN-m, y devuelve al usuario las unidades que tenía.
 
     Los valores de la API salen en las unidades de PANTALLA: sin esto, 0,3 kN/m²
     se leería como 0,03 si el usuario estaba mirando en tonf. Y cambiarle las
@@ -286,36 +194,6 @@ def grupos():
         barras, areas = _asignados(modelo, g)
         lista.append({"nombre": str(g), "barras": len(barras), "areas": len(areas)})
     return {"modelo": nombre, "ruta": ruta, "grupos": lista}
-
-
-def grupo_con_seleccion(cuerpo):
-    """Crea un grupo nuevo con lo que el usuario tiene seleccionado en SAP.
-
-    Solo CREA: si el nombre ya existe se niega, porque reasignar un grupo que
-    otras cargas usan cambiaría dónde caen sin que nadie lo vea. Y solo en el
-    modelo al que Flow está conectado (`modelo`/`ruta`), como toda escritura.
-    """
-    grupo = str(cuerpo.get("nombre", "")).strip()
-    if not grupo:
-        raise ErrorPuente(400, "Falta el nombre del grupo.")
-    modelo, _, _ = _modelo_esperado(cuerpo, "la conexión")
-    if grupo in set(modelo.GroupDef.GetNameList()[1] or []):
-        raise ErrorPuente(409, f"Ya hay un grupo «{grupo}» en el modelo. Elige otro nombre.")
-    _, tipos, nombres, ret = modelo.SelectObj.GetSelected()
-    sel = [(t, str(n)) for t, n in zip(tipos or [], nombres or []) if t in (OBJ_BARRA, OBJ_AREA)]
-    if ret != 0 or not sel:
-        raise ErrorPuente(409, "No hay barras ni áreas seleccionadas en SAP2000.")
-    if modelo.GroupDef.SetGroup(grupo) != 0:
-        raise ErrorPuente(502, f"SAP2000 no dejó crear el grupo «{grupo}».")
-    for t, n in sel:
-        objeto = modelo.FrameObj if t == OBJ_BARRA else modelo.AreaObj
-        if objeto.SetGroupAssign(n, grupo) != 0:
-            raise ErrorPuente(502, f"SAP2000 no dejó asignar «{n}» al grupo «{grupo}».")
-    return {
-        "nombre": grupo,
-        "barras": sum(1 for t, _ in sel if t == OBJ_BARRA),
-        "areas": sum(1 for t, _ in sel if t == OBJ_AREA),
-    }
 
 
 def _cargas_area_a_barras(modelo, area, patron):
@@ -386,89 +264,6 @@ def leer_aplicaciones(cuerpo):
                 "firmas": [{"cargas": [json.loads(c) for c in json.loads(f)], "n": v} for f, v in firmas.items()],
             })
     return {"modelo": nombre, "ruta": ruta, "aplicaciones": resultado}
-
-
-def escribir_aplicaciones(cuerpo):
-    """Escribe las cargas de las partidas sobre los objetos de sus grupos.
-
-    `aplicaciones`: [{id, patron, tipo, grupo, direccion, distribucion?, valor}],
-    con `valor` en kN/m² (área) o kN/m (barra): el puente trabaja en kN-m.
-
-    PRIMERO SE VALIDA TODO y solo entonces se escribe: el modelo tiene que ser
-    el comparado y no estar bloqueado, cada patrón tiene que existir (se crea con
-    «Escribir en SAP» en los patrones) y cada grupo tiene que tener objetos del
-    tipo que toca. Si algo de eso falla no se escribe nada. Lo que la validación
-    no puede prever es que SAP rechace un objeto a mitad: lo anterior queda
-    escrito, y el error dice exactamente hasta dónde se llegó.
-
-    REEMPLAZA, NO SUMA. La primera aplicación de un patrón sobre un objeto
-    reemplaza lo que ese patrón tenía ahí (del mismo tipo de carga); las
-    siguientes del mismo patrón se suman. Así, escribir dos veces deja el
-    modelo igual. Lo que el patrón tenga en objetos que ninguna partida toca no
-    se toca. No guarda el archivo.
-    """
-    pedidas = cuerpo.get("aplicaciones")
-    if not isinstance(pedidas, list) or not pedidas:
-        raise ErrorPuente(400, "No hay cargas que escribir.")
-    modelo, _, nombre = _modelo_esperado(cuerpo, "la comparación")
-    if modelo.GetModelIsLocked():
-        raise ErrorPuente(
-            409,
-            "El modelo está bloqueado porque tiene resultados. Desbloquéalo en SAP (se borran los "
-            "resultados) y vuelve a intentar.")
-
-    patrones_modelo = set(modelo.LoadPatterns.GetNameList()[1] or [])
-    grupos_modelo = set(modelo.GroupDef.GetNameList()[1] or [])
-    problemas, trabajo = [], []
-    for a in pedidas:
-        patron, tipo, grupo = a.get("patron"), a.get("tipo"), a.get("grupo")
-        valor, direccion = a.get("valor"), a.get("direccion")
-        if patron not in patrones_modelo:
-            problemas.append(f"el patrón {patron} no existe en el modelo (créalo con «Empujar a SAP»)")
-            continue
-        if grupo not in grupos_modelo:
-            problemas.append(f"no hay un grupo {grupo}")
-            continue
-        if tipo not in ("area-a-barras", "barra-distribuida") or not isinstance(valor, (int, float)):
-            problemas.append(f"la carga de {patron} sobre {grupo} está mal formada")
-            continue
-        barras, areas = _asignados(modelo, grupo)
-        objetos = areas if tipo == "area-a-barras" else barras
-        if not objetos:
-            clase = "áreas" if tipo == "area-a-barras" else "barras"
-            problemas.append(f"el grupo {grupo} no tiene {clase}")
-            continue
-        trabajo.append((a, objetos))
-    if problemas:
-        raise ErrorPuente(409, "No se escribió nada: " + "; ".join(problemas) + ".")
-
-    tocados = set()
-    hechos = []
-    with _EnKnM(modelo):
-        for a, objetos in trabajo:
-            patron, tipo = a["patron"], a["tipo"]
-            valor, direccion = float(a["valor"]), int(a.get("direccion", 10))
-            for i, o in enumerate(objetos):
-                clave = (patron, tipo, o)
-                reemplazar = clave not in tocados
-                tocados.add(clave)
-                if tipo == "area-a-barras":
-                    ret = modelo.AreaObj.SetLoadUniformToFrame(
-                        o, patron, valor, direccion, int(a.get("distribucion", 1)), reemplazar, "Global", 0)
-                else:
-                    ret = modelo.FrameObj.SetLoadDistributed(
-                        o, patron, 1, direccion, 0.0, 1.0, valor, valor, "Global", True, reemplazar, 0)
-                if ret != 0:
-                    antes = [f"{h['patron']} en {h['grupo']} ({h['objetos']} objetos)" for h in hechos]
-                    if i:
-                        antes.append(f"{patron} en {a['grupo']} ({i} de {len(objetos)} objetos)")
-                    raise ErrorPuente(
-                        502,
-                        f"SAP2000 rechazó la carga de {patron} en «{o}». Ya quedó escrito: "
-                        f"{', '.join(antes) or 'nada'}. El modelo no se guardó: puedes cerrarlo sin guardar "
-                        "para volver a como estaba.")
-            hechos.append({"id": a.get("id"), "patron": patron, "grupo": a["grupo"], "objetos": len(objetos)})
-    return {"modelo": nombre, "hechos": hechos}
 
 
 class Manejador(BaseHTTPRequestHandler):
@@ -544,12 +339,10 @@ class Manejador(BaseHTTPRequestHandler):
             raise ErrorPuente(400, "El cuerpo no es JSON.") from e
 
     def do_POST(self):  # noqa: N802
+        # Ninguna de estas escribe en el modelo: ver la cabecera.
         self._atender({
             "/conectar": conectar,
-            "/patrones": lambda: empujar(self._cuerpo()),
-            "/grupos": lambda: grupo_con_seleccion(self._cuerpo()),
             "/aplicaciones/leer": lambda: leer_aplicaciones(self._cuerpo()),
-            "/aplicaciones": lambda: escribir_aplicaciones(self._cuerpo()),
         })
 
     def log_message(self, formato, *args):

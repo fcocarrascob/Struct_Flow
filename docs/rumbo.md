@@ -63,6 +63,30 @@ Cómo entra el asistente a una obra:
   (`/proyecto/<slug>`) deja de tener sentido cuando Flow es la GUI; lo que el asistente quiera
   mostrar va dentro de la obra.
 
+## Flow no escribe en el modelo
+
+**2026-09-23.** Flow **solo lee** SAP2000. Calcula y registra las cargas; el ingeniero las aplica
+en el modelo; Flow lee el modelo y verifica que tenga lo que la obra declara. Después viene la
+lectura de resultados y de la configuración de diseño, con el mismo criterio.
+
+- **Una verificación independiente vale más que una escritura cómoda.** Si Flow escribiera y
+  después leyera, se verificaría a sí mismo. Con el ingeniero aplicando y Flow comparando, un
+  error en un camino lo ve el otro. Los errores reales del Pachón son de aplicación, no de
+  cálculo: el área de costaneras que no existía (`H-31`), el peso de la hoja de portón en el
+  paño equivocado y a un décimo (`H-32`), la etiqueta invertida de `WYN`.
+- **Se va el código más riesgoso.** Reemplazar sin borrar a las hermanas, las escrituras a
+  medias, el modelo bloqueado, qué modelo es el esperado: todo eso existía porque Flow
+  escribía. El puente queda sin ninguna ruta que modifique el modelo.
+- **No choca con el harness,** que opera SAP con instancias propias tomadas por PID.
+  Engancharse para leer no le cambia nada a nadie.
+- **Reparto:** Flow declara y verifica; el ingeniero aplica y firma. Si alguna vez hace falta
+  automatizar la escritura, es del asistente (los scripts del harness ya lo hacen), y Flow
+  verifica lo que dejó: dos caminos, que es lo que da valor a la verificación.
+- **Flow no calcula resultantes.** Quien quiera controlar una la escribe en una variable de la
+  obra y la compara a mano.
+- Lo que Flow sí trae **a la obra** —los patrones que no tenía, el tipo y el peso propio de los
+  que no lo decían— no cambia: escribe en la obra, no en el modelo.
+
 ## Lo que no se toca
 
 - **El contrato de las genéricas, los verificadores y la procedencia por sha256.** Hacen la
@@ -139,23 +163,21 @@ antes de dar el siguiente:
    solo en SAP), más el peso propio en ninguna o en dos cargas. Un patrón no tiene valor: los
    valores van en los objetos, y eso es otro paso. **Traer de SAP** también está hecho: la
    comparación crea en la obra las cargas que solo están en el modelo y adopta el patrón de las
-   que Flow no definía, sin pisar nunca uno que Flow ya define. **Empujar a SAP** también: crea
-   los patrones que faltan (con su caso estático, salvo que ya haya un caso con ese nombre) y
-   ajusta tipo y peso propio de los que difieren, tras mostrar la lista exacta y confirmarla.
-   Nunca borra ni guarda, y se niega si el modelo abierto no es el comparado o está bloqueado.
-   Es lo primero que Flow escribe en un modelo.
-1. **La aplicación de una partida sobre los objetos** — primer paso **hecho** (2026-09-23), solo
-   lectura: cada partida dice sobre qué **grupo** del modelo va (uno solo, para que cada
-   componente sea su partida), si es área repartida a barras o distribuida en barra, la
-   dirección y la distribución. El valor no se escribe: es el de la partida, convertido a
-   kN/m² o kN/m por el motor, y una dimensión que no calza es un error. El nodo SAP2000 lee los
-   grupos, crea uno con la selección de SAP y compara cada aplicación con lo que su patrón
-   tiene hoy sobre el grupo. **Escribir las cargas** también: tras comparar y confirmar, se
-   escribe cada patrón que cambió, entero —la primera partida reemplaza lo que el patrón tenía
-   en esos objetos y las siguientes se suman—, así que escribir dos veces deja el modelo igual.
-   Se valida todo antes de escribir nada, y no se toca lo que está fuera de los grupos.
+   que Flow no definía, sin pisar nunca uno que Flow ya define. Un patrón que difiere o falta
+   se corrige **en SAP** («Flow no escribe en el modelo»); el nombre de una carga sugiere los
+   patrones leídos que la obra todavía no tiene.
+1. **La aplicación de una partida sobre los objetos** — **hecho** (2026-09-23): cada partida
+   dice sobre qué **grupo** del modelo va (uno solo, para que cada componente sea su partida),
+   si es área repartida a barras o distribuida en barra, la dirección y la distribución, y su
+   valor convertido a kN/m² o kN/m por el motor —una dimensión que no cuadra es un error—. Es
+   la instrucción para quien aplica la carga. El nodo SAP2000 lee los grupos y compara cada
+   aplicación con lo que su patrón tiene hoy sobre el grupo, objeto por objeto: dos partidas
+   del mismo patrón y grupo esperan las dos cargas en cada objeto. Falta cubrir lo que el
+   Pachón usa y esto no: cargas puntuales (grúa), un patrón por posición (`CLV_P1…P4`) y
+   franjas de viento.
 2. Leer lo medido (reacciones por caso, periodos, cortes basales) con su sello, y publicarlo
-   como nombres que las hojas usan en vez de copiarlos a mano.
+   como nombres que las hojas usan en vez de copiarlos a mano. **Exige un modelo analizado**:
+   las tablas de uno sin analizar devuelven ceros, no vacío, y un cero parece un dato.
 3. Marcar la lectura atrasada cuando el `.sdb` cambió después de leerla.
 
 ### 3. La hoja en flujo lineal
@@ -192,18 +214,21 @@ shas y sellos y nunca cambia sola.
 - **Plantillas por cliente**: carátula, codificación, tabla de revisiones y firmas.
 - El PDF sale del documento de impresión de hoy; un Word como salida, nunca como fuente.
 
-### 6. La carga aplicada, las combinaciones y el puente con SAP2000
+### 6. La carga aplicada, los casos, las combinaciones y el puente con SAP2000
 
-- **La aplicación de una carga** —tipo SAP del patrón, objetos, dirección, patrón o caso—
-  entra como bloque estructurado de la partida. Va antes que las combinaciones: es lo que deja
-  escribir una combinación que se pueda empujar al modelo.
+- **La aplicación de una carga** —grupo, tipo, dirección— ya es parte de la partida (etapa 2).
+  Falta lo que el Pachón usa: cargas puntuales, un patrón por posición y franjas.
+- **Casos**: `RSX`, `RSY` y `EV` son casos y no patrones; la función de espectro, sus factores
+  de escala y la fuente de masa se declaran en Flow y se comparan con los del modelo.
 - **Combinaciones**: un módulo que cita las cargas por su nombre, que ya es su identificador.
-  En el Pachón son 165 y hoy no tienen dónde vivir.
+  En el Pachón son 165 y hoy no tienen dónde vivir. Se declaran en Flow y se comparan con las
+  que tiene el modelo, término por término.
 - **El puente**: un servicio local en Python (comtypes) al que la aplicación habla por
-  `localhost`. Empuja estados de carga, función de espectro y factores; trae reacciones y
-  esfuerzos con el sello del modelo. Si el modelo cambió después de empujar, la carga
-  aplicada se marca atrasada, igual que una instancia cuya genérica avanzó. La API de ETABS es
-  casi la misma, así que el puente sirve también para ETABS.
+  `localhost`. **Trae, no empuja** («Flow no escribe en el modelo»): patrones, grupos, cargas
+  aplicadas, casos, combinaciones y, después, reacciones y esfuerzos con el sello del modelo.
+  Si el modelo cambió después de verificarlo, la verificación se marca atrasada, igual que una
+  instancia cuya genérica avanzó. La API de ETABS es casi la misma, así que el puente sirve
+  también para ETABS.
 
 ### 7. La navegación cuelga de la obra, y el lanzamiento
 
