@@ -32,7 +32,14 @@ import {
   idNodoDeCarga,
   idNodoDeSubcarga,
 } from './ids';
-import { grupoPorId, problemaDeNombre, type Grupo, type NodoCalculo, type Obra } from './modelo';
+import {
+  grupoPorId,
+  problemaDeNombre,
+  type Grupo,
+  type NodoCalculo,
+  type Obra,
+  type Revision,
+} from './modelo';
 
 export * from './ids';
 
@@ -53,6 +60,8 @@ export type ClaseNodo = 'definiciones' | 'carga' | 'calculo' | 'biblioteca' | 'r
 export interface NodoDeObra extends NodoGrafo {
   clase: ClaseNodo;
   grupo?: Grupo;
+  /** La marca «Revisar» de la partida o del cálculo. No toca la severidad. */
+  revisar?: Revision;
 }
 
 export interface Proyeccion {
@@ -125,7 +134,14 @@ function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra,
   const usa = [...(ev.usos.get(id) ?? [])];
   const clase: ClaseNodo =
     f?.procedencia === 'biblioteca' ? 'biblioteca' : !f && define.length === 0 && usa.length > 0 ? 'resumen' : 'calculo';
-  const base = { id, tipo: 'calculo', etiqueta: k.nombre || 'Cálculo', clase, grupo: grupoPorId(obra, k.grupo) };
+  const base = {
+    id,
+    tipo: 'calculo',
+    etiqueta: k.nombre || 'Cálculo',
+    clase,
+    grupo: grupoPorId(obra, k.grupo),
+    revisar: k.revisar,
+  };
 
   if (!f) {
     const enGrafo = problemaDeGrafo(id, ev);
@@ -312,6 +328,7 @@ export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas =
             tipo: plegada ? 'carga-plegada' : 'subcarga',
             clase: 'carga',
             grupo,
+            revisar: sub.revisar,
             etiqueta: plegada ? c.nombre.trim() || '(sin nombre)' : sub.nombre.trim() || '(sin nombre)',
             subtitulo: plegada ? `${sub.nombre.trim() || '(sin nombre)'} · ${valorSub}` : valorSub,
             campos: fSub

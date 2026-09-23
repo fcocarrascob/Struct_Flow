@@ -14,13 +14,16 @@
 //
 // QUÉ ES UNA OBRA Y QUÉ NO
 // ------------------------
-// Una obra es de este navegador. NO es un proyecto del harness: aquel se
-// proyecta desde archivos versionados y acá no se escribe nada de vuelta. Los
-// dos se pintan con el mismo contrato de grafo (`../contrato.ts`) porque los dos
-// son proyecciones, pero la fuente es distinta y no se mezclan.
+// Una obra es un documento de Flow: una carpeta en disco (`carpeta.ts`) o, sin
+// servidor, una entrada en `localStorage`. NO es un proyecto del harness, y no
+// se van a fundir (`docs/rumbo.md`): el asistente trabaja SOBRE la obra, por el
+// contrato de Flow, y lo que crea o toca queda con la marca `revisar`. Los dos se
+// pintan con el mismo contrato de grafo (`../contrato.ts`) porque los dos son
+// proyecciones, pero la fuente es distinta y no se mezclan.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { INTRINSECOS } from '../../lib/canvas-handoff';
+import { idNodoDeCalculo, idNodoDeSubcarga } from './ids';
 import type { MetaPlanilla } from '../../lib/biblioteca/contrato';
 import type { Region } from '../../lib/worksheet';
 import { ORIGEN_X, ORIGEN_Y } from './hoja';
@@ -149,6 +152,49 @@ export interface Subcarga {
   /** Cuál variable de su hoja libre es el valor de la partida. */
   variable?: string;
   frontera?: Frontera;
+  /** Marcada para revisar. Ver `Revision`. */
+  revisar?: Revision;
+}
+
+/**
+ * Un nodo marcado para revisar, con la razón en una nota breve.
+ *
+ * La pone el asistente en todo nodo que crea o toca, y el usuario para señalar
+ * un supuesto, una decisión pendiente o un dato por confirmar. «Revisado» la
+ * quita. ES DELIBERADAMENTE SIMPLE —una marca, una nota corta y quién la puso— y,
+ * como el grupo, es presentación: no toca el scope, el orden ni ningún CUMPLE.
+ */
+export interface Revision {
+  nota: string;
+  por: 'usuario' | 'asistente';
+}
+
+/** Una nota de revisión es una línea, no un informe. */
+export const LARGO_NOTA_REVISION = 280;
+
+/**
+ * Pone o quita (`undefined`) la marca de un cálculo o de una partida, por su id
+ * de documento.
+ */
+export function marcarRevision(obra: Obra, id: string, revision: Revision | undefined): Obra {
+  const poner = <T extends { id: string; revisar?: Revision }>(x: T): T => {
+    if (x.id !== id) return x;
+    const { revisar: _, ...resto } = x;
+    return (revision ? { ...resto, revisar: revision } : resto) as T;
+  };
+  return {
+    ...obra,
+    calculos: obra.calculos.map(poner),
+    cargas: obra.cargas.map((c) => ({ ...c, subcargas: c.subcargas.map(poner) })),
+  };
+}
+
+/** Los nodos del grafo que esperan revisión: las partidas primero, en su orden. */
+export function porRevisar(obra: Obra): string[] {
+  return [
+    ...obra.cargas.flatMap((c) => c.subcargas.filter((s) => s.revisar).map((s) => idNodoDeSubcarga(s.id))),
+    ...obra.calculos.filter((k) => k.revisar).map((k) => idNodoDeCalculo(k.id)),
+  ];
 }
 
 /**
@@ -197,6 +243,8 @@ export interface NodoCalculo {
   frontera?: Frontera;
   /** El id de su `Grupo`, si el usuario lo agrupó. */
   grupo?: string;
+  /** Marcado para revisar. Ver `Revision`. */
+  revisar?: Revision;
 }
 
 /**

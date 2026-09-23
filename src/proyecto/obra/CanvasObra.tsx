@@ -45,6 +45,8 @@ import {
   cambiarGrupo,
   cargaDeSubcarga,
   conFormula,
+  marcarRevision,
+  porRevisar,
   conPublicacion,
   conSubcargas,
   nuevaSubcarga,
@@ -55,9 +57,11 @@ import {
   type Modulo,
   type NodoCalculo,
   type Obra,
+  type Revision,
   type Subcarga,
 } from './modelo';
 import NodoObra from './NodoObra';
+import MarcaRevision from './MarcaRevision';
 import IconoClase from './IconoClase';
 import LeyendaGrupos from './LeyendaGrupos';
 import SelectorGrupo from './SelectorGrupo';
@@ -952,6 +956,15 @@ function CanvasObra({
     />
   );
 
+  // ── La marca «Revisar» ─────────────────────────────────────────────────────
+  // Por `setObra`, como el grupo: marcar y quitar se deshacen con Ctrl+Z.
+  const marcaRevision = (idDoc: string, actual: Revision | undefined) => (
+    <MarcaRevision
+      valor={actual}
+      onCambiar={(r) => setObra((o) => (o ? marcarRevision(o, idDoc, r) : o))}
+    />
+  );
+
   // ── Las pestañas ───────────────────────────────────────────────────────────
   //
   // SOLO SE MONTA LA ACTIVA, y no es una optimización. Dos `MathCanvas` a la vez
@@ -1139,6 +1152,7 @@ function CanvasObra({
   if (!obra) return null;
 
   const soloLectura = estadoSesion.conflicto === 'escritor';
+  const revisables = porRevisar(obra);
 
   const idCargaSeleccionada = seleccion ? cargaDeNodo(seleccion) : null;
   const idPartidaSeleccionada = seleccion ? subcargaDeNodo(seleccion) : null;
@@ -1217,7 +1231,23 @@ function CanvasObra({
                       : ''
                 }`}
           </span>
-          <span className="ml-auto text-[10px] text-muted">
+          {/* Lo que falta revisar, y un clic lleva al siguiente: con treinta nodos
+              una bandera en una tarjeta no se encuentra mirando. */}
+          {revisables.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                const i = seleccion ? revisables.indexOf(seleccion) : -1;
+                setActiva(null);
+                setSeleccion(revisables[(i + 1) % revisables.length]);
+              }}
+              title="Ir al siguiente nodo marcado para revisar"
+              className="ml-auto rounded border border-dashed border-ink/40 px-1.5 text-[10px] text-ink hover:border-accent hover:text-accent"
+            >
+              ⚑ {revisables.length} por revisar
+            </button>
+          )}
+          <span className={`${revisables.length > 0 ? '' : 'ml-auto '}text-[10px] text-muted`}>
             {proyeccion.nodos.length} nodo{proyeccion.nodos.length === 1 ? '' : 's'} ·{' '}
             {obra.cargas.length} carga{obra.cargas.length === 1 ? '' : 's'} ·{' '}
             {obra.calculos.length} cálculo{obra.calculos.length === 1 ? '' : 's'}
@@ -1715,6 +1745,7 @@ function CanvasObra({
                 ? `Grupo de ${cargaDeLaPartida.nombre || 'la carga'}`
                 : undefined,
             )}
+            revision={marcaRevision(partida.id, partida.revisar)}
           />
         )}
 
@@ -1783,6 +1814,7 @@ function CanvasObra({
             onBorrar={() => borrarUnCalculo(calculo.id)}
             onCerrar={() => setSeleccion(null)}
             grupo={selectorGrupo(calculo.id, calculo.grupo)}
+            revision={marcaRevision(calculo.id, calculo.revisar)}
           />
         )}
       </div>

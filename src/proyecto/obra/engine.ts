@@ -53,6 +53,8 @@ export {
   agregarGrupo,
   asignarGrupo,
   borrarGrupo,
+  marcarRevision,
+  porRevisar,
 } from './modelo';
 export { trazoDe, ladoDe } from './trazo';
 

@@ -61,6 +61,8 @@ const {
   PASO_LECTURA,
   partirObra,
   unirObra,
+  marcarRevision,
+  porRevisar,
 } = motor;
 
 // ── Armar una obra ───────────────────────────────────────────────────────────
@@ -1120,6 +1122,29 @@ const CASOS_SANEO = [
     },
   },
   {
+    nombre: 'la marca «Revisar» se sanea: nota corta, origen conocido o usuario',
+    crudo: {
+      id: 'o',
+      calculos: [
+        { id: 'k1', nombre: 'A', hoja: [], revisar: { nota: '  Supuesto: suelo tipo D  ', por: 'asistente' } },
+        { id: 'k2', nombre: 'B', hoja: [], revisar: { nota: 'x'.repeat(500), por: 'alguien' } },
+        { id: 'k3', nombre: 'C', hoja: [], revisar: { nota: 42 } },
+        { id: 'k4', nombre: 'D', hoja: [], revisar: 'sí' },
+        { id: 'k5', nombre: 'E', hoja: [] },
+      ],
+      cargas: [],
+    },
+    ok: (o) => {
+      const r = (id) => o.calculos.find((k) => k.id === id)?.revisar;
+      if (r('k1')?.nota !== 'Supuesto: suelo tipo D' || r('k1')?.por !== 'asistente') return `k1: ${JSON.stringify(r('k1'))}`;
+      if (r('k2')?.nota.length !== 280) return `k2 no se cortó: ${r('k2')?.nota.length}`;
+      if (r('k2')?.por !== 'usuario') return 'un origen desconocido no quedó como usuario';
+      if (r('k3')?.nota !== '' ) return 'una nota que no es texto no quedó vacía con la marca';
+      if (r('k4') !== undefined) return 'una marca que no es objeto sobrevivió';
+      return 'revisar' in o.calculos.find((k) => k.id === 'k5') ? 'apareció `revisar` donde no había' : null;
+    },
+  },
+  {
     nombre: 'una obra sin grupos no gana un `grupos: []` al sanearse',
     // Guardar una obra no puede cambiarla si nadie la tocó.
     crudo: { id: 'o', calculos: [], cargas: [] },
@@ -1243,6 +1268,46 @@ const CASOS_CARPETA = [
       if (o.calculos[0].hoja.length) return 'el nodo inventó regiones';
       if (o.calculos.length !== PACHON.calculos.length) return 'se perdió el nodo, no solo su hoja';
       return problemas.some((p) => p.includes(ruta)) ? null : `no se dijo nada: ${JSON.stringify(problemas)}`;
+    },
+  },
+  {
+    nombre: 'la marca «Revisar» sobrevive a la carpeta, y va en obra.json, no en la hoja',
+    ok: () => {
+      const partida = PACHON.cargas[0].subcargas[0];
+      let o = marcarRevision(PACHON, PACHON.calculos[0].id, { nota: 'Supuesto: Kzt = 1', por: 'usuario' });
+      o = marcarRevision(o, partida.id, { nota: 'Creada por el asistente', por: 'asistente' });
+      const archivos = partirObra(o);
+      if (!archivos['obra.json'].includes('Supuesto: Kzt = 1')) return 'la marca no quedó en obra.json';
+      const vuelta = releer(archivos);
+      return JSON.stringify(vuelta) === JSON.stringify(o) ? null : 'la marca cambió en la ida y vuelta';
+    },
+  },
+  {
+    nombre: 'marcar no cambia ningún resultado, y la tarjeta y el contador la ven',
+    ok: () => {
+      const partida = PACHON.cargas[0].subcargas[0];
+      const calculo = PACHON.calculos[0];
+      let o = marcarRevision(PACHON, calculo.id, { nota: 'Revisar la altura', por: 'usuario' });
+      o = marcarRevision(o, partida.id, { nota: '', por: 'asistente' });
+      const antes = evaluarObra(PACHON, genericasPachon);
+      const ev = evaluarObra(o, genericasPachon);
+      if (JSON.stringify(ev.results) !== JSON.stringify(antes.results)) return 'la marca cambió resultados';
+      const proy = proyectar(o, ev, genericasPachon);
+      const nk = proy.nodos.find((x) => x.id === K(calculo.id));
+      if (nk?.revisar?.nota !== 'Revisar la altura') return `el cálculo no lleva la marca: ${JSON.stringify(nk?.revisar)}`;
+      if (nk.severidad !== proyectar(PACHON, antes, genericasPachon).nodos.find((x) => x.id === K(calculo.id)).severidad)
+        return 'la marca tocó la severidad';
+      const np = proy.nodos.find((x) => x.id === idNodoDeSubcarga(partida.id));
+      if (np?.revisar?.por !== 'asistente') return 'la partida no lleva la marca del asistente';
+      const lista = porRevisar(o);
+      if (lista.join(',') !== [idNodoDeSubcarga(partida.id), K(calculo.id)].join(','))
+        return `porRevisar: ${lista.join(', ')}`;
+      // «Revisado» la quita sin dejar un `revisar: undefined` que ensucie el diff.
+      const limpia = marcarRevision(marcarRevision(o, calculo.id, undefined), partida.id, undefined);
+      if (porRevisar(limpia).length) return 'quedaron marcas tras quitarlas';
+      return partirObra(limpia)['obra.json'] === partirObra(PACHON)['obra.json']
+        ? null
+        : 'quitar las marcas no dejó obra.json como estaba';
     },
   },
   {

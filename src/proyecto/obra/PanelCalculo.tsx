@@ -46,10 +46,13 @@ export default function PanelCalculo({
   onBorrar,
   onCerrar,
   grupo,
+  revision,
 }: {
   calculo: NodoCalculo;
   /** El selector de grupo. Llega armado porque los grupos son de la obra. */
   grupo?: ReactNode;
+  /** La marca «Revisar», armada como el grupo. */
+  revision?: ReactNode;
   estado: EstadoGenerica | undefined;
   /** Los nombres que su hoja publica al resto de la obra. */
   define: string[];
@@ -126,6 +129,7 @@ export default function PanelCalculo({
         </div>
 
         {grupo && <div className="mt-1.5 px-1.5">{grupo}</div>}
+        {revision && <div className="mt-1.5 px-1.5">{revision}</div>}
 
         {problemaGrafo && (
           <p className="mt-1 text-[10px] leading-snug text-error">{problemaGrafo}</p>

@@ -29,6 +29,40 @@ La decisión se puso a prueba el mismo día con un proyecto real, el taller de s
 Pachón (`docs/pachon/`), y se confirmó: la obra ya lleva un proyecto de punta a punta en lo
 que es cálculo. Lo que le falta está en «Lo que enseñó el Pachón», más abajo.
 
+## Flow es la aplicación; el Harness, el asistente que la usa
+
+**2026-09-23.** Son dos repos y siguen siéndolo. Se descarta la decisión anterior de fundir la
+obra con el proyecto del harness.
+
+- **Struct_Flow es la GUI del proyecto**, y es determinista: el usuario ve los cálculos,
+  organiza las cargas y consulta la información. Es el dueño del documento y el único que
+  escribe una obra.
+- **Struct_Harness es el asistente estructural**: lleva las decisiones, los criterios y la
+  lectura de normas, crea planillas y cargas, y **usa Flow** para proponer cálculos y organizar
+  el proyecto.
+
+La dependencia va en un solo sentido: el Harness depende de Flow (biblioteca, motor,
+verificadores y ahora la obra), y **Flow funciona entero sin el Harness corriendo**. Lo que
+Flow lea de afuera —resultados de SAP, por ejemplo— lo lee por un **formato sellado**, no por
+quién lo produjo.
+
+Cómo entra el asistente a una obra:
+
+- **Por el contrato de Flow**, nunca escribiendo archivos por fuera: el servidor de obras con
+  su candado y su 409, o una CLI de Flow que aplique el cambio por el mismo camino. El formato
+  de la carpeta y `/obras-api` pasan a ser un **contrato público**, con versión y un
+  validador que el Harness pueda correr.
+- **Propone o escribe directo; las dos cosas.** En un proyecto que arma desde cero puede
+  escribir; en uno en curso, lo natural es proponer y que el usuario acepte.
+- **Todo nodo que el asistente crea o toca queda marcado «Revisar»**, con una nota breve de
+  por qué. La marca la usa también el usuario para señalar supuestos, decisiones pendientes o
+  datos por confirmar. Es deliberadamente simple: una marca, una nota corta, quién la puso,
+  y un «Revisado» que la quita. No vota en ningún CUMPLE ni toca la evaluación.
+- **Las decisiones D-/S-/H- son del Harness.** Flow las muestra o las cita dentro de la obra,
+  pero no las interpreta ni es su dueño. Una vista aparte del grafo del harness
+  (`/proyecto/<slug>`) deja de tener sentido cuando Flow es la GUI; lo que el asistente quiera
+  mostrar va dentro de la obra.
+
 ## Lo que no se toca
 
 - **El contrato de las genéricas, los verificadores y la procedencia por sha256.** Hacen la
@@ -39,7 +73,8 @@ que es cálculo. Lo que le falta está en «Lo que enseñó el Pachón», más a
   diseño combinan; el signo es parte del contrato; los ciclos no existen entre nodos (una
   iteración de diseño vive dentro de su nodo).
 - **Cada canal visual del grafo dice una sola cosa:** el borde es la severidad, el ícono la
-  clase del nodo, la franja el grupo del usuario. Un canal nuevo no reutiliza uno existente.
+  clase del nodo, la franja el grupo del usuario y la bandera ⚑ la marca «Revisar». Un canal
+  nuevo no reutiliza uno existente.
 
 ## La hoja va hacia el flujo lineal
 
@@ -77,17 +112,20 @@ así que tocar una fórmula cambia un solo archivo en git.
 - La obra autocontenida del Pachón es el **caso de regresión** de la carpeta en `verify:obra`:
   la ida y vuelta no cambia un byte ni un resultado.
 
-Sigue abierto: **una obra y un proyecto del harness son lo mismo.** La obra debería SER la
-carpeta del proyecto, y el harness leerla en vez de proyectar un grafo propio;
-`/proyecto/<slug>` desaparecería. El formato en disco ya está; falta que el harness lo lea y
-decidir si el servidor de obras y el puente con SAP son el mismo proceso.
+La idea de fundir la obra con el proyecto del harness quedó descartada: ver «Flow es la
+aplicación; el Harness, el asistente que la usa».
 
-### 2. El nodo Modelo, leyendo lo que el harness ya selló
+### 2. El contrato del asistente, y el nodo Modelo
 
-En la auditoría del Pachón hay **21 valores** de SAP copiados a mano de dos `.result.json`:
-reacciones, periodos, cortes basales. Sin sello, si el modelo cambia nada avisa. Un nodo
-Modelo publica lo medido con el sello del modelo (hash del `.sdb` y fecha del análisis). Para
-empezar **no hace falta COM**: basta con leer los `.result.json` del harness.
+Primero, lo que deja entrar al asistente: el formato de la carpeta y `/obras-api` con versión
+y validador, la marca «Revisar» (hecha), y las propuestas que el usuario acepta.
+
+Después, el nodo Modelo. En la auditoría del Pachón hay **21 valores** de SAP copiados a mano
+de dos `.result.json`: reacciones, periodos, cortes basales. Sin sello, si el modelo cambia
+nada avisa. Un nodo Modelo publica lo medido con el sello del modelo (hash del `.sdb` y fecha
+del análisis). **No hace falta COM** para empezar, y tampoco depender del Harness: Flow lee un
+formato de resultados sellado, lo produzca el Harness con su MCP de SAP2000 o el puente de la
+etapa 6.
 
 ### 3. La hoja en flujo lineal
 

@@ -25,6 +25,7 @@ import { migrarBloques, sanearHoja } from './hoja';
 import {
   COLOR_RE,
   IDENTIFICADOR_RE,
+  LARGO_NOTA_REVISION,
   problemaDeAlias,
   slugificar,
   VERSION_OBRA,
@@ -35,6 +36,7 @@ import {
   type NodoCalculo,
   type Obra,
   type Procedencia,
+  type Revision,
   type Subcarga,
 } from './modelo';
 
@@ -175,6 +177,20 @@ function sanearMeta(crudo: unknown): MetaPlanilla | undefined {
   return metaDe({ meta: crudo }) ?? undefined;
 }
 
+/**
+ * La marca de revisión. Una nota que no es texto queda vacía —la marca sigue: un
+ * «revisar» sin razón legible también es algo que alguien tiene que mirar—, y
+ * una larga se corta, porque es una línea y no un informe. Quien no se reconoce
+ * es el usuario: marcar de asistente algo que no lo dice sería inventar un
+ * origen.
+ */
+function sanearRevision(crudo: unknown): { revisar?: Revision } {
+  if (typeof crudo !== 'object' || crudo === null) return {};
+  const r = crudo as Partial<Revision>;
+  const nota = typeof r.nota === 'string' ? r.nota.trim().slice(0, LARGO_NOTA_REVISION) : '';
+  return { revisar: { nota, por: r.por === 'asistente' ? 'asistente' : 'usuario' } };
+}
+
 function sanearSubcarga(crudo: unknown, vistos: Vistos): Subcarga | null {
   if (typeof crudo !== 'object' || crudo === null) return null;
   const s = crudo as Partial<Subcarga> & { bloques?: unknown; importada?: unknown };
@@ -198,6 +214,7 @@ function sanearSubcarga(crudo: unknown, vistos: Vistos): Subcarga | null {
     ...(meta ? { meta } : {}),
     ...(variable ? { variable } : {}),
     ...(frontera ? { frontera } : {}),
+    ...sanearRevision(s.revisar),
   };
 }
 
@@ -237,6 +254,7 @@ function sanearCalculo(crudo: unknown, vistos: Vistos, grupos: ReadonlySet<strin
     ...(meta ? { meta } : {}),
     ...(frontera ? { frontera } : {}),
     ...grupoDe(k.grupo, grupos),
+    ...sanearRevision(k.revisar),
   };
 }
 

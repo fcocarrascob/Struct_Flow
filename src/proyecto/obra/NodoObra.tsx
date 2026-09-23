@@ -17,7 +17,10 @@ import type { NodoDeObra } from './proyeccion';
  * - el BORDE es el desfase: un nodo rojo es una carga sin nombre o con el nombre
  *   repetido, y se corrige en el panel;
  * - el ÍCONO y el rótulo son la clase (carga, cálculo, biblioteca, resumen);
- * - la FRANJA izquierda y el tinte del encabezado son el grupo del usuario.
+ * - la FRANJA izquierda y el tinte del encabezado son el grupo del usuario;
+ * - la BANDERA ⚑ con borde punteado es la marca «Revisar». No es ámbar a
+ *   propósito: el ámbar es el aviso de la severidad, y una marca de revisión no
+ *   dice que algo esté mal, dice que alguien tiene que mirarlo.
  * Si el grupo fuera el borde, un grupo rojo escondería un error.
  */
 
@@ -87,6 +90,19 @@ export default function NodoObra({ data, selected }: NodeProps) {
         {grupo && (
           <p className="mt-1 truncate text-[10px] font-medium" style={{ color: grupo.color }}>
             {grupo.nombre}
+          </p>
+        )}
+
+        {n.revisar && (
+          <p
+            className="mt-1 flex min-w-0 items-center gap-1 self-start rounded border border-dashed border-ink/40 px-1.5 text-[10px] text-ink"
+            title={n.revisar.nota || 'Marcado para revisar'}
+          >
+            <span aria-hidden>⚑</span>
+            <span className="shrink-0 font-medium">
+              Revisar{n.revisar.por === 'asistente' ? ' · asistente' : ''}
+            </span>
+            {n.revisar.nota && <span className="truncate text-muted">— {n.revisar.nota}</span>}
           </p>
         )}
       </div>
