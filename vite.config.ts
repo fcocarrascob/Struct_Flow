@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import { pluginObras } from './servidor/obras.mjs';
 
 /**
  * HEAD de este repo al arrancar el servidor o compilar. La memoria que exporta
@@ -18,7 +19,9 @@ function commitActual(): string {
 }
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  // `pluginObras` sirve las carpetas de obra en `/obras-api`, dentro del mismo
+  // servidor: sin proxy ni CORS, y fuera del `/api` que es del harness.
+  plugins: [react(), tailwindcss(), pluginObras()],
   define: {
     'import.meta.env.VITE_COMMIT': JSON.stringify(commitActual()),
   },

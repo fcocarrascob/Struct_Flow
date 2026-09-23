@@ -17,7 +17,8 @@
     "verify:biblioteca": "node scripts/verify-biblioteca.mjs",
     "verify:modulos": "node scripts/verify-modulos.mjs",
     "verify:motor": "node scripts/verify-motor.mjs",
-    "verify:obra": "node verificadores/obra.mjs"
+    "verify:obra": "node verificadores/obra.mjs",
+    "obras": "node servidor/obras.mjs"
   },
   "dependencies": {
     "@xyflow/react": "^12.11.6",

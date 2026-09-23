@@ -1,6 +1,9 @@
 # build output
 dist/
 
+# obras del servidor local (servidor/obras.mjs): trabajo de clientes, no del repo
+obras/
+
 # dependencies
 node_modules/
 

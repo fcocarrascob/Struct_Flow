@@ -22,10 +22,12 @@
 // Cada caso es una obra y una comprobación que recibe la evaluación y la
 // proyección y devuelve `null` si cuadra, o el motivo del fallo.
 
-import { readFile } from 'node:fs/promises';
+import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import os from 'node:os';
 import path from 'node:path';
 import { compilarEntrada, ROOT } from '../scripts/lib/motor.mjs';
+import { CADUCIDAD_MS, crearObras } from '../servidor/obras.mjs';
 
 // Un solo bundle: la obra, el motor y el armado de una genérica comparten
 // instancia de mathjs. Ver la cabecera de `src/proyecto/obra/engine.ts`.
@@ -1253,9 +1255,159 @@ const CASOS_CARPETA = [
   },
 ];
 
+// ── El servidor de obras, sobre un directorio temporal ───────────────────────
+//
+// Se prueban las operaciones de `servidor/obras.mjs` sin HTTP: el manejador es
+// una capa fina encima, y lo que cuesta caro romper está aquí —el candado de un
+// solo escritor y el 409 ante una carpeta que cambió—.
+
+const TMP = await mkdtemp(path.join(os.tmpdir(), 'structflow-obras-'));
+let reloj = 1_000_000;
+/** Cada caso con su raíz y su reloj, para que no se hereden candados. */
+const servidor = (nombre) => crearObras(path.join(TMP, nombre), { ahora: () => reloj });
+const TOKEN_A = 'pestana-a-0001';
+const TOKEN_B = 'pestana-b-0002';
+const ARCHIVOS = partirObra(PACHON);
+
+/** El código y el conflicto de un 409, o el motivo de que no lo fuera. */
+async function espera409(promesa, conflicto) {
+  try {
+    await promesa;
+    return 'no falló';
+  } catch (e) {
+    if (e.codigo !== 409) return `falló con ${e.codigo ?? e.message}`;
+    return e.datos?.conflicto === conflicto ? null : `conflicto «${e.datos?.conflicto}», se esperaba «${conflicto}»`;
+  }
+}
+
+const CASOS_SERVIDOR = [
+  {
+    nombre: 'crear, listar y leer devuelve los mismos archivos y la misma versión',
+    ok: async () => {
+      const s = servidor('crear');
+      const { version } = await s.escribir('pachon', { token: TOKEN_A, base: null, archivos: ARCHIVOS });
+      const leida = await s.leer('pachon');
+      if (leida.version !== version) return 'la versión leída no es la escrita';
+      const ordenados = (a) => JSON.stringify(Object.entries(a).sort(([x], [y]) => x.localeCompare(y)));
+      if (ordenados(leida.archivos) !== ordenados(ARCHIVOS)) return 'los archivos cambiaron al pasar por el disco';
+      const lista = await s.listar();
+      return lista.length === 1 && lista[0].nombre === PACHON.nombre ? null : `lista: ${JSON.stringify(lista)}`;
+    },
+  },
+  {
+    nombre: 'crear una obra que ya existe es un 409, no un reemplazo',
+    ok: async () => {
+      const s = servidor('crear-dos');
+      await s.escribir('pachon', { token: TOKEN_A, base: null, archivos: ARCHIVOS });
+      return espera409(s.escribir('pachon', { token: TOKEN_B, base: null, archivos: ARCHIVOS }), 'existe');
+    },
+  },
+  {
+    nombre: 'una segunda pestaña no es escritora mientras la primera late',
+    ok: async () => {
+      const s = servidor('escritor');
+      await s.escribir('pachon', { token: TOKEN_A, base: null, archivos: ARCHIVOS });
+      s.escritor('pachon', TOKEN_A);
+      const r = await espera409(Promise.resolve().then(() => s.escritor('pachon', TOKEN_B)), 'escritor');
+      if (r) return `pedir el candado: ${r}`;
+      const { version } = await s.leer('pachon');
+      return espera409(s.escribir('pachon', { token: TOKEN_B, base: version, archivos: ARCHIVOS }), 'escritor');
+    },
+  },
+  {
+    nombre: 'el candado caduca sin latido, y tomar el control deja fuera a la anterior',
+    ok: async () => {
+      const s = servidor('caduca');
+      await s.escribir('pachon', { token: TOKEN_A, base: null, archivos: ARCHIVOS });
+      s.escritor('pachon', TOKEN_A);
+      reloj += CADUCIDAD_MS + 1;
+      s.escritor('pachon', TOKEN_B); // ya no hay nadie: se concede
+      const { version } = await s.leer('pachon');
+      const r = await espera409(s.escribir('pachon', { token: TOKEN_A, base: version, archivos: ARCHIVOS }), 'escritor');
+      if (r) return `la que caducó siguió escribiendo: ${r}`;
+      s.escritor('pachon', TOKEN_A, { forzar: true });
+      return espera409(s.escribir('pachon', { token: TOKEN_B, base: version, archivos: ARCHIVOS }), 'escritor');
+    },
+  },
+  {
+    nombre: 'una hoja editada a mano en el disco no se pisa: 409 por versión',
+    ok: async () => {
+      const s = servidor('version');
+      const { version } = await s.escribir('pachon', { token: TOKEN_A, base: null, archivos: ARCHIVOS });
+      const hoja = Object.keys(ARCHIVOS).find((r) => r.startsWith('hojas/'));
+      await writeFile(path.join(s.raiz, 'pachon', ...hoja.split('/')), '{"version":1,"regions":[]}\n');
+      return espera409(s.escribir('pachon', { token: TOKEN_A, base: version, archivos: ARCHIVOS }), 'version');
+    },
+  },
+  {
+    nombre: 'escribir borra la hoja de un nodo que ya no está, y solo esa',
+    ok: async () => {
+      const s = servidor('huerfanas');
+      const { version } = await s.escribir('pachon', { token: TOKEN_A, base: null, archivos: ARCHIVOS });
+      const sinUno = { ...PACHON, calculos: PACHON.calculos.slice(1) };
+      await s.escribir('pachon', { token: TOKEN_A, base: version, archivos: partirObra(sinUno) });
+      const hojas = (await readdir(path.join(s.raiz, 'pachon', 'hojas'))).length;
+      const esperadas = Object.keys(ARCHIVOS).length - 2;
+      return hojas === esperadas ? null : `${hojas} hojas en disco, se esperaban ${esperadas}`;
+    },
+  },
+  {
+    nombre: 'ni el id ni una ruta pueden salir de la raíz',
+    ok: async () => {
+      const s = servidor('rutas');
+      for (const id of ['../fuera', 'a/b', '..', 'Mayus', '']) {
+        try {
+          await s.leer(id);
+          return `leyó «${id}»`;
+        } catch (e) {
+          if (e.codigo !== 400) return `«${id}» dio ${e.codigo ?? e.message}, no 400`;
+        }
+      }
+      for (const ruta of ['../x.json', 'hojas/../../x.json', 'otra.json', 'hojas/a/b.json']) {
+        try {
+          await s.escribir('o', { token: TOKEN_A, base: null, archivos: { ...ARCHIVOS, [ruta]: '{}' } });
+          return `escribió «${ruta}»`;
+        } catch (e) {
+          if (e.codigo !== 400) return `«${ruta}» dio ${e.codigo ?? e.message}, no 400`;
+        }
+      }
+      return null;
+    },
+  },
+  {
+    nombre: 'borrar mueve la obra a la papelera, y no con otra pestaña editándola',
+    ok: async () => {
+      const s = servidor('borrar');
+      await s.escribir('pachon', { token: TOKEN_A, base: null, archivos: ARCHIVOS });
+      s.escritor('pachon', TOKEN_A);
+      const r = await espera409(s.borrar('pachon', { token: TOKEN_B }), 'escritor');
+      if (r) return `borró con la obra abierta: ${r}`;
+      await s.borrar('pachon', { token: TOKEN_A });
+      if ((await s.listar()).length) return 'sigue listada';
+      const papelera = await readdir(path.join(s.raiz, '.papelera'));
+      return papelera.length === 1 ? null : `papelera: ${papelera.join(', ')}`;
+    },
+  },
+];
+
 // ── Correr ───────────────────────────────────────────────────────────────────
 
 let fallos = 0;
+for (const caso of CASOS_SERVIDOR) {
+  let motivo;
+  try {
+    motivo = await caso.ok();
+  } catch (e) {
+    motivo = `lanzó: ${e.message}`;
+  }
+  if (motivo) {
+    fallos++;
+    console.log(`  [FALLA] ${caso.nombre}\n          ${motivo}`);
+  } else {
+    console.log(`  [ OK  ] ${caso.nombre}`);
+  }
+}
+await rm(TMP, { recursive: true, force: true });
 for (const caso of CASOS_CARPETA) {
   let motivo;
   try {
@@ -1317,6 +1469,6 @@ for (const caso of CASOS) {
   }
 }
 
-const total = CASOS.length + CASOS_SANEO.length + CASOS_HOJA.length + CASOS_CARPETA.length;
+const total = CASOS.length + CASOS_SANEO.length + CASOS_HOJA.length + CASOS_CARPETA.length + CASOS_SERVIDOR.length;
 console.log(`\n${fallos ? 'FALLA' : 'OK'}: ${total - fallos} de ${total} casos.\n`);
 process.exit(fallos ? 1 : 0);
