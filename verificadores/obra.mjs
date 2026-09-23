@@ -36,6 +36,7 @@ const {
   evaluarObra,
   proyectar,
   colocar,
+  colocarPorGrupo,
   problemaDeGrafo,
   rupturaPorQuitar,
   resolverExpresion,
@@ -45,7 +46,6 @@ const {
   archivoDeObra,
   idDeObra,
   idNodoDeCalculo,
-  idNodoDeSubcarga,
   parseMathRegion,
   trazoDe,
   ladoDe,
@@ -63,13 +63,6 @@ const {
   unirObra,
   marcarRevision,
   porRevisar,
-  compararPatrones,
-  avisosPesoPropio,
-  traerDeSap,
-  adoptarDeSap,
-  aplicacionesDeObra,
-  compararAplicacion,
-  hermanasDe,
 } = motor;
 
 // ── Armar una obra ───────────────────────────────────────────────────────────
@@ -98,7 +91,6 @@ function obra(...calculos) {
     nombre: 'Caso',
     creada: '2026-01-01T00:00:00.000Z',
     modulos: [],
-    cargas: [],
     calculos,
   };
 }
@@ -267,63 +259,24 @@ const CASOS = [
   },
   {
     nombre: 'ninguna flecha de datos apunta hacia atrás en el canvas',
-    // La columna era la del TIPO más el nivel en la cadena. Un cálculo parte de
-    // una columna más a la derecha que una partida, así que una partida que usa
-    // lo que publica un cálculo quedaba A SU IZQUIERDA y la flecha volvía hacia
-    // atrás — el caso de las costaneras, cuyo peso es una carga.
+    // La columna era la del TIPO más el nivel en la cadena, y un nodo que usaba
+    // lo que publicaba otro de un tipo más a la derecha quedaba A SU IZQUIERDA:
+    // la flecha volvía hacia atrás. Con un modelo de SAP a la izquierda de los
+    // cálculos, sigue siendo el caso que lo prueba.
     obra: {
-      ...obra(calc('K', m('q_k := 3 kN/m^2'))),
-      modulos: ['cargas'],
-      cargas: [
-        {
-          id: 'c1',
-          nombre: 'CM',
-          subcargas: [{ id: 's1', nombre: 'Peso', variable: 'q_cm', hoja: [reg('math', 'q_cm := q_k', 40)] }],
-        },
-      ],
+      ...obra(calc('K', m('q_k := 3 kN/m^2')), calc('C', m('q_cm := q_k'))),
+      modulos: ['sap'],
     },
     ok: (ev, proy) => {
-      const pos = colocar(proy.nodos, proy.aristas);
-      const atras = proy.aristas
-        .filter((a) => pos[a.desde] && pos[a.hasta] && pos[a.hasta].x <= pos[a.desde].x)
-        .map((a) => `${a.desde}→${a.hasta}`);
-      return atras.length ? `flechas hacia atrás: ${atras.join(' · ')}` : null;
-    },
-  },
-  {
-    nombre: 'una carga con una sola partida se dibuja como un solo nodo',
-    // Un patrón de SAP respaldado por una sola hoja dibujaba dos tarjetas con el
-    // mismo número: la de la carga y la de su partida. En el taller de soldadura
-    // eran 16 de 21 nodos. Con varias partidas la carga sí agrupa, y se queda.
-    obra: {
-      ...obra(calc('G', m('A_g := 10 m^2'))),
-      modulos: ['cargas'],
-      cargas: [
-        {
-          id: 'c1',
-          nombre: 'SDL',
-          subcargas: [{ id: 's1', nombre: 'Revestimiento', variable: 'q_1', hoja: [reg('math', 'q_1 := 1 kN/m^2', 40), reg('math', 'R_1 := q_1 * A_g', 88)] }],
-        },
-        {
-          id: 'c2',
-          nombre: 'D',
-          subcargas: [
-            { id: 's2', nombre: 'Uno', variable: 'q_2', hoja: [reg('math', 'q_2 := 2 kN/m^2', 40)] },
-            { id: 's3', nombre: 'Dos', variable: 'q_3', hoja: [reg('math', 'q_3 := 3 kN/m^2', 40)] },
-          ],
-        },
-      ],
-    },
-    ok: (ev, proy) => {
-      const ids = new Set(proy.nodos.map((x) => x.id));
-      if (ids.has('carga:c1')) return 'la carga de una partida sigue teniendo su propio nodo';
-      const plegada = proy.nodos.find((x) => x.id === 'partida:s1');
-      if (!plegada) return 'desapareció la partida, que es la que abre la hoja';
-      if (plegada.etiqueta !== 'SDL') return `la tarjeta dice «${plegada.etiqueta}», se esperaba el nombre de la carga`;
-      if (!plegada.subtitulo.includes('Revestimiento')) return `el subtítulo no nombra la partida: «${plegada.subtitulo}»`;
-      if (!proy.aristas.some((a) => a.desde === 'cargas' && a.hasta === 'partida:s1')) return 'no cuelga de Cargas';
-      if (!proy.aristas.some((a) => a.desde === 'calculo:G' && a.hasta === 'partida:s1' && a.tipo === 'dato')) return 'perdió la flecha de datos';
-      if (!ids.has('carga:c2') || !ids.has('partida:s2') || !ids.has('partida:s3')) return 'la carga de dos partidas se plegó';
+      for (const pos of [
+        colocar(proy.nodos, proy.aristas),
+        colocarPorGrupo(proy.nodos, proy.aristas, () => undefined, []),
+      ]) {
+        const atras = proy.aristas
+          .filter((a) => pos[a.desde] && pos[a.hasta] && pos[a.hasta].x <= pos[a.desde].x)
+          .map((a) => `${a.desde}→${a.hasta}`);
+        if (atras.length) return `flechas hacia atrás: ${atras.join(' · ')}`;
+      }
       return null;
     },
   },
@@ -726,25 +679,51 @@ const CASOS = [
     },
   },
   {
-    nombre: 'una partida lleva el grupo de su carga, y el grupo no toca la evaluación',
+    nombre: 'un cálculo lleva su grupo al nodo, y el grupo no toca la evaluación',
     obra: {
-      ...obra(calc('K', m('q_k := 3 kN/m^2'))),
-      modulos: ['cargas'],
+      ...obra(calc('K', m('q_k := 3 kN/m^2')), { ...calc('W', m('q_w := q_k')), grupo: 'g1' }),
       grupos: [{ id: 'g1', nombre: 'Viento', color: '#2563eb' }],
-      cargas: [
-        {
-          id: 'c1',
-          nombre: 'W',
-          grupo: 'g1',
-          subcargas: [{ id: 's1', nombre: 'Presión', variable: 'q_w', hoja: [reg('math', 'q_w := q_k', 40)] }],
-        },
+    },
+    ok: (ev, proy) => {
+      const w = proy.nodos.find((x) => x.id === K('W'));
+      if (w?.grupo?.nombre !== 'Viento') return `W trae ${JSON.stringify(w?.grupo)}`;
+      if (proy.nodos.find((x) => x.id === K('K'))?.grupo) return 'K no tiene grupo y apareció con uno';
+      return en(ev.scope, 'q_w', 'kN/m^2') === 3 ? null : 'q_w dejó de valer 3 kN/m²';
+    },
+  },
+  {
+    nombre: 'reordenar pone cada grupo en su franja, en el orden de la lista, y los sin grupo al final',
+    // Los grupos van al revés de la cadena a propósito: «Viento» usa lo que
+    // publica «Geometría», pero va primero en la lista. La franja la decide la
+    // lista; la columna, la cadena de TODA la obra.
+    obra: {
+      ...obra(
+        { ...calc('G', m('A_g := 10 m^2'), m('h := 6 m')), grupo: 'geo' },
+        { ...calc('W1', m('q_1 := 0.5 kN/m^2 * A_g')), grupo: 'viento' },
+        { ...calc('W2', m('q_2 := q_1 * 2')), grupo: 'viento' },
+        calc('Z', m('z := h + 1 m')),
+      ),
+      grupos: [
+        { id: 'viento', nombre: 'Viento', color: '#2563eb' },
+        { id: 'geo', nombre: 'Geometría', color: '#059669' },
       ],
     },
     ok: (ev, proy) => {
-      const sub = proy.nodos.find((x) => x.id === idNodoDeSubcarga('s1'));
-      if (sub?.grupo?.nombre !== 'Viento') return `la partida trae ${JSON.stringify(sub?.grupo)}`;
-      if (proy.nodos.find((x) => x.id === K('K'))?.grupo) return 'K no tiene grupo y apareció con uno';
-      return en(ev.scope, 'q_w', 'kN/m^2') === 3 ? null : 'q_w dejó de valer 3 kN/m²';
+      const pos = colocarPorGrupo(proy.nodos, proy.aristas, (x) => x.grupo?.id, ['viento', 'geo']);
+      const franja = (ids) => {
+        const ys = ids.map((id) => pos[K(id)].y);
+        return { min: Math.min(...ys), max: Math.max(...ys) };
+      };
+      const viento = franja(['W1', 'W2']);
+      const geo = franja(['G']);
+      const sin = franja(['Z']);
+      if (!(viento.max < geo.min && geo.max < sin.min)) {
+        return `las franjas se pisan o van en otro orden: viento ${JSON.stringify(viento)}, geo ${JSON.stringify(geo)}, sin grupo ${JSON.stringify(sin)}`;
+      }
+      const atras = proy.aristas
+        .filter((a) => pos[a.hasta].x <= pos[a.desde].x)
+        .map((a) => `${a.desde}→${a.hasta}`);
+      return atras.length ? `flechas hacia atrás: ${atras.join(' · ')}` : null;
     },
   },
 ];
@@ -856,10 +835,6 @@ function idsDe(o) {
   for (const k of o.calculos) {
     ids.push(k.id, ...hojaDeNodo(k).map((b) => b.id));
   }
-  for (const c of o.cargas) {
-    ids.push(c.id);
-    for (const s of c.subcargas) ids.push(s.id, ...hojaDeNodo(s).map((b) => b.id));
-  }
   return ids;
 }
 
@@ -869,7 +844,8 @@ const CASOS_SANEO = [
     // El fallo que cierra: los ids de rescate llevaban el índice DENTRO de su
     // padre, así que la primera partida de cada carga era `s-recuperada-0` y los
     // primeros bloques de cada nodo colisionaban entre sí. Dos bloques con el
-    // mismo id comparten entrada en `results` y `key` de React.
+    // mismo id comparten entrada en `results` y `key` de React. Las cargas de una
+    // obra anterior se migran a cálculos, y tampoco pueden chocar con ellos.
     crudo: {
       id: 'o',
       calculos: [
@@ -895,7 +871,6 @@ const CASOS_SANEO = [
         { id: 'k1', nombre: 'A', bloques: [{ id: 'b1', src: 'a := 1' }] },
         { id: 'k2', nombre: 'B', bloques: [{ id: 'b1', src: 'b := 2' }] },
       ],
-      cargas: [],
     },
     ok: (o) => {
       if (o.calculos[0].hoja[0].id !== 'b1') return 'se renombró el primero, que no chocaba';
@@ -908,7 +883,7 @@ const CASOS_SANEO = [
     // `/obra/<id>` pasa por el alfabeto cerrado de `SLUG_PROYECTO_RE`: un id que
     // no lo cumple deja una obra guardada que `parsearRuta` rechaza, y el enlace
     // cae en el menú sin decir nada.
-    crudo: { id: 'Galpón Altiplano', calculos: [], cargas: [] },
+    crudo: { id: 'Galpón Altiplano', calculos: [] },
     ok: (o) =>
       o.id === 'galpon-altiplano' ? null : `dio «${o.id}», se esperaba «galpon-altiplano»`,
   },
@@ -923,7 +898,6 @@ const CASOS_SANEO = [
     crudo: {
       id: 'o',
       calculos: [{ id: 'k', nombre: 'A', bloques: [{ id: 'b1', src: 3 }, { id: 'b2', src: 'a := 1' }] }],
-      cargas: [],
     },
     ok: (o) => (o.calculos[0].hoja.length === 1 ? null : 'no se descartó el bloque sin src'),
   },
@@ -994,7 +968,6 @@ const CASOS_SANEO = [
           },
         },
       ],
-      cargas: [],
     },
     ok: (o) => {
       const pub = o.calculos[0].frontera.publica;
@@ -1007,7 +980,7 @@ const CASOS_SANEO = [
     // `guardarObra` busca la entrada en el archivo CRUDO por este id: si no
     // coincidiera con el de la obra saneada, guardar insertaría un duplicado en
     // vez de reemplazar.
-    crudo: { id: 'Galpón Altiplano', calculos: [], cargas: [] },
+    crudo: { id: 'Galpón Altiplano', calculos: [] },
     ok: (o, crudo) => (idDeObra(crudo) === o.id ? null : `${idDeObra(crudo)} ≠ ${o.id}`),
   },
   {
@@ -1028,7 +1001,6 @@ const CASOS_SANEO = [
           ],
         },
       ],
-      cargas: [],
     },
     ok: (o) => {
       const h = o.calculos[0].hoja;
@@ -1053,7 +1025,6 @@ const CASOS_SANEO = [
         { id: 'k1', nombre: 'A', hoja: [{ id: 'b1', kind: 'math', x: 40, y: 40, src: 'a := 1' }] },
         { id: 'k2', nombre: 'B', hoja: [{ id: 'b1', kind: 'math', x: 40, y: 40, src: 'b := 2' }] },
       ],
-      cargas: [],
     },
     ok: (o) => {
       if (o.calculos[0].hoja[0].id !== 'b1') return 'se renombró el primero, que no chocaba';
@@ -1081,7 +1052,6 @@ const CASOS_SANEO = [
           },
         },
       ],
-      cargas: [],
     },
     ok: (o) => {
       const f = o.calculos[0].frontera;
@@ -1108,7 +1078,6 @@ const CASOS_SANEO = [
         { id: 'k2', nombre: 'B', hoja: [], grupo: 'g2' },
         { id: 'k3', nombre: 'C', hoja: [], grupo: 'fantasma' },
       ],
-      cargas: [{ id: 'c1', nombre: 'E', subcargas: [], grupo: 'g1' }],
     },
     ok: (o) => {
       const g = (o.grupos ?? []).map((x) => `${x.id}:${x.nombre}`).join(',');
@@ -1117,14 +1086,13 @@ const CASOS_SANEO = [
       if (de('k1') !== 'g1') return 'k1 perdió su grupo';
       if (de('k2') !== undefined) return 'k2 conservó un grupo descartado';
       if (de('k3') !== undefined) return 'k3 conservó un grupo que no existe';
-      if (o.cargas[0].grupo !== 'g1') return 'la carga perdió su grupo';
       // Ida y vuelta por el archivo, que es lo que hace exportar e importar.
       const vuelta = sanearObra(archivoDeObra(o).obra);
       if (JSON.stringify(vuelta.grupos) !== JSON.stringify(o.grupos)) return 'el archivo cambió los grupos';
       if (vuelta.calculos[0].grupo !== 'g1') return 'el archivo perdió la asignación';
       // Borrar el grupo se lleva también las referencias.
       const sin = borrarGrupo(o, 'g1');
-      if (sin.grupos.length || sin.calculos[0].grupo || sin.cargas[0].grupo) return 'borrarGrupo dejó referencias';
+      if (sin.grupos.length || sin.calculos[0].grupo) return 'borrarGrupo dejó referencias';
       return null;
     },
   },
@@ -1139,7 +1107,6 @@ const CASOS_SANEO = [
         { id: 'k4', nombre: 'D', hoja: [], revisar: 'sí' },
         { id: 'k5', nombre: 'E', hoja: [] },
       ],
-      cargas: [],
     },
     ok: (o) => {
       const r = (id) => o.calculos.find((k) => k.id === id)?.revisar;
@@ -1153,53 +1120,99 @@ const CASOS_SANEO = [
   },
   {
     nombre: 'el nodo SAP2000 y su última conexión sobreviven al saneo; una sin modelo, no',
+    // `cargas` ya no es un módulo: su contenido se migra a cálculos.
     crudo: {
       id: 'o',
       modulos: ['cargas', 'sap', 'inventado'],
       sap: { modelo: 'v46_FUND.sdb', ruta: 'C:\\x\\v46_FUND.sdb', version: 27, leido: '2026-09-23T12:00:00.000Z' },
       calculos: [],
-      cargas: [],
     },
     ok: (o, crudo) => {
-      if (o.modulos.join(',') !== 'cargas,sap') return `módulos: ${o.modulos.join(',')}`;
+      if (o.modulos.join(',') !== 'sap') return `módulos: ${o.modulos.join(',')}`;
       if (o.sap?.modelo !== 'v46_FUND.sdb' || o.sap.version !== '') return `sap: ${JSON.stringify(o.sap)}`;
       const sinModelo = sanearObra({ ...crudo, sap: { ruta: 'x' } });
       return 'sap' in sinModelo ? 'una conexión sin modelo sobrevivió' : null;
     },
   },
   {
-    nombre: 'el Load Pattern de una carga y la lectura del modelo sobreviven al saneo',
+    nombre: 'las cargas de una obra anterior se migran a cálculos y grupos sin perder un número',
+    // Una carga de UNA partida se dibujaba plegada con el nombre de la carga: el
+    // cálculo toma ese nombre. Una de varias agrupaba: si no tenía grupo, se le
+    // crea uno con su nombre; si lo tenía, sus cálculos lo heredan. Lo que era
+    // solo de la partida —la variable, la aplicación en SAP— y el patrón de la
+    // carga se descartan.
     crudo: {
       id: 'o',
       modulos: ['cargas', 'sap'],
+      grupos: [{ id: 'gv', nombre: 'Viento', color: '#2563eb' }],
+      calculos: [{ id: 'k1', nombre: 'Geometría', hoja: [{ id: 'b1', kind: 'math', x: 40, y: 40, src: 'A_g := 10 m^2' }] }],
       cargas: [
-        { id: 'c1', nombre: 'DEAD', subcargas: [], patron: { tipo: 'Dead', pesoPropio: 1.3 } },
-        { id: 'c2', nombre: 'S', subcargas: [], patron: { tipo: 'Snow', pesoPropio: 'x' } },
-        { id: 'c3', nombre: 'W', subcargas: [], patron: { tipo: '' } },
-      ],
-      calculos: [],
-      sap: {
-        modelo: 'm.sdb',
-        patrones: {
-          modelo: 'm.sdb',
-          leido: '2026-09-23T12:00:00.000Z',
-          lista: [{ nombre: 'DEAD', tipo: 'Dead', pesoPropio: 1.3 }, { nombre: '', tipo: 'Dead' }, { nombre: 'X' }],
+        {
+          id: 'c1',
+          nombre: 'SDL',
+          patron: { tipo: 'SuperDead', pesoPropio: 0 },
+          subcargas: [
+            {
+              id: 's1',
+              nombre: 'Revestimiento',
+              variable: 'q_1',
+              aplicacion: { tipo: 'area-a-barras', grupo: 'CUB', direccion: 10, distribucion: 1 },
+              hoja: [{ id: 'b2', kind: 'math', x: 40, y: 40, src: 'q_1 := 1 kN/m^2 * A_g / (1 m^2)' }],
+            },
+          ],
         },
-      },
+        {
+          id: 'c2',
+          nombre: 'D',
+          subcargas: [
+            { id: 's2', nombre: 'Losa', variable: 'q_2', hoja: [{ id: 'b3', kind: 'math', x: 40, y: 40, src: 'q_2 := 2 kN/m^2' }] },
+            { id: 's3', nombre: 'Total', variable: 'q_3', hoja: [{ id: 'b4', kind: 'math', x: 40, y: 40, src: 'q_3 := q_2 + q_1' }] },
+          ],
+        },
+        {
+          id: 'c3',
+          nombre: 'W',
+          grupo: 'gv',
+          subcargas: [
+            { id: 's4', nombre: 'Barlovento', hoja: [{ id: 'b5', kind: 'math', x: 40, y: 40, src: 'w_1 := 0.5 kN/m^2' }] },
+            { id: 's5', nombre: 'Sotavento', hoja: [{ id: 'b6', kind: 'math', x: 40, y: 40, src: 'w_2 := -0.3 kN/m^2' }] },
+          ],
+        },
+        { id: 'c4', nombre: 'Vacía', subcargas: [] },
+      ],
     },
-    ok: (o) => {
-      const p = (id) => o.cargas.find((c) => c.id === id)?.patron;
-      if (p('c1')?.pesoPropio !== 1.3 || p('c1')?.tipo !== 'Dead') return `c1: ${JSON.stringify(p('c1'))}`;
-      if (p('c2')?.pesoPropio !== 0) return 'un peso propio ilegible no quedó en 0';
-      if (p('c3') !== undefined) return 'un patrón sin tipo sobrevivió';
-      const l = o.sap?.patrones?.lista ?? [];
-      return l.length === 1 && l[0].nombre === 'DEAD' ? null : `lectura: ${JSON.stringify(l)}`;
+    ok: (o, crudo) => {
+      if ('cargas' in o) return 'la obra saneada sigue trayendo `cargas`';
+      if (o.modulos.join(',') !== 'sap') return `módulos: ${o.modulos.join(',')}`;
+      const nombres = o.calculos.map((k) => `${k.id}:${k.nombre}`).join(',');
+      // En el orden de antes: primero los cálculos, después las partidas.
+      if (nombres !== 'k1:Geometría,s1:SDL,s2:Losa,s3:Total,s4:Barlovento,s5:Sotavento') return `cálculos: ${nombres}`;
+      const grupoDe = (id) => o.calculos.find((k) => k.id === id)?.grupo;
+      const nuevo = o.grupos.find((g) => g.nombre === 'D');
+      if (!nuevo) return `no se creó el grupo de la carga D: ${JSON.stringify(o.grupos)}`;
+      if (grupoDe('s2') !== nuevo.id || grupoDe('s3') !== nuevo.id) return 'las partidas de D no quedaron en su grupo';
+      if (grupoDe('s1') !== undefined) return 'una carga de una partida ganó un grupo';
+      if (grupoDe('s4') !== 'gv' || grupoDe('s5') !== 'gv') return 'W perdió su grupo';
+      if (o.grupos.length !== 2) return `grupos: ${o.grupos.map((g) => g.nombre).join(',')}`;
+      const s1 = o.calculos.find((k) => k.id === 's1');
+      if ('variable' in s1 || 'aplicacion' in s1) return `s1 conservó lo que era de la partida: ${JSON.stringify(s1)}`;
+      // Releer lo migrado da lo mismo: el grupo nuevo no se vuelve a crear.
+      const otra = sanearObra(archivoDeObra(o).obra);
+      if (JSON.stringify(otra) !== JSON.stringify(o)) return 'releer la obra migrada la cambió';
+      // Y releer SIN haber guardado da el mismo grupo, no uno nuevo cada vez.
+      if (sanearObra(crudo).grupos.find((g) => g.nombre === 'D')?.id !== nuevo.id) {
+        return 'el id del grupo nuevo cambia en cada lectura';
+      }
+      // Los números: el mismo scope que daban las partidas.
+      const ev = evaluarObra(o, {});
+      if (en(ev.scope, 'q_3', 'kN/m^2') !== 12) return `q_3 = ${valor(ev, 'q_3')}, se esperaban 12 kN/m²`;
+      return ev.enCiclo.size ? 'la migración inventó un ciclo' : null;
     },
   },
   {
     nombre: 'una obra sin grupos no gana un `grupos: []` al sanearse',
     // Guardar una obra no puede cambiarla si nadie la tocó.
-    crudo: { id: 'o', calculos: [], cargas: [] },
+    crudo: { id: 'o', calculos: [] },
     ok: (o) => ('grupos' in o ? 'apareció `grupos`' : null),
   },
 ];
@@ -1211,9 +1224,8 @@ const CASOS_SANEO = [
 // del Pachón, que es un proyecto real de punta a punta: si sobrevive a la ida y
 // vuelta sin cambiar un byte ni un resultado, la carpeta no pierde nada.
 
-const PACHON = sanearObra(
-  JSON.parse(await readFile(path.join(ROOT, 'docs/pachon/autocontenida/obra-pachon-soldadura.json'), 'utf8')).obra,
-);
+const PACHON_CRUDO = await readFile(path.join(ROOT, 'docs/pachon/autocontenida/obra-pachon-soldadura.json'), 'utf8');
+const PACHON = sanearObra(JSON.parse(PACHON_CRUDO).obra);
 const CARRILERA = await generica('acero/viga-carrilera-generica.json');
 const genericasPachon = { [CARRILERA.id]: { fase: 'lista', modulo: CARRILERA } };
 
@@ -1221,6 +1233,22 @@ const genericasPachon = { [CARRILERA.id]: { fase: 'lista', modulo: CARRILERA } }
 const releer = (archivos) => sanearObra(unirObra(archivos).crudo);
 
 const CASOS_CARPETA = [
+  {
+    nombre: 'el Pachón, escrito con cargas, abre con un cálculo por cada nodo que tenía',
+    // Sus 23 partidas pasan a ser cálculos. Que los resultados no cambian se
+    // comprobó contra `master` región por región al retirar las cargas; aquí
+    // queda lo que se puede comprobar sin el modelo anterior: nadie se pierde,
+    // nadie se duplica, y nada nuevo sale en rojo.
+    ok: () => {
+      const crudo = JSON.parse(PACHON_CRUDO).obra;
+      const antes = crudo.calculos.length + crudo.cargas.reduce((s, c) => s + c.subcargas.length, 0);
+      if (PACHON.calculos.length !== antes) return `${PACHON.calculos.length} cálculos para ${antes} nodos`;
+      const ev = evaluarObra(PACHON, genericasPachon);
+      const rojos = Object.values(ev.results).filter((r) => r.error).length;
+      if (rojos || ev.enCiclo.size || ev.repetidos.size) return `${rojos} errores, ${ev.enCiclo.size} en ciclo, ${ev.repetidos.size} repetidos`;
+      return null;
+    },
+  },
   {
     nombre: 'la obra del Pachón sale de su carpeta igual que entró',
     ok: () => {
@@ -1242,14 +1270,13 @@ const CASOS_CARPETA = [
     nombre: 'una hoja por nodo, además de obra.json, y ninguna hoja dentro de obra.json',
     ok: () => {
       const archivos = partirObra(PACHON);
-      const nodos = PACHON.calculos.length + PACHON.cargas.reduce((s, c) => s + c.subcargas.length, 0);
+      const nodos = PACHON.calculos.length;
       const hojas = Object.keys(archivos).filter((r) => r.startsWith('hojas/'));
       if (!('obra.json' in archivos)) return 'falta obra.json';
       if (hojas.length !== nodos) return `${hojas.length} hojas para ${nodos} nodos`;
       const grafo = JSON.parse(archivos['obra.json']).obra;
-      const conRegiones = [...grafo.calculos, ...grafo.cargas.flatMap((c) => c.subcargas)].filter(
-        (k) => typeof k.hoja !== 'string',
-      );
+      if ('cargas' in grafo) return 'obra.json sigue escribiendo `cargas`';
+      const conRegiones = grafo.calculos.filter((k) => typeof k.hoja !== 'string');
       return conRegiones.length ? `obra.json lleva regiones en ${conRegiones.map((k) => k.id).join(', ')}` : null;
     },
   },
@@ -1279,8 +1306,7 @@ const CASOS_CARPETA = [
             hoja: [{ id: 'b1', kind: 'math', x: 40, y: 40, src: 'a := 1' }],
           },
         ],
-        cargas: [],
-      });
+        });
       const [ruta] = Object.keys(partirObra(o)).filter((r) => r.startsWith('hojas/'));
       const hoja = JSON.parse(partirObra(o)[ruta]);
       if (hoja.version !== 1) return `version ${hoja.version}`;
@@ -1298,8 +1324,7 @@ const CASOS_CARPETA = [
           { id: '__fuera', nombre: 'B', hoja: [{ id: 'b2', kind: 'math', x: 40, y: 40, src: 'b := 2' }] },
           { id: 'CON', nombre: 'C', hoja: [] },
         ],
-        cargas: [],
-      });
+        });
       const archivos = partirObra(o);
       const hojas = Object.keys(archivos).filter((r) => r !== 'obra.json');
       const malas = hojas.filter((r) => !/^hojas\/[a-z0-9-]+\.json$/.test(r));
@@ -1325,9 +1350,9 @@ const CASOS_CARPETA = [
   {
     nombre: 'la marca «Revisar» sobrevive a la carpeta, y va en obra.json, no en la hoja',
     ok: () => {
-      const partida = PACHON.cargas[0].subcargas[0];
+      const otro = PACHON.calculos[1];
       let o = marcarRevision(PACHON, PACHON.calculos[0].id, { nota: 'Supuesto: Kzt = 1', por: 'usuario' });
-      o = marcarRevision(o, partida.id, { nota: 'Creada por el asistente', por: 'asistente' });
+      o = marcarRevision(o, otro.id, { nota: 'Creada por el asistente', por: 'asistente' });
       const archivos = partirObra(o);
       if (!archivos['obra.json'].includes('Supuesto: Kzt = 1')) return 'la marca no quedó en obra.json';
       const vuelta = releer(archivos);
@@ -1337,10 +1362,10 @@ const CASOS_CARPETA = [
   {
     nombre: 'marcar no cambia ningún resultado, y la tarjeta y el contador la ven',
     ok: () => {
-      const partida = PACHON.cargas[0].subcargas[0];
       const calculo = PACHON.calculos[0];
+      const otro = PACHON.calculos[1];
       let o = marcarRevision(PACHON, calculo.id, { nota: 'Revisar la altura', por: 'usuario' });
-      o = marcarRevision(o, partida.id, { nota: '', por: 'asistente' });
+      o = marcarRevision(o, otro.id, { nota: '', por: 'asistente' });
       const antes = evaluarObra(PACHON, genericasPachon);
       const ev = evaluarObra(o, genericasPachon);
       if (JSON.stringify(ev.results) !== JSON.stringify(antes.results)) return 'la marca cambió resultados';
@@ -1349,13 +1374,12 @@ const CASOS_CARPETA = [
       if (nk?.revisar?.nota !== 'Revisar la altura') return `el cálculo no lleva la marca: ${JSON.stringify(nk?.revisar)}`;
       if (nk.severidad !== proyectar(PACHON, antes, genericasPachon).nodos.find((x) => x.id === K(calculo.id)).severidad)
         return 'la marca tocó la severidad';
-      const np = proy.nodos.find((x) => x.id === idNodoDeSubcarga(partida.id));
-      if (np?.revisar?.por !== 'asistente') return 'la partida no lleva la marca del asistente';
+      const no = proy.nodos.find((x) => x.id === K(otro.id));
+      if (no?.revisar?.por !== 'asistente') return 'el segundo cálculo no lleva la marca del asistente';
       const lista = porRevisar(o);
-      if (lista.join(',') !== [idNodoDeSubcarga(partida.id), K(calculo.id)].join(','))
-        return `porRevisar: ${lista.join(', ')}`;
+      if (lista.join(',') !== [K(calculo.id), K(otro.id)].join(',')) return `porRevisar: ${lista.join(', ')}`;
       // «Revisado» la quita sin dejar un `revisar: undefined` que ensucie el diff.
-      const limpia = marcarRevision(marcarRevision(o, calculo.id, undefined), partida.id, undefined);
+      const limpia = marcarRevision(marcarRevision(o, calculo.id, undefined), otro.id, undefined);
       if (porRevisar(limpia).length) return 'quedaron marcas tras quitarlas';
       return partirObra(limpia)['obra.json'] === partirObra(PACHON)['obra.json']
         ? null
@@ -1368,194 +1392,6 @@ const CASOS_CARPETA = [
       const { crudo, problemas } = unirObra({ 'hojas/k.json': '{}' });
       if (crudo !== null) return 'devolvió una obra';
       return problemas.length ? null : 'no dio motivo';
-    },
-  },
-];
-
-// ── Las cargas contra los Load Patterns del modelo ───────────────────────────
-//
-// Flow manda: la comparación dice en qué se aparta el modelo de lo que la obra
-// define. Los nombres y los números son los del modelo del Pachón (DEAD con peso
-// propio 1,3, la grúa en SAP como CLV_P1…).
-
-const carga = (nombre, patron) => ({ id: `c-${nombre}`, nombre, subcargas: [], ...(patron ? { patron } : {}) });
-const leido = (nombre, tipo, pesoPropio = 0) => ({ nombre, tipo, pesoPropio });
-const estados = (filas) => filas.map((f) => `${f.nombre}:${f.estado}`).join(' ');
-
-const CASOS_PATRONES = [
-  {
-    nombre: 'cada carga contra su patrón: igual, difiere, sin definir, solo en Flow y solo en SAP',
-    ok: () => {
-      const filas = compararPatrones(
-        [
-          carga('DEAD', { tipo: 'Dead', pesoPropio: 1.3 }),
-          carga('S', { tipo: 'Live', pesoPropio: 0 }),
-          carga('LR'),
-          carga('CLV', { tipo: 'Other', pesoPropio: 0 }),
-        ],
-        [leido('DEAD', 'Dead', 1.3), leido('S', 'Snow'), leido('LR', 'Rooflive'), leido('CLV_P1', 'Other')],
-      );
-      const esperado = 'DEAD:igual S:difiere LR:sin-definir CLV:solo-flow CLV_P1:solo-sap';
-      if (estados(filas) !== esperado) return `dio ${estados(filas)}`;
-      const s = filas.find((f) => f.nombre === 'S');
-      return s.diferencias.some((d) => d.includes('Live') && d.includes('Snow')) ? null : `diferencias: ${s.diferencias}`;
-    },
-  },
-  {
-    nombre: 'el peso propio se compara como número: 1,3 contra 1 difiere',
-    ok: () => {
-      const [f] = compararPatrones([carga('DEAD', { tipo: 'Dead', pesoPropio: 1 })], [leido('DEAD', 'Dead', 1.3)]);
-      return f.estado === 'difiere' && f.diferencias.some((d) => d.includes('peso propio'))
-        ? null
-        : `${f.estado}: ${f.diferencias}`;
-    },
-  },
-  {
-    nombre: 'una carga sin nombre no se compara con nada',
-    ok: () => {
-      const filas = compararPatrones([carga('  ')], []);
-      return filas.length === 0 ? null : estados(filas);
-    },
-  },
-  {
-    nombre: 'el peso propio en ninguna carga, o en dos, se avisa; sin patrones definidos, nada',
-    ok: () => {
-      if (avisosPesoPropio([]).length) return 'avisó sin nada definido';
-      const ninguno = avisosPesoPropio([{ nombre: 'S', pesoPropio: 0 }]);
-      if (ninguno.length !== 1 || !ninguno[0].includes('Ninguna')) return `ninguno: ${ninguno}`;
-      const dos = avisosPesoPropio([
-        { nombre: 'DEAD', pesoPropio: 1 },
-        { nombre: 'SDL', pesoPropio: 1 },
-      ]);
-      if (dos.length !== 1 || !dos[0].includes('DEAD') || !dos[0].includes('SDL')) return `dos: ${dos}`;
-      return avisosPesoPropio([{ nombre: 'DEAD', pesoPropio: 1.3 }]).length ? 'avisó con uno solo' : null;
-    },
-  },
-  {
-    nombre: 'traer de SAP crea las cargas que faltan, con su patrón, y no duplica ni pisa',
-    ok: () => {
-      const base = { ...obra(), modulos: [], cargas: [carga('DEAD', { tipo: 'Dead', pesoPropio: 1 })] };
-      const lista = [leido('DEAD', 'Dead', 1.3), leido('WXP', 'Wind'), leido('CLV_P1', 'Other')];
-      const o = traerDeSap(base, ['WXP', 'CLV_P1', 'DEAD'], lista);
-      if (!o.modulos.includes('cargas')) return 'no agregó el nodo Cargas';
-      const nombres = o.cargas.map((c) => c.nombre).join(',');
-      if (nombres !== 'DEAD,WXP,CLV_P1') return `cargas: ${nombres}`;
-      if (o.cargas[0].patron.pesoPropio !== 1) return 'pisó el patrón de una carga que ya estaba';
-      const w = o.cargas[1];
-      if (w.patron?.tipo !== 'Wind' || w.subcargas.length !== 0) return `WXP: ${JSON.stringify(w)}`;
-      if (new Set(o.cargas.map((c) => c.id)).size !== 3) return 'ids repetidos';
-      return estados(compararPatrones(o.cargas, lista)) === 'DEAD:difiere WXP:igual CLV_P1:igual'
-        ? null
-        : estados(compararPatrones(o.cargas, lista));
-    },
-  },
-  {
-    nombre: 'adoptar de SAP define el patrón de las cargas que no lo tenían, y solo de esas',
-    ok: () => {
-      const base = {
-        ...obra(),
-        modulos: ['cargas'],
-        cargas: [carga('DEAD', { tipo: 'Dead', pesoPropio: 1 }), carga('LR'), carga('S')],
-      };
-      const lista = [leido('DEAD', 'Dead', 1.3), leido('LR', 'Rooflive'), leido('S', 'Snow')];
-      const o = adoptarDeSap(base, ['DEAD', 'LR'], lista);
-      const p = (n) => o.cargas.find((c) => c.nombre === n)?.patron;
-      if (p('DEAD').pesoPropio !== 1) return 'pisó un patrón que Flow ya definía';
-      if (p('LR')?.tipo !== 'Rooflive') return `LR: ${JSON.stringify(p('LR'))}`;
-      return p('S') === undefined ? null : 'adoptó uno que no se pidió';
-    },
-  },
-  {
-    nombre: 'una partida aplicada da su valor en la unidad de SAP; con otra dimensión, un error',
-    ok: () => {
-      const partida = (id, src, aplicacion) => ({
-        id,
-        nombre: id,
-        variable: id,
-        hoja: [{ id: `b-${id}`, kind: 'math', x: 40, y: 40, src }],
-        aplicacion,
-      });
-      const o = {
-        ...obra(),
-        modulos: ['cargas'],
-        cargas: [
-          {
-            id: 'c1',
-            nombre: 'SDL_CUB',
-            subcargas: [
-              partida('q_cub', 'q_cub := 10 kgf/m^2', { tipo: 'area-a-barras', grupo: 'CUB', direccion: 10, distribucion: 1 }),
-              partida('q_mal', 'q_mal := 2 kN/m', { tipo: 'area-a-barras', grupo: 'CUB', direccion: 10, distribucion: 1 }),
-              partida('q_sin', 'q_sin := 1 kN/m'),
-            ],
-          },
-          { id: 'c2', nombre: 'CM_VIA', subcargas: [partida('w_via', 'w_via := 0.769 kN/m', { tipo: 'barra-distribuida', grupo: 'VIA', direccion: 10 })] },
-        ],
-      };
-      const ev = evaluarObra(o, {});
-      const filas = aplicacionesDeObra(o, proyectar(o, ev, {}).evaluaciones);
-      if (filas.map((f) => f.partida).join(',') !== 'q_cub,q_mal,w_via') return `filas: ${filas.map((f) => f.partida)}`;
-      const [cub, mal, via] = filas;
-      if (cub.patron !== 'SDL_CUB' || Math.abs(cub.valor - 0.0980665) > 1e-9) return `cub: ${JSON.stringify(cub)}`;
-      if (!mal.error || mal.valor !== undefined) return `una carga de barra aplicada a un área no falló: ${JSON.stringify(mal)}`;
-      if (Math.abs(via.valor - 0.769) > 1e-12 || via.unidad !== 'kN/m') return `via: ${JSON.stringify(via)}`;
-      return null;
-    },
-  },
-  {
-    nombre: 'la aplicación contra el modelo: igual, otro valor, objetos sin carga, grupo vacío',
-    ok: () => {
-      const f = { id: 's', patron: 'SDL_CUB', partida: 'q', unidad: 'kN/m^2', valor: 0.0980665, aplicacion: { tipo: 'area-a-barras', grupo: 'CUB', direccion: 10, distribucion: 1 } };
-      const c = (valor, extra = {}) => ({ valor, dir: 10, dist: 1, n: 33, ...extra });
-      const e = (l) => compararAplicacion(f, l).estado;
-      if (e({ objetos: 33, sinCarga: 0, cargas: [c(0.09806649999606519)] }) !== 'igual') return 'un valor igual no dio «igual»';
-      if (e({ objetos: 33, sinCarga: 0, cargas: [c(0.2)] }) !== 'difiere') return 'otro valor no difiere';
-      if (e({ objetos: 33, sinCarga: 0, cargas: [c(0.0980665, { dist: 2 })] }) !== 'difiere') return 'otra distribución no difiere';
-      const parcial = compararAplicacion(f, { objetos: 61, sinCarga: 28, cargas: [c(0.0980665)] });
-      if (parcial.estado !== 'difiere' || !parcial.detalle.includes('28')) return `parcial: ${JSON.stringify(parcial)}`;
-      if (e({ objetos: 0, sinCarga: 0, cargas: [] }) !== 'sin-objetos') return 'un grupo vacío no se dijo';
-      return e({ error: 'No hay un grupo' }) === 'error' ? null : 'el error del puente se perdió';
-    },
-  },
-  {
-    nombre: 'dos partidas del mismo patrón sobre el mismo grupo quedan «igual» cuando el modelo tiene las dos',
-    ok: () => {
-      const ap = { tipo: 'area-a-barras', grupo: 'CUB', direccion: 10, distribucion: 1 };
-      const fila = (id, valor) => ({ id, patron: 'CM', partida: id, unidad: 'kN/m^2', valor, aplicacion: ap });
-      const filas = [fila('losa', 2), fila('term', 1)];
-      const [losa, term] = filas;
-      const h = hermanasDe(filas, losa);
-      if (h.length !== 2) return `hermanas: ${h.length}`;
-      // Lo que el ingeniero tiene que dejar: las dos cargas en cada uno de los 10 objetos.
-      const c = (valor, n) => ({ valor, dir: 10, dist: 1, n });
-      const escrito = { objetos: 10, sinCarga: 0, cargas: [c(2, 10), c(1, 10)] };
-      if (compararAplicacion(losa, escrito, h).estado !== 'igual') return 'la primera no dio «igual»';
-      if (compararAplicacion(term, escrito, hermanasDe(filas, term)).estado !== 'igual') return 'la segunda no dio «igual»';
-      // Una sola de las dos en el modelo: difiere, y el detalle dice lo que Flow espera.
-      const falta = compararAplicacion(losa, { objetos: 10, sinCarga: 0, cargas: [c(2, 10)] }, h);
-      if (falta.estado !== 'difiere' || !falta.detalle.includes('2 + 1')) return `falta: ${JSON.stringify(falta)}`;
-      // Una carga de más que ninguna partida pide: difiere.
-      const sobra = { objetos: 10, sinCarga: 0, cargas: [c(2, 10), c(1, 10), c(0.5, 10)] };
-      if (compararAplicacion(losa, sobra, h).estado !== 'difiere') return 'una carga de más no difiere';
-      // Dos partidas iguales esperan la misma carga dos veces por objeto.
-      const gemelas = [fila('g1', 1), fila('g2', 1)];
-      const dobles = { objetos: 10, sinCarga: 0, cargas: [c(1, 20)] };
-      if (compararAplicacion(gemelas[0], dobles, hermanasDe(gemelas, gemelas[0])).estado !== 'igual') {
-        return 'dos partidas iguales no dieron «igual»';
-      }
-      // Con firmas, el reparto por objeto cuenta: 2 objetos, uno con 2+2 y otro
-      // con 1+1, suman lo mismo que dos con 2+1 y el conteo no lo ve.
-      const f = (valor) => ({ valor, dir: 10, dist: 1 });
-      const bien = { objetos: 2, sinCarga: 0, cargas: [c(2, 2), c(1, 2)], firmas: [{ cargas: [f(1), f(2)], n: 2 }] };
-      if (compararAplicacion(losa, bien, h).estado !== 'igual') return 'la firma correcta no dio «igual»';
-      const cruzado = {
-        objetos: 2,
-        sinCarga: 0,
-        cargas: [c(2, 2), c(1, 2)],
-        firmas: [{ cargas: [f(2), f(2)], n: 1 }, { cargas: [f(1), f(1)], n: 1 }],
-      };
-      const x = compararAplicacion(losa, cruzado, h);
-      if (x.estado !== 'difiere') return 'un reparto cruzado entre objetos dio «igual»';
-      return x.detalle.includes('2 formas') ? null : `el detalle no dice el reparto: ${x.detalle}`;
     },
   },
 ];
@@ -1731,20 +1567,6 @@ const CASOS_SERVIDOR = [
 // ── Correr ───────────────────────────────────────────────────────────────────
 
 let fallos = 0;
-for (const caso of CASOS_PATRONES) {
-  let motivo;
-  try {
-    motivo = caso.ok();
-  } catch (e) {
-    motivo = `lanzó: ${e.message}`;
-  }
-  if (motivo) {
-    fallos++;
-    console.log(`  [FALLA] ${caso.nombre}\n          ${motivo}`);
-  } else {
-    console.log(`  [ OK  ] ${caso.nombre}`);
-  }
-}
 for (const caso of CASOS_SERVIDOR) {
   let motivo;
   try {
@@ -1821,6 +1643,6 @@ for (const caso of CASOS) {
   }
 }
 
-const total = CASOS.length + CASOS_SANEO.length + CASOS_HOJA.length + CASOS_CARPETA.length + CASOS_SERVIDOR.length + CASOS_PATRONES.length;
+const total = CASOS.length + CASOS_SANEO.length + CASOS_HOJA.length + CASOS_CARPETA.length + CASOS_SERVIDOR.length;
 console.log(`\n${fallos ? 'FALLA' : 'OK'}: ${total - fallos} de ${total} casos.\n`);
 process.exit(fallos ? 1 : 0);

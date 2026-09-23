@@ -23,7 +23,7 @@ import { evaluarModulo, type EvaluacionModulo } from '../../lib/diseno/evaluar';
 import type { Entradas, ModuloDiseno } from '../../lib/diseno/tipos';
 import { sanearHoja } from './hoja';
 import { newId } from '../../lib/hoja-json';
-import type { Frontera, NodoCalculo, Subcarga } from './modelo';
+import type { Frontera, NodoCalculo } from './modelo';
 
 export { listarPromovibles };
 export type { EntradaIndice } from '../../lib/catalogo';
@@ -188,12 +188,12 @@ export function quedoAtras(modulo: ModuloDiseno<Entradas>, frontera: Frontera): 
  * dos nodos que desprendan la misma genérica se quedarían con los mismos ids, y
  * los ids de región son las claves de `results` en la hoja global.
  */
-export function desprender<T extends NodoCalculo | Subcarga>(
-  nodo: T,
+export function desprender(
+  nodo: NodoCalculo,
   modulo: ModuloDiseno<Entradas>,
   scope: Record<string, unknown> = {},
   vistos: Set<string> = new Set(),
-): T {
+): NodoCalculo {
   const f = nodo.frontera;
   if (!f) return nodo;
   const entradas = entradasEfectivas(modulo, f, scope);
@@ -209,7 +209,6 @@ export function desprender<T extends NodoCalculo | Subcarga>(
       ...(sello ? { origen: { slug, sha256: sello } } : {}),
       ...(f.formulas ? { formulas: f.formulas } : {}),
       ...(f.publica ? { publica: f.publica } : {}),
-      ...(f.salida ? { salida: f.salida } : {}),
     },
   };
 }

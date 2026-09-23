@@ -100,6 +100,32 @@ lectura de resultados y de la configuración de diseño, con el mismo criterio.
   clase del nodo, la franja el grupo del usuario y la bandera ⚑ la marca «Revisar». Un canal
   nuevo no reutiliza uno existente.
 
+## Experimento: el grupo es la única forma de organizar la obra
+
+**2026-09-23, rama `grupos-sin-cargas`.** La obra tenía dos formas de agrupar que competían: la
+jerarquía de cargas —el nodo «Cargas» → la carga → sus partidas, con plegado cuando había una
+sola— y el `Grupo` del usuario, que solo pintaba una franja. Para el motor una partida ya era
+un cálculo más (`nodosDeLaObra` las ponía detrás de los cálculos); lo que añadía la carga era
+jerarquía visual y el Load Pattern de SAP. Las líneas del nodo «Cargas» cruzaban el lienzo, y
+el grupo de una carga de varias partidas solo se podía asignar desde una partida.
+
+En la rama:
+
+- **No hay cargas.** Todo nodo con hoja es un cálculo. Una obra anterior se migra al leerla
+  (`migrarCargas` de `almacen.ts`): cada partida pasa a ser un cálculo con su mismo id y su
+  misma hoja, detrás de los que ya había; una carga de una partida le da su nombre, y una de
+  varias, su grupo (se crea uno con su nombre si no lo tenía). Las dos obras del Pachón dan los
+  mismos resultados, región por región, que en `master`.
+- **«Reordenar» arma franjas por grupo** (`colocarPorGrupo` de `layout.ts`): una banda
+  horizontal por grupo, en el orden de la lista, y los sin grupo al final. La columna se
+  calcula sobre la obra entera, así que una flecha entre grupos sigue yendo a la derecha. No
+  se dibuja marco: el grupo ya tiene su canal, la franja de la tarjeta.
+- **Se retiró lo de SAP que colgaba de la carga**: el Load Pattern, la comparación de
+  patrones y la aplicación de una partida sobre un grupo del modelo. El nodo SAP2000 queda en
+  la conexión. Si el experimento se fusiona, hay que decidir de qué cuelga un patrón —un grupo
+  es el candidato natural: un grupo con patrón ES un Load Pattern—, y reescribir las etapas 2
+  y 6, que todavía hablan de cargas.
+
 ## La hoja va hacia el flujo lineal
 
 **2026-09-09.** Se descartó el modelo de SMath —posición libre en un plano, bloque impreso en

@@ -24,108 +24,46 @@ import { metaDe } from '../../lib/hoja-json';
 import { migrarBloques, sanearHoja } from './hoja';
 import {
   COLOR_RE,
-  IDENTIFICADOR_RE,
+  COLORES_GRUPO,
   LARGO_NOTA_REVISION,
   problemaDeAlias,
   slugificar,
   VERSION_OBRA,
-  type Carga,
-  type AplicacionSap,
   type ConexionSap,
-  DIRECCIONES_SAP,
-  type GrupoSap,
   type Frontera,
-  type LecturaPatrones,
-  type PatronLeido,
-  type PatronSap,
   type Grupo,
   type Modulo,
   type NodoCalculo,
   type Obra,
   type Procedencia,
   type Revision,
-  type Subcarga,
 } from './modelo';
 
 export const CLAVE_OBRAS = 'structflow.obras.v1';
 
 export type Resultado = { ok: true } | { ok: false; motivo: string };
 
-const MODULOS: ReadonlySet<string> = new Set<Modulo>(['cargas', 'sap']);
+// `cargas` ya no es un módulo: una obra que lo traiga lo pierde en silencio,
+// porque su contenido se migra a cálculos (`migrarCargas`).
+const MODULOS: ReadonlySet<string> = new Set<Modulo>(['sap']);
 
 const texto = (v: unknown) => (typeof v === 'string' ? v : '');
 
 /**
- * El Load Pattern de una carga. Un tipo vacío no define nada y se descarta
- * entero; un peso propio ilegible queda en 0, que es lo que SAP asume.
+ * La última conexión a SAP2000. Una sin modelo no dice nada y se descarta. Los
+ * patrones y grupos leídos que traiga una obra anterior se descartan: eran para
+ * comparar cargas, que ya no existen.
  */
-function sanearPatron(crudo: unknown): PatronSap | undefined {
-  if (typeof crudo !== 'object' || crudo === null) return undefined;
-  const p = crudo as Partial<PatronSap>;
-  if (typeof p.tipo !== 'string' || !p.tipo) return undefined;
-  const peso = typeof p.pesoPropio === 'number' && Number.isFinite(p.pesoPropio) ? p.pesoPropio : 0;
-  return { tipo: p.tipo, pesoPropio: peso };
-}
-
-function sanearLectura(crudo: unknown): LecturaPatrones | undefined {
-  if (typeof crudo !== 'object' || crudo === null) return undefined;
-  const l = crudo as Partial<LecturaPatrones>;
-  if (!Array.isArray(l.lista)) return undefined;
-  const lista: PatronLeido[] = [];
-  for (const x of l.lista) {
-    const nombre = (x as { nombre?: unknown } | null)?.nombre;
-    const patron = sanearPatron(x);
-    if (typeof nombre === 'string' && nombre && patron) lista.push({ nombre, ...patron });
-  }
-  return { modelo: texto(l.modelo), ...(texto(l.ruta) ? { ruta: texto(l.ruta) } : {}), leido: texto(l.leido), lista };
-}
-
-function sanearGruposSap(crudo: unknown): GrupoSap[] | undefined {
-  if (!Array.isArray(crudo)) return undefined;
-  const n = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
-  return crudo
-    .filter((g): g is Partial<GrupoSap> => typeof g === 'object' && g !== null)
-    .filter((g) => typeof g.nombre === 'string' && g.nombre)
-    .map((g) => ({ nombre: g.nombre as string, barras: n(g.barras), areas: n(g.areas) }));
-}
-
-/**
- * Dónde va una partida en SAP. Sin grupo o con un tipo desconocido no dice
- * nada que se pueda aplicar y se descarta; una dirección que no se reconoce
- * vuelve a gravedad, que es la de casi todas.
- */
-function sanearAplicacion(crudo: unknown): { aplicacion?: AplicacionSap } {
-  if (typeof crudo !== 'object' || crudo === null) return {};
-  const a = crudo as Partial<AplicacionSap>;
-  if (a.tipo !== 'area-a-barras' && a.tipo !== 'barra-distribuida') return {};
-  if (typeof a.grupo !== 'string' || !a.grupo.trim()) return {};
-  const direccion = DIRECCIONES_SAP.some((d) => d.codigo === a.direccion) ? (a.direccion as number) : 10;
-  return {
-    aplicacion: {
-      tipo: a.tipo,
-      grupo: a.grupo.trim(),
-      direccion,
-      ...(a.tipo === 'area-a-barras' ? { distribucion: a.distribucion === 2 ? 2 : 1 } : {}),
-    },
-  };
-}
-
-/** La última conexión a SAP2000. Una sin modelo no dice nada y se descarta. */
 function sanearSap(crudo: unknown): { sap?: ConexionSap } {
   if (typeof crudo !== 'object' || crudo === null) return {};
   const s = crudo as Partial<ConexionSap>;
   if (typeof s.modelo !== 'string' || !s.modelo) return {};
-  const patrones = sanearLectura(s.patrones);
-  const gruposSap = sanearGruposSap(s.grupos);
   return {
     sap: {
       modelo: s.modelo,
       ruta: texto(s.ruta),
       version: texto(s.version),
       leido: texto(s.leido),
-      ...(patrones ? { patrones } : {}),
-      ...(gruposSap ? { grupos: gruposSap } : {}),
-      ...(gruposSap && typeof s.gruposDe === 'string' ? { gruposDe: s.gruposDe } : {}),
     },
   };
 }
@@ -246,7 +184,6 @@ function sanearFrontera(crudo: unknown): Frontera | undefined {
     ...(procedencia === 'biblioteca' ? { entradas } : {}),
     ...(Object.keys(formulas).length ? { formulas } : {}),
     ...(Object.keys(publica).length ? { publica } : {}),
-    ...(typeof i.salida === 'string' && i.salida ? { salida: i.salida } : {}),
   };
 }
 
@@ -273,34 +210,6 @@ function sanearRevision(crudo: unknown): { revisar?: Revision } {
   const r = crudo as Partial<Revision>;
   const nota = typeof r.nota === 'string' ? r.nota.trim().slice(0, LARGO_NOTA_REVISION) : '';
   return { revisar: { nota, por: r.por === 'asistente' ? 'asistente' : 'usuario' } };
-}
-
-function sanearSubcarga(crudo: unknown, vistos: Vistos): Subcarga | null {
-  if (typeof crudo !== 'object' || crudo === null) return null;
-  const s = crudo as Partial<Subcarga> & { bloques?: unknown; importada?: unknown };
-  if (typeof s.nombre !== 'string') return null;
-  const frontera = sanearFrontera(s.frontera ?? s.importada);
-  const meta = sanearMeta(s.meta);
-  // MIGRACIÓN. Hasta la versión 1 el nombre de la partida ERA su variable. Una
-  // obra guardada entonces no trae `variable`, y adoptar el nombre viejo es lo
-  // único que conserva su valor: sin esto, todas sus partidas abrirían en rojo
-  // pidiendo que se elija una variable que ya estaba elegida.
-  const variable =
-    typeof s.variable === 'string' && s.variable
-      ? s.variable
-      : IDENTIFICADOR_RE.test(s.nombre.trim())
-        ? s.nombre.trim()
-        : undefined;
-  return {
-    id: idUnico(s.id, vistos),
-    nombre: s.nombre,
-    hoja: sanearHojaDeNodo(s, vistos),
-    ...(meta ? { meta } : {}),
-    ...(variable ? { variable } : {}),
-    ...(frontera ? { frontera } : {}),
-    ...sanearRevision(s.revisar),
-    ...sanearAplicacion(s.aplicacion),
-  };
 }
 
 /**
@@ -343,24 +252,66 @@ function sanearCalculo(crudo: unknown, vistos: Vistos, grupos: ReadonlySet<strin
   };
 }
 
-function sanearCarga(crudo: unknown, vistos: Vistos, grupos: ReadonlySet<string>): Carga | null {
-  if (typeof crudo !== 'object' || crudo === null) return null;
-  const c = crudo as Partial<Carga>;
-  if (typeof c.nombre !== 'string') return null;
-  const patron = sanearPatron(c.patron);
-  return {
-    id: idUnico(c.id, vistos),
-    nombre: c.nombre,
-    ...grupoDe(c.grupo, grupos),
-    ...(patron ? { patron } : {}),
-    // El `tipo` de una obra guardada con el catálogo cerrado se ignora: la carga
-    // ya no lo tiene, y el nombre —que es lo que la identifica— no dependía de él.
-    // Una obra guardada antes del desglose no trae `subcargas`; no es un dato
-    // corrupto, es una obra anterior, y abre sin desglose y sin avisos.
-    subcargas: (Array.isArray(c.subcargas) ? c.subcargas : [])
-      .map((s) => sanearSubcarga(s, vistos))
-      .filter((s): s is Subcarga => s !== null),
-  };
+/**
+ * MIGRACIÓN. Las cargas de una obra anterior, convertidas en cálculos y grupos.
+ *
+ * Una carga era un nombre, un grupo opcional y un desglose de partidas; cada
+ * partida ya era, para el motor, un nodo de cálculo con su hoja o su frontera
+ * (`nodosDeLaObra` las ponía después de los cálculos). Aquí pasan a serlo de
+ * verdad, sin perder un número:
+ *
+ *   - Cada partida es un cálculo con su mismo id, hoja, `meta`, frontera y marca.
+ *     Lo que era solo de la partida —`variable`, `frontera.salida` y la
+ *     aplicación en SAP— se descarta: decía cuál número mostrar, no cuál calcular.
+ *   - Una carga de UNA partida se dibujaba plegada, como su partida con el nombre
+ *     de la carga, así que el cálculo toma ese nombre.
+ *   - Una de varias agrupaba sus partidas. Si ya tenía grupo, sus cálculos lo
+ *     heredan; si no, se le crea uno con su nombre, porque esa agrupación es
+ *     justo lo que el usuario veía y no se puede perder al abrir la obra.
+ *
+ * Los cálculos migrados van DESPUÉS de los que ya había, en el orden de las
+ * cargas: es el orden de creación con que el orden topológico desempata, así
+ * que el orden de lectura —y con él lo que cada nodo ve— no cambia.
+ *
+ * El id del grupo se deriva del de la carga para que releer la obra sin haberla
+ * guardado dé el mismo grupo y no uno nuevo cada vez.
+ */
+function migrarCargas(
+  crudas: unknown,
+  grupos: Grupo[],
+): { calculos: unknown[]; grupos: Grupo[] } {
+  const calculos: unknown[] = [];
+  const nuevos: Grupo[] = [];
+  const ids = new Set(grupos.map((g) => g.id));
+  for (const c of Array.isArray(crudas) ? crudas : []) {
+    if (typeof c !== 'object' || c === null) continue;
+    const carga = c as { id?: unknown; nombre?: unknown; grupo?: unknown; subcargas?: unknown };
+    const nombre = texto(carga.nombre);
+    const partidas = (Array.isArray(carga.subcargas) ? carga.subcargas : []).filter(
+      (s): s is Record<string, unknown> => typeof s === 'object' && s !== null,
+    );
+    if (partidas.length === 0) continue;
+
+    let grupo = typeof carga.grupo === 'string' && ids.has(carga.grupo) ? carga.grupo : undefined;
+    if (!grupo && partidas.length > 1) {
+      const base = `g-${slugificar(texto(carga.id) || nombre) || 'carga'}`;
+      let id = base;
+      for (let i = 2; ids.has(id); i++) id = `${base}-${i}`;
+      ids.add(id);
+      const color = COLORES_GRUPO[(grupos.length + nuevos.length) % COLORES_GRUPO.length];
+      nuevos.push({ id, nombre: nombre.trim() || 'Carga', color });
+      grupo = id;
+    }
+
+    for (const p of partidas) {
+      calculos.push({
+        ...p,
+        nombre: partidas.length === 1 && nombre.trim() ? nombre : p.nombre,
+        ...(grupo ? { grupo } : {}),
+      });
+    }
+  }
+  return { calculos, grupos: [...grupos, ...nuevos] };
 }
 
 /**
@@ -384,11 +335,14 @@ export function sanearObra(crudo: unknown): Obra | null {
   const id = idDeObra(crudo);
   if (id === null) return null;
   const o = crudo as Partial<Obra>;
-  // Un solo juego de ids por obra: cargas, partidas, cálculos y bloques
-  // comparten espacio porque todos acaban siendo claves de `results`.
+  // Un solo juego de ids por obra: cálculos y bloques comparten espacio porque
+  // todos acaban siendo claves de `results`.
   const vistos: Vistos = new Set();
   // Los grupos van primero: los miembros solo conservan un `grupo` que exista.
-  const grupos = sanearGrupos(o.grupos);
+  // Las cargas de una obra anterior pueden añadir grupos, así que se migran
+  // antes de fijar la lista.
+  const migradas = migrarCargas((crudo as { cargas?: unknown }).cargas, sanearGrupos(o.grupos));
+  const grupos = migradas.grupos;
   const idsGrupo = new Set(grupos.map((g) => g.id));
   return {
     version: VERSION_OBRA,
@@ -398,10 +352,7 @@ export function sanearObra(crudo: unknown): Obra | null {
     modulos: (Array.isArray(o.modulos) ? o.modulos : []).filter((m): m is Modulo =>
       MODULOS.has(m as string),
     ),
-    cargas: (Array.isArray(o.cargas) ? o.cargas : [])
-      .map((c) => sanearCarga(c, vistos, idsGrupo))
-      .filter((c): c is Carga => c !== null),
-    calculos: (Array.isArray(o.calculos) ? o.calculos : [])
+    calculos: [...(Array.isArray(o.calculos) ? o.calculos : []), ...migradas.calculos]
       .map((k) => sanearCalculo(k, vistos, idsGrupo))
       .filter((k): k is NodoCalculo => k !== null),
     ...(grupos.length ? { grupos } : {}),

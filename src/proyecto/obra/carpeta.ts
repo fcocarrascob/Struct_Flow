@@ -81,11 +81,7 @@ export function partirObra(obra: Obra): Archivos {
     archivos[ruta] = texto(hojaDeNodo(nodo));
     return sinHoja(nodo, ruta);
   };
-  const grafo = {
-    ...obra,
-    cargas: obra.cargas.map((c) => ({ ...c, subcargas: c.subcargas.map(guardar) })),
-    calculos: obra.calculos.map(guardar),
-  };
+  const grafo = { ...obra, calculos: obra.calculos.map(guardar) };
   // `obra.json` es un archivo de obra como el de exportar, con su `tipo`: así se
   // reconoce al abrirlo suelto y lo que ya sabe leer uno sabe leer el otro.
   return { [ARCHIVO_OBRA]: texto(archivoDeObra(grafo as unknown as Obra)), ...archivos };
@@ -139,6 +135,9 @@ export function unirObra(archivos: Archivos): Union {
     return { ...n, hoja: regiones, ...(hoja?.meta !== undefined ? { meta: hoja.meta } : {}) };
   };
 
+  // Una carpeta escrita antes de retirar las cargas las trae con sus partidas, y
+  // cada partida con su hoja aparte. Se unen igual: `sanearObra` las migra a
+  // cálculos, y al guardar la carpeta ya sale sin ellas.
   const cargas = Array.isArray(grafo.cargas)
     ? grafo.cargas.map((c: unknown) => {
         if (typeof c !== 'object' || c === null) return c;

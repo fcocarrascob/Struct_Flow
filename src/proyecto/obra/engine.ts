@@ -21,9 +21,8 @@ export {
 } from './evaluacion';
 export { sanearObra, idDeObra, archivoDeObra, importarObra } from './almacen';
 export { partirObra, unirObra } from './carpeta';
-export { compararPatrones, avisosPesoPropio, patronesDeFlow, traerDeSap, adoptarDeSap, aplicacionesDeObra, compararAplicacion, hermanasDe } from './sap';
 export { proyectar } from './proyeccion';
-export { colocar } from '../layout';
+export { colocar, colocarPorGrupo } from '../layout';
 export {
   definicionesDe,
   insertarEnHoja,
@@ -32,7 +31,6 @@ export {
   ordenDeLectura,
   PASO_LECTURA,
 } from './hoja';
-export { evaluarCarga, variablesDePartida } from './calculo';
 export {
   resolverExpresion,
   camposResueltos,
@@ -44,7 +42,6 @@ export {
 export * from './ids';
 export {
   identificadoresDe,
-  problemaDeNombre,
   problemaDeAlias,
   conPublicacion,
   conFormula,

@@ -1,8 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // La obra entera como UNA sola cadena de cálculo.
 //
-// Antes cada carga evaluaba su hoja, y por eso una partida no podía usar lo que
-// definía otra. Después todas las hojas libres de la obra pasaron a
+// Antes cada carga evaluaba su hoja, y por eso un nodo no podía usar lo que
+// definía otro. Después todas las hojas libres de la obra pasaron a
 // concatenarse en una hoja única con un scope compartido, que es exactamente lo
 // que el motor ya sabía hacer. Ahora entran también las planillas de la
 // biblioteca, que hasta aquí sólo podían LEER de ese scope —un campo atado a
@@ -69,7 +69,7 @@ import { identificadoresDe, type Frontera, type Obra } from './modelo';
 // miraba las regiones `math`, y el panel y el grafo discrepaban sobre qué
 // define una hoja en cuanto aparecía un programa.
 import { definicionesDe, ordenDeLectura } from './hoja';
-import { idNodoDeCalculo, idNodoDeSubcarga } from './ids';
+import { idNodoDeCalculo } from './ids';
 
 const CENTINELA = '__scope_final';
 
@@ -92,7 +92,7 @@ const PASO = 100;
 
 /** Un nodo de la obra que participa del grafo de cálculo. */
 export interface NodoObra {
-  /** El id del NODO del canvas: `partida:xxx`, `calculo:xxx`. */
+  /** El id del NODO del canvas: `calculo:xxx`. */
   idNodo: string;
   etiqueta: string;
   /** Su hoja. Vacía si la frontera es de procedencia `biblioteca`. */
@@ -103,7 +103,7 @@ export interface NodoObra {
 /** Lo que un cálculo con frontera produjo, en su sitio del orden de lectura. */
 export interface Instanciada {
   /**
-   * Lo que la hoja dejó definido, para que `calculo.ts` y `proyeccion.ts` lean
+   * Lo que la hoja dejó definido, para que `proyeccion.ts` y los paneles lean
    * un valor sin preguntar de qué procedencia es el nodo.
    */
   salidas: Record<string, unknown>;
@@ -180,16 +180,6 @@ export function nodosDeLaObra(obra: Obra): NodoObra[] {
       hoja: k.hoja,
       ...(k.frontera ? { frontera: k.frontera } : {}),
     });
-  }
-  for (const c of obra.cargas) {
-    for (const s of c.subcargas) {
-      nodos.push({
-        idNodo: idNodoDeSubcarga(s.id),
-        etiqueta: s.nombre,
-        hoja: s.hoja,
-        ...(s.frontera ? { frontera: s.frontera } : {}),
-      });
-    }
   }
   return nodos;
 }
@@ -651,8 +641,8 @@ export function rupturaPorQuitar(
   const fuera = new Set(idsNodo);
   const rota: { nodo: string; nombres: string[] }[] = [];
   for (const [consumidor, nombres] of ev.usos) {
-    // Un nodo que también se va no «se queda» sin nada: borrar una carga se
-    // lleva todas sus partidas de una vez, y se citan entre ellas.
+    // Un nodo que también se va no «se queda» sin nada: borrar varios nodos de
+    // una vez puede llevarse a los que se citan entre ellos.
     if (fuera.has(consumidor)) continue;
     const perdidos = [...nombres].filter((n) => {
       const d = ev.duenio.get(n);

@@ -42,9 +42,8 @@ const resumenDe = (o: Obra): ResumenObra => ({
   id: o.id,
   nombre: o.nombre,
   creada: o.creada,
-  cargas: o.cargas.length,
   calculos: o.calculos.length,
-  vacia: o.modulos.length === 0,
+  vacia: o.calculos.length === 0 && o.modulos.length === 0,
 });
 
 /**
@@ -82,9 +81,11 @@ function FichaObra({
       <Enlace a={{ vista: 'obra', id: obra.id }} className="min-w-0 flex-1 no-underline">
         <h3 className="text-sm font-semibold text-ink group-hover:text-accent">{obra.nombre || obra.id}</h3>
         <p className="mt-1.5 text-xs text-muted">
-          {obra.cargas === 0 ? 'sin cargas' : `${obra.cargas} carga${obra.cargas === 1 ? '' : 's'}`}
-          {obra.calculos > 0 && ` · ${obra.calculos} cálculo${obra.calculos === 1 ? '' : 's'}`}
-          {obra.vacia && ' · canvas vacío'}
+          {obra.vacia
+            ? 'canvas vacío'
+            : obra.calculos === 0
+              ? 'sin cálculos'
+              : `${obra.calculos} cálculo${obra.calculos === 1 ? '' : 's'}`}
         </p>
         <p className="mt-2 truncate font-mono text-[10px] text-muted">{obra.id}</p>
       </Enlace>

@@ -21,12 +21,11 @@ interface Entrada {
   clave: EntradaPaleta;
   titulo: string;
   detalle: string;
-  /** Uno solo por obra. Las definiciones de carga son una tabla, como en SAP. */
+  /** Uno solo por obra, como el modelo de SAP2000. */
   unico: boolean;
 }
 
 const ENTRADAS: Entrada[] = [
-  { clave: 'cargas', titulo: 'Cargas', detalle: 'los patrones de carga de la obra', unico: true },
   { clave: 'sap', titulo: 'SAP2000', detalle: 'el modelo abierto en SAP2000', unico: true },
   {
     clave: 'calculo',

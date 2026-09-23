@@ -148,13 +148,18 @@ export function crearObras(raiz, { ahora = () => Date.now() } = {}) {
           // Lo justo para la ficha del índice; los conteos no son entender la
           // obra, son contar listas, y evitan bajarse cada obra entera.
           const largo = (v) => (Array.isArray(v) ? v.length : 0);
+          // Una carpeta anterior trae cargas con partidas, que al abrirla se
+          // migran a cálculos: se cuentan ya como lo que van a ser.
+          const partidas = Array.isArray(o?.cargas)
+            ? o.cargas.reduce((n, c) => n + largo(c?.subcargas), 0)
+            : 0;
+          const calculos = largo(o?.calculos) + partidas;
           obras.push({
             id,
             nombre: typeof o?.nombre === 'string' ? o.nombre : id,
             creada: typeof o?.creada === 'string' ? o.creada : '',
-            cargas: largo(o?.cargas),
-            calculos: largo(o?.calculos),
-            vacia: largo(o?.modulos) === 0,
+            calculos,
+            vacia: calculos === 0 && largo(o?.modulos) === 0,
           });
         } catch {
           // Una carpeta sin `obra.json` legible no es una obra, o está a medio

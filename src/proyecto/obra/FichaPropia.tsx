@@ -1,5 +1,5 @@
 import { formatValor } from '../../lib/worksheet';
-import { legible } from './calculo';
+import { legible } from './legible';
 import { problemaDeAlias, type Frontera } from './modelo';
 
 /**
@@ -25,11 +25,9 @@ export default function FichaPropia({
   sueltos,
   atados,
   otrosAlias,
-  conSalida,
   onAbrirHoja,
   onFormula,
   onPublicar,
-  onSalida,
   onQuitar,
 }: {
   frontera: Frontera;
@@ -41,12 +39,9 @@ export default function FichaPropia({
   atados: Record<string, unknown>;
   /** Lo que publican los OTROS nodos, para no proponer un alias que ya está. */
   otrosAlias: ReadonlySet<string>;
-  /** Solo en una partida: hay que elegir cuál salida la resume. */
-  conSalida?: boolean;
   onAbrirHoja: () => void;
   onFormula: (campo: string, expr: string | undefined) => void;
   onPublicar: (salida: string, alias: string | undefined) => void;
-  onSalida?: (salida: string) => void;
   onQuitar: () => void;
 }) {
   const publica = frontera.publica ?? {};
@@ -197,29 +192,6 @@ export default function FichaPropia({
           </>
         )}
       </section>
-
-      {/* Solo una partida elige un valor: una carga agrupa sus partidas y lee uno
-          por cada una. Un cálculo suelto enseña todo lo que publica. */}
-      {conSalida && onSalida && define.length > 0 && (
-        <section className="mt-4">
-          <h4 className="text-[10px] font-semibold uppercase tracking-wide text-muted">
-            Valor de la partida
-          </h4>
-          <select
-            value={frontera.salida ?? ''}
-            onChange={(e) => onSalida(e.target.value)}
-            aria-label="Cuál variable es el valor de la partida"
-            className="mt-1 w-full rounded border border-border px-1.5 py-0.5 font-mono text-[11px] text-ink outline-none focus:border-accent"
-          >
-            <option value="">— elige una —</option>
-            {define.map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
-        </section>
-      )}
 
       {/* Quitar la frontera devuelve el nodo a hoja libre: las mismas regiones,
           pero compartiendo el scope de la obra. No se borra nada. */}

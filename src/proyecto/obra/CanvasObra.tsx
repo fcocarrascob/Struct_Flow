@@ -24,65 +24,47 @@ import { useHistorial } from '../../components/canvas/useHistorial';
 import { origenDeNodo } from './origen-nodo';
 import VistaHoja from './VistaHoja';
 import type { Severidad } from '../contrato';
-import { colocar, guardarLayout, layoutGuardado, olvidarLayout, type Posicion } from '../layout';
+import { colocarPorGrupo, guardarLayout, layoutGuardado, olvidarLayout, type Posicion } from '../layout';
 import { archivoDeObra, nombreDeArchivo } from './almacen';
 import { abrirObra, olvidarBorrador, type Apertura } from './almacen-disco';
 import { descargarHoja } from '../../lib/canvas-handoff';
 import { cargarGenerica, desprender, type Genericas } from './biblioteca';
 import { evaluarObra, problemaDeGrafo, rupturaPorQuitar } from './evaluacion';
-import { variablesDePartida } from './calculo';
 import {
   agregarCalculo,
-  agregarCarga,
   agregarGrupo,
   agregarModulo,
   asignarGrupo,
   borrarCalculo,
-  borrarCarga,
   borrarGrupo,
   cambiarCalculo,
-  cambiarCarga,
   cambiarGrupo,
-  cargaDeSubcarga,
   conFormula,
   marcarRevision,
   porRevisar,
   conPublicacion,
-  conSubcargas,
-  nuevaSubcarga,
   nuevoCalculo,
   slugsImportados,
-  type Carga,
   type Frontera,
   type Modulo,
   type NodoCalculo,
   type Obra,
   type Revision,
-  type Subcarga,
 } from './modelo';
 import NodoObra from './NodoObra';
 import MarcaRevision from './MarcaRevision';
 import PanelSap from './PanelSap';
-import { adoptarDeSap, aplicacionesDeObra, traerDeSap } from './sap';
-import AplicacionEnSap from './AplicacionEnSap';
 import IconoClase from './IconoClase';
 import LeyendaGrupos from './LeyendaGrupos';
 import SelectorGrupo from './SelectorGrupo';
 import { ladoDe, trazoDe, type Lado } from './trazo';
 import PaletaNodos, { type EntradaPaleta } from './PaletaNodos';
 import PanelCalculo from './PanelCalculo';
-import PanelCargas from './PanelCargas';
-import PanelSubcarga from './PanelSubcarga';
 import {
   calculoDeNodo,
-  cargaDeNodo,
-  ID_NODO_CARGAS,
   ID_NODO_SAP,
   idNodoDeCalculo,
-  idNodoDeCarga,
-  idNodoDeSubcarga,
   proyectar,
-  subcargaDeNodo,
   type NodoDeObra,
 } from './proyeccion';
 
@@ -156,13 +138,10 @@ function tituloCorto(slug: string): string {
 }
 
 /** El nodo del documento que hay detrás de un nodo del grafo. */
-function nodoDelDocumento(obra: Obra | null, idNodo: string): NodoCalculo | Subcarga | undefined {
+function nodoDelDocumento(obra: Obra | null, idNodo: string): NodoCalculo | undefined {
   if (!obra) return undefined;
   const idK = calculoDeNodo(idNodo);
-  if (idK) return obra.calculos.find((k) => k.id === idK);
-  const idS = subcargaDeNodo(idNodo);
-  if (!idS) return undefined;
-  return cargaDeSubcarga(obra, idS)?.subcargas.find((s) => s.id === idS);
+  return idK ? obra.calculos.find((k) => k.id === idK) : undefined;
 }
 
 /**
@@ -175,9 +154,6 @@ function nodoDelDocumento(obra: Obra | null, idNodo: string): NodoCalculo | Subc
 function idsDeLaObra(obra: Obra): Set<string> {
   const vistos = new Set<string>();
   for (const k of obra.calculos) for (const r of k.hoja) vistos.add(r.id);
-  for (const c of obra.cargas) {
-    for (const s of c.subcargas) for (const r of s.hoja) vistos.add(r.id);
-  }
   return vistos;
 }
 
@@ -202,12 +178,6 @@ function sinChocarConLaObra(hoja: Region[], obra: Obra, idNodo: string): Region[
     if (idNodoDeCalculo(k.id) === idNodo) continue;
     for (const r of k.hoja) ajenos.add(r.id);
   }
-  for (const c of obra.cargas) {
-    for (const s of c.subcargas) {
-      if (idNodoDeSubcarga(s.id) === idNodo) continue;
-      for (const r of s.hoja) ajenos.add(r.id);
-    }
-  }
   if (!hoja.some((r) => ajenos.has(r.id))) return hoja;
   return hoja.map((r) => (ajenos.has(r.id) ? { ...r, id: `${idNodo}·${r.id}` } : r));
 }
@@ -215,10 +185,7 @@ function sinChocarConLaObra(hoja: Region[], obra: Obra, idNodo: string): Region[
 /** ¿Ese nodo del grafo sigue existiendo en el documento? */
 function existeNodo(obra: Obra | null, idNodo: string): boolean {
   if (!obra) return false;
-  if (idNodo === ID_NODO_CARGAS) return true;
   if (idNodo === ID_NODO_SAP) return obra.modulos.includes('sap');
-  const idCarga = cargaDeNodo(idNodo);
-  if (idCarga) return obra.cargas.some((c) => c.id === idCarga);
   return nodoDelDocumento(obra, idNodo) !== undefined;
 }
 
@@ -231,7 +198,7 @@ function existeNodo(obra: Obra | null, idNodo: string): boolean {
  * historial vacío, y el autoguardado de la obra (300 ms) ya había consolidado la
  * pérdida.
  *
- * Cuenta también los bloques porque borrar el único bloque de una partida no
+ * Cuenta también los bloques porque borrar el único bloque de un cálculo no
  * cambia el número de nodos y se lleva el cálculo igual.
  */
 /**
@@ -250,12 +217,8 @@ function piezasDeLaObra(obra: Obra | null): number {
   if (!obra) return 0;
   // Los grupos cuentan: quitar uno se lleva su nombre, su color y la asignación
   // de todos sus miembros, y su aviso ofrece deshacer.
-  let n = obra.modulos.length + obra.cargas.length + obra.calculos.length + (obra.grupos?.length ?? 0);
+  let n = obra.modulos.length + obra.calculos.length + (obra.grupos?.length ?? 0);
   for (const k of obra.calculos) n += k.hoja.length + piezasDeFrontera(k.frontera);
-  for (const c of obra.cargas) {
-    n += c.subcargas.length;
-    for (const sub of c.subcargas) n += sub.hoja.length + piezasDeFrontera(sub.frontera);
-  }
   return n;
 }
 
@@ -353,7 +316,7 @@ function CanvasObra({
   // regiones: evaluar la obra son el orden topológico, la síntesis de la hoja y
   // una pasada de math.js por tramo, más cada planilla importada. Atado al
   // documento en vivo, eso corría con **cada tecla** — incluidas las del nombre
-  // de la obra, de una carga o de una partida, que no participan de ningún
+  // de la obra o de un nodo, que no participan de ningún
   // cálculo. El grafo se dibuja con el documento en vivo, así que un nodo nuevo
   // aparece en el acto y su valor llega en la siguiente pausa.
   const [obraEval, setObraEval] = useState(obra);
@@ -388,8 +351,22 @@ function CanvasObra({
     () =>
       obra
         ? proyectar(obra, evaluacion, genericas)
-        : { nodos: [], aristas: [], evaluaciones: {} },
+        : { nodos: [], aristas: [] },
     [obra, evaluacion, genericas],
+  );
+
+  /** El orden de las franjas de «reordenar»: el de la lista de grupos. Como
+   *  texto, para que el memo de abajo no cambie con cada tecla. */
+  const ordenGrupos = obra?.grupos?.map((g) => g.id).join('|') ?? '';
+  const colocarObra = useCallback(
+    (nodos: NodoDeObra[], aristas: typeof proyeccion.aristas) =>
+      colocarPorGrupo(
+        nodos,
+        aristas,
+        (n) => (n as NodoDeObra).grupo?.id,
+        ordenGrupos ? ordenGrupos.split('|') : [],
+      ),
+    [ordenGrupos],
   );
 
   // ── Las genéricas que la obra referencia ───────────────────────────────────
@@ -409,7 +386,7 @@ function CanvasObra({
       setGenericas((prev) => ({ ...prev, [slug]: { fase: 'cargando' } }));
       // Sin guarda de cancelación, y es lo correcto: `pedidas` es permanente
       // pero un `vivo` sería por ejecución del efecto, así que bastaba con
-      // borrar una partida mientras otra planilla se descargaba —el efecto se
+      // borrar un nodo mientras otra planilla se descargaba —el efecto se
       // reejecuta y el cleanup pone `vivo = false`— para que la respuesta se
       // descartara y el `continue` impidiera volver a pedirla: el nodo se
       // quedaba en «cargando…» hasta recargar la página. Aquí no hay nada que
@@ -478,9 +455,9 @@ function CanvasObra({
   }, [sesion]);
 
   // ── Nodos y aristas ────────────────────────────────────────────────────────
-  // La posición que ya tenía un nodo manda sobre la automática: `colocar()`
-  // centra cada columna respecto de la más alta, así que recalcularla en cada
-  // tecla haría saltar el canvas entero mientras se escribe un nombre.
+  // La posición que ya tenía un nodo manda sobre la automática: la automática
+  // depende de todos los demás nodos, así que recalcularla en cada tecla haría
+  // saltar el canvas entero mientras se escribe un nombre.
   const seleccionRef = useRef(seleccion);
   seleccionRef.current = seleccion;
 
@@ -511,8 +488,9 @@ function CanvasObra({
   useEffect(() => {
     // Con las aristas: la columna de un nodo es su tipo más su sitio en la
     // cadena, así que dos cálculos encadenados se dibujan uno a la derecha del
-    // otro y la flecha se lee. Sin ellas caían los dos en la misma columna.
-    const auto = colocar(proyeccion.nodos, proyeccion.aristas);
+    // otro y la flecha se lee. Sin ellas caían los dos en la misma columna. Y
+    // con los grupos: cada uno en su franja, como deja «reordenar».
+    const auto = colocarObra(proyeccion.nodos, proyeccion.aristas);
     const guardado = guardadoRef.current;
     setNodos((previos) => {
       const antes = new Map(previos.map((n) => [n.id, n.position]));
@@ -525,7 +503,7 @@ function CanvasObra({
         deletable: false,
       }));
     });
-  }, [proyeccion, claveLayout]);
+  }, [proyeccion, claveLayout, colocarObra]);
 
   useEffect(() => {
     setNodos((previos) =>
@@ -569,9 +547,8 @@ function CanvasObra({
     ? obra?.grupos?.find((g) => g.id === grupoEnfocado)?.color
     : undefined;
 
-  // Las flechas llevan el nombre que viaja por ellas: sin la etiqueta, una
-  // flecha de datos es indistinguible de la que solo dice «esta partida compone
-  // esta carga», y el grafo vuelve a ser un organigrama. Pero ciento veinte
+  // Las flechas llevan el nombre que viaja por ellas: sin la etiqueta, el grafo
+  // dice que dos nodos se relacionan pero no con qué. Pero ciento veinte
   // etiquetas a la vez se tapan entre ellas: se ven de cerca, o las del trazo.
   const aristas: Edge[] = useMemo(() => {
     // El id no lleva el índice del array: insertar una arista al principio
@@ -695,35 +672,16 @@ function CanvasObra({
       return;
     }
     setObra(agregarModulo(actual, clave as Modulo));
-    setSeleccion(clave === 'sap' ? ID_NODO_SAP : ID_NODO_CARGAS);
+    setSeleccion(ID_NODO_SAP);
   }, []);
-
-  // Se calcula fuera del actualizador de `setObra` a propósito: un actualizador
-  // tiene que ser puro, y React puede volver a llamarlo. Seleccionar desde
-  // dentro dispararía la selección dos veces.
-  const nuevaCargaEnObra = useCallback(() => {
-    const actual = obraRef.current;
-    if (!actual) return;
-    const { obra: siguiente, carga } = agregarCarga(actual);
-    setObra(siguiente);
-    // La fila nueva se enfoca sola en el panel, que es donde se la bautiza.
-    setSeleccion(idNodoDeCarga(carga.id));
-  }, []);
-
-  const cambiarUnaCarga = useCallback(
-    (idCarga: string, campos: Partial<Omit<Carga, 'id'>>) =>
-      setObra((o) => (o ? cambiarCarga(o, idCarga, campos) : o)),
-    [],
-  );
 
   /**
    * Cierra las pestañas de los nodos que acaban de dejar de existir.
    *
    * Va pegado al borrado, no al render: una pestaña sobre un nodo borrado se
    * queda rotulada «(sin nombre)», abre un canvas vacío y se traga todo lo que se
-   * escriba en ella. El borrado de un cálculo lo hacía a medias —filtraba la
-   * lista y dejaba `activa` apuntando al hueco—, y el de una partida o el de una
-   * carga entera, con todas sus partidas dentro, no lo hacía en absoluto.
+   * escriba en ella. El borrado de un cálculo lo hacía a medias: filtraba la
+   * lista y dejaba `activa` apuntando al hueco.
    */
   const cerrarPestanasDe = useCallback((idsNodo: readonly string[]) => {
     const fuera = new Set(idsNodo);
@@ -840,83 +798,6 @@ function CanvasObra({
     return () => window.removeEventListener('keydown', alTeclear);
   }, [activa]);
 
-  const borrarUnaCarga = useCallback(
-    (idCarga: string) => {
-      const actual = obraRef.current;
-      const carga = actual?.cargas.find((c) => c.id === idCarga);
-      if (!actual || !carga) return;
-      // Una carga no es un nodo de la cadena —sus partidas sí—, así que se
-      // pregunta por todas juntas: las que se citan entre ellas se van a la vez y
-      // no cuentan como rotas.
-      const idsNodo = carga.subcargas.map((s) => idNodoDeSubcarga(s.id));
-      const frase = fraseDeRuptura(
-        carga.nombre || 'una carga',
-        rupturaPorQuitar(idsNodo, evaluacionRef.current),
-      );
-      cerrarPestanasDe(idsNodo);
-      const siguiente = borrarCarga(actual, idCarga);
-      setObra(siguiente);
-      anunciarBorrado(siguiente, frase);
-      setSeleccion((s) => (s === idNodoDeCarga(idCarga) ? ID_NODO_CARGAS : s));
-    },
-    [cerrarPestanasDe, anunciarBorrado],
-  );
-
-  // ── El desglose de una carga ───────────────────────────────────────────────
-  // Todas las escrituras del desglose pasan por `conSubcargas`, que reemplaza la
-  // lista entera de la carga: un solo camino, y ninguno que pueda dejar una
-  // partida a medio mover entre dos cargas.
-  const agregarPartida = useCallback((idCarga: string) => {
-    const actual = obraRef.current;
-    const carga = actual?.cargas.find((c) => c.id === idCarga);
-    if (!actual || !carga) return;
-    const sub = nuevaSubcarga(carga.subcargas);
-    setObra(conSubcargas(actual, idCarga, [...carga.subcargas, sub]));
-    setSeleccion(idNodoDeSubcarga(sub.id));
-  }, []);
-
-  const cambiarPartida = useCallback(
-    (idSub: string, cambio: (s: Subcarga) => Subcarga) => {
-      setObra((o) => {
-        if (!o) return o;
-        const carga = cargaDeSubcarga(o, idSub);
-        if (!carga) return o;
-        return conSubcargas(
-          o,
-          carga.id,
-          carga.subcargas.map((s) => (s.id === idSub ? cambio(s) : s)),
-        );
-      });
-    },
-    [],
-  );
-
-  const borrarPartida = useCallback(
-    (idSub: string) => {
-      const actual = obraRef.current;
-      const carga = actual && cargaDeSubcarga(actual, idSub);
-      if (!actual || !carga) return;
-      const partida = carga.subcargas.find((s) => s.id === idSub);
-      const idNodo = idNodoDeSubcarga(idSub);
-      // Antes de aplicar: después, esta partida ya no define nada y `usos` no
-      // tiene de dónde sacar quién dependía de ella.
-      const frase = fraseDeRuptura(
-        partida?.nombre || 'una partida',
-        rupturaPorQuitar([idNodo], evaluacionRef.current),
-      );
-      cerrarPestanasDe([idNodo]);
-      const siguiente = conSubcargas(
-        actual,
-        carga.id,
-        carga.subcargas.filter((s) => s.id !== idSub),
-      );
-      setObra(siguiente);
-      anunciarBorrado(siguiente, frase);
-      setSeleccion(idNodoDeCarga(carga.id));
-    },
-    [cerrarPestanasDe, anunciarBorrado],
-  );
-
   // ── Importar una genérica ──────────────────────────────────────────────────
   // El sello se toma del MÓDULO ya cargado y no del índice: `cargarGenerica`
   // calcula el sha256 de los bytes que de verdad se instancian, y sellar con el
@@ -973,8 +854,8 @@ function CanvasObra({
     [],
   );
 
-  // Fuera del actualizador, como `nuevaCargaEnObra`: el id del grupo nuevo se
-  // sortea, y un actualizador que React llame dos veces sortearía dos.
+  // Fuera del actualizador: el id del grupo nuevo se sortea, y un actualizador
+  // que React llame dos veces sortearía dos.
   const crearGrupoPara = useCallback((idDoc: string, nombre: string, color: string) => {
     const actual = obraRef.current;
     if (!actual) return;
@@ -1001,7 +882,7 @@ function CanvasObra({
     [anunciarBorrado],
   );
 
-  /** El selector de grupo de una carga o de un cálculo, por su id de documento. */
+  /** El selector de grupo de un cálculo, por su id de documento. */
   const selectorGrupo = (idDoc: string, actual: string | undefined, rotulo?: string) => (
     <SelectorGrupo
       grupos={obra?.grupos ?? []}
@@ -1054,17 +935,6 @@ function CanvasObra({
         const k = o.calculos.find((x) => x.id === idK);
         return k ? { etiqueta: k.nombre || 'Cálculo', hoja: k.hoja, meta: k.meta } : null;
       }
-      const idS = subcargaDeNodo(idNodo);
-      if (idS) {
-        const c = cargaDeSubcarga(o, idS);
-        const s = c?.subcargas.find((x) => x.id === idS);
-        if (!c || !s) return null;
-        // Una carga de una sola partida se dibuja plegada, con el nombre de la
-        // CARGA encima (`proyeccion.ts`): su pestaña se tiene que llamar igual,
-        // o el «RSX» del grafo abre una pestaña «Espectral en X».
-        const etiqueta = c.subcargas.length === 1 ? c.nombre.trim() || 'Carga' : s.nombre || 'Partida';
-        return { etiqueta, hoja: s.hoja, meta: s.meta };
-      }
       return null;
     },
     [],
@@ -1074,8 +944,8 @@ function CanvasObra({
    * Escribe la hoja de un nodo, y dice si el nodo la aceptó.
    *
    * Devuelve un resultado y no `void` porque una pestaña podía quedarse abierta
-   * sobre un nodo ya borrado: `cambiarPartida` no encontraba su carga, devolvía
-   * la obra intacta, y el usuario escribía en el vacío sin una sola señal. Ahora
+   * sobre un nodo ya borrado: la escritura no encontraba el nodo, devolvía la
+   * obra intacta, y el usuario escribía en el vacío sin una sola señal. Ahora
    * el canvas de la pestaña recibe el fallo por el mismo camino que cualquier
    * otro —la banda de aviso del hook— en vez de no recibir nada.
    */
@@ -1101,20 +971,10 @@ function CanvasObra({
         nodo.hoja.every((r, i) => r === hojaFinal[i]) &&
         (!meta || nodo.meta === meta);
       if (sinCambios) return { ok: true };
-      const conHoja = <T extends { hoja: Region[]; meta?: MetaPlanilla }>(n: T): T => ({
-        ...n,
-        hoja: hojaFinal,
-        ...(meta ? { meta } : {}),
-      });
-      const idK = calculoDeNodo(idNodo);
-      if (idK) cambiarUnCalculo(idK, conHoja);
-      else {
-        const idS = subcargaDeNodo(idNodo);
-        if (idS) cambiarPartida(idS, conHoja);
-      }
+      cambiarUnCalculo(nodo.id, (n) => ({ ...n, hoja: hojaFinal, ...(meta ? { meta } : {}) }));
       return { ok: true };
     },
-    [cambiarUnCalculo, cambiarPartida],
+    [cambiarUnCalculo],
   );
 
   /**
@@ -1126,19 +986,13 @@ function CanvasObra({
    */
   const crearPlanilla = useCallback(
     (idNodo: string) => {
-      const conFrontera = <T extends { frontera?: Frontera }>(n: T): T => ({
-        ...n,
-        frontera: { procedencia: 'propia' as const, ...n.frontera },
-      });
       const idK = calculoDeNodo(idNodo);
-      if (idK) cambiarUnCalculo(idK, conFrontera);
-      else {
-        const idS = subcargaDeNodo(idNodo);
-        if (idS) cambiarPartida(idS, conFrontera);
+      if (idK) {
+        cambiarUnCalculo(idK, (n) => ({ ...n, frontera: { procedencia: 'propia' as const, ...n.frontera } }));
       }
       abrirPestana(idNodo);
     },
-    [cambiarUnCalculo, cambiarPartida, abrirPestana],
+    [cambiarUnCalculo, abrirPestana],
   );
 
   /**
@@ -1158,17 +1012,10 @@ function CanvasObra({
       if (!o || !n || estado?.fase !== 'lista') return;
       const vistos = idsDeLaObra(o);
       const scope = evaluacionRef.current.importadas.get(idNodo)?.scope ?? {};
-      const cambio = <T extends NodoCalculo | Subcarga>(x: T): T =>
-        desprender(x, estado.modulo, scope, vistos);
-      const idK = calculoDeNodo(idNodo);
-      if (idK) cambiarUnCalculo(idK, cambio);
-      else {
-        const idS = subcargaDeNodo(idNodo);
-        if (idS) cambiarPartida(idS, cambio);
-      }
+      cambiarUnCalculo(n.id, (x) => desprender(x, estado.modulo, scope, vistos));
       abrirPestana(idNodo);
     },
-    [cambiarUnCalculo, cambiarPartida, abrirPestana],
+    [cambiarUnCalculo, abrirPestana],
   );
 
   // El origen se rehace al cambiar de pestaña y no al cambiar el documento: sus
@@ -1188,13 +1035,14 @@ function CanvasObra({
   const reordenar = useCallback(() => {
     olvidarLayout(claveLayout);
     guardadoRef.current = {};
-    const auto = colocar(proyeccion.nodos, proyeccion.aristas);
+    // Por grupos: cada uno en su franja horizontal (`colocarPorGrupo`).
+    const auto = colocarObra(proyeccion.nodos, proyeccion.aristas);
     setNodos((previos) => previos.map((n) => ({ ...n, position: auto[n.id] ?? n.position })));
     // El temporizador se guarda: sin esto, salir del canvas en esos 30 ms
     // llamaba a `fitView` contra un proveedor ya desmontado.
     if (temporizadorEncuadre.current) window.clearTimeout(temporizadorEncuadre.current);
     temporizadorEncuadre.current = window.setTimeout(() => fitView(ENCUADRE), 30);
-  }, [claveLayout, proyeccion, fitView]);
+  }, [claveLayout, proyeccion, fitView, colocarObra]);
 
   const temporizadorEncuadre = useRef<number | null>(null);
   useEffect(
@@ -1209,20 +1057,6 @@ function CanvasObra({
 
   const soloLectura = estadoSesion.conflicto === 'escritor';
   const revisables = porRevisar(obra);
-  // Las partidas que dicen dónde van en SAP, con su valor ya en la unidad de SAP.
-  // Sale de la misma evaluación que pinta los nodos.
-  const aplicaciones = aplicacionesDeObra(obra, proyeccion.evaluaciones);
-
-  const idCargaSeleccionada = seleccion ? cargaDeNodo(seleccion) : null;
-  const idPartidaSeleccionada = seleccion ? subcargaDeNodo(seleccion) : null;
-  const panelDeCargas =
-    idPartidaSeleccionada === null &&
-    (seleccion === ID_NODO_CARGAS || idCargaSeleccionada !== null);
-
-  const cargaDeLaPartida = idPartidaSeleccionada
-    ? cargaDeSubcarga(obra, idPartidaSeleccionada)
-    : undefined;
-  const partida = cargaDeLaPartida?.subcargas.find((s) => s.id === idPartidaSeleccionada);
 
   const idCalculoSeleccionado = seleccion ? calculoDeNodo(seleccion) : null;
   const calculo = obra.calculos.find((k) => k.id === idCalculoSeleccionado);
@@ -1308,8 +1142,7 @@ function CanvasObra({
           )}
           <span className={`${revisables.length > 0 ? '' : 'ml-auto '}text-[10px] text-muted`}>
             {proyeccion.nodos.length} nodo{proyeccion.nodos.length === 1 ? '' : 's'} ·{' '}
-            {obra.cargas.length} carga{obra.cargas.length === 1 ? '' : 's'} ·{' '}
-            {obra.calculos.length} cálculo{obra.calculos.length === 1 ? '' : 's'}
+            {obra.grupos?.length ?? 0} grupo{obra.grupos?.length === 1 ? '' : 's'}
           </span>
         </div>
 
@@ -1666,7 +1499,7 @@ function CanvasObra({
             // Un nodo es la PROYECCIÓN del documento, no un objeto del lienzo.
             // Con los valores por omisión de React Flow, Backspace emitía un
             // cambio `remove` que `applyNodeChanges` aplicaba al array: el nodo
-            // desaparecía, la carga seguía existiendo, y reaparecía al
+            // desaparecía, el cálculo seguía existiendo, y reaparecía al
             // siguiente cambio del documento. Se borra desde el panel, que es
             // donde está la confirmación. (El `deletable: false` de cada nodo
             // cierra las demás vías; esto cierra la tecla.)
@@ -1714,178 +1547,10 @@ function CanvasObra({
             queda —oculto, para no perder el encuadre al volver—, pero un panel
             montado detrás registra su Escape global, y ese Escape es del bloque
             que se está editando en el canvas. */}
-        {!activa && panelDeCargas && (
-          <PanelCargas
-            cargas={obra.cargas}
-            patronesLeidos={obra.sap?.patrones?.lista.map((p) => p.nombre)}
-            enfocada={idCargaSeleccionada}
-            evaluaciones={proyeccion.evaluaciones}
-            onCambiar={cambiarUnaCarga}
-            onAgregar={nuevaCargaEnObra}
-            onBorrar={borrarUnaCarga}
-            onAgregarPartida={agregarPartida}
-            onIrAPartida={(idSub) => setSeleccion(idNodoDeSubcarga(idSub))}
-            onCerrar={() => setSeleccion(null)}
-          />
-        )}
-
-        {!activa && partida && cargaDeLaPartida && (
-          <PanelSubcarga
-            // Por `key`, y no es cosmética: el panel tiene estado propio —la
-            // pestaña abierta, el selector de biblioteca, los borradores del
-            // formulario— y sin ella React reconcilia la misma instancia al
-            // saltar de un nodo a otro. Un número a medio teclear en la partida
-            // A quedaba en el campo homónimo de B y se escribía allí al perder
-            // el foco.
-            key={partida.id}
-            carga={cargaDeLaPartida}
-            subcarga={partida}
-            evaluacion={
-              proyeccion.evaluaciones[cargaDeLaPartida.id] ?? { valores: [], resumen: '' }
-            }
-            variables={variablesDePartida(partida, evaluacion)}
-            regions={evaluacion.regions}
-            results={evaluacion.results}
-            instancia={evaluacion.importadas.get(idNodoDeSubcarga(partida.id))}
-            otrosAlias={aliasAjenos(idNodoDeSubcarga(partida.id))}
-            problemaGrafo={problemaDeGrafo(idNodoDeSubcarga(partida.id), evaluacion)}
-            estado={partida.frontera?.slug ? genericas[partida.frontera.slug] : undefined}
-            onRenombrar={(nombre) => cambiarPartida(partida.id, (s) => ({ ...s, nombre }))}
-            onVariable={(variable) =>
-              cambiarPartida(partida.id, (s) => ({ ...s, variable: variable || undefined }))
-            }
-            onHoja={(hoja: Region[]) =>
-              cambiarPartida(partida.id, (s) => ({ ...s, hoja }))
-            }
-            onAbrirHoja={() => abrirPestana(idNodoDeSubcarga(partida.id))}
-            onCrearPlanilla={() => crearPlanilla(idNodoDeSubcarga(partida.id))}
-            onDesprender={() => desprenderNodo(idNodoDeSubcarga(partida.id))}
-            atados={evaluacion.scopeEnNodo.get(idNodoDeSubcarga(partida.id)) ?? {}}
-            onImportar={(slug) =>
-              importar(slug, (imp) => cambiarPartida(partida.id, (s) => ({ ...s, frontera: imp })))
-            }
-            onEntrada={(nombre, valor) =>
-              cambiarPartida(partida.id, (s) =>
-                s.frontera
-                  ? {
-                      ...s,
-                      frontera: {
-                        ...s.frontera,
-                        entradas: { ...s.frontera.entradas, [nombre]: valor },
-                      },
-                    }
-                  : s,
-              )
-            }
-            onFormula={(campo, expr) =>
-              cambiarPartida(partida.id, (s) =>
-                s.frontera ? { ...s, frontera: conFormula(s.frontera, campo, expr) } : s,
-              )
-            }
-            onPublicar={(salida, alias) =>
-              cambiarPartida(partida.id, (s) =>
-                s.frontera ? { ...s, frontera: conPublicacion(s.frontera, salida, alias) } : s,
-              )
-            }
-            onSalida={(salida) =>
-              cambiarPartida(partida.id, (s) =>
-                s.frontera ? { ...s, frontera: { ...s.frontera, salida } } : s,
-              )
-            }
-            onResellar={(sha256) =>
-              cambiarPartida(partida.id, (s) =>
-                s.frontera ? { ...s, frontera: { ...s.frontera, sha256 } } : s,
-              )
-            }
-            onQuitarPlanilla={() =>
-              cambiarPartida(partida.id, ({ frontera: _fuera, ...s }) => s)
-            }
-            onBorrar={() => borrarPartida(partida.id)}
-            onIrACarga={() => setSeleccion(idNodoDeCarga(cargaDeLaPartida.id))}
-            onCerrar={() => setSeleccion(null)}
-            grupo={selectorGrupo(
-              cargaDeLaPartida.id,
-              cargaDeLaPartida.grupo,
-              cargaDeLaPartida.subcargas.length > 1
-                ? `Grupo de ${cargaDeLaPartida.nombre || 'la carga'}`
-                : undefined,
-            )}
-            revision={marcaRevision(partida.id, partida.revisar)}
-            aplicacion={
-              obra.modulos.includes('sap') ? (
-                <AplicacionEnSap
-                  valor={partida.aplicacion}
-                  grupos={obra.sap?.grupos}
-                  fila={aplicaciones.find((f) => f.id === partida.id)}
-                  onCambiar={(a) =>
-                    cambiarPartida(partida.id, ({ aplicacion: _fuera, ...s }) => (a ? { ...s, aplicacion: a } : s))
-                  }
-                />
-              ) : undefined
-            }
-          />
-        )}
-
         {!activa && seleccion === ID_NODO_SAP && obra.modulos.includes('sap') && (
           <PanelSap
             sap={obra.sap}
-            cargas={obra.cargas}
-            // Una conexión nueva conserva las últimas lecturas de patrones y de
-            // grupos: cada una dice de qué modelo salió, y el panel avisa si no
-            // es el mismo.
-            onConectado={(sap) =>
-              setObra((o) => {
-                if (!o) return o;
-                const { patrones, grupos, gruposDe } = o.sap ?? {};
-                return {
-                  ...o,
-                  sap: {
-                    ...sap,
-                    ...(patrones ? { patrones } : {}),
-                    ...(grupos ? { grupos, ...(gruposDe ? { gruposDe } : {}) } : {}),
-                  },
-                };
-              })
-            }
-            onPatronesLeidos={(ruta, patrones) =>
-              setObra((o) =>
-                o
-                  ? {
-                      ...o,
-                      sap: {
-                        ...(o.sap ?? { modelo: patrones.modelo, ruta, version: '', leido: patrones.leido }),
-                        patrones,
-                      },
-                    }
-                  : o,
-              )
-            }
-            // Fuera del actualizador: traer sortea ids (`nuevaCarga`), y un
-            // actualizador que React llame dos veces sortearía dos.
-            onTraer={(nombres) => {
-              const o = obraRef.current;
-              if (o?.sap?.patrones) setObra(traerDeSap(o, nombres, o.sap.patrones.lista));
-            }}
-            onAdoptar={(nombres) =>
-              setObra((o) => (o?.sap?.patrones ? adoptarDeSap(o, nombres, o.sap.patrones.lista) : o))
-            }
-            aplicaciones={aplicaciones}
-            // Sin conexión previa, la lectura la crea, como la de patrones: si no,
-            // la lista se leía bien y se perdía sin decir nada.
-            onGruposLeidos={(grupos, lectura) =>
-              setObra((o) =>
-                o
-                  ? {
-                      ...o,
-                      sap: {
-                        ...(o.sap ?? { modelo: lectura.modelo, ruta: lectura.ruta, version: '', leido: lectura.leido }),
-                        grupos,
-                        gruposDe: lectura.modelo,
-                      },
-                    }
-                  : o,
-              )
-            }
+            onConectado={(sap) => setObra((o) => (o ? { ...o, sap } : o))}
             onCerrar={() => setSeleccion(null)}
           />
         )}

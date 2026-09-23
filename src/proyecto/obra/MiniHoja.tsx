@@ -20,9 +20,9 @@ import { nuevaRegion } from './modelo';
  * canvas.
  *
  * Las sugerencias salen de `variablesVisibles`, que filtra por posición de
- * lectura: una partida ve lo que definieron las de más arriba de la misma carga,
+ * lectura: un nodo ve lo que definieron los de más arriba en el orden de la obra,
  * que es exactamente la semántica que se acordó. Por eso recibe las regiones de
- * la carga ENTERA y no solo las suyas.
+ * la obra ENTERA y no solo las suyas.
  */
 
 export default function MiniHoja({
@@ -38,7 +38,7 @@ export default function MiniHoja({
   onCambiar: (hoja: Region[]) => void;
 }) {
   const bloques = useMemo(() => ordenDeLectura(hoja), [hoja]);
-  // Una partida recién creada trae su línea sembrada («CM_1 := ») y nada más.
+  // Una hoja recién sembrada trae una sola línea a medio escribir («CM_1 := »).
   // Sin esto nace en rojo —«falta la expresión»— y hay que hacerle clic para
   // empezar: el error es correcto, pero llega antes de que nadie haya tenido
   // ocasión de escribir. Se abre en edición y el rojo pasa a ser lo que todavía
@@ -111,7 +111,7 @@ export default function MiniHoja({
 
       {bloques.length === 0 && (
         <p className="px-1.5 py-2 text-[11px] leading-snug text-muted">
-          La hoja está vacía. Agrega una fórmula que defina la variable de la partida.
+          La hoja está vacía. Agrega una fórmula que defina la primera variable del cálculo.
         </p>
       )}
 

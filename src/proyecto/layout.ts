@@ -33,15 +33,9 @@ const PASO_Y = ALTO + 22;
 const COLUMNAS: string[][] = [
   ['proyecto'],
   ['norma', 'hueco'],
-  // `cargas` (el nodo de definiciones de una obra local) comparte columna con la
-  // acción: las dos son el origen de las cargas que vienen a su derecha.
-  ['accion', 'cargas'],
-  // `carga-plegada` es una carga de obra con una sola partida, dibujada como un
-  // solo nodo (ver `obra/proyeccion.ts`): ocupa el sitio de la carga.
-  ['carga', 'carga-plegada'],
-  // `subcarga` es una partida del desglose de una carga: cuelga de su
-  // carga, así que va a su derecha. El harness no emite este tipo.
-  ['familia-combinacion', 'subcarga'],
+  ['accion'],
+  ['carga'],
+  ['familia-combinacion'],
   ['modelo'],
   // `calculo` es un cálculo suelto de una obra local: una genérica de la
   // biblioteca instanciada, que es lo mismo que una planilla del proyecto.
@@ -138,17 +132,83 @@ export function colocar(
   const salida: Record<string, Posicion> = {};
   for (const [columna, lista] of porColumna) {
     const c = compacta.get(columna)!;
-    // Dentro de la columna, primero lo que tiene desfase: lo que hay que mirar
-    // no puede quedar al fondo de una lista de 27.
-    const orden = [...lista].sort((a, b) => {
-      const sa = a.severidad === 'error' ? 0 : a.severidad === 'aviso' ? 1 : 2;
-      const sb = b.severidad === 'error' ? 0 : b.severidad === 'aviso' ? 1 : 2;
-      return sa - sb || a.etiqueta.localeCompare(b.etiqueta);
-    });
+    const orden = porSeveridad(lista);
     const desplazamiento = centro - ((orden.length - 1) * PASO_Y) / 2;
     orden.forEach((n, i) => {
       salida[n.id] = { x: c * PASO_X, y: desplazamiento + i * PASO_Y };
     });
+  }
+  return salida;
+}
+
+/**
+ * Dentro de una columna, primero lo que tiene desfase: lo que hay que mirar no
+ * puede quedar al fondo de una lista de 27.
+ */
+function porSeveridad(lista: NodoGrafo[]): NodoGrafo[] {
+  const rango = (n: NodoGrafo) => (n.severidad === 'error' ? 0 : n.severidad === 'aviso' ? 1 : 2);
+  return [...lista].sort((a, b) => rango(a) - rango(b) || a.etiqueta.localeCompare(b.etiqueta));
+}
+
+/** Aire entre dos franjas, además del paso normal entre tarjetas: lo justo para
+ *  que se lean como bloques distintos sin tener que dibujar un marco. */
+const HUECO_FRANJA = ALTO;
+
+/**
+ * Coloca una obra en FRANJAS HORIZONTALES, una por grupo.
+ *
+ * El grupo es la única forma de organizar una obra (`obra/modelo.ts`, `Grupo`),
+ * así que reordenar lo respeta: cada grupo ocupa su banda, en el orden de
+ * `orden`, y los nodos sin grupo van en la última. No se dibuja ningún marco —el
+ * grupo ya tiene su canal visual, la franja de color de la tarjeta—: la banda se
+ * lee por proximidad.
+ *
+ * LA COLUMNA ES DE TODA LA OBRA, NO DE CADA FRANJA. Se calcula una sola vez con
+ * `columnasEnCadena` sobre el grafo entero y se compacta igual que en
+ * `colocar`, así que una flecha que cruza de un grupo a otro sigue yendo hacia
+ * la derecha. Calcularla por franja haría que dos grupos empezaran los dos en la
+ * columna 0 y la flecha entre ellos pudiera volver hacia atrás.
+ *
+ * Dentro de la franja no se centra: cada columna arranca arriba de su banda, y
+ * la banda mide lo que su columna más alta.
+ */
+export function colocarPorGrupo(
+  nodos: NodoGrafo[],
+  aristas: readonly AristaGrafo[],
+  grupoDe: (n: NodoGrafo) => string | undefined,
+  orden: readonly string[],
+): Record<string, Posicion> {
+  const enCadena = columnasEnCadena(nodos, aristas);
+  const usadas = [...new Set(nodos.map((n) => enCadena.get(n.id) ?? columnaDe(n.tipo)))].sort(
+    (a, b) => a - b,
+  );
+  const compacta = new Map(usadas.map((c, i) => [c, i]));
+
+  // `''` es la franja de los que no tienen grupo, o lo tienen y no está en `orden`.
+  const conocidos = new Set(orden);
+  const franjas = new Map<string, NodoGrafo[]>([...orden, ''].map((g) => [g, []]));
+  for (const n of nodos) {
+    const g = grupoDe(n);
+    franjas.get(g && conocidos.has(g) ? g : '')!.push(n);
+  }
+
+  const salida: Record<string, Posicion> = {};
+  let y = 0;
+  for (const miembros of franjas.values()) {
+    if (miembros.length === 0) continue;
+    const porColumna = new Map<number, NodoGrafo[]>();
+    for (const n of miembros) {
+      const c = compacta.get(enCadena.get(n.id) ?? columnaDe(n.tipo))!;
+      porColumna.set(c, [...(porColumna.get(c) ?? []), n]);
+    }
+    let filas = 0;
+    for (const [c, lista] of porColumna) {
+      porSeveridad(lista).forEach((n, i) => {
+        salida[n.id] = { x: c * PASO_X, y: y + i * PASO_Y };
+      });
+      filas = Math.max(filas, lista.length);
+    }
+    y += filas * PASO_Y + HUECO_FRANJA;
   }
   return salida;
 }

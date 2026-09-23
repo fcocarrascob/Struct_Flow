@@ -138,7 +138,6 @@ export default function FichaGenerica({
   onEntrada,
   onFormula,
   onPublicar,
-  onSalida,
   onResellar,
   onQuitar,
 }: {
@@ -169,8 +168,6 @@ export default function FichaGenerica({
   onFormula: (campo: string, expr: string | undefined) => void;
   /** Publicar una salida con ese alias, o dejar de publicarla (`undefined`). */
   onPublicar: (salida: string, alias: string | undefined) => void;
-  /** Solo en una partida de carga: cuál salida es su valor. */
-  onSalida?: (nombre: string) => void;
   /** Aceptar la versión de hoy: reescribe el sello con el sha256 actual. */
   onResellar: (sha256: string) => void;
   onQuitar: () => void;
@@ -268,33 +265,6 @@ export default function FichaGenerica({
             ya la revisé: actualizar el sello
           </button>
         </div>
-      )}
-
-      {onSalida && (
-        <label className="mb-2 block">
-          <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wide text-muted">
-            Qué salida es el valor de la partida
-          </span>
-          <select
-            value={frontera.salida ?? ''}
-            onChange={(e) => onSalida(e.target.value)}
-            className="w-full rounded border border-border bg-white px-2 py-1 text-xs text-ink outline-none focus:border-accent"
-          >
-            <option value="">— elige una —</option>
-            {modulo.salidas
-              // Lo que resume una partida es un número: un veredicto es un ✓/✗,
-              // un texto es una frase y una serie es una tabla entera. Ninguno
-              // de los tres cabe en la línea con la que el nodo se lee de un
-              // vistazo.
-              .filter((s) => s.tipo === 'valor' || s.tipo === 'uso')
-              .map((s) => (
-                <option key={s.nombre} value={s.nombre}>
-                  {s.etiqueta}
-                  {s.unidad ? ` [${s.unidad}]` : ''}
-                </option>
-              ))}
-          </select>
-        </label>
       )}
 
       <Pestañas

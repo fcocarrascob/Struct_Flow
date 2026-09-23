@@ -1,8 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // El documento de una obra: lo único que se guarda de un proyecto propio.
 //
-// Capa pura, sin React y sin `localStorage`: decidir cómo se llama la próxima
-// carga o si un nombre está libre es aritmética de cadenas, y se tiene que poder
+// Capa pura, sin React y sin `localStorage`: decidir cómo se llama un nodo nuevo
+// o si un nombre está libre es aritmética de cadenas, y se tiene que poder
 // probar fuera del navegador.
 //
 // POR QUÉ AQUÍ Y NO EN `src/lib/`
@@ -23,7 +23,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { INTRINSECOS } from '../../lib/canvas-handoff';
-import { idNodoDeCalculo, idNodoDeSubcarga } from './ids';
+import { idNodoDeCalculo } from './ids';
 import type { MetaPlanilla } from '../../lib/biblioteca/contrato';
 import type { Region } from '../../lib/worksheet';
 import { ORIGEN_X, ORIGEN_Y } from './hoja';
@@ -52,7 +52,7 @@ export type Procedencia = 'biblioteca' | 'propia' | 'derivada';
  * «definida en 2 nodos» sin que nadie haya escrito nada mal. Un aviso que salta
  * por lo que no es deja de leerse.
  *
- * Generaliza a la `Importada` que había: `publica`, `formulas` y `salida` valen
+ * Generaliza a la `Importada` que había: `publica` y `formulas` valen
  * igual para las tres procedencias, y con ellos todo lo que ya cuelga de ellos
  * —el orden topológico, las flechas derivadas, el aviso de alias repetido y la
  * detección de ciclos—.
@@ -121,65 +121,7 @@ export interface Frontera {
    * cualquier nombre corto en un choque.
    */
   publica?: Record<string, string>;
-  /**
-   * Cuál de las salidas declaradas es el valor con el que la partida se resume.
-   * No se suma con nada —una carga agrupa sus partidas, ver `calculo.ts`—: es lo
-   * que se lee en el nodo sin abrir la planilla. Solo tiene sentido dentro de
-   * una partida; un nodo de cálculo suelto muestra todas sus salidas y no elige
-   * ninguna.
-   */
-  salida?: string;
 }
-
-/**
- * Una partida del desglose de una carga, respaldada por su cálculo.
- *
- * `nombre` ES UNA ETIQUETA LIBRE: «Equipos sala de bombas», no `CM_1`. Antes era
- * la variable que su hoja tenía que definir, y eso ataba dos cosas que no tienen
- * por qué coincidir —cómo se llama la partida en la memoria y cómo se llama el
- * número dentro del cálculo—, además de obligar a escribir etiquetas con guion
- * bajo. Cuál variable aporta el valor lo dice `variable`.
- *
- * Su respaldo es su `hoja`, y `frontera` decide si esa hoja comparte el scope de
- * la obra o tiene el suyo.
- */
-export interface Subcarga {
-  id: string;
-  nombre: string;
-  hoja: Region[];
-  /** El `meta` de la hoja, si lo trae. Ver `NodoCalculo`. */
-  meta?: MetaPlanilla;
-  /** Cuál variable de su hoja libre es el valor de la partida. */
-  variable?: string;
-  frontera?: Frontera;
-  /** Marcada para revisar. Ver `Revision`. */
-  revisar?: Revision;
-  /** Dónde y cómo va en el modelo de SAP2000. Ver `AplicacionSap`. */
-  aplicacion?: AplicacionSap;
-}
-
-/**
- * Cómo se aplica el valor de una partida en SAP2000: sobre UN grupo del modelo,
- * para que cada componente —cubierta, muro, carrilera— sea su propia partida.
- * El valor no se escribe aquí: es el de la partida, convertido por el motor.
- */
-export interface AplicacionSap {
-  /** `area-a-barras`: carga uniforme de área repartida a sus barras
-   *  (`SetLoadUniformToFrame`); `barra-distribuida`: carga uniforme de barra. */
-  tipo: 'area-a-barras' | 'barra-distribuida';
-  grupo: string;
-  /** El código de dirección de la API: 10 gravedad, 4/5/6 X/Y/Z globales. */
-  direccion: number;
-  /** Solo en `area-a-barras`: 1 en una dirección, 2 en dos. */
-  distribucion?: 1 | 2;
-}
-
-export const DIRECCIONES_SAP: readonly { codigo: number; texto: string }[] = [
-  { codigo: 10, texto: 'gravedad' },
-  { codigo: 4, texto: 'X global' },
-  { codigo: 5, texto: 'Y global' },
-  { codigo: 6, texto: 'Z global' },
-];
 
 /**
  * Un nodo marcado para revisar, con la razón en una nota breve.
@@ -197,50 +139,31 @@ export interface Revision {
 /** Una nota de revisión es una línea, no un informe. */
 export const LARGO_NOTA_REVISION = 280;
 
-/**
- * Pone o quita (`undefined`) la marca de un cálculo o de una partida, por su id
- * de documento.
- */
+/** Pone o quita (`undefined`) la marca de un cálculo, por su id de documento. */
 export function marcarRevision(obra: Obra, id: string, revision: Revision | undefined): Obra {
-  const poner = <T extends { id: string; revisar?: Revision }>(x: T): T => {
-    if (x.id !== id) return x;
-    const { revisar: _, ...resto } = x;
-    return (revision ? { ...resto, revisar: revision } : resto) as T;
-  };
   return {
     ...obra,
-    calculos: obra.calculos.map(poner),
-    cargas: obra.cargas.map((c) => ({ ...c, subcargas: c.subcargas.map(poner) })),
+    calculos: obra.calculos.map((k) => {
+      if (k.id !== id) return k;
+      const { revisar: _, ...resto } = k;
+      return revision ? { ...resto, revisar: revision } : resto;
+    }),
   };
 }
 
-/** Los nodos del grafo que esperan revisión: las partidas primero, en su orden. */
+/** Los nodos del grafo que esperan revisión, en su orden. */
 export function porRevisar(obra: Obra): string[] {
-  return [
-    ...obra.cargas.flatMap((c) => c.subcargas.filter((s) => s.revisar).map((s) => idNodoDeSubcarga(s.id))),
-    ...obra.calculos.filter((k) => k.revisar).map((k) => idNodoDeCalculo(k.id)),
-  ];
+  return obra.calculos.filter((k) => k.revisar).map((k) => idNodoDeCalculo(k.id));
 }
 
 /**
- * Qué nombre aporta el valor de una partida, venga de donde venga.
+ * Un nodo de cálculo de la obra: una carga, una zapata, un anclaje o la
+ * geometría común.
  *
- * Los dos respaldos lo guardan en sitios distintos a propósito —`variable` es de
- * la hoja libre, `frontera.salida` es del cálculo con frontera— para que cada
- * uno se borre con su respaldo: cambiar de genérica no puede dejar apuntando a
- * una salida que la nueva no tiene. Pero se LEE por aquí y solo por aquí, así que
- * el resto del código no tiene que saber cuál de los dos es.
- */
-export function variableDePartida(sub: Subcarga): string | undefined {
-  return sub.frontera ? sub.frontera.salida : sub.variable;
-}
-
-/**
- * Un cálculo suelto de la obra, que no cuelga de ninguna carga.
- *
- * Es el caso de las costaneras, una zapata o un anclaje: cálculos que la obra
- * tiene que respaldar y que no producen una carga. Por eso no lleva variable de
- * salida —muestra las que declara— ni entra en ninguna suma.
+ * NO HAY OTRO TIPO DE NODO CON HOJA. Hubo cargas con partidas —una jerarquía
+ * aparte, con su nodo «Cargas»—, pero para el motor una partida ya era un
+ * cálculo más, y lo único que añadía la carga era una segunda forma de agrupar
+ * que competía con el `Grupo`. Una carga es hoy un cálculo, o un grupo de ellos.
  */
 export interface NodoCalculo {
   id: string;
@@ -275,10 +198,12 @@ export interface NodoCalculo {
 /**
  * Un grupo de nodos, con el color que el usuario elija.
  *
- * ES PRESENTACIÓN Y NADA MÁS: no toca el scope, el orden de lectura ni las
- * flechas. Sirve para que en una obra de treinta nodos se vea de un vistazo qué
- * es viento, qué es sismo y qué es la grúa. El color del grupo va en la franja de
- * la tarjeta y no en el borde, que sigue siendo la severidad.
+ * ES LA ÚNICA FORMA DE ORGANIZAR LA OBRA, y es presentación: no toca el scope,
+ * el orden de lectura ni las flechas. Sirve para que en una obra de treinta nodos
+ * se vea de un vistazo qué es viento, qué es sismo y qué es la grúa: el color va
+ * en la franja de la tarjeta —no en el borde, que sigue siendo la severidad— y
+ * «reordenar» pone cada grupo en su propia franja horizontal
+ * (`colocarPorGrupo` de `../layout.ts`), en el orden de esta lista.
  */
 export interface Grupo {
   id: string;
@@ -302,75 +227,18 @@ export const COLORES_GRUPO = [
 export const COLOR_RE = /^#[0-9a-f]{6}$/i;
 
 /**
- * Una carga de la obra.
- *
- * NO TIENE TIPO, Y ES DELIBERADO. Hubo un catálogo cerrado de ASCE 7 —`D`, `L`,
- * `Lr`, `S`, `W`…— con un `simbolo` por fila, y lo único que llegó a decidir fue
- * cuáles se podían desglosar: solo la permanente. Pero una nieve, un viento y un
- * sismo se calculan exactamente igual —partidas, cada una con su hoja o su
- * planilla de la biblioteca, y una suma—, así que el catálogo no distinguía dos
- * comportamientos: prohibía nueve de los diez.
- *
- * Lo que diferencia una carga de otra es su NOMBRE, que además es el
- * identificador con el que se la cita (`D`, `SC oficinas`, `Wx`). Una carga es
- * un nombre y un desglose; cuando llegue el módulo de combinaciones, citará esos
- * nombres, que es lo que el usuario escribió y no una clave que tuvo que elegir
- * de una lista.
+ * Los nodos únicos que el usuario agregó desde la paleta. Un cálculo no vive
+ * aquí sino en su propia lista: puede haber tantos como la obra necesite.
  */
-/**
- * Lo que una carga es en SAP2000: un Load Pattern. Un patrón NO tiene valor —el
- * valor va en los objetos, y eso es otro paso—; tiene un tipo y un multiplicador
- * de peso propio. Flow es la fuente: esto es lo que el modelo DEBERÍA tener.
- */
-export interface PatronSap {
-  /** El nombre de `eLoadPatternType` en la API: `Dead`, `SuperDead`, `Wind`… */
-  tipo: string;
-  /** Casi siempre 1 en el patrón del peso propio y 0 en los demás. */
-  pesoPropio: number;
-}
-
-/** Los tipos que se ofrecen primero; un modelo puede traer otros y se respetan. */
-export const TIPOS_PATRON = [
-  'Dead',
-  'SuperDead',
-  'Live',
-  'ReduceLive',
-  'Rooflive',
-  'Snow',
-  'Wind',
-  'Quake',
-  'Temperature',
-  'Notional',
-  'Other',
-] as const;
-
-export interface Carga {
-  id: string;
-  /** Lo que el usuario escribe: `D`, `SC oficinas`, `Wx`. Es el identificador
-   *  con el que la carga se va a citar, así que tiene que ser único. */
-  nombre: string;
-  /** El desglose, siempre disponible: cualquier carga se respalda con partidas. */
-  subcargas: Subcarga[];
-  /** El id de su `Grupo`. Va en la carga y no en la partida: un patrón no puede
-   *  quedar partido entre dos grupos, y una carga plegada se dibuja como su partida. */
-  grupo?: string;
-  /** Cómo es como Load Pattern de SAP2000. Ausente mientras no se defina. */
-  patron?: PatronSap;
-}
-
-/**
- * Los nodos que el usuario agregó desde la paleta.
- *
- * `cargas` es único por obra —las definiciones son una sola tabla, como en
- * SAP—; `calculo` no, y por eso no vive aquí sino en su propia lista: de un
- * cálculo suelto puede haber tantos como la obra necesite.
- */
-export type Modulo = 'cargas' | 'sap';
+export type Modulo = 'sap';
 
 /**
  * Lo último que el nodo SAP2000 leyó del modelo abierto, por el puente de Flow
  * (`puente-sap/puente.py`). Se guarda para que la obra diga con qué modelo se
  * conectó aunque el puente no esté corriendo.
+ *
+ * Sin patrones ni aplicaciones: colgaban de la carga (una carga era un Load
+ * Pattern), y en la rama `grupos-sin-cargas` se retiraron con ella.
  */
 export interface ConexionSap {
   /** El nombre del archivo, `v46_FUND_2026-09-23.sdb`. */
@@ -379,33 +247,6 @@ export interface ConexionSap {
   version: string;
   /** ISO: cuándo se leyó. */
   leido: string;
-  /** La última lectura de los Load Patterns del modelo, para compararla con las
-   *  cargas aunque el puente no esté corriendo. */
-  patrones?: LecturaPatrones;
-  /** Los grupos del modelo, para ofrecerlos al aplicar una partida. */
-  grupos?: GrupoSap[];
-  /** De qué modelo se leyeron los grupos: como los patrones, puede no ser el de la conexión. */
-  gruposDe?: string;
-}
-
-export interface GrupoSap {
-  nombre: string;
-  barras: number;
-  areas: number;
-}
-
-/** Un Load Pattern tal como está en el modelo. */
-export interface PatronLeido extends PatronSap {
-  nombre: string;
-}
-
-export interface LecturaPatrones {
-  /** De qué modelo se leyeron: puede no ser el de la última conexión. */
-  modelo: string;
-  /** Su ruta completa: dos copias del mismo `.sdb` en carpetas distintas se llaman igual. */
-  ruta?: string;
-  leido: string;
-  lista: PatronLeido[];
 }
 
 export interface Obra {
@@ -415,7 +256,6 @@ export interface Obra {
   /** ISO. Ordena el índice sin depender del orden en que se guardaron. */
   creada: string;
   modulos: Modulo[];
-  cargas: Carga[];
   calculos: NodoCalculo[];
   /** Ausente en una obra que nunca agrupó nada. */
   grupos?: Grupo[];
@@ -480,28 +320,12 @@ export function nuevaObra(nombre: string, ocupados: readonly string[] = []): Obr
     nombre: limpio,
     creada: new Date().toISOString(),
     modulos: [],
-    cargas: [],
     calculos: [],
   };
 }
 
 export function nuevoCalculo(): NodoCalculo {
   return { id: nuevoId('k'), nombre: 'Cálculo', hoja: [] };
-}
-
-/**
- * La próxima carga, con un nombre correlativo y libre que el usuario reescribe.
- *
- * `C1`, `C2`… y no `D` ni `W`: la carga no tiene tipo, así que proponer el
- * símbolo de una norma sería sugerir una clasificación que el modelo ya no
- * guarda. Lo único que el nombre tiene que garantizar al nacer es ser único,
- * porque es el identificador con el que la carga se cita.
- */
-export function nuevaCarga(cargas: readonly Carga[]): Carga {
-  const tomados = new Set(cargas.map((c) => c.nombre.trim()));
-  let nombre = 'C1';
-  for (let i = 2; tomados.has(nombre); i++) nombre = `C${i}`;
-  return { id: nuevoId('c'), nombre, subcargas: [] };
 }
 
 /**
@@ -517,38 +341,10 @@ export function identificadoresDe(src: string): string[] {
   return [...new Set(src.match(/[\p{L}_][\p{L}\p{N}_]*/gu) ?? [])];
 }
 
-export function nuevaSubcarga(subcargas: readonly Subcarga[]): Subcarga {
-  const n = subcargas.length + 1;
-  // Nace con la línea que la define: una hoja en blanco no dice qué se espera de
-  // ella, y esta línea es literalmente el respaldo mínimo de la partida. La
-  // variable propuesta y la etiqueta ya no son lo mismo, y eso es el punto.
-  const variable = `CM_${n}`;
-  return {
-    id: nuevoId('s'),
-    nombre: `Partida ${n}`,
-    variable,
-    hoja: [nuevaRegion('math', `${variable} := `)],
-  };
-}
-
 /** Una región suelta, en el origen del papel. Dónde va de verdad lo decide
  *  `insertarEnHoja` de `./hoja`, que es quien conoce el resto de la hoja. */
 export function nuevaRegion(kind: 'math' | 'text', src = ''): Region {
   return { id: nuevoId('b'), kind, x: ORIGEN_X, y: ORIGEN_Y, src };
-}
-
-/**
- * Qué le pasa al nombre de una carga, o cadena vacía si no le pasa nada.
- *
- * Devuelve el motivo en vez de un booleano porque es el motivo lo que se pinta:
- * un nodo rojo que no dice por qué obliga a salir del canvas a averiguarlo.
- */
-export function problemaDeNombre(carga: Carga, cargas: readonly Carga[]): string {
-  const nombre = carga.nombre.trim();
-  if (!nombre) return 'Sin nombre: una carga sin nombre no se puede citar en una combinación.';
-  const otra = cargas.find((c) => c.id !== carga.id && c.nombre.trim() === nombre);
-  if (otra) return `Nombre repetido: ya hay otra carga que se llama «${nombre}».`;
-  return '';
 }
 
 // ── Operaciones sobre el documento ───────────────────────────────────────────
@@ -559,35 +355,6 @@ export function problemaDeNombre(carga: Carga, cargas: readonly Carga[]): string
 export function agregarModulo(obra: Obra, modulo: Modulo): Obra {
   if (obra.modulos.includes(modulo)) return obra;
   return { ...obra, modulos: [...obra.modulos, modulo] };
-}
-
-export function agregarCarga(obra: Obra): { obra: Obra; carga: Carga } {
-  const carga = nuevaCarga(obra.cargas);
-  return { obra: { ...obra, cargas: [...obra.cargas, carga] }, carga };
-}
-
-export function cambiarCarga(obra: Obra, id: string, campos: Partial<Omit<Carga, 'id'>>): Obra {
-  return {
-    ...obra,
-    cargas: obra.cargas.map((c) => (c.id === id ? { ...c, ...campos } : c)),
-  };
-}
-
-export function borrarCarga(obra: Obra, id: string): Obra {
-  return { ...obra, cargas: obra.cargas.filter((c) => c.id !== id) };
-}
-
-/** Reemplaza las partidas de una carga. Un solo camino de escritura para el
- *  desglose: agregar, renombrar, borrar y editar una hoja pasan todos por aquí. */
-export function conSubcargas(obra: Obra, idCarga: string, subcargas: Subcarga[]): Obra {
-  return {
-    ...obra,
-    cargas: obra.cargas.map((c) => (c.id === idCarga ? { ...c, subcargas } : c)),
-  };
-}
-
-export function cargaDeSubcarga(obra: Obra, idSub: string): Carga | undefined {
-  return obra.cargas.find((c) => c.subcargas.some((s) => s.id === idSub));
 }
 
 export function agregarCalculo(obra: Obra, calculo: NodoCalculo): Obra {
@@ -616,28 +383,28 @@ export function cambiarGrupo(obra: Obra, id: string, campos: Partial<Omit<Grupo,
 /** Borra el grupo y la referencia de cada miembro: un `grupo` que no apunta a
  *  nada lo descartaría el saneo al releer, pero hasta entonces sería un dato roto. */
 export function borrarGrupo(obra: Obra, id: string): Obra {
-  const sin = <T extends { grupo?: string }>(x: T): T => {
-    if (x.grupo !== id) return x;
-    const { grupo: _, ...resto } = x;
-    return resto as T;
-  };
   return {
     ...obra,
     grupos: (obra.grupos ?? []).filter((g) => g.id !== id),
-    cargas: obra.cargas.map(sin),
-    calculos: obra.calculos.map(sin),
+    calculos: obra.calculos.map((k) => {
+      if (k.grupo !== id) return k;
+      const { grupo: _, ...resto } = k;
+      return resto;
+    }),
   };
 }
 
-/** Pone o quita (`undefined`) el grupo de una carga o de un cálculo, por el id
- *  del DOCUMENTO (no el del nodo del grafo). */
+/** Pone o quita (`undefined`) el grupo de un cálculo, por el id del DOCUMENTO
+ *  (no el del nodo del grafo). */
 export function asignarGrupo(obra: Obra, id: string, grupo: string | undefined): Obra {
-  const poner = <T extends { id: string; grupo?: string }>(x: T): T => {
-    if (x.id !== id) return x;
-    const { grupo: _, ...resto } = x;
-    return (grupo ? { ...resto, grupo } : resto) as T;
+  return {
+    ...obra,
+    calculos: obra.calculos.map((k) => {
+      if (k.id !== id) return k;
+      const { grupo: _, ...resto } = k;
+      return grupo ? { ...resto, grupo } : resto;
+    }),
   };
-  return { ...obra, cargas: obra.cargas.map(poner), calculos: obra.calculos.map(poner) };
 }
 
 export function grupoPorId(obra: Obra, id: string | undefined): Grupo | undefined {
@@ -656,7 +423,6 @@ export function slugsImportados(obra: Obra): string[] {
     if (f?.procedencia === 'biblioteca' && f.slug) s.add(f.slug);
   };
   for (const k of obra.calculos) tomar(k.frontera);
-  for (const c of obra.cargas) for (const sub of c.subcargas) tomar(sub.frontera);
   return [...s];
 }
 
@@ -711,7 +477,7 @@ export function problemaDeAlias(alias: string): string {
 
 /** Una hoja de la obra, con el id de nodo con que se pinta. */
 export interface HojaDeNodo {
-  /** El id del NODO del canvas, no el del documento: `partida:xxx`, `calculo:xxx`. */
+  /** El id del NODO del canvas, no el del documento: `calculo:xxx`. */
   idNodo: string;
   etiqueta: string;
   hoja: Region[];

@@ -43,10 +43,13 @@ retirar.
   como las regiones fantasma `pub:<idNodo>:<alias>` de la obra.
 - **Una pestaña no sobrevive a un F5**: vive en el estado de `CanvasObra` (el router solo mira
   el `pathname`). Sin enlace a una hoja, ni atrás/adelante entre pestañas.
-- **El grupo de una carga de varias partidas** solo se asigna desde el panel de una de sus
-  partidas; `PanelCargas` no lleva el selector.
-- **Las líneas del nodo «Cargas» pasan por detrás de «Geometría y sitio»** y parecen
-  alimentarla. El trazo del nodo enfocado lo aclara, pero el layout lo sigue provocando.
+- **Una obra migrada pierde sus posiciones.** Los nodos que eran partidas cambian de id de
+  nodo (`partida:` → `calculo:`) y el layout guardado ya no los encuentra: abren colocados por
+  grupo y basta con «reordenar» (rama `grupos-sin-cargas`).
+- **Los generadores del Pachón (`docs/pachon/*/generar.mjs`) siguen escribiendo cargas.** Se
+  leen igual porque el saneo las migra, pero lo que escriben ya no es el formato de la obra.
+- **Las franjas de «reordenar» no se rotulan.** El nombre del grupo está en la leyenda y en
+  cada tarjeta; una banda sin marco se lee por proximidad, y con muchos grupos puede no bastar.
 - **`identificadoresDe` es un tercer léxico** (`modelo.ts`): una regex donde math.js ya sabe
   analizar. Un nombre dentro de una cadena de texto de una fórmula cuenta como dependencia.
 - **Teclado y foco.** El panel no atrapa el foco ni lleva `role="dialog"`; un nodo no se
@@ -59,6 +62,10 @@ retirar.
   `verify:obra`. Se comprobó a mano; le falta su sitio.
 
 ## SAP2000
+
+**En la rama `grupos-sin-cargas` la comparación de patrones y la aplicación se retiraron** con
+las cargas (`rumbo.md`, «Experimento: el grupo es la única forma de organizar la obra»); lo de
+abajo queda como estaba en `master`, para cuando vuelvan.
 
 Lo que dejó a la vista la primera comparación de Load Patterns contra el modelo del Pachón,
 para la sesión de ajustes:

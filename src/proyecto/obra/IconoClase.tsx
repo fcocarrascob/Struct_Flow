@@ -7,8 +7,6 @@ import type { ClaseNodo } from './proyeccion';
  * `obra` no es una clase de nodo: es la pestaña del grafo.
  */
 export const ROTULO_CLASE: Record<ClaseNodo, string> = {
-  definiciones: 'definiciones',
-  carga: 'carga',
   calculo: 'cálculo',
   biblioteca: 'biblioteca',
   resumen: 'resumen',
@@ -33,20 +31,6 @@ export default function IconoClase({
     'aria-hidden': true,
   };
   switch (clase) {
-    // Una flecha que baja sobre una viga: una acción.
-    case 'carga':
-      return (
-        <svg {...comun}>
-          <path d="M8 1.5v8M5 6.5l3 3 3-3M2 13h12" />
-        </svg>
-      );
-    // Una lista: la tabla de cargas.
-    case 'definiciones':
-      return (
-        <svg {...comun}>
-          <path d="M2 3.5h12M2 8h12M2 12.5h12" />
-        </svg>
-      );
     // Un libro: una genérica sellada de la biblioteca.
     case 'biblioteca':
       return (

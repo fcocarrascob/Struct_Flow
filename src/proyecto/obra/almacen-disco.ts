@@ -85,7 +85,6 @@ export interface ResumenObra {
   id: string;
   nombre: string;
   creada: string;
-  cargas: number;
   calculos: number;
   vacia: boolean;
 }

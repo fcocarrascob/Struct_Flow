@@ -14,9 +14,9 @@ import type { NodoDeObra } from './proyeccion';
  * vale la pena extraer la tarjeta.
  *
  * CADA CANAL DICE UNA SOLA COSA, y ninguno pisa a otro:
- * - el BORDE es el desfase: un nodo rojo es una carga sin nombre o con el nombre
- *   repetido, y se corrige en el panel;
- * - el ÍCONO y el rótulo son la clase (carga, cálculo, biblioteca, resumen);
+ * - el BORDE es el desfase: un nodo rojo es un nombre repetido, un ciclo o un
+ *   bloque con error, y se corrige en el panel;
+ * - el ÍCONO y el rótulo son la clase (cálculo, biblioteca, resumen, modelo);
  * - la FRANJA izquierda y el tinte del encabezado son el grupo del usuario;
  * - la BANDERA ⚑ con borde punteado es la marca «Revisar». No es ámbar a
  *   propósito: el ámbar es el aviso de la severidad, y una marca de revisión no
