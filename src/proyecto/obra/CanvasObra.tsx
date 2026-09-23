@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import {
   Background,
   Controls,
@@ -25,7 +25,8 @@ import { origenDeNodo } from './origen-nodo';
 import VistaHoja from './VistaHoja';
 import type { Severidad } from '../contrato';
 import { colocar, guardarLayout, layoutGuardado, olvidarLayout, type Posicion } from '../layout';
-import { archivoDeObra, guardarObra, leerObra, nombreDeArchivo } from './almacen';
+import { archivoDeObra, nombreDeArchivo } from './almacen';
+import { abrirObra, olvidarBorrador, type Apertura } from './almacen-disco';
 import { descargarHoja } from '../../lib/canvas-handoff';
 import { cargarGenerica, desprender, type Genericas } from './biblioteca';
 import { evaluarObra, problemaDeGrafo, rupturaPorQuitar } from './evaluacion';
@@ -283,8 +284,22 @@ function piezasDeFrontera(f: Frontera | undefined): number {
   );
 }
 
-function CanvasObra({ id }: { id: string }) {
-  const [obra, setObra] = useState<Obra | null>(() => leerObra(id));
+function CanvasObra({
+  id,
+  apertura,
+  onRecargar,
+}: {
+  id: string;
+  apertura: Apertura;
+  /** Vuelve a leer la obra de donde vive y remonta el canvas con ella. */
+  onRecargar: () => void;
+}) {
+  const [obra, setObra] = useState<Obra | null>(apertura.obra);
+  const { sesion } = apertura;
+  const estadoSesion = useSyncExternalStore(sesion.suscribir, sesion.estado);
+  /** Lo de una sesión anterior que no llegó al disco, hasta que se decida. */
+  const [borrador, setBorrador] = useState(apertura.borrador);
+  const [problemasLectura, setProblemasLectura] = useState(apertura.problemas);
   const [nodos, setNodos] = useState<Node[]>([]);
   const [seleccion, setSeleccion] = useState<string | null>(null);
   /** El nodo bajo el puntero: da la misma vista del trazo que seleccionar, sin
@@ -386,25 +401,28 @@ function CanvasObra({ id }: { id: string }) {
   // Mismo compás que el canvas matemático: 300 ms de espera, más un guardado al
   // desmontar, porque el desmontaje cancela el temporizador y lo último que se
   // escribió es justo lo que más duele perder.
+  //
+  // Dónde se guarda lo decide la sesión (`almacen-disco.ts`): una carpeta en
+  // disco o este navegador. Acá solo se le pasa cada versión del documento; la
+  // cola, el candado y los conflictos son suyos.
   const obraRef = useRef(obra);
   obraRef.current = obra;
 
-  const guardar = useCallback((o: Obra) => {
-    const r = guardarObra(o);
-    setAvisoGuardado(r.ok ? '' : r.motivo);
-  }, []);
-
   useEffect(() => {
     if (!obra) return;
-    const t = window.setTimeout(() => guardar(obra), 300);
+    const t = window.setTimeout(() => sesion.guardar(obra), 300);
     return () => window.clearTimeout(t);
-  }, [obra, guardar]);
+  }, [obra, sesion]);
 
   useEffect(() => {
     return () => {
-      if (obraRef.current) guardarObra(obraRef.current);
+      if (obraRef.current) sesion.cerrar(obraRef.current);
     };
-  }, []);
+  }, [sesion]);
+
+  useEffect(() => {
+    setAvisoGuardado(estadoSesion.error);
+  }, [estadoSesion.error]);
 
   // Y al cerrar la pestaña, recargar o pasar a otra, que tampoco desmontan: React
   // no se entera de que la página se va. Como el debounce se reinicia en cada
@@ -413,19 +431,21 @@ function CanvasObra({ id }: { id: string }) {
   // `visibilitychange` es la señal fiable en móvil, donde `pagehide` a veces no
   // llega, y se escuchan las dos porque guardar dos veces lo mismo no cuesta nada.
   useEffect(() => {
-    const vaciar = () => {
-      if (obraRef.current) guardarObra(obraRef.current);
+    // Ocultarse no es irse: una pestaña en segundo plano sigue siendo la
+    // escritora. Solo `pagehide` suelta el candado.
+    const salir = () => {
+      if (obraRef.current) sesion.salir(obraRef.current);
     };
     const alOcultar = () => {
-      if (document.visibilityState === 'hidden') vaciar();
+      if (document.visibilityState === 'hidden' && obraRef.current) sesion.vaciar(obraRef.current);
     };
-    window.addEventListener('pagehide', vaciar);
+    window.addEventListener('pagehide', salir);
     document.addEventListener('visibilitychange', alOcultar);
     return () => {
-      window.removeEventListener('pagehide', vaciar);
+      window.removeEventListener('pagehide', salir);
       document.removeEventListener('visibilitychange', alOcultar);
     };
-  }, []);
+  }, [sesion]);
 
   // ── Nodos y aristas ────────────────────────────────────────────────────────
   // La posición que ya tenía un nodo manda sobre la automática: `colocar()`
@@ -1115,23 +1135,10 @@ function CanvasObra({ id }: { id: string }) {
     [],
   );
 
-  // ── La obra que no existe ──────────────────────────────────────────────────
-  if (!obra) {
-    return (
-      <main className="mx-auto w-full max-w-2xl px-4 py-16">
-        <h1 className="text-lg font-semibold text-error">No hay ninguna obra con ese id</h1>
-        <p className="mt-2 text-sm leading-relaxed text-muted">
-          Las obras viven en el almacenamiento de <strong>este</strong> navegador, así que un
-          enlace a una obra no funciona en otro equipo ni después de borrar los datos del sitio.
-        </p>
-        <p className="mt-6 text-xs text-muted">
-          <Enlace a={{ vista: 'proyectos' }} className="text-accent hover:underline">
-            ← Volver a los proyectos
-          </Enlace>
-        </p>
-      </main>
-    );
-  }
+  // La obra que no existe la resuelve `CargadorObra`, antes de montar esto.
+  if (!obra) return null;
+
+  const soloLectura = estadoSesion.conflicto === 'escritor';
 
   const idCargaSeleccionada = seleccion ? cargaDeNodo(seleccion) : null;
   const idPartidaSeleccionada = seleccion ? subcargaDeNodo(seleccion) : null;
@@ -1189,6 +1196,27 @@ function CanvasObra({ id }: { id: string }) {
             className="min-w-0 max-w-[min(48rem,60vw)] rounded border border-transparent px-1 py-0.5 text-sm font-semibold text-ink outline-none hover:border-border focus:border-accent"
           />
           <span className="font-mono text-[10px] text-muted">{obra.id}</span>
+          {/* Dónde vive, siempre a la vista: no es lo mismo una carpeta que se
+              versiona que un navegador que se puede vaciar. */}
+          <span
+            title={estadoSesion.donde}
+            className={`rounded border px-1.5 text-[10px] ${
+              estadoSesion.modo === 'disco'
+                ? 'border-border text-muted'
+                : 'border-aviso text-aviso'
+            }`}
+          >
+            {estadoSesion.modo === 'navegador'
+              ? 'en este navegador'
+              : `en disco${
+                  // Con un conflicto no se está guardando: la cola está parada.
+                  estadoSesion.conflicto
+                    ? ' · sin guardar'
+                    : estadoSesion.pendiente
+                      ? ' · guardando…'
+                      : ''
+                }`}
+          </span>
           <span className="ml-auto text-[10px] text-muted">
             {proyeccion.nodos.length} nodo{proyeccion.nodos.length === 1 ? '' : 's'} ·{' '}
             {obra.cargas.length} carga{obra.cargas.length === 1 ? '' : 's'} ·{' '}
@@ -1272,7 +1300,13 @@ function CanvasObra({ id }: { id: string }) {
             // Con un aviso debajo, la barra no llega al borde de la cabecera y
             // la pestaña activa no tiene con qué fundirse: se cierra con su borde.
             className={`-mx-4 mt-1.5 flex flex-wrap items-end gap-1 border-y border-border bg-slate-100 px-4 pt-1.5 ${
-              avisoGuardado || avisoBorrado ? '' : '-mb-2 border-b-0'
+              avisoGuardado ||
+              avisoBorrado ||
+              estadoSesion.conflicto ||
+              borrador ||
+              problemasLectura.length
+                ? ''
+                : '-mb-2 border-b-0'
             }`}
           >
             <PestanaObra activa={activa === null} onElegir={() => setActiva(null)} />
@@ -1344,6 +1378,111 @@ function CanvasObra({ id }: { id: string }) {
             className="mt-1 rounded border border-aviso bg-white px-3 py-1.5 text-[11px] leading-snug text-aviso"
           >
             No se pudo guardar la obra. {avisoGuardado}
+          </p>
+        )}
+
+        {/* Los conflictos de la sesión. Tampoco se retiran solos: mientras
+            dura uno, lo que se escribe no llega al disco, y eso no puede
+            quedar dicho una vez y desaparecer. */}
+        {soloLectura && (
+          <p
+            role="status"
+            className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 rounded border border-aviso bg-white px-3 py-1.5 text-[11px] leading-snug text-aviso"
+          >
+            <span>
+              <strong>Solo lectura.</strong> Otra pestaña está editando esta obra; lo que cambies
+              aquí no se guarda.
+            </span>
+            <button
+              type="button"
+              // Tomar el control es empezar de lo que hay en el disco: lo que la
+              // otra pestaña escribió hasta ahora es más nuevo que esta copia. La
+              // recarga pide el candado forzando (`abrirObra`).
+              onClick={onRecargar}
+              className="rounded border border-aviso px-1.5 py-0.5 text-[10px] text-aviso hover:bg-aviso hover:text-white"
+            >
+              Tomar el control
+            </button>
+          </p>
+        )}
+        {(estadoSesion.conflicto === 'version' || estadoSesion.conflicto === 'borrada') && (
+          <p
+            role="status"
+            className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 rounded border border-error bg-white px-3 py-1.5 text-[11px] leading-snug text-error"
+          >
+            <span>
+              {estadoSesion.conflicto === 'version'
+                ? 'La obra cambió en el disco desde que se abrió (otra pestaña, git o una edición a mano). Lo que escribas ya no se guarda.'
+                : 'La carpeta de esta obra ya no está en el disco. Lo que escribas no se guarda.'}
+            </span>
+            <button
+              type="button"
+              onClick={() => descargarHoja(archivoDeObra(obra), nombreDeArchivo(obra))}
+              className="rounded border border-error px-1.5 py-0.5 text-[10px] hover:bg-error hover:text-white"
+            >
+              Descargar esta versión
+            </button>
+            {estadoSesion.conflicto === 'version' && (
+              <button
+                type="button"
+                onClick={onRecargar}
+                className="rounded border border-error px-1.5 py-0.5 text-[10px] hover:bg-error hover:text-white"
+              >
+                Recargar desde el disco
+              </button>
+            )}
+          </p>
+        )}
+        {borrador && !soloLectura && (
+          <p
+            role="status"
+            className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 rounded border border-aviso bg-white px-3 py-1.5 text-[11px] leading-snug text-ink"
+          >
+            <span>
+              Hay cambios de la última vez que no llegaron al disco
+              {borrador.sobreOtraVersion
+                ? ', hechos sobre una versión anterior a la que hay ahora: recuperarlos reemplaza la del disco.'
+                : '.'}
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                setObra(borrador.obra);
+                setBorrador(null);
+              }}
+              className="rounded border border-border px-1.5 py-0.5 text-[10px] hover:border-accent hover:text-accent"
+            >
+              Recuperarlos
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                olvidarBorrador(obra.id);
+                setBorrador(null);
+              }}
+              className="rounded border border-border px-1.5 py-0.5 text-[10px] text-muted hover:border-error hover:text-error"
+            >
+              Descartarlos
+            </button>
+          </p>
+        )}
+        {problemasLectura.length > 0 && (
+          <p
+            role="status"
+            className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 rounded border border-aviso bg-white px-3 py-1.5 text-[11px] leading-snug text-aviso"
+          >
+            <span>
+              Parte de la carpeta no se pudo leer y esos nodos abrieron con la hoja vacía:{' '}
+              {problemasLectura.join(' ')} Con el primer cambio que se guarde, esas hojas se
+              escriben vacías: si hay algo que rescatar, arréglalo en el disco y recarga antes.
+            </span>
+            <button
+              type="button"
+              onClick={() => setProblemasLectura([])}
+              className="rounded border border-aviso px-1.5 py-0.5 text-[10px] hover:bg-aviso hover:text-white"
+            >
+              Entendido
+            </button>
           </p>
         )}
 
@@ -1651,10 +1790,70 @@ function CanvasObra({ id }: { id: string }) {
   );
 }
 
+/**
+ * Lee la obra de donde viva —el disco o este navegador— y solo entonces monta
+ * el canvas. Leer del disco es asíncrono, y `CanvasObra` arma el historial, el
+ * layout y la evaluación a partir de la obra del primer render: montarlo con
+ * `null` y rellenarlo después haría que todo eso partiera de la nada.
+ *
+ * Recargar remonta con una `key` nueva: una obra releída es un documento nuevo,
+ * con su propia sesión, y no hereda el historial de la anterior.
+ */
+function CargadorObra({ id }: { id: string }) {
+  const [vuelta, setVuelta] = useState(0);
+  const [estado, setEstado] = useState<
+    { fase: 'cargando' } | { fase: 'lista'; apertura: Apertura } | { fase: 'no-esta' } | { fase: 'error'; motivo: string }
+  >({ fase: 'cargando' });
+
+  useEffect(() => {
+    let vivo = true;
+    setEstado({ fase: 'cargando' });
+    // Toda vuelta después de la primera es una recarga desde esta pestaña.
+    abrirObra(id, { forzar: vuelta > 0 }).then(
+      (a) => vivo && setEstado(a ? { fase: 'lista', apertura: a } : { fase: 'no-esta' }),
+      (e: Error) => vivo && setEstado({ fase: 'error', motivo: e.message }),
+    );
+    return () => {
+      vivo = false;
+    };
+  }, [id, vuelta]);
+
+  if (estado.fase === 'lista') {
+    return (
+      <CanvasObra
+        key={vuelta}
+        id={id}
+        apertura={estado.apertura}
+        onRecargar={() => setVuelta((v) => v + 1)}
+      />
+    );
+  }
+  if (estado.fase === 'cargando') {
+    return <p className="px-4 py-16 text-center text-sm text-muted">Abriendo la obra…</p>;
+  }
+  return (
+    <main className="mx-auto w-full max-w-2xl px-4 py-16">
+      <h1 className="text-lg font-semibold text-error">
+        {estado.fase === 'error' ? 'No se pudo abrir la obra' : 'No hay ninguna obra con ese id'}
+      </h1>
+      <p className="mt-2 text-sm leading-relaxed text-muted">
+        {estado.fase === 'error'
+          ? estado.motivo
+          : 'No está en la carpeta de obras del servidor local ni en el almacenamiento de este navegador.'}
+      </p>
+      <p className="mt-6 text-xs text-muted">
+        <Enlace a={{ vista: 'proyectos' }} className="text-accent hover:underline">
+          ← Volver a los proyectos
+        </Enlace>
+      </p>
+    </main>
+  );
+}
+
 export function CanvasObraConProveedor({ id }: { id: string }) {
   return (
     <ReactFlowProvider>
-      <CanvasObra id={id} />
+      <CargadorObra id={id} />
     </ReactFlowProvider>
   );
 }

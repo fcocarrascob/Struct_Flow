@@ -145,10 +145,16 @@ export function crearObras(raiz, { ahora = () => Date.now() } = {}) {
         try {
           const datos = JSON.parse(await readFile(path.join(raiz, id, ARCHIVO_OBRA), 'utf8'));
           const o = datos?.obra ?? datos;
+          // Lo justo para la ficha del índice; los conteos no son entender la
+          // obra, son contar listas, y evitan bajarse cada obra entera.
+          const largo = (v) => (Array.isArray(v) ? v.length : 0);
           obras.push({
             id,
             nombre: typeof o?.nombre === 'string' ? o.nombre : id,
             creada: typeof o?.creada === 'string' ? o.creada : '',
+            cargas: largo(o?.cargas),
+            calculos: largo(o?.calculos),
+            vacia: largo(o?.modulos) === 0,
           });
         } catch {
           // Una carpeta sin `obra.json` legible no es una obra, o está a medio
@@ -209,6 +215,8 @@ export function crearObras(raiz, { ahora = () => Date.now() } = {}) {
       }
 
       const hay = await existe(path.join(dir, ARCHIVO_OBRA));
+      /** Lo que hay en disco, para no reescribir lo que no cambió. */
+      let actuales = {};
       if (base === null) {
         if (hay) throw new ErrorObras(409, `Ya hay una obra «${id}» en el disco.`, { conflicto: 'existe' });
       } else {
@@ -217,7 +225,8 @@ export function crearObras(raiz, { ahora = () => Date.now() } = {}) {
         if (e && e.token !== token) {
           throw new ErrorObras(409, 'Otra pestaña tomó el control de esta obra.', { conflicto: 'escritor' });
         }
-        const enDisco = versionDe(await leerArchivos(dir));
+        actuales = await leerArchivos(dir);
+        const enDisco = versionDe(actuales);
         if (enDisco !== base) {
           throw new ErrorObras(409, 'La obra cambió en el disco desde que se abrió.', {
             conflicto: 'version',
@@ -225,14 +234,21 @@ export function crearObras(raiz, { ahora = () => Date.now() } = {}) {
           });
         }
       }
-      // Escribir renueva el candado: quien escribe está vivo.
-      if (typeof token === 'string' && token.length >= 8) {
-        escritores.set(id, { token, hasta: ahora() + CADUCIDAD_MS });
-      }
+      // Escribir RENUEVA el candado de quien ya lo tiene, y nunca lo crea. Dos
+      // escrituras lo crearían sin ser de una pestaña viva: la del índice al
+      // crear la obra, y la última de una página que se va, que puede llegar
+      // DESPUÉS del beacon que soltó el candado. En los dos casos la pestaña
+      // que abre la obra a continuación lleva otro token y abriría en solo
+      // lectura.
+      const vivo = escritorVivo(id);
+      if (vivo && vivo.token === token) vivo.hasta = ahora() + CADUCIDAD_MS;
 
       await mkdir(path.join(dir, 'hojas'), { recursive: true });
       const sufijo = `.tmp-${randomBytes(4).toString('hex')}`;
       for (const [ruta, contenido] of Object.entries(archivos)) {
+        // Tocar una fórmula cambia un archivo, y solo ese se escribe: las
+        // fechas del resto siguen diciendo cuándo cambiaron de verdad.
+        if (actuales[ruta] === contenido) continue;
         const destino = path.join(dir, ...ruta.split('/'));
         await writeFile(destino + sufijo, contenido, 'utf8');
         await rename(destino + sufijo, destino);
@@ -344,7 +360,11 @@ export function manejadorObras(obras) {
 /** El plugin de Vite: monta el manejador en `vite` y en `vite preview`. */
 export function pluginObras(raiz = raizPorDefecto()) {
   const obras = crearObras(raiz);
-  const montar = (server) => server.middlewares.use(manejadorObras(obras));
+  // Sin devolver nada: Vite toma una función devuelta por `configureServer`
+  // como un gancho que corre después, y `use` devuelve la app de connect.
+  const montar = (server) => {
+    server.middlewares.use(manejadorObras(obras));
+  };
   return {
     name: 'structflow-obras',
     configureServer: montar,

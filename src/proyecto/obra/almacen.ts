@@ -1,6 +1,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Dónde viven las obras: `localStorage` de este navegador, y en ningún otro
-// lado.
+// Las obras en `localStorage`, y el saneo de toda obra que se lee.
+//
+// Con el servidor local, una obra vive en disco (`almacen-disco.ts`,
+// `carpeta.ts`) y esto queda para las que no: sin servidor, o creadas antes de
+// que lo hubiera. `sanearObra` es de las dos: se lee de donde se lea, una obra
+// entra por aquí.
 //
 // UNA DIFERENCIA CON `../layout.ts` QUE IMPORTA
 // --------------------------------------------
@@ -395,10 +399,11 @@ export function borrarObra(id: string): Resultado {
 
 // ── Sacar una obra del navegador, y volver a meterla ─────────────────────────
 //
-// Una obra vive en el `localStorage` de UN navegador: no viaja a otro equipo, no
-// la ve nadie más, y desaparece al borrar los datos del sitio. Mientras el
-// harness no sepa recibirla, el archivo es la única forma de respaldarla, de
-// llevarla a otra máquina y de pasársela a alguien.
+// Una obra en el `localStorage` de UN navegador no viaja a otro equipo, no la ve
+// nadie más, y desaparece al borrar los datos del sitio; para ella el archivo es
+// la única forma de respaldarla. Una obra en disco (`almacen-disco.ts`) ya es
+// una carpeta, pero el archivo sigue siendo la forma de pasársela a alguien en
+// una sola pieza.
 //
 // No es el formato de una hoja del canvas y no se pretende que lo sea: una obra
 // es un grafo de nodos con referencias a la biblioteca, no una lista de
@@ -424,7 +429,7 @@ export type Importacion = { ok: true; obra: Obra } | { ok: false; motivo: string
  * se llaman igual en la lista — y eso es correcto, porque son la misma obra en
  * dos momentos distintos y quien la importó sabe cuál acaba de traer.
  */
-export function importarObra(texto: string): Importacion {
+export function importarObra(texto: string, ocupados?: Iterable<string>): Importacion {
   let crudo: unknown;
   try {
     crudo = JSON.parse(texto);
@@ -441,7 +446,9 @@ export function importarObra(texto: string): Importacion {
       motivo: 'El archivo no tiene una obra dentro: falta el `id`, o no es un archivo de obra.',
     };
   }
-  const tomados = new Set(leerCrudo().map((o) => idDeObra(o)));
+  // Los ids que ya hay donde va a entrar: el disco, si quien llama los da, o
+  // este navegador.
+  const tomados = new Set<string | null>(ocupados ?? leerCrudo().map((o) => idDeObra(o)));
   if (tomados.has(obra.id)) {
     let id = '';
     for (let i = 2; !id || tomados.has(id); i++) id = `${obra.id}-${i}`;

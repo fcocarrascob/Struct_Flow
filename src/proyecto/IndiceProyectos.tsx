@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { listarProyectos } from './api';
 import type { ProyectoListado } from './contrato';
 import {
@@ -6,9 +6,18 @@ import {
   borrarObra,
   guardarObra,
   importarObra,
+  leerObra,
   listarObras,
   nombreDeArchivo,
 } from './obra/almacen';
+import {
+  borrarDeDisco,
+  crearEnDisco,
+  leerDeDisco,
+  listarEnDisco,
+  servidorDisponible,
+  type ResumenObra,
+} from './obra/almacen-disco';
 import { olvidarLayout } from './layout';
 import { descargarHoja } from '../lib/canvas-handoff';
 import { nuevaObra, NOMBRE_OBRA_POR_OMISION, type Obra } from './obra/modelo';
@@ -16,28 +25,39 @@ import Enlace from '../components/Enlace';
 import { navegar } from '../lib/ruta';
 
 /**
- * El índice de trabajo: las obras de este navegador arriba, los proyectos del
- * harness debajo.
+ * El índice de trabajo: las obras arriba, los proyectos del harness debajo.
  *
- * Las dos listas son independientes A PROPÓSITO. Las obras salen de
- * `localStorage` y los proyectos del servidor local; si el servidor no está
- * corriendo, el aviso ocupa su sección y las obras se siguen viendo. Cuando una
- * sola pantalla depende de dos fuentes, la que falla suele llevarse a la otra
- * por delante, y aquí eso significaría abrir el navegador y no encontrar el
- * trabajo propio.
+ * Las listas son independientes A PROPÓSITO. Las obras salen del disco (con el
+ * servidor local) y de `localStorage`, y los proyectos del harness de otro
+ * servidor; si uno no está corriendo, el aviso ocupa su sección y lo demás se
+ * sigue viendo. Cuando una sola pantalla depende de varias fuentes, la que falla
+ * suele llevarse a las otras por delante, y aquí eso significaría abrir el
+ * navegador y no encontrar el trabajo propio.
  *
  * Y una lista vacía del harness se lee como «no hay proyectos», que es lo
  * contrario de «no pude preguntar»: por eso el error se dice, no se calla.
  */
 
+const resumenDe = (o: Obra): ResumenObra => ({
+  id: o.id,
+  nombre: o.nombre,
+  creada: o.creada,
+  cargas: o.cargas.length,
+  calculos: o.calculos.length,
+  vacia: o.modulos.length === 0,
+});
+
 function FichaObra({
   obra,
   onBorrar,
   onExportar,
+  onMover,
 }: {
-  obra: Obra;
+  obra: ResumenObra;
   onBorrar: (id: string) => void;
-  onExportar: (obra: Obra) => void;
+  onExportar: (id: string) => void;
+  /** Solo en una obra del navegador, con el servidor disponible. */
+  onMover?: (id: string) => void;
 }) {
   const [confirmando, setConfirmando] = useState(false);
 
@@ -56,21 +76,28 @@ function FichaObra({
           {obra.nombre || obra.id}
         </h3>
         <p className="mt-1.5 text-xs text-muted">
-          {obra.cargas.length === 0
-            ? 'sin cargas'
-            : `${obra.cargas.length} carga${obra.cargas.length === 1 ? '' : 's'}`}
-          {obra.calculos.length > 0 &&
-            ` · ${obra.calculos.length} cálculo${obra.calculos.length === 1 ? '' : 's'}`}
-          {obra.modulos.length === 0 && ' · canvas vacío'}
+          {obra.cargas === 0 ? 'sin cargas' : `${obra.cargas} carga${obra.cargas === 1 ? '' : 's'}`}
+          {obra.calculos > 0 && ` · ${obra.calculos} cálculo${obra.calculos === 1 ? '' : 's'}`}
+          {obra.vacia && ' · canvas vacío'}
         </p>
         <p className="mt-2 truncate font-mono text-[10px] text-muted">{obra.id}</p>
       </Enlace>
       <div className="absolute right-3 top-3 flex items-center gap-1">
-        {/* Una obra vive en este navegador y en ningún otro sitio: el archivo es
-            la única forma de respaldarla o de llevarla a otro equipo. */}
+        {onMover && (
+          <button
+            type="button"
+            onClick={() => onMover(obra.id)}
+            title="Llevar esta obra a la carpeta de obras del disco"
+            className="rounded border border-accent px-1.5 py-0.5 text-[10px] text-accent hover:bg-accent hover:text-white"
+          >
+            mover al disco
+          </button>
+        )}
+        {/* El archivo es la forma de respaldar una obra del navegador, y de
+            pasarle a alguien una del disco en una sola pieza. */}
         <button
           type="button"
-          onClick={() => onExportar(obra)}
+          onClick={() => onExportar(obra.id)}
           title={`Descargar ${obra.nombre} como archivo`}
           className="rounded border border-border px-1.5 py-0.5 text-[10px] text-muted opacity-0 hover:border-accent hover:text-accent focus:opacity-100 group-hover:opacity-100"
         >
@@ -95,6 +122,8 @@ function FichaObra({
 
 export default function IndiceProyectos() {
   const [obras, setObras] = useState<Obra[]>(() => listarObras());
+  /** `null` mientras no se sabe si hay servidor; `false` si no lo hay. */
+  const [enDisco, setEnDisco] = useState<ResumenObra[] | false | null>(null);
   const [proyectos, setProyectos] = useState<ProyectoListado[] | null>(null);
   const [error, setError] = useState<{ motivo: string; detalle: string } | null>(null);
   const [avisoObras, setAvisoObras] = useState('');
@@ -111,29 +140,88 @@ export default function IndiceProyectos() {
     };
   }, []);
 
-  /**
-   * Los ids ocupados se leen del almacén **en este momento**, no del estado: si
-   * otra pestaña creó una obra desde que se montó esta lista, `obras` no lo
-   * sabe y las dos propondrían el mismo id. El `crear: true` es la segunda red,
-   * para la carrera que queda entre leer y escribir.
-   */
-  function crearObra() {
-    const guardadas = listarObras();
-    const obra = nuevaObra(
-      NOMBRE_OBRA_POR_OMISION,
-      guardadas.map((o) => o.id),
-    );
-    const r = guardarObra(obra, { crear: true });
-    if (!r.ok) {
-      setAvisoObras(r.motivo);
-      setObras(listarObras());
+  /** Relee las dos listas. Un fallo del disco se dice y no borra la lista. */
+  const refrescar = useCallback(async () => {
+    setObras(listarObras());
+    if (!(await servidorDisponible())) {
+      setEnDisco(false);
       return;
     }
-    navegar({ vista: 'obra', id: obra.id });
+    try {
+      setEnDisco(await listarEnDisco());
+    } catch (e) {
+      setAvisoObras((e as Error).message);
+    }
+  }, []);
+
+  useEffect(() => {
+    void refrescar();
+  }, [refrescar]);
+
+  const hayDisco = Array.isArray(enDisco);
+
+  /**
+   * Una obra nueva entra en el disco si hay servidor, y si no en el navegador.
+   *
+   * Los ids ocupados se leen **en este momento**, no del estado: si otra pestaña
+   * creó una obra desde que se montó esta lista, el estado no lo sabe y las dos
+   * propondrían el mismo id. Crear con `base: null` (o `crear: true`) es la
+   * segunda red, para la carrera que queda entre leer y escribir.
+   */
+  async function guardarNueva(obra: Obra): Promise<boolean> {
+    const r = hayDisco ? await crearEnDisco(obra) : guardarObra(obra, { crear: true });
+    if (!r.ok) {
+      setAvisoObras(r.motivo);
+      void refrescar();
+      return false;
+    }
+    return true;
   }
 
-  function exportarObra(obra: Obra) {
-    descargarHoja(archivoDeObra(obra), nombreDeArchivo(obra));
+  async function idsOcupados(): Promise<string[]> {
+    const navegador = listarObras().map((o) => o.id);
+    // Se evitan los dos: una obra del navegador con el mismo id que una del
+    // disco no se podría mover sin renombrarla.
+    return hayDisco ? [...navegador, ...(await listarEnDisco()).map((o) => o.id)] : navegador;
+  }
+
+  async function crearObra() {
+    const obra = nuevaObra(NOMBRE_OBRA_POR_OMISION, await idsOcupados());
+    if (await guardarNueva(obra)) navegar({ vista: 'obra', id: obra.id });
+  }
+
+  async function exportarObra(id: string, deDisco: boolean) {
+    try {
+      const obra = deDisco ? (await leerDeDisco(id))?.obra : leerObra(id);
+      if (!obra) {
+        setAvisoObras(`La obra «${id}» ya no está.`);
+        return;
+      }
+      descargarHoja(archivoDeObra(obra), nombreDeArchivo(obra));
+    } catch (e) {
+      setAvisoObras((e as Error).message);
+    }
+  }
+
+  /**
+   * Del navegador al disco. Se borra del navegador solo DESPUÉS de que el disco
+   * la aceptó: si algo falla a medio camino, la obra sigue donde estaba.
+   */
+  async function moverAlDisco(id: string) {
+    const obra = leerObra(id);
+    if (!obra) return;
+    const r = await crearEnDisco(obra);
+    if (!r.ok) {
+      setAvisoObras(`No se movió «${obra.nombre}»: ${r.motivo}`);
+      return;
+    }
+    const b = borrarObra(id);
+    setAvisoObras(
+      b.ok
+        ? `«${obra.nombre}» está ahora en el disco.`
+        : `«${obra.nombre}» se copió al disco, pero no se pudo quitar del navegador: ${b.motivo}`,
+    );
+    void refrescar();
   }
 
   /**
@@ -150,21 +238,17 @@ export default function IndiceProyectos() {
       setAvisoObras('No se pudo leer el archivo.');
       return;
     }
-    const leida = importarObra(texto);
+    const leida = importarObra(texto, await idsOcupados());
     if (!leida.ok) {
       setAvisoObras(leida.motivo);
       return;
     }
-    const r = guardarObra(leida.obra, { crear: true });
-    if (!r.ok) {
-      setAvisoObras(r.motivo);
-      return;
-    }
-    navegar({ vista: 'obra', id: leida.obra.id });
+    if (await guardarNueva(leida.obra)) navegar({ vista: 'obra', id: leida.obra.id });
   }
 
-  function quitarObra(id: string) {
-    const r = borrarObra(id);
+  /** Del disco, borrar es mandar a la papelera de la carpeta de obras. */
+  async function quitarObra(id: string, deDisco: boolean) {
+    const r = deDisco ? await borrarDeDisco(id) : borrarObra(id);
     if (!r.ok) {
       setAvisoObras(r.motivo);
       return;
@@ -173,7 +257,8 @@ export default function IndiceProyectos() {
     // quedaría para siempre en `structflow.layout.proyecto.v1`, y una obra nueva
     // que reutilizara el id heredaría posiciones de nodos que no son suyos.
     olvidarLayout(`obra:${id}`);
-    setObras(listarObras());
+    if (deDisco) setAvisoObras('La obra se movió a la papelera de la carpeta de obras (.papelera).');
+    void refrescar();
   }
 
   return (
@@ -197,7 +282,10 @@ export default function IndiceProyectos() {
       <section className="mb-10">
         <div className="mb-3 flex items-baseline justify-between gap-3">
           <h2 className="text-sm font-semibold text-ink">
-            Obras <span className="font-normal text-muted">de este navegador</span>
+            Obras{' '}
+            <span className="font-normal text-muted">
+              {enDisco === null ? '' : hayDisco ? 'en disco' : 'de este navegador'}
+            </span>
           </h2>
           <div className="flex items-center gap-2">
             <label className="cursor-pointer rounded border border-border px-2 py-1 text-xs text-muted hover:border-accent hover:text-accent">
@@ -216,7 +304,8 @@ export default function IndiceProyectos() {
             </label>
             <button
               type="button"
-              onClick={crearObra}
+              onClick={() => void crearObra()}
+              disabled={enDisco === null}
               className="rounded border border-accent bg-accent px-3 py-1 text-xs font-medium text-white hover:opacity-90"
             >
               + Nueva obra
@@ -233,19 +322,59 @@ export default function IndiceProyectos() {
           </p>
         )}
 
-        {obras.length === 0 ? (
+        {enDisco === false && (
+          <p className="mb-3 text-xs leading-relaxed text-muted">
+            Sin el servidor local de obras, las obras viven en el almacenamiento de este navegador:
+            no se versionan ni viajan a otro equipo. Con <code>npm run dev</code> se guardan como
+            carpetas en disco.
+          </p>
+        )}
+
+        {hayDisco && enDisco.length > 0 && (
+          <ul className="mb-4 grid gap-3 sm:grid-cols-2">
+            {enDisco.map((o) => (
+              <li key={o.id}>
+                <FichaObra
+                  obra={o}
+                  onBorrar={(id) => void quitarObra(id, true)}
+                  onExportar={(id) => void exportarObra(id, true)}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {/* Con servidor, las del navegador son lo que quedó de antes: se muestran
+            aparte y con la salida a la vista, para que no convivan dos lugares
+            de trabajo sin que se note. */}
+        {hayDisco && obras.length > 0 && (
+          <h3 className="mb-2 mt-6 text-xs font-semibold text-aviso">
+            Todavía en este navegador{' '}
+            <span className="font-normal text-muted">
+              · no se versionan ni viajan a otro equipo
+            </span>
+          </h3>
+        )}
+        {obras.length > 0 && (
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {obras.map((o) => (
+              <li key={o.id}>
+                <FichaObra
+                  obra={resumenDe(o)}
+                  onBorrar={(id) => void quitarObra(id, false)}
+                  onExportar={(id) => void exportarObra(id, false)}
+                  onMover={hayDisco ? (id) => void moverAlDisco(id) : undefined}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {enDisco !== null && obras.length === 0 && (!hayDisco || enDisco.length === 0) && (
           <p className="rounded-lg border border-dashed border-border bg-white p-4 text-sm leading-relaxed text-muted">
             Todavía no hay ninguna obra. Una obra empieza con el canvas vacío y se va llenando
             con nodos: el primero es <strong className="font-medium text-ink">Cargas</strong>.
           </p>
-        ) : (
-          <ul className="grid gap-3 sm:grid-cols-2">
-            {obras.map((o) => (
-              <li key={o.id}>
-                <FichaObra obra={o} onBorrar={quitarObra} onExportar={exportarObra} />
-              </li>
-            ))}
-          </ul>
         )}
       </section>
 

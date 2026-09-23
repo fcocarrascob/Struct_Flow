@@ -1303,6 +1303,39 @@ const CASOS_SERVIDOR = [
     },
   },
   {
+    nombre: 'crear no toma el candado: la pestaña que abre la obra nueva es la escritora',
+    // El índice crea con su propio token y navega; la pestaña de la obra pide
+    // el candado con otro. Si crear lo tomara, la obra nueva abriría en solo
+    // lectura, que es lo que pasó en la primera prueba en el navegador.
+    ok: async () => {
+      const s = servidor('crear-abrir');
+      await s.escribir('pachon', { token: TOKEN_A, base: null, archivos: ARCHIVOS });
+      try {
+        s.escritor('pachon', TOKEN_B);
+        return null;
+      } catch (e) {
+        return `la pestaña que abre recibió ${e.codigo}: ${e.message}`;
+      }
+    },
+  },
+  {
+    nombre: 'la última escritura de una página que ya soltó el candado no lo vuelve a tomar',
+    // Un F5 con cambios pendientes: el beacon suelta, el PUT llega después.
+    ok: async () => {
+      const s = servidor('f5');
+      const { version } = await s.escribir('pachon', { token: TOKEN_A, base: null, archivos: ARCHIVOS });
+      s.escritor('pachon', TOKEN_A);
+      s.soltar('pachon', TOKEN_A);
+      await s.escribir('pachon', { token: TOKEN_A, base: version, archivos: ARCHIVOS });
+      try {
+        s.escritor('pachon', TOKEN_B);
+        return null;
+      } catch (e) {
+        return `la página recargada recibió ${e.codigo}: ${e.message}`;
+      }
+    },
+  },
+  {
     nombre: 'una segunda pestaña no es escritora mientras la primera late',
     ok: async () => {
       const s = servidor('escritor');
