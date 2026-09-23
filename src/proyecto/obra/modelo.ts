@@ -5,7 +5,7 @@
 // carga o si un nombre está libre es aritmética de cadenas, y se tiene que poder
 // probar fuera del navegador.
 //
-// POR QUÉ ACÁ Y NO EN `src/lib/`
+// POR QUÉ AQUÍ Y NO EN `src/lib/`
 // ------------------------------
 // La misma razón que documenta `../contrato.ts`: el harness sella el motor de
 // este repo como el hash de árbol de `src/lib` y `scripts`. Una obra no evalúa
@@ -161,7 +161,7 @@ export interface Subcarga {
 /**
  * Cómo se aplica el valor de una partida en SAP2000: sobre UN grupo del modelo,
  * para que cada componente —cubierta, muro, carrilera— sea su propia partida.
- * El valor no se escribe acá: es el de la partida, convertido por el motor.
+ * El valor no se escribe aquí: es el de la partida, convertido por el motor.
  */
 export interface AplicacionSap {
   /** `area-a-barras`: carga uniforme de área repartida a sus barras
@@ -228,7 +228,7 @@ export function porRevisar(obra: Obra): string[] {
  * Los dos respaldos lo guardan en sitios distintos a propósito —`variable` es de
  * la hoja libre, `frontera.salida` es del cálculo con frontera— para que cada
  * uno se borre con su respaldo: cambiar de genérica no puede dejar apuntando a
- * una salida que la nueva no tiene. Pero se LEE por acá y solo por acá, así que
+ * una salida que la nueva no tiene. Pero se LEE por aquí y solo por aquí, así que
  * el resto del código no tiene que saber cuál de los dos es.
  */
 export function variableDePartida(sub: Subcarga): string | undefined {
@@ -362,7 +362,7 @@ export interface Carga {
  * Los nodos que el usuario agregó desde la paleta.
  *
  * `cargas` es único por obra —las definiciones son una sola tabla, como en
- * SAP—; `calculo` no, y por eso no vive acá sino en su propia lista: de un
+ * SAP—; `calculo` no, y por eso no vive aquí sino en su propia lista: de un
  * cálculo suelto puede haber tantos como la obra necesite.
  */
 export type Modulo = 'cargas' | 'sap';
@@ -384,6 +384,8 @@ export interface ConexionSap {
   patrones?: LecturaPatrones;
   /** Los grupos del modelo, para ofrecerlos al aplicar una partida. */
   grupos?: GrupoSap[];
+  /** De qué modelo se leyeron los grupos: como los patrones, puede no ser el de la conexión. */
+  gruposDe?: string;
 }
 
 export interface GrupoSap {
@@ -400,6 +402,8 @@ export interface PatronLeido extends PatronSap {
 export interface LecturaPatrones {
   /** De qué modelo se leyeron: puede no ser el de la última conexión. */
   modelo: string;
+  /** Su ruta completa: dos copias del mismo `.sdb` en carpetas distintas se llaman igual. */
+  ruta?: string;
   leido: string;
   lista: PatronLeido[];
 }
@@ -502,7 +506,7 @@ export function nuevaCarga(cargas: readonly Carga[]): Carga {
 
 /**
  * El mismo alfabeto que el lado izquierdo de un `:=` en el motor
- * (`DEF_RE` de `src/lib/worksheet.ts`). Tiene que coincidir: si acá se acepta un
+ * (`DEF_RE` de `src/lib/worksheet.ts`). Tiene que coincidir: si aquí se acepta un
  * nombre que allá no es una definición válida, la hoja nunca va a definir la
  * variable y quien la espere se queda sin valor sin decir por qué.
  */
@@ -574,7 +578,7 @@ export function borrarCarga(obra: Obra, id: string): Obra {
 }
 
 /** Reemplaza las partidas de una carga. Un solo camino de escritura para el
- *  desglose: agregar, renombrar, borrar y editar una hoja pasan todos por acá. */
+ *  desglose: agregar, renombrar, borrar y editar una hoja pasan todos por aquí. */
 export function conSubcargas(obra: Obra, idCarga: string, subcargas: Subcarga[]): Obra {
   return {
     ...obra,

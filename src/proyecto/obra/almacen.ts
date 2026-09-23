@@ -10,7 +10,7 @@
 // --------------------------------------------
 // Aquel guarda posiciones, que son una comodidad: si el almacenamiento está
 // bloqueado se sigue trabajando y no pasa nada, y por eso su `catch` es mudo.
-// Acá el almacenamiento ES el dato. Un `catch` mudo se lleva el trabajo del
+// Aquí el almacenamiento ES el dato. Un `catch` mudo se lleva el trabajo del
 // usuario sin decir una palabra, así que `guardarObra` devuelve un resultado y
 // quien lo llama tiene que mostrarlo.
 //
@@ -77,7 +77,7 @@ function sanearLectura(crudo: unknown): LecturaPatrones | undefined {
     const patron = sanearPatron(x);
     if (typeof nombre === 'string' && nombre && patron) lista.push({ nombre, ...patron });
   }
-  return { modelo: texto(l.modelo), leido: texto(l.leido), lista };
+  return { modelo: texto(l.modelo), ...(texto(l.ruta) ? { ruta: texto(l.ruta) } : {}), leido: texto(l.leido), lista };
 }
 
 function sanearGruposSap(crudo: unknown): GrupoSap[] | undefined {
@@ -125,6 +125,7 @@ function sanearSap(crudo: unknown): { sap?: ConexionSap } {
       leido: texto(s.leido),
       ...(patrones ? { patrones } : {}),
       ...(gruposSap ? { grupos: gruposSap } : {}),
+      ...(gruposSap && typeof s.gruposDe === 'string' ? { gruposDe: s.gruposDe } : {}),
     },
   };
 }
@@ -153,7 +154,7 @@ function idUnico(crudo: unknown, vistos: Vistos): string {
 /**
  * Lo que se lee de `localStorage` es texto que escribió una versión anterior de
  * esta aplicación, no un `Obra`. Se sanea igual que `sanearRegiones` hace con
- * una hoja: lo que no calza se descarta en vez de reventar la pantalla.
+ * una hoja: lo que no cuadra se descarta en vez de reventar la pantalla.
  */
 /**
  * La hoja de un nodo, venga como venga guardada.
@@ -252,7 +253,7 @@ function sanearFrontera(crudo: unknown): Frontera | undefined {
 /**
  * El `meta` de la hoja de un nodo, con el mismo criterio que el del canvas.
  *
- * `metaDe` recibe la HOJA y mira su `.meta`; acá lo que llega ya es el `meta`,
+ * `metaDe` recibe la HOJA y mira su `.meta`; aquí lo que llega ya es el `meta`,
  * así que se envuelve. Pasárselo directo lo buscaba en `meta.meta`, y el `meta`
  * de cada nodo se perdía en silencio en cada relectura.
  */

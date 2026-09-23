@@ -1,95 +1,106 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { DIRECCIONES_SAP, type Carga, type ConexionSap, type GrupoSap, type LecturaPatrones, type PatronSap } from './modelo';
 import {
   avisosPesoPropio,
   compararAplicacion,
   compararPatrones,
+  hermanasDe,
   type FilaAplicacion,
   type LeidaAplicacion,
   numero,
   patronesDeFlow,
   planAplicaciones,
   planEmpuje,
-  type CambioPatron,
   type EstadoPatron,
 } from './sap';
 import { useEscape } from './useEscape';
 
 /**
- * El panel del nodo SAP2000: conectarse al modelo abierto y ver cuál es.
+ * El panel del nodo SAP2000: conectarse al modelo abierto, compararlo con la obra
+ * y, tras confirmar, escribir en él.
  *
  * Habla con el puente de Flow (`puente-sap/puente.py`) por `/sap-api`, que es un
  * proceso aparte: sin él, el panel lo dice y muestra la última conexión
- * guardada. Es el primer paso; leer resultados llega después.
+ * guardada.
  */
 
-async function conectarSap(): Promise<Omit<ConexionSap, 'leido'>> {
-  let r: Response;
-  try {
-    r = await fetch('/sap-api/conectar', { method: 'POST' });
-  } catch {
-    throw new Error('El puente de SAP no responde.');
-  }
-  const datos = await r.json().catch(() => null);
-  // Sin puente, el proxy de Vite responde 502 sin cuerpo JSON.
-  if (!datos) throw new Error('El puente de SAP no está corriendo. Arráncalo con `npm run puente-sap`.');
-  if (!r.ok) throw new Error(datos.motivo ?? `El puente respondió ${r.status}.`);
-  return datos;
-}
-
-async function leerPatrones(): Promise<{ ruta: string; lectura: LecturaPatrones }> {
-  let r: Response;
-  try {
-    r = await fetch('/sap-api/patrones');
-  } catch {
-    throw new Error('El puente de SAP no responde.');
-  }
-  const datos = await r.json().catch(() => null);
-  if (!datos) throw new Error('El puente de SAP no está corriendo. Arráncalo con `npm run puente-sap`.');
-  if (!r.ok) throw new Error(datos.motivo ?? `El puente respondió ${r.status}.`);
-  return {
-    ruta: datos.ruta ?? '',
-    lectura: { modelo: datos.modelo ?? '', leido: new Date().toISOString(), lista: datos.patrones ?? [] },
-  };
-}
-
-async function escribirPatrones(
-  modelo: string,
-  cambios: CambioPatron[],
-): Promise<{ ruta: string; lectura: LecturaPatrones; hechos: { nombre: string; accion: string }[] }> {
-  let r: Response;
-  try {
-    r = await fetch('/sap-api/patrones', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ modelo, cambios }),
-    });
-  } catch {
-    throw new Error('El puente de SAP no responde.');
-  }
-  const datos = await r.json().catch(() => null);
-  if (!datos) throw new Error('El puente de SAP no está corriendo. Arráncalo con `npm run puente-sap`.');
-  if (!r.ok) throw new Error(datos.motivo ?? `El puente respondió ${r.status}.`);
-  return {
-    ruta: datos.ruta ?? '',
-    hechos: datos.hechos ?? [],
-    lectura: { modelo: datos.modelo ?? '', leido: new Date().toISOString(), lista: datos.patrones ?? [] },
-  };
-}
+/**
+ * Cuánto se espera al puente. Atiende de a una petición y cada una es una
+ * llamada COM: si SAP tiene un diálogo modal abierto, la llamada no vuelve nunca,
+ * y sin tope el botón se quedaba en «Conectando…» para siempre.
+ */
+const TOPE_MS = 30_000;
 
 /**
- * Empujar a SAP: lo único que escribe en el modelo. Se muestra la lista EXACTA
- * de lo que se va a escribir y se confirma; no hay otro camino. Lo que se escribe
- * lo dice `planEmpuje`, la misma función que prueba `verify:obra`.
+ * Peticiones al puente sin respuesta todavía. Mientras haya alguna, Escape no
+ * cierra el panel: el resultado de una escritura —o el error que dice hasta
+ * dónde se llegó— vive en el panel, y cerrarlo lo perdía con SAP ya modificado.
+ */
+let enVuelo = 0;
+
+/** Una llamada al puente, con los mismos mensajes para todas. */
+async function alPuente<T>(ruta: string, cuerpo?: unknown): Promise<T> {
+  let r: Response;
+  enVuelo++;
+  try {
+    try {
+      r = await fetch(`/sap-api${ruta}`, {
+        method: cuerpo === undefined ? 'GET' : 'POST',
+        // El puente solo acepta POST con JSON: es lo que impide que otra página
+        // abierta en el navegador le escriba al modelo.
+        headers: cuerpo === undefined ? undefined : { 'Content-Type': 'application/json' },
+        body: cuerpo === undefined ? undefined : JSON.stringify(cuerpo),
+        signal: AbortSignal.timeout(TOPE_MS),
+      });
+    } catch (e) {
+      if ((e as Error).name === 'TimeoutError') {
+        throw new Error(
+          `SAP2000 no respondió en ${TOPE_MS / 1000} s. ¿Tiene un diálogo abierto? Ciérralo y vuelve a intentar; ` +
+            'si estabas escribiendo, vuelve a comparar antes de repetir.',
+        );
+      }
+      throw new Error('El puente de SAP no responde.');
+    }
+    const datos = await r.json().catch(() => null);
+    // Sin puente, el proxy de Vite responde 502 sin cuerpo JSON.
+    if (!datos) throw new Error('El puente de SAP no está corriendo. Arráncalo con `npm run puente-sap`.');
+    if (!r.ok) throw new Error(datos.motivo ?? `El puente respondió ${r.status}.`);
+    return datos as T;
+  } finally {
+    enVuelo--;
+  }
+}
+
+interface RespuestaPatrones {
+  modelo?: string;
+  ruta?: string;
+  patrones?: LecturaPatrones['lista'];
+}
+
+const aLectura = (d: RespuestaPatrones): LecturaPatrones => ({
+  modelo: d.modelo ?? '',
+  ...(d.ruta ? { ruta: d.ruta } : {}),
+  leido: new Date().toISOString(),
+  lista: d.patrones ?? [],
+});
+
+const SOLO_LECTURA = 'Otra pestaña está editando esta obra: desde aquí no se escribe en SAP.';
+
+/**
+ * Escribir los patrones en SAP. Se muestra la lista EXACTA de lo que se va a
+ * escribir y se confirma; no hay otro camino. Lo que se escribe lo dice
+ * `planEmpuje`, la misma función que prueba `verify:obra`.
  */
 function EmpujeSap({
   cargas,
   lectura,
   onEscrito,
+  soloLectura,
 }: {
   cargas: readonly Carga[];
   lectura: LecturaPatrones;
   onEscrito: (ruta: string, lectura: LecturaPatrones) => void;
+  soloLectura: boolean;
 }) {
   const [fase, setFase] = useState<
     | { f: 'quieto' }
@@ -102,16 +113,25 @@ function EmpujeSap({
 
   const escribir = () => {
     setFase({ f: 'escribiendo' });
-    escribirPatrones(lectura.modelo, cambios).then(
-      ({ ruta, lectura: nueva, hechos }) => {
-        onEscrito(ruta, nueva);
+    alPuente<RespuestaPatrones & { hechos?: { nombre: string; accion: string }[]; aviso?: string }>('/patrones', {
+      modelo: lectura.modelo,
+      ruta: lectura.ruta,
+      cambios,
+    }).then(
+      (d) => {
+        const hechos = d.hechos ?? [];
+        // Con `aviso` se escribió pero no se pudo releer: la lectura vieja se
+        // queda, y el texto pide volver a leer.
+        if (!d.aviso) onEscrito(d.ruta ?? '', aLectura(d));
         const creados = hechos.filter((h) => h.accion === 'creado').length;
         const ajustados = hechos.length - creados;
         setFase({
           f: 'hecho',
           texto:
-            `Escrito en ${nueva.modelo}: ${creados} creado${creados === 1 ? '' : 's'} y ` +
-            `${ajustados} ajustado${ajustados === 1 ? '' : 's'}. El modelo NO se guardó: guárdalo en SAP si quieres conservarlo.`,
+            `Escrito en ${d.modelo ?? lectura.modelo}: ${creados} creado${creados === 1 ? '' : 's'} y ` +
+            `${ajustados} ajustado${ajustados === 1 ? '' : 's'}. ` +
+            (d.aviso ? `${d.aviso} Vuelve a leer. ` : '') +
+            'El modelo NO se guardó: guárdalo en SAP si quieres conservarlo.',
         });
       },
       (e: Error) => setFase({ f: 'error', motivo: e.message }),
@@ -147,9 +167,11 @@ function EmpujeSap({
       <button
         type="button"
         onClick={() => setFase({ f: 'confirmando' })}
-        className="mb-2 rounded border border-accent px-2 py-0.5 text-[11px] font-medium text-accent hover:bg-accent hover:text-white"
+        disabled={soloLectura}
+        title={soloLectura ? SOLO_LECTURA : undefined}
+        className="mb-2 rounded border border-accent px-2 py-0.5 text-[11px] font-medium text-accent hover:bg-accent hover:text-white disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-accent"
       >
-        Empujar a SAP ({cambios.length} cambio{cambios.length === 1 ? '' : 's'})…
+        Escribir en SAP ({cambios.length} cambio{cambios.length === 1 ? '' : 's'})…
       </button>
     );
   }
@@ -198,22 +220,11 @@ function EmpujeSap({
   );
 }
 
-/** Una llamada al puente, con los mismos mensajes para todas. */
-async function alPuente<T>(ruta: string, cuerpo?: unknown): Promise<T> {
-  let r: Response;
-  try {
-    r = await fetch(`/sap-api${ruta}`, {
-      method: cuerpo === undefined ? 'GET' : 'POST',
-      headers: cuerpo === undefined ? undefined : { 'Content-Type': 'application/json' },
-      body: cuerpo === undefined ? undefined : JSON.stringify(cuerpo),
-    });
-  } catch {
-    throw new Error('El puente de SAP no responde.');
-  }
-  const datos = await r.json().catch(() => null);
-  if (!datos) throw new Error('El puente de SAP no está corriendo. Arráncalo con `npm run puente-sap`.');
-  if (!r.ok) throw new Error(datos.motivo ?? `El puente respondió ${r.status}.`);
-  return datos as T;
+/** Una lectura de grupos: de qué modelo salió. */
+export interface LecturaGrupos {
+  modelo: string;
+  ruta: string;
+  leido: string;
 }
 
 /**
@@ -222,17 +233,26 @@ async function alPuente<T>(ruta: string, cuerpo?: unknown): Promise<T> {
  */
 function GruposSap({
   grupos,
+  gruposDe,
+  conexion,
   onLeidos,
+  soloLectura,
 }: {
   grupos: readonly GrupoSap[] | undefined;
-  onLeidos: (grupos: GrupoSap[]) => void;
+  gruposDe: string | undefined;
+  /** El modelo conectado: crear un grupo solo se hace en él. */
+  conexion: { modelo: string; ruta: string } | undefined;
+  onLeidos: (grupos: GrupoSap[], lectura: LecturaGrupos) => void;
+  soloLectura: boolean;
 }) {
   const [nombre, setNombre] = useState('');
   const [aviso, setAviso] = useState<{ error: boolean; texto: string } | null>(null);
   const [ocupado, setOcupado] = useState(false);
 
   const leer = () =>
-    alPuente<{ grupos: GrupoSap[] }>('/grupos').then((d) => onLeidos(d.grupos));
+    alPuente<{ modelo: string; ruta: string; grupos: GrupoSap[] }>('/grupos').then((d) =>
+      onLeidos(d.grupos, { modelo: d.modelo, ruta: d.ruta, leido: new Date().toISOString() }),
+    );
 
   const correr = (accion: () => Promise<unknown>) => {
     setOcupado(true);
@@ -244,7 +264,8 @@ function GruposSap({
 
   const crear = () =>
     correr(async () => {
-      const g = await alPuente<GrupoSap>('/grupos', { nombre: nombre.trim() });
+      if (!conexion) throw new Error('Conéctate primero: el grupo se crea en el modelo conectado.');
+      const g = await alPuente<GrupoSap>('/grupos', { nombre: nombre.trim(), ...conexion });
       setAviso({ error: false, texto: `Grupo ${g.nombre} creado con ${g.areas} áreas y ${g.barras} barras.` });
       setNombre('');
       await leer();
@@ -265,7 +286,12 @@ function GruposSap({
       </div>
       {grupos && (
         <p className="mb-2 font-mono text-[10px] leading-relaxed text-muted">
-          {grupos.map((g) => `${g.nombre} (${g.areas} á · ${g.barras} b)`).join(' · ')}
+          {grupos.map((g) => `${g.nombre} (${g.areas} áreas, ${g.barras} barras)`).join(' · ')}
+        </p>
+      )}
+      {grupos && gruposDe && conexion && gruposDe !== conexion.modelo && (
+        <p className="mb-2 text-[10px] text-aviso">
+          Leídos de {gruposDe}, que no es el modelo de la última conexión ({conexion.modelo}).
         </p>
       )}
       <div className="flex items-center gap-1.5">
@@ -280,8 +306,8 @@ function GruposSap({
         <button
           type="button"
           onClick={crear}
-          disabled={ocupado || !nombre.trim()}
-          title="Selecciona en SAP2000 las barras o áreas y crea el grupo con ellas"
+          disabled={ocupado || !nombre.trim() || soloLectura}
+          title={soloLectura ? SOLO_LECTURA : 'Selecciona en SAP2000 las barras o áreas y crea el grupo con ellas'}
           className="rounded border border-border px-2 py-0.5 text-[11px] text-muted hover:border-accent hover:text-accent disabled:opacity-50"
         >
           Crear con la selección de SAP
@@ -297,18 +323,21 @@ function GruposSap({
 }
 
 /**
- * Las partidas aplicadas, contra lo que su patrón tiene hoy sobre el grupo.
- * Solo lee. La lectura no se guarda: se hace cuando se quiere mirar.
+ * Las partidas aplicadas, contra lo que su patrón tiene hoy sobre el grupo, y
+ * escribirlas tras confirmar. La lectura no se guarda: se hace cuando se quiere
+ * mirar.
  */
-function AplicacionesSap({ filas }: { filas: readonly FilaAplicacion[] }) {
-  const [leidas, setLeidas] = useState<{ modelo: string; porId: Record<string, LeidaAplicacion> } | null>(null);
+function AplicacionesSap({ filas, soloLectura }: { filas: readonly FilaAplicacion[]; soloLectura: boolean }) {
+  const [leidas, setLeidas] = useState<{ modelo: string; ruta: string; porId: Record<string, LeidaAplicacion> } | null>(
+    null,
+  );
   const [error, setError] = useState('');
   const [leyendo, setLeyendo] = useState(false);
 
   const leer = () => {
     setLeyendo(true);
     setError('');
-    alPuente<{ modelo: string; aplicaciones: (LeidaAplicacion & { id: string })[] }>('/aplicaciones/leer', {
+    alPuente<{ modelo: string; ruta: string; aplicaciones: (LeidaAplicacion & { id: string })[] }>('/aplicaciones/leer', {
       aplicaciones: filas.map((f) => ({
         id: f.id,
         patron: f.patron,
@@ -316,23 +345,26 @@ function AplicacionesSap({ filas }: { filas: readonly FilaAplicacion[] }) {
         grupo: f.aplicacion.grupo,
       })),
     })
-      .then((d) => setLeidas({ modelo: d.modelo, porId: Object.fromEntries(d.aplicaciones.map((a) => [a.id, a])) }))
+      .then((d) =>
+        setLeidas({ modelo: d.modelo, ruta: d.ruta, porId: Object.fromEntries(d.aplicaciones.map((a) => [a.id, a])) }),
+      )
       .catch((e: Error) => setError(e.message))
       .finally(() => setLeyendo(false));
   };
 
   const COLOR = { igual: 'text-muted', difiere: 'text-error', 'sin-objetos': 'text-aviso', error: 'text-error' };
 
-  // Escribir solo se ofrece después de comparar: el puente exige el nombre del
-  // modelo comparado, y el plan necesita saber qué está igual.
+  /** Cada fila contra lo leído, junto con sus hermanas del mismo patrón y grupo. */
+  const comparar = (f: FilaAplicacion) => {
+    const l = leidas?.porId[f.id];
+    return l ? compararAplicacion(f, l, hermanasDe(filas, f)) : null;
+  };
+
+  // Escribir solo se ofrece después de comparar: el puente exige el modelo
+  // comparado, y el plan necesita saber qué está igual.
   const [confirmando, setConfirmando] = useState(false);
   const [escrito, setEscrito] = useState('');
-  const plan = leidas
-    ? planAplicaciones(filas, (f) => {
-        const l = leidas.porId[f.id];
-        return l ? compararAplicacion(f, l).estado : undefined;
-      })
-    : null;
+  const plan = leidas ? planAplicaciones(filas, (f) => comparar(f)?.estado) : null;
   const DIR = Object.fromEntries(DIRECCIONES_SAP.map((d) => [d.codigo, d.texto]));
 
   const escribir = () => {
@@ -341,6 +373,7 @@ function AplicacionesSap({ filas }: { filas: readonly FilaAplicacion[] }) {
     setError('');
     alPuente<{ hechos: { patron: string; grupo: string; objetos: number }[] }>('/aplicaciones', {
       modelo: leidas.modelo,
+      ruta: leidas.ruta,
       aplicaciones: plan.escribir.map((f) => ({
         id: f.id,
         patron: f.patron,
@@ -397,13 +430,24 @@ function AplicacionesSap({ filas }: { filas: readonly FilaAplicacion[] }) {
                 setEscrito('');
                 setConfirmando(true);
               }}
-              disabled={leyendo}
-              className="mb-2 rounded border border-accent px-2 py-0.5 text-[11px] font-medium text-accent hover:bg-accent hover:text-white disabled:opacity-50"
+              disabled={leyendo || soloLectura}
+              title={soloLectura ? SOLO_LECTURA : undefined}
+              className="mb-2 rounded border border-accent px-2 py-0.5 text-[11px] font-medium text-accent hover:bg-accent hover:text-white disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-accent"
             >
               Escribir en SAP ({plan.escribir.length} carga{plan.escribir.length === 1 ? '' : 's'})…
             </button>
           )}
-          {plan && plan.escribir.length === 0 && !escrito && (
+          {plan && plan.bloqueados.length > 0 && (
+            <p className="mb-2 rounded border border-aviso px-2 py-1 text-[10px] leading-snug text-aviso">
+              No se escribe{' '}
+              {plan.bloqueados
+                .map((b) => `${b.patron} (sin valor o sin grupo: ${b.partidas.join(', ')})`)
+                .join('; ')}
+              . Cada patrón se reescribe entero, y hacerlo sin esas partidas borraría del modelo la carga
+              que hoy tengan. Arréglalas y vuelve a comparar.
+            </p>
+          )}
+          {plan && plan.escribir.length === 0 && plan.bloqueados.length === 0 && !escrito && (
             <p className="mb-2 text-[10px] text-muted">Todo lo que se puede escribir ya está igual en el modelo.</p>
           )}
           {plan && confirmando && (
@@ -464,8 +508,7 @@ function AplicacionesSap({ filas }: { filas: readonly FilaAplicacion[] }) {
             </thead>
             <tbody>
               {filas.map((f) => {
-                const l = leidas?.porId[f.id];
-                const c = l ? compararAplicacion(f, l) : null;
+                const c = comparar(f);
                 return (
                   <tr key={f.id} className="border-t border-border/60 align-top">
                     <td className="py-1 pr-2 font-mono text-ink">
@@ -502,8 +545,8 @@ const patronTexto = (p: PatronSap | undefined) => (p ? `${p.tipo} · ${numero(p.
 
 /**
  * Las cargas de la obra contra los Load Patterns del modelo. Flow manda: la
- * tabla dice en qué se aparta el MODELO. Solo lee; corregir se hace en el panel
- * de Cargas o en SAP.
+ * tabla dice en qué se aparta el MODELO, y «Escribir en SAP» lo corrige tras
+ * confirmar. Corregir la obra se hace en el panel de Cargas.
  */
 function ComparacionPatrones({
   cargas,
@@ -512,10 +555,12 @@ function ComparacionPatrones({
   onLeidos,
   onTraer,
   onAdoptar,
+  soloLectura,
 }: {
   cargas: readonly Carga[];
   lectura: LecturaPatrones | undefined;
   modeloConectado: string | undefined;
+  soloLectura: boolean;
   onLeidos: (ruta: string, lectura: LecturaPatrones) => void;
   /** Crea en la obra las cargas de estos patrones que solo están en SAP. */
   onTraer: (nombres: string[]) => void;
@@ -527,9 +572,9 @@ function ComparacionPatrones({
   });
   const leer = () => {
     setEstado({ fase: 'leyendo' });
-    leerPatrones().then(
-      ({ ruta, lectura: l }) => {
-        onLeidos(ruta, l);
+    alPuente<RespuestaPatrones>('/patrones').then(
+      (d) => {
+        onLeidos(d.ruta ?? '', aLectura(d));
         setEstado({ fase: 'quieto' });
       },
       (e: Error) => setEstado({ fase: 'error', motivo: e.message }),
@@ -568,7 +613,8 @@ function ComparacionPatrones({
       {!lectura ? (
         <p className="text-[11px] leading-snug text-muted">
           Compara las cargas de la obra con los Load Patterns del modelo abierto: nombre, tipo y
-          multiplicador de peso propio. Solo lee; no cambia nada en SAP.
+          multiplicador de peso propio. Leer no cambia nada en SAP; escribir se ofrece después,
+          con la lista de cambios a la vista.
         </p>
       ) : (
         <>
@@ -587,7 +633,7 @@ function ComparacionPatrones({
             </p>
           ))}
 
-          <EmpujeSap cargas={cargas} lectura={lectura} onEscrito={onLeidos} />
+          <EmpujeSap cargas={cargas} lectura={lectura} onEscrito={onLeidos} soloLectura={soloLectura} />
 
           {(soloSap.length > 0 || sinDefinir.length > 0) && (
             <div className="mb-2 flex flex-wrap gap-1.5">
@@ -665,25 +711,32 @@ export default function PanelSap({
   aplicaciones,
   onGruposLeidos,
   onCerrar,
+  soloLectura,
 }: {
   sap: ConexionSap | undefined;
   cargas: readonly Carga[];
   aplicaciones: readonly FilaAplicacion[];
-  onGruposLeidos: (grupos: GrupoSap[]) => void;
+  onGruposLeidos: (grupos: GrupoSap[], lectura: LecturaGrupos) => void;
   onConectado: (sap: ConexionSap) => void;
   onPatronesLeidos: (ruta: string, lectura: LecturaPatrones) => void;
   onTraer: (nombres: string[]) => void;
   onAdoptar: (nombres: string[]) => void;
   onCerrar: () => void;
+  /** Sin el candado de la obra: se lee, pero no se escribe en SAP. */
+  soloLectura: boolean;
 }) {
-  useEscape(onCerrar);
+  // Con una petición al puente en vuelo, Escape no cierra: ver `enVuelo`.
+  const cerrarSiQuieto = useCallback(() => {
+    if (enVuelo === 0) onCerrar();
+  }, [onCerrar]);
+  useEscape(cerrarSiQuieto);
   const [estado, setEstado] = useState<{ fase: 'quieto' | 'conectando' } | { fase: 'error'; motivo: string }>({
     fase: 'quieto',
   });
 
   const conectar = () => {
     setEstado({ fase: 'conectando' });
-    conectarSap().then(
+    alPuente<Omit<ConexionSap, 'leido'>>('/conectar', {}).then(
       (d) => {
         if (!d.modelo) {
           setEstado({ fase: 'error', motivo: 'SAP2000 está abierto, pero el modelo no está guardado todavía.' });
@@ -703,8 +756,9 @@ export default function PanelSap({
           <div className="min-w-0 flex-1 px-1.5">
             <h2 className="text-sm font-semibold text-ink">SAP2000</h2>
             <p className="text-[11px] leading-snug text-muted">
-              El modelo abierto en SAP2000 de este equipo. Flow se engancha al que ya está abierto y
-              solo lee: no lo lanza, no lo guarda ni lo analiza.
+              El modelo abierto en SAP2000 de este equipo. Flow se engancha al que ya está abierto:
+              no lo lanza, no lo guarda ni lo analiza. Lee patrones, grupos y cargas, y solo escribe
+              tras confirmar una lista de cambios; nunca borra nada.
             </p>
           </div>
           <button
@@ -762,9 +816,16 @@ export default function PanelSap({
         onLeidos={onPatronesLeidos}
         onTraer={onTraer}
         onAdoptar={onAdoptar}
+        soloLectura={soloLectura}
       />
-      <GruposSap grupos={sap?.grupos} onLeidos={onGruposLeidos} />
-      <AplicacionesSap filas={aplicaciones} />
+      <GruposSap
+        grupos={sap?.grupos}
+        gruposDe={sap?.gruposDe}
+        conexion={sap ? { modelo: sap.modelo, ruta: sap.ruta } : undefined}
+        onLeidos={onGruposLeidos}
+        soloLectura={soloLectura}
+      />
+      <AplicacionesSap filas={aplicaciones} soloLectura={soloLectura} />
     </aside>
   );
 }

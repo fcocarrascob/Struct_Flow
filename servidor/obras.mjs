@@ -312,6 +312,39 @@ function responder(res, codigo, cuerpo) {
   res.end(JSON.stringify(cuerpo));
 }
 
+const LOCALES = new Set(['localhost', '127.0.0.1', '[::1]', '::1']);
+
+/** El nombre de máquina de un `Host` u `Origin`, o `''` si no se entiende. */
+function maquina(valor, esOrigen) {
+  try {
+    return new URL(esOrigen ? valor : `http://${valor}`).hostname;
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * Por qué no se atiende una petición que llega desde esta máquina, o `null`.
+ *
+ * La IP no basta: cualquier página abierta en el navegador también llega desde
+ * 127.0.0.1. Un `Host` ajeno es una página que rebindó su dominio a esta
+ * máquina; un `Origin` ajeno, otra página que escribe. Y un POST tiene que ser
+ * JSON: una página ajena no puede mandarlo sin la consulta previa que el
+ * navegador hace y este servidor no contesta. PUT y DELETE ya la exigen siempre.
+ */
+function rechazoDeOrigen(req, metodo) {
+  if (!LOCALES.has(maquina(req.headers.host ?? '', false))) {
+    return 'El servidor de obras solo atiende peticiones dirigidas a localhost.';
+  }
+  const origen = req.headers.origin;
+  if (origen && !LOCALES.has(maquina(origen, true))) return 'El servidor de obras no atiende a otras páginas.';
+  if (metodo === 'POST') {
+    const tipo = String(req.headers['content-type'] ?? '').split(';')[0].trim().toLowerCase();
+    if (tipo !== 'application/json') return 'El servidor de obras solo acepta JSON.';
+  }
+  return null;
+}
+
 /**
  * Un middleware de `connect` (el que usan Vite y `vite preview`), que también
  * sirve suelto sobre `http.createServer`. Lo que no empieza por `/obras-api` lo
@@ -329,8 +362,10 @@ export function manejadorObras(obras) {
     if (!['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(origen)) {
       return responder(res, 403, { motivo: 'El servidor de obras solo atiende a esta máquina.' });
     }
-    const partes = url.pathname.slice(PREFIJO.length).split('/').filter(Boolean).map(decodeURIComponent);
     const metodo = req.method ?? 'GET';
+    const motivo = rechazoDeOrigen(req, metodo);
+    if (motivo) return responder(res, 403, { motivo });
+    const partes = url.pathname.slice(PREFIJO.length).split('/').filter(Boolean).map(decodeURIComponent);
     try {
       if (partes.length === 1 && partes[0] === 'salud' && metodo === 'GET') {
         return responder(res, 200, { ok: true, raiz: obras.raiz });

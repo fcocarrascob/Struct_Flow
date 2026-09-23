@@ -47,6 +47,12 @@ const resumenDe = (o: Obra): ResumenObra => ({
   vacia: o.modulos.length === 0,
 });
 
+/**
+ * Los botones secundarios de una ficha aparecen al pasar el ratón. En una
+ * pantalla táctil no hay «pasar», así que ahí se ven siempre.
+ */
+const OCULTO_SIN_HOVER = 'opacity-0 focus:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100';
+
 function FichaObra({
   obra,
   onBorrar,
@@ -70,11 +76,11 @@ function FichaObra({
   }, [confirmando]);
 
   return (
-    <div className="group relative flex h-full flex-col rounded-lg border border-border bg-white p-4 hover:border-accent">
-      <Enlace a={{ vista: 'obra', id: obra.id }} className="no-underline">
-        <h3 className="pr-16 text-sm font-semibold text-ink group-hover:text-accent">
-          {obra.nombre || obra.id}
-        </h3>
+    // Los botones van en el flujo, a la derecha del título, y no superpuestos:
+    // en `absolute` tapaban el final de un nombre largo («… (cargas a SAP)»).
+    <div className="group flex h-full items-start gap-2 rounded-lg border border-border bg-white p-4 hover:border-accent">
+      <Enlace a={{ vista: 'obra', id: obra.id }} className="min-w-0 flex-1 no-underline">
+        <h3 className="text-sm font-semibold text-ink group-hover:text-accent">{obra.nombre || obra.id}</h3>
         <p className="mt-1.5 text-xs text-muted">
           {obra.cargas === 0 ? 'sin cargas' : `${obra.cargas} carga${obra.cargas === 1 ? '' : 's'}`}
           {obra.calculos > 0 && ` · ${obra.calculos} cálculo${obra.calculos === 1 ? '' : 's'}`}
@@ -82,7 +88,7 @@ function FichaObra({
         </p>
         <p className="mt-2 truncate font-mono text-[10px] text-muted">{obra.id}</p>
       </Enlace>
-      <div className="absolute right-3 top-3 flex items-center gap-1">
+      <div className="flex shrink-0 items-center gap-1">
         {onMover && (
           <button
             type="button"
@@ -99,7 +105,7 @@ function FichaObra({
           type="button"
           onClick={() => onExportar(obra.id)}
           title={`Descargar ${obra.nombre} como archivo`}
-          className="rounded border border-border px-1.5 py-0.5 text-[10px] text-muted opacity-0 hover:border-accent hover:text-accent focus:opacity-100 group-hover:opacity-100"
+          className={`rounded border border-border px-1.5 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent ${OCULTO_SIN_HOVER}`}
         >
           ↓
         </button>
@@ -110,7 +116,7 @@ function FichaObra({
           className={`rounded border px-1.5 py-0.5 text-[10px] ${
             confirmando
               ? 'border-error bg-error text-white'
-              : 'border-border text-muted opacity-0 hover:border-error hover:text-error focus:opacity-100 group-hover:opacity-100'
+              : `border-border text-muted hover:border-error hover:text-error ${OCULTO_SIN_HOVER}`
           }`}
         >
           {confirmando ? '¿borrar?' : '×'}
@@ -140,17 +146,26 @@ export default function IndiceProyectos() {
     };
   }, []);
 
+  /**
+   * Si el servidor contestó pero no pudo listar la carpeta. Sin esto `enDisco`
+   * se quedaba en `null` para siempre: «+ Nueva obra» desactivado, sin estado
+   * vacío y sin decir por qué.
+   */
+  const [fallaDisco, setFallaDisco] = useState('');
+
   /** Relee las dos listas. Un fallo del disco se dice y no borra la lista. */
   const refrescar = useCallback(async () => {
     setObras(listarObras());
     if (!(await servidorDisponible())) {
       setEnDisco(false);
+      setFallaDisco('');
       return;
     }
     try {
       setEnDisco(await listarEnDisco());
+      setFallaDisco('');
     } catch (e) {
-      setAvisoObras((e as Error).message);
+      setFallaDisco((e as Error).message);
     }
   }, []);
 
@@ -186,8 +201,12 @@ export default function IndiceProyectos() {
   }
 
   async function crearObra() {
-    const obra = nuevaObra(NOMBRE_OBRA_POR_OMISION, await idsOcupados());
-    if (await guardarNueva(obra)) navegar({ vista: 'obra', id: obra.id });
+    try {
+      const obra = nuevaObra(NOMBRE_OBRA_POR_OMISION, await idsOcupados());
+      if (await guardarNueva(obra)) navegar({ vista: 'obra', id: obra.id });
+    } catch (e) {
+      setAvisoObras(`No se creó la obra: ${(e as Error).message}`);
+    }
   }
 
   async function exportarObra(id: string, deDisco: boolean) {
@@ -238,13 +257,24 @@ export default function IndiceProyectos() {
       setAvisoObras('No se pudo leer el archivo.');
       return;
     }
-    const leida = importarObra(texto, await idsOcupados());
-    if (!leida.ok) {
-      setAvisoObras(leida.motivo);
-      return;
+    try {
+      const leida = importarObra(texto, await idsOcupados());
+      if (!leida.ok) {
+        setAvisoObras(leida.motivo);
+        return;
+      }
+      if (await guardarNueva(leida.obra)) navegar({ vista: 'obra', id: leida.obra.id });
+    } catch (e) {
+      setAvisoObras(`No se importó la obra: ${(e as Error).message}`);
     }
-    if (await guardarNueva(leida.obra)) navegar({ vista: 'obra', id: leida.obra.id });
   }
+
+  // Mientras no se sabe si hay disco no se crea ni se importa: la obra iría al
+  // navegador por no haber esperado la respuesta, sin que nadie lo decidiera.
+  const sinDecidir = enDisco === null;
+  const porQueNo = fallaDisco
+    ? 'El servidor de obras no pudo listar la carpeta: reintenta antes de crear.'
+    : 'Consultando si hay servidor de obras…';
 
   /** Del disco, borrar es mandar a la papelera de la carpeta de obras. */
   async function quitarObra(id: string, deDisco: boolean) {
@@ -288,11 +318,17 @@ export default function IndiceProyectos() {
             </span>
           </h2>
           <div className="flex items-center gap-2">
-            <label className="cursor-pointer rounded border border-border px-2 py-1 text-xs text-muted hover:border-accent hover:text-accent">
+            <label
+              title={sinDecidir ? porQueNo : undefined}
+              className={`rounded border border-border px-2 py-1 text-xs text-muted ${
+                sinDecidir ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:border-accent hover:text-accent'
+              }`}
+            >
               Importar…
               <input
                 type="file"
-                accept="application/json,.json"
+                accept=".json,application/json"
+                disabled={sinDecidir}
                 className="hidden"
                 onChange={(e) => {
                   void importar(e.target.files?.[0]);
@@ -305,13 +341,23 @@ export default function IndiceProyectos() {
             <button
               type="button"
               onClick={() => void crearObra()}
-              disabled={enDisco === null}
-              className="rounded border border-accent bg-accent px-3 py-1 text-xs font-medium text-white hover:opacity-90"
+              disabled={sinDecidir}
+              title={sinDecidir ? porQueNo : undefined}
+              className="rounded border border-accent bg-accent px-3 py-1 text-xs font-medium text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               + Nueva obra
             </button>
           </div>
         </div>
+
+        {fallaDisco && (
+          <div role="status" className="mb-3 rounded border border-aviso bg-white px-3 py-2 text-xs leading-snug text-aviso">
+            El servidor de obras está corriendo, pero no pudo listar la carpeta: {fallaDisco}{' '}
+            <button type="button" onClick={() => void refrescar()} className="underline">
+              Reintentar
+            </button>
+          </div>
+        )}
 
         {avisoObras && (
           <p
@@ -328,6 +374,10 @@ export default function IndiceProyectos() {
             no se versionan ni viajan a otro equipo. Con <code>npm run dev</code> se guardan como
             carpetas en disco.
           </p>
+        )}
+
+        {hayDisco && enDisco.length === 0 && obras.length > 0 && (
+          <p className="mb-4 text-xs text-muted">Todavía no hay ninguna obra en el disco.</p>
         )}
 
         {hayDisco && enDisco.length > 0 && (

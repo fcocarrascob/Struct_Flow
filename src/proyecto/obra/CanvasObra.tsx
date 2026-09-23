@@ -90,9 +90,9 @@ import {
  * El canvas de una obra: un proyecto propio de Struct_Flow, editable y local.
  *
  * Al revés que `../CanvasProyecto.tsx`, que pinta lo que el harness proyecta
- * desde archivos y no escribe nada, acá el documento es del usuario y vive en
+ * desde archivos y no escribe nada, aquí el documento es del usuario y vive en
  * `localStorage`. Comparten el armazón de React Flow y el contrato de nodo, pero
- * son dos componentes: los filtros por tipo, el «solo lo que no calza» y los
+ * son dos componentes: los filtros por tipo, el «solo lo que no cuadra» y los
  * avisos de proyección de aquel no significan nada en una obra que empieza
  * vacía. Cuando aparezca un tercer lienzo valdrá la pena extraer el armazón.
  *
@@ -166,7 +166,7 @@ function nodoDelDocumento(obra: Obra | null, idNodo: string): NodoCalculo | Subc
  * Todos los ids de región que la obra ya repartió.
  *
  * Los ids de región son las claves de `results` en la hoja global, así que traer
- * las de una genérica a un nodo tiene que pasar por acá: dos nodos que
+ * las de una genérica a un nodo tiene que pasar por aquí: dos nodos que
  * desprendan la misma genérica se quedarían con las mismas.
  */
 function idsDeLaObra(obra: Obra): Set<string> {
@@ -231,6 +231,18 @@ function existeNodo(obra: Obra | null, idNodo: string): boolean {
  * Cuenta también los bloques porque borrar el único bloque de una partida no
  * cambia el número de nodos y se lleva el cálculo igual.
  */
+/**
+ * ¿Lo único que cambió es lo leído de SAP? Compara por referencia: todo lo demás
+ * se construye con spreads que conservan lo que no se tocó, así que una lectura
+ * deja idénticos todos los campos salvo `sap`.
+ */
+function soloCambiaSap(nueva: Obra | null, asentada: Obra | null): boolean {
+  if (!nueva || !asentada || nueva.sap === asentada.sap) return false;
+  const claves = new Set([...Object.keys(nueva), ...Object.keys(asentada)]);
+  claves.delete('sap');
+  return [...claves].every((k) => nueva[k as keyof Obra] === asentada[k as keyof Obra]);
+}
+
 function piezasDeLaObra(obra: Obra | null): number {
   if (!obra) return 0;
   // Los grupos cuentan: quitar uno se lleva su nombre, su color y la asignación
@@ -379,7 +391,7 @@ function CanvasObra({
 
   // ── Las genéricas que la obra referencia ───────────────────────────────────
   // Se descargan una vez por slug y se quedan: `cargarModuloDeBiblioteca` ya
-  // cachea la descarga, y acá se guarda el estado para que la proyección —que es
+  // cachea la descarga, y aquí se guarda el estado para que la proyección —que es
   // síncrona y pura— reciba lo que hay en vez de tener que esperar.
   const slugs = obra ? slugsImportados(obra).join('|') : '';
   const pedidas = useRef(new Set<string>());
@@ -412,7 +424,7 @@ function CanvasObra({
   // escribió es justo lo que más duele perder.
   //
   // Dónde se guarda lo decide la sesión (`almacen-disco.ts`): una carpeta en
-  // disco o este navegador. Acá solo se le pasa cada versión del documento; la
+  // disco o este navegador. Aquí solo se le pasa cada versión del documento; la
   // cola, el candado y los conflictos son suyos.
   const obraRef = useRef(obra);
   obraRef.current = obra;
@@ -428,6 +440,12 @@ function CanvasObra({
       if (obraRef.current) sesion.cerrar(obraRef.current);
     };
   }, [sesion]);
+
+  // La pestaña del navegador lleva el nombre de la obra: `App` solo sabe su id.
+  const nombreObra = obra?.nombre.trim();
+  useEffect(() => {
+    if (nombreObra) document.title = `${nombreObra} — Struct_Flow`;
+  }, [nombreObra]);
 
   useEffect(() => {
     setAvisoGuardado(estadoSesion.error);
@@ -607,7 +625,7 @@ function CanvasObra({
 
   // Encuadra una sola vez, al medir los primeros nodos. A diferencia del canvas
   // del harness —que se re-encuadra al filtrar, porque el conjunto visible
-  // cambia de golpe—, acá los nodos aparecen de a uno: re-encuadrar en cada
+  // cambia de golpe—, aquí los nodos aparecen de a uno: re-encuadrar en cada
   // carga agregada haría que el lienzo se alejara diez veces seguidas.
   //
   // `maxZoom: 1` porque una obra empieza con un nodo: sin tope, encuadrar uno
@@ -707,6 +725,18 @@ function CanvasObra({
    */
   const historial = useHistorial(obra, setObra, {
     esPerdida: (nueva, asentada) => piezasDeLaObra(nueva) < piezasDeLaObra(asentada),
+    // Lo leído de SAP es una foto del modelo, no una edición: Ctrl+Z tras
+    // «Escribir en SAP» no deshace nada en SAP, y volver a la lectura anterior
+    // ofrecería otra vez escribir lo que ya está escrito. Ni entra en el
+    // historial ni se restaura: cualquier paso vuelve con la lectura de hoy.
+    esLectura: soloCambiaSap,
+    alRestaurarEstado: (restaurada) => {
+      if (!restaurada) return restaurada;
+      const hoy = obraRef.current?.sap;
+      if (restaurada.sap === hoy) return restaurada;
+      const { sap: _vieja, ...resto } = restaurada;
+      return hoy ? { ...resto, sap: hoy } : resto;
+    },
     // El paso restaurado puede no tener el nodo que estaba seleccionado ni el que
     // alguna pestaña estaba editando. La selección se conserva si sobrevive
     // —perderla en cada Ctrl+Z obliga a volver a buscar el nodo—, y las pestañas
@@ -1036,7 +1066,7 @@ function CanvasObra({
         return {
           ok: false,
           motivo:
-            'El nodo de esta pestaña ya no está en la obra. Lo que escribas acá no se guarda: ' +
+            'El nodo de esta pestaña ya no está en la obra. Lo que escribas aquí no se guarda: ' +
             'ciérrala, o llévate la hoja con «Exportar».',
         };
       }
@@ -1095,7 +1125,7 @@ function CanvasObra({
    *
    * `desprender` hace la transición —hornea las entradas en las regiones `in_*`,
    * cambia el sello por una procedencia y renombra los ids que choquen con los
-   * de la obra—. Acá solo hace falta darle los ids ya tomados: dos nodos que
+   * de la obra—. Aquí solo hace falta darle los ids ya tomados: dos nodos que
    * desprendan la misma genérica no pueden quedarse con las mismas regiones.
    */
   const desprenderNodo = useCallback(
@@ -1181,7 +1211,7 @@ function CanvasObra({
   // mismo clic que los conecta.
   // Si la pestaña abierta es una de la biblioteca, lo que se pinta es su hoja
   // instanciada, que la evaluación ya produjo en el sitio que le toca. No se
-  // vuelve a instanciar acá: sería una segunda autoridad sobre el mismo número.
+  // vuelve a instanciar aquí: sería una segunda autoridad sobre el mismo número.
   const deLaBiblioteca =
     activa && nodoDelDocumento(obra, activa)?.frontera?.procedencia === 'biblioteca'
       ? evaluacion.importadas.get(activa)?.ev
@@ -1405,7 +1435,7 @@ function CanvasObra({
             escribir una sesión entera en la hoja de un nodo con el
             almacenamiento lleno sin una sola señal.
 
-            Acá sí empuja, y es lo correcto: no es el acuse efímero del canvas
+            Aquí sí empuja, y es lo correcto: no es el acuse efímero del canvas
             —que se retira solo y haría saltar el papel dos veces—, sino un fallo
             que se queda hasta que un guardado vuelva a funcionar. */}
         {avisoGuardado && (
@@ -1773,9 +1803,23 @@ function CanvasObra({
           <PanelSap
             sap={obra.sap}
             cargas={obra.cargas}
-            // Una conexión nueva conserva la última lectura de patrones: dice de
-            // qué modelo salió, y el panel avisa si no es el mismo.
-            onConectado={(sap) => setObra((o) => (o ? { ...o, sap: { ...sap, ...(o.sap?.patrones ? { patrones: o.sap.patrones } : {}) } } : o))}
+            // Una conexión nueva conserva las últimas lecturas de patrones y de
+            // grupos: cada una dice de qué modelo salió, y el panel avisa si no
+            // es el mismo.
+            onConectado={(sap) =>
+              setObra((o) => {
+                if (!o) return o;
+                const { patrones, grupos, gruposDe } = o.sap ?? {};
+                return {
+                  ...o,
+                  sap: {
+                    ...sap,
+                    ...(patrones ? { patrones } : {}),
+                    ...(grupos ? { grupos, ...(gruposDe ? { gruposDe } : {}) } : {}),
+                  },
+                };
+              })
+            }
             onPatronesLeidos={(ruta, patrones) =>
               setObra((o) =>
                 o
@@ -1799,7 +1843,23 @@ function CanvasObra({
               setObra((o) => (o?.sap?.patrones ? adoptarDeSap(o, nombres, o.sap.patrones.lista) : o))
             }
             aplicaciones={aplicaciones}
-            onGruposLeidos={(grupos) => setObra((o) => (o?.sap ? { ...o, sap: { ...o.sap, grupos } } : o))}
+            // Sin conexión previa, la lectura la crea, como la de patrones: si no,
+            // la lista se leía bien y se perdía sin decir nada.
+            onGruposLeidos={(grupos, lectura) =>
+              setObra((o) =>
+                o
+                  ? {
+                      ...o,
+                      sap: {
+                        ...(o.sap ?? { modelo: lectura.modelo, ruta: lectura.ruta, version: '', leido: lectura.leido }),
+                        grupos,
+                        gruposDe: lectura.modelo,
+                      },
+                    }
+                  : o,
+              )
+            }
+            soloLectura={soloLectura}
             onCerrar={() => setSeleccion(null)}
           />
         )}
@@ -1897,7 +1957,13 @@ function CargadorObra({ id }: { id: string }) {
     setEstado({ fase: 'cargando' });
     // Toda vuelta después de la primera es una recarga desde esta pestaña.
     abrirObra(id, { forzar: vuelta > 0 }).then(
-      (a) => vivo && setEstado(a ? { fase: 'lista', apertura: a } : { fase: 'no-esta' }),
+      (a) => {
+        // Abrir ya tomó el candado y arrancó el latido. Si mientras tanto el
+        // usuario se fue, nadie montará el canvas que la cierra: sin esto el
+        // latido seguía vivo, y al volver la obra abría en «Solo lectura».
+        if (!vivo) return a?.sesion.cerrar(a.obra);
+        setEstado(a ? { fase: 'lista', apertura: a } : { fase: 'no-esta' });
+      },
       (e: Error) => vivo && setEstado({ fase: 'error', motivo: e.message }),
     );
     return () => {

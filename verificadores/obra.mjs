@@ -70,6 +70,7 @@ const {
   planEmpuje,
   aplicacionesDeObra,
   compararAplicacion,
+  hermanasDe,
   planAplicaciones,
 } = motor;
 
@@ -1557,6 +1558,50 @@ const CASOS_PATRONES = [
       if (om !== 'c1,d1') return `omitidas: ${om}`;
       // Sin comparación no se sabe qué está igual: se escribe todo lo que se puede.
       return planAplicaciones(filas, () => undefined).escribir.length === 3 ? null : 'sin comparar no escribió todo';
+    },
+  },
+  {
+    nombre: 'dos partidas del mismo patrón sobre el mismo grupo quedan «igual» tras escribirse',
+    ok: () => {
+      const ap = { tipo: 'area-a-barras', grupo: 'CUB', direccion: 10, distribucion: 1 };
+      const fila = (id, valor) => ({ id, patron: 'CM', partida: id, unidad: 'kN/m^2', valor, aplicacion: ap });
+      const filas = [fila('losa', 2), fila('term', 1)];
+      const [losa, term] = filas;
+      const h = hermanasDe(filas, losa);
+      if (h.length !== 2) return `hermanas: ${h.length}`;
+      // Lo que el puente deja: las dos cargas en cada uno de los 10 objetos.
+      const c = (valor, n) => ({ valor, dir: 10, dist: 1, n });
+      const escrito = { objetos: 10, sinCarga: 0, cargas: [c(2, 10), c(1, 10)] };
+      if (compararAplicacion(losa, escrito, h).estado !== 'igual') return 'la primera no dio «igual»';
+      if (compararAplicacion(term, escrito, hermanasDe(filas, term)).estado !== 'igual') return 'la segunda no dio «igual»';
+      // Una sola de las dos en el modelo: difiere, y el detalle dice lo que Flow espera.
+      const falta = compararAplicacion(losa, { objetos: 10, sinCarga: 0, cargas: [c(2, 10)] }, h);
+      if (falta.estado !== 'difiere' || !falta.detalle.includes('2 + 1')) return `falta: ${JSON.stringify(falta)}`;
+      // Una carga de más que ninguna partida pide: difiere.
+      const sobra = { objetos: 10, sinCarga: 0, cargas: [c(2, 10), c(1, 10), c(0.5, 10)] };
+      if (compararAplicacion(losa, sobra, h).estado !== 'difiere') return 'una carga de más no difiere';
+      // Dos partidas iguales esperan la misma carga dos veces por objeto.
+      const gemelas = [fila('g1', 1), fila('g2', 1)];
+      const dobles = { objetos: 10, sinCarga: 0, cargas: [c(1, 20)] };
+      return compararAplicacion(gemelas[0], dobles, hermanasDe(gemelas, gemelas[0])).estado === 'igual'
+        ? null
+        : 'dos partidas iguales no dieron «igual»';
+    },
+  },
+  {
+    nombre: 'una partida sin valor bloquea su patrón: reescribirlo borraría su carga del modelo',
+    ok: () => {
+      const ap = { tipo: 'area-a-barras', grupo: 'LOSA', direccion: 10, distribucion: 1 };
+      const filas = [
+        { id: 'a', patron: 'CM', partida: 'A', unidad: 'kN/m^2', valor: 2, aplicacion: ap },
+        { id: 'b', patron: 'CM', partida: 'B', unidad: 'kN/m^2', error: 'La partida no tiene valor.', aplicacion: ap },
+        { id: 'c', patron: 'SC', partida: 'C', unidad: 'kN/m^2', valor: 1, aplicacion: ap },
+      ];
+      const { escribir, omitidas, bloqueados } = planAplicaciones(filas, () => 'difiere');
+      if (escribir.map((f) => f.id).join(',') !== 'c') return `escribe: ${escribir.map((f) => f.id)} (CM no puede ir)`;
+      if (omitidas.map((o) => o.id).join(',') !== 'b') return `omitidas: ${omitidas.map((o) => o.id)}`;
+      const b = bloqueados.map((x) => `${x.patron}:${x.partidas.join('+')}`).join(',');
+      return b === 'CM:B' ? null : `bloqueados: ${b}`;
     },
   },
 ];

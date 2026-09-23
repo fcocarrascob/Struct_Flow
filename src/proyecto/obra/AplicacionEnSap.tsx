@@ -2,8 +2,29 @@ import { DIRECCIONES_SAP, type AplicacionSap, type GrupoSap } from './modelo';
 import { numero, type FilaAplicacion } from './sap';
 
 /**
+ * Hacia dónde empuja la carga en el modelo. «Gravedad» y «Z global» son la misma
+ * recta con el signo opuesto: 0,3 kN/m² en gravedad pesa hacia abajo, y en Z
+ * global levanta. Sin decirlo, una succión se escribe como peso sin que se note.
+ */
+function sentido(direccion: number, valor: number): string {
+  const positivo = valor >= 0;
+  switch (direccion) {
+    case 10:
+      return positivo ? 'hacia abajo' : 'hacia arriba';
+    case 6:
+      return positivo ? 'hacia arriba (+Z)' : 'hacia abajo (−Z)';
+    case 4:
+      return positivo ? 'hacia +X' : 'hacia −X';
+    case 5:
+      return positivo ? 'hacia +Y' : 'hacia −Y';
+    default:
+      return `dirección ${direccion}`;
+  }
+}
+
+/**
  * Dónde va una partida en el modelo de SAP2000: qué carga, sobre qué grupo y en
- * qué dirección. El valor no se escribe: es el de la partida, y acá se muestra
+ * qué dirección. El valor no se escribe: es el de la partida, y aquí se muestra
  * ya convertido a la unidad de SAP, o el motivo por el que no se puede.
  *
  * Una partida, un grupo: cada componente (cubierta, muro, carrilera) es su
@@ -102,7 +123,8 @@ export default function AplicacionEnSap({
 
       {valor && fila && (
         <p className={`mt-1 font-mono text-[10px] ${fila.error ? 'text-error' : 'text-muted'}`}>
-          {fila.error ?? `valor en SAP: ${numero(Number(fila.valor!.toPrecision(6)))} ${fila.unidad.replace('^2', '²')}`}
+          {fila.error ??
+            `valor en SAP: ${numero(Number(fila.valor!.toPrecision(6)))} ${fila.unidad.replace('^2', '²')}, ${sentido(valor.direccion, fila.valor!)}`}
         </p>
       )}
       {valor && !valor.grupo.trim() && <p className="mt-1 text-[10px] text-aviso">Falta el grupo.</p>}

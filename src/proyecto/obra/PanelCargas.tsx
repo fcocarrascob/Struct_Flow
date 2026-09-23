@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import type { EvaluacionCarga } from './calculo';
 import { nuevaCarga, problemaDeNombre, TIPOS_PATRON, type Carga, type PatronSap } from './modelo';
 import { avisosPesoPropio, numero, patronesDeFlow } from './sap';
@@ -21,6 +21,8 @@ function CeldasPatron({
   onCambiar: (patron: PatronSap | undefined) => void;
 }) {
   const p = carga.patron;
+  /** Lo último que se escribió y no era un multiplicador: se revierte, pero se dice. */
+  const [rechazado, setRechazado] = useState('');
   // Un tipo que trajo el modelo y no está en la lista corta se sigue ofreciendo.
   const tipos: readonly string[] = p && !TIPOS_PATRON.includes(p.tipo as never) ? [...TIPOS_PATRON, p.tipo] : TIPOS_PATRON;
   return (
@@ -47,19 +49,27 @@ function CeldasPatron({
         inputMode="decimal"
         defaultValue={p ? numero(p.pesoPropio) : ''}
         disabled={!p}
+        onFocus={() => setRechazado('')}
         onBlur={(e) => {
           if (!p) return;
-          const v = Number(e.target.value.trim().replace(',', '.'));
-          if (e.target.value.trim() === '' || !Number.isFinite(v) || v < 0) {
+          const escrito = e.target.value.trim();
+          const v = Number(escrito.replace(',', '.'));
+          if (escrito === '' || !Number.isFinite(v) || v < 0) {
             e.target.value = numero(p.pesoPropio);
+            setRechazado(escrito);
             return;
           }
           if (v !== p.pesoPropio) onCambiar({ ...p, pesoPropio: v });
         }}
         onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
         aria-label={`Multiplicador de peso propio de ${carga.nombre}`}
-        title="Multiplicador de peso propio del patrón: 1 en el del peso propio, 0 en los demás"
-        className={`${CELDA} w-12 text-right font-mono disabled:bg-surface disabled:text-muted`}
+        aria-invalid={rechazado !== '' || undefined}
+        title={
+          rechazado
+            ? `«${rechazado}» no es un multiplicador: tiene que ser un número de 0 en adelante. Se dejó ${numero(p?.pesoPropio ?? 0)}.`
+            : 'Multiplicador de peso propio del patrón: 1 en el del peso propio, 0 en los demás'
+        }
+        className={`${CELDA} w-12 text-right font-mono disabled:bg-surface disabled:text-muted ${rechazado ? '!border-error' : ''}`}
       />
     </>
   );
@@ -74,7 +84,7 @@ function CeldasPatron({
  *
  * El panel es CONTROLADO DESDE FUERA, como `SeccionesPanel` y `VariablePanel`:
  * no guarda ninguna carga. El documento de la obra vive en el canvas, que es
- * quien lo persiste; tenerlo también acá daría dos copias y la segunda
+ * quien lo persiste; tenerlo también aquí daría dos copias y la segunda
  * divergiría.
  *
  * Un nombre repetido o vacío NO se rechaza mientras se escribe: se marca. El
@@ -211,7 +221,7 @@ export default function PanelCargas({
                       className={`${CAMPO} min-w-0 flex-1 font-mono ${problema ? 'border-error' : 'border-border'}`}
                     />
                     <CeldasPatron carga={c} onCambiar={(patron) => onCambiar(c.id, { patron })} />
-                    {/* Un clic y se va. Acá había un «¿borrar?» en dos tiempos, que
+                    {/* Un clic y se va. Aquí había un «¿borrar?» en dos tiempos, que
                         era la única protección de la obra cuando no había deshacer:
                         quitar un nodo de cálculo o una partida no preguntaba nada y
                         se llevaba la hoja entera, así que la carga estaba defendida
@@ -270,7 +280,7 @@ export default function PanelCargas({
  * El desglose de una carga: sus partidas con el valor que produjo la hoja de
  * cada una. No hay total, porque una carga agrupa sus partidas y no las suma.
  *
- * No se edita acá. Una partida se abre en su propio panel, que es donde está su
+ * No se edita aquí. Una partida se abre en su propio panel, que es donde está su
  * cálculo; esta lista es el índice, y por eso cada fila es un botón que lleva a
  * su nodo. Repetir la edición en los dos sitios daría dos caminos para lo mismo.
  */

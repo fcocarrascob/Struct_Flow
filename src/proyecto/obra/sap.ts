@@ -236,13 +236,39 @@ export interface LeidaAplicacion {
 const MISMO_VALOR = (a: number, b: number) => Math.abs(a - b) <= 1e-6 * Math.max(1, Math.abs(b));
 
 /**
- * La aplicación de Flow contra lo que el patrón tiene hoy sobre el grupo. Es
- * `igual` solo si TODOS los objetos del grupo llevan exactamente una carga de
- * ese patrón, con el valor, la dirección y la distribución de Flow.
+ * Las partidas que caen sobre los mismos objetos con el mismo patrón y el mismo
+ * tipo de carga. El puente las escribe juntas —la primera reemplaza, las demás se
+ * suman—, así que cada objeto del grupo termina con UNA carga por cada una.
+ */
+export function hermanasDe(filas: readonly FilaAplicacion[], f: FilaAplicacion): FilaAplicacion[] {
+  return filas.filter(
+    (x) =>
+      !x.error &&
+      x.valor !== undefined &&
+      x.patron === f.patron &&
+      x.aplicacion.tipo === f.aplicacion.tipo &&
+      x.aplicacion.grupo === f.aplicacion.grupo,
+  );
+}
+
+/**
+ * La aplicación de Flow contra lo que el patrón tiene hoy sobre el grupo.
+ *
+ * `hermanas` son las partidas del mismo patrón sobre el mismo grupo, incluida
+ * esta (`hermanasDe`). Es `igual` solo si en el grupo no hay objetos sin carga y
+ * lo leído es exactamente una carga por hermana en cada objeto, con su valor, su
+ * dirección y su distribución: dos partidas de 2 y 1 kN/m² sobre `CUB` esperan
+ * leer las dos en todos los objetos, no un 3 ni un 2 solo.
+ *
+ * El puente lee cuántas veces aparece cada carga, no qué objeto lleva cuál. Con
+ * los objetos todos cargados y cada carga en exactamente tantos como hermanas la
+ * piden, la única forma de no coincidir es un reparto hecho a mano en SAP que
+ * cambie cargas iguales de sitio: ese caso no se distingue.
  */
 export function compararAplicacion(
   f: FilaAplicacion,
   l: LeidaAplicacion,
+  hermanas: readonly FilaAplicacion[] = [f],
 ): { estado: 'igual' | 'difiere' | 'sin-objetos' | 'error'; detalle: string } {
   if (l.error) return { estado: 'error', detalle: l.error };
   if (f.error) return { estado: 'error', detalle: f.error };
@@ -250,16 +276,32 @@ export function compararAplicacion(
   const clase = f.aplicacion.tipo === 'area-a-barras' ? 'áreas' : 'barras';
   if (objetos === 0) return { estado: 'sin-objetos', detalle: `El grupo ${f.aplicacion.grupo} no tiene ${clase}.` };
   const cargas = l.cargas ?? [];
-  const coincide = (c: NonNullable<LeidaAplicacion['cargas']>[number]) =>
-    MISMO_VALOR(c.valor, f.valor ?? NaN) &&
-    c.dir === f.aplicacion.direccion &&
-    (f.aplicacion.tipo === 'area-a-barras' ? c.dist === f.aplicacion.distribucion : c.uniforme === true && c.fuerza === true);
-  if ((l.sinCarga ?? 0) === 0 && cargas.length === 1 && cargas[0].n === objetos && coincide(cargas[0])) {
-    return { estado: 'igual', detalle: '' };
-  }
+  const coincide = (c: NonNullable<LeidaAplicacion['cargas']>[number], h: FilaAplicacion) =>
+    MISMO_VALOR(c.valor, h.valor ?? NaN) &&
+    c.dir === h.aplicacion.direccion &&
+    (h.aplicacion.tipo === 'area-a-barras' ? c.dist === h.aplicacion.distribucion : c.uniforme === true && c.fuerza === true);
+
+  // Cada hermana consume `objetos` apariciones de una carga que coincide con
+  // ella; al final no tiene que sobrar ninguna.
+  const quedan = cargas.map((c) => c.n);
+  const cuadra =
+    (l.sinCarga ?? 0) === 0 &&
+    hermanas.every((h) => {
+      const i = cargas.findIndex((c, j) => quedan[j] >= objetos && coincide(c, h));
+      if (i < 0) return false;
+      quedan[i] -= objetos;
+      return true;
+    }) &&
+    quedan.every((n) => n === 0);
+  if (cuadra) return { estado: 'igual', detalle: '' };
+
   const partes = cargas.map((c) => `${numero(Number(c.valor.toPrecision(4)))} en ${c.n} de ${objetos}`);
   if (l.sinCarga) partes.push(`sin carga en ${l.sinCarga} de ${objetos}`);
-  return { estado: 'difiere', detalle: `SAP: ${partes.join('; ') || 'sin carga'}` };
+  const flow =
+    hermanas.length > 1
+      ? ` · Flow: ${hermanas.map((h) => numero(Number((h.valor ?? NaN).toPrecision(4)))).join(' + ')} en cada objeto`
+      : '';
+  return { estado: 'difiere', detalle: `SAP: ${partes.join('; ') || 'sin carga'}${flow}` };
 }
 
 /**
@@ -273,21 +315,36 @@ export function compararAplicacion(
  * `estado` dice cómo quedó cada fila en la última comparación; sin comparación
  * (`undefined`) no se sabe, y se escribe.
  *
- * Una fila sin valor o sin grupo se omite y se dice: no hay nada que escribir.
+ * Una fila sin valor o sin grupo se omite y se dice. Y su patrón entero se
+ * BLOQUEA: reescribirlo sin ella reemplazaría —borraría— la carga que esa
+ * partida tenga hoy en el modelo, y la confirmación no lo diría.
  */
 export function planAplicaciones(
   filas: readonly FilaAplicacion[],
   estado: (f: FilaAplicacion) => string | undefined,
-): { escribir: FilaAplicacion[]; omitidas: { id: string; partida: string; motivo: string }[] } {
-  const omitidas: { id: string; partida: string; motivo: string }[] = [];
+): {
+  escribir: FilaAplicacion[];
+  omitidas: { id: string; partida: string; motivo: string }[];
+  bloqueados: { patron: string; partidas: string[] }[];
+} {
+  const omitidas: { id: string; partida: string; motivo: string; patron: string }[] = [];
   const validas: FilaAplicacion[] = [];
   for (const f of filas) {
-    if (f.error || f.valor === undefined) omitidas.push({ id: f.id, partida: f.partida, motivo: f.error ?? 'sin valor' });
-    else if (!f.aplicacion.grupo.trim()) omitidas.push({ id: f.id, partida: f.partida, motivo: 'sin grupo' });
+    const o = { id: f.id, partida: f.partida, patron: f.patron };
+    if (f.error || f.valor === undefined) omitidas.push({ ...o, motivo: f.error ?? 'sin valor' });
+    else if (!f.aplicacion.grupo.trim()) omitidas.push({ ...o, motivo: 'sin grupo' });
     else validas.push(f);
   }
+  const rotos = new Map<string, string[]>();
+  for (const o of omitidas) rotos.set(o.patron, [...(rotos.get(o.patron) ?? []), o.partida]);
   const cambian = new Set(validas.filter((f) => estado(f) !== 'igual').map((f) => f.patron));
-  return { escribir: validas.filter((f) => cambian.has(f.patron)), omitidas };
+  return {
+    escribir: validas.filter((f) => cambian.has(f.patron) && !rotos.has(f.patron)),
+    omitidas: omitidas.map(({ patron: _, ...o }) => o),
+    bloqueados: [...rotos]
+      .filter(([patron]) => cambian.has(patron))
+      .map(([patron, partidas]) => ({ patron, partidas })),
+  };
 }
 
 /** Las cargas de Flow que ya dicen cómo es su patrón, en la forma de `avisosPesoPropio`. */

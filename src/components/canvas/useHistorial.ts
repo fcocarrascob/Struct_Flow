@@ -46,6 +46,16 @@ export interface OpcionesHistorial<T> {
   esPerdida?: (nuevo: T, asentado: T) => boolean;
   /** Se aplica al estado antes de restaurarlo. La hoja descarta sus bloques a medio crear. */
   alRestaurarEstado?: (estado: T) => T;
+  /**
+   * ¿Este cambio solo trae una LECTURA de fuera, sin que el usuario haya editado
+   * nada? Entonces se asienta sin entrar en el historial.
+   *
+   * Es para lo que refleja un estado externo —lo leído de SAP en una obra—:
+   * deshacerlo no deshace nada en el mundo, solo vuelve a mostrar una foto vieja
+   * de él. Quien lo usa tiene que conservar esa lectura en `alRestaurarEstado`,
+   * o deshacer una edición anterior la traería de vuelta igual.
+   */
+  esLectura?: (nuevo: T, asentado: T) => boolean;
 }
 
 /**
@@ -67,7 +77,7 @@ export interface OpcionesHistorial<T> {
 export function useHistorial<T>(
   valor: T,
   aplicar: (v: T) => void,
-  { alRestaurar, esPerdida, alRestaurarEstado }: OpcionesHistorial<T> = {},
+  { alRestaurar, esPerdida, alRestaurarEstado, esLectura }: OpcionesHistorial<T> = {},
 ): Historial {
   const pasado = useRef<T[]>([]);
   const futuro = useRef<T[]>([]);
@@ -89,6 +99,10 @@ export function useHistorial<T>(
       return;
     }
     if (valor === asentado.current) return;
+    if (esLectura?.(valor, asentado.current)) {
+      asentado.current = valor;
+      return;
+    }
 
     const registrar = () => {
       pasado.current.push(asentado.current);

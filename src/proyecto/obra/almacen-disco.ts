@@ -303,6 +303,9 @@ function sesionDisco(
     pedir('POST', `${ruta}/escritor`, { token, forzar }).then(
       () => {
         if (e.get().conflicto === 'escritor') e.set({ conflicto: null });
+        // El servidor volvió a contestar: un error que no dejó nada por escribir
+        // ya no dice nada. Si quedó algo, lo aclara el reintento de la cola.
+        if (e.get().error && !pendiente) e.set({ error: '' });
       },
       (err: ErrorServidor) => {
         if (err.conflicto === 'escritor') e.set({ conflicto: 'escritor' });
@@ -314,6 +317,10 @@ function sesionDisco(
     // Sin el candado no se late: pedirlo cada 10 s lo robaría en cuanto la otra
     // pestaña se durmiera un momento. Tomarlo es explícito.
     if (e.get().conflicto !== 'escritor') void escritor();
+    // Una escritura que falló por la red quedó en la cola, y nada más la
+    // relanzaba: con el servidor ya de vuelta, la banda de error seguía fija
+    // hasta la próxima tecla. El latido la reintenta.
+    if (pendiente && e.get().error && !e.get().conflicto) void vaciarCola();
   }, LATIDO_MS);
 
   async function vaciarCola(): Promise<void> {
