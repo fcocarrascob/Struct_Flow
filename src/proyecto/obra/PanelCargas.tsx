@@ -1,7 +1,69 @@
 import { Fragment, useEffect, useRef } from 'react';
 import type { EvaluacionCarga } from './calculo';
-import { nuevaCarga, problemaDeNombre, type Carga } from './modelo';
+import { nuevaCarga, problemaDeNombre, TIPOS_PATRON, type Carga, type PatronSap } from './modelo';
+import { avisosPesoPropio, numero, patronesDeFlow } from './sap';
 import { useEscape } from './useEscape';
+
+/**
+ * El tipo SAP y el multiplicador de peso propio de una carga: lo que la carga
+ * ES como Load Pattern. Sin tipo, la carga no dice nada de su patrón y el peso
+ * propio no se puede escribir.
+ *
+ * El peso propio es texto y se lee al salir del campo: con `type="number"` una
+ * coma decimal se ve y se descarta en silencio (`docs/pendientes.md`), y un
+ * «1,» a medio escribir no es un número todavía.
+ */
+function CeldasPatron({
+  carga,
+  onCambiar,
+}: {
+  carga: Carga;
+  onCambiar: (patron: PatronSap | undefined) => void;
+}) {
+  const p = carga.patron;
+  // Un tipo que trajo el modelo y no está en la lista corta se sigue ofreciendo.
+  const tipos: readonly string[] = p && !TIPOS_PATRON.includes(p.tipo as never) ? [...TIPOS_PATRON, p.tipo] : TIPOS_PATRON;
+  return (
+    <>
+      <select
+        value={p?.tipo ?? ''}
+        onChange={(e) =>
+          onCambiar(e.target.value ? { tipo: e.target.value, pesoPropio: p?.pesoPropio ?? 0 } : undefined)
+        }
+        aria-label={`Tipo SAP de ${carga.nombre}`}
+        className={`${CELDA} w-[6.5rem]`}
+      >
+        <option value="">—</option>
+        {tipos.map((t) => (
+          <option key={t} value={t}>
+            {t}
+          </option>
+        ))}
+      </select>
+      <input
+        // La clave remonta el campo cuando el valor cambia por fuera (deshacer).
+        key={`${carga.id}:${p?.pesoPropio ?? ''}`}
+        type="text"
+        inputMode="decimal"
+        defaultValue={p ? numero(p.pesoPropio) : ''}
+        disabled={!p}
+        onBlur={(e) => {
+          if (!p) return;
+          const v = Number(e.target.value.trim().replace(',', '.'));
+          if (e.target.value.trim() === '' || !Number.isFinite(v) || v < 0) {
+            e.target.value = numero(p.pesoPropio);
+            return;
+          }
+          if (v !== p.pesoPropio) onCambiar({ ...p, pesoPropio: v });
+        }}
+        onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+        aria-label={`Multiplicador de peso propio de ${carga.nombre}`}
+        title="Multiplicador de peso propio del patrón: 1 en el del peso propio, 0 en los demás"
+        className={`${CELDA} w-12 text-right font-mono disabled:bg-surface disabled:text-muted`}
+      />
+    </>
+  );
+}
 
 /**
  * El CRUD de los patrones de carga, al estilo de «Define → Load Patterns».
@@ -22,6 +84,11 @@ import { useEscape } from './useEscape';
 
 const CAMPO =
   'w-full rounded border bg-white px-2 py-1 text-xs text-ink outline-none focus:border-accent';
+
+/** Las celdas de ancho fijo de la fila: sin el `w-full` de `CAMPO`, que les
+ *  ganaba al ancho y estiraba la fila hasta sacar el nombre de la vista. */
+const CELDA =
+  'shrink-0 rounded border border-border bg-white px-1.5 py-1 text-xs text-ink outline-none focus:border-accent';
 
 /** ¿Es el nombre que propuso `nuevaCarga` y que nadie ha reescrito todavía? Se
  *  pregunta a la misma función que lo propone, para que no haya dos formatos. */
@@ -72,9 +139,10 @@ export default function PanelCargas({
   }, [enfocada]);
 
   const cargaEnfocada = cargas.find((c) => c.id === enfocada) ?? null;
+  const avisos = avisosPesoPropio(patronesDeFlow(cargas));
 
   return (
-    <aside className="flex h-full w-[26rem] shrink-0 flex-col overflow-y-auto border-l border-border bg-white">
+    <aside className="flex h-full w-[32rem] shrink-0 flex-col overflow-y-auto border-l border-border bg-white">
       <header className="sticky top-0 z-10 border-b border-border bg-white px-4 py-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
@@ -111,7 +179,19 @@ export default function PanelCargas({
           </p>
         ) : (
           <div className="space-y-1">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Nombre</p>
+            {avisos.map((a) => (
+              <p key={a} className="mb-1 rounded border border-aviso px-2 py-1 text-[10px] leading-snug text-aviso">
+                {a}
+              </p>
+            ))}
+            <div className="flex gap-2 text-[10px] font-semibold uppercase tracking-wide text-muted">
+              <span className="flex-1">Nombre</span>
+              <span className="w-[6.5rem]">Tipo SAP</span>
+              <span className="w-12 whitespace-nowrap" title="Multiplicador de peso propio del patrón">
+                P. propio
+              </span>
+              <span className="w-6" />
+            </div>
 
             {cargas.map((c) => {
               const problema = problemaDeNombre(c, cargas);
@@ -130,6 +210,7 @@ export default function PanelCargas({
                       aria-invalid={problema ? true : undefined}
                       className={`${CAMPO} min-w-0 flex-1 font-mono ${problema ? 'border-error' : 'border-border'}`}
                     />
+                    <CeldasPatron carga={c} onCambiar={(patron) => onCambiar(c.id, { patron })} />
                     {/* Un clic y se va. Acá había un «¿borrar?» en dos tiempos, que
                         era la única protección de la obra cuando no había deshacer:
                         quitar un nodo de cálculo o una partida no preguntaba nada y

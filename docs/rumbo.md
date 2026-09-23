@@ -133,6 +133,12 @@ antes de dar el siguiente:
 
 1. Conectarse al SAP2000 abierto y mostrar el nombre del modelo — **hecho** (2026-09-23).
    Solo se engancha y lee: no lanza SAP, no guarda ni analiza, y se niega con dos instancias.
+1. **Las cargas son Load Patterns, y Flow manda** — primer paso **hecho** (2026-09-23): cada
+   carga lleva su tipo SAP y su multiplicador de peso propio, y el nodo SAP2000 lee los patrones
+   del modelo y dice en qué se aparta de la obra (igual, difiere, sin definir, falta en SAP,
+   solo en SAP), más el peso propio en ninguna o en dos cargas. Un patrón no tiene valor: los
+   valores van en los objetos, y eso es otro paso. Siguen: traer a Flow los patrones que solo
+   están en SAP, y después empujar a SAP los de Flow, mostrando antes lo que va a cambiar.
 2. Leer lo medido (reacciones por caso, periodos, cortes basales) con su sello, y publicarlo
    como nombres que las hojas usan en vez de copiarlos a mano.
 3. Marcar la lectura atrasada cuando el `.sdb` cambió después de leerla.

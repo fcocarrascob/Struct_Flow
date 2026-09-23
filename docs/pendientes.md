@@ -58,6 +58,21 @@ retirar.
 - **`sanearConInforme` no tiene caso de regresión**: no encaja en `verify:motor` ni en
   `verify:obra`. Se comprobó a mano; le falta su sitio.
 
+## SAP2000
+
+Lo que dejó a la vista la primera comparación de Load Patterns contra el modelo del Pachón,
+para la sesión de ajustes:
+
+- **Una carga de Flow no siempre es un Load Pattern.** `RSX`, `RSY` y `EV` salen «falta en
+  SAP» porque en el modelo son casos (espectro, vertical sísmico), no patrones. La carga
+  necesita poder decir «soy un caso, no un patrón».
+- **Una carga de Flow puede ser varios patrones.** La grúa es `CLV` en Flow y `CLV_P1…P3` en
+  SAP, una por posición del puente. Hoy salen como filas sueltas, a propósito: no se adivinan
+  equivalencias.
+- **El puente no se arranca solo** con `npm run dev`. Y el panel muestra la última conexión,
+  que puede no ser el modelo abierto ahora (lo avisa, pero hay que volver a conectar a mano).
+- La tabla de patrones es larga (33 filas en el Pachón) y no se filtra por estado.
+
 ## Motor
 
 - **math.js simplifica las unidades al mostrarlas**: `5 kN * 2 m =` sale `10 kJ`, un momento

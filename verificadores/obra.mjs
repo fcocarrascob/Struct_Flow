@@ -63,6 +63,8 @@ const {
   unirObra,
   marcarRevision,
   porRevisar,
+  compararPatrones,
+  avisosPesoPropio,
 } = motor;
 
 // ── Armar una obra ───────────────────────────────────────────────────────────
@@ -1161,6 +1163,35 @@ const CASOS_SANEO = [
     },
   },
   {
+    nombre: 'el Load Pattern de una carga y la lectura del modelo sobreviven al saneo',
+    crudo: {
+      id: 'o',
+      modulos: ['cargas', 'sap'],
+      cargas: [
+        { id: 'c1', nombre: 'DEAD', subcargas: [], patron: { tipo: 'Dead', pesoPropio: 1.3 } },
+        { id: 'c2', nombre: 'S', subcargas: [], patron: { tipo: 'Snow', pesoPropio: 'x' } },
+        { id: 'c3', nombre: 'W', subcargas: [], patron: { tipo: '' } },
+      ],
+      calculos: [],
+      sap: {
+        modelo: 'm.sdb',
+        patrones: {
+          modelo: 'm.sdb',
+          leido: '2026-09-23T12:00:00.000Z',
+          lista: [{ nombre: 'DEAD', tipo: 'Dead', pesoPropio: 1.3 }, { nombre: '', tipo: 'Dead' }, { nombre: 'X' }],
+        },
+      },
+    },
+    ok: (o) => {
+      const p = (id) => o.cargas.find((c) => c.id === id)?.patron;
+      if (p('c1')?.pesoPropio !== 1.3 || p('c1')?.tipo !== 'Dead') return `c1: ${JSON.stringify(p('c1'))}`;
+      if (p('c2')?.pesoPropio !== 0) return 'un peso propio ilegible no quedó en 0';
+      if (p('c3') !== undefined) return 'un patrón sin tipo sobrevivió';
+      const l = o.sap?.patrones?.lista ?? [];
+      return l.length === 1 && l[0].nombre === 'DEAD' ? null : `lectura: ${JSON.stringify(l)}`;
+    },
+  },
+  {
     nombre: 'una obra sin grupos no gana un `grupos: []` al sanearse',
     // Guardar una obra no puede cambiarla si nadie la tocó.
     crudo: { id: 'o', calculos: [], cargas: [] },
@@ -1336,6 +1367,67 @@ const CASOS_CARPETA = [
   },
 ];
 
+// ── Las cargas contra los Load Patterns del modelo ───────────────────────────
+//
+// Flow manda: la comparación dice en qué se aparta el modelo de lo que la obra
+// define. Los nombres y los números son los del modelo del Pachón (DEAD con peso
+// propio 1,3, la grúa en SAP como CLV_P1…).
+
+const carga = (nombre, patron) => ({ id: `c-${nombre}`, nombre, subcargas: [], ...(patron ? { patron } : {}) });
+const leido = (nombre, tipo, pesoPropio = 0) => ({ nombre, tipo, pesoPropio });
+const estados = (filas) => filas.map((f) => `${f.nombre}:${f.estado}`).join(' ');
+
+const CASOS_PATRONES = [
+  {
+    nombre: 'cada carga contra su patrón: igual, difiere, sin definir, solo en Flow y solo en SAP',
+    ok: () => {
+      const filas = compararPatrones(
+        [
+          carga('DEAD', { tipo: 'Dead', pesoPropio: 1.3 }),
+          carga('S', { tipo: 'Live', pesoPropio: 0 }),
+          carga('LR'),
+          carga('CLV', { tipo: 'Other', pesoPropio: 0 }),
+        ],
+        [leido('DEAD', 'Dead', 1.3), leido('S', 'Snow'), leido('LR', 'Rooflive'), leido('CLV_P1', 'Other')],
+      );
+      const esperado = 'DEAD:igual S:difiere LR:sin-definir CLV:solo-flow CLV_P1:solo-sap';
+      if (estados(filas) !== esperado) return `dio ${estados(filas)}`;
+      const s = filas.find((f) => f.nombre === 'S');
+      return s.diferencias.some((d) => d.includes('Live') && d.includes('Snow')) ? null : `diferencias: ${s.diferencias}`;
+    },
+  },
+  {
+    nombre: 'el peso propio se compara como número: 1,3 contra 1 difiere',
+    ok: () => {
+      const [f] = compararPatrones([carga('DEAD', { tipo: 'Dead', pesoPropio: 1 })], [leido('DEAD', 'Dead', 1.3)]);
+      return f.estado === 'difiere' && f.diferencias.some((d) => d.includes('peso propio'))
+        ? null
+        : `${f.estado}: ${f.diferencias}`;
+    },
+  },
+  {
+    nombre: 'una carga sin nombre no se compara con nada',
+    ok: () => {
+      const filas = compararPatrones([carga('  ')], []);
+      return filas.length === 0 ? null : estados(filas);
+    },
+  },
+  {
+    nombre: 'el peso propio en ninguna carga, o en dos, se avisa; sin patrones definidos, nada',
+    ok: () => {
+      if (avisosPesoPropio([]).length) return 'avisó sin nada definido';
+      const ninguno = avisosPesoPropio([{ nombre: 'S', pesoPropio: 0 }]);
+      if (ninguno.length !== 1 || !ninguno[0].includes('Ninguna')) return `ninguno: ${ninguno}`;
+      const dos = avisosPesoPropio([
+        { nombre: 'DEAD', pesoPropio: 1 },
+        { nombre: 'SDL', pesoPropio: 1 },
+      ]);
+      if (dos.length !== 1 || !dos[0].includes('DEAD') || !dos[0].includes('SDL')) return `dos: ${dos}`;
+      return avisosPesoPropio([{ nombre: 'DEAD', pesoPropio: 1.3 }]).length ? 'avisó con uno solo' : null;
+    },
+  },
+];
+
 // ── El servidor de obras, sobre un directorio temporal ───────────────────────
 //
 // Se prueban las operaciones de `servidor/obras.mjs` sin HTTP: el manejador es
@@ -1507,6 +1599,20 @@ const CASOS_SERVIDOR = [
 // ── Correr ───────────────────────────────────────────────────────────────────
 
 let fallos = 0;
+for (const caso of CASOS_PATRONES) {
+  let motivo;
+  try {
+    motivo = caso.ok();
+  } catch (e) {
+    motivo = `lanzó: ${e.message}`;
+  }
+  if (motivo) {
+    fallos++;
+    console.log(`  [FALLA] ${caso.nombre}\n          ${motivo}`);
+  } else {
+    console.log(`  [ OK  ] ${caso.nombre}`);
+  }
+}
 for (const caso of CASOS_SERVIDOR) {
   let motivo;
   try {
@@ -1583,6 +1689,6 @@ for (const caso of CASOS) {
   }
 }
 
-const total = CASOS.length + CASOS_SANEO.length + CASOS_HOJA.length + CASOS_CARPETA.length + CASOS_SERVIDOR.length;
+const total = CASOS.length + CASOS_SANEO.length + CASOS_HOJA.length + CASOS_CARPETA.length + CASOS_SERVIDOR.length + CASOS_PATRONES.length;
 console.log(`\n${fallos ? 'FALLA' : 'OK'}: ${total - fallos} de ${total} casos.\n`);
 process.exit(fallos ? 1 : 0);

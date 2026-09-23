@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import type { ConexionSap } from './modelo';
+import type { Carga, ConexionSap, LecturaPatrones, PatronSap } from './modelo';
+import { avisosPesoPropio, compararPatrones, numero, patronesDeFlow, type EstadoPatron } from './sap';
 import { useEscape } from './useEscape';
 
 /**
@@ -24,13 +25,151 @@ async function conectarSap(): Promise<Omit<ConexionSap, 'leido'>> {
   return datos;
 }
 
+async function leerPatrones(): Promise<{ ruta: string; lectura: LecturaPatrones }> {
+  let r: Response;
+  try {
+    r = await fetch('/sap-api/patrones');
+  } catch {
+    throw new Error('El puente de SAP no responde.');
+  }
+  const datos = await r.json().catch(() => null);
+  if (!datos) throw new Error('El puente de SAP no está corriendo. Arráncalo con `npm run puente-sap`.');
+  if (!r.ok) throw new Error(datos.motivo ?? `El puente respondió ${r.status}.`);
+  return {
+    ruta: datos.ruta ?? '',
+    lectura: { modelo: datos.modelo ?? '', leido: new Date().toISOString(), lista: datos.patrones ?? [] },
+  };
+}
+
+const ESTADO: Record<EstadoPatron, { texto: string; clase: string }> = {
+  igual: { texto: 'igual', clase: 'text-muted' },
+  difiere: { texto: 'difiere', clase: 'text-error font-medium' },
+  'sin-definir': { texto: 'sin definir en Flow', clase: 'text-aviso' },
+  'solo-flow': { texto: 'falta en SAP', clase: 'text-error' },
+  'solo-sap': { texto: 'solo en SAP', clase: 'text-aviso' },
+};
+
+const patronTexto = (p: PatronSap | undefined) => (p ? `${p.tipo} · ${numero(p.pesoPropio)}` : '—');
+
+/**
+ * Las cargas de la obra contra los Load Patterns del modelo. Flow manda: la
+ * tabla dice en qué se aparta el MODELO. Solo lee; corregir se hace en el panel
+ * de Cargas o en SAP.
+ */
+function ComparacionPatrones({
+  cargas,
+  lectura,
+  modeloConectado,
+  onLeidos,
+}: {
+  cargas: readonly Carga[];
+  lectura: LecturaPatrones | undefined;
+  modeloConectado: string | undefined;
+  onLeidos: (ruta: string, lectura: LecturaPatrones) => void;
+}) {
+  const [estado, setEstado] = useState<{ fase: 'quieto' | 'leyendo' } | { fase: 'error'; motivo: string }>({
+    fase: 'quieto',
+  });
+  const leer = () => {
+    setEstado({ fase: 'leyendo' });
+    leerPatrones().then(
+      ({ ruta, lectura: l }) => {
+        onLeidos(ruta, l);
+        setEstado({ fase: 'quieto' });
+      },
+      (e: Error) => setEstado({ fase: 'error', motivo: e.message }),
+    );
+  };
+
+  const filas = lectura ? compararPatrones(cargas, lectura.lista) : [];
+  const enFlow = avisosPesoPropio(patronesDeFlow(cargas));
+  const enSap = lectura ? avisosPesoPropio(lectura.lista) : [];
+  const apartados = filas.filter((f) => f.estado !== 'igual').length;
+
+  return (
+    <section className="border-t border-border px-5 py-4">
+      <div className="mb-2 flex items-baseline justify-between gap-2">
+        <h3 className="text-xs font-semibold text-ink">Load Patterns</h3>
+        <button
+          type="button"
+          onClick={leer}
+          disabled={estado.fase === 'leyendo'}
+          className="rounded border border-border px-2 py-0.5 text-[11px] text-muted hover:border-accent hover:text-accent disabled:opacity-50"
+        >
+          {estado.fase === 'leyendo' ? 'Leyendo…' : lectura ? 'Volver a leer' : 'Leer del modelo'}
+        </button>
+      </div>
+
+      {estado.fase === 'error' && (
+        <p role="status" className="mb-2 rounded border border-aviso px-3 py-2 text-xs leading-snug text-aviso">
+          {estado.motivo}
+        </p>
+      )}
+
+      {!lectura ? (
+        <p className="text-[11px] leading-snug text-muted">
+          Compara las cargas de la obra con los Load Patterns del modelo abierto: nombre, tipo y
+          multiplicador de peso propio. Solo lee; no cambia nada en SAP.
+        </p>
+      ) : (
+        <>
+          <p className="mb-2 text-[11px] leading-snug text-muted">
+            Leído de <span className="font-mono text-ink">{lectura.modelo || '(sin guardar)'}</span> el{' '}
+            {new Date(lectura.leido).toLocaleString()}
+            {modeloConectado && lectura.modelo !== modeloConectado && (
+              <span className="text-aviso"> — no es el modelo de la última conexión ({modeloConectado})</span>
+            )}
+            . {apartados === 0 ? 'Todo coincide.' : `${apartados} de ${filas.length} no coinciden.`}
+          </p>
+
+          {[...enFlow.map((a) => `En Flow: ${a}`), ...enSap.map((a) => `En el modelo: ${a}`)].map((a) => (
+            <p key={a} className="mb-1 rounded border border-aviso px-2 py-1 text-[10px] leading-snug text-aviso">
+              {a}
+            </p>
+          ))}
+
+          <table className="w-full text-[11px]">
+            <thead>
+              <tr className="text-left text-[10px] uppercase tracking-wide text-muted">
+                <th className="py-1 font-semibold">Patrón</th>
+                <th className="font-semibold">Flow</th>
+                <th className="font-semibold">SAP</th>
+                <th className="font-semibold">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filas.map((f) => (
+                <tr key={f.nombre} className="border-t border-border/60 align-top" title={f.diferencias.join('\n') || undefined}>
+                  <td className="py-1 pr-2 font-mono text-ink">{f.nombre}</td>
+                  <td className="pr-2 font-mono text-muted">{f.estado === 'solo-sap' ? '—' : patronTexto(f.flow)}</td>
+                  <td className="pr-2 font-mono text-muted">{patronTexto(f.sap)}</td>
+                  <td className={ESTADO[f.estado].clase}>
+                    {ESTADO[f.estado].texto}
+                    {f.estado === 'difiere' && (
+                      <span className="block text-[10px] font-normal text-muted">{f.diferencias.join('; ')}</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
+      )}
+    </section>
+  );
+}
+
 export default function PanelSap({
   sap,
+  cargas,
   onConectado,
+  onPatronesLeidos,
   onCerrar,
 }: {
   sap: ConexionSap | undefined;
+  cargas: readonly Carga[];
   onConectado: (sap: ConexionSap) => void;
+  onPatronesLeidos: (ruta: string, lectura: LecturaPatrones) => void;
   onCerrar: () => void;
 }) {
   useEscape(onCerrar);
@@ -111,6 +250,13 @@ export default function PanelSap({
           </p>
         )}
       </div>
+
+      <ComparacionPatrones
+        cargas={cargas}
+        lectura={sap?.patrones}
+        modeloConectado={sap?.modelo}
+        onLeidos={onPatronesLeidos}
+      />
     </aside>
   );
 }

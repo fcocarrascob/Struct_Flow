@@ -32,6 +32,9 @@ import {
   type Carga,
   type ConexionSap,
   type Frontera,
+  type LecturaPatrones,
+  type PatronLeido,
+  type PatronSap,
   type Grupo,
   type Modulo,
   type NodoCalculo,
@@ -47,13 +50,48 @@ export type Resultado = { ok: true } | { ok: false; motivo: string };
 
 const MODULOS: ReadonlySet<string> = new Set<Modulo>(['cargas', 'sap']);
 
+const texto = (v: unknown) => (typeof v === 'string' ? v : '');
+
+/**
+ * El Load Pattern de una carga. Un tipo vacío no define nada y se descarta
+ * entero; un peso propio ilegible queda en 0, que es lo que SAP asume.
+ */
+function sanearPatron(crudo: unknown): PatronSap | undefined {
+  if (typeof crudo !== 'object' || crudo === null) return undefined;
+  const p = crudo as Partial<PatronSap>;
+  if (typeof p.tipo !== 'string' || !p.tipo) return undefined;
+  const peso = typeof p.pesoPropio === 'number' && Number.isFinite(p.pesoPropio) ? p.pesoPropio : 0;
+  return { tipo: p.tipo, pesoPropio: peso };
+}
+
+function sanearLectura(crudo: unknown): LecturaPatrones | undefined {
+  if (typeof crudo !== 'object' || crudo === null) return undefined;
+  const l = crudo as Partial<LecturaPatrones>;
+  if (!Array.isArray(l.lista)) return undefined;
+  const lista: PatronLeido[] = [];
+  for (const x of l.lista) {
+    const nombre = (x as { nombre?: unknown } | null)?.nombre;
+    const patron = sanearPatron(x);
+    if (typeof nombre === 'string' && nombre && patron) lista.push({ nombre, ...patron });
+  }
+  return { modelo: texto(l.modelo), leido: texto(l.leido), lista };
+}
+
 /** La última conexión a SAP2000. Una sin modelo no dice nada y se descarta. */
 function sanearSap(crudo: unknown): { sap?: ConexionSap } {
   if (typeof crudo !== 'object' || crudo === null) return {};
   const s = crudo as Partial<ConexionSap>;
   if (typeof s.modelo !== 'string' || !s.modelo) return {};
-  const texto = (v: unknown) => (typeof v === 'string' ? v : '');
-  return { sap: { modelo: s.modelo, ruta: texto(s.ruta), version: texto(s.version), leido: texto(s.leido) } };
+  const patrones = sanearLectura(s.patrones);
+  return {
+    sap: {
+      modelo: s.modelo,
+      ruta: texto(s.ruta),
+      version: texto(s.version),
+      leido: texto(s.leido),
+      ...(patrones ? { patrones } : {}),
+    },
+  };
 }
 
 /**
@@ -272,10 +310,12 @@ function sanearCarga(crudo: unknown, vistos: Vistos, grupos: ReadonlySet<string>
   if (typeof crudo !== 'object' || crudo === null) return null;
   const c = crudo as Partial<Carga>;
   if (typeof c.nombre !== 'string') return null;
+  const patron = sanearPatron(c.patron);
   return {
     id: idUnico(c.id, vistos),
     nombre: c.nombre,
     ...grupoDe(c.grupo, grupos),
+    ...(patron ? { patron } : {}),
     // El `tipo` de una obra guardada con el catálogo cerrado se ignora: la carga
     // ya no lo tiene, y el nombre —que es lo que la identifica— no dependía de él.
     // Una obra guardada antes del desglose no trae `subcargas`; no es un dato

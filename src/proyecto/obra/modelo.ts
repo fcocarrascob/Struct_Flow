@@ -292,6 +292,33 @@ export const COLOR_RE = /^#[0-9a-f]{6}$/i;
  * nombres, que es lo que el usuario escribió y no una clave que tuvo que elegir
  * de una lista.
  */
+/**
+ * Lo que una carga es en SAP2000: un Load Pattern. Un patrón NO tiene valor —el
+ * valor va en los objetos, y eso es otro paso—; tiene un tipo y un multiplicador
+ * de peso propio. Flow es la fuente: esto es lo que el modelo DEBERÍA tener.
+ */
+export interface PatronSap {
+  /** El nombre de `eLoadPatternType` en la API: `Dead`, `SuperDead`, `Wind`… */
+  tipo: string;
+  /** Casi siempre 1 en el patrón del peso propio y 0 en los demás. */
+  pesoPropio: number;
+}
+
+/** Los tipos que se ofrecen primero; un modelo puede traer otros y se respetan. */
+export const TIPOS_PATRON = [
+  'Dead',
+  'SuperDead',
+  'Live',
+  'ReduceLive',
+  'Rooflive',
+  'Snow',
+  'Wind',
+  'Quake',
+  'Temperature',
+  'Notional',
+  'Other',
+] as const;
+
 export interface Carga {
   id: string;
   /** Lo que el usuario escribe: `D`, `SC oficinas`, `Wx`. Es el identificador
@@ -302,6 +329,8 @@ export interface Carga {
   /** El id de su `Grupo`. Va en la carga y no en la partida: un patrón no puede
    *  quedar partido entre dos grupos, y una carga plegada se dibuja como su partida. */
   grupo?: string;
+  /** Cómo es como Load Pattern de SAP2000. Ausente mientras no se defina. */
+  patron?: PatronSap;
 }
 
 /**
@@ -325,6 +354,21 @@ export interface ConexionSap {
   version: string;
   /** ISO: cuándo se leyó. */
   leido: string;
+  /** La última lectura de los Load Patterns del modelo, para compararla con las
+   *  cargas aunque el puente no esté corriendo. */
+  patrones?: LecturaPatrones;
+}
+
+/** Un Load Pattern tal como está en el modelo. */
+export interface PatronLeido extends PatronSap {
+  nombre: string;
+}
+
+export interface LecturaPatrones {
+  /** De qué modelo se leyeron: puede no ser el de la última conexión. */
+  modelo: string;
+  leido: string;
+  lista: PatronLeido[];
 }
 
 export interface Obra {

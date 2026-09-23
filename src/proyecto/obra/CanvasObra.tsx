@@ -1755,7 +1755,23 @@ function CanvasObra({
         {!activa && seleccion === ID_NODO_SAP && obra.modulos.includes('sap') && (
           <PanelSap
             sap={obra.sap}
-            onConectado={(sap) => setObra((o) => (o ? { ...o, sap } : o))}
+            cargas={obra.cargas}
+            // Una conexión nueva conserva la última lectura de patrones: dice de
+            // qué modelo salió, y el panel avisa si no es el mismo.
+            onConectado={(sap) => setObra((o) => (o ? { ...o, sap: { ...sap, ...(o.sap?.patrones ? { patrones: o.sap.patrones } : {}) } } : o))}
+            onPatronesLeidos={(ruta, patrones) =>
+              setObra((o) =>
+                o
+                  ? {
+                      ...o,
+                      sap: {
+                        ...(o.sap ?? { modelo: patrones.modelo, ruta, version: '', leido: patrones.leido }),
+                        patrones,
+                      },
+                    }
+                  : o,
+              )
+            }
             onCerrar={() => setSeleccion(null)}
           />
         )}
