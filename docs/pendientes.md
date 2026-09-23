@@ -10,11 +10,21 @@ retirar.
 
 ## Obra
 
-- **Dos pestañas del navegador con la misma obra se pisan.** No hay listener de `storage`
-  como el de `MathCanvas`, y la obra guarda su copia en memoria al ocultarse o cerrarse la
-  pestaña: la última en guardar gana, sin aviso. Reproducido el 2026-09-22 (un grupo borrado
-  en una pestaña volvió al cerrar la otra). Se resuelve de raíz con la obra en disco y un solo
-  escritor (etapa 1).
+- **Sin servidor, dos pestañas con la misma obra se siguen pisando.** El candado es del
+  servidor de obras; una obra en `localStorage` no lo tiene, y la última en guardar gana.
+  Con el servidor no pasa.
+- **Solo lectura no impide editar.** La pestaña sin candado deja tocar la obra y lo dice en
+  la banda, pero lo escrito se descarta al tomar el control. Bloquear la edición significa
+  llegar a los paneles y al canvas de cada pestaña de hoja.
+- **El candado vive en la memoria del servidor.** Dos servidores sobre la misma raíz (`npm run
+  dev` y `npm run obras`) no lo comparten, y reiniciar el servidor lo suelta.
+- **Escribir una obra no es atómico entre archivos**: cada archivo se escribe entero (temporal
+  y renombrado), pero un corte a mitad puede dejar `obra.json` nuevo con alguna hoja vieja.
+- **Una hoja ilegible se escribe vacía con el primer cambio.** La banda lo avisa al abrir;
+  guardar sin arreglarla en el disco la pierde.
+- **Las obras van por defecto a `./obras/` dentro de este repo** (ignorada por git). Para
+  trabajo real conviene `STRUCTFLOW_OBRAS` apuntando a otro sitio, y cada obra como su propio
+  repositorio.
 - **El historial vive en memoria y cabe 60 pasos.** Un F5 lo vacía: borras un nodo, recargas,
   y no hay vuelta. El aviso del borrado cubre la ventana que importa, pero no más.
 - **El aviso de ruptura no se puede consultar después.** Caduca con el siguiente cambio, a

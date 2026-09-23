@@ -57,22 +57,30 @@ saltos verticales miden 48 px. La hoja pasa a ser una **lista ordenada**: `Regio
 
 El orden sale de las dependencias y de lo que el Pachón mostró que más frena.
 
-### 1. La obra es un archivo, con un solo escritor
+### 1. La obra es un archivo, con un solo escritor — hecho
 
-Hoy vive en `localStorage`: se pierde con el navegador, no tiene versiones, no se comparte, y
-dos pestañas con la misma obra se pisan (la última en guardar gana, sin aviso).
+**2026-09-23.** Una obra es una **carpeta**: `obra.json` con el grafo y una hoja por nodo en
+`hojas/<nodo>.json`, en el mismo formato que exporta el canvas. Las genéricas siguen
+referenciadas por slug y sha256, no copiadas. La salida es determinista (dos espacios, LF),
+así que tocar una fórmula cambia un solo archivo en git.
 
-- Una obra es una **carpeta de proyecto**: un `obra.json` con el grafo, un archivo por hoja de
-  nodo y las instancias de genéricas con su sha, todo en JSON legible y versionable en git.
-- `obra/almacen.ts` pasa a ser una capa con dos implementaciones: archivos, por un servidor
-  local, y `localStorage` solo como borrador. Sigue saneando al leer y nunca al escribir.
-- **Una obra y un proyecto del harness son lo mismo.** La obra pasa a SER la carpeta del
-  proyecto, y el harness la lee en vez de proyectar un grafo propio. `/proyecto/<slug>`
-  desaparece.
-- Pregunta abierta: si el servidor local es `harness.servidor` o uno propio. El enlace con SAP
-  necesita el mismo puente, porque SAP2000 es COM y solo local.
-- La obra autocontenida del Pachón (`docs/pachon/autocontenida/`) pasa a ser el **caso de
-  regresión** de la capa de obra en disco, igual que las 33 planillas lo son del motor.
+- **El servidor es propio**: `servidor/obras.mjs`, montado en Vite en `/obras-api` y suelto con
+  `npm run obras`. Se descartó ampliar `harness.servidor`, que es solo GET a propósito; la
+  unificación sigue abierta (abajo). La raíz es `STRUCTFLOW_OBRAS`, o `./obras/` (ignorada).
+- **El servidor es tonto**: lee y escribe mapas ruta → texto. Cómo se parte una obra lo decide
+  `obra/carpeta.ts`, puro. Lo suyo son dos garantías: **un solo escritor** (candado con
+  latido; la segunda pestaña abre en solo lectura) y **nada se pisa sin saberlo** (cada
+  escritura dice sobre qué versión se hizo; una carpeta que cambió por fuera es un 409).
+- `obra/almacen-disco.ts` da a `CanvasObra` una **sesión** que no le dice dónde guarda.
+  `localStorage` queda para las obras sin servidor y como **borrador** de lo que no llegó al
+  disco al cerrar la página.
+- La obra autocontenida del Pachón es el **caso de regresión** de la carpeta en `verify:obra`:
+  la ida y vuelta no cambia un byte ni un resultado.
+
+Sigue abierto: **una obra y un proyecto del harness son lo mismo.** La obra debería SER la
+carpeta del proyecto, y el harness leerla en vez de proyectar un grafo propio;
+`/proyecto/<slug>` desaparecería. El formato en disco ya está; falta que el harness lo lea y
+decidir si el servidor de obras y el puente con SAP son el mismo proceso.
 
 ### 2. El nodo Modelo, leyendo lo que el harness ya selló
 

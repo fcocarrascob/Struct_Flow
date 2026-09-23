@@ -19,7 +19,8 @@ npm run verify:planilla -- <archivo.json> [--md]
 npm run verify:modulos   # evalúa los módulos de diseño (TS y declarativos) y sus memorias exportadas
 npm run verify:motor     # casos de regresión del motor: hojas mínimas con su resultado
 npm run verify:biblioteca          # el contrato de genérica y los casos de public/biblioteca/
-npm run verify:obra                # el grafo de cálculo de una obra: orden, ciclos, encadenamiento
+npm run verify:obra                # el grafo de cálculo de una obra, su carpeta y el servidor de obras
+npm run obras                      # el servidor de obras suelto (npm run dev ya lo monta)
 npm run indice:planillas           # regenera los dos índices (lo corren dev y build)
 npm run render:planilla -- <json> --pdf <salida>
 ```
@@ -123,7 +124,8 @@ resultado puede no ser válido, y por eso no vota en el CUMPLE / NO CUMPLE.
 (`/proyecto/<slug>`) pinta lo que `harness.grafo` proyecta desde archivos versionados, lo
 sirve `python -m harness.servidor` por `/api` y **no escribe nada**; se niega a pintar un
 `contrato` que no conoce, porque un grafo más chico se ve perfecto y está viejo. El de una
-**obra** (`/obra/<id>`) es un documento del usuario en `localStorage`.
+**obra** (`/obra/<id>`) es un documento del usuario: una carpeta en disco con el servidor de
+obras, o `localStorage` sin él.
 
 Vive **fuera de `src/lib/`** por una razón mecánica: el harness sella el motor como el hash
 de árbol de `src/lib` + `scripts`, y mover ese hash marca `eval_de_otro_motor` en todas las
@@ -151,9 +153,20 @@ entrada de otro. Las piezas, y por qué están separadas:
   una genérica es la misma operación que `/diseno/<slug>` y que `harness.planilla
   instanciar`. Un campo atado convierte unidades **dividiendo por `1 <unidad>` en el propio
   motor**, no con una tabla de factores.
-- `obra/almacen.ts` — `localStorage` (`structflow.obras.v1`). Acá el almacenamiento **es** el
-  dato, así que guardar devuelve un resultado y quien llama lo muestra. Se sanea al leer,
-  nunca al escribir: guardar una obra no puede tocar las demás.
+- `obra/almacen.ts` — el saneo de toda obra que se lee (`sanearObra`) y las obras en
+  `localStorage` (`structflow.obras.v1`). Acá el almacenamiento **es** el dato, así que
+  guardar devuelve un resultado y quien llama lo muestra. Se sanea al leer, nunca al
+  escribir: guardar una obra no puede tocar las demás.
+- `obra/carpeta.ts` — la obra en disco, pura: `partirObra` la reparte en `obra.json` más
+  `hojas/<nodo>.json` (el formato de exportar del canvas) y `unirObra` la vuelve a armar. La
+  salida es determinista para que git solo vea lo que cambió.
+- `servidor/obras.mjs` — el servidor de obras, **tonto a propósito**: mapas ruta → texto, un
+  candado de escritor con latido y un 409 si la carpeta cambió desde que se leyó. Va montado en
+  Vite en `/obras-api` (fuera del `/api` del harness) y vive fuera de `scripts/` por el sello.
+- `obra/almacen-disco.ts` — la **sesión** que recibe `CanvasObra`: guarda en disco o en el
+  navegador sin que el canvas lo sepa, serializa las escrituras, lleva el candado, detecta
+  conflictos y, al cerrar la página, deja un borrador en `localStorage` con lo que no llegó.
+  `CargadorObra` abre la obra antes de montar el canvas, y una recarga remonta con sesión nueva.
 
 Dos cosas que cuesta caro romper: **los ids de bloque son las claves de `results`** de la
 hoja global, así que el saneo los deduplica como `sanearRegiones`; y **el orden topológico
