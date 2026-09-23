@@ -262,6 +262,34 @@ export function compararAplicacion(
   return { estado: 'difiere', detalle: `SAP: ${partes.join('; ') || 'sin carga'}` };
 }
 
+/**
+ * Qué aplicaciones escribir en SAP.
+ *
+ * SE ESCRIBE POR PATRÓN ENTERO. El puente reemplaza lo que el patrón tenía en
+ * cada objeto con la primera partida que lo toca: si solo se mandara la partida
+ * que cambió, el reemplazo borraría a sus hermanas del mismo patrón que estaban
+ * iguales. Un patrón en el que todo está `igual` no se toca.
+ *
+ * `estado` dice cómo quedó cada fila en la última comparación; sin comparación
+ * (`undefined`) no se sabe, y se escribe.
+ *
+ * Una fila sin valor o sin grupo se omite y se dice: no hay nada que escribir.
+ */
+export function planAplicaciones(
+  filas: readonly FilaAplicacion[],
+  estado: (f: FilaAplicacion) => string | undefined,
+): { escribir: FilaAplicacion[]; omitidas: { id: string; partida: string; motivo: string }[] } {
+  const omitidas: { id: string; partida: string; motivo: string }[] = [];
+  const validas: FilaAplicacion[] = [];
+  for (const f of filas) {
+    if (f.error || f.valor === undefined) omitidas.push({ id: f.id, partida: f.partida, motivo: f.error ?? 'sin valor' });
+    else if (!f.aplicacion.grupo.trim()) omitidas.push({ id: f.id, partida: f.partida, motivo: 'sin grupo' });
+    else validas.push(f);
+  }
+  const cambian = new Set(validas.filter((f) => estado(f) !== 'igual').map((f) => f.patron));
+  return { escribir: validas.filter((f) => cambian.has(f.patron)), omitidas };
+}
+
 /** Las cargas de Flow que ya dicen cómo es su patrón, en la forma de `avisosPesoPropio`. */
 export function patronesDeFlow(cargas: readonly Carga[]): { nombre: string; pesoPropio: number }[] {
   return cargas.filter((c) => c.patron).map((c) => ({ nombre: c.nombre.trim(), pesoPropio: c.patron!.pesoPropio }));

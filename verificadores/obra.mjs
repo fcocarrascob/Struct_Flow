@@ -70,6 +70,7 @@ const {
   planEmpuje,
   aplicacionesDeObra,
   compararAplicacion,
+  planAplicaciones,
 } = motor;
 
 // ── Armar una obra ───────────────────────────────────────────────────────────
@@ -1534,6 +1535,28 @@ const CASOS_PATRONES = [
       if (parcial.estado !== 'difiere' || !parcial.detalle.includes('28')) return `parcial: ${JSON.stringify(parcial)}`;
       if (e({ objetos: 0, sinCarga: 0, cargas: [] }) !== 'sin-objetos') return 'un grupo vacío no se dijo';
       return e({ error: 'No hay un grupo' }) === 'error' ? null : 'el error del puente se perdió';
+    },
+  },
+  {
+    nombre: 'escribir cargas: un patrón que cambia se reescribe entero, lo igual se deja, lo roto se omite',
+    ok: () => {
+      const ap = (tipo, grupo) => ({ tipo, grupo, direccion: 10, ...(tipo === 'area-a-barras' ? { distribucion: 1 } : {}) });
+      const fila = (id, patron, valor, extra = {}) => ({ id, patron, partida: id, unidad: 'kN/m^2', valor, aplicacion: ap('area-a-barras', 'CUB'), ...extra });
+      const filas = [
+        fila('a1', 'SDL_CUB', 0.1),
+        fila('a2', 'SDL_CUB', 0.05, { aplicacion: ap('area-a-barras', 'CUB2') }),
+        fila('b1', 'S', 0.5),
+        fila('c1', 'LR', undefined, { error: 'sin valor' }),
+        fila('d1', 'POLVO', 0.2, { aplicacion: ap('area-a-barras', '  ') }),
+      ];
+      const estados = { a1: 'igual', a2: 'difiere', b1: 'igual' };
+      const { escribir, omitidas } = planAplicaciones(filas, (f) => estados[f.id]);
+      const ids = escribir.map((f) => f.id).join(',');
+      if (ids !== 'a1,a2') return `escribe: ${ids} (tiene que ser el patrón SDL_CUB entero, y nada de S)`;
+      const om = omitidas.map((o) => o.id).join(',');
+      if (om !== 'c1,d1') return `omitidas: ${om}`;
+      // Sin comparación no se sabe qué está igual: se escribe todo lo que se puede.
+      return planAplicaciones(filas, () => undefined).escribir.length === 3 ? null : 'sin comparar no escribió todo';
     },
   },
 ];

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Carga, ConexionSap, GrupoSap, LecturaPatrones, PatronSap } from './modelo';
+import { DIRECCIONES_SAP, type Carga, type ConexionSap, type GrupoSap, type LecturaPatrones, type PatronSap } from './modelo';
 import {
   avisosPesoPropio,
   compararAplicacion,
@@ -8,6 +8,7 @@ import {
   type LeidaAplicacion,
   numero,
   patronesDeFlow,
+  planAplicaciones,
   planEmpuje,
   type CambioPatron,
   type EstadoPatron,
@@ -322,6 +323,49 @@ function AplicacionesSap({ filas }: { filas: readonly FilaAplicacion[] }) {
 
   const COLOR = { igual: 'text-muted', difiere: 'text-error', 'sin-objetos': 'text-aviso', error: 'text-error' };
 
+  // Escribir solo se ofrece después de comparar: el puente exige el nombre del
+  // modelo comparado, y el plan necesita saber qué está igual.
+  const [confirmando, setConfirmando] = useState(false);
+  const [escrito, setEscrito] = useState('');
+  const plan = leidas
+    ? planAplicaciones(filas, (f) => {
+        const l = leidas.porId[f.id];
+        return l ? compararAplicacion(f, l).estado : undefined;
+      })
+    : null;
+  const DIR = Object.fromEntries(DIRECCIONES_SAP.map((d) => [d.codigo, d.texto]));
+
+  const escribir = () => {
+    if (!leidas || !plan) return;
+    setLeyendo(true);
+    setError('');
+    alPuente<{ hechos: { patron: string; grupo: string; objetos: number }[] }>('/aplicaciones', {
+      modelo: leidas.modelo,
+      aplicaciones: plan.escribir.map((f) => ({
+        id: f.id,
+        patron: f.patron,
+        tipo: f.aplicacion.tipo,
+        grupo: f.aplicacion.grupo,
+        direccion: f.aplicacion.direccion,
+        distribucion: f.aplicacion.distribucion,
+        valor: f.valor,
+      })),
+    })
+      .then((d) => {
+        const objetos = d.hechos.reduce((s, h) => s + h.objetos, 0);
+        setEscrito(
+          `Escrito en ${leidas.modelo}: ${d.hechos.length} carga${d.hechos.length === 1 ? '' : 's'} sobre ${objetos} objetos. ` +
+            'El modelo NO se guardó: guárdalo en SAP si quieres conservarlo.',
+        );
+        setConfirmando(false);
+        leer();
+      })
+      .catch((e: Error) => {
+        setError(e.message);
+        setLeyendo(false);
+      });
+  };
+
   return (
     <section className="border-t border-border px-5 py-4">
       <div className="mb-2 flex items-baseline justify-between gap-2">
@@ -343,7 +387,72 @@ function AplicacionesSap({ filas }: { filas: readonly FilaAplicacion[] }) {
         </p>
       ) : (
         <>
-          {leidas && <p className="mb-1 text-[10px] text-muted">Leído de {leidas.modelo}. Solo lectura.</p>}
+          {leidas && <p className="mb-1 text-[10px] text-muted">Leído de {leidas.modelo}.</p>}
+          {escrito && <p role="status" className="mb-2 rounded border border-border px-2 py-1 text-[11px] text-ink">{escrito}</p>}
+
+          {plan && !confirmando && plan.escribir.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                setEscrito('');
+                setConfirmando(true);
+              }}
+              disabled={leyendo}
+              className="mb-2 rounded border border-accent px-2 py-0.5 text-[11px] font-medium text-accent hover:bg-accent hover:text-white disabled:opacity-50"
+            >
+              Escribir en SAP ({plan.escribir.length} carga{plan.escribir.length === 1 ? '' : 's'})…
+            </button>
+          )}
+          {plan && plan.escribir.length === 0 && !escrito && (
+            <p className="mb-2 text-[10px] text-muted">Todo lo que se puede escribir ya está igual en el modelo.</p>
+          )}
+          {plan && confirmando && (
+            <div className="mb-2 rounded border border-accent px-3 py-2 text-[11px]">
+              <p className="mb-1 font-medium text-ink">
+                Se va a escribir en <span className="font-mono">{leidas!.modelo}</span>:
+              </p>
+              <ul className="mb-1 list-disc pl-4 font-mono text-[10px] text-ink">
+                {plan.escribir.map((f) => (
+                  <li key={f.id}>
+                    {f.patron} · {f.partida} → {f.aplicacion.grupo}:{' '}
+                    {numero(Number(f.valor!.toPrecision(6)))} {f.unidad.replace('^2', '²')},{' '}
+                    {f.aplicacion.tipo === 'area-a-barras'
+                      ? `área a barras en ${f.aplicacion.distribucion === 2 ? 'dos direcciones' : 'una dirección'}`
+                      : 'distribuida en barra'}
+                    , {DIR[f.aplicacion.direccion] ?? f.aplicacion.direccion}
+                  </li>
+                ))}
+              </ul>
+              {plan.omitidas.length > 0 && (
+                <p className="mb-1 text-[10px] text-muted">
+                  No se escriben: {plan.omitidas.map((o) => `${o.partida} (${o.motivo})`).join(', ')}.
+                </p>
+              )}
+              <p className="mb-2 text-[10px] leading-snug text-muted">
+                Cada patrón se escribe entero: la primera partida reemplaza lo que ese patrón tenía en
+                los objetos del grupo, y las siguientes se suman. No se toca nada fuera de esos grupos
+                y el modelo no se guarda.
+              </p>
+              <div className="flex gap-1.5">
+                <button
+                  type="button"
+                  onClick={escribir}
+                  disabled={leyendo}
+                  className="rounded border border-accent bg-accent px-2 py-0.5 text-[11px] font-medium text-white hover:opacity-90 disabled:opacity-50"
+                >
+                  {leyendo ? 'Escribiendo…' : 'Escribir en SAP'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmando(false)}
+                  disabled={leyendo}
+                  className="rounded border border-border px-2 py-0.5 text-[11px] text-muted hover:text-ink"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
           <table className="w-full text-[11px]">
             <thead>
               <tr className="text-left text-[10px] uppercase tracking-wide text-muted">

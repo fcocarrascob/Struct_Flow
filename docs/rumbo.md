@@ -150,7 +150,10 @@ antes de dar el siguiente:
    dirección y la distribución. El valor no se escribe: es el de la partida, convertido a
    kN/m² o kN/m por el motor, y una dimensión que no calza es un error. El nodo SAP2000 lee los
    grupos, crea uno con la selección de SAP y compara cada aplicación con lo que su patrón
-   tiene hoy sobre el grupo. Sigue escribir las cargas, reemplazando lo del patrón en el grupo.
+   tiene hoy sobre el grupo. **Escribir las cargas** también: tras comparar y confirmar, se
+   escribe cada patrón que cambió, entero —la primera partida reemplaza lo que el patrón tenía
+   en esos objetos y las siguientes se suman—, así que escribir dos veces deja el modelo igual.
+   Se valida todo antes de escribir nada, y no se toca lo que está fuera de los grupos.
 2. Leer lo medido (reacciones por caso, periodos, cortes basales) con su sello, y publicarlo
    como nombres que las hojas usan en vez de copiarlos a mano.
 3. Marcar la lectura atrasada cuando el `.sdb` cambió después de leerla.

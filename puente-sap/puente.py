@@ -9,8 +9,9 @@ aplicación funciona con SAP2000 sin que el asistente esté corriendo
 
 SE ENGANCHA, LEE Y ESCRIBE LO MÍNIMO. Nunca lanza SAP2000, nunca abre una
 segunda instancia, nunca guarda ni analiza: se engancha al SAP2000 que el
-usuario ya tiene abierto. Lo único que escribe son Load Patterns, y solo tras
-una confirmación del usuario en Flow (`empujar`). Lo demás llega paso a paso.
+usuario ya tiene abierto. Lo que escribe —Load Patterns, grupos nuevos y las
+cargas de las partidas— lo escribe solo tras una confirmación del usuario en
+Flow, y nunca borra un patrón ni guarda el archivo.
 
 Rutas:
     GET  /salud      -> {ok}
@@ -21,6 +22,7 @@ Rutas:
     GET  /grupos     -> {modelo, grupos: [{nombre, barras, areas}]}
     POST /grupos     {nombre} -> crea un grupo con la selección actual de SAP
     POST /aplicaciones/leer {aplicaciones} -> la carga de cada patrón sobre su grupo
+    POST /aplicaciones {modelo, aplicaciones} -> escribe las cargas (ver `escribir_aplicaciones`)
 
 Una sola instancia viva, como en el harness: con dos SAP2000.exe, una colgada
 mantiene bloqueados los archivos y no se sabe a cuál se engancharía.
@@ -337,6 +339,89 @@ def leer_aplicaciones(cuerpo):
     return {"modelo": nombre, "aplicaciones": resultado}
 
 
+def escribir_aplicaciones(cuerpo):
+    """Escribe las cargas de las partidas sobre los objetos de sus grupos.
+
+    `aplicaciones`: [{id, patron, tipo, grupo, direccion, distribucion?, valor}],
+    con `valor` en kN/m² (área) o kN/m (barra): el puente trabaja en kN-m.
+
+    PRIMERO SE VALIDA TODO y recién entonces se escribe: el modelo tiene que ser
+    el comparado y no estar bloqueado, cada patrón tiene que existir (se crea con
+    «Empujar a SAP») y cada grupo tiene que tener objetos del tipo que toca. Si
+    algo falla no se escribe nada.
+
+    REEMPLAZA, NO SUMA. La primera aplicación de un patrón sobre un objeto
+    reemplaza lo que ese patrón tenía ahí (del mismo tipo de carga); las
+    siguientes del mismo patrón se suman. Así, escribir dos veces deja el
+    modelo igual. Lo que el patrón tenga en objetos que ninguna partida toca no
+    se toca. No guarda el archivo.
+    """
+    esperado = cuerpo.get("modelo")
+    pedidas = cuerpo.get("aplicaciones")
+    if not isinstance(pedidas, list) or not pedidas:
+        raise ErrorPuente(400, "No hay cargas que escribir.")
+    modelo = _modelo_abierto()
+    _, nombre = _nombre_modelo(modelo)
+    if not esperado or nombre != esperado:
+        raise ErrorPuente(
+            409,
+            f"El modelo abierto es «{nombre or '(sin guardar)'}» y la comparación se hizo con «{esperado}». "
+            "Vuelve a comparar antes de escribir.")
+    if modelo.GetModelIsLocked():
+        raise ErrorPuente(
+            409,
+            "El modelo está bloqueado porque tiene resultados. Desbloquéalo en SAP (se borran los "
+            "resultados) y vuelve a intentar.")
+
+    patrones_modelo = set(modelo.LoadPatterns.GetNameList()[1] or [])
+    grupos_modelo = set(modelo.GroupDef.GetNameList()[1] or [])
+    problemas, trabajo = [], []
+    for a in pedidas:
+        patron, tipo, grupo = a.get("patron"), a.get("tipo"), a.get("grupo")
+        valor, direccion = a.get("valor"), a.get("direccion")
+        if patron not in patrones_modelo:
+            problemas.append(f"el patrón {patron} no existe en el modelo (créalo con «Empujar a SAP»)")
+            continue
+        if grupo not in grupos_modelo:
+            problemas.append(f"no hay un grupo {grupo}")
+            continue
+        if tipo not in ("area-a-barras", "barra-distribuida") or not isinstance(valor, (int, float)):
+            problemas.append(f"la carga de {patron} sobre {grupo} está mal formada")
+            continue
+        barras, areas = _asignados(modelo, grupo)
+        objetos = areas if tipo == "area-a-barras" else barras
+        if not objetos:
+            clase = "áreas" if tipo == "area-a-barras" else "barras"
+            problemas.append(f"el grupo {grupo} no tiene {clase}")
+            continue
+        trabajo.append((a, objetos))
+    if problemas:
+        raise ErrorPuente(409, "No se escribió nada: " + "; ".join(problemas) + ".")
+
+    tocados = set()
+    hechos = []
+    with _EnKnM(modelo):
+        for a, objetos in trabajo:
+            patron, tipo = a["patron"], a["tipo"]
+            valor, direccion = float(a["valor"]), int(a.get("direccion", 10))
+            for o in objetos:
+                clave = (patron, tipo, o)
+                reemplazar = clave not in tocados
+                tocados.add(clave)
+                if tipo == "area-a-barras":
+                    ret = modelo.AreaObj.SetLoadUniformToFrame(
+                        o, patron, valor, direccion, int(a.get("distribucion", 1)), reemplazar, "Global", 0)
+                else:
+                    ret = modelo.FrameObj.SetLoadDistributed(
+                        o, patron, 1, direccion, 0.0, 1.0, valor, valor, "Global", True, reemplazar, 0)
+                if ret != 0:
+                    hechos_txt = ", ".join(f"{h['patron']} en {h['grupo']}" for h in hechos) or "nada"
+                    raise ErrorPuente(
+                        502, f"SAP2000 rechazó la carga de {patron} en «{o}». Antes se escribió: {hechos_txt}.")
+            hechos.append({"id": a.get("id"), "patron": patron, "grupo": a["grupo"], "objetos": len(objetos)})
+    return {"modelo": nombre, "hechos": hechos}
+
+
 class Manejador(BaseHTTPRequestHandler):
     def _responder(self, codigo, cuerpo):
         datos = json.dumps(cuerpo, ensure_ascii=False).encode("utf-8")
@@ -380,6 +465,7 @@ class Manejador(BaseHTTPRequestHandler):
             "/patrones": lambda: empujar(self._cuerpo()),
             "/grupos": lambda: grupo_con_seleccion(self._cuerpo()),
             "/aplicaciones/leer": lambda: leer_aplicaciones(self._cuerpo()),
+            "/aplicaciones": lambda: escribir_aplicaciones(self._cuerpo()),
         })
 
     def log_message(self, formato, *args):
