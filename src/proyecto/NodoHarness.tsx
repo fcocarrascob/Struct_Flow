@@ -6,7 +6,7 @@ import { ALTO, ANCHO } from './layout';
  * Un nodo del proyecto.
  *
  * El color es el DESFASE, no el tipo. Un canvas coloreado por tipo es un mapa
- * bonito de lo que hay; uno coloreado por lo que no calza es el único que sirve
+ * bonito de lo que hay; uno coloreado por lo que no cuadra es el único que sirve
  * para conducir, porque un resumen de lo que hay se lee como que todo está bien.
  *
  * Los puertos están siempre a izquierda y derecha aunque el nodo no tenga

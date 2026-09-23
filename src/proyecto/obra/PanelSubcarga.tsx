@@ -16,10 +16,10 @@ import type { Carga, Subcarga } from './modelo';
  *
  * Es el «nodo de cálculo»: el sitio donde una carga deja de ser un número que
  * hay que creer y pasa a tener respaldo. El valor de la partida no se escribe
- * acá: lo produce la hoja, y la hoja es la memoria.
+ * aquí: lo produce la hoja, y la hoja es la memoria.
  *
- * Más ancho que el panel de cargas (30rem contra 26) porque lo que lleva es una
- * hoja, y una expresión con tres factores y una unidad no cabe en 26.
+ * Mide 30rem, y 34 con una planilla o eligiéndola, porque lo que lleva es una
+ * hoja: una expresión con tres factores y una unidad no cabe en menos.
  */
 export default function PanelSubcarga({
   carga,

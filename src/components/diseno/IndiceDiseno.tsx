@@ -12,7 +12,7 @@ const tarjeta =
  * toda genérica promovible de la biblioteca es un módulo sin escribir código.
  */
 export default function IndiceDiseno() {
-  const { indice } = useIndice();
+  const { indice, error } = useIndice();
   const promovibles = (indice ?? []).filter((e) => e.promovible);
 
   return (
@@ -27,7 +27,7 @@ export default function IndiceDiseno() {
       <header className="mb-6">
         <h1 className="text-xl font-semibold text-ink">Diseño de elementos</h1>
         <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted">
-          Ingresa los parámetros y mira cómo se redibuja el elemento y cómo se mueven los factores
+          Escribe los parámetros y mira cómo se redibuja el elemento y cómo se mueven los factores
           de utilización. Cuando el diseño cuadre, exporta la memoria: son las mismas expresiones
           que acabas de ver evaluarse, con el esquema dentro, listas para editar o imprimir.
         </p>
@@ -51,6 +51,15 @@ export default function IndiceDiseno() {
           </li>
         ))}
       </ul>
+
+      {/* Sin el índice, las genéricas de la biblioteca no aparecen: se dice,
+          en vez de dejar una lista más corta que parece completa. */}
+      {error && (
+        <p className="mt-10 rounded border border-aviso bg-white px-3 py-2 text-xs leading-snug text-aviso">
+          No se pudo cargar el índice de la biblioteca, así que faltan aquí los módulos que salen de
+          sus genéricas. Recarga para volver a intentarlo.
+        </p>
+      )}
 
       {promovibles.length > 0 && (
         <section className="mt-10" aria-labelledby="desde-biblioteca">

@@ -28,6 +28,12 @@ interface Props {
   rotulo?: string;
   /** Sin esto no hay nada que descargar, y la pantalla no ofrece un botón inútil. */
   rescate?: Rescate;
+  /**
+   * La vista solo muestra lo que ya está guardado —un índice, un catálogo— y no
+   * tiene trabajo propio que perder. Decir «lo último que hayas escrito puede no
+   * haberse guardado» en una página donde no se escribe nada asusta sin motivo.
+   */
+  sinTrabajo?: boolean;
 }
 
 interface State {
@@ -105,7 +111,9 @@ export default class ErrorBoundary extends Component<Props, State> {
         <h2 className="text-base font-semibold text-red-900">{rotulo} se detuvo</h2>
         <p className="mt-2 text-red-900">
           Algo falló al dibujar esta vista.{' '}
-          {rescatable ? (
+          {this.props.sinTrabajo ? (
+            <>Esta página solo muestra lo que ya está guardado: no se perdió nada.</>
+          ) : rescatable ? (
             <>
               <strong>Tu trabajo no se ha perdido</strong>: sigue guardado en el navegador.
               Descárgalo antes de recargar.
@@ -134,6 +142,15 @@ export default class ErrorBoundary extends Component<Props, State> {
           >
             Recargar
           </button>
+          {/* Si la vista vuelve a fallar al recargar, esta es la salida. Es un
+              enlace de verdad, no el router: el router es parte de lo que
+              acaba de fallar. */}
+          <a
+            href="/"
+            className="rounded border border-red-300 px-3 py-1.5 text-xs font-medium text-red-900 no-underline hover:bg-red-100"
+          >
+            ← Inicio
+          </a>
         </div>
         {rescate && rescatable && (
           <p className="mt-3 text-xs text-red-800">

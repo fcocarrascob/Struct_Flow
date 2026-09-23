@@ -100,7 +100,7 @@ function TablaSerie({ salida, valor }: { salida: SalidaDef; valor: unknown }) {
       setCopiado(true);
       setTimeout(() => setCopiado(false), 2000);
     } catch {
-      // Sin permiso de portapapeles no hay nada que hacer desde acá, y tampoco
+      // Sin permiso de portapapeles no hay nada que hacer desde aquí, y tampoco
       // hay que romper el panel: el acuse simplemente no aparece.
       setCopiado(false);
     }

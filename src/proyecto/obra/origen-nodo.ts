@@ -6,7 +6,7 @@
 // `origen-local` y no una línea de implementación:
 //
 //   - No vigila. Un `storage` avisaría de que otra pestaña del navegador tocó la
-//     clave; acá el único otro escritor es la mini hoja del panel, que no está
+//     clave; aquí el único otro escritor es la mini hoja del panel, que no está
 //     montada a la vez que la pestaña.
 //   - No vacía al salir. Escribe en el documento de la obra, que a su vez se
 //     persiste con su propio debounce, su guardado al desmontar y su `pagehide`

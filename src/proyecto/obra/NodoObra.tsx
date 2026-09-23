@@ -9,7 +9,7 @@ import type { NodoDeObra } from './proyeccion';
  * Mismo aspecto que `../NodoHarness.tsx` —misma caja, mismo color por severidad,
  * mismos puertos fijos a izquierda y derecha— y aun así es otro componente a
  * propósito: el `detalle()` de aquel lee `campos.Fz_kN`, que es vocabulario del
- * harness, y acá los campos los escribe el usuario. Los dos van a separarse más
+ * harness, y aquí los campos los escribe el usuario. Los dos van a separarse más
  * en cuanto el nodo de obra reciba gestos de edición; si aparece un tercero, ahí
  * vale la pena extraer la tarjeta.
  *

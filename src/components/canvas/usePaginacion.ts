@@ -13,7 +13,7 @@ import type { Region, SheetResults } from '../../lib/worksheet';
 /**
  * Mide el documento de impresión y devuelve en qué página A4 cae cada región.
  *
- * La parte sucia de `paginacion.ts`: acá se toca el DOM. El documento
+ * La parte sucia de `paginacion.ts`: aquí se toca el DOM. El documento
  * (`.worksheet-print`) ya está montado como portal en `<body>`, oculto con
  * `display: none`, así que no hay que renderizar nada aparte — basta con
  * destaparlo un instante fuera de la pantalla, forzarle el ancho de la caja de
@@ -22,7 +22,7 @@ import type { Region, SheetResults } from '../../lib/worksheet';
  *
  * De cada bloque salen tres números — alto de caja, margen superior y margen
  * inferior — y nada más. Qué se hace con los márgenes (colapsan entre hermanos,
- * se descartan en los bordes de página) es cosa de `paginar()`: acá solo se
+ * se descartan en los bordes de página) es cosa de `paginar()`: aquí solo se
  * mide, y así la regla vive en un solo sitio.
  */
 export interface Paginacion {

@@ -58,7 +58,7 @@ import { regionTitulo, seImprime } from '../../lib/bloque';
 import { hayTrabajoGuardado } from '../../lib/hoja-guardada';
 import { descargarHoja } from '../../lib/canvas-handoff';
 import { useHojaPersistida, type OrigenHoja } from './useHojaPersistida';
-import { ORIGEN_LOCAL } from './origen-local';
+import { esHojaDemo, ORIGEN_LOCAL } from './origen-local';
 import Enlace from '../Enlace';
 
 /**
@@ -127,7 +127,7 @@ const SIN_SCOPE: Record<string, unknown> = {};
 /**
  * Lo que el historial de la hoja observa.
  *
- * Se declara acá y no en `useHojaPersistida` a propósito: es el DOCUMENTO que se
+ * Se declara aquí y no en `useHojaPersistida` a propósito: es el DOCUMENTO que se
  * deshace, no lo que el hook persiste —que lleva además las `persistables`, sin
  * la región a medio crear—. Son dos recortes distintos de la misma hoja.
  */
@@ -267,7 +267,7 @@ export default function MathCanvas({
   });
 
   /**
-   * Espejo de las regiones. Se declara acá abajo, y no con los demás espejos,
+   * Espejo de las regiones. Se declara aquí abajo, y no con los demás espejos,
    * porque `regions` nace del hook: así arranca con la hoja cargada y no con un
    * array vacío que el primer efecto tendría que corregir.
    */
@@ -555,8 +555,11 @@ export default function MathCanvas({
     (data: unknown, opts: { titulo?: string; hayTrabajo?: boolean } = {}): boolean => {
       if (!esHoja(data)) return false;
       const nombre = opts.titulo ?? data.meta?.titulo;
+      // La hoja de ejemplo sin tocar no es trabajo: preguntar por ella era
+      // pedirle a quien entra por primera vez que confirme algo que no escribió.
       const hayTrabajo =
-        opts.hayTrabajo ?? regionsRef.current.some((r) => r.src.trim() !== '');
+        opts.hayTrabajo ??
+        (!esHojaDemo(regionsRef.current) && regionsRef.current.some((r) => r.src.trim() !== ''));
       if (
         hayTrabajo &&
         !confirm(
@@ -571,7 +574,7 @@ export default function MathCanvas({
       // editarla en la hoja no debe mutarlo), descarta las malformadas y
       // reasigna los ids repetidos —y ahora DICE lo que descartó—.
       //
-      // El informe se emite acá y no en cada llamador porque esta función es el
+      // El informe se emite aquí y no en cada llamador porque esta función es el
       // embudo de las cinco vías de entrada: plantilla, importar un archivo,
       // pegar, deep-link y soltar. En cada puerta serían cinco copias del mismo
       // aviso, y la que se olvidara volvería a perder bloques en silencio.
@@ -587,7 +590,7 @@ export default function MathCanvas({
     [seleccionar],
   );
 
-  // Deep-link: /herramientas/canvas?plantilla=<id> abre esa plantilla al entrar.
+  // Deep-link: /canvas?plantilla=<id> abre esa plantilla al entrar.
   useEffect(() => {
     if (!deepLinks) return;
     const id = new URLSearchParams(window.location.search).get('plantilla');
@@ -634,6 +637,19 @@ export default function MathCanvas({
     },
     [cargarHoja],
   );
+
+  /**
+   * Se marca al desmontar el canvas. Una planilla pedida desde el menú que
+   * llega después —con la red lenta y el usuario ya en «← Inicio»— no debe
+   * sacar su «¿reemplazar?» ni su error encima de otra vista.
+   */
+  const desmontado = useRef({ cancelado: false });
+  useEffect(() => {
+    const s = desmontado.current;
+    return () => {
+      s.cancelado = true;
+    };
+  }, []);
 
   // Deep-link: /?planilla=<slug> abre esa planilla al entrar.
   useEffect(() => {
@@ -1550,9 +1566,9 @@ export default function MathCanvas({
           <button
             className={`${toolBtn} ${templatesOpen ? '!border-accent !text-accent' : ''}`}
             onClick={() => setTemplatesOpen((o) => !o)}
-            title="Plantillas para empezar y memorias de cálculo ya resueltas"
+            title="Plantillas para empezar y planillas ya resueltas"
           >
-            Ejemplos ▾
+            Planillas ▾
           </button>
           {templatesOpen && (
             <CatalogoMenu
@@ -1560,7 +1576,7 @@ export default function MathCanvas({
               onPlantilla={(tpl) => loadTemplate(tpl)}
               onPlanilla={(slug) => {
                 setTemplatesOpen(false);
-                cargarPlanilla(slug);
+                cargarPlanilla(slug, { señal: desmontado.current });
               }}
               onCerrar={() => setTemplatesOpen(false)}
             />

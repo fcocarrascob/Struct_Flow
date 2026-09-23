@@ -5,7 +5,7 @@
 // la primera versión del canvas es un visor, y la escritura —cuando entre— va a
 // ir por las CLI del harness, que corren el lint y revierten si empeora.
 //
-// El caso que más importa acá no es el éxito: es que el servidor NO ESTÉ
+// El caso que más importa aquí no es el éxito: es que el servidor NO ESTÉ
 // corriendo. Un canvas que se queda cargando para siempre no dice nada; uno que
 // dice «arranca harness.servidor» se arregla en diez segundos.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -46,7 +46,7 @@ const PROXY_SIN_DESTINO = new Set([502, 503, 504]);
 async function pedir<T>(ruta: string): Promise<T> {
   let r: Response;
   try {
-    // Sin proxy (abriendo el HTML compilado a mano) el fetch sí falla acá.
+    // Sin proxy (abriendo el HTML compilado a mano) el fetch sí falla aquí.
     r = await fetch(`${BASE}${ruta}`, { headers: { Accept: 'application/json' } });
   } catch {
     throw SIN_SERVIDOR;
@@ -75,7 +75,7 @@ export async function listarProyectos(): Promise<ProyectoListado[]> {
   return d.proyectos ?? [];
 }
 
-/** Trae el grafo y lo VALIDA. Un contrato desconocido llega acá como error. */
+/** Trae el grafo y lo VALIDA. Un contrato desconocido llega aquí como error. */
 export async function traerGrafo(slug: string): Promise<Grafo> {
   const crudo = await pedir<unknown>(`/grafo?proyecto=${encodeURIComponent(slug)}`);
   const v = validarGrafo(crudo);

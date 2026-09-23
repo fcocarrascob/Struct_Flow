@@ -67,7 +67,7 @@ export default function SelectorGrupo({
   );
 }
 
-/** Nombre y color de un grupo. Lo comparten crear (acá) y editar (la leyenda). */
+/** Nombre y color de un grupo. Lo comparten crear (aquí) y editar (la leyenda). */
 export function FormularioGrupo({
   inicial,
   accion,

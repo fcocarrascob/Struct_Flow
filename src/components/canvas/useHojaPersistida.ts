@@ -4,7 +4,7 @@
 // Estaba repartido en unos diez sitios de `MathCanvas.tsx` —la carga inicial, el
 // debounce de 300 ms, el guardado al desmontar, `pagehide`, `visibilitychange`,
 // el listener de `storage`, la hoja apartada y los tres avisos—, entretejido con
-// el estado de la vista. Acá está junto, y detrás de una interfaz: el hook lleva
+// el estado de la vista. Aquí está junto, y detrás de una interfaz: el hook lleva
 // CUÁNDO se escribe, y el origen lleva DÓNDE.
 //
 // Los dos consumidores comparten la forma y no una línea de implementación. En
@@ -161,7 +161,7 @@ export interface HojaPersistida {
    * Lo lee `guardar`, que es un `useCallback` con dependencias vacías a
    * propósito —lo consumen el vaciado al desmontar y el de `pagehide`—: con el
    * valor en sus dependencias volvería a suscribirse en cada tecla, que es justo
-   * lo que el debounce evita. Escribirlo por acá se saltaría el historial, así
+   * lo que el debounce evita. Escribirlo por aquí se saltaría el historial, así
    * que no se puede: para eso está `fijarMeta`.
    */
   readonly metaRef: { readonly current: MetaPlanilla | null };

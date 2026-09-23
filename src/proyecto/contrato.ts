@@ -28,7 +28,7 @@
 // primera clase de falla de la taxonomía —resultado plausible y falso— y la
 // única defensa es negarse a pintar una versión que no se conoce.
 //
-// Cuando `harness.grafo` suba a `contrato: 2`, acá se agrega el 2 a
+// Cuando `harness.grafo` suba a `contrato: 2`, aquí se agrega el 2 a
 // `CONTRATOS_SOPORTADOS` DESPUÉS de mirar qué cambió, nunca antes.
 // ─────────────────────────────────────────────────────────────────────────────
 

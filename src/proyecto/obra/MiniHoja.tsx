@@ -10,13 +10,13 @@ import { nuevaRegion } from './modelo';
  * siempre.
  *
  * ES UNA VISTA EN ORDEN DE LECTURA, NO OTRO DATO. Las regiones llevan `x`/`y`
- * —son las mismas que abre el canvas matemático— y acá se pintan ordenadas por
+ * —son las mismas que abre el canvas matemático— y aquí se pintan ordenadas por
  * `(y, x)`, que es el mismo criterio con el que el motor resuelve el scope. Las
  * dos vistas editan lo mismo, así que el día que la hoja grande migre al flujo
  * lineal las coordenadas desaparecen de las dos a la vez.
  *
  * Por eso insertar y borrar NO renumeran: las reglas están en `./hoja`, y son
- * las que impiden que escribir una línea acá deshaga la disposición hecha en el
+ * las que impiden que escribir una línea aquí deshaga la disposición hecha en el
  * canvas.
  *
  * Las sugerencias salen de `variablesVisibles`, que filtra por posición de

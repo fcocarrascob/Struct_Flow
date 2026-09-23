@@ -45,7 +45,7 @@ const RESERVADOS = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/;
  * Sale del id, que es estable —el nombre del nodo se edita y renombraría el
  * archivo, que en git se lee como borrar uno y crear otro—. Un id no es un
  * nombre de archivo: puede traer `/`, `..` o mayúsculas que en Windows chocan
- * con su minúscula. Lo que no calza se reduce a `[a-z0-9-]`, y dos que se
+ * con su minúscula. Lo que no cuadra se reduce a `[a-z0-9-]`, y dos que se
  * reduzcan a lo mismo se separan con un número.
  */
 function archivoDeHoja(id: string, tomados: Set<string>): string {

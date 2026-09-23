@@ -29,7 +29,7 @@ export const ALTO = 96;
 const PASO_X = ANCHO + 90;
 const PASO_Y = ALTO + 22;
 
-/** Columna por tipo. Un tipo que no esté acá cae al final, visible y no perdido. */
+/** Columna por tipo. Un tipo que no esté aquí cae al final, visible y no perdido. */
 const COLUMNAS: string[][] = [
   ['proyecto'],
   ['norma', 'hueco'],

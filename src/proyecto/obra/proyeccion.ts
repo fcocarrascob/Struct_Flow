@@ -5,7 +5,7 @@
 // -------------------------------------------------
 // Lo que persiste es el documento —qué módulos hay, qué cargas, las mini hojas y
 // las referencias a la biblioteca—. Los nodos, los valores y **las flechas**
-// salen de acá cada vez que se pinta.
+// salen de aquí cada vez que se pinta.
 //
 // Las flechas de datos son la novedad, y son lo que convierte esto en un grafo
 // de cálculo: una flecha de A a B significa «B nombra algo que define A», y sale
@@ -74,7 +74,7 @@ export interface Proyeccion {
 }
 
 /** Un nodo de obra no sale de ningún archivo y siempre se puede editar; el resto
- *  del contrato se completa acá para no repetirlo en cada caso. */
+ *  del contrato se completa aquí para no repetirlo en cada caso. */
 function nodo(
   parcial: Partial<NodoDeObra> & Pick<NodoDeObra, 'id' | 'tipo' | 'etiqueta' | 'clase'>,
 ): NodoDeObra {
@@ -186,7 +186,7 @@ function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra,
   const modulo = estado?.fase === 'lista' ? estado.modulo : undefined;
   // La evaluación es la que hizo `evaluarObra` en el sitio de este nodo dentro
   // del orden de lectura, con los campos atados ya resueltos contra el scope que
-  // había ahí. Reevaluar acá sería una segunda autoridad sobre el mismo número.
+  // había ahí. Reevaluar aquí sería una segunda autoridad sobre el mismo número.
   const instancia = ev.importadas.get(id);
   if (!instancia) return nodo({ ...base, subtitulo: `${f.slug ?? k.nombre} · cargando…` });
   const motivos: string[] = [];

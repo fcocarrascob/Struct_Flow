@@ -1,3 +1,4 @@
+import { useLayoutEffect } from 'react';
 import MathCanvas from './components/canvas/MathCanvas';
 import ErrorBoundary from './components/ErrorBoundary';
 import Landing from './components/Landing';
@@ -11,6 +12,7 @@ import { CanvasObraConProveedor } from './proyecto/obra/CanvasObra';
 import { useRuta } from './components/useRuta';
 import Calibrar from './components/dev/Calibrar';
 import { moduloPorId } from './lib/diseno/registro';
+import type { Ruta } from './lib/ruta';
 import { STORAGE_KEY } from './lib/hoja-guardada';
 import { CLAVE_OBRAS } from './proyecto/obra/almacen';
 
@@ -45,13 +47,49 @@ const RESCATE_OBRAS = { clave: CLAVE_OBRAS, archivo: 'obras-recuperadas.json' };
  * Y de ahí también el `rotulo` y el `rescate` de cada una: la pantalla tiene que
  * decir qué se cayó y ofrecer descargar el trabajo DE ESA vista, no el de otra.
  */
+const MARCA = 'Struct_Flow';
+
+/**
+ * El título de la pestaña, por vista. Con uno solo para todas, tres pestañas
+ * abiertas —una obra, la hoja y un módulo— no se distinguían. Una obra lo afina
+ * con su nombre desde su propio canvas, que es quien lo conoce.
+ */
+function tituloDe(ruta: Ruta): string {
+  switch (ruta.vista) {
+    case 'planillas':
+      return `Planillas — ${MARCA}`;
+    case 'canvas':
+      return `Canvas — ${MARCA}`;
+    case 'diseno':
+      return `Diseño de elementos — ${MARCA}`;
+    case 'modulo':
+      return `${moduloPorId(ruta.id)?.titulo ?? ruta.id} — ${MARCA}`;
+    case 'proyectos':
+      return `Proyectos — ${MARCA}`;
+    case 'proyecto':
+      return `${ruta.slug} — ${MARCA}`;
+    case 'obra':
+      return `${ruta.id} — ${MARCA}`;
+    case 'calibrar':
+      return `Calibrar — ${MARCA}`;
+    default:
+      return `${MARCA} — memorias de cálculo estructural`;
+  }
+}
+
 export default function App() {
   const ruta = useRuta();
+  const titulo = tituloDe(ruta);
+  // De diseño y no pasivo: los efectos pasivos corren de hijo a padre, así que
+  // uno pasivo aquí pisaría el nombre que la obra acaba de poner en el suyo.
+  useLayoutEffect(() => {
+    document.title = titulo;
+  }, [titulo]);
 
   switch (ruta.vista) {
     case 'planillas':
       return (
-        <ErrorBoundary key="planillas" rotulo="El catálogo">
+        <ErrorBoundary key="planillas" rotulo="El catálogo" sinTrabajo>
           <CatalogoPagina />
         </ErrorBoundary>
       );
@@ -71,14 +109,16 @@ export default function App() {
 
     case 'diseno':
       return (
-        <ErrorBoundary key="diseno" rotulo="El índice de módulos">
+        <ErrorBoundary key="diseno" rotulo="El índice de módulos" sinTrabajo>
           <IndiceDiseno />
         </ErrorBoundary>
       );
 
     case 'proyectos':
       return (
-        <ErrorBoundary key="proyectos" rotulo="El índice de proyectos" rescate={RESCATE_OBRAS}>
+        // Un índice no tiene trabajo propio: las obras están en su carpeta o en
+        // el navegador, y se abren (y se rescatan) desde su propia vista.
+        <ErrorBoundary key="proyectos" rotulo="El índice de proyectos" sinTrabajo>
           <IndiceProyectos />
         </ErrorBoundary>
       );
@@ -87,7 +127,7 @@ export default function App() {
     // cabecera, el lienzo y el panel lateral se reparten una altura definida.
     case 'proyecto':
       return (
-        <ErrorBoundary key={`proyecto:${ruta.slug}`} rotulo="El proyecto">
+        <ErrorBoundary key={`proyecto:${ruta.slug}`} rotulo="El proyecto" sinTrabajo>
           <CanvasProyectoConProveedor slug={ruta.slug} />
         </ErrorBoundary>
       );
@@ -127,7 +167,7 @@ export default function App() {
   }
 
   return (
-    <ErrorBoundary key="inicio" rotulo="El menú">
+    <ErrorBoundary key="inicio" rotulo="El menú" sinTrabajo>
       <Landing />
     </ErrorBoundary>
   );

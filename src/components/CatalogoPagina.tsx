@@ -2,11 +2,7 @@ import { useMemo, useState } from 'react';
 import { TITULOS, agruparPorClase, partirTitulo, type EntradaIndice } from '../lib/catalogo';
 import Enlace from './Enlace';
 import { useIndice } from './useIndice';
-
-/** Lo que el buscador compara: título, slug, claves de norma y resumen. */
-function textoBuscable(e: EntradaIndice): string {
-  return `${e.titulo} ${e.slug} ${(e.normas ?? []).join(' ')} ${e.resumen ?? ''}`.toLowerCase();
-}
+import { textoBuscable } from './buscar-catalogo';
 
 function Tarjeta({ e }: { e: EntradaIndice }) {
   const { nombre, detalle } = partirTitulo(e.titulo);
@@ -103,8 +99,8 @@ export default function CatalogoPagina() {
       {indice === null && !error && <p className="text-sm text-muted">Cargando el catálogo…</p>}
       {error && (
         <p className="text-sm text-muted">
-          No se pudo cargar el catálogo. Genera el índice con{' '}
-          <code className="font-mono">npm run indice:planillas</code>.
+          No se pudo cargar el índice de planillas. Vuelve a intentarlo recargando; en desarrollo,
+          el índice se genera con <code className="font-mono">npm run indice:planillas</code>.
         </p>
       )}
       {indice !== null && total === 0 && (

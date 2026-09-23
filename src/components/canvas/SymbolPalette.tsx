@@ -44,7 +44,9 @@ const GROUPS: Group[] = [
       { label: '>', insert: ' > ' },
       { label: '≤', insert: ' <= ' },
       { label: '≥', insert: ' >= ' },
-      { label: '=', insert: ' == ' },
+      // «==» y no «=»: en Aritmética ya hay un «=», que muestra el resultado.
+      // Con los dos rotulados igual, uno comparaba y el otro no.
+      { label: '==', insert: ' == ' },
       { label: '≠', insert: ' != ' },
       { label: '∧', insert: ' and ' },
       { label: '∨', insert: ' or ' },

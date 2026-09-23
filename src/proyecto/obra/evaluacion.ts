@@ -65,7 +65,7 @@ import {
 import type { EvaluacionModulo } from '../../lib/diseno/evaluar';
 import { evaluarImportada, type Genericas } from './biblioteca';
 import { identificadoresDe, type Frontera, type Obra } from './modelo';
-// `definicionesDe` es una sola, la de `./hoja`: había una copia acá que solo
+// `definicionesDe` es una sola, la de `./hoja`: había una copia aquí que solo
 // miraba las regiones `math`, y el panel y el grafo discrepaban sobre qué
 // define una hoja en cuanto aparecía un programa.
 import { definicionesDe, ordenDeLectura } from './hoja';
@@ -579,7 +579,7 @@ function evaluarConFrontera(
  *
  * Es la parte del diagnóstico que NO sale del motor: el motor solo ve una hoja y
  * dice «variable indefinida». Que la razón sea un nombre repetido en dos nodos o
- * un ciclo entre ellos es del grafo, y solo se puede decir desde acá.
+ * un ciclo entre ellos es del grafo, y solo se puede decir desde aquí.
  */
 export function problemaDeGrafo(idNodo: string, ev: EvaluacionObra): string {
   if (ev.enCiclo.has(idNodo)) {
@@ -601,7 +601,7 @@ export function problemaDeGrafo(idNodo: string, ev: EvaluacionObra): string {
   if (rotos.length > 0) {
     const [n] = rotos;
     const yMas = rotos.length > 1 ? ` (y ${rotos.length - 1} más)` : '';
-    // TRES causas que hasta acá se veían igual, con un «Undefined symbol» en
+    // TRES causas que hasta aquí se veían igual, con un «Undefined symbol» en
     // inglés que no decía de dónde venía el nombre. La respuesta útil es
     // distinta en cada una, y en la primera es ir a OTRO nodo.
     const duenio = ev.duenio.get(n);
@@ -615,7 +615,7 @@ export function problemaDeGrafo(idNodo: string, ev: EvaluacionObra): string {
     const cuantos = ev.repetidos.get(n)?.length;
     if (cuantos) {
       return (
-        `«${n}»${yMas} la definen ${cuantos} nodos, así que ninguno es su dueño y acá llega ` +
+        `«${n}»${yMas} la definen ${cuantos} nodos, así que ninguno es su dueño y aquí llega ` +
         'sin valor. Renómbrala en todos menos uno.'
       );
     }

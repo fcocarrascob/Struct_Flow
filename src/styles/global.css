@@ -39,7 +39,7 @@ body {
    que una fórmula se vea igual en los tres sitios— con el cuerpo bajado: 11 pt
    en un panel de 30rem parte cualquier expresión con tres factores.
 
-   Va acá y NO en `papel.css` porque aquel lo incrusta literal
+   Va aquí y NO en `papel.css` porque aquel lo incrusta literal
    `scripts/render-planilla.mjs` para el PDF, y esto no es del papel: es de una
    pantalla que el papel no tiene. */
 .mini-hoja.doc-papel {

@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // El desglose de una carga: qué valor muestra cada partida.
 //
-// Acá ya no se evalúa ninguna hoja. La hoja es una sola y la evalúa
+// Aquí ya no se evalúa ninguna hoja. La hoja es una sola y la evalúa
 // `evaluacion.ts` para toda la obra; esto solo LEE del scope compartido el
 // nombre que cada partida declaró como su valor.
 //
@@ -56,7 +56,7 @@ const SUPERINDICE: Record<string, string> = { '2': '²', '3': '³', '4': '⁴' }
  * Un valor formateado por el motor, legible en una tarjeta: `kN / m^2` pasa a
  * `kN/m²`.
  *
- * Acá y no en `formatValor`: aquel es del motor, y cambiarlo resellaría todas las
+ * Aquí y no en `formatValor`: aquel es del motor, y cambiarlo resellaría todas las
  * planillas del harness por un asunto de tipografía. En la hoja no hace falta,
  * porque la hoja pinta LaTeX; la tarjeta es texto plano.
  */
@@ -113,7 +113,7 @@ function valorConFrontera(
     };
   }
   // La evaluación la hizo `evaluarObra`, en el sitio que le toca a este nodo
-  // dentro del orden de lectura. Reevaluarla acá con el scope final de la obra
+  // dentro del orden de lectura. Reevaluarla aquí con el scope final de la obra
   // daría otro número el día que el cálculo lea algo que se resuelve debajo.
   const instancia = ev.importadas.get(idNodoDeSubcarga(sub.id));
   if (!instancia) return { ...base, texto: '…', problema: '', cargando: true };

@@ -115,7 +115,7 @@ export default function PanelCalculo({
                 // define no lo ve nadie hasta que se marque en «Publica».
                 'Este cálculo tiene su propio espacio de nombres. Marca en «Publica» lo que tengan que ver los demás nodos.'
               ) : (
-                'Lo que definas acá queda disponible para los demás nodos.'
+                'Lo que definas aquí queda disponible para los demás nodos.'
               )}
             </p>
           </div>

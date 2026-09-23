@@ -7,7 +7,7 @@ import { listarPromovibles, type EntradaIndice } from './biblioteca';
  * Solo las **promovibles**: una genérica con entradas y salidas declaradas, que
  * es la condición para instanciarla sin tocarla a mano. Quién lo es lo dice
  * `public/biblioteca-indice.json`, que `npm run dev` y `npm run build`
- * regeneran; no hay una segunda lista que mantener acá.
+ * regeneran; no hay una segunda lista que mantener aquí.
  *
  * Cada ficha muestra la norma como CLAVE del catálogo del harness
  * (`US/ACI318-25-SI`) y no como prosa: es lo que permite comprobar después que

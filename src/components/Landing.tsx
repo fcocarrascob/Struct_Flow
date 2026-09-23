@@ -65,7 +65,7 @@ export default function Landing() {
         <Tarjeta
           a={{ vista: 'planillas' }}
           titulo="Planillas"
-          cuenta={indice ? `${indice.length} memorias` : undefined}
+          cuenta={indice ? `${indice.length} planillas` : undefined}
         >
           Memorias de cálculo completas y resueltas —acero, hormigón y apuntes de norma— que se
           abren en el canvas y se pueden editar, recalcular e imprimir.
@@ -76,19 +76,19 @@ export default function Landing() {
           titulo="Diseño de elementos"
           cuenta={`${nModulos} ${nModulos === 1 ? 'módulo' : 'módulos'}`}
         >
-          Ingresa los parámetros y mira cómo se redibuja el elemento y cómo se mueven los factores
+          Escribe los parámetros y mira cómo se redibuja el elemento y cómo se mueven los factores
           de utilización. Cuando cuadre, exporta la memoria con el esquema dentro.
         </Tarjeta>
 
         <Tarjeta a={{ vista: 'canvas' }} titulo="Canvas">
-          La hoja en blanco: escribe expresiones con unidades, define variables y bloques de
-          programación, e imprime el resultado paginado en A4.
+          La hoja libre, con lo último que escribiste en este navegador: expresiones con unidades,
+          variables y bloques de programación, e impresión paginada en A4.
         </Tarjeta>
 
         <Tarjeta a={{ vista: 'proyectos' }} titulo="Proyectos">
           Tus obras como un grafo que se arma nodo a nodo —cargas, combinaciones, modelo,
           planillas— y, debajo, los encargos del harness en solo lectura, con el color puesto en
-          lo que no calza.
+          lo que no cuadra.
         </Tarjeta>
       </div>
 
@@ -114,7 +114,7 @@ export default function Landing() {
           </p>
           <p>
             <strong>Abrir espacio:</strong> con el punto de inserción puesto, <code>Enter</code>{' '}
-            mete una línea en blanco y empuja hacia abajo lo que haya debajo. Púlsalo varias veces
+            inserta una línea en blanco y empuja hacia abajo lo que haya debajo. Púlsalo varias veces
             para separar más. El hueco es un bloque como cualquier otro —se selecciona y se borra
             con Supr— y ocupa lo mismo en la hoja que en el PDF.
           </p>

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Template } from '../../lib/worksheet-templates';
 import { TITULOS, agruparPorClase } from '../../lib/catalogo';
 import { useIndice } from '../useIndice';
+import { textoBuscable } from '../buscar-catalogo';
 
 interface Props {
   plantillas: readonly Template[];
@@ -39,7 +40,7 @@ export default function CatalogoMenu({ plantillas, onPlantilla, onPlanilla, onCe
   );
 
   const secciones = useMemo(
-    () => agruparPorClase((indice ?? []).filter((e) => coincide(`${e.titulo} ${e.slug}`))),
+    () => agruparPorClase((indice ?? []).filter((e) => coincide(textoBuscable(e)))),
     [indice, q],
   );
 
@@ -57,7 +58,7 @@ export default function CatalogoMenu({ plantillas, onPlantilla, onPlanilla, onCe
             value={filtro}
             onChange={(e) => setFiltro(e.target.value)}
             onKeyDown={(e) => e.key === 'Escape' && onCerrar()}
-            placeholder="Buscar entre las plantillas y los ejemplos…"
+            placeholder="Buscar por título, norma o tema…"
             aria-label="Buscar en el catálogo"
             className="w-full rounded border border-border px-2 py-1 text-xs text-ink outline-none focus:border-accent"
           />
@@ -111,11 +112,12 @@ export default function CatalogoMenu({ plantillas, onPlantilla, onPlanilla, onCe
           ))}
 
           {indice === null && !error && (
-            <p className="px-3 py-2 text-[11px] text-muted">Cargando los ejemplos…</p>
+            <p className="px-3 py-2 text-[11px] text-muted">Cargando las planillas…</p>
           )}
           {error && (
             <p className="px-3 py-2 text-[11px] text-muted">
-              No se pudo cargar el catálogo de ejemplos. Genera el índice con{' '}
+              No se pudo cargar el índice de planillas; las plantillas de arriba siguen disponibles.
+              En desarrollo, el índice se genera con{' '}
               <code className="font-mono">npm run indice:planillas</code>.
             </p>
           )}

@@ -15,7 +15,8 @@ retirar.
   Con el servidor no pasa.
 - **Solo lectura no impide editar.** La pestaña sin candado deja tocar la obra y lo dice en
   la banda, pero lo escrito se descarta al tomar el control. Bloquear la edición significa
-  llegar a los paneles y al canvas de cada pestaña de hoja.
+  llegar a los paneles y al canvas de cada pestaña de hoja. Lo que no se descarta —escribir
+  en SAP— ya está bloqueado sin el candado.
 - **El candado vive en la memoria del servidor.** Dos servidores sobre la misma raíz (`npm run
   dev` y `npm run obras`) no lo comparten, y reiniciar el servidor lo suelta.
 - **Escribir una obra no es atómico entre archivos**: cada archivo se escribe entero (temporal
@@ -57,6 +58,11 @@ retirar.
   antes si `/proyecto/<slug>` desaparece (etapa 1).
 - **`sanearConInforme` no tiene caso de regresión**: no encaja en `verify:motor` ni en
   `verify:obra`. Se comprobó a mano; le falta su sitio.
+- **La pantalla de fallo de una obra en disco rescata lo que no es.** Su «Descargar lo
+  guardado» lee `structflow.obras.v1`, que son las obras del navegador: de una obra en disco
+  no baja nada (su trabajo está en la carpeta y en el borrador, que no se ofrece).
+- **Al abrir, el encuadre deja fuera la última fila de nodos** del Pachón (`SOL_MURO` queda
+  cortado por el borde inferior).
 
 ## SAP2000
 
@@ -72,6 +78,12 @@ para la sesión de ajustes:
 - **El puente no se arranca solo** con `npm run dev`. Y el panel muestra la última conexión,
   que puede no ser el modelo abierto ahora (lo avisa, pero hay que volver a conectar a mano).
 - La tabla de patrones es larga (33 filas en el Pachón) y no se filtra por estado.
+- **La comparación de las cargas aplicadas cuenta cargas, no objetos.** El puente devuelve
+  cuántas veces aparece cada carga en el grupo; con todos los objetos cargados, un reparto
+  hecho a mano en SAP que cambie cargas iguales de objeto no se distingue de lo que Flow
+  escribió. Cerrarlo pide que el puente lea la firma por objeto.
+- **El tope de 30 s es del navegador, no de SAP.** Si una llamada COM se cuelga, Flow deja de
+  esperar pero el puente —que atiende de a una— sigue ocupado hasta que SAP responda.
 
 ## Motor
 
@@ -114,6 +126,12 @@ Por gravedad:
 - **`verify:modulos` no mira signo ni finitud de los usos**, y un módulo con `casos: []` pasa
   sin evaluar nada.
 - Las entradas de un módulo no se guardan: F5 las devuelve a los valores por defecto.
+- **`PanelResultados` se cae con una salida cuya unidad no cuadra**: `formatValor` llama a
+  `math.number(v, unidad)` sin protegerlo, y una genérica que declara `kN` para un valor en
+  kN·m (o una unidad para un número puro) tumba `/diseno/<slug>` en cada recarga.
+- **«Abrir la memoria en el canvas» pisa la hoja sin copia apartada** (`canvas-handoff.ts`):
+  escribe en `STORAGE_KEY` y recarga, así que Ctrl+Z no la recupera. Abrir la misma planilla
+  desde el catálogo sí pasa por `cargarHoja` y se puede deshacer.
 - **Ctrl+P fuera del canvas imprime en blanco**: la regla de impresión oculta todo lo que no
   sea `.worksheet-print`.
 
@@ -152,6 +170,12 @@ Por gravedad:
 - La copia apartada por un conflicto entre pestañas se descarga, no se restaura en la hoja.
 - Un espaciador solo se ve con el cursor encima: nada marca un hueco deliberado.
 - Falta `touch-action: none` en el arrastre: en táctil hace scroll.
+- **El canvas no lleva las migas del resto de las vistas**: tiene «← Inicio», y una planilla
+  abierta desde `/planillas` no tiene vuelta al catálogo.
+- **Comentarios viejos y regionalismos dentro de `src/lib/`**: `ruta.ts` dice «cinco
+  vistas» (son nueve), `canvas-handoff.ts` cita un `loadInitial()` que ya no existe, y quedan
+  «acá» en comentarios. Fuera de `src/lib/` ya se corrigieron; ahí se corrigen con el próximo
+  cambio del motor, para no resellarlo solo por eso.
 - **Accesibilidad**: las regiones no tienen `tabIndex`, `role` ni `aria-`; no se recorren ni
   mueven sin ratón, y los estados se comunican solo por color; las figuras van con `alt=""`.
   Conviene esperar a la lista ordenada, donde «recorrer con el teclado» tiene respuesta obvia.
@@ -160,11 +184,3 @@ Por gravedad:
   varias planillas con la banda ámbar; el `<textarea>` de un texto no mide lo mismo que su
   `<p>`; no hay desplazamiento automático al arrastrar cerca del borde; el `ResizeObserver` se
   reconecta en cada `pointermove`; pegar un fragmento no evita solapes; alinear y distribuir.
-
-## Repositorio
-
-- **El sha256 de una genérica depende de los finales de línea.** Con `core.autocrlf=true` el
-  archivo queda con CRLF en disco y el índice versionado se calculó con LF: al regenerarlo,
-  `viga-carrilera-generica` da `80fef2…` contra `ed1687…` con el mismo blob en git. El harness
-  puede ver desfasada una genérica que no cambió. La salida es fijar `eol=lf` en
-  `.gitattributes` para `public/**/*.json` y renormalizar.

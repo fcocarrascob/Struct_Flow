@@ -30,7 +30,7 @@ import PanelLateral from './PanelLateral';
 /**
  * El canvas de un proyecto del harness.
  *
- * Lo que se dibuja NO SE INVENTA ACÁ: es lo que `harness.grafo` proyecta desde
+ * Lo que se dibuja NO SE INVENTA AQUÍ: es lo que `harness.grafo` proyecta desde
  * los archivos del proyecto —el perfil, el catálogo de normas, las cargas, las
  * planillas, los mapas de trazabilidad—. Este componente no calcula nada y no
  * escribe nada; del otro lado el servidor sólo responde GET.
@@ -120,7 +120,7 @@ export default function CanvasProyecto({ slug }: { slug: string }) {
   }, [grafo, visibles, slug]);
 
   // Re-encuadra cuando cambia el conjunto visible. Sin esto, apagar un tipo o
-  // pedir «solo lo que no calza» deja los nodos que quedan del tamaño que tenían
+  // pedir «solo lo que no cuadra» deja los nodos que quedan del tamaño que tenían
   // entre 100: el filtro parece no haber hecho nada.
   //
   // Espera a `useNodesInitialized` porque `fitView` encuadra lo MEDIDO: llamarlo
@@ -226,7 +226,7 @@ export default function CanvasProyecto({ slug }: { slug: string }) {
                 : 'border-border text-muted hover:border-accent'
             }`}
           >
-            solo lo que no calza
+            solo lo que no cuadra
           </button>
           {TIPOS.filter((t) => conteo.has(t)).map((t) => {
             const apagado = ocultos.has(t);

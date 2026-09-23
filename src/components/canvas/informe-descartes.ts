@@ -1,6 +1,6 @@
 // Cómo se le cuenta al usuario lo que un saneo descartó.
 //
-// Vive acá y no en `src/lib/hoja-json.ts`, que es quien produce el informe, por
+// Vive aquí y no en `src/lib/hoja-json.ts`, que es quien produce el informe, por
 // una razón mecánica y no estética: el harness sella el motor como el hash de
 // árbol de `src/lib`, así que cada ajuste de redacción obligaría a resellar y a
 // un commit `[harness]` en el repo hermano. El motor devuelve códigos; la prosa

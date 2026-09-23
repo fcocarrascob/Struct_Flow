@@ -33,6 +33,13 @@ const DEMO: Region[] = [
   { id: 'demo-4', kind: 'math', x: ORIGEN_PAPEL_X, y: 288, src: 'M <= 60 kN*m =' },
 ];
 
+/**
+ * ¿Es la hoja de ejemplo, sin tocar? Por identidad: editarla crea un array nuevo.
+ * Es lo mismo que mira el autoguardado para marcarla `demo`, y lo que evita
+ * preguntar «¿reemplazar tu hoja?» sobre algo que el usuario nunca escribió.
+ */
+export const esHojaDemo = (regions: readonly Region[]): boolean => regions === DEMO;
+
 /** Dónde se aparta una hoja guardada que no se pudo leer. */
 export const CLAVE_APARTADA = `${STORAGE_KEY}.apartada`;
 

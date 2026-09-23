@@ -9,7 +9,7 @@ import { ordenDeLectura } from './hoja';
  *
  * NO ES UN `MathCanvas` DE SOLO LECTURA, y es a propósito. Un canvas que no deja
  * escribir habría que inventarlo —tiene ocho vías de escritura, seis atajos
- * globales y un historial—, y lo que hace falta acá no es un editor apagado: es
+ * globales y un historial—, y lo que hace falta aquí no es un editor apagado: es
  * la hoja, leída de arriba abajo. Es la misma composición que el documento de
  * impresión, con `BloqueDoc`, así que una fórmula se ve igual que en la pestaña,
  * en el papel y en el PDF.

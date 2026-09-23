@@ -6,7 +6,7 @@ import { problemaDeAlias, type Frontera } from './modelo';
  * El panel de un cálculo cuya hoja está en el documento: `propia` o `derivada`.
  *
  * NO ES `FichaGenerica`. Aquella pinta un módulo de la biblioteca: un formulario
- * salido de `meta.entradas`, unas salidas declaradas y un esquema. Acá no hay
+ * salido de `meta.entradas`, unas salidas declaradas y un esquema. Aquí no hay
  * `meta` que leer —una hoja escrita a mano no declara nada—, así que lo único
  * honesto es leerlo de lo que está escrito:
  *

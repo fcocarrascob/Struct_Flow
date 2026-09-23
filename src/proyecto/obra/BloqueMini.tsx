@@ -11,7 +11,7 @@ import type { Region, RegionResult } from '../../lib/worksheet';
  * `A4_ANCHO_PX` (680 px) sin prop para cambiarlo y lleva los gestos de arrastre
  * y redimensión; nada de eso cabe ni significa algo en un panel de 30rem. Lo que
  * sí se reutiliza es lo que importa: **`BloqueDoc` pinta el bloque**, así que
- * una fórmula se ve acá exactamente igual que en la hoja y en el papel, y el
+ * una fórmula se ve aquí exactamente igual que en la hoja y en el papel, y el
  * autocompletado es el mismo del canvas.
  *
  * De `MathRegion` se replican cuatro conductas que parecen detalles y no lo son:

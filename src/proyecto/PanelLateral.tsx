@@ -5,7 +5,7 @@ import type { NodoGrafo } from './contrato';
 /**
  * Lo que hay detrás de un nodo.
  *
- * El nodo muestra lo justo para decidir si mirarlo; acá está el respaldo:
+ * El nodo muestra lo justo para decidir si mirarlo; aquí está el respaldo:
  * los campos tal como los declara el proyecto, los motivos completos del
  * desfase y el archivo del que sale todo, con su ruta y su línea.
  *
@@ -97,7 +97,7 @@ export default function PanelLateral({
               nodo.severidad === 'error' ? 'text-error' : 'text-aviso'
             }`}
           >
-            {nodo.severidad === 'error' ? 'No calza' : 'Aviso'}
+            {nodo.severidad === 'error' ? 'No cuadra' : 'Aviso'}
           </h3>
           <ul className="space-y-1">
             {nodo.motivos.map((m) => (

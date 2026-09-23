@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Las genéricas de la biblioteca, vistas desde una obra.
 //
-// Acá no se reimplementa nada: `cargarModuloDeBiblioteca` ya descarga la hoja,
+// Aquí no se reimplementa nada: `cargarModuloDeBiblioteca` ya descarga la hoja,
 // comprueba que cumpla el contrato de genérica, calcula el sha256 de los bytes
 // que de verdad se instancian y arma el módulo declarativo; `evaluarModulo` ya
 // instancia las entradas y devuelve el scope. Es la MISMA operación que
@@ -72,7 +72,7 @@ export interface CampoResuelto {
  * El número que le toca a un campo atado a una expresión.
  *
  * La conversión a la unidad del campo se hace DIVIDIENDO por `1 <unidad>` en el
- * mismo motor, y no con una tabla de factores acá: así `Mu_Y [kN*m]` atado a
+ * mismo motor, y no con una tabla de factores aquí: así `Mu_Y [kN*m]` atado a
  * algo escrito en `tonf*m` se convierte solo, y atado a un área falla con el
  * mensaje de math.js en vez de entregar un número sin sentido.
  */
