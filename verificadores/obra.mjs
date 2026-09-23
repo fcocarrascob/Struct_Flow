@@ -65,6 +65,8 @@ const {
   porRevisar,
   compararPatrones,
   avisosPesoPropio,
+  traerDeSap,
+  adoptarDeSap,
 } = motor;
 
 // ── Armar una obra ───────────────────────────────────────────────────────────
@@ -1424,6 +1426,40 @@ const CASOS_PATRONES = [
       ]);
       if (dos.length !== 1 || !dos[0].includes('DEAD') || !dos[0].includes('SDL')) return `dos: ${dos}`;
       return avisosPesoPropio([{ nombre: 'DEAD', pesoPropio: 1.3 }]).length ? 'avisó con uno solo' : null;
+    },
+  },
+  {
+    nombre: 'traer de SAP crea las cargas que faltan, con su patrón, y no duplica ni pisa',
+    ok: () => {
+      const base = { ...obra(), modulos: [], cargas: [carga('DEAD', { tipo: 'Dead', pesoPropio: 1 })] };
+      const lista = [leido('DEAD', 'Dead', 1.3), leido('WXP', 'Wind'), leido('CLV_P1', 'Other')];
+      const o = traerDeSap(base, ['WXP', 'CLV_P1', 'DEAD'], lista);
+      if (!o.modulos.includes('cargas')) return 'no agregó el nodo Cargas';
+      const nombres = o.cargas.map((c) => c.nombre).join(',');
+      if (nombres !== 'DEAD,WXP,CLV_P1') return `cargas: ${nombres}`;
+      if (o.cargas[0].patron.pesoPropio !== 1) return 'pisó el patrón de una carga que ya estaba';
+      const w = o.cargas[1];
+      if (w.patron?.tipo !== 'Wind' || w.subcargas.length !== 0) return `WXP: ${JSON.stringify(w)}`;
+      if (new Set(o.cargas.map((c) => c.id)).size !== 3) return 'ids repetidos';
+      return estados(compararPatrones(o.cargas, lista)) === 'DEAD:difiere WXP:igual CLV_P1:igual'
+        ? null
+        : estados(compararPatrones(o.cargas, lista));
+    },
+  },
+  {
+    nombre: 'adoptar de SAP define el patrón de las cargas que no lo tenían, y solo de esas',
+    ok: () => {
+      const base = {
+        ...obra(),
+        modulos: ['cargas'],
+        cargas: [carga('DEAD', { tipo: 'Dead', pesoPropio: 1 }), carga('LR'), carga('S')],
+      };
+      const lista = [leido('DEAD', 'Dead', 1.3), leido('LR', 'Rooflive'), leido('S', 'Snow')];
+      const o = adoptarDeSap(base, ['DEAD', 'LR'], lista);
+      const p = (n) => o.cargas.find((c) => c.nombre === n)?.patron;
+      if (p('DEAD').pesoPropio !== 1) return 'pisó un patrón que Flow ya definía';
+      if (p('LR')?.tipo !== 'Rooflive') return `LR: ${JSON.stringify(p('LR'))}`;
+      return p('S') === undefined ? null : 'adoptó uno que no se pidió';
     },
   },
 ];

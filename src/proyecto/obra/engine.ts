@@ -21,7 +21,7 @@ export {
 } from './evaluacion';
 export { sanearObra, idDeObra, archivoDeObra, importarObra } from './almacen';
 export { partirObra, unirObra } from './carpeta';
-export { compararPatrones, avisosPesoPropio, patronesDeFlow } from './sap';
+export { compararPatrones, avisosPesoPropio, patronesDeFlow, traerDeSap, adoptarDeSap } from './sap';
 export { proyectar } from './proyeccion';
 export { colocar } from '../layout';
 export {

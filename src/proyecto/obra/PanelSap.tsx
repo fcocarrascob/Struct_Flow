@@ -61,11 +61,17 @@ function ComparacionPatrones({
   lectura,
   modeloConectado,
   onLeidos,
+  onTraer,
+  onAdoptar,
 }: {
   cargas: readonly Carga[];
   lectura: LecturaPatrones | undefined;
   modeloConectado: string | undefined;
   onLeidos: (ruta: string, lectura: LecturaPatrones) => void;
+  /** Crea en la obra las cargas de estos patrones que solo están en SAP. */
+  onTraer: (nombres: string[]) => void;
+  /** Define el patrón de estas cargas con lo que tiene el modelo. */
+  onAdoptar: (nombres: string[]) => void;
 }) {
   const [estado, setEstado] = useState<{ fase: 'quieto' | 'leyendo' } | { fase: 'error'; motivo: string }>({
     fase: 'quieto',
@@ -85,6 +91,10 @@ function ComparacionPatrones({
   const enFlow = avisosPesoPropio(patronesDeFlow(cargas));
   const enSap = lectura ? avisosPesoPropio(lectura.lista) : [];
   const apartados = filas.filter((f) => f.estado !== 'igual').length;
+  const soloSap = filas.filter((f) => f.estado === 'solo-sap').map((f) => f.nombre);
+  const sinDefinir = filas.filter((f) => f.estado === 'sin-definir').map((f) => f.nombre);
+  const BOTON =
+    'rounded border border-border px-1.5 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent';
 
   return (
     <section className="border-t border-border px-5 py-4">
@@ -128,6 +138,31 @@ function ComparacionPatrones({
             </p>
           ))}
 
+          {(soloSap.length > 0 || sinDefinir.length > 0) && (
+            <div className="mb-2 flex flex-wrap gap-1.5">
+              {soloSap.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => onTraer(soloSap)}
+                  title="Crea en la obra una carga por cada patrón que solo está en el modelo, con su tipo y su peso propio"
+                  className={BOTON}
+                >
+                  Traer a Flow {soloSap.length === 1 ? 'la que' : `las ${soloSap.length} que`} solo están en SAP
+                </button>
+              )}
+              {sinDefinir.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => onAdoptar(sinDefinir)}
+                  title="Define el tipo y el peso propio de esas cargas con lo que tiene el modelo"
+                  className={BOTON}
+                >
+                  Tomar de SAP {sinDefinir.length === 1 ? 'la' : `las ${sinDefinir.length}`} sin definir
+                </button>
+              )}
+            </div>
+          )}
+
           <table className="w-full text-[11px]">
             <thead>
               <tr className="text-left text-[10px] uppercase tracking-wide text-muted">
@@ -148,6 +183,16 @@ function ComparacionPatrones({
                     {f.estado === 'difiere' && (
                       <span className="block text-[10px] font-normal text-muted">{f.diferencias.join('; ')}</span>
                     )}
+                    {f.estado === 'solo-sap' && (
+                      <button type="button" onClick={() => onTraer([f.nombre])} className={`ml-1.5 ${BOTON}`}>
+                        traer
+                      </button>
+                    )}
+                    {f.estado === 'sin-definir' && (
+                      <button type="button" onClick={() => onAdoptar([f.nombre])} className={`ml-1.5 ${BOTON}`}>
+                        tomar
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -164,12 +209,16 @@ export default function PanelSap({
   cargas,
   onConectado,
   onPatronesLeidos,
+  onTraer,
+  onAdoptar,
   onCerrar,
 }: {
   sap: ConexionSap | undefined;
   cargas: readonly Carga[];
   onConectado: (sap: ConexionSap) => void;
   onPatronesLeidos: (ruta: string, lectura: LecturaPatrones) => void;
+  onTraer: (nombres: string[]) => void;
+  onAdoptar: (nombres: string[]) => void;
   onCerrar: () => void;
 }) {
   useEscape(onCerrar);
@@ -256,6 +305,8 @@ export default function PanelSap({
         lectura={sap?.patrones}
         modeloConectado={sap?.modelo}
         onLeidos={onPatronesLeidos}
+        onTraer={onTraer}
+        onAdoptar={onAdoptar}
       />
     </aside>
   );

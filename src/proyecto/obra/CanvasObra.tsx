@@ -63,6 +63,7 @@ import {
 import NodoObra from './NodoObra';
 import MarcaRevision from './MarcaRevision';
 import PanelSap from './PanelSap';
+import { adoptarDeSap, traerDeSap } from './sap';
 import IconoClase from './IconoClase';
 import LeyendaGrupos from './LeyendaGrupos';
 import SelectorGrupo from './SelectorGrupo';
@@ -1771,6 +1772,15 @@ function CanvasObra({
                     }
                   : o,
               )
+            }
+            // Fuera del actualizador: traer sortea ids (`nuevaCarga`), y un
+            // actualizador que React llame dos veces sortearía dos.
+            onTraer={(nombres) => {
+              const o = obraRef.current;
+              if (o?.sap?.patrones) setObra(traerDeSap(o, nombres, o.sap.patrones.lista));
+            }}
+            onAdoptar={(nombres) =>
+              setObra((o) => (o?.sap?.patrones ? adoptarDeSap(o, nombres, o.sap.patrones.lista) : o))
             }
             onCerrar={() => setSeleccion(null)}
           />

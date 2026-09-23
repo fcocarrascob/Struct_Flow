@@ -11,7 +11,7 @@
 // porque decidir que son lo mismo es trabajo del ingeniero, no de una regla.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type { Carga, PatronLeido, PatronSap } from './modelo';
+import { agregarModulo, nuevaCarga, type Carga, type Obra, type PatronLeido, type PatronSap } from './modelo';
 
 export type EstadoPatron =
   /** Nombre, tipo y peso propio coinciden. */
@@ -93,6 +93,48 @@ export function avisosPesoPropio(lista: readonly { nombre: string; pesoPropio: n
     ];
   }
   return [];
+}
+
+/**
+ * Trae a la obra, como cargas nuevas, los patrones del modelo que la obra no
+ * tiene. Es para un modelo que nació antes que su obra: la lista de SAP se
+ * vuelve la de Flow, y desde ahí Flow manda.
+ *
+ * Una carga que ya existe no se toca, aunque su patrón difiera: eso lo decide
+ * quien mira la comparación. La carga nueva no tiene partidas, y su nodo ya
+ * avisa que le falta el respaldo.
+ *
+ * Sortea ids (`nuevaCarga`): se llama FUERA del actualizador de `setObra`.
+ */
+export function traerDeSap(obra: Obra, nombres: readonly string[], lista: readonly PatronLeido[]): Obra {
+  const tomados = new Set(obra.cargas.map((c) => c.nombre.trim()));
+  const nuevas: Carga[] = [];
+  for (const nombre of nombres) {
+    const p = lista.find((x) => x.nombre === nombre);
+    if (!p || tomados.has(nombre)) continue;
+    tomados.add(nombre);
+    nuevas.push({ ...nuevaCarga([]), nombre, patron: { tipo: p.tipo, pesoPropio: p.pesoPropio } });
+  }
+  if (nuevas.length === 0) return obra;
+  return { ...agregarModulo(obra, 'cargas'), cargas: [...obra.cargas, ...nuevas] };
+}
+
+/**
+ * Define el patrón de las cargas que todavía no lo dicen, tomándolo del modelo.
+ * Solo esas: una carga que ya define su patrón es la que manda, y si difiere del
+ * modelo, el que está mal es el modelo.
+ */
+export function adoptarDeSap(obra: Obra, nombres: readonly string[], lista: readonly PatronLeido[]): Obra {
+  const pedidos = new Set(nombres);
+  return {
+    ...obra,
+    cargas: obra.cargas.map((c) => {
+      const nombre = c.nombre.trim();
+      if (c.patron || !pedidos.has(nombre)) return c;
+      const p = lista.find((x) => x.nombre === nombre);
+      return p ? { ...c, patron: { tipo: p.tipo, pesoPropio: p.pesoPropio } } : c;
+    }),
+  };
 }
 
 /** Las cargas de Flow que ya dicen cómo es su patrón, en la forma de `avisosPesoPropio`. */

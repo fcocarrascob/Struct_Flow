@@ -137,8 +137,10 @@ antes de dar el siguiente:
    carga lleva su tipo SAP y su multiplicador de peso propio, y el nodo SAP2000 lee los patrones
    del modelo y dice en qué se aparta de la obra (igual, difiere, sin definir, falta en SAP,
    solo en SAP), más el peso propio en ninguna o en dos cargas. Un patrón no tiene valor: los
-   valores van en los objetos, y eso es otro paso. Siguen: traer a Flow los patrones que solo
-   están en SAP, y después empujar a SAP los de Flow, mostrando antes lo que va a cambiar.
+   valores van en los objetos, y eso es otro paso. **Traer de SAP** también está hecho: la
+   comparación crea en la obra las cargas que solo están en el modelo y adopta el patrón de las
+   que Flow no definía, sin pisar nunca uno que Flow ya define. Sigue empujar a SAP los de
+   Flow, mostrando antes lo que va a cambiar.
 2. Leer lo medido (reacciones por caso, periodos, cortes basales) con su sello, y publicarlo
    como nombres que las hojas usan en vez de copiarlos a mano.
 3. Marcar la lectura atrasada cuando el `.sdb` cambió después de leerla.
