@@ -1,6 +1,14 @@
 import { useState } from 'react';
 import type { Carga, ConexionSap, LecturaPatrones, PatronSap } from './modelo';
-import { avisosPesoPropio, compararPatrones, numero, patronesDeFlow, type EstadoPatron } from './sap';
+import {
+  avisosPesoPropio,
+  compararPatrones,
+  numero,
+  patronesDeFlow,
+  planEmpuje,
+  type CambioPatron,
+  type EstadoPatron,
+} from './sap';
 import { useEscape } from './useEscape';
 
 /**
@@ -39,6 +47,151 @@ async function leerPatrones(): Promise<{ ruta: string; lectura: LecturaPatrones 
     ruta: datos.ruta ?? '',
     lectura: { modelo: datos.modelo ?? '', leido: new Date().toISOString(), lista: datos.patrones ?? [] },
   };
+}
+
+async function escribirPatrones(
+  modelo: string,
+  cambios: CambioPatron[],
+): Promise<{ ruta: string; lectura: LecturaPatrones; hechos: { nombre: string; accion: string }[] }> {
+  let r: Response;
+  try {
+    r = await fetch('/sap-api/patrones', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ modelo, cambios }),
+    });
+  } catch {
+    throw new Error('El puente de SAP no responde.');
+  }
+  const datos = await r.json().catch(() => null);
+  if (!datos) throw new Error('El puente de SAP no está corriendo. Arráncalo con `npm run puente-sap`.');
+  if (!r.ok) throw new Error(datos.motivo ?? `El puente respondió ${r.status}.`);
+  return {
+    ruta: datos.ruta ?? '',
+    hechos: datos.hechos ?? [],
+    lectura: { modelo: datos.modelo ?? '', leido: new Date().toISOString(), lista: datos.patrones ?? [] },
+  };
+}
+
+/**
+ * Empujar a SAP: lo único que escribe en el modelo. Se muestra la lista EXACTA
+ * de lo que se va a escribir y se confirma; no hay otro camino. Lo que se escribe
+ * lo dice `planEmpuje`, la misma función que prueba `verify:obra`.
+ */
+function EmpujeSap({
+  cargas,
+  lectura,
+  onEscrito,
+}: {
+  cargas: readonly Carga[];
+  lectura: LecturaPatrones;
+  onEscrito: (ruta: string, lectura: LecturaPatrones) => void;
+}) {
+  const [fase, setFase] = useState<
+    | { f: 'quieto' }
+    | { f: 'confirmando' }
+    | { f: 'escribiendo' }
+    | { f: 'hecho'; texto: string }
+    | { f: 'error'; motivo: string }
+  >({ f: 'quieto' });
+  const { cambios, omitidas } = planEmpuje(cargas, lectura.lista);
+
+  const escribir = () => {
+    setFase({ f: 'escribiendo' });
+    escribirPatrones(lectura.modelo, cambios).then(
+      ({ ruta, lectura: nueva, hechos }) => {
+        onEscrito(ruta, nueva);
+        const creados = hechos.filter((h) => h.accion === 'creado').length;
+        const ajustados = hechos.length - creados;
+        setFase({
+          f: 'hecho',
+          texto:
+            `Escrito en ${nueva.modelo}: ${creados} creado${creados === 1 ? '' : 's'} y ` +
+            `${ajustados} ajustado${ajustados === 1 ? '' : 's'}. El modelo NO se guardó: guárdalo en SAP si quieres conservarlo.`,
+        });
+      },
+      (e: Error) => setFase({ f: 'error', motivo: e.message }),
+    );
+  };
+
+  if (fase.f === 'hecho' || fase.f === 'error') {
+    return (
+      <p
+        role="status"
+        className={`mb-2 rounded border px-3 py-2 text-xs leading-snug ${
+          fase.f === 'hecho' ? 'border-border text-ink' : 'border-error text-error'
+        }`}
+      >
+        {fase.f === 'hecho' ? fase.texto : fase.motivo}{' '}
+        <button type="button" onClick={() => setFase({ f: 'quieto' })} className="underline">
+          cerrar
+        </button>
+      </p>
+    );
+  }
+
+  if (cambios.length === 0) {
+    return omitidas.length ? (
+      <p className="mb-2 text-[10px] leading-snug text-muted">
+        Nada que escribir en SAP. Sin tipo SAP, no se crean: {omitidas.map((o) => o.nombre).join(', ')}.
+      </p>
+    ) : null;
+  }
+
+  if (fase.f === 'quieto') {
+    return (
+      <button
+        type="button"
+        onClick={() => setFase({ f: 'confirmando' })}
+        className="mb-2 rounded border border-accent px-2 py-0.5 text-[11px] font-medium text-accent hover:bg-accent hover:text-white"
+      >
+        Empujar a SAP ({cambios.length} cambio{cambios.length === 1 ? '' : 's'})…
+      </button>
+    );
+  }
+
+  return (
+    <div className="mb-2 rounded border border-accent px-3 py-2 text-[11px]">
+      <p className="mb-1 font-medium text-ink">
+        Se va a escribir en <span className="font-mono">{lectura.modelo}</span>:
+      </p>
+      <ul className="mb-1 list-disc pl-4 font-mono text-[10px] text-ink">
+        {cambios.map((c) => (
+          <li key={c.nombre}>
+            {c.accion === 'crear' ? 'crear' : 'ajustar'} {c.nombre} — {c.tipo}, peso propio {numero(c.pesoPropio)}
+          </li>
+        ))}
+      </ul>
+      {omitidas.length > 0 && (
+        <p className="mb-1 text-[10px] text-muted">
+          No se crean, porque no dicen su tipo SAP: {omitidas.map((o) => o.nombre).join(', ')}.
+        </p>
+      )}
+      <p className="mb-2 text-[10px] leading-snug text-muted">
+        Crear agrega también el caso estático lineal del mismo nombre, salvo que ya haya un caso con
+        ese nombre (un espectro, por ejemplo), que se respeta. No se borra nada y el modelo no se
+        guarda.
+      </p>
+      <div className="flex gap-1.5">
+        <button
+          type="button"
+          onClick={escribir}
+          disabled={fase.f === 'escribiendo'}
+          className="rounded border border-accent bg-accent px-2 py-0.5 text-[11px] font-medium text-white hover:opacity-90 disabled:opacity-50"
+        >
+          {fase.f === 'escribiendo' ? 'Escribiendo…' : 'Escribir en SAP'}
+        </button>
+        <button
+          type="button"
+          onClick={() => setFase({ f: 'quieto' })}
+          disabled={fase.f === 'escribiendo'}
+          className="rounded border border-border px-2 py-0.5 text-[11px] text-muted hover:text-ink"
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+  );
 }
 
 const ESTADO: Record<EstadoPatron, { texto: string; clase: string }> = {
@@ -137,6 +290,8 @@ function ComparacionPatrones({
               {a}
             </p>
           ))}
+
+          <EmpujeSap cargas={cargas} lectura={lectura} onEscrito={onLeidos} />
 
           {(soloSap.length > 0 || sinDefinir.length > 0) && (
             <div className="mb-2 flex flex-wrap gap-1.5">

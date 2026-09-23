@@ -137,6 +137,37 @@ export function adoptarDeSap(obra: Obra, nombres: readonly string[], lista: read
   };
 }
 
+export interface CambioPatron extends PatronSap {
+  nombre: string;
+  accion: 'crear' | 'ajustar';
+}
+
+/**
+ * Lo que empujar a SAP escribiría: crear los patrones que faltan en el modelo y
+ * ajustar el tipo y el peso propio de los que difieren. Nada más.
+ *
+ * - Un patrón que solo está en SAP NO se toca, y menos se borra: puede ser un
+ *   caso que Flow todavía no conoce, y borrarlo en SAP es decisión del usuario.
+ * - Una carga que falta en SAP pero no dice su tipo se OMITE y se dice: crearla
+ *   con un tipo inventado sería escribir en el modelo algo que nadie decidió.
+ */
+export function planEmpuje(
+  cargas: readonly Carga[],
+  lista: readonly PatronLeido[],
+): { cambios: CambioPatron[]; omitidas: { nombre: string; motivo: string }[] } {
+  const cambios: CambioPatron[] = [];
+  const omitidas: { nombre: string; motivo: string }[] = [];
+  for (const f of compararPatrones(cargas, lista)) {
+    if (f.estado === 'solo-flow') {
+      if (f.flow) cambios.push({ nombre: f.nombre, accion: 'crear', ...f.flow });
+      else omitidas.push({ nombre: f.nombre, motivo: 'no dice su tipo SAP' });
+    } else if (f.estado === 'difiere' && f.flow) {
+      cambios.push({ nombre: f.nombre, accion: 'ajustar', ...f.flow });
+    }
+  }
+  return { cambios, omitidas };
+}
+
 /** Las cargas de Flow que ya dicen cómo es su patrón, en la forma de `avisosPesoPropio`. */
 export function patronesDeFlow(cargas: readonly Carga[]): { nombre: string; pesoPropio: number }[] {
   return cargas.filter((c) => c.patron).map((c) => ({ nombre: c.nombre.trim(), pesoPropio: c.patron!.pesoPropio }));

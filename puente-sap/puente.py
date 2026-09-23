@@ -7,14 +7,17 @@ Vite). Es de Flow y de nadie más: no importa nada de Struct_Harness, así la
 aplicación funciona con SAP2000 sin que el asistente esté corriendo
 (`docs/rumbo.md`, «Flow es la aplicación; el Harness, el asistente que la usa»).
 
-POR AHORA SOLO SE ENGANCHA Y LEE. Nunca lanza SAP2000, nunca abre una segunda
-instancia, nunca guarda ni analiza: se engancha al SAP2000 que el usuario ya
-tiene abierto y le pregunta el nombre del modelo. Lo demás llega paso a paso.
+SE ENGANCHA, LEE Y ESCRIBE LO MÍNIMO. Nunca lanza SAP2000, nunca abre una
+segunda instancia, nunca guarda ni analiza: se engancha al SAP2000 que el
+usuario ya tiene abierto. Lo único que escribe son Load Patterns, y solo tras
+una confirmación del usuario en Flow (`empujar`). Lo demás llega paso a paso.
 
 Rutas:
     GET  /salud      -> {ok}
     POST /conectar   -> {modelo, ruta, version}   o 409 con {motivo}
     GET  /patrones   -> {modelo, ruta, patrones: [{nombre, tipo, pesoPropio}]}
+    POST /patrones   {modelo, cambios} -> {hechos, modelo, ruta, patrones}
+                     (lo único que escribe; ver `empujar`)
 
 Una sola instancia viva, como en el harness: con dos SAP2000.exe, una colgada
 mantiene bloqueados los archivos y no se sabe a cuál se engancharía.
@@ -121,6 +124,71 @@ def patrones():
     return {"modelo": nombre, "ruta": ruta, "patrones": lista}
 
 
+def empujar(cuerpo):
+    """Escribe en el modelo abierto los Load Patterns que Flow manda.
+
+    Lo PRIMERO que escribe el puente, así que va con tres resguardos:
+
+    - el modelo abierto tiene que ser el que Flow espera (`modelo`): el usuario
+      pudo cambiar de modelo en SAP entre la comparación y la confirmación;
+    - un modelo bloqueado (con resultados) se rechaza: desbloquearlo borra los
+      resultados, y eso lo decide el usuario en SAP, no el puente;
+    - nunca borra un patrón ni guarda el archivo. El .sdb queda modificado en
+      SAP y quien lo usa decide si lo guarda.
+
+    `cambios`: [{nombre, accion: 'crear' | 'ajustar', tipo, pesoPropio}]. Crear
+    agrega también el caso estático lineal del mismo nombre, como hace SAP al
+    definir un patrón a mano, salvo que ya exista un caso con ese nombre.
+    """
+    esperado = cuerpo.get("modelo")
+    cambios = cuerpo.get("cambios")
+    if not isinstance(cambios, list) or not cambios:
+        raise ErrorPuente(400, "No hay cambios que escribir.")
+
+    modelo = _modelo_abierto()
+    _, nombre = _nombre_modelo(modelo)
+    if not esperado or nombre != esperado:
+        raise ErrorPuente(
+            409,
+            f"El modelo abierto es «{nombre or '(sin guardar)'}» y la comparación se hizo con «{esperado}». "
+            "Vuelve a leer los patrones antes de escribir.")
+    if modelo.GetModelIsLocked():
+        raise ErrorPuente(
+            409,
+            "El modelo está bloqueado porque tiene resultados. Desbloquéalo en SAP (se borran los "
+            "resultados) y vuelve a intentar.")
+
+    codigos = {v: k for k, v in _tipos_de_patron().items()}
+    existentes = set(modelo.LoadPatterns.GetNameList()[1] or [])
+    # Un patrón nuevo lleva su caso estático lineal SOLO si no hay ya un caso con
+    # ese nombre. En el modelo del Pachón `RSX` es un caso de espectro: pedirle a
+    # SAP el caso igual lo creaba con el nombre corrido (`RSX1`), un caso estático
+    # que nadie pidió. El caso que existe se respeta tal cual.
+    casos = set(modelo.LoadCases.GetNameList()[1] or [])
+    hechos = []
+    for c in cambios:
+        p, tipo = str(c.get("nombre", "")), str(c.get("tipo", ""))
+        peso = c.get("pesoPropio")
+        if not p or tipo not in codigos or not isinstance(peso, (int, float)):
+            raise ErrorPuente(400, f"Cambio mal formado: {c!r}")
+        if p in existentes:
+            r1 = modelo.LoadPatterns.SetLoadType(p, codigos[tipo])
+            r2 = modelo.LoadPatterns.SetSelfWTMultiplier(p, float(peso))
+            ok = r1 == 0 and r2 == 0
+            accion = "ajustado"
+        else:
+            ok = modelo.LoadPatterns.Add(p, codigos[tipo], float(peso), p not in casos) == 0
+            accion = "creado"
+        if not ok:
+            # Lo hecho hasta aquí queda hecho: se dice exactamente hasta dónde se llegó.
+            hechos_txt = ", ".join(h["nombre"] for h in hechos) or "ninguno"
+            raise ErrorPuente(502, f"SAP2000 rechazó «{p}». Antes se escribieron: {hechos_txt}.")
+        hechos.append({"nombre": p, "accion": accion})
+
+    lectura = patrones()
+    return {"hechos": hechos, **lectura}
+
+
 class Manejador(BaseHTTPRequestHandler):
     def _responder(self, codigo, cuerpo):
         datos = json.dumps(cuerpo, ensure_ascii=False).encode("utf-8")
@@ -149,8 +217,20 @@ class Manejador(BaseHTTPRequestHandler):
     def do_GET(self):  # noqa: N802
         self._atender({"/salud": lambda: {"ok": True}, "/patrones": patrones})
 
+    def _cuerpo(self):
+        largo = int(self.headers.get("Content-Length") or 0)
+        if not largo:
+            return {}
+        try:
+            return json.loads(self.rfile.read(largo).decode("utf-8"))
+        except ValueError as e:
+            raise ErrorPuente(400, "El cuerpo no es JSON.") from e
+
     def do_POST(self):  # noqa: N802
-        self._atender({"/conectar": conectar})
+        self._atender({
+            "/conectar": conectar,
+            "/patrones": lambda: empujar(self._cuerpo()),
+        })
 
     def log_message(self, formato, *args):
         print("[puente-sap]", formato % args)

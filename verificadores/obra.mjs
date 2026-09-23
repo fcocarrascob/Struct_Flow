@@ -67,6 +67,7 @@ const {
   avisosPesoPropio,
   traerDeSap,
   adoptarDeSap,
+  planEmpuje,
 } = motor;
 
 // ── Armar una obra ───────────────────────────────────────────────────────────
@@ -1460,6 +1461,26 @@ const CASOS_PATRONES = [
       if (p('DEAD').pesoPropio !== 1) return 'pisó un patrón que Flow ya definía';
       if (p('LR')?.tipo !== 'Rooflive') return `LR: ${JSON.stringify(p('LR'))}`;
       return p('S') === undefined ? null : 'adoptó uno que no se pidió';
+    },
+  },
+  {
+    nombre: 'el empuje crea lo que falta, ajusta lo que difiere, omite lo indefinido y nunca borra',
+    ok: () => {
+      const { cambios, omitidas } = planEmpuje(
+        [
+          carga('DEAD', { tipo: 'Dead', pesoPropio: 1 }),
+          carga('LR', { tipo: 'Rooflive', pesoPropio: 0 }),
+          carga('RSX', { tipo: 'Quake', pesoPropio: 0 }),
+          carga('EV'),
+          carga('S', { tipo: 'Snow', pesoPropio: 0 }),
+        ],
+        [leido('DEAD', 'Dead', 1.3), leido('LR', 'Live'), leido('S', 'Snow'), leido('TEMP', 'Temperature')],
+      );
+      const txt = cambios.map((c) => `${c.accion}:${c.nombre}:${c.tipo}:${c.pesoPropio}`).join(' ');
+      const esperado = 'ajustar:DEAD:Dead:1 ajustar:LR:Rooflive:0 crear:RSX:Quake:0';
+      if (txt !== esperado) return `cambios: ${txt}`;
+      if (omitidas.map((o) => o.nombre).join(',') !== 'EV') return `omitidas: ${JSON.stringify(omitidas)}`;
+      return cambios.some((c) => c.nombre === 'TEMP') ? 'tocó un patrón que solo está en SAP' : null;
     },
   },
 ];

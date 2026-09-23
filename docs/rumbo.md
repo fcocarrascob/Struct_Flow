@@ -139,8 +139,11 @@ antes de dar el siguiente:
    solo en SAP), más el peso propio en ninguna o en dos cargas. Un patrón no tiene valor: los
    valores van en los objetos, y eso es otro paso. **Traer de SAP** también está hecho: la
    comparación crea en la obra las cargas que solo están en el modelo y adopta el patrón de las
-   que Flow no definía, sin pisar nunca uno que Flow ya define. Sigue empujar a SAP los de
-   Flow, mostrando antes lo que va a cambiar.
+   que Flow no definía, sin pisar nunca uno que Flow ya define. **Empujar a SAP** también: crea
+   los patrones que faltan (con su caso estático, salvo que ya haya un caso con ese nombre) y
+   ajusta tipo y peso propio de los que difieren, tras mostrar la lista exacta y confirmarla.
+   Nunca borra ni guarda, y se niega si el modelo abierto no es el comparado o está bloqueado.
+   Es lo primero que Flow escribe en un modelo.
 2. Leer lo medido (reacciones por caso, periodos, cortes basales) con su sello, y publicarlo
    como nombres que las hojas usan en vez de copiarlos a mano.
 3. Marcar la lectura atrasada cuando el `.sdb` cambió después de leerla.
