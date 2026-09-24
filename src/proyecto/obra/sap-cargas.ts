@@ -248,7 +248,10 @@ export function verificarFuncion(
     if (!peor || Math.abs(rel) > Math.abs(peor.rel)) peor = { T, obra: r.valor, sap, rel };
   }
   const p = peor!;
-  const pct = `${p.rel > 0 ? '+' : ''}${cifra(p.rel * 100)} %`;
+  // Un redondeo del modelo no es un número que haya que leer en notación
+  // científica: por debajo de 0,01 % se dice así.
+  const pct =
+    Math.abs(p.rel * 100) < 0.01 ? 'menos de 0,01 %' : `${p.rel > 0 ? '+' : ''}${cifra(p.rel * 100)} %`;
   if (fuera === 0) {
     return { estado: 'coincide', detalle: `coincide en los ${puntos.length} puntos (el mayor desvío, ${pct} en T = ${cifra(p.T)} s)` };
   }
