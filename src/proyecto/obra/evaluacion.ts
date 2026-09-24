@@ -194,14 +194,14 @@ export function nodosDeLaObra(obra: Obra): NodoObra[] {
  * del módulo descargado: así la lista no cambia cuando termina la descarga, y el
  * grafo no se reordena solo un segundo después de abrir la obra.
  */
-function defineDe(nodo: NodoObra): string[] {
+export function defineDe(nodo: NodoObra): string[] {
   if (!nodo.frontera) return definicionesDe(nodo.hoja);
   const alias = Object.values(nodo.frontera.publica ?? {}).map((a) => a.trim());
   return [...new Set(alias.filter(Boolean))];
 }
 
 /** El texto del que salen los nombres que un nodo toma de los demás. */
-function fuentesDeUso(nodo: NodoObra): string[] {
+export function fuentesDeUso(nodo: NodoObra): string[] {
   // De un cálculo con frontera, las expresiones de sus campos atados: son la
   // única vía por la que la obra entra en él.
   if (nodo.frontera) return Object.values(nodo.frontera.formulas ?? {});

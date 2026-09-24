@@ -55,6 +55,14 @@ export {
 } from './modelo';
 export { trazoDe, ladoDe } from './trazo';
 export {
+  obraDesde,
+  traerNodos,
+  dependenciasDe,
+  choquesCon,
+  nombresDefinidos,
+  trasladarPosiciones,
+} from './copia';
+export {
   valorDe,
   comoDe,
   objetosDe,

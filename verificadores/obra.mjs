@@ -73,6 +73,12 @@ const {
   verificarFactor,
   verificarFuncion,
   resumirJustificaciones,
+  obraDesde,
+  traerNodos,
+  dependenciasDe,
+  choquesCon,
+  nombresDefinidos,
+  trasladarPosiciones,
 } = motor;
 
 // ── Armar una obra ───────────────────────────────────────────────────────────
@@ -1996,9 +2002,205 @@ const CASOS_SERVIDOR = [
   },
 ];
 
+// ── Una obra a partir de otra ────────────────────────────────────────────────
+//
+// `obraDesde` arma una obra nueva con parte de otra; `traerNodos` copia nodos a
+// una obra que ya tiene los suyos. Lo que se comprueba es que lo copiado calcule
+// lo mismo que el original, que no se lleve la lectura de SAP y que en el destino
+// no choque ningún id: los de región son las claves de `results`.
+
+/** Una obra de origen con geometría común, una carga que la usa, una planilla
+ *  que lee la carga por un campo atado, grupos, marca, SAP y justificaciones. */
+function origenCopia() {
+  return sanearObra({
+    version: 2,
+    id: 'origen',
+    nombre: 'Origen',
+    creada: '2026-01-01T00:00:00.000Z',
+    modulos: ['sap'],
+    unidadesSap: 'tonf',
+    grupos: [
+      { id: 'g-geo', nombre: 'Geometría', color: '#2563eb' },
+      { id: 'g-viento', nombre: 'Viento', color: '#059669' },
+    ],
+    calculos: [
+      { id: 'kgeo', nombre: 'Geometría', grupo: 'g-geo', hoja: [
+        { id: 'bgeo1', kind: 'math', x: 40, y: 40, src: 'A_planta := 4 m * 3 m' },
+      ] },
+      { id: 'kvto', nombre: 'Viento', grupo: 'g-viento', revisar: { nota: 'confirmar Cp', por: 'usuario' }, hoja: [
+        { id: 'bvto1', kind: 'math', x: 40, y: 40, src: 'q_v := 50 kgf/m^2' },
+        { id: 'bvto2', kind: 'math', x: 40, y: 88, src: 'V_v := q_v * A_planta = tonf' },
+      ] },
+      { id: 'kzap', nombre: 'Zapata', hoja: [], frontera: importada(ZAPATA, { formulas: { Vu_X: 'V_v' } }) },
+      { id: 'kotro', nombre: 'Suelto', hoja: [
+        { id: 'botro1', kind: 'math', x: 40, y: 40, src: 'z := 3' },
+      ] },
+    ],
+    sap: { modelo: 'x.sdb', ruta: 'C:/x.sdb', version: '24', leido: '2026-01-01' },
+    justificaciones: [{ id: 'j1', patron: 'W', firma: 'f', valor: 1, expr: 'q_v' }],
+  });
+}
+
+/** El destino de un «traer»: ya tiene un grupo «Viento» y ids que chocan. */
+function destinoCopia() {
+  return sanearObra({
+    version: 2,
+    id: 'destino',
+    nombre: 'Destino',
+    creada: '2026-01-02T00:00:00.000Z',
+    modulos: [],
+    grupos: [{ id: 'g-otro', nombre: 'Viento', color: '#dc2626' }],
+    calculos: [
+      { id: 'kgeo', nombre: 'Mía', hoja: [{ id: 'bvto1', kind: 'math', x: 40, y: 40, src: 'A_planta := 5 m * 5 m' }] },
+    ],
+  });
+}
+
+const ids = (o) => o.calculos.flatMap((k) => [k.id, ...k.hoja.map((b) => b.id)]);
+const repetidosEn = (lista) => [...new Set(lista.filter((x, i) => lista.indexOf(x) !== i))];
+
+const CASOS_COPIA = [
+  {
+    nombre: 'obraDesde copia hojas, fronteras, grupos y marcas, y no la lectura de SAP',
+    ok: () => {
+      const o = origenCopia();
+      const c = obraDesde(o, 'Galpón 2', ['galpon-2']);
+      if (c.id !== 'galpon-2-2') return `id «${c.id}», se esperaba uno libre: galpon-2-2`;
+      if (c.nombre !== 'Galpón 2') return `nombre «${c.nombre}»`;
+      if (c.sap) return 'se llevó la lectura de SAP';
+      if (c.justificaciones) return 'se llevó las justificaciones';
+      if (!c.modulos.includes('sap')) return 'perdió el nodo SAP2000';
+      if (c.unidadesSap !== 'tonf') return 'perdió las unidades del modelo';
+      if (c.calculos.length !== 4) return `${c.calculos.length} cálculos, se esperaban 4`;
+      if (JSON.stringify(c.calculos) !== JSON.stringify(o.calculos)) return 'los cálculos no son idénticos';
+      if (JSON.stringify(c.grupos) !== JSON.stringify(o.grupos)) return 'los grupos no son idénticos';
+      if (c.creada === o.creada) return 'conservó la fecha de creación del origen';
+      return null;
+    },
+  },
+  {
+    nombre: 'la copia calcula lo mismo que el origen',
+    ok: () => {
+      const o = origenCopia();
+      const c = obraDesde(o, 'Copia', []);
+      const a = evaluarObra(o, genericas);
+      const b = evaluarObra(c, genericas);
+      for (const nom of ['A_planta', 'V_v', 'z']) {
+        if (String(a.scope[nom]) !== String(b.scope[nom])) return `«${nom}»: ${a.scope[nom]} ≠ ${b.scope[nom]}`;
+      }
+      const za = a.importadas.get(K('kzap'))?.salidas?.u_max;
+      const zb = b.importadas.get(K('kzap'))?.salidas?.u_max;
+      if (za === undefined || String(za) !== String(zb)) return `u_max de la zapata: ${za} ≠ ${zb}`;
+      return null;
+    },
+  },
+  {
+    nombre: 'obraDesde con una selección deja fuera el resto y los grupos vacíos',
+    ok: () => {
+      const c = obraDesde(origenCopia(), 'Solo geometría', [], new Set(['kgeo', 'kotro']));
+      const k = c.calculos.map((x) => x.id).join(',');
+      if (k !== 'kgeo,kotro') return `cálculos ${k}`;
+      const g = (c.grupos ?? []).map((x) => x.id).join(',');
+      return g === 'g-geo' ? null : `grupos «${g}», se esperaba solo g-geo`;
+    },
+  },
+  {
+    nombre: 'dependenciasDe arrastra lo que la selección usa, por hoja y por campo atado',
+    ok: () => {
+      const d = dependenciasDe(origenCopia(), ['kzap']);
+      const faltan = [...d.keys()].sort().join(',');
+      if (faltan !== 'kgeo,kvto') return `dependencias «${faltan}», se esperaban kgeo,kvto`;
+      if (!d.get('kvto')?.includes('kzap')) return 'kvto no dice que lo usa kzap';
+      if (!d.get('kgeo')?.includes('kvto')) return 'kgeo no dice que lo usa kvto';
+      if (dependenciasDe(origenCopia(), ['kotro']).size) return 'un nodo sin usos arrastró algo';
+      return null;
+    },
+  },
+  {
+    nombre: 'dependenciasDe no arrastra lo que el destino ya define',
+    // Traer la zapata a una obra que ya tiene su `A_planta` necesita la carga,
+    // pero no otra geometría: sería definir cada nombre dos veces.
+    ok: () => {
+      const cubiertos = nombresDefinidos(destinoCopia());
+      const faltan = [...dependenciasDe(origenCopia(), ['kzap'], cubiertos).keys()].join(',');
+      return faltan === 'kvto' ? null : `dependencias «${faltan}», se esperaba solo kvto`;
+    },
+  },
+  {
+    nombre: 'choquesCon dice qué nombres quedarían definidos dos veces',
+    ok: () => {
+      const ch = choquesCon(destinoCopia(), origenCopia(), ['kgeo', 'kotro']).join(',');
+      return ch === 'A_planta' ? null : `choques «${ch}», se esperaba A_planta`;
+    },
+  },
+  {
+    nombre: 'traerNodos no repite ids, reutiliza el grupo del mismo nombre y conserva la marca',
+    ok: () => {
+      const dest = destinoCopia();
+      const { obra: r, mapa } = traerNodos(dest, origenCopia(), ['kvto', 'kgeo']);
+      const rep = repetidosEn(ids(r));
+      if (rep.length) return `ids repetidos: ${rep.join(', ')}`;
+      if (r.calculos.length !== 3) return `${r.calculos.length} cálculos, se esperaban 3`;
+      if (r.calculos[0] !== dest.calculos[0]) return 'tocó un nodo que ya estaba';
+      // En el orden del ORIGEN, no en el de la selección: es el de creación.
+      const [, geo, vto] = r.calculos;
+      if (geo.nombre !== 'Geometría' || vto.nombre !== 'Viento') return 'no respetó el orden del origen';
+      if (mapa.get('kgeo') === 'kgeo') return 'kgeo chocaba y conservó el id';
+      if (mapa.get('kvto') !== 'kvto') return 'kvto no chocaba y se renombró';
+      if (vto.grupo !== 'g-otro') return `Viento quedó en el grupo «${vto.grupo}», no en el «Viento» del destino`;
+      const gGeo = r.grupos?.find((g) => g.id === geo.grupo);
+      if (!gGeo || gGeo.nombre !== 'Geometría' || gGeo.color !== '#2563eb') return 'no creó el grupo Geometría';
+      if (vto.revisar?.nota !== 'confirmar Cp') return 'perdió la marca «Revisar»';
+      if (r.sap || r.justificaciones) return 'trajo algo de SAP';
+      return null;
+    },
+  },
+  {
+    nombre: 'lo traído calcula y el choque de nombres se ve como repetido',
+    ok: () => {
+      const { obra: r } = traerNodos(destinoCopia(), origenCopia(), ['kvto', 'kgeo', 'kzap']);
+      const ev = evaluarObra(r, genericas);
+      const rep = ev.repetidos.get('A_planta');
+      if (!rep || rep.length !== 2) return '«A_planta» no se declaró repetida en 2 nodos';
+      const ids = new Set(r.calculos.flatMap((k) => k.hoja.map((b) => b.id)));
+      if (ids.size !== r.calculos.reduce((s, k) => s + k.hoja.length, 0)) return 'bloques con el mismo id';
+      return null;
+    },
+  },
+  {
+    nombre: 'trasladarPosiciones renombra los nodos y pone lo traído debajo de lo que hay',
+    ok: () => {
+      const origen = { 'calculo:a': { x: 10, y: 0 }, 'calculo:b': { x: 300, y: 50 }, 'calculo:c': { x: 0, y: 900 } };
+      const mapa = new Map([['a', 'a2'], ['b', 'b']]);
+      const p = trasladarPosiciones(origen, mapa, [{ x: 0, y: 400 }]);
+      const claves = Object.keys(p).sort().join(',');
+      if (claves !== 'calculo:a2,calculo:b') return `claves «${claves}»`;
+      if (p['calculo:a2'].x !== 10 || p['calculo:b'].x !== 300) return 'movió las x';
+      if (p['calculo:b'].y - p['calculo:a2'].y !== 50) return 'no conservó la disposición relativa';
+      if (p['calculo:a2'].y <= 400) return `lo traído empieza en y=${p['calculo:a2'].y}, encima de lo que había`;
+      const sinNada = trasladarPosiciones(origen, mapa, []);
+      return sinNada['calculo:a2'].y === 0 ? null : 'sin nada en el destino, desplazó igual';
+    },
+  },
+];
+
 // ── Correr ───────────────────────────────────────────────────────────────────
 
 let fallos = 0;
+for (const caso of CASOS_COPIA) {
+  let motivo;
+  try {
+    motivo = caso.ok();
+  } catch (e) {
+    motivo = `lanzó: ${e.message}`;
+  }
+  if (motivo) {
+    fallos++;
+    console.log(`  [FALLA] ${caso.nombre}\n          ${motivo}`);
+  } else {
+    console.log(`  [ OK  ] ${caso.nombre}`);
+  }
+}
 for (const caso of CASOS_SERVIDOR) {
   let motivo;
   try {
@@ -2075,6 +2277,6 @@ for (const caso of CASOS) {
   }
 }
 
-const total = CASOS.length + CASOS_SANEO.length + CASOS_HOJA.length + CASOS_CARPETA.length + CASOS_SERVIDOR.length;
+const total = CASOS.length + CASOS_COPIA.length + CASOS_SANEO.length + CASOS_HOJA.length + CASOS_CARPETA.length + CASOS_SERVIDOR.length;
 console.log(`\n${fallos ? 'FALLA' : 'OK'}: ${total - fallos} de ${total} casos.\n`);
 process.exit(fallos ? 1 : 0);

@@ -30,6 +30,11 @@ import { abrirObra, olvidarBorrador, type Apertura } from './almacen-disco';
 import { descargarHoja } from '../../lib/canvas-handoff';
 import { cargarGenerica, desprender, type Genericas } from './biblioteca';
 import { evaluarObra, problemaDeGrafo, rupturaPorQuitar } from './evaluacion';
+// `idsDeLaObra`: todos los ids ya repartidos. Traer las regiones de una genérica
+// a un nodo pasa por ahí: dos nodos que desprendan la misma se quedarían con las
+// mismas, y son las claves de `results` en la hoja global.
+import { idsDeLaObra, trasladarPosiciones, traerNodos } from './copia';
+import TraerDeObra from './TraerDeObra';
 import {
   agregarCalculo,
   agregarGrupo,
@@ -141,19 +146,6 @@ function nodoDelDocumento(obra: Obra | null, idNodo: string): NodoCalculo | unde
   if (!obra) return undefined;
   const idK = calculoDeNodo(idNodo);
   return idK ? obra.calculos.find((k) => k.id === idK) : undefined;
-}
-
-/**
- * Todos los ids de región que la obra ya repartió.
- *
- * Los ids de región son las claves de `results` en la hoja global, así que traer
- * las de una genérica a un nodo tiene que pasar por aquí: dos nodos que
- * desprendan la misma genérica se quedarían con las mismas.
- */
-function idsDeLaObra(obra: Obra): Set<string> {
-  const vistos = new Set<string>();
-  for (const k of obra.calculos) for (const r of k.hoja) vistos.add(r.id);
-  return vistos;
 }
 
 /**
@@ -296,6 +288,8 @@ function CanvasObra({
   /** El grupo que la leyenda está resaltando. */
   const [grupoEnfocado, setGrupoEnfocado] = useState<string | null>(null);
   const [paletaAbierta, setPaletaAbierta] = useState(false);
+  /** El diálogo «Traer de otra obra» está abierto. */
+  const [trayendo, setTrayendo] = useState(false);
   /** Los nodos abiertos como pestaña, por id de nodo del grafo. */
   const [pestanas, setPestanas] = useState<string[]>([]);
   /** Cuál se está mirando. `null` es el grafo. */
@@ -671,9 +665,50 @@ function CanvasObra({
       setSeleccion(idNodoDeCalculo(k.id));
       return;
     }
+    if (clave === 'otra-obra') {
+      setTrayendo(true);
+      return;
+    }
     setObra(agregarModulo(actual, clave as Modulo));
     setSeleccion(ID_NODO_SAP);
   }, []);
+
+  /**
+   * Copia nodos de otra obra al final de esta (`traerNodos` de `./copia`).
+   *
+   * Pasa por `setObra` como cualquier otro cambio, así que Ctrl+Z lo retira
+   * entero. Las posiciones del origen viajan con los nodos, por debajo de lo que
+   * ya hay en el lienzo; se dejan en `guardadoRef` para que el efecto de
+   * colocación las use en vez de la automática, y en el layout guardado.
+   */
+  const nodosRef = useRef(nodos);
+  nodosRef.current = nodos;
+  const traerDe = useCallback(
+    (origen: Obra, ids: ReadonlySet<string>) => {
+      setTrayendo(false);
+      const actual = obraRef.current;
+      if (!actual) return;
+      const { obra: siguiente, mapa } = traerNodos(actual, origen, ids);
+      if (mapa.size === 0) return;
+      const presentes = nodosRef.current;
+      const posiciones = trasladarPosiciones(
+        layoutGuardado(`obra:${origen.id}`),
+        mapa,
+        presentes.map((n) => n.position),
+      );
+      guardadoRef.current = { ...guardadoRef.current, ...posiciones };
+      const todas: Record<string, Posicion> = {};
+      for (const n of presentes) todas[n.id] = { x: n.position.x, y: n.position.y };
+      guardarLayout(claveLayout, { ...todas, ...posiciones });
+      setObra(siguiente);
+      setActiva(null);
+      setSeleccion(idNodoDeCalculo(mapa.values().next().value as string));
+      // Lo traído cae debajo, casi siempre fuera de la vista.
+      window.setTimeout(() => fitView(ENCUADRE), 200);
+    },
+    [claveLayout, fitView],
+  );
+  const cerrarTraer = useCallback(() => setTrayendo(false), []);
 
   /**
    * Cierra las pestañas de los nodos que acaban de dejar de existir.
@@ -1160,6 +1195,14 @@ function CanvasObra({
               puestos={obra.modulos}
               onAgregar={agregarNodo}
               onCerrar={() => setPaletaAbierta(false)}
+            />
+          )}
+          {trayendo && (
+            <TraerDeObra
+              destino={obra}
+              modo={estadoSesion.modo}
+              onTraer={traerDe}
+              onCerrar={cerrarTraer}
             />
           )}
           {/* Deshacer y rehacer. Con botones y no solo con el atajo: una obra se

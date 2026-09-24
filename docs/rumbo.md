@@ -157,6 +157,29 @@ SAP2000 (el espectro se mueve ahí, porque es un caso, con su amortiguamiento y 
 modal justificables), la **masa sísmica** y las **combinaciones de carga**, que son lo más
 importante que falta (etapa 6).
 
+## Una obra parte de otra
+
+**2026-09-24.** Una segunda estructura del mismo proyecto, o una con cargas parecidas, no
+empieza de cero: se recicla lo que ya cierra. Dos gestos sobre una misma capa pura
+(`obra/copia.ts`, cubierta por `verify:obra`):
+
+- **«Nueva obra a partir de esta»** (⧉ en la ficha del índice): una obra nueva con los nodos
+  elegidos de otra, todos marcados de partida; lo que sobra se quita por grupo. Conserva los
+  ids, así que las posiciones del lienzo se copian tal cual.
+- **«De otra obra…»** (en «+ agregar nodo»): copia nodos a la obra abierta, al final y en el
+  orden del origen, que es el de creación con el que desempata el orden topológico. Un id que
+  choca se renombra, un grupo con el mismo nombre se reutiliza y Ctrl+Z lo retira entero.
+
+Lo que la selección usa entra solo (`dependenciasDe`, estático: lee `publica` y `formulas`
+del documento, sin descargar genéricas), rotulado con quién lo necesita, salvo que el destino
+ya defina ese nombre: traer la grúa a una obra con su geometría no arrastra otra geometría.
+Antes de confirmar se avisa de los nombres que quedarían definidos dos veces.
+
+**Se copian** hojas, fronteras (slug y sello, entradas, campos atados, publicaciones), grupos,
+posiciones y marcas ⚑: un supuesto por confirmar lo sigue estando en la copia. **No se
+copian** la lectura de SAP2000 ni las justificaciones, porque hablan del modelo de la
+estructura de origen; el nodo SAP2000 se conserva vacío, con las unidades de la obra.
+
 ## La hoja va hacia el flujo lineal
 
 **2026-09-09.** Se descartó el modelo de SMath —posición libre en un plano, bloque impreso en

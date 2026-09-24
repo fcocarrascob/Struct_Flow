@@ -14,8 +14,9 @@ import type { Modulo } from './modelo';
  */
 
 /** `calculo` no es un `Modulo` de la obra: de esos puede haber muchos, así que
- *  viven en su propia lista y no en `obra.modulos`. */
-export type EntradaPaleta = Modulo | 'calculo';
+ *  viven en su propia lista y no en `obra.modulos`. `otra-obra` no agrega un
+ *  nodo sino que abre el diálogo para traerlos de otra obra. */
+export type EntradaPaleta = Modulo | 'calculo' | 'otra-obra';
 
 interface Entrada {
   clave: EntradaPaleta;
@@ -31,6 +32,12 @@ const ENTRADAS: Entrada[] = [
     clave: 'calculo',
     titulo: 'Cálculo',
     detalle: 'una planilla genérica de la biblioteca, instanciada',
+    unico: false,
+  },
+  {
+    clave: 'otra-obra',
+    titulo: 'De otra obra…',
+    detalle: 'copiar nodos ya calculados, con sus grupos',
     unico: false,
   },
 ];

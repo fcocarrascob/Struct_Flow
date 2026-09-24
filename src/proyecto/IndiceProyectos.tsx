@@ -16,7 +16,10 @@ import {
   servidorDisponible,
   type ResumenObra,
 } from './obra/almacen-disco';
-import { olvidarLayout } from './layout';
+import { guardarLayout, layoutGuardado, olvidarLayout } from './layout';
+import { obraDesde, trasladarPosiciones } from './obra/copia';
+import { ID_NODO_SAP } from './obra/ids';
+import NuevaDesde from './obra/NuevaDesde';
 import { descargarHoja } from '../lib/canvas-handoff';
 import { nuevaObra, NOMBRE_OBRA_POR_OMISION, type Obra } from './obra/modelo';
 import Enlace from '../components/Enlace';
@@ -48,11 +51,13 @@ function FichaObra({
   obra,
   onBorrar,
   onExportar,
+  onCopiar,
   onMover,
 }: {
   obra: ResumenObra;
   onBorrar: (id: string) => void;
   onExportar: (id: string) => void;
+  onCopiar: (id: string) => void;
   /** Solo en una obra del navegador, con el servidor disponible. */
   onMover?: (id: string) => void;
 }) {
@@ -90,6 +95,16 @@ function FichaObra({
             className="rounded border border-accent px-1.5 py-0.5 text-[10px] text-accent hover:bg-accent hover:text-white"
           >
             mover al disco
+          </button>
+        )}
+        {obra.calculos > 0 && (
+          <button
+            type="button"
+            onClick={() => onCopiar(obra.id)}
+            title={`Nueva obra a partir de ${obra.nombre}`}
+            className={`rounded border border-border px-1.5 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent ${OCULTO_SIN_HOVER}`}
+          >
+            ⧉
           </button>
         )}
         {/* El archivo es la forma de respaldar una obra del navegador, y de
@@ -198,6 +213,42 @@ export default function IndiceProyectos() {
       descargarHoja(archivoDeObra(obra), nombreDeArchivo(obra));
     } catch (e) {
       setAvisoObras((e as Error).message);
+    }
+  }
+
+  /** La obra de la que se va a partir, mientras el diálogo está abierto. */
+  const [copiando, setCopiando] = useState<Obra | null>(null);
+
+  async function abrirCopia(id: string, deDisco: boolean) {
+    try {
+      const obra = deDisco ? (await leerDeDisco(id))?.obra : leerObra(id);
+      if (obra) setCopiando(obra);
+      else setAvisoObras(`La obra «${id}» ya no está.`);
+    } catch (e) {
+      setAvisoObras((e as Error).message);
+    }
+  }
+
+  /**
+   * La obra nueva va donde van todas las nuevas (`guardarNueva`), no donde está
+   * la de origen: con servidor, al disco. Conserva los ids de los nodos, así que
+   * las posiciones del lienzo se copian tal cual.
+   */
+  async function crearDesde(origen: Obra, nombre: string, ids: ReadonlySet<string>) {
+    try {
+      const obra = obraDesde(origen, nombre, await idsOcupados(), ids);
+      // Si no se pudo guardar, el motivo va al aviso del índice, que el diálogo tapaba.
+      if (!(await guardarNueva(obra))) return setCopiando(null);
+      const identidad = new Map(obra.calculos.map((k) => [k.id, k.id]));
+      const previo = layoutGuardado(`obra:${origen.id}`);
+      const posiciones = trasladarPosiciones(previo, identidad, []);
+      if (obra.modulos.includes('sap') && previo[ID_NODO_SAP]) posiciones[ID_NODO_SAP] = previo[ID_NODO_SAP];
+      if (Object.keys(posiciones).length) guardarLayout(`obra:${obra.id}`, posiciones);
+      setCopiando(null);
+      navegar({ vista: 'obra', id: obra.id });
+    } catch (e) {
+      setCopiando(null);
+      setAvisoObras(`No se creó la obra: ${(e as Error).message}`);
     }
   }
 
@@ -366,6 +417,7 @@ export default function IndiceProyectos() {
                   obra={o}
                   onBorrar={(id) => void quitarObra(id, true)}
                   onExportar={(id) => void exportarObra(id, true)}
+                  onCopiar={(id) => void abrirCopia(id, true)}
                 />
               </li>
             ))}
@@ -391,6 +443,7 @@ export default function IndiceProyectos() {
                   obra={resumenDe(o)}
                   onBorrar={(id) => void quitarObra(id, false)}
                   onExportar={(id) => void exportarObra(id, false)}
+                  onCopiar={(id) => void abrirCopia(id, false)}
                   onMover={hayDisco ? (id) => void moverAlDisco(id) : undefined}
                 />
               </li>
@@ -407,6 +460,13 @@ export default function IndiceProyectos() {
         )}
       </section>
 
+      {copiando && (
+        <NuevaDesde
+          origen={copiando}
+          onCrear={(nombre, ids) => crearDesde(copiando, nombre, ids)}
+          onCerrar={() => setCopiando(null)}
+        />
+      )}
     </main>
   );
 }

@@ -160,6 +160,10 @@ entrada de otro. Las piezas, y por qué están separadas:
 - `obra/carpeta.ts` — la obra en disco, pura: `partirObra` la reparte en `obra.json` más
   `hojas/<nodo>.json` (el formato de exportar del canvas) y `unirObra` la vuelve a armar. La
   salida es determinista para que git solo vea lo que cambió.
+- `obra/copia.ts` — una obra a partir de otra (`obraDesde`) y nodos traídos de otra
+  (`traerNodos`), con el cierre de dependencias (`dependenciasDe`) que se lee con
+  `defineDe`/`fuentesDeUso` de `evaluacion.ts`, no con un detector propio. No copia la lectura
+  de SAP ni las justificaciones (`docs/rumbo.md`, «Una obra parte de otra»).
 - `servidor/obras.mjs` — el servidor de obras, **tonto a propósito**: mapas ruta → texto, un
   candado de escritor con latido y un 409 si la carpeta cambió desde que se leyó. Va montado en
   Vite en `/obras-api` y vive fuera de `scripts/` por el sello.
