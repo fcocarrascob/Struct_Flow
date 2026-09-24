@@ -38,11 +38,14 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
    `espectro-nch2369-generica` dibuja el espectro con 26 regiones `imprimir: false` de mapeo a
    píxeles, y `losa-unidireccional` arma sus curvas igual (`pts_fl`). Un `plot` las reemplaza,
    pero mueve la paginación publicada: cada una con su medición en `/calibrar`.
-6. **La leyenda de un gráfico tapa las etiquetas de sus referencias.** Va siempre arriba a la
-   derecha y no esquiva nada: en el gráfico de Cp del Pachón cortaba «viento en Y: 0,6772»
-   hasta que el eje se extendió a 1,5. Hace falta que `svgDeGrafico` elija la esquina libre (o
-   mueva la etiqueta), con su caso en `verify:motor`; cambia el SVG, así que se mide en
-   `/calibrar`.
+6. **Las etiquetas de un gráfico no se esquivan.** La leyenda va siempre arriba a la derecha y
+   tapa la etiqueta de una referencia (en el gráfico de Cp del Pachón cortaba «viento en Y:
+   0,6772» hasta que el eje se extendió a 1,5), y las etiquetas de las referencias se enciman
+   entre sí: en el espectro, T₁ y T₂ a 70 px y la meseta pegada al borde superior salían una
+   sobre otra hasta acotar el eje a 3 s y a 1,2. `svgDeGrafico` tendría que elegir la esquina
+   libre para la leyenda y escalonar las etiquetas que chocan, con su caso en `verify:motor`;
+   cambia el SVG, así que se mide en `/calibrar`. Y una etiqueta es texto: `T_1` sale literal
+   (en el Pachón se escribió con subíndices Unicode, T₁).
 
 ## Obra
 
