@@ -424,7 +424,8 @@ export default function IndiceProyectos() {
         {enDisco !== null && obras.length === 0 && (!hayDisco || enDisco.length === 0) && (
           <p className="rounded-lg border border-dashed border-border bg-white p-4 text-sm leading-relaxed text-muted">
             Todavía no hay ninguna obra. Una obra empieza con el canvas vacío y se va llenando
-            con nodos: el primero es <strong className="font-medium text-ink">Cargas</strong>.
+            con nodos de <strong className="font-medium text-ink">cálculo</strong>, que se
+            ordenan en grupos.
           </p>
         )}
       </section>
