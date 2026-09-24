@@ -528,6 +528,44 @@ const CASOS = [
     ok: esperaValor('r0', '20 kJ'),
   },
 
+  // --- Lo demás ------------------------------------------------------------------
+  {
+    nombre: 'un esquema que llama a una función de usuario la evalúa con el scope de su posición',
+    // La función leía el scope vivo de la hoja: con `k` redefinida DEBAJO del
+    // esquema, el rótulo salía con el valor final.
+    hoja: hoja(p('f(x) := x*k'), m('k := 2'), ['image', '/esquemas/x.svg'], m('k := 10')),
+    ok: (r) => {
+      const e = renderEsquema('<svg><text>{{f(3)}}</text></svg>', r.r2.scope);
+      return e.svg.includes('>6<') ? null : `el rótulo dice ${e.svg.match(/<text>([^<]*)/)?.[1]}, se esperaba 6`;
+    },
+  },
+  {
+    nombre: 'y la hoja de abajo sigue viendo la función con el scope vivo',
+    hoja: hoja(p('f(x) := x*k'), m('k := 2'), ['image', '/esquemas/x.svg'], m('k := 10'), m('y := f(3) =')),
+    ok: esperaValor('r4', '30'),
+  },
+  {
+    nombre: 'una función que llega en el scope inicial conserva lo que usa y no se publicó',
+    // Como en la obra: un nodo publica `f` y no la `k` que `f` lee. Recrear `f`
+    // sobre la instantánea de otra hoja le quitaba `k`.
+    hoja: hoja(['image', '/esquemas/x.svg'], m('y := f(3) =')),
+    scope: () => ({ f: scopeDe(p('f(x) := x*k'), m('k := 2')).f }),
+    ok: todas(esperaValor('r1', '6'), (r) => {
+      const e = renderEsquema('<svg><text>{{f(3)}}</text></svg>', r.r0.scope);
+      return e.svg.includes('>6<') ? null : `el rótulo: ${e.svg.match(/<text>([^<]*)/)?.[1]} (faltantes: ${e.faltantes.join(', ')})`;
+    }),
+  },
+  {
+    nombre: 'una función escrita en una fórmula dice que va en un programa',
+    hoja: hoja(m('f(x) := x^2')),
+    ok: esperaError('r0', /programa/),
+  },
+  {
+    nombre: 'una matriz enorme es un error atrapable, no una pestaña sin memoria',
+    hoja: hoja(m('M := ones(20000, 20000)'), m('v := 1:5000000'), m('z := size(zeros(3, 4)) =')),
+    ok: todas(esperaError('r0', /elementos/), esperaError('r1', /elementos/), esperaValor('r2', '[3, 4]')),
+  },
+
   // --- Valores no finitos -----------------------------------------------------
   //
   // Como el complejo: `0/0` daba NaN, `1/0` Infinity y `log(0)` −Infinity, sin

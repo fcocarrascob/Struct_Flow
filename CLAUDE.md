@@ -411,7 +411,10 @@ el helper `esBloqueEstructurado` de `bloque.ts` es la pregunta «¿su contenido 
 
 - **La región del esquema va la última de la hoja.** No se evalúa, pero participa del orden
   de lectura y captura una instantánea del scope en su posición: esa instantánea es la que
-  resuelve los tokens del SVG y la que lee el panel de resultados de un módulo. Emitida
+  resuelve los tokens del SVG y la que lee el panel de resultados de un módulo. La toma
+  `fotoDelScope`, que recrea sobre la copia las funciones de usuario definidas en esa hoja
+  (leían el scope vivo, y un rótulo `{{f(3)}}` salía con lo definido debajo); las que llegan
+  en el scope inicial, como la que publica otro nodo de una obra, conservan el suyo. Emitida
   antes de los cálculos que rotula, el esquema sale con `{{tokens}}` a la vista y
   `verify:planilla` lo rechaza.
 

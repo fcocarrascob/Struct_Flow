@@ -176,11 +176,6 @@ revisar antes qué acepta el lado de Struct_Harness.
   que queda, es aritmética de `Unit` (`clone`, `multiply`) y el `typed.find` que math.js hace
   por dentro al multiplicar y al recorrer matrices; el scope pesa ~5 %, así que llevarlo como
   `Map` no rendiría. Bajar más pide que los bucles calientes de una hoja trabajen sin unidades.
-- Un esquema que llama a una función de usuario la evalúa con el scope **final** de la hoja,
-  no con el de su posición.
-- `f(x) := …` en una región `math` da «Value expected (char 10)» sin decir que tiene que ir en
-  un `program`.
-- `ones(20000, 20000)` agota la memoria dentro de math.js, y no es un error atrapable.
 - **Un condicional dentro de un token choca con `:unidad`.** En `{{c ? a : h_c/h_p}}` la rama
   final parece una unidad y `separarToken` la toma como tal; hay que ordenar las ramas para
   que la última no lo parezca (así quedó el rótulo de `h_c/h_p` en

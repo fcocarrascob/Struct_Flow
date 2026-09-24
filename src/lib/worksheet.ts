@@ -120,6 +120,91 @@ math.import(
  * Basta una copia superficial, porque `parse` reemplaza la entrada entera.
  */
 /**
+ * Tope de elementos de una matriz que la hoja CREA (`zeros`, `ones`,
+ * `identity`, un rango `1:N`). `ones(20000, 20000)` pedía 400 millones de
+ * números y agotaba la memoria dentro de math.js: la pestaña moría sin un error
+ * que atrapar. Un millón sobra para cualquier memoria; el corpus no pasa de unos
+ * cientos.
+ */
+const MAX_ELEMENTOS = 1_000_000;
+
+function comprobarElementos(n: number, que: string): void {
+  if (Number.isFinite(n) && n <= MAX_ELEMENTOS) return;
+  throw new Error(
+    `${que} tendría ${Number.isFinite(n) ? Math.round(n).toLocaleString('es-CL') : 'infinitos'} elementos; ` +
+      `el máximo de una hoja es ${MAX_ELEMENTOS.toLocaleString('es-CL')}.`,
+  );
+}
+
+/** Un número de los argumentos de tamaño: número, BigNumber o el valor SI de una cantidad. */
+function comoNumero(v: unknown): number | undefined {
+  if (typeof v === 'number') return v;
+  if (math.isBigNumber(v)) return (v as { toNumber(): number }).toNumber();
+  if (math.isUnit(v)) return (v as { value: number | null }).value ?? undefined;
+  return undefined;
+}
+
+/** Los elementos que pediría `zeros(2, 3)`, `ones([2, 3])` o `identity(n)`. */
+function elementosPedidos(args: unknown[], cuadrada: boolean): number {
+  const dims: number[] = [];
+  for (const a of args) {
+    const n = comoNumero(a);
+    if (n !== undefined) dims.push(n);
+    else if (Array.isArray(a) || math.isMatrix(a)) {
+      for (const x of (math.flatten(a as never) as { valueOf(): unknown }).valueOf() as unknown[]) {
+        const m = comoNumero(x);
+        if (m !== undefined) dims.push(m);
+      }
+    }
+  }
+  if (cuadrada && dims.length === 1) dims.push(dims[0]);
+  return dims.reduce((p, d) => p * Math.max(0, d), 1);
+}
+
+/** Los elementos de un rango `inicio:fin` o `inicio:paso:fin` (o su forma en texto). */
+function elementosDeRango(args: unknown[]): number | undefined {
+  let [a, b, c] = args;
+  if (typeof a === 'string') {
+    // En texto, math.js escribe `inicio:fin` o `inicio:paso:fin`.
+    const p = a.split(':').map(Number);
+    [a, b, c] = p.length === 3 ? [p[0], p[2], p[1]] : [p[0], p[1], undefined];
+  }
+  const inicio = comoNumero(a);
+  const fin = comoNumero(b);
+  const paso = c === undefined ? 1 : comoNumero(c);
+  if (inicio === undefined || fin === undefined || !paso) return undefined;
+  return Math.floor(Math.abs((fin - inicio) / paso)) + 1;
+}
+
+{
+  type Fn = ((...a: unknown[]) => unknown) & { transform?: (...a: unknown[]) => unknown };
+  const m = math as unknown as Record<string, Fn> & { expression: { transform: Record<string, Fn> } };
+  const conTope = (nombre: string, cuenta: (args: unknown[]) => number | undefined): Fn => {
+    const original = m[nombre];
+    const transform = m.expression.transform[nombre];
+    const envolver = (f: Fn): Fn => (...args: unknown[]) => {
+      const n = cuenta(args);
+      if (n !== undefined) comprobarElementos(n, `${nombre}(…)`);
+      return f(...args);
+    };
+    const fn = envolver(original);
+    // Sin su transform, un rango escrito en la hoja dejaría de ser de base 1 con
+    // el fin incluido: `1:5` daría cuatro elementos. Se envuelve también.
+    if (transform) fn.transform = envolver(transform);
+    return fn;
+  };
+  math.import(
+    {
+      zeros: conTope('zeros', (a) => elementosPedidos(a, false)),
+      ones: conTope('ones', (a) => elementosPedidos(a, false)),
+      identity: conTope('identity', (a) => elementosPedidos(a, true)),
+      range: conTope('range', elementosDeRango),
+    },
+    { override: true },
+  );
+}
+
+/**
  * Un julio, para reconocer la dimensión fuerza × longitud. Se crea ANTES de
  * guardar el sistema «auto» de abajo: analizarlo lo toca.
  */
@@ -1014,6 +1099,9 @@ function nombresDefinidos(regions: Region[]): Set<string> {
 /** El nombre de la cabecera de un programa: `nombre :=` o `nombre(a, b) :=`. */
 const RE_CABECERA_PROGRAMA = /^\s*([\p{L}_][\p{L}\p{N}_]*)\s*(?:\([^)]*\))?\s*:=/u;
 
+/** Una cabecera de función: `f(x) :=`, `M_n(c, b) :=`. */
+const RE_FUNCION = /^\s*[\p{L}_][\p{L}\p{N}_]*\s*\([^)]*\)\s*:=/u;
+
 /** Lo que exporta un programa, sin analizar su cuerpo: el nombre de su cabecera. */
 export function nombreDePrograma(src: string): string | undefined {
   return RE_CABECERA_PROGRAMA.exec(src)?.[1];
@@ -1026,7 +1114,7 @@ function evaluarEnOrden(ordered: Region[], scope: Record<string, unknown>, resul
     ctx.guard = nuevoGuard();
 
     if (region.kind === 'image') {
-      results[region.id] = { scope: { ...scope } };
+      results[region.id] = { scope: fotoDelScope(scope) };
       continue;
     }
 
@@ -1097,6 +1185,14 @@ function evaluarFormula(src: string, scope: Record<string, unknown>, unidadColum
 
   if (!parsed.expr) {
     return { res: { tex, error: 'Falta la expresión' }, evaluada: false };
+  }
+  // `f(x) := x^2` no es una definición de variable, y math.js solo decía «Value
+  // expected (char 7)».
+  if (!parsed.varName && RE_FUNCION.test(src)) {
+    return {
+      res: { tex, error: 'Una función (`f(x) := …`) se define en una región de programa, no en una fórmula.' },
+      evaluada: false,
+    };
   }
 
   let aviso: string | undefined;
@@ -1513,26 +1609,7 @@ function evalProgramRegion(src: string, scope: Record<string, unknown>): RegionR
 
   if (prog.params && prog.name) {
     const { name, params, body } = prog;
-    // El closure captura el scope vivo: ve las variables de la hoja al llamarse
-    // (y permite recursión, pues `name` ya está en el scope).
-    scope[name] = (...args: unknown[]) => {
-      // Hereda del scope en vez de copiarlo: O(1) en lugar de O(nº variables),
-      // y la semántica es la misma —se lee lo de la hoja, se escribe aquí, y
-      // las variables internas no la contaminan.
-      //
-      // No es un detalle: estas funciones se llaman desde bucles anidados
-      // (`c_de_Pn` itera 60 veces y en cada vuelta llama a `P_n`, que recorre
-      // las capas), así que copiar el scope entero se pagaba decenas de miles
-      // de veces por evaluación de la hoja.
-      const local: Record<string, unknown> = Object.create(scope);
-      params.forEach((p, i) => {
-        local[p] = args[i];
-      });
-      // Los argumentos llegan por referencia: se copian si la función escribe
-      // en ellos (ver `copiarAntesDeEscribir`).
-      prestados.set(local, new Set(params));
-      return runFunction(body, local, ctx);
-    };
+    scope[name] = crearFuncion(params, body, scope);
     const firma = `${name}(${params.join(', ')})`;
     return { defined: firma, define: { nombre: name, valor: firma, esFuncion: true } };
   }
@@ -1555,6 +1632,65 @@ function evalProgramRegion(src: string, scope: Record<string, unknown>): RegionR
     retirar(prog.name);
     return { error: errMsg(err) };
   }
+}
+
+type FuncionDeUsuario = (...args: unknown[]) => unknown;
+
+/** El scope de una función de usuario y cómo recrearla sobre otro (ver `fotoDelScope`). */
+const reatar = new WeakMap<
+  FuncionDeUsuario,
+  { base: Record<string, unknown>; recrear: (base: Record<string, unknown>) => FuncionDeUsuario }
+>();
+
+/**
+ * Una función de usuario sobre el scope `base`. El closure lee `base` vivo: ve
+ * las variables de la hoja al llamarse (y permite recursión, pues su nombre ya
+ * está en el scope).
+ */
+function crearFuncion(params: string[], body: Parameters<typeof runFunction>[0], base: Record<string, unknown>): FuncionDeUsuario {
+  const fn: FuncionDeUsuario = (...args) => {
+    // Hereda del scope en vez de copiarlo: O(1) en lugar de O(nº variables),
+    // y la semántica es la misma —se lee lo de la hoja, se escribe aquí, y
+    // las variables internas no la contaminan.
+    //
+    // No es un detalle: estas funciones se llaman desde bucles anidados
+    // (`c_de_Pn` itera 60 veces y en cada vuelta llama a `P_n`, que recorre
+    // las capas), así que copiar el scope entero se pagaba decenas de miles
+    // de veces por evaluación de la hoja.
+    const local: Record<string, unknown> = Object.create(base);
+    params.forEach((p, i) => {
+      local[p] = args[i];
+    });
+    // Los argumentos llegan por referencia: se copian si la función escribe
+    // en ellos (ver `copiarAntesDeEscribir`).
+    prestados.set(local, new Set(params));
+    return runFunction(body, local, ctx);
+  };
+  reatar.set(fn, { base, recrear: (otra) => crearFuncion(params, body, otra) });
+  return fn;
+}
+
+/**
+ * El scope visible en una posición de la hoja, como lo captura un esquema.
+ *
+ * Copiar los valores no basta: una función de usuario lee el scope VIVO, así que
+ * un rótulo `{{f(3)}}` se evaluaba con lo que la hoja definía al FINAL —con `k`
+ * redefinida debajo del esquema, salía el valor de abajo—. Cada función
+ * definida en ESTA hoja se recrea sobre la copia, que es lo que ve en esa
+ * posición.
+ *
+ * Solo esas: una función que llegó en el scope inicial —la que publica otro
+ * nodo de la obra, con su alias— vive sobre el scope de su propia hoja, y
+ * recrearla sobre esta le quitaría lo que usa y no publica (el `T_1` de un
+ * espectro que solo publica `Sa`).
+ */
+function fotoDelScope(scope: Record<string, unknown>): Record<string, unknown> {
+  const foto = { ...scope };
+  for (const [k, v] of Object.entries(foto)) {
+    const info = typeof v === 'function' ? reatar.get(v as FuncionDeUsuario) : undefined;
+    if (info && info.base === scope) foto[k] = info.recrear(foto);
+  }
+  return foto;
 }
 
 function errMsg(err: unknown): string {
