@@ -327,11 +327,13 @@ function compilado(node: MathNode): { evaluate(scope: Record<string, unknown>): 
  * Cualquier otra unidad suelta y sin definir es casi siempre una variable que
  * falta —`L` (litro), `A` (amperio), `Es` (exasegundo), `h` (hora), `t`
  * (tonelada), `dA` (decíamperio)—, y se escribe detrás de un número si de
- * verdad se quiere la unidad (`1 L`).
+ * verdad se quiere la unidad (`1 L`). `N` y `m` tampoco están: son la axial y
+ * la masa o el voladizo de media memoria, y `e := M/N` con `N` olvidada daba
+ * «20 km». Sueltas se escriben `1 N`, `1 m`.
  */
 const UNIDADES_SUELTAS = new Set([
-  'mm', 'cm', 'm', 'km',
-  'N', 'kN', 'MN', 'kgf', 'tonf', 'tf', 'lbf', 'kip',
+  'mm', 'cm', 'km',
+  'kN', 'MN', 'kgf', 'tonf', 'tf', 'lbf', 'kip',
   'Pa', 'kPa', 'MPa', 'GPa', 'psi', 'ksi',
   'kg', 'deg', 'rad', 'inch', 'ft',
 ]);

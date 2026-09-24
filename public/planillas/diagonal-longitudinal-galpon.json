@@ -563,7 +563,7 @@
       "kind": "math",
       "x": 40,
       "y": 3930,
-      "src": "dz_te := 3*(12/9)*tan(10 deg) m"
+      "src": "dz_te := 3*(12/9)*tan(10 deg)*1 m"
     },
     {
       "id": "r-80",

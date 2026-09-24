@@ -1143,7 +1143,7 @@
   {
    "id": "r147",
    "kind": "math",
-   "src": "V_bsl := 3.7 * lam * rfc * ca1_mm^1.5 * N = tonf",
+   "src": "V_bsl := 3.7 * lam * rfc * ca1_mm^1.5 * 1 N =tonf",
    "x": 40,
    "y": 7824
   },
@@ -1703,7 +1703,7 @@
   {
    "id": "r221",
    "kind": "math",
-   "src": "N_b := 10 * lam * rfc * hef_mm^1.5 * N = tonf",
+   "src": "N_b := 10 * lam * rfc * hef_mm^1.5 * 1 N =tonf",
    "x": 40,
    "y": 11664
   },

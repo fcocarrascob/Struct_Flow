@@ -453,7 +453,7 @@
   {
    "id": "r061",
    "kind": "math",
-   "src": "N_b := k_c * lam * rfc * (h_efT/mm)^1.5 * N = tonf",
+   "src": "N_b := k_c * lam * rfc * (h_efT/mm)^1.5 * 1 N =tonf",
    "x": 40,
    "y": 3024
   },
@@ -628,7 +628,7 @@
   {
    "id": "r085",
    "kind": "math",
-   "src": "N_b0 := k_c * lam * rfc * (h_ef/mm)^1.5 * N = tonf",
+   "src": "N_b0 := k_c * lam * rfc * (h_ef/mm)^1.5 * 1 N =tonf",
    "x": 40,
    "y": 4192
   },
@@ -908,14 +908,14 @@
   {
    "id": "r121",
    "kind": "math",
-   "src": "V_b1 := 0.6 * (l_e/d_a)^0.2 * sqrt(d_a/mm) * lam * rfc * (c_a1/mm)^1.5 * N = kgf",
+   "src": "V_b1 := 0.6 * (l_e/d_a)^0.2 * sqrt(d_a/mm) * lam * rfc * (c_a1/mm)^1.5 * 1 N =kgf",
    "x": 40,
    "y": 6048
   },
   {
    "id": "r122",
    "kind": "math",
-   "src": "V_b2 := 3.7 * lam * rfc * (c_a1/mm)^1.5 * N = kgf",
+   "src": "V_b2 := 3.7 * lam * rfc * (c_a1/mm)^1.5 * 1 N =kgf",
    "x": 40,
    "y": 6096
   },
@@ -1069,7 +1069,7 @@
   {
    "id": "r142",
    "kind": "math",
-   "src": "V_bB := coef_B * lam * rfc * (c_a1B/mm)^1.5 * N = kgf",
+   "src": "V_bB := coef_B * lam * rfc * (c_a1B/mm)^1.5 * 1 N =kgf",
    "x": 40,
    "y": 7136
   },

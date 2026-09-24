@@ -311,6 +311,21 @@ const CASOS = [
     ok: esperaError('r0', /«dA»/),
   },
   {
+    nombre: '«N» suelta y sin definir no es un newton: es la axial que falta',
+    hoja: hoja(m('M := 20 kN*m'), m('e := M/N =')),
+    ok: esperaError('r1', /«N»/),
+  },
+  {
+    nombre: '«m» suelta y sin definir no es un metro',
+    hoja: hoja(m('x := 3'), m('v := x*m =')),
+    ok: esperaError('r1', /«m»/),
+  },
+  {
+    nombre: '«N» y «m» escritas como unidad siguen valiendo',
+    hoja: hoja(m('F := 10 N ='), m('k := 2'), m('M := k*1 tonf*m ='), m('r := 30 kN/(1 N) ='), m('c := k*1 N =')),
+    ok: todas(esperaValor('r0', '10 N'), esperaValor('r2', '2 tonf m'), esperaValor('r3', '30000'), esperaValor('r4', '2 N')),
+  },
+  {
     nombre: 'dentro de un programa, una constante sin definir también es error',
     hoja: hoja(p('r :=\n    x := 2\n    x*phi')),
     ok: esperaError('r0', /«phi»/),
