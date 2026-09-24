@@ -9,6 +9,7 @@
 
 import type { InformeSaneo, MotivoDescarte, RegionDescartada } from '../../lib/hoja-json';
 import { MAX_SERIES, type CodigoGrafico } from '../../lib/grafico';
+import { MAX_COLUMNAS, MAX_FILAS, type CodigoTabla } from '../../lib/tabla';
 
 /** Cómo se lee cada código, en singular y sin sujeto: se compone abajo. */
 const MOTIVOS: Record<MotivoDescarte, string> = {
@@ -17,6 +18,18 @@ const MOTIVOS: Record<MotivoDescarte, string> = {
   kind: 'con «kind» desconocido',
   coordenadas: 'sin «x» o sin «y»',
   grafico: 'gráfico con la especificación mal formada',
+  tabla: 'tabla con la especificación mal formada',
+};
+
+/** Qué le falta a la especificación de una tabla (`motivoDeTabla`). */
+const DETALLES_TABLA: Record<CodigoTabla, string> = {
+  'no-es-objeto': 'no trae «tabla»',
+  version: '«version» tiene que ser 1',
+  celdas: '«celdas» no es una grilla rectangular de textos',
+  dimensiones: `más de ${MAX_FILAS} filas o de ${MAX_COLUMNAS} columnas`,
+  encabezado: '«encabezado» no es un número de filas entre 0 y las que tiene',
+  columnas: '«columnas» con más entradas que columnas, o una mal formada',
+  matriz: '«matriz» no es un texto',
 };
 
 /** Qué le falta a la especificación de un gráfico (`motivoDeGrafico`). */
@@ -36,7 +49,8 @@ const DETALLES_GRAFICO: Record<CodigoGrafico, string> = {
  *  viaje de ida y vuelta. */
 function motivoDe(d: RegionDescartada): string {
   const base = MOTIVOS[d.motivo];
-  if (d.motivo === 'grafico' && d.detalle) return `${base}: ${DETALLES_GRAFICO[d.detalle]}`;
+  if (d.motivo === 'grafico' && d.detalle) return `${base}: ${DETALLES_GRAFICO[d.detalle as CodigoGrafico]}`;
+  if (d.motivo === 'tabla' && d.detalle) return `${base}: ${DETALLES_TABLA[d.detalle as CodigoTabla]}`;
   return d.motivo === 'kind' && d.kind ? `${base} («${d.kind}»)` : base;
 }
 
@@ -85,6 +99,6 @@ export function detalleDeDescartes(informe: InformeSaneo): string {
     `La hoja traía ${total} bloques y ${descartadas.length} no se pudieron cargar:`,
     ...lineas,
     '',
-    'Un bloque válido lleva «kind» («math», «text», «program», «image» o «plot»), «src» como texto, y «x» e «y» numéricos; un «plot» lleva además «grafico».',
+    'Un bloque válido lleva «kind» («math», «text», «program», «image», «plot» o «table»), «src» como texto, y «x» e «y» numéricos; un «plot» lleva además «grafico», y una «table», «tabla».',
   ].join('\n');
 }

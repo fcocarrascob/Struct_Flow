@@ -240,10 +240,18 @@ desaparece el alto estimado de cada bloque que hoy obliga a los generadores a ca
 
 La obra muestra relaciones; falta que muestre **números** sin entrar a cada hoja.
 
-- **Bloque tabla** en la hoja: celdas con expresiones y encabezados. Para las tablas de norma
-  con interpolación (el `Cp_cub` de la Fig. 3 del CIRSOC 102 es un `program` con `if/else`) y
-  para presentar juntos los valores de una familia (las presiones de viento por cara y
-  franja). El resumen de lo que va al modelo ya no hace falta: lo hace el nodo SAP2000.
+- **Bloque tabla — hecho** (2026-09-24, región `table`). Para las tablas de norma con
+  interpolación y para presentar juntos los valores de una familia (las presiones de viento
+  por cara y franja). Decisiones: cada celda es una fórmula con **la misma gramática** que una
+  región math (`evaluarFormula`, compartida), un valor escrito o un texto; se evalúa **fila a
+  fila** en su posición y escribe en el scope; publica el cuerpo como **matriz** y cada
+  columna con nombre como **vector**, que alimentan `interp` y la `xy` de un gráfico; una
+  comparación en una celda es un **veredicto** `id[f,c]`; una columna puede imprimir **solo el
+  valor**, con la unidad subida al encabezado. `interp(xs, ys, x)` es 1D y **fuera de la tabla
+  es un error**: el extremo que manda la norma se escribe a la vista, con `min(max(…))`. El
+  `Cp_cub` del CIRSOC 102 se escribe así y da lo mismo que el `program` (comprobado); el
+  `interp2` queda para cuando se migre la tabla θ × h/L de NCh432. El resumen de lo que va al
+  modelo ya no hace falta: lo hace el nodo SAP2000.
 - **Bloque gráfico — hecho** (2026-09-24, región `plot`). Funciones de una variable, series
   x–y y rectas o puntos de referencia; sin flechas ni ejes logarítmicos todavía. Decisiones:
   la especificación es **estructurada** (`Region.grafico`) y se edita con un panel, no con un

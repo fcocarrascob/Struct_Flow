@@ -114,11 +114,15 @@ export default function BloqueMini({
     }
   }
 
-  // Un gráfico no se edita en una línea: su panel de propiedades vive en el
-  // canvas de la hoja. Aquí se ve, igual que en el papel, y nada más.
-  if (bloque.kind === 'plot') {
+  // Un gráfico o una tabla no se editan en una línea: su grilla y su panel de
+  // propiedades viven en el canvas de la hoja. Aquí se ven, igual que en el
+  // papel, y nada más.
+  if (bloque.kind === 'plot' || bloque.kind === 'table') {
     return (
-      <div className="group relative rounded px-1.5 py-0.5" title="Un gráfico se edita en la pestaña de la hoja">
+      <div
+        className="group relative rounded px-1.5 py-0.5"
+        title={`Un${bloque.kind === 'plot' ? ' gráfico' : 'a tabla'} se edita en la pestaña de la hoja`}
+      >
         <BloqueDoc region={bloque} result={result} />
         {result?.aviso && <p className="text-[10px] leading-snug text-aviso">⚠ {result.aviso}</p>}
       </div>

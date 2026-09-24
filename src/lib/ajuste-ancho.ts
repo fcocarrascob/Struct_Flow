@@ -55,28 +55,38 @@ export function ajustarAnchos(raiz: ParentNode, ancho: number, minima: number): 
     return w;
   };
 
+  // Una tabla se mide ENTERA: sus columnas se suman, y lo que no cabe es la
+  // tabla, no una fórmula de una celda. Sus celdas no llevan `data-ajuste`: se
+  // encogen todas a la vez, con la tabla, y la tabla sigue siendo legible como
+  // tabla.
+  const anchoTabla = (el: HTMLElement): number => {
+    const t = el.querySelector('table');
+    return t ? t.getBoundingClientRect().width : 0;
+  };
+
   raiz.querySelectorAll<HTMLElement>('[data-ajuste]').forEach((el) => {
     if (el.getClientRects().length === 0) return;
     const bloque = el.closest<HTMLElement>('[data-wp-id], [data-region-id]');
     el.style.fontSize = '';
     if (bloque) delete bloque.dataset.desborda;
+    const medir = el.dataset.ajuste === 'tabla' ? anchoTabla : tramoMasAncho;
 
     // Lo que ya ocupa a su izquierda en la misma línea —la flecha del valor de
     // un programa— resta del ancho disponible.
     const izquierda = bloque ? el.getBoundingClientRect().left - bloque.getBoundingClientRect().left : 0;
     const disponible = ancho - Math.max(0, izquierda);
-    const natural = tramoMasAncho(el);
+    const natural = medir(el);
     if (natural <= disponible + TOLERANCIA) return;
 
     // KaTeX mide en `em`: el ancho escala lineal con el tamaño. La primera
     // estimación casi siempre acierta; el bucle corrige el redondeo de glifos.
     let escala = Math.max(minima, Math.floor((disponible / natural) * 100) / 100);
     el.style.fontSize = `${Math.round(escala * 100)}%`;
-    while (tramoMasAncho(el) > disponible + TOLERANCIA && escala > minima) {
+    while (medir(el) > disponible + TOLERANCIA && escala > minima) {
       escala = Math.max(minima, Math.round((escala - 0.01) * 100) / 100);
       el.style.fontSize = `${Math.round(escala * 100)}%`;
     }
-    if (tramoMasAncho(el) > disponible + TOLERANCIA && bloque) {
+    if (medir(el) > disponible + TOLERANCIA && bloque) {
       bloque.dataset.desborda = '';
       const id = bloque.dataset.wpId ?? bloque.dataset.regionId;
       if (id) desbordados.push(id);

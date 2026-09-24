@@ -46,6 +46,8 @@ const g = (espec, titulo = 'Gráfico') => [
   },
 ];
 const fn = (expr, desde, hasta, extra = {}) => ({ tipo: 'funcion', nombre: 'f', expr, variable: 'x', desde, hasta, ...extra });
+/** Una tabla: `celdas` es la grilla de `src`, `extra` el resto de la especificación. */
+const t = (celdas, extra = {}, titulo = '') => ['table', titulo, { tabla: { version: 1, celdas, ...extra } }];
 
 /** El LaTeX pasado a texto llano, para comparar valores sin pelear con el marcado. */
 function llano(tex = '') {
@@ -91,6 +93,24 @@ const esperaTramos = (id, esperado) => (r) => {
   return igual ? null : `${id}: tramos ${JSON.stringify(t)}, se esperaba ${JSON.stringify(esperado)}`;
 };
 const sinAviso = (id) => (r) => (r[id]?.aviso ? `${id} lleva un aviso que no toca: «${r[id].aviso}»` : null);
+/** La celda `[f, c]` (base 0) de la tabla `id`. */
+const celda = (r, id, f, c) => r[id]?.tabla?.celdas?.[f]?.[c];
+const esperaCelda = (id, f, c, esperado) => (r) => {
+  const x = celda(r, id, f, c);
+  if (!x) return `${id} no trae la celda [${f},${c}]${r[id]?.error ? ` (error de la tabla: ${r[id].error})` : ''}`;
+  if (x.error) return `${id}[${f},${c}] dio error: ${x.error}`;
+  const v = valor(x);
+  return v === esperado ? null : `${id}[${f},${c}] = «${v}», se esperaba «${esperado}»`;
+};
+const esperaErrorCelda = (id, f, c, patron) => (r) => {
+  const e = celda(r, id, f, c)?.error;
+  if (!e) return `${id}[${f},${c}] no dio error (valor «${valor(celda(r, id, f, c))}»)`;
+  return patron && !patron.test(e) ? `${id}[${f},${c}]: error inesperado «${e}»` : null;
+};
+const esperaTipos = (id, tipos) => (r) => {
+  const hay = r[id]?.tabla?.celdas?.map((fila) => fila.map((x) => x.tipo));
+  return JSON.stringify(hay) === JSON.stringify(tipos) ? null : `${id}: tipos ${JSON.stringify(hay)}, se esperaba ${JSON.stringify(tipos)}`;
+};
 const todas = (...fs) => (r) => fs.map((f) => f(r)).find((x) => x) ?? null;
 
 const CASOS = [
@@ -682,6 +702,41 @@ const CASOS_PAPEL = [
   );
 }
 
+CASOS_PAPEL.push(
+  {
+    nombre: 'una tabla sale como tabla: título escapado, encabezado en th, la caja que se ajusta y la unidad arriba',
+    hoja: () => [
+      { id: 't', kind: 'text', x: 40, y: 0, src: 'TÍTULO' },
+      ...hoja(
+        t([['Franja', 'p'], ['1', 'p_1 := 0.5 kN/m^2 * 2 =']], { encabezado: 1, columnas: [{}, { unidad: 'kN/m^2', soloValor: true }] }, 'Presiones <b>'),
+      ),
+    ],
+    ok: (html) => {
+      if (!html.includes('<figure class="wp-tabla" data-wp-id="r0">')) return `falta la figura: ${html.slice(0, 400)}`;
+      if (!html.includes('<figcaption class="wp-tabla-tit">Presiones &lt;b&gt;</figcaption>')) return 'el título no salió escapado';
+      if (!html.includes('<div class="wp-tabla-caja" data-ajuste="tabla"><table><thead><tr><th class="wp-c">Franja</th>')) {
+        return 'el encabezado no salió en th dentro de la caja de ajuste';
+      }
+      if (/<td[^>]*>.*data-ajuste="katex"/.test(html)) return 'una celda lleva su propio ajuste: se ajusta la tabla entera';
+      if (!/<th class="wp-c">p <span class="wp-c-u">\[<span class="katex">/.test(html)) return 'la unidad no subió al encabezado';
+      if (!/<td class="wp-c wp-c-valor"><span class="wp-tex"><span class="katex">/.test(html)) return 'la celda «solo valor» no va alineada como valor';
+      return null;
+    },
+  },
+  {
+    nombre: 'una celda con error no tapa la tabla, y el error de publicación va debajo',
+    hoja: () => [
+      { id: 't', kind: 'text', x: 40, y: 0, src: 'TÍTULO' },
+      ...hoja(t([['x'], ['x_1 := no_existe =']], { encabezado: 1, columnas: [{ nombre: 'x_t' }] })),
+    ],
+    ok: (html) =>
+      (html.includes('<span class="wp-c-err">x_1 := no_existe =') ? null : 'la celda no muestra su error') ??
+      (html.includes('<p class="wp-tabla-err">«x_t»: la celda de la fila 2, columna 1 tiene un error</p>')
+        ? null
+        : `falta el error de publicación: ${html.slice(html.indexOf('wp-tabla'), html.indexOf('wp-tabla') + 600)}`),
+  },
+);
+
 // El script de ajuste que lleva el HTML de `render-planilla` es la función
 // serializada: si nombrara algo de fuera de su cuerpo, compilaría aquí y
 // reventaría en el navegador que abre el documento. Se compila y se corre
@@ -714,6 +769,21 @@ const CASOS_AJUSTE = [
       const motivos = inf.descartadas.map((d) => `${d.motivo}/${d.detalle}`).join(' ');
       if (motivos !== 'grafico/no-es-objeto grafico/sin-series') return `descartes: «${motivos}»`;
       return inf.regions.length === 1 && inf.regions[0].id === 'c' ? null : `quedaron ${inf.regions.length} regiones`;
+    },
+  },
+  {
+    nombre: 'una tabla sin especificación válida se descarta al cargar, con el motivo',
+    ok: () => {
+      const inf = sanearConInforme([
+        { id: 'a', kind: 'table', x: 40, y: 40, src: '' },
+        { id: 'b', kind: 'table', x: 40, y: 90, src: '', tabla: { version: 1, celdas: [['a', 'b'], ['c']] } },
+        { id: 'c', kind: 'table', x: 40, y: 140, src: '', tabla: { version: 1, celdas: [['1']], encabezado: 3 } },
+        { id: 'd', kind: 'table', x: 40, y: 190, src: '', tabla: { version: 1, celdas: [['1', '2']], columnas: [{}, {}, {}] } },
+        { id: 'e', kind: 'table', x: 40, y: 240, src: 'buena', tabla: { version: 1, celdas: [['a := 1']], encabezado: 0 } },
+      ]);
+      const motivos = inf.descartadas.map((d) => `${d.motivo}/${d.detalle}`).join(' ');
+      if (motivos !== 'tabla/no-es-objeto tabla/celdas tabla/encabezado tabla/columnas') return `descartes: «${motivos}»`;
+      return inf.regions.length === 1 && inf.regions[0].id === 'e' ? null : `quedaron ${inf.regions.length} regiones`;
     },
   },
   {
@@ -767,7 +837,240 @@ const CASOS_MENSAJES = [
   },
 }));
 
+// --- La región tabla -----------------------------------------------------------
+//
+// Cada celda tiene la gramática de una región math —no una segunda— y la tabla se
+// evalúa fila a fila en su posición del orden de lectura, sobre el scope de la
+// hoja. Lo que publica (la matriz, los vectores de columna) entra en el scope
+// como cualquier definición.
+const CP = [
+  ['h/L', 'F1', 'F2'],
+  ['0.5', '-0.9', '-0.5'],
+  ['1', '-1.3', '-0.7'],
+];
+CASOS.push(
+  {
+    nombre: 'tabla: lo que define una celda lo ve la hoja de abajo',
+    hoja: hoja(t([['a := 3 m']]), m('b := a*2 =')),
+    ok: esperaValor('r1', '6 m'),
+  },
+  {
+    nombre: 'tabla: se evalúa fila a fila, y una celda ve a las anteriores',
+    hoja: hoja(t([['a := 2', 'b := a + 1'], ['c := b*a =', '']])),
+    ok: esperaCelda('r0', 1, 0, '6'),
+  },
+  {
+    nombre: 'tabla: una celda no ve las que van después',
+    hoja: hoja(t([['x := y_t + 1', 'y_t := 2']])),
+    ok: esperaErrorCelda('r0', 0, 0, /Undefined symbol y_t/),
+  },
+  {
+    nombre: 'tabla: «= unidad» convierte en una celda, y una dimensión que no casa es error de la celda',
+    hoja: hoja(t([['F := 2000 N = kN', 'G := 3 m = kN']])),
+    ok: todas(esperaCelda('r0', 0, 0, '2 kN'), esperaErrorCelda('r0', 0, 1, /Units do not match/)),
+  },
+  {
+    nombre: 'tabla: una definición de celda que falla retira la variable',
+    hoja: hoja(m('a := 1'), t([['a := 1 kN + 2 m']]), m('b := a*10 =')),
+    ok: esperaError('r2', /Undefined symbol a/),
+  },
+  {
+    nombre: 'tabla: una variable que tapa una unidad deja el aviso en la celda y en la tabla',
+    hoja: hoja(m('s := 20 cm'), t([['v := 3 m/s =']])),
+    ok: (r) =>
+      (celda(r, 'r1', 0, 0)?.aviso?.includes('tapa la unidad') ? null : 'la celda no lleva el aviso') ??
+      (r.r1?.aviso?.includes('tapa la unidad') ? null : 'la tabla no lleva el aviso'),
+  },
+  {
+    nombre: 'tabla: un complejo en una celda es un error',
+    hoja: hoja(t([['z := sqrt(-4) =']])),
+    ok: esperaErrorCelda('r0', 0, 0, /complejo/),
+  },
+  {
+    nombre: 'tabla: texto, texto forzado con comilla y valores escritos',
+    hoja: hoja(t([['Franja', "'Cp =", 'q*2'], ['-0.9', '3 m', '']])),
+    ok: todas(
+      esperaTipos('r0', [['texto', 'texto', 'texto'], ['literal', 'literal', 'vacia']]),
+      (r) => (celda(r, 'r0', 0, 1)?.texto === 'Cp =' ? null : `el texto forzado quedó «${celda(r, 'r0', 0, 1)?.texto}»`),
+      (r) => (r.r0?.defines?.length ? `definió ${JSON.stringify(r.r0.defines)}` : null),
+    ),
+  },
+  {
+    nombre: 'tabla: un valor escrito sin unidad toma la de su columna, y la columna se publica',
+    hoja: hoja(t([['p'], ['0.5']], { encabezado: 1, columnas: [{ unidad: 'kN/m^2', nombre: 'p_t' }] }), m('p_t[1] = kN/m^2')),
+    ok: todas(esperaValor('r1', '0.5 kN / m^2'), esperaCelda('r0', 1, 0, '0.5')),
+  },
+  {
+    nombre: 'tabla: un valor escrito lee sus unidades como unidades, aunque la hoja tenga una variable igual',
+    hoja: hoja(m('m := 5'), t([['L'], ['3 m']], { encabezado: 1, columnas: [{ nombre: 'L_t' }] }), m('L_t[1] = cm')),
+    ok: esperaValor('r2', '300 cm'),
+  },
+  {
+    nombre: 'tabla: el cuerpo se publica como matriz y cada columna con nombre como vector',
+    hoja: hoja(t(CP, { encabezado: 1, matriz: 'Cp_t', columnas: [{ nombre: 'hL_t' }] }), m('Cp_t[2, 3] ='), m('size(Cp_t) ='), m('hL_t[2] =')),
+    ok: todas(esperaValor('r1', '-0.7'), esperaValor('r2', '[2, 3]'), esperaValor('r3', '1')),
+  },
+  {
+    nombre: 'tabla: una tabla de norma se lee con interp sobre una columna de la matriz',
+    hoja: hoja(t(CP, { encabezado: 1, matriz: 'Cp_t', columnas: [{ nombre: 'hL_t' }] }), m('Cp := interp(hL_t, Cp_t[:, 2], 0.75) =')),
+    ok: esperaValor('r1', '-1.1'),
+  },
+  {
+    nombre: 'tabla: dos columnas publicadas alimentan la serie x–y de un gráfico',
+    hoja: hoja(
+      t([['x', 'y'], ['0', '0'], ['1', '2']], { encabezado: 1, columnas: [{ nombre: 'x_t' }, { nombre: 'y_t' }] }),
+      g({ series: [{ tipo: 'datos', nombre: 'd', x: 'x_t', y: 'y_t' }] }),
+    ),
+    ok: esperaTramos('r1', [[[0, 0], [1, 2]]]),
+  },
+  {
+    nombre: 'tabla: texto en el cuerpo de una columna publicada es un error de la tabla, con su celda',
+    hoja: hoja(t([['x'], ['abc']], { encabezado: 1, columnas: [{ nombre: 'x_t' }] })),
+    ok: esperaError('r0', /fila 2, columna 1/),
+  },
+  {
+    nombre: 'tabla: una celda vacía en la matriz es un error de la tabla',
+    hoja: hoja(t([['1', '']], { matriz: 'M' })),
+    ok: esperaError('r0', /fila 1, columna 2/),
+  },
+  {
+    nombre: 'tabla: un nombre publicado que choca con una celda es un error',
+    hoja: hoja(t([['a := 1']], { matriz: 'a' })),
+    ok: esperaError('r0', /«a»/),
+  },
+  {
+    nombre: 'tabla: una publicación fallida retira el nombre, como una definición',
+    hoja: hoja(m('x_t := 1'), t([['x'], ['abc']], { encabezado: 1, columnas: [{ nombre: 'x_t' }] }), m('y := x_t =')),
+    ok: esperaError('r2', /Undefined symbol x_t/),
+  },
+  {
+    nombre: 'tabla: defines reúne las celdas y lo publicado, en orden',
+    hoja: hoja(t([['a := 1', 'b := 2 ='], ['1', '2']], { matriz: 'M' })),
+    ok: (r) => {
+      const n = (r.r0?.defines ?? []).map((d) => d.nombre).join(',');
+      return n === 'a,b,M' ? null : `defines: «${n}»${r.r0?.error ? ` (error: ${r.r0.error})` : ''}`;
+    },
+  },
+  {
+    nombre: 'tabla: «solo valor» imprime el número, y la unidad sube al encabezado',
+    hoja: hoja(
+      t([['p'], ['p_1 := 2 kN/m^2 * 3 =']], { encabezado: 1, columnas: [{ soloValor: true, unidad: 'kN/m^2' }] }),
+      t([['p_2 := 2 kN/m^2 * 3']], { columnas: [{ soloValor: true, unidad: 'kN/m^2' }] }),
+    ),
+    ok: todas(
+      (r) => (llano(celda(r, 'r0', 1, 0)?.tex) === '6' ? null : `con encabezado: «${llano(celda(r, 'r0', 1, 0)?.tex)}»`),
+      (r) => (r.r0?.tabla?.unidades?.[0] ? null : 'el encabezado no lleva la unidad'),
+      (r) => (/^6 kN/.test(llano(celda(r, 'r1', 0, 0)?.tex)) ? null : `sin encabezado: «${llano(celda(r, 'r1', 0, 0)?.tex)}»`),
+    ),
+  },
+  {
+    nombre: 'tabla: una comparación en una celda es un veredicto',
+    hoja: hoja(t([['ok := 3 < 5 =', '2 > 3 =']])),
+    ok: (r) =>
+      celda(r, 'r0', 0, 0)?.bool === true && celda(r, 'r0', 0, 1)?.bool === false
+        ? null
+        : `veredictos: ${celda(r, 'r0', 0, 0)?.bool} / ${celda(r, 'r0', 0, 1)?.bool}`,
+  },
+  {
+    nombre: 'tabla: en una columna con unidad, un número calculado sin unidades es un error',
+    hoja: hoja(t([['k'], ['k_1 := 2 =']], { encabezado: 1, columnas: [{ unidad: 'kN' }] })),
+    ok: esperaErrorCelda('r0', 1, 0, /no tiene unidades/),
+  },
+
+  // --- interp ------------------------------------------------------------------
+  {
+    nombre: 'interp: interpola entre dos puntos',
+    hoja: hoja(m('y := interp([0, 10], [0, 100], 2.5) =')),
+    ok: esperaValor('r0', '25'),
+  },
+  {
+    nombre: 'interp: en un nodo, y en los extremos, devuelve el valor de la tabla',
+    hoja: hoja(m('interp([0, 1, 2], [5, 7, 9.3], 1) ='), m('interp([0, 1, 2], [5, 7, 9.3], 2) ='), m('interp([0, 1, 2], [5, 7, 9.3], 0) =')),
+    ok: todas(esperaValor('r0', '7'), esperaValor('r1', '9.3'), esperaValor('r2', '5')),
+  },
+  {
+    nombre: 'interp: fuera de la tabla es un error, y dice cómo acotar a la vista',
+    hoja: hoja(m('interp([0.5, 1], [-0.9, -1.3], 1.2) =')),
+    ok: esperaError('r0', /fuera de la tabla.*min\(max/),
+  },
+  {
+    nombre: 'interp: con unidades en los dos ejes',
+    hoja: hoja(m('interp([0 m, 10 m], [0 kN, 100 kN], 250 cm) = kN')),
+    ok: esperaValor('r0', '25 kN'),
+  },
+  {
+    nombre: 'interp: un x sin unidades sobre una tabla con unidades es un error',
+    hoja: hoja(m('interp([0 m, 10 m], [0, 1], 5) =')),
+    ok: esperaError('r0'),
+  },
+  {
+    nombre: 'interp: xs tiene que ser estrictamente creciente',
+    hoja: hoja(m('interp([0, 2, 1], [0, 1, 2], 0.5) =')),
+    ok: esperaError('r0', /creciente/),
+  },
+  {
+    nombre: 'interp: xs e ys del mismo largo',
+    hoja: hoja(m('interp([0, 1, 2], [0, 1], 0.5) =')),
+    ok: esperaError('r0', /mismo largo/),
+  },
+);
+
+// Las celdas de una tabla componen su LaTeX igual que una región: el ejecutor de
+// abajo lo comprueba en `tex` y en cada celda.
+const texDe = (res) => [res.tex, ...(res.tabla?.celdas ?? []).flat().map((x) => x.tex)].filter(Boolean);
+
+// --- Una sola gramática: la celda contra la región, sobre todo el corpus ---------
+//
+// Cada región math del corpus que sea una fórmula se convierte en una tabla de
+// 1×1 con el mismo `src`, y la hoja entera se vuelve a evaluar. Lo que imprime la
+// celda —LaTeX, veredicto, error, aviso— tiene que ser idéntico a lo que imprimía
+// la región, y lo de abajo tiene que seguir dando lo mismo. Si la celda tuviera
+// su propia gramática, aquí se vería la primera diferencia.
+{
+  const { readdir, readFile } = await import('node:fs/promises');
+  const path = await import('node:path');
+  const dir = path.resolve(import.meta.dirname, '..', 'public', 'planillas');
+  const esFormula = (src) => /:=/.test(src) || /=\s*[\p{L}\p{N}_*/^\s()-]*$/u.test(src);
+  CASOS_AJUSTE.push({
+    nombre: 'una celda de fórmula da lo mismo que la región math con el mismo src, en todo el corpus',
+    ok: () => null,
+    corpus: async () => {
+      let comparadas = 0;
+      for (const nombre of (await readdir(dir)).filter((n) => n.endsWith('.json')).sort()) {
+        const { regions } = JSON.parse(await readFile(path.join(dir, nombre), 'utf8'));
+        const antes = evaluateSheet(regions);
+        const convertidas = new Set();
+        const tablas = regions.map((r) => {
+          if (r.kind !== 'math' || !esFormula(r.src)) return r;
+          convertidas.add(r.id);
+          return { ...r, kind: 'table', src: '', tabla: { version: 1, celdas: [[r.src]] } };
+        });
+        const despues = evaluateSheet(tablas);
+        for (const r of regions) {
+          const a = antes[r.id] ?? {};
+          const b = convertidas.has(r.id) ? { ...(despues[r.id]?.tabla?.celdas?.[0]?.[0] ?? {}) } : despues[r.id] ?? {};
+          if (convertidas.has(r.id)) {
+            if (b.tipo !== 'formula') return `${nombre} ${r.id}: la celda «${r.src}» se leyó como ${b.tipo}`;
+            comparadas++;
+          }
+          for (const k of ['tex', 'bool', 'error', 'aviso']) {
+            if (JSON.stringify(a[k]) !== JSON.stringify(b[k])) {
+              return `${nombre} ${r.id} («${r.src.slice(0, 60)}»): ${k} «${a[k]}» ≠ «${b[k]}»`;
+            }
+          }
+        }
+      }
+      return comparadas > 1000 ? null : `solo se compararon ${comparadas} celdas`;
+    },
+  });
+}
+
 let fallos = 0;
+for (const caso of CASOS_AJUSTE) {
+  if (!caso.corpus) continue;
+  const motivo = await caso.corpus().catch((e) => `lanzó: ${e.message}`);
+  caso.ok = () => motivo;
+}
 for (const caso of [...CASOS_AJUSTE, ...CASOS_MENSAJES]) {
   let motivo;
   try {
@@ -821,12 +1124,24 @@ for (const caso of CASOS) {
     motivo = caso.ok(r);
     if (!motivo) {
       for (const [id, res] of Object.entries(r)) {
-        if (!res.tex) continue;
-        try {
-          katex.renderToString(res.tex, { throwOnError: true });
-        } catch (e) {
-          motivo = `el LaTeX de ${id} no compone: ${e.message}\n            ${res.tex}`;
-          break;
+        for (const tex of texDe(res)) {
+          try {
+            katex.renderToString(tex, { throwOnError: true });
+          } catch (e) {
+            motivo = `el LaTeX de ${id} no compone: ${e.message}\n            ${tex}`;
+            break;
+          }
+        }
+        if (motivo) break;
+      }
+      for (const [id, res] of Object.entries(r)) {
+        for (const u of res.tabla?.unidades ?? []) {
+          if (!u || motivo) continue;
+          try {
+            katex.renderToString(u, { throwOnError: true });
+          } catch (e) {
+            motivo = `la unidad del encabezado de ${id} no compone: ${e.message}\n            ${u}`;
+          }
         }
       }
     }

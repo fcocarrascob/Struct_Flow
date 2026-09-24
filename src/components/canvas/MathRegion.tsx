@@ -4,6 +4,8 @@ import type { Region, RegionResult } from '../../lib/worksheet';
 import { A4_ANCHO_PX } from '../../lib/paginacion';
 import type { Sugerencia } from '../../lib/autocompletar';
 import { useAutocompletado } from './Autocompletado';
+import EditorTabla from './EditorTabla';
+import type { EspecTabla } from '../../lib/tabla';
 
 export const GRID = 16;
 export const snap = (v: number) => Math.max(0, Math.round(v / GRID) * GRID);
@@ -70,6 +72,8 @@ interface Props {
   onDragEnd: () => void;
   /** Solo `image`: nuevo tamaño tras arrastrar el tirador de la esquina. */
   onResize: (w: number, h: number) => void;
+  /** Solo `table`: la grilla en edición cambia sus celdas. */
+  onCambiarTabla?: (tabla: EspecTabla) => void;
   /** Registra el input/textarea activo para que la paleta inserte símbolos. */
   registerInput: (el: HTMLInputElement | HTMLTextAreaElement | null) => void;
   /**
@@ -96,6 +100,7 @@ function MathRegion({
   onDrag,
   onDragEnd,
   onResize,
+  onCambiarTabla,
   registerInput,
   sugerencias,
 }: Props) {
@@ -114,8 +119,13 @@ function MathRegion({
   // hoja, la fórmula nace con el primer carácter dentro, y Escape «revertía» a
   // esa letra —dejaba un bloque `F` en rojo— en vez de cancelar la creación.
   const srcAlEntrar = useRef(active ? '' : region.src);
+  // Lo mismo para las celdas de una tabla, que no viven en `src`.
+  const tablaAlEntrar = useRef(region.tabla);
   const estabaActivo = useRef(active);
-  if (active && !estabaActivo.current) srcAlEntrar.current = region.src;
+  if (active && !estabaActivo.current) {
+    srcAlEntrar.current = region.src;
+    tablaAlEntrar.current = region.tabla;
+  }
   estabaActivo.current = active;
 
   /**
@@ -128,6 +138,9 @@ function MathRegion({
    */
   const cancelarEdicion = () => {
     if (region.src !== srcAlEntrar.current) onChange(srcAlEntrar.current);
+    if (region.kind === 'table' && tablaAlEntrar.current && region.tabla !== tablaAlEntrar.current) {
+      onCambiarTabla?.(tablaAlEntrar.current);
+    }
     onCommit();
   };
 
@@ -240,7 +253,8 @@ function MathRegion({
   // Solo la región en edición recibe sugerencias; para las demás el
   // autocompletado está apagado y no cuesta nada.
   const auto = useAutocompletado({
-    sugerencias: active && region.kind !== 'text' ? sugerencias : undefined,
+    // Una tabla lleva el suyo por celda (`EditorTabla`); su `src` es el título.
+    sugerencias: active && region.kind !== 'text' && region.kind !== 'table' ? sugerencias : undefined,
     valor: region.src,
     esPrograma: isProgram,
     onChange,
@@ -268,8 +282,11 @@ function MathRegion({
   // Un gráfico mide siempre el ancho del papel: su SVG es `width: 100%`, y con
   // `fit-content` alrededor ese porcentaje no tendría contra qué resolverse.
   const isPlot = region.kind === 'plot';
+  // Una tabla también: la caja que ajusta `ajustarAnchos` mide contra el papel, y
+  // un bloque ceñido que cambia de ancho al editar movería la grilla bajo el cursor.
+  const isTable = region.kind === 'table';
   const anchoCompleto =
-    Boolean(titulo) || nivel === 1 || nivel === 2 || esEspaciador(region) || isPlot;
+    Boolean(titulo) || nivel === 1 || nivel === 2 || esEspaciador(region) || isPlot || isTable;
 
   return (
     <div
@@ -385,6 +402,17 @@ function MathRegion({
           // Un gráfico no se edita en el bloque: el panel de propiedades del
           // canvas (`PanelGrafico`) lo modifica y aquí se ve el resultado en vivo.
           <BloqueDoc region={region} result={result} />
+        ) : active && isTable && region.tabla ? (
+          // Las celdas se escriben en la grilla; la estructura, en el panel.
+          <EditorTabla
+            tabla={region.tabla}
+            result={result}
+            sugerencias={sugerencias}
+            onCambiar={(t) => onCambiarTabla?.(t)}
+            onCommit={onCommit}
+            onCancelar={cancelarEdicion}
+            registerInput={registerInput}
+          />
         ) : active && isProgram ? (
           <textarea
             ref={(el) => {
@@ -581,7 +609,8 @@ export default memo(MathRegion, (a, b) => {
       x.h === y.h &&
       x.pageBreak === y.pageBreak &&
       x.imprimir === y.imprimir &&
-      x.grafico === y.grafico)
+      x.grafico === y.grafico &&
+      x.tabla === y.tabla)
   ) && a.result === b.result && a.active === b.active && a.selected === b.selected &&
     a.tapada === b.tapada && a.desborda === b.desborda && a.titulo === b.titulo &&
     a.sugerencias === b.sugerencias;

@@ -70,11 +70,12 @@ Definida en `worksheet.ts:64`:
 | Campo | Tipo | Notas |
 |---|---|---|
 | `id` | `string` | **Único y estable.** `meta.esperadoFalso` se indexa por él. |
-| `kind` | `'math' \| 'text' \| 'program' \| 'image' \| 'plot'` | |
+| `kind` | `'math' \| 'text' \| 'program' \| 'image' \| 'plot' \| 'table'` | |
 | `x`, `y` | `number` | Posición en px sobre la hoja, ajustada a la cuadrícula. |
 | `src` | `string` | Expresión, texto libre o fuente de imagen según el `kind`. |
 | `w`, `h` | `number?` | Solo `image`: tamaño mostrado. Sin ellos, el natural. |
 | `grafico` | `object?` | Solo `plot`: qué dibuja (§7.1). En un `plot`, `src` es el título. |
+| `tabla` | `object?` | Solo `table`: sus celdas y lo que publica (§7.2). En una `table`, `src` es el título, y puede ir vacío. |
 | `pageBreak` | `boolean?` | Al imprimir, esta región abre una A4 nueva. |
 | `imprimir` | `boolean?` | `false` la deja **fuera del papel**: se evalúa en su sitio del orden de lectura y lo que define sigue visible para lo de abajo y para los tokens de un esquema, pero no sale en el documento. Es para el **mapeo a píxeles de un esquema** (escala, funciones de coordenadas, colores por veredicto). Una entrada `in_*`, un veredicto `v_*` o una salida declarada no se esconden: `validarMeta` lo rechaza con `region.imprimir`. |
 
@@ -165,16 +166,24 @@ viene en mathjs. Las compuestas se derivan solas: `kgf/cm^2`, `tonf*m`, `tonf/m`
 
 ### Funciones de diseño disponibles
 
-Registradas en toda hoja (`worksheet.ts:30-57`):
+Registradas en toda hoja (el `math.import` al principio de `worksheet.ts`):
 
 | Función | Devuelve | Si recibe un número plano |
 |---|---|---|
 | `beta1(fc)` | β₁ del bloque rectangular (ACI 318-25, Tabla 22.2.2.4.3) | lo interpreta en **MPa** |
 | `sqrtfc(fc)` | √f'c **como tensión en kgf/cm²** | lo interpreta en **kgf/cm²** |
 | `phiFlexion(et, ety)` | φ de flexión (Tabla 21.2.2), interpolado en la transición | — |
+| `interp(xs, ys, x)` | interpolación lineal en una tabla: `xs` estrictamente creciente, `ys` del mismo largo | con unidades en `xs`, `x` las necesita |
 
 `sqrtfc` devuelve una tensión, no un número, justamente para que los coeficientes empíricos de
 la práctica local (0,53 · 0,8 · 2,1 · 14) queden dimensionalmente coherentes.
+
+`interp` acepta vectores, o una fila o una columna de una matriz (`Cp_t[:, 2]`), y cualquiera
+de los dos ejes con unidades. **Fuera de la tabla es un error**, no el valor del extremo:
+cuando la norma manda usar el extremo («para h/L ≤ 0,5 …»), se escribe a la vista,
+`interp(xs, ys, min(max(x, 0.5), 1))`, y un dato que se sale de la tabla sin que la norma lo
+prevea no pasa callado. Es la pieza que lee una tabla de norma escrita como región `table`
+(§7.2).
 
 ## 5. Regiones `text`
 
@@ -294,6 +303,79 @@ unidad en el eje, un valor con unidades también lo es, con un mensaje que pide 
 **Una serie que no se puede dibujar es un error de la región**, y `verify:planilla` lo cuenta.
 Una función indefinida en parte del rango (una raíz de un negativo) se corta en tramos y deja un
 `aviso`; si pierde más de la mitad de los puntos, es error.
+
+## 7.2 Regiones `table` (tablas)
+
+Una grilla de celdas. **Cada celda tiene la gramática de una región `math`** (§4) —no una
+segunda—: la evalúa la misma función (`evaluarFormula`). `src` es el **título** que se imprime
+encima (puede ir vacío); las celdas van en `tabla`. Se evalúa en su posición del orden de
+lectura, **fila a fila**, sobre el scope de la hoja: lo que define una celda lo ven las
+celdas siguientes y todo lo de abajo.
+
+Sirve para dos cosas: presentar juntos los valores de una familia (las presiones por cara y
+franja) y escribir una **tabla de norma una sola vez**, que después se lee con `interp`. Antes
+esa tabla era un `program` con los valores metidos en ramas `if/else`.
+
+```json
+{
+  "id": "t-cp",
+  "kind": "table",
+  "x": 40, "y": 400,
+  "src": "CIRSOC 102, Fig. 3: Cp de cubierta a barlovento",
+  "tabla": {
+    "version": 1,
+    "encabezado": 1,
+    "matriz": "Cp_t",
+    "columnas": [{ "nombre": "hL_t" }],
+    "celdas": [
+      ["h/L", "Franja 1", "Franja 2", "Franja 3", "Franja 4"],
+      ["0.5", "-0.9", "-0.9", "-0.5", "-0.3"],
+      ["1",   "-1.3", "-0.7", "-0.7", "-0.7"]
+    ]
+  }
+}
+```
+
+y más abajo, en la hoja o en otra tabla:
+
+```
+Cp_1 := interp(hL_t, Cp_t[:, 2], min(max(hL, 0.5), 1)) =
+```
+
+**Qué es cada celda:**
+
+| Celda | Cuándo | Qué hace |
+|---|---|---|
+| fórmula | lleva `:=` o un `=` final | Se evalúa como una región math; `a := …` define `a` en el scope. |
+| valor escrito | un número, con signo, o una cantidad (`-0.9`, `3 m`) | Se evalúa **contra un scope vacío** —`3 m` son tres metros aunque la hoja tenga una variable `m`— y no define nada. |
+| texto | todo lo demás, o lo que empieza con `'` | Se imprime tal cual. `'Cp =` es un rótulo, no una fórmula. |
+| vacía | nada | Nada. |
+
+Una expresión suelta sin `=` (`q*2`) es **texto**: en una celda, lo que no se muestra no tiene
+sentido, así que para calcular hay que escribir el `=`.
+
+| Campo | Notas |
+|---|---|
+| `celdas` | Filas × columnas, rectangular, cada celda un texto. Hasta 60 filas y 12 columnas. |
+| `encabezado` | Cuántas filas del principio son encabezado: negrita, y fuera de la matriz y los vectores. |
+| `columnas` | Una entrada por columna, o menos. `nombre`: publica las celdas de cuerpo de la columna como un **vector**. `unidad`: la toma un valor escrito sin unidad, lo calculado se muestra convertido a ella (como un `= unidad` que la celda no escribe), y con encabezado se imprime en él —`p [kN/m²]`— y las celdas llevan el número solo. `soloValor`: la celda imprime su resultado, sin la definición ni la expresión (que siguen en el JSON y en la grilla). |
+| `matriz` | Publica **todo el cuerpo** (filas de cuerpo × todas las columnas) como una matriz con este nombre. |
+
+**Lo publicado es una definición más**: un nombre inválido, uno que ya define una celda, o una
+celda de texto, vacía o con error en lo que se publica, es un error de la región, con la fila y
+la columna; y el nombre se **retira** del scope, como una definición que falla. Un vector o la
+matriz alimentan la serie `x`/`y` de un gráfico (§7.1).
+
+**Una comparación en una celda es un veredicto**, con id `<id de la tabla>[fila,columna]` en
+base 1 —como los índices de mathjs y como se lee en el papel—: `t-cp[2,3]`. Es lo que se
+declara en `meta.esperadoFalso`. Si una fila insertada corre la celda, el verificador lo delata
+(el ✗ sale sin declarar y la entrada queda obsoleta). Una entrada `in_*` **no** puede vivir en
+una celda: `instanciarRegiones` reescribe regiones enteras (`validarMeta` lo rechaza con
+`tabla.entrada`).
+
+**En el papel** una tabla se imprime entera en una página (`break-inside: avoid`) y cabe en los
+680 px como una fórmula: si no cabe, se encoge **entera** hasta el 75 %, y si ni así, se marca
+«↔». Las celdas no se ajustan una por una.
 
 ## 8. Footguns registrados
 

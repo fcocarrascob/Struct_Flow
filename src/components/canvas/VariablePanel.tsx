@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { Region, SheetResults } from '../../lib/worksheet';
+import { definicionesDeResultado, type Region, type SheetResults } from '../../lib/worksheet';
 
 interface Props {
   regions: Region[];
@@ -35,17 +35,17 @@ export default function VariablePanel({ regions, results, onIr }: Props) {
     const vistos = new Map<string, number>();
     const out: Fila[] = [];
     for (const r of orden) {
-      const def = results[r.id]?.define;
-      if (!def) continue;
-      const previo = vistos.get(def.nombre);
-      if (previo !== undefined) {
-        // Se queda la última definición (la que gana en orden de lectura), pero
-        // se marca para que se vea que hay una anterior siendo pisada.
-        out[previo] = { ...out[previo], ...def, regionId: r.id, redefinida: true };
-        continue;
+      for (const def of definicionesDeResultado(results[r.id])) {
+        const previo = vistos.get(def.nombre);
+        if (previo !== undefined) {
+          // Se queda la última definición (la que gana en orden de lectura), pero
+          // se marca para que se vea que hay una anterior siendo pisada.
+          out[previo] = { ...out[previo], ...def, regionId: r.id, redefinida: true };
+          continue;
+        }
+        vistos.set(def.nombre, out.length);
+        out.push({ ...def, regionId: r.id });
       }
-      vistos.set(def.nombre, out.length);
-      out.push({ ...def, regionId: r.id });
     }
     return out;
   }, [regions, results]);

@@ -19,7 +19,10 @@ import { sinTransitorias, useHistorial } from './useHistorial';
 import { evaluateSheet, type Region, type RegionKind } from '../../lib/worksheet';
 import { ESCALA_MINIMA } from '../../lib/ajuste-ancho';
 import { ALTO_POR_DEFECTO as ALTO_GRAFICO, especPorDefecto, type EspecGrafico } from '../../lib/grafico';
-import PanelGrafico from './PanelGrafico';
+import PanelPropiedades from './PanelPropiedades';
+import CuerpoGrafico from './CuerpoGrafico';
+import CuerpoTabla from './CuerpoTabla';
+import { altoEstimadoTabla, tablaPorDefecto, type EspecTabla } from '../../lib/tabla';
 import { FUNCIONES_BASE, variablesVisibles } from '../../lib/autocompletar';
 import {
   detectarSolapes,
@@ -524,10 +527,15 @@ export default function MathCanvas({
   // que es lineal y distinto de este plano 2D: por eso el corte se anuncia
   // sobre la región que ABRE la página, que en orden de lectura es exacto.
   const paginacion = usePaginacion(regions, results);
-  /** El gráfico en edición, si lo hay: su panel de propiedades va junto a la hoja. */
-  const graficoActivo = useMemo(() => {
+  /**
+   * El bloque estructurado en edición —un gráfico o una tabla—, si lo hay: su
+   * panel de propiedades va junto a la hoja.
+   */
+  const estructuradaActiva = useMemo(() => {
     const r = activeId ? regions.find((x) => x.id === activeId) : undefined;
-    return r?.kind === 'plot' && r.grafico ? (r as Region & { grafico: EspecGrafico }) : undefined;
+    if (r?.kind === 'plot' && r.grafico) return { tipo: 'plot' as const, region: r as Region & { grafico: EspecGrafico } };
+    if (r?.kind === 'table' && r.tabla) return { tipo: 'table' as const, region: r as Region & { tabla: EspecTabla } };
+    return undefined;
   }, [activeId, regions]);
   /** Las regiones con una fórmula que no cabe en el ancho ni encogida al mínimo. */
   const desbordadas = useMemo(() => new Set(paginacion.anchos), [paginacion.anchos]);
@@ -876,9 +884,9 @@ export default function MathCanvas({
   const insertRegion = useCallback(
     (kind: Exclude<RegionKind, 'image'>, src = '', extra: Partial<Region> = {}) => {
       const spot = nextSpot();
-      // Un gráfico mide el ancho entero del papel: nace en su borde izquierdo, o
-      // el clic que fijó el punto a media hoja lo sacaría por la derecha.
-      const x = kind === 'plot' ? ORIGEN_PAPEL_X : spot.x;
+      // Un gráfico y una tabla miden el ancho entero del papel: nacen en su borde
+      // izquierdo, o el clic que fijó el punto a media hoja los sacaría por la derecha.
+      const x = kind === 'plot' || kind === 'table' ? ORIGEN_PAPEL_X : spot.x;
       const y = spot.y;
       const region: Region = { id: newId(), kind, x: snap(x), y: snap(y), src, ...extra };
       setRegions((prev) => [...prev, region]);
@@ -888,7 +896,9 @@ export default function MathCanvas({
       const paso =
         kind === 'plot'
           ? snap((region.grafico?.alto ?? ALTO_GRAFICO) + 3 * GRID)
-          : kind === 'program'
+          : kind === 'table' && region.tabla
+            ? snap(altoEstimadoTabla(region.tabla, region.src) + 3 * GRID)
+            : kind === 'program'
             ? 5 * GRID
             : 3 * GRID;
       setInsertAt({ x: snap(x), y: snap(y) + paso });
@@ -1584,6 +1594,13 @@ export default function MathCanvas({
         >
           ◩ Gráfico
         </button>
+        <button
+          className={toolBtn}
+          onClick={() => insertRegion('table', '', { tabla: tablaPorDefecto() })}
+          title="Inserta una tabla: cada celda es una fórmula (a := 3 m, b = kN), un valor o un texto. La estructura se edita en el panel."
+        >
+          ▦ Tabla
+        </button>
         <div className="relative">
           <button
             className={`${toolBtn} ${imageMenuOpen ? '!border-accent !text-accent' : ''}`}
@@ -2144,6 +2161,7 @@ export default function MathCanvas({
                   onDrag={moverArrastre}
                   onDragEnd={terminarArrastre}
                   onResize={(w, h) => updateRegion(r.id, { w, h })}
+                  onCambiarTabla={(tabla) => updateRegion(r.id, { tabla })}
                   registerInput={(el) => {
                     // Solo registrar montajes; insertSymbol ya valida que haya
                     // región activa, así que una referencia obsoleta es inocua.
@@ -2161,15 +2179,28 @@ export default function MathCanvas({
         {showVars && (
           <VariablePanel regions={regions} results={results} onIr={irARegion} />
         )}
-        {graficoActivo && (
-          <PanelGrafico
-            key={graficoActivo.id}
-            region={graficoActivo}
-            result={results[graficoActivo.id]}
-            sugerencias={sugerencias}
-            onCambiar={(grafico, titulo) => updateRegion(graficoActivo.id, { grafico, src: titulo })}
+        {estructuradaActiva && (
+          <PanelPropiedades
+            key={estructuradaActiva.region.id}
+            titulo={estructuradaActiva.tipo === 'plot' ? 'Gráfico' : 'Tabla'}
+            result={results[estructuradaActiva.region.id]}
             onListo={() => commitActive()}
-          />
+          >
+            {estructuradaActiva.tipo === 'plot' ? (
+              <CuerpoGrafico
+                region={estructuradaActiva.region}
+                sugerencias={sugerencias}
+                onCambiar={(grafico, titulo) => updateRegion(estructuradaActiva.region.id, { grafico, src: titulo })}
+                onListo={() => commitActive()}
+              />
+            ) : (
+              <CuerpoTabla
+                region={estructuradaActiva.region}
+                onCambiar={(tabla, titulo) => updateRegion(estructuradaActiva.region.id, { tabla, src: titulo })}
+                onListo={() => commitActive()}
+              />
+            )}
+          </PanelPropiedades>
         )}
         <SymbolPalette
           onInsert={insertSymbol}

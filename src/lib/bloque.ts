@@ -104,15 +104,15 @@ export function seImprime(region: Pick<Region, 'kind' | 'src' | 'imprimir'>): bo
 
 /**
  * Un bloque cuyo contenido no está en `src` sino en una especificación propia:
- * hoy, el gráfico (`grafico`). Nunca es «un bloque a medio escribir», aunque su
- * título esté vacío.
+ * el gráfico (`grafico`) y la tabla (`tabla`). Nunca es «un bloque a medio
+ * escribir», aunque su título esté vacío.
  *
  * Existe para que las reglas que miran `src` —descartar lo vacío al salir de la
  * edición, no guardar lo transitorio en el historial, qué sale en el papel—
  * pregunten por el tipo de bloque en un solo sitio.
  */
 export function esBloqueEstructurado(region: Pick<Region, 'kind'>): boolean {
-  return region.kind === 'plot';
+  return region.kind === 'plot' || region.kind === 'table';
 }
 
 /** Una línea del fuente de un programa, con su sangría en columnas. */

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, type CSSProperties, type ReactNode } from 'react';
 import katex from 'katex';
 import type { Region, RegionResult } from '../../lib/worksheet';
 import { renderEsquema, esRutaDeEsquema } from '../../lib/esquema';
@@ -6,6 +6,7 @@ import { ajustarAnchos, ESCALA_MINIMA } from '../../lib/ajuste-ancho';
 import { A4_ANCHO_PX } from '../../lib/paginacion';
 import { svgDeGrafico } from '../../lib/grafico-svg';
 import { ALTO_POR_DEFECTO, ANCHO_GRAFICO } from '../../lib/grafico';
+import { claseDeCelda, encabezadoDe, textoDeCelda, type EspecTabla } from '../../lib/tabla';
 import { useEsquema } from '../useEsquema';
 import { mensajeDeMotor } from './mensajes-motor';
 
@@ -57,12 +58,14 @@ interface Props {
  * sobrevive a los rerenders; por eso se reajusta tras cada `tex` nuevo. Y otra
  * vez cuando cargan las tipografías: medir con la de respaldo daría otra escala.
  */
-function Katex({ tex }: { tex: string }) {
+function Katex({ tex, celda = false }: { tex: string; celda?: boolean }) {
   const ref = useRef<HTMLSpanElement>(null);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     katex.render(tex, el, { throwOnError: false });
+    // En una celda no se ajusta la fórmula: se ajusta la tabla entera (`Tabla`).
+    if (celda) return;
     const ajustar = () => {
       if (el.parentElement) ajustarAnchos(el.parentElement, A4_ANCHO_PX, ESCALA_MINIMA);
     };
@@ -74,8 +77,8 @@ function Katex({ tex }: { tex: string }) {
     return () => {
       vivo = false;
     };
-  }, [tex]);
-  return <span ref={ref} className="wp-tex" data-ajuste="katex" />;
+  }, [tex, celda]);
+  return celda ? <span ref={ref} className="wp-tex" /> : <span ref={ref} className="wp-tex" data-ajuste="katex" />;
 }
 
 /**
@@ -161,6 +164,98 @@ function Grafico({
   );
 }
 
+/**
+ * Una tabla, con el mismo marcado que `tablaHtml` de `render-html.ts`: el título,
+ * la caja que ajusta `ajustarAnchos` —la tabla entera, no cada fórmula— y, debajo,
+ * el error de lo que no pudo publicar. Una celda en rojo se queda en su celda.
+ *
+ * Se ajusta después de que las celdas compongan su KaTeX: los efectos de los
+ * hijos corren antes que el del padre.
+ */
+function Tabla({
+  region,
+  result,
+  clase,
+  rest,
+}: {
+  region: Region & { tabla: EspecTabla };
+  result?: RegionResult;
+  clase: string;
+  rest: Record<string, string | undefined>;
+}) {
+  // En la `figure` y no en la caja: `querySelectorAll` no se incluye a sí mismo.
+  const ref = useRef<HTMLElement>(null);
+  const t = region.tabla;
+  const enc = encabezadoDe(t);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ajustar = () => ajustarAnchos(el, A4_ANCHO_PX, ESCALA_MINIMA);
+    ajustar();
+    let vivo = true;
+    if (document.fonts && document.fonts.status !== 'loaded') {
+      void document.fonts.ready.then(() => vivo && ajustar());
+    }
+    return () => {
+      vivo = false;
+    };
+  });
+
+  const celda = (f: number, c: number) => {
+    const src = t.celdas[f][c];
+    const x = result?.tabla?.celdas[f]?.[c];
+    const Etiqueta = f < enc ? 'th' : 'td';
+    let dentro: ReactNode;
+    if (!x) dentro = textoDeCelda(src);
+    else if (x.tipo === 'texto') dentro = x.texto;
+    else if (x.tipo === 'vacia') dentro = null;
+    else if (x.error) {
+      const mensaje = mensajeDeMotor(x.error);
+      dentro = (
+        <span className="wp-c-err" title={mensaje !== x.error ? x.error : undefined}>
+          {src} — {mensaje}
+        </span>
+      );
+    } else {
+      dentro = (
+        <>
+          {x.tex && <Katex tex={x.tex} celda />}
+          {x.bool !== undefined && <span className={x.bool ? 'wp-ok' : 'wp-no'}>{x.bool ? '✓' : '✗'}</span>}
+        </>
+      );
+    }
+    const u = f === enc - 1 ? result?.tabla?.unidades[c] : undefined;
+    return (
+      <Etiqueta key={c} className={claseDeCelda(t, f, c, x?.tipo)}>
+        {dentro}
+        {u && (
+          <>
+            {' '}
+            <span className="wp-c-u">
+              [<Katex tex={u} celda />]
+            </span>
+          </>
+        )}
+      </Etiqueta>
+    );
+  };
+  const filas = (desde: number, hasta: number) =>
+    t.celdas.slice(desde, hasta).map((fila, i) => <tr key={desde + i}>{fila.map((_, c) => celda(desde + i, c))}</tr>);
+
+  return (
+    <figure ref={ref} className={clase} {...rest}>
+      {region.src.trim() && <figcaption className="wp-tabla-tit">{region.src}</figcaption>}
+      <div className="wp-tabla-caja" data-ajuste="tabla">
+        <table>
+          {enc > 0 && <thead>{filas(0, enc)}</thead>}
+          <tbody>{filas(enc, t.celdas.length)}</tbody>
+        </table>
+      </div>
+      {result?.error && <p className="wp-tabla-err">{mensajeDeMotor(result.error)}</p>}
+    </figure>
+  );
+}
+
 // Qué es un encabezado, un espaciador o el título vive en `lib/bloque.ts`,
 // porque el render a HTML de Node (`render-html.ts`) tiene que decidirlo igual
 // que este componente. Se reexporta para que los importadores no cambien.
@@ -227,6 +322,18 @@ export default function BloqueDoc({ region, result, titulo, className = '', wpId
       <p className={clase('wp-label')} {...rest}>
         {region.src}
       </p>
+    );
+  }
+
+  // Antes que la rama de error: una celda en rojo no tapa la tabla.
+  if (region.kind === 'table' && region.tabla) {
+    return (
+      <Tabla
+        region={region as Region & { tabla: EspecTabla }}
+        result={result}
+        clase={clase('wp-tabla')}
+        rest={rest}
+      />
     );
   }
 

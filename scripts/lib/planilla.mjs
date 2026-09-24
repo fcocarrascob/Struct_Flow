@@ -68,17 +68,25 @@ export function resolverEsquema(src, carpetasExtra = []) {
  * El patrón peligroso es un literal numérico seguido de identificador SIN `*`.
  * `2*h` con `h` definida es lo que el autor quiere, y no se toca.
  */
-export function unidadesEclipsadas(regions) {
-  const definidas = new Set();
+export function unidadesEclipsadas(regions, { formulasDeTabla, idDeCelda }) {
+  // Las fórmulas de la hoja: las regiones math y las celdas de fórmula de cada
+  // tabla, que tienen la misma gramática y el mismo riesgo. Los valores escritos
+  // de una tabla (`3 m`) se leen contra un scope vacío, así que no lo corren.
+  const formulas = [];
   for (const r of regions) {
-    if (r.kind !== 'math' && r.kind !== 'program') continue;
+    if (r.kind === 'math') formulas.push({ id: r.id, src: r.src ?? '' });
+    if (r.kind === 'table' && r.tabla) {
+      for (const { f, c, src } of formulasDeTabla(r.tabla)) formulas.push({ id: idDeCelda(r.id, f, c), src });
+    }
+  }
+  const definidas = new Set();
+  for (const r of [...formulas, ...regions.filter((x) => x.kind === 'program')]) {
     const mo = /^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:=/.exec(r.src ?? '');
     if (mo) definidas.add(mo[1]);
   }
   const choques = [];
-  for (const r of regions) {
-    if (r.kind !== 'math') continue;
-    const src = r.src ?? '';
+  for (const r of formulas) {
+    const src = r.src;
     // Solo el cuerpo de la expresión: la unidad de despliegue (`= tonf*m`) se
     // resuelve aparte y NO pasa por el scope, así que ahí no hay riesgo.
     const cuerpo = (src.includes(':=') ? src.split(':=')[1] : src).split('=')[0];
@@ -123,8 +131,16 @@ export function valorDeTex(tex, src, parseMathRegion) {
  *   esquemas   carpetas extra donde buscar los `/esquemas/` (ver resolverEsquema)
  */
 export async function verificarPlanilla(planillaPath, { esquemas = [] } = {}) {
-  const { evaluateSheet, parseMathRegion, renderEsquema, ESQUEMAS_PREFIX, validarMeta, ordenDeLectura } =
-    await motorCompartido();
+  const {
+    evaluateSheet,
+    parseMathRegion,
+    renderEsquema,
+    ESQUEMAS_PREFIX,
+    validarMeta,
+    ordenDeLectura,
+    formulasDeTabla,
+    idDeCelda,
+  } = await motorCompartido();
 
   const crudo = await readFile(planillaPath);
   const planilla = JSON.parse(crudo.toString('utf8'));
@@ -147,7 +163,7 @@ export async function verificarPlanilla(planillaPath, { esquemas = [] } = {}) {
 
   // Antes que nada: una variable que eclipsa una unidad no rompe nada, cambia el
   // número en silencio. Ver `unidadesEclipsadas`.
-  for (const { id, frag, nombre } of unidadesEclipsadas(regions)) {
+  for (const { id, frag, nombre } of unidadesEclipsadas(regions, { formulasDeTabla, idDeCelda })) {
     errores.push({
       id,
       src: frag,
@@ -201,6 +217,34 @@ export async function verificarPlanilla(planillaPath, { esquemas = [] } = {}) {
       const res = results[r.id] ?? {};
       if (res.aviso) avisos.push({ src: r.src, aviso: res.aviso });
       if (res.error) errores.push({ id: r.id, src: r.src, error: res.error });
+      continue;
+    }
+    // Una tabla es una ristra de fórmulas: cada celda aporta su error, su
+    // veredicto o su paso, con el id `r12[f,c]` —el que se declara en
+    // `meta.esperadoFalso`—. El error de la tabla misma es el de lo que publica.
+    if (r.kind === 'table') {
+      const res = results[r.id] ?? {};
+      const titulo = r.src || `tabla ${r.id}`;
+      if (res.aviso) avisos.push({ src: titulo, aviso: res.aviso });
+      if (res.error) errores.push({ id: r.id, src: titulo, error: res.error });
+      (res.tabla?.celdas ?? []).forEach((fila, f) =>
+        fila.forEach((x, c) => {
+          const id = idDeCelda(r.id, f, c);
+          const src = r.tabla.celdas[f][c];
+          if (x.error) {
+            errores.push({ id, src, error: x.error });
+            filas.push({ tipo: 'error', src, error: x.error });
+          } else if (typeof x.bool === 'boolean') {
+            verdictos.push({ id, src, ok: x.bool });
+          } else if (x.tipo === 'formula') {
+            // Una celda «solo valor» imprime el número sin la fórmula, así que su
+            // LaTeX no lleva el `=` detrás del cual `valorDeTex` busca el valor.
+            const tex = x.tex && !x.tex.includes('=') ? `=${x.tex}` : x.tex;
+            n += 1;
+            filas.push({ tipo: 'paso', n, src, valor: valorDeTex(tex, src, parseMathRegion) });
+          }
+        }),
+      );
       continue;
     }
     const res = results[r.id] ?? {};

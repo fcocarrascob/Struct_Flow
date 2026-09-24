@@ -215,6 +215,73 @@
   width: 100%;
   height: auto;
 }
+/* Una tabla (`tabla.ts`). Se imprime entera en una página, como una figura, pero
+   NO lleva `.wp-fig`: su `svg { height: auto }` alcanzaría los SVG con que KaTeX
+   dibuja una raíz o una llave dentro de una celda.
+
+   El ancho es el natural de la tabla, acotado por el papel: un texto envuelve
+   dentro de su celda, y una fórmula no (`nowrap`), así que lo único que puede
+   pasar de los 680 px es una fila de fórmulas. Eso lo mide y lo encoge
+   `ajustarAnchos` sobre `.wp-tabla-caja`, con la tabla entera.
+
+   El alto de una fila ronda los 24 px (`ALTO_FILA_TABLA` de lib/tabla.ts, que
+   solo se usa para colocar lo de abajo; lo que pagina es el alto medido). */
+.doc-papel .wp-tabla {
+  margin: 0;
+  break-inside: avoid;
+}
+.doc-papel .wp-tabla-tit {
+  margin: 0 0 0.2rem;
+  font-size: 9.5pt;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+/* Los tamaños de dentro van en `em`, no en `pt`: el ajuste escala la caja con
+   `font-size` en %, y un tamaño absoluto aquí no heredaría la escala — la caja
+   quedaba al 75 % y la tabla, igual de ancha. 10pt sobre los 11pt del papel. */
+.doc-papel .wp-tabla table {
+  border-collapse: collapse;
+  font-size: calc(10em / 11);
+  line-height: 1.35;
+}
+.doc-papel .wp-tabla th,
+.doc-papel .wp-tabla td {
+  border: 1px solid #9ca3af;
+  padding: 2px 8px;
+  text-align: left;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+.doc-papel .wp-tabla th {
+  font-weight: 700;
+  background: #f3f4f6;
+}
+.doc-papel .wp-tabla .wp-c-valor {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.doc-papel .wp-tabla .wp-tex,
+.doc-papel .wp-tabla .wp-c-u {
+  white-space: nowrap;
+}
+.doc-papel .wp-tabla .wp-ok,
+.doc-papel .wp-tabla .wp-no {
+  margin-left: 0.3rem;
+}
+.doc-papel .wp-c-u {
+  font-weight: 400;
+}
+.doc-papel .wp-c-err {
+  color: #b91c1c;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9em;
+}
+.doc-papel .wp-tabla-err {
+  margin: 0.2rem 0 0;
+  color: #b91c1c;
+  font-size: 9pt;
+  overflow-wrap: anywhere;
+}
 .doc-papel .wp-ok {
   color: #15803d;
   font-weight: 700;
@@ -254,7 +321,8 @@
 .worksheet-print .wp-prog {
   margin: 0.25rem 0;
 }
-.worksheet-print .wp-fig {
+.worksheet-print .wp-fig,
+.worksheet-print .wp-tabla {
   margin: 0.6rem 0;
 }
 

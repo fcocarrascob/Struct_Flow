@@ -17,7 +17,8 @@
 // sin resolver hace lanzar: un PDF con «{{Rd_pan:tonf}}» no se publica.
 
 import katex from 'katex';
-import type { Region, SheetResults } from './worksheet';
+import type { Region, RegionResult, SheetResults } from './worksheet';
+import { claseDeCelda, encabezadoDe, textoDeCelda } from './tabla';
 import type { MetaPlanilla } from './biblioteca/contrato';
 import { renderEsquema, esRutaDeEsquema } from './esquema';
 import { ordenDeLectura } from './orden-lectura';
@@ -64,6 +65,51 @@ function tex(t: string | undefined, src: string): string {
   // El mismo envoltorio que `Katex` de `BloqueDoc.tsx`: es lo que busca
   // `ajustarAnchos` en el script que lleva el documento.
   return `<span class="wp-tex" data-ajuste="katex">${katex.renderToString(t, { throwOnError: false, displayMode: false })}</span>`;
+}
+
+/** KaTeX de una celda: sin `data-ajuste`, porque la que se ajusta es la tabla entera. */
+function texCelda(t: string): string {
+  return `<span class="wp-tex">${katex.renderToString(t, { throwOnError: false, displayMode: false })}</span>`;
+}
+
+/**
+ * El interior de una tabla, el mismo que `Tabla` de `BloqueDoc.tsx`: el título,
+ * la caja que ajusta `ajustarAnchos` y el error de lo que no pudo publicar.
+ */
+function tablaHtml(r: Region, res: RegionResult, opciones: OpcionesRender): string {
+  const t = r.tabla!;
+  const enc = encabezadoDe(t);
+  const mensaje = (e: string) => (opciones.mensajeError ? opciones.mensajeError(e) : e);
+  const celda = (f: number, c: number): string => {
+    const src = t.celdas[f][c];
+    const x = res.tabla?.celdas[f]?.[c];
+    const etiqueta = f < enc ? 'th' : 'td';
+    let dentro: string;
+    if (!x) dentro = escaparHtml(textoDeCelda(src));
+    else if (x.tipo === 'texto') dentro = escaparHtml(x.texto ?? '');
+    else if (x.tipo === 'vacia') dentro = '';
+    else if (x.error) dentro = `<span class="wp-c-err">${escaparHtml(src)} — ${escaparHtml(mensaje(x.error))}</span>`;
+    else {
+      dentro =
+        (x.tex ? texCelda(x.tex) : '') +
+        (x.bool === undefined ? '' : `<span class="${x.bool ? 'wp-ok' : 'wp-no'}">${x.bool ? '✓' : '✗'}</span>`);
+    }
+    const u = f === enc - 1 ? res.tabla?.unidades[c] : undefined;
+    if (u) dentro += ` <span class="wp-c-u">[${katex.renderToString(u, { throwOnError: false })}]</span>`;
+    return `<${etiqueta} class="${claseDeCelda(t, f, c, x?.tipo)}">${dentro}</${etiqueta}>`;
+  };
+  const filas = (desde: number, hasta: number) =>
+    t.celdas
+      .slice(desde, hasta)
+      .map((fila, i) => `<tr>${fila.map((_, c) => celda(desde + i, c)).join('')}</tr>`)
+      .join('');
+  const titulo = r.src.trim() ? `<figcaption class="wp-tabla-tit">${escaparHtml(r.src)}</figcaption>` : '';
+  const cabeza = enc > 0 ? `<thead>${filas(0, enc)}</thead>` : '';
+  const error = res.error ? `<p class="wp-tabla-err">${escaparHtml(mensaje(res.error))}</p>` : '';
+  return (
+    `${titulo}<div class="wp-tabla-caja" data-ajuste="tabla"><table>${cabeza}` +
+    `<tbody>${filas(enc, t.celdas.length)}</tbody></table></div>${error}`
+  );
 }
 
 function fechaHoy(): string {
@@ -134,6 +180,13 @@ export function renderHtml(
           `<figcaption class="wp-graf-tit">${escaparHtml(r.src)}</figcaption>` +
           `<div class="wp-graf-svg">${svgDeGrafico(res.grafico)}</div></figure>`,
       );
+      continue;
+    }
+
+    // Una tabla va ANTES que la rama de error: una celda en rojo no tapa la tabla,
+    // y el error de la región (lo que no pudo publicar) va debajo de ella.
+    if (r.kind === 'table' && r.tabla) {
+      bloques.push(`<figure class="${clase('wp-tabla')}"${rest}>${tablaHtml(r, res, opciones)}</figure>`);
       continue;
     }
 

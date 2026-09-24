@@ -338,10 +338,25 @@ testeable y portable):
   `worksheet.ts` le presta sus herramientas (`HERRAMIENTAS_GRAFICO`), como a `program.ts`. El
   resultado son **datos en unidades de los ejes**, no píxeles; el SVG lo arma
   `svgDeGrafico`, pura y determinista, que usan `BloqueDoc` y `render-html` — los tres papeles
-  dibujan byte a byte lo mismo. Se edita con `PanelGrafico.tsx` junto a la hoja. La sintaxis
-  de un token `{{expr:unidad}}` vive en `token.ts`, compartida con el esquema.
+  dibujan byte a byte lo mismo. Se edita con `CuerpoGrafico.tsx` dentro de
+  `PanelPropiedades.tsx`, junto a la hoja. La sintaxis de un token `{{expr:unidad}}` vive en
+  `token.ts`, compartida con el esquema.
+- `tabla.ts` — la región **`table`**: una grilla de celdas, **cada una con la gramática de una
+  región math**. No hay una segunda gramática: la rama math de `evaluateSheet` salió a
+  `evaluarFormula`, y cada celda de fórmula pasa por ella; `verify:motor` lo exige convirtiendo
+  cada fórmula del corpus en una celda y comparando campo a campo. Se evalúa fila a fila en su
+  posición, **sí** escribe en el scope (sus celdas y lo que publica: la matriz del cuerpo y un
+  vector por columna con nombre), y como una región puede definir varios nombres,
+  `RegionResult.defines` los reúne: se leen **siempre** con `definicionesDeResultado`, y los
+  errores de las celdas con `erroresDeResultado`. Las celdas no tienen id: su resultado es
+  `results[id].tabla.celdas[f][c]` y su veredicto, `id[f,c]` en base 1. Qué celda es fórmula lo
+  decide solo `esFormulaDeCelda`. `tabla.ts` no importa mathjs; la evaluación vive en
+  `worksheet.ts`. En el papel se ajusta **entera** (`data-ajuste="tabla"`), no celda por
+  celda, y por eso sus tamaños en `papel.css` van en `em`. Las celdas se escriben en la
+  grilla (`EditorTabla.tsx`) y la estructura en `CuerpoTabla.tsx`. `interp(xs, ys, x)` es la
+  función que lee una tabla de norma, y fuera del rango es un error.
 
-Cinco tipos de región: `math`, `text`, `program`, `image` y `plot`. Al añadir funcionalidad al
+Seis tipos de región: `math`, `text`, `program`, `image`, `plot` y `table`. Al añadir funcionalidad al
 motor, extiende los módulos puros y mantén los componentes React delgados. Un tipo de región
 nuevo toca unos veinte sitios; la lista está en la historia del commit que introdujo `plot`, y
 el helper `esBloqueEstructurado` de `bloque.ts` es la pregunta «¿su contenido está fuera de

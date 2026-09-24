@@ -57,6 +57,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import {
+  erroresDeResultado,
   evaluateSheet,
   formatValor,
   type Region,
@@ -499,8 +500,8 @@ export function evaluarObra(obra: Obra, genericas: Genericas = {}): EvaluacionOb
   for (const h of nodos) {
     const rotos = new Set<string>();
     for (const r of h.hoja) {
-      const e = results[r.id]?.error;
-      if (e) for (const n of simbolosIndefinidos(e)) rotos.add(n);
+      // Con los de las celdas de una tabla, que no tienen id propio.
+      for (const e of erroresDeResultado(results[r.id])) for (const n of simbolosIndefinidos(e)) rotos.add(n);
     }
     // Una de la biblioteca tiene la hoja vacía: sus errores viven en la
     // evaluación del módulo, no en `results` por id de bloque.

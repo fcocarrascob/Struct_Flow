@@ -21,7 +21,7 @@
 // letra; el color dice lo mismo y deja trabajar.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { parseMathRegion } from '../../lib/worksheet';
+import { erroresDeResultado, parseMathRegion } from '../../lib/worksheet';
 import { peor, type AristaGrafo, type NodoGrafo, type Severidad } from '../grafo';
 import { quedoAtras, type Genericas } from './biblioteca';
 import { mensajeDeMotor } from '../../components/canvas/mensajes-motor';
@@ -159,7 +159,7 @@ function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra,
 
   if (!f) {
     const enGrafo = problemaDeGrafo(id, ev);
-    const errores = k.hoja.filter((r) => ev.results[r.id]?.error).length;
+    const errores = k.hoja.filter((r) => erroresDeResultado(ev.results[r.id]).length > 0).length;
     const motivos: string[] = [];
     let severidad: Severidad = 'ok';
     if (enGrafo) {
@@ -219,7 +219,7 @@ function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra,
   }
   const errores = modulo
     ? (instancia.ev?.errores ?? [])
-    : k.hoja.filter((r) => ev.results[r.id]?.error).map((r) => ({ error: ev.results[r.id]!.error! }));
+    : k.hoja.flatMap((r) => erroresDeResultado(ev.results[r.id]).map((error) => ({ error })));
   if (errores.length) {
     // El mensaje crudo del motor, SOLO si no hay uno del grafo que ya lo
     // explique. Con los dos, el nodo repetía en inglés —«Undefined symbol

@@ -15,9 +15,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { Item } from './worksheet-layout';
-import type { Region } from './worksheet';
+import { formulasDeTabla, type Region } from './worksheet';
 import type { MetaPlanilla } from './biblioteca/contrato';
 import { expresionesDeGrafico } from './grafico';
+import { nombresPublicados } from './tabla';
 
 /**
  * El formato que leen el canvas, el import/export y `verify:planilla`.
@@ -107,6 +108,20 @@ export function verificarSimbolos(items: Item[]): void {
           if (!definidos.has(s) && !locales.includes(s)) faltantes.push(`«${s}» en el gráfico «${it.src}»`);
         }
       }
+      continue;
+    }
+    // Una tabla: sus celdas de fórmula fila a fila, como una ristra de filas
+    // math, y después lo que publica. Su `src` es el título.
+    if (it.kind === 'table') {
+      if (!it.tabla) continue;
+      for (const { f, c, src } of formulasDeTabla(it.tabla)) {
+        const s = simbolos(src);
+        for (const u of s.usa) {
+          if (!definidos.has(u)) faltantes.push(`«${u}» en la celda [${f + 1},${c + 1}] \`${src}\``);
+        }
+        if (s.define) definidos.add(s.define);
+      }
+      for (const n of nombresPublicados(it.tabla)) definidos.add(n);
       continue;
     }
     const { define, usa } = simbolos(it.src);

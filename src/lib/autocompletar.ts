@@ -9,7 +9,7 @@
 // una lista corta de funciones de math.js. Las unidades no: con una o dos
 // letras llenarían la lista de ruido (`m`, `mm`, `min`, `mol`…).
 
-import type { Region, SheetResults } from './worksheet';
+import { definicionesDeResultado, type Region, type SheetResults } from './worksheet';
 
 export interface Sugerencia {
   nombre: string;
@@ -103,10 +103,13 @@ export function variablesVisibles(
   const vistos = new Set<string>();
   const out: Sugerencia[] = [];
   for (const r of antes) {
-    const def = results[r.id]?.define;
-    if (!def || vistos.has(def.nombre)) continue;
-    vistos.add(def.nombre);
-    out.push({ nombre: def.nombre, detalle: def.valor, esFuncion: Boolean(def.esFuncion) });
+    // Una tabla define varios nombres; de abajo arriba dentro de ella también, para
+    // que el más cercano salga primero.
+    for (const def of definicionesDeResultado(results[r.id]).reverse()) {
+      if (vistos.has(def.nombre)) continue;
+      vistos.add(def.nombre);
+      out.push({ nombre: def.nombre, detalle: def.valor, esFuncion: Boolean(def.esFuncion) });
+    }
   }
   return out;
 }

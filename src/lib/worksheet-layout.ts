@@ -7,6 +7,7 @@
 
 import type { Region, RegionKind } from './worksheet';
 import type { EspecGrafico } from './grafico';
+import { altoEstimadoTabla, type EspecTabla } from './tabla';
 
 export interface Item {
   kind: RegionKind;
@@ -23,11 +24,15 @@ export interface Item {
   id?: string;
   /** Solo `plot`: qué dibuja (`src` es el título). */
   grafico?: EspecGrafico;
+  /** Solo `table`: sus celdas y lo que publica (`src` es el título). */
+  tabla?: EspecTabla;
 }
 
 export const m = (src: string): Item => ({ kind: 'math', src });
 /** Un gráfico con su título. Como un esquema, rotula lo de arriba: va después de los cálculos. */
 export const graf = (titulo: string, grafico: EspecGrafico): Item => ({ kind: 'plot', src: titulo, grafico });
+/** Una tabla con su título, que puede ir vacío. */
+export const tab = (titulo: string, tabla: EspecTabla): Item => ({ kind: 'table', src: titulo, tabla });
 export const t = (src: string): Item => ({ kind: 'text', src });
 export const p = (src: string): Item => ({ kind: 'program', src });
 
@@ -68,6 +73,9 @@ export function layout(idPrefix: string, x: number, y0: number, items: Item[]): 
       region.grafico = it.grafico;
       // Su alto declarado más el del título.
       y += (it.grafico?.alto ?? 340) + 24 + PASO;
+    } else if (it.kind === 'table') {
+      if (it.tabla) region.tabla = it.tabla;
+      y += (it.tabla ? altoEstimadoTabla(it.tabla, it.src) : 0) + PASO;
     } else {
       const lines = it.src.split('\n').length;
       y += lines > 1 ? lines * 22 + 28 : PASO;

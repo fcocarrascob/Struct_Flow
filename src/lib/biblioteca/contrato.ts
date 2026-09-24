@@ -25,9 +25,10 @@
 // lenguaje (el lint del harness, en Python) puede reproducir sin desviarse.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type { Region } from '../worksheet';
+import { formulasDeTabla, type Region } from '../worksheet';
 import type { CampoDef, SalidaDef } from '../diseno/tipos';
 import { INTRINSECOS } from '../canvas-handoff';
+import { nombresPublicados } from '../tabla';
 
 export type ClasePlanilla = 'generica' | 'instancia' | 'ejemplo';
 
@@ -345,6 +346,26 @@ export function validarMeta(metaCrudo: unknown, regions: readonly Region[]): Hal
       error('region.imprimir', `el veredicto «${define}» (\`${r.id}\`) está marcado para no imprimirse`);
     } else if (define && porNombreSalida.has(define)) {
       error('region.imprimir', `la salida «${define}» (\`${r.id}\`) está marcada para no imprimirse`);
+    }
+  }
+
+  // ── Tablas: lo que definen sus celdas cuenta como lo de una región ──────────
+  //
+  // Una entrada no puede vivir en una celda: `instanciarRegiones` reescribe la
+  // región `in_<nombre>` entera, y una celda no tiene región propia. Y una tabla
+  // fuera del papel esconde sus veredictos y salidas igual que una región.
+  for (const r of regions) {
+    if (r.kind !== 'table' || !r.tabla) continue;
+    const nombres = [...formulasDeTabla(r.tabla).map((x) => x.varName), ...nombresPublicados(r.tabla)];
+    for (const nombre of nombres) {
+      if (!nombre) continue;
+      if (nombresEntrada.has(nombre)) {
+        error('tabla.entrada', `la entrada «${nombre}» se define en la tabla \`${r.id}\`: va en su propia región \`${PREFIJO_ENTRADA}${nombre}\``);
+      } else if (r.imprimir === false && nombre.startsWith('v_')) {
+        error('region.imprimir', `el veredicto «${nombre}» (tabla \`${r.id}\`) está marcado para no imprimirse`);
+      } else if (r.imprimir === false && porNombreSalida.has(nombre)) {
+        error('region.imprimir', `la salida «${nombre}» (tabla \`${r.id}\`) está marcada para no imprimirse`);
+      }
     }
   }
 

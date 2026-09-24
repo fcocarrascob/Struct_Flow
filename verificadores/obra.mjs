@@ -317,6 +317,41 @@ const CASOS = [
     ok: todas(sinArista('A', 'B'), sinCiclo),
   },
   {
+    nombre: 'lo que define una celda de tabla tiene dueño, y quien lo usa va después',
+    // Las celdas no tienen id propio: el grafo las lee de la especificación. Sin
+    // eso, el nodo que usa `q_cub` quedaba delante y fallaba sin flecha.
+    obra: obra(
+      calc('B', m('Q := q_cub * 2 =')),
+      calc('A', {
+        id: `b${n++}`,
+        kind: 'table',
+        x: 40,
+        y: 40,
+        src: 'Cargas',
+        tabla: { version: 1, celdas: [['Cubierta', 'q_cub := 0.5 =']] },
+      }),
+    ),
+    ok: todas(esperaValor('Q', '1'), esperaArista('A', 'B', 'q_cub'), sinCiclo),
+  },
+  {
+    nombre: 'una columna publicada por una tabla dibuja su flecha, y una celda que usa otro nodo también',
+    obra: obra(
+      calc('C', m('h_1 := hL_t[2] =')),
+      calc('B', {
+        id: `b${n++}`,
+        kind: 'table',
+        x: 40,
+        y: 40,
+        src: '',
+        tabla: { version: 1, celdas: [['h/L'], ['0.5'], ['h_max']], encabezado: 1, columnas: [{ nombre: 'hL_t' }] },
+      }),
+      calc('A', m('h_max := 1')),
+    ),
+    // La tercera fila es texto, así que la columna no se publica: el nodo C sale
+    // en rojo, pero la flecha B → C existe igual (C nombra lo que B declara).
+    ok: todas(esperaArista('B', 'C', 'hL_t'), sinArista('A', 'B'), sinCiclo),
+  },
+  {
     nombre: 'ninguna flecha de datos apunta hacia atrás en el canvas',
     // La columna era la del TIPO más el nivel en la cadena, y un nodo que usaba
     // lo que publicaba otro de un tipo más a la derecha quedaba A SU IZQUIERDA:

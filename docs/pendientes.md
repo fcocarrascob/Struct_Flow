@@ -27,12 +27,11 @@ Lo importante que quedó abierto al cerrar la sesión del 2026-09-23, en la rama
    y con qué factor) y justificarla. En el Pachón el modelo lleva S con 0,5, que es el `f2` que
    la obra perdió al retirar «Casos de carga y fuente de masa»; tiene que volver a estar
    escrito en algún nodo (el del espectro es el candidato).
-4. **Tablas en las hojas.** El gráfico ya está (región `plot`). Falta el bloque tabla, con el
-   diseño acordado el 2026-09-24: cada celda es una mini fórmula con la gramática de siempre
-   (`a := 3 m`, `b = kN`, o texto), evaluada por filas en su posición; la tabla puede publicarse
-   entera como matriz y cada columna con nombre como vector; se edita en la grilla, con la
-   estructura en el panel de propiedades. Resultados en `results[id].tabla.celdas[f][c]`, sin
-   ids por celda; `RegionResult.defines[]` para las varias definiciones.
+4. **Migrar las tablas de norma escritas como `program` a regiones `table` + `interp`.** El
+   `Cp_cub` del CIRSOC 102 del Pachón (`docs/pachon/`, y su generador) y el `cp_techo` +
+   `interp_lin` de `viento-caras-nch432-generica`, que es una tabla θ × h/L: para esa hace falta
+   `interp2`, o interpolar por columnas a mano. La genérica mueve la paginación publicada y su
+   sello: con su medición en `/calibrar` y un `verify:biblioteca`.
 5. **Migrar las figuras hechas a mano a regiones `plot`.** La genérica
    `espectro-nch2369-generica` dibuja el espectro con 26 regiones `imprimir: false` de mapeo a
    píxeles, y `losa-unidireccional` arma sus curvas igual (`pts_fl`). Un `plot` las reemplaza,
@@ -198,6 +197,22 @@ Por gravedad:
 
 ## Hoja y canvas
 
+- **La tabla, lo que quedó fuera** (región `table`, 2026-09-24):
+  - **El lint del harness no conoce la regla `tabla.entrada`** de `validarMeta` (una entrada
+    `in_*` no puede vivir en una celda), ni cuenta los `v_*` que define una celda. El
+    contrato dice que el lint en Python lo reproduce: hay que llevarlas allá.
+  - **La grilla no se ajusta a la escala.** En edición cada celda va en una línea recortada; lo
+    que mide el papel es la tabla impresa, así que al salir de edición el bloque puede cambiar
+    de alto (y tapar lo de abajo, como un programa que crece).
+  - **Una tabla más alta que una A4 no se parte**: va con `break-inside: avoid` y la paginación
+    la mide como un bloque. La banda de «bloques largos» la señala, pero no hay forma de
+    repetir el encabezado en la página siguiente.
+  - **La mini hoja de la obra la muestra de solo lectura**, como el gráfico: se edita en la
+    pestaña de la hoja.
+  - **Mover una fila corre los ids de sus veredictos** (`r12[f,c]`): el verificador lo delata,
+    pero la entrada de `esperadoFalso` se corrige a mano.
+  - **La banda de «no caben en el ancho» habla de fórmulas** aunque lo que desborda sea una
+    tabla entera.
 - **Sin red de pruebas de interfaz.** Los verificadores cubren el motor, la obra y la
   biblioteca; de la interfaz no se comprueba nada, y no hay ESLint pese a los
   `eslint-disable` de `MathCanvas.tsx`.

@@ -21,6 +21,15 @@ import {
   type HerramientasGrafico,
 } from './grafico';
 import { TOKEN_RE, separarToken } from './token';
+import {
+  columna,
+  encabezadoDe,
+  esTextoForzado,
+  textoDeCelda,
+  type DatosTabla,
+  type EspecTabla,
+  type ResultadoCelda,
+} from './tabla';
 
 const math = create(all, {});
 
@@ -59,9 +68,51 @@ math.import(
       if (e <= ey) return 0.65;
       return 0.65 + (0.25 * (e - ey)) / 0.003;
     },
+    // Interpolación lineal en una tabla de norma: `interp(xs, ys, x)`. Con
+    // unidades en cualquiera de los dos ejes. Fuera de la tabla es un ERROR, no el
+    // valor del extremo: cuando la norma manda usar el extremo («para h/L ≤ 0,5 …»)
+    // se escribe a la vista, `interp(xs, ys, min(max(x, 0.5), 1))`, y el dato que
+    // se sale de la tabla sin que la norma lo prevea no pasa callado.
+    interp: function (xs: unknown, ys: unknown, x: unknown) {
+      const X = listaDeInterp(xs, 'xs');
+      const Y = listaDeInterp(ys, 'ys');
+      if (X.length !== Y.length) {
+        throw new Error(`interp: xs tiene ${X.length} valores e ys ${Y.length}; tienen que ser del mismo largo`);
+      }
+      if (X.length < 2) throw new Error('interp: la tabla necesita al menos dos puntos');
+      for (let i = 1; i < X.length; i++) {
+        if (!math.larger(X[i] as never, X[i - 1] as never)) {
+          throw new Error(`interp: xs tiene que ser estrictamente creciente, y el valor ${i + 1} no es mayor que el ${i}`);
+        }
+      }
+      const n = X.length - 1;
+      if (math.smaller(x as never, X[0] as never) || math.larger(x as never, X[n] as never)) {
+        throw new Error(
+          `interp: x = ${formatValor(x)} está fuera de la tabla, que va de ${formatValor(X[0])} a ${formatValor(X[n])}; ` +
+            `si la norma manda usar el extremo, acótalo a la vista: interp(xs, ys, min(max(x, ${formatValor(X[0]).replace(',', '.')}), ${formatValor(X[n]).replace(',', '.')}))`,
+        );
+      }
+      for (let i = 0; i <= n; i++) if (math.equal(x as never, X[i] as never)) return Y[i];
+      let i = 0;
+      while (!math.smaller(x as never, X[i + 1] as never)) i++;
+      const frac = math.divide(math.subtract(x as never, X[i] as never), math.subtract(X[i + 1] as never, X[i] as never));
+      const t = math.isUnit(frac) ? math.number(frac as never, '' as never) : frac;
+      return math.add(Y[i] as never, math.multiply(math.subtract(Y[i + 1] as never, Y[i] as never), t as never));
+    },
   },
   { override: false },
 );
+
+/** Los valores de un vector para `interp`: un array, una matriz de una fila o de una columna. */
+function listaDeInterp(v: unknown, que: string): unknown[] {
+  const a = math.isMatrix(v) ? (v.valueOf() as unknown[]) : v;
+  if (!Array.isArray(a)) throw new Error(`interp: ${que} tiene que ser un vector`);
+  if (a.every((e) => !Array.isArray(e))) return a;
+  // Una columna de una matriz (`M[:, 2]`) llega como N×1; una fila, como 1×N.
+  if (a.every((e) => Array.isArray(e) && e.length === 1)) return a.map((e) => (e as unknown[])[0]);
+  if (a.length === 1 && Array.isArray(a[0])) return a[0] as unknown[];
+  throw new Error(`interp: ${que} tiene que ser un vector, no una matriz`);
+}
 
 /**
  * Tope de iteraciones por región (anti-bucle-infinito; evita colgar la pestaña).
@@ -164,7 +215,7 @@ function comprobarNombre(nombre: string): void {
   }
 }
 
-export type RegionKind = 'math' | 'text' | 'program' | 'image' | 'plot';
+export type RegionKind = 'math' | 'text' | 'program' | 'image' | 'plot' | 'table';
 
 export interface Region {
   id: string;
@@ -205,6 +256,11 @@ export interface Region {
    * no se confunde con un bloque a medio escribir.
    */
   grafico?: EspecGrafico;
+  /**
+   * Solo `table`: la grilla de celdas y lo que publica (`tabla.ts`). En una tabla
+   * `src` es el TÍTULO que se imprime encima, y puede ir vacío.
+   */
+  tabla?: EspecTabla;
 }
 
 export interface ParsedMath {
@@ -236,7 +292,13 @@ export interface RegionResult {
    * cambiar su firma: `SheetResults` sigue siendo un Record por id de región y
    * `verify-planilla.mjs` y `planilla-engine.ts` no se enteran.
    */
-  define?: { nombre: string; valor: string; esFuncion?: boolean };
+  define?: Define;
+  /**
+   * Solo `table`: todo lo que define la tabla, que puede ser más de un nombre —las
+   * celdas de fórmula y lo que publica—, en orden de evaluación. Una región math o
+   * de programa sigue usando `define`; para leer los dos, `definicionesDeResultado`.
+   */
+  defines?: Define[];
   /**
    * Algo que no es un error pero conviene que el autor vea: hoy, una variable de
    * la hoja que tapa una unidad del mismo nombre (`s := 20 cm` y luego
@@ -255,9 +317,39 @@ export interface RegionResult {
    * `svgDeGrafico` al pintar, igual en la hoja, en el papel y en Node.
    */
   grafico?: DatosGrafico;
+  /**
+   * Solo `table`: el resultado de cada celda, `tabla.celdas[f][c]`. Las celdas no
+   * tienen id propio; su error vive aquí, y `error` de la región es el de lo que la
+   * tabla publica.
+   */
+  tabla?: DatosTabla;
+}
+
+/** Un nombre que define una región, ya formateado para mostrar. */
+export interface Define {
+  nombre: string;
+  valor: string;
+  esFuncion?: boolean;
 }
 
 export type SheetResults = Record<string, RegionResult>;
+
+/**
+ * Todo lo que define una región: su `define`, o los `defines` de una tabla. Es la
+ * única forma de leerlo; con cada consumidor mirando un campo, una tabla sería
+ * invisible para el que se olvidara del segundo.
+ */
+export function definicionesDeResultado(res: RegionResult | undefined): Define[] {
+  if (!res) return [];
+  return res.defines ?? (res.define ? [res.define] : []);
+}
+
+/** Todos los errores de una región: el suyo y, en una tabla, los de sus celdas. */
+export function erroresDeResultado(res: RegionResult | undefined): string[] {
+  if (!res) return [];
+  const celdas = (res.tabla?.celdas ?? []).flat().flatMap((x) => (x.error ? [x.error] : []));
+  return res.error ? [res.error, ...celdas] : celdas;
+}
 
 const DEF_RE = /^\s*([\p{L}_][\p{L}\p{N}_]*)\s*:=\s*([\s\S]*)$/u;
 // Último `=` de nivel superior que no forma parte de ==, <=, >=, != ni :=.
@@ -555,6 +647,13 @@ export function evaluateSheet(
       continue;
     }
 
+    // Igual que un gráfico: `src` es el título y el contenido está en `tabla`.
+    // A diferencia de él, SÍ escribe en el scope: sus celdas y lo que publica.
+    if (region.kind === 'table') {
+      results[region.id] = region.tabla ? evaluarTabla(region.tabla, scope) : { error: 'La tabla no tiene especificación' };
+      continue;
+    }
+
     if (region.src.trim() === '') {
       results[region.id] = {};
       continue;
@@ -587,8 +686,12 @@ interface Formula {
  * de fórmula de una tabla: si la celda tuviera la suya, las dos acabarían
  * discrepando en lo que es una definición, en cómo se convierte una unidad o en
  * qué se retira cuando algo falla.
+ *
+ * `unidadColumna` es la unidad de la columna de una celda: hace de `= unidad`
+ * cuando la fórmula no escribe el suyo, salvo para un veredicto o un texto. Una
+ * región math nunca la pasa.
  */
-function evaluarFormula(src: string, scope: Record<string, unknown>): Formula {
+function evaluarFormula(src: string, scope: Record<string, unknown>, unidadColumna?: string): Formula {
   const parsed = parseMathRegion(src);
 
   // LaTeX de la parte izquierda (definición + expresión), independiente de
@@ -618,9 +721,12 @@ function evaluarFormula(src: string, scope: Record<string, unknown>): Formula {
     aviso = avisoUnidadTapada(node, scope);
     let value = node.evaluate(scope);
     if (esComplejo(value)) throw new Error(ERROR_COMPLEJO);
-    if (parsed.targetUnit) {
-      if (!math.isUnit(value)) throw new Error(`El resultado no tiene unidades, no se puede convertir a ${parsed.targetUnit}`);
-      value = value.to(parsed.targetUnit);
+    const destino =
+      parsed.targetUnit ??
+      (unidadColumna && typeof value !== 'boolean' && typeof value !== 'string' ? unidadColumna : undefined);
+    if (destino) {
+      if (!math.isUnit(value)) throw new Error(`El resultado no tiene unidades, no se puede convertir a ${destino}`);
+      value = value.to(destino);
     }
     if (parsed.varName) scope[parsed.varName] = value;
 
@@ -648,6 +754,217 @@ function evaluarFormula(src: string, scope: Record<string, unknown>): Formula {
     if (parsed.varName && Object.hasOwn(scope, parsed.varName)) delete scope[parsed.varName];
     return { res: { tex, error: errMsg(err), aviso }, evaluada: false };
   }
+}
+
+/**
+ * Evalúa una tabla fila a fila, en su posición del orden de lectura, y publica
+ * lo que declara. Cada celda de fórmula pasa por `evaluarFormula`, con su propio
+ * tope de iteraciones: una celda es una fórmula como una región.
+ */
+function evaluarTabla(t: EspecTabla, scope: Record<string, unknown>): RegionResult {
+  const enc = encabezadoDe(t);
+  const defines: Define[] = [];
+  const avisos: string[] = [];
+  const definidosEnCeldas = new Set<string>();
+  /** El valor de cada celda de cuerpo, o por qué no lo tiene. */
+  const valores: ({ v: unknown } | { motivo: string })[][] = [];
+
+  const celdas = t.celdas.map((fila, f) =>
+    fila.map((src, c): ResultadoCelda => {
+      ctx.guard = nuevoGuard();
+      const cuerpo = f >= enc;
+      const col = columna(t, c);
+      const unidad = (cuerpo && col.unidad?.trim()) || undefined;
+      // Con encabezado, la unidad se imprime allí y la celda lleva el número solo.
+      const unidadArriba = enc > 0 ? unidad : undefined;
+      const { res, valor } = evaluarCelda(src, scope, unidad, unidadArriba, cuerpo && Boolean(col.soloValor));
+      for (const d of res.defines ?? []) {
+        defines.push(d);
+        definidosEnCeldas.add(d.nombre);
+      }
+      if (res.celda.aviso) avisos.push(`[${f + 1},${c + 1}] ${res.celda.aviso}`);
+      if (cuerpo) {
+        (valores[f - enc] ??= [])[c] =
+          valor !== undefined
+            ? { v: valor }
+            : {
+                motivo:
+                  res.celda.tipo === 'vacia'
+                    ? 'está vacía'
+                    : res.celda.tipo === 'texto'
+                      ? 'es texto'
+                      : res.celda.error
+                        ? 'tiene un error'
+                        : 'no tiene valor',
+              };
+      }
+      return res.celda;
+    }),
+  );
+
+  // ── Lo que publica: la matriz del cuerpo y cada columna con nombre ────────────
+  const pedidos: { nombre: string; cols: number[]; vector: boolean }[] = [];
+  const todas = Array.from({ length: t.celdas[0]?.length ?? 0 }, (_, c) => c);
+  if (t.matriz?.trim()) pedidos.push({ nombre: t.matriz.trim(), cols: todas, vector: false });
+  (t.columnas ?? []).forEach((col, c) => {
+    if (col.nombre?.trim()) pedidos.push({ nombre: col.nombre.trim(), cols: [c], vector: true });
+  });
+
+  const errores: string[] = [];
+  const publicados = new Set<string>();
+  for (const { nombre, cols, vector } of pedidos) {
+    try {
+      if (!/^[\p{L}_][\p{L}\p{N}_]*$/u.test(nombre)) throw new Error(`«${nombre}» no es un nombre válido`);
+      comprobarNombre(nombre);
+      if (definidosEnCeldas.has(nombre)) throw new Error(`«${nombre}» ya lo define una celda de la tabla`);
+      if (publicados.has(nombre)) throw new Error(`«${nombre}» se publica dos veces`);
+      if (valores.length === 0) throw new Error(`«${nombre}»: la tabla no tiene filas de cuerpo que publicar`);
+      const filas = valores.map((fila, i) =>
+        cols.map((c) => {
+          const x = fila[c];
+          const donde = `la celda de la fila ${i + enc + 1}, columna ${c + 1}`;
+          if (!x || 'motivo' in x) throw new Error(`«${nombre}»: ${donde} ${x ? x.motivo : 'está vacía'}`);
+          if (!esNumerico(x.v)) throw new Error(`«${nombre}»: ${donde} no es un número`);
+          return x.v;
+        }),
+      );
+      const valor = math.matrix((vector ? filas.map((f) => f[0]) : filas) as never);
+      scope[nombre] = valor;
+      publicados.add(nombre);
+      defines.push({ nombre, valor: resumenDeForma(valor) });
+    } catch (err) {
+      // Como una definición que falla: el nombre se retira, y lo de abajo que lo
+      // usa da error en vez de leer un valor anterior.
+      if (Object.hasOwn(scope, nombre) && !definidosEnCeldas.has(nombre)) delete scope[nombre];
+      errores.push(errMsg(err));
+    }
+  }
+
+  const unidades = todas.map((c) => {
+    const u = columna(t, c).unidad?.trim();
+    return enc > 0 && u ? unidadTex(u) : undefined;
+  });
+  return {
+    tabla: { celdas, unidades },
+    defines,
+    ...(errores.length ? { error: errores.join(' · ') } : {}),
+    ...(avisos.length ? { aviso: avisos.join(' ') } : {}),
+  };
+}
+
+/** Una celda evaluada: lo que se imprime, lo que define y su valor (si lo tiene). */
+function evaluarCelda(
+  src: string,
+  scope: Record<string, unknown>,
+  unidad: string | undefined,
+  unidadArriba: string | undefined,
+  soloValor: boolean,
+): { res: { celda: ResultadoCelda; defines?: Define[] }; valor?: unknown } {
+  if (!src.trim()) return { res: { celda: { tipo: 'vacia' } } };
+  const texto = { res: { celda: { tipo: 'texto' as const, texto: textoDeCelda(src) } } };
+  if (esTextoForzado(src)) return texto;
+
+  if (esFormulaDeCelda(src)) {
+    const fo = evaluarFormula(src, scope, unidad);
+    const celda: ResultadoCelda = { tipo: 'formula' };
+    // Las mismas claves que la región, y solo si están: así una celda y una región
+    // con el mismo `src` son comparables campo a campo (`verify:motor`).
+    for (const k of ['tex', 'bool', 'error', 'aviso'] as const) {
+      if (fo.res[k] !== undefined) (celda as unknown as Record<string, unknown>)[k] = fo.res[k];
+    }
+    if (soloValor && fo.evaluada) {
+      if (typeof fo.valor === 'boolean') delete celda.tex;
+      else celda.tex = valorTex(fo.valor, unidadArriba);
+    }
+    return { res: { celda, defines: fo.res.define ? [fo.res.define] : undefined }, valor: fo.valor };
+  }
+
+  let nodo: MathNode;
+  try {
+    nodo = parsear(src.trim());
+  } catch {
+    return texto;
+  }
+  if (!esLiteral(nodo)) return texto;
+  try {
+    // Contra un scope vacío: en un valor escrito, `3 m` son tres metros aunque la
+    // hoja tenga una variable `m`. No es una expresión, es un dato.
+    let v = nodo.evaluate({});
+    if (unidad) {
+      if (typeof v === 'number') v = math.unit(v, unidad);
+      else if (math.isUnit(v)) v = v.to(unidad);
+    }
+    return { res: { celda: { tipo: 'literal', tex: valorTex(v, unidadArriba) } }, valor: v };
+  } catch (err) {
+    return { res: { celda: { tipo: 'literal', tex: exprToTex(src.trim(), new Set()), error: errMsg(err) } } };
+  }
+}
+
+/**
+ * ¿Es una celda de fórmula? Lleva `:=` o un `=` final y no empieza con `'`.
+ *
+ * Es la única autoridad: la usan la evaluación y quienes leen qué define o qué
+ * usa una tabla sin evaluarla (la obra, `verificarSimbolos`, `verify:planilla`).
+ */
+export function esFormulaDeCelda(src: string): boolean {
+  if (!src.trim() || esTextoForzado(src)) return false;
+  const p = parseMathRegion(src);
+  return Boolean(p.varName || p.showResult);
+}
+
+/** Las celdas de fórmula de una tabla, fila a fila: lo que define y lo que usa. */
+export function formulasDeTabla(t: EspecTabla): { f: number; c: number; src: string; varName?: string }[] {
+  const out: { f: number; c: number; src: string; varName?: string }[] = [];
+  t.celdas.forEach((fila, f) =>
+    fila.forEach((src, c) => {
+      if (esFormulaDeCelda(src)) out.push({ f, c, src, varName: parseMathRegion(src).varName });
+    }),
+  );
+  return out;
+}
+
+/** ¿Es un valor escrito: `-0.9`, `3 m`, `2 kN*m`? Un número, con signo, o una cantidad literal. */
+function esLiteral(nodo: MathNode): boolean {
+  const n = nodo as unknown as NodoOp & { value?: unknown };
+  if (n.type === 'ConstantNode') return typeof n.value === 'number';
+  if (n.type === 'OperatorNode' && (n.fn === 'unaryMinus' || n.fn === 'unaryPlus') && n.args?.length === 1) {
+    return esLiteral(n.args[0]);
+  }
+  return esCantidadLiteral(nodo);
+}
+
+/** ¿Se puede poner en una matriz numérica? */
+function esNumerico(v: unknown): boolean {
+  return (
+    typeof v === 'number' ||
+    math.isBigNumber(v) ||
+    math.isFraction(v) ||
+    (math.isUnit(v) && !esComplejo(v))
+  );
+}
+
+/** El LaTeX de un valor; con `unidadArriba`, el número solo, en esa unidad. */
+function valorTex(v: unknown, unidadArriba: string | undefined): string {
+  if (unidadArriba && math.isUnit(v)) {
+    return numToTex(math.format(math.number(v as never, unidadArriba as never), { precision: 5 }));
+  }
+  return resultToTex(v);
+}
+
+/** Una unidad escrita en mathjs, como LaTeX para el encabezado: `kN/m^2` → `\mathrm{kN/m^{2}}`. */
+function unidadTex(u: string): string {
+  if (!/^[\p{L}\p{N}_*/^().\s-]+$/u.test(u)) return textoTex(u);
+  const t = u
+    .replace(/\s+/g, '')
+    .replace(/\*/g, '\\cdot ')
+    .replace(/\^\(?(-?\d+)\)?/g, '^{$1}');
+  return `\\mathrm{${t}}`;
+}
+
+/** «vector de 3», «matriz 2×3»: lo que se ve de lo publicado en el panel de variables. */
+function resumenDeForma(v: unknown): string {
+  const dims = math.size(v as never).valueOf() as number[];
+  return dims.length === 1 ? `vector de ${dims[0]}` : `matriz ${dims.join('×')}`;
 }
 
 /** ¿Es una asignación de math.js (`x = 5`, `f(x) = x^2`, `A[1] = 3`)? */

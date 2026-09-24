@@ -21,7 +21,8 @@
 // de todos sus proyectos. De `src/lib` se importa; no se toca.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { parseMathRegion, type Region, type RegionKind } from '../../lib/worksheet';
+import { formulasDeTabla, parseMathRegion, type Region, type RegionKind } from '../../lib/worksheet';
+import { nombresPublicados } from '../../lib/tabla';
 import { parseProgram } from '../../lib/program';
 import { abrirHueco, mismoOrdenDeLectura } from '../../lib/solapes';
 import { sanearRegiones } from '../../lib/hoja-json';
@@ -72,8 +73,12 @@ export function ordenDeLectura(hoja: readonly Region[]): Region[] {
 export function definicionesDe(hoja: readonly Region[]): string[] {
   const nombres: string[] = [];
   for (const r of ordenDeLectura(hoja)) {
-    const v = r.kind === 'math' ? parseMathRegion(r.src).varName : r.kind === 'program' ? cabeceraDePrograma(r.src) : undefined;
-    if (v && !nombres.includes(v)) nombres.push(v);
+    // Una tabla define lo de sus celdas de fórmula y, después, lo que publica.
+    const vs =
+      r.kind === 'table' && r.tabla
+        ? [...formulasDeTabla(r.tabla).map((x) => x.varName), ...nombresPublicados(r.tabla)]
+        : [r.kind === 'math' ? parseMathRegion(r.src).varName : r.kind === 'program' ? cabeceraDePrograma(r.src) : undefined];
+    for (const v of vs) if (v && !nombres.includes(v)) nombres.push(v);
   }
   return nombres;
 }
@@ -122,11 +127,13 @@ export function nombresSueltos(hoja: readonly Region[]): string[] {
  * Una fórmula, su `src`. Un gráfico, las expresiones de su especificación —su
  * `src` es el título— SIN la variable de cada función: la `T` de `Sa(T)` es del
  * gráfico, y leerla como un uso dibujaría una flecha hacia cualquier nodo que
- * definiera una `T`. Un texto no usa nada (es prosa), y de un programa la obra
- * solo lee lo que define.
+ * definiera una `T`. Una tabla, sus celdas de fórmula: los rótulos son prosa, y
+ * un valor escrito (`3 m`) no nombra nada de la hoja. Un texto no usa nada (es
+ * prosa), y de un programa la obra solo lee lo que define.
  */
 export function usosDeRegion(r: Region): string[] {
   if (r.kind === 'math') return [r.src];
+  if (r.kind === 'table') return r.tabla ? formulasDeTabla(r.tabla).map((x) => x.src) : [];
   if (r.kind !== 'plot' || !r.grafico) return [];
   return expresionesDeGrafico(r.grafico).map(({ expr, locales }) =>
     locales.reduce(
