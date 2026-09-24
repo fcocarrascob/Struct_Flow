@@ -21,13 +21,13 @@
 // letra; el color dice lo mismo y deja trabajar.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { erroresDeResultado, parseMathRegion } from '../../lib/worksheet';
+import { erroresDeResultado, parseMathRegion, simbolosDeFormula } from '../../lib/worksheet';
 import { peor, type AristaGrafo, type NodoGrafo, type Severidad } from '../grafo';
 import { quedoAtras, type Genericas } from './biblioteca';
 import { mensajeDeMotor } from '../../components/canvas/mensajes-motor';
 import { problemaDeGrafo, type EvaluacionObra } from './evaluacion';
 import { ID_NODO_SAP, idNodoDeCalculo } from './ids';
-import { grupoPorId, identificadoresDe, type Grupo, type NodoCalculo, type Obra, type Revision } from './modelo';
+import { grupoPorId, type Grupo, type NodoCalculo, type Obra, type Revision } from './modelo';
 import { resumirJustificaciones } from './sap-cargas';
 
 export * from './ids';
@@ -119,7 +119,7 @@ function aristasDeDatos(ev: EvaluacionObra): AristaGrafo[] {
 function aristasDeJustificaciones(obra: Obra, ev: EvaluacionObra): AristaGrafo[] {
   const porNodo = new Map<string, Set<string>>();
   for (const j of obra.justificaciones ?? []) {
-    for (const n of identificadoresDe(j.expr)) {
+    for (const n of simbolosDeFormula(j.expr)) {
       const d = ev.duenio.get(n);
       if (!d) continue;
       const s = porNodo.get(d) ?? new Set<string>();

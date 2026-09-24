@@ -21,14 +21,13 @@
 // de todos sus proyectos. De `src/lib` se importa; no se toca.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { formulasDeTabla, parseMathRegion, type Region, type RegionKind } from '../../lib/worksheet';
+import { formulasDeTabla, parseMathRegion, simbolosDeFormula, type Region, type RegionKind } from '../../lib/worksheet';
 import { nombresPublicados } from '../../lib/tabla';
 import { parseProgram } from '../../lib/program';
 import { abrirHueco, mismoOrdenDeLectura } from '../../lib/solapes';
 import { sanearRegiones } from '../../lib/hoja-json';
 import { INTRINSECOS } from '../../lib/canvas-handoff';
 import { expresionesDeGrafico } from '../../lib/grafico';
-import { identificadoresDe } from './modelo';
 
 /**
  * Dónde empieza una hoja. Son los mismos de `SiluetaPapel.tsx`, repetidos a
@@ -112,7 +111,7 @@ export function nombresSueltos(hoja: readonly Region[]): string[] {
   const sueltos: string[] = [];
   for (const r of ordenDeLectura(hoja)) {
     for (const texto of usosDeRegion(r)) {
-      for (const id of identificadoresDe(texto)) {
+      for (const id of simbolosDeFormula(texto)) {
         if (define.has(id) || INTRINSECOS.has(id) || sueltos.includes(id)) continue;
         sueltos.push(id);
       }

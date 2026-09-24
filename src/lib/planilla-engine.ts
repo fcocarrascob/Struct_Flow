@@ -2,7 +2,7 @@
 // bundle en el que hoja y esquema comparten la misma instancia de mathjs (las
 // unidades locales como `tonf` y los objetos Unit del scope no sobreviven a dos
 // instancias distintas).
-export { evaluateSheet, parseMathRegion, formulasDeTabla, unidadesTapadas } from './worksheet';
+export { evaluateSheet, parseMathRegion, formulasDeTabla, unidadesTapadas, simbolosDeFormula } from './worksheet';
 export { motivoDeTabla, idDeCelda } from './tabla';
 export { renderEsquema, ESQUEMAS_PREFIX, esRutaDeEsquema } from './esquema';
 export { ordenDeLectura, tienenPosicion } from './orden-lectura';

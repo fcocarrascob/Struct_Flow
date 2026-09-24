@@ -25,7 +25,7 @@
 // lenguaje (el lint del harness, en Python) puede reproducir sin desviarse.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { formulasDeTabla, type Region } from '../worksheet';
+import { formulasDeTabla, parseMathRegion, type Region } from '../worksheet';
 import type { CampoDef, SalidaDef } from '../diseno/tipos';
 import { INTRINSECOS } from '../canvas-handoff';
 import { nombresPublicados } from '../tabla';
@@ -339,7 +339,7 @@ export function validarMeta(metaCrudo: unknown, regions: readonly Region[]): Hal
     const entrada = r.id.startsWith(PREFIJO_ENTRADA) ? r.id.slice(PREFIJO_ENTRADA.length) : undefined;
     // El nombre que define la región, que es con el que se declara una salida;
     // su id puede ser otro (`r_u_acero` define `u_acero`).
-    const define = /^\s*([A-Za-z_]\w*)\s*:=/.exec(r.src)?.[1];
+    const define = parseMathRegion(r.src).varName;
     if (entrada && nombresEntrada.has(entrada)) {
       error('region.imprimir', `la entrada «${entrada}» (\`${r.id}\`) está marcada para no imprimirse`);
     } else if (define?.startsWith('v_')) {

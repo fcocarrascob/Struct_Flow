@@ -345,6 +345,43 @@ function unidadesEnPosicion(node: MathNode): EnPosicion[] {
 }
 
 /**
+ * Los nombres que USA una fórmula (`nombre := expr = unidad`, o una expresión
+ * suelta): **el único lector de nombres** para quien necesita saber de qué
+ * depende una fórmula sin evaluarla —las flechas de la obra, las entradas de una
+ * hoja propia, `verificarSimbolos` de un módulo—.
+ *
+ * Lee el árbol de math.js, no el texto: una cadena (`"area útil"`) no nombra
+ * nada, la unidad de conversión tras `=` tampoco, ni una unidad en posición de
+ * unidad (`4 m`), ni el exponente de `2.04e6`, ni una función del motor. Sí
+ * cuentan las funciones de usuario y las unidades sueltas (`f_c/MPa`): quien
+ * lee decide, con lo que la hoja o la obra definen, si son suyas. Con la
+ * sintaxis rota, cae a una lectura léxica del mismo alfabeto, para que una
+ * fórmula a medio escribir no pierda sus flechas.
+ */
+export function simbolosDeFormula(src: string): string[] {
+  const expr = parseMathRegion(src).expr;
+  if (!expr) return [];
+  let nodo: MathNode;
+  try {
+    nodo = parsear(expr);
+  } catch {
+    const sinTextos = expr
+      .replace(/"(?:[^"\\]|\\.)*"/g, ' ')
+      .replace(/(?<![\p{L}\p{N}_])\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/gu, ' ');
+    return [...new Set(sinTextos.match(/[\p{L}_][\p{L}\p{N}_]*/gu) ?? [])];
+  }
+  const deUnidad = new Set(unidadesEnPosicion(nodo).map((u) => u.simbolo));
+  const nombres = new Set<string>();
+  nodo.traverse((n, ruta) => {
+    const s = n as unknown as NodoOp;
+    if (s.type !== 'SymbolNode' || !s.name || deUnidad.has(n) || CONSTANTES_LIBRES.has(s.name)) return;
+    if (ruta === 'fn' && Object.hasOwn(math, s.name)) return;
+    nombres.add(s.name);
+  });
+  return [...nombres];
+}
+
+/**
  * Las unidades escritas en posición de unidad cuyo nombre la hoja usa también
  * como variable, en cualquier parte: la comprobación estática de
  * `verify:planilla`. Es más estricta que el aviso de la evaluación, que solo ve
@@ -958,6 +995,11 @@ function nombresDefinidos(regions: Region[]): Set<string> {
 
 /** El nombre de la cabecera de un programa: `nombre :=` o `nombre(a, b) :=`. */
 const RE_CABECERA_PROGRAMA = /^\s*([\p{L}_][\p{L}\p{N}_]*)\s*(?:\([^)]*\))?\s*:=/u;
+
+/** Lo que exporta un programa, sin analizar su cuerpo: el nombre de su cabecera. */
+export function nombreDePrograma(src: string): string | undefined {
+  return RE_CABECERA_PROGRAMA.exec(src)?.[1];
+}
 
 function evaluarEnOrden(ordered: Region[], scope: Record<string, unknown>, results: SheetResults): void {
   for (const region of ordered) {

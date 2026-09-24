@@ -318,7 +318,10 @@ testeable y portable):
   `evaluarNodo`, que lo convierte en error salvo `pi` y las unidades que una memoria escribe
   sueltas (`UNIDADES_SUELTAS`: `f_c/MPa`, `2.54*cm`). Qué es «posición de unidad» (`10 kN`,
   `3 m/s`, `x*1 tonf*m`) lo decide solo `unidadesEnPosicion`, que usan también el aviso de la
-  variable que tapa una unidad y `unidadesTapadas` de `verify:planilla`.
+  variable que tapa una unidad y `unidadesTapadas` de `verify:planilla`. Qué nombres **usa**
+  una fórmula lo dice solo `simbolosDeFormula` (sobre el árbol: sin cadenas, sin la unidad de
+  conversión, sin funciones del motor, con nombres no ASCII); lo leen las flechas de la obra,
+  las entradas de una hoja propia y `verificarSimbolos`. No se escribe otra regex para eso.
 - `program.ts` — intérprete **imperativo** mínimo para las regiones `program`, porque mathjs
   no tiene control de flujo. Bloques definidos por **indentación** estilo Python (`if` /
   `else if` / `else`, `for … in range/list`, `while`, `break`/`continue`, `return`),

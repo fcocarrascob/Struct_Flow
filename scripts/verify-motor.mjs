@@ -29,6 +29,7 @@ const {
   svgDeGrafico,
   sanearConInforme,
   unidadesTapadas,
+  simbolosDeFormula,
 } = await cargarMotor();
 
 /** Una hoja a partir de `[tipo, src, extra?]`, apiladas en orden de lectura. */
@@ -333,6 +334,28 @@ const CASOS = [
       if (antes !== 'r0:m') return `definida después: «${antes}»`;
       if (cadena !== 'r1:s') return `en una cadena: «${cadena}»`;
       return libre ? `usada como variable no se detecta: «${libre}»` : null;
+    },
+  },
+  {
+    nombre: 'el lector de nombres: lo que una fórmula usa, sin textos, unidades, funciones del motor ni exponentes',
+    hoja: hoja(),
+    ok: () => {
+      const casos = [
+        ['x := a*sqrt(b_1) + f(c) = kN', 'a b_1 c f'],
+        ['t := "area útil" + b =', 'b'],
+        ['L := 4 m', ''],
+        ['L := 450 cm = m', ''],
+        ['σ_c * año =', 'año σ_c'],
+        ['x := 2.04e6*k', 'k'],
+        ['y := pi*r^2 = m^2', 'r'],
+        ['rfc := sqrt(f_c/MPa) =', 'MPa f_c'],
+        ['z := (a + b', 'a b'],
+      ];
+      for (const [src, esperado] of casos) {
+        const hay = simbolosDeFormula(src).sort().join(' ');
+        if (hay !== esperado) return `«${src}»: «${hay}», se esperaba «${esperado}»`;
+      }
+      return null;
     },
   },
   {

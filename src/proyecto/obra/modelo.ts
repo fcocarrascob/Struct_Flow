@@ -507,11 +507,6 @@ export function nuevoCalculo(): NodoCalculo {
  */
 export const IDENTIFICADOR_RE = /^[\p{L}_][\p{L}\p{N}_]*$/u;
 
-/** Todos los identificadores que aparecen en un texto, sin repetir. */
-export function identificadoresDe(src: string): string[] {
-  return [...new Set(src.match(/[\p{L}_][\p{L}\p{N}_]*/gu) ?? [])];
-}
-
 /** Una región suelta, en el origen del papel. Dónde va de verdad lo decide
  *  `insertarEnHoja` de `./hoja`, que es quien conoce el resto de la hoja. */
 export function nuevaRegion(kind: 'math' | 'text', src = ''): Region {

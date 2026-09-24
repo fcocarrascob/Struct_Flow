@@ -61,12 +61,13 @@ import {
   evaluateSheet,
   formatValor,
   nombresSinDefinir,
+  simbolosDeFormula,
   type Region,
   type SheetResults,
 } from '../../lib/worksheet';
 import type { EvaluacionModulo } from '../../lib/diseno/evaluar';
 import { evaluarImportada, type Genericas } from './biblioteca';
-import { identificadoresDe, type Frontera, type Obra } from './modelo';
+import type { Frontera, Obra } from './modelo';
 // `definicionesDe` es una sola, la de `./hoja`: había una copia aquí que solo
 // miraba las regiones `math`, y el panel y el grafo discrepaban sobre qué
 // define una hoja en cuanto aparecía un programa.
@@ -389,7 +390,7 @@ export function evaluarObra(obra: Obra, genericas: Genericas = {}): EvaluacionOb
     const mios = new Set(define.get(h.idNodo) ?? []);
     const usa = new Set<string>();
     for (const src of fuentesDeUso(h)) {
-      for (const id of identificadoresDe(src)) {
+      for (const id of simbolosDeFormula(src)) {
         const d = duenio.get(id);
         if (d && d !== h.idNodo && !mios.has(id)) usa.add(id);
       }

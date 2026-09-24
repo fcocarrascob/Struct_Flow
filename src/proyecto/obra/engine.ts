@@ -41,7 +41,6 @@ export {
 } from './biblioteca';
 export * from './ids';
 export {
-  identificadoresDe,
   problemaDeAlias,
   conPublicacion,
   conFormula,

@@ -402,6 +402,22 @@ const CASOS = [
     ok: todas(sinCiclo, sinArista('A', 'B'), esperaArista('B', 'A', 'b_sup'), esperaValor('r', '3 m')),
   },
   {
+    nombre: 'un nombre dentro de un texto de una fórmula no crea una dependencia',
+    // `"area"` es una cadena: la regex de antes la leía como el nombre `area`.
+    obra: obra(calc('A', m('area := 12 m^2')), calc('B', m('etiqueta := "area útil" ='))),
+    ok: todas(sinCiclo, sinArista('A', 'B')),
+  },
+  {
+    nombre: 'la unidad de conversión tras «=» no es un uso, aunque otro nodo defina ese nombre',
+    obra: obra(calc('A', m('m := 5')), calc('B', m('L := 450 cm = m'))),
+    ok: todas(sinCiclo, sinArista('A', 'B'), esperaValor('L', '4.5 m')),
+  },
+  {
+    nombre: 'un nombre no ASCII publicado por un nodo dibuja su flecha',
+    obra: obra(calc('A', m('σ_c := 25 MPa')), calc('B', m('f := σ_c * 2 = MPa'))),
+    ok: todas(esperaArista('A', 'B', 'σ_c'), esperaValor('f', '50 MPa')),
+  },
+  {
     nombre: 'una unidad y una función no son dependencias de nadie',
     obra: obra(calc('A', m('v := sqrt(16) * 1 kN'))),
     ok: todas(sinCiclo, esperaValor('v', '4 kN'), (ev) =>

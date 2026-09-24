@@ -84,8 +84,6 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
   sin nodos por patrón, sin totales R = q·A y con grupos.
 - **Las franjas de «reordenar» no se rotulan.** El nombre del grupo está en la leyenda y en
   cada tarjeta; una banda sin marco se lee por proximidad, y con muchos grupos puede no bastar.
-- **`identificadoresDe` es un tercer léxico** (`modelo.ts`): una regex donde math.js ya sabe
-  analizar. Un nombre dentro de una cadena de texto de una fórmula cuenta como dependencia.
 - **Teclado y foco.** El panel no atrapa el foco ni lleva `role="dialog"`; un nodo no se
   recorre ni se abre sin ratón (React Flow trae navegación propia y no está configurada).
 - **La caché de genéricas es FIFO, no LRU** (`biblioteca.ts`). Con veinte cálculos no se nota.
@@ -166,12 +164,9 @@ Cerrado en la rama `motor-robusto` (ver `evaluarNodo` en `worksheet.ts`). Lo que
 
 ### Un solo lector de nombres
 
-- **Los nombres no ASCII funcionan en el motor y no en sus lectores.** `σ_c` y `año` se definen
-  y se usan bien, pero `simbolos` de `canvas-handoff.ts` y `contrato.ts` (detección de `v_*`)
-  leen `[A-Za-z_]`: faltan flechas en la obra y errores sin detectar. Con `identificadoresDe`
-  (en «Obra») son tres léxicos; la salida es un lector de símbolos sobre `math.parse`,
-  compartido. (`RE_INDEFINIDO` y `unidadesEclipsadas` ya salieron: los reemplazan
-  `nombresSinDefinir` y `unidadesTapadas` del motor.)
+Cerrado (`simbolosDeFormula`). Queda `RE_ENTRADA` de `contrato.ts` en ASCII: es parte del
+contrato de una genérica que el harness también lee para instanciar, así que no se tocó sin
+revisar antes qué acepta el lado de Struct_Harness.
 
 ### Lo demás
 
