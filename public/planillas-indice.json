@@ -12,7 +12,7 @@
       "entradas": 0,
       "salidas": 0,
       "promovible": false,
-      "sha256": "e9745d88337dd7a65755858c6f5c1f4895184b4ceab35bcaa4fe23294acb0d4f"
+      "sha256": "c8ffd4861f29cf0b11fc707b61f8359058e570e480e1334a70289aaa21a15375"
     },
     {
       "slug": "chevron-nch2369",
@@ -25,7 +25,7 @@
       "entradas": 0,
       "salidas": 0,
       "promovible": false,
-      "sha256": "136f707cd93440f43eae260f3269de335ff7000110718d4eb771023eb9da50a3"
+      "sha256": "3bf5193439dde440e81b0a2a490a22b3e4239e4bf030b1819455e17049e72915"
     },
     {
       "slug": "columna-galpon-compresion",
@@ -129,7 +129,7 @@
       "entradas": 0,
       "salidas": 0,
       "promovible": false,
-      "sha256": "4820ac3293d22238abbcff1e34cf621da71cfe0447e2bf984c687c0b9e3b901b"
+      "sha256": "8ce24177339f6894525aa04e97ca4040c620aa18fad0f675bea0e8c838675f84"
     },
     {
       "slug": "ejemplo-analisis-sismico-cepa-nch2369",
@@ -311,7 +311,7 @@
       "entradas": 0,
       "salidas": 0,
       "promovible": false,
-      "sha256": "f3d30bfead5262320a149f6bb6bc2aa9fe12bf149e9de3195591f1796ab59d0c"
+      "sha256": "c2f525b5878dc4bc4eb8dfb63ca9ff9bed9ef5e8cf3a68f62f318e4446e2e95e"
     },
     {
       "slug": "muro-flexocompresion",
@@ -337,7 +337,7 @@
       "entradas": 0,
       "salidas": 0,
       "promovible": false,
-      "sha256": "9b928692c69f4bb0e35ffb63ddf8953b4d0a9d9bd175c612555dcd1e0eeb8a73"
+      "sha256": "07dea802992cefda03bfb60e34cd560b7dba4cc22979ea62ef5740d91fb3c619"
     },
     {
       "slug": "placa-base-rigidez-rotacional",
