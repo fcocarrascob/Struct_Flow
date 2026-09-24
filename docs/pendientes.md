@@ -10,9 +10,9 @@ retirar.
 
 ## Para retomar primero
 
-Lo importante que quedó abierto al cerrar la sesión del 2026-09-23, en la rama
-`grupos-sin-cargas`. La obra de trabajo es `obras/pachon-soldadura`, atada a
-`modelo_prueba.sdb`.
+Lo importante que quedó abierto al cerrar la sesión del 2026-09-24 (la rama
+`grupos-sin-cargas` ya está en `master`). La obra de trabajo es `obras/pachon-soldadura`,
+atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más abajo.
 
 1. **Combinaciones de carga — importantísimo.** El Pachón tiene 165 y no tienen dónde vivir.
    Leerlas del modelo (cada una con sus casos y factores) y justificarlas desde la obra contra
@@ -77,7 +77,7 @@ Lo importante que quedó abierto al cerrar la sesión del 2026-09-23, en la rama
   el `pathname`). Sin enlace a una hoja, ni atrás/adelante entre pestañas.
 - **Una obra migrada pierde sus posiciones.** Los nodos que eran partidas cambian de id de
   nodo (`partida:` → `calculo:`) y el layout guardado ya no los encuentra: abren colocados por
-  grupo y basta con «reordenar» (rama `grupos-sin-cargas`).
+  grupo y basta con «reordenar».
 - **El generador de la auditoría del Pachón (`docs/pachon/auditoria/generar.mjs`) sigue
   escribiendo cargas.** Se lee igual porque el saneo las migra —y `verify:obra` lo usa como caso
   de migración real—, pero no es el formato de la obra. La autocontenida ya está simplificada:
@@ -94,9 +94,8 @@ Lo importante que quedó abierto al cerrar la sesión del 2026-09-23, en la rama
 
 ## SAP2000
 
-**En la rama `grupos-sin-cargas` la comparación de patrones y la aplicación se retiraron** con
-las cargas (`rumbo.md`, «Experimento: el grupo es la única forma de organizar la obra»); lo de
-abajo queda como estaba en `master`, para cuando vuelvan. Lo que hay en la rama:
+**La comparación de patrones y la aplicación se retiraron con las cargas** (2026-09-23,
+`rumbo.md`, «El grupo es la única forma de organizar la obra»). Lo que hay:
 
 - **El nodo SAP2000 lista los patrones y sus cargas asignadas, sin compararlas con nada.** La
   lectura (`/cargas` del puente) cubre distribuidas y puntuales en barras, uniformes en áreas,
@@ -117,7 +116,7 @@ abajo queda como estaba en `master`, para cuando vuelvan. Lo que hay en la rama:
   - **La tolerancia es una sola** para toda carga; no se puede declarar por carga.
 
 Lo que dejó a la vista la primera comparación de Load Patterns contra el modelo del Pachón,
-para la sesión de ajustes:
+antes de retirar las cargas; vale para cuando la comparación vuelva:
 
 - **Una carga de Flow no siempre es un Load Pattern.** `RSX`, `RSY` y `EV` salen «falta en
   SAP» porque en el modelo son casos (espectro, vertical sísmico), no patrones. La carga
@@ -139,32 +138,82 @@ para la sesión de ajustes:
 
 ## Motor
 
+Revisión del 2026-09-24, con gráficos y tablas ya dentro, sondeada contra el motor. Por
+gravedad: lo primero da **números falsos sin error**. Cada arreglo empieza por su caso en
+`verify:motor` y por medir el corpus antes de endurecer.
+
+### Nombres que el motor resuelve solo
+
+Los tres son el mismo mecanismo —qué hacer con un nombre que la hoja no define— y conviene
+atacarlos juntos.
+
+- **Una constante de math.js ocupa el lugar de una variable sin definir.** `phi` vale 1,618 (la
+  razón áurea), así que `phi*Mn` sin φ definido da 1,618·Mn; `E` y `e` valen 2,718
+  (`sigma := E*0.001` da 0,0027); también `tau`, `pi`, `LN2`, `SQRT2`. Pasa además cuando la
+  definición existe pero falla: se retira del scope y lo de abajo toma la constante. El corpus
+  define `E` 14 veces y `phi` 5. Propuesta: un nombre sin definir que resuelve a una constante
+  es error, salvo `pi`; medir antes cuántas regiones usan `pi` o `e` a propósito.
+- **Una unidad ocupa el lugar de una variable sin definir.** `M := q*L^2/8` con `L` sin definir
+  da «0,25 kN·L²/m» (litros); tampoco fallan `A`, `N`, `V`, `T`, `F`, `h` (hora), `t`
+  (tonelada), `g` (gramo), `b` (barn), `s`, `m` ni `Es` (exasegundo: el módulo del acero). Con
+  `A := sqrt(-4)` en rojo, `B := A*2` da «2 A» sin error propio. Y con los prefijos casi
+  cualquier nombre corto es unidad: el corpus define `dA`, `mA`, `mC`, `dT`, `pm`, `Yb`, `qK`,
+  `amp` y `alt`. Propuesta: el aviso inverso al de «unidad tapada» —una unidad escrita fuera de
+  una cantidad literal—; medir antes patrones legítimos como `fc/MPa`.
+- **Dos detectores del mismo problema.** `unidadesEclipsadas` (regex ASCII en
+  `scripts/lib/planilla.mjs`, error en el verificador) y `avisoUnidadTapada` (árbol, en el
+  motor, aviso en la hoja) pueden discrepar. Tiene que quedar uno, en el motor, que cubra
+  también lo de arriba.
+
+### Valores no finitos
+
+- `0/0` da NaN, `1/0` da Infinity, `log(0)` −Infinity y `1 kN/0` «Infinity N», sin error y
+  mal formateados (`Infinity` en cursiva); una comparación con NaN sale ✗ y se lee como un
+  incumplimiento. Propuesta: error, como el complejo (`ERROR_COMPLEJO`); medir el corpus antes.
+- `interp` con un x NaN da un error críptico de math.js (el bucle se pasa del final): falta
+  comprobar que x sea finito.
+
+### Cómo se muestran las unidades (no cambia números, cambia el papel)
+
+- **El prefijo con que se muestra una unidad sin convertir es inestable.** En una misma hoja,
+  `1 * 1 kN/m^2 =` sale «1000 Pa» y `3 kN/m^2 =` «3 kPa»; en la obra autocontenida del Pachón,
+  `pf_min := I_nieve * 1 kN/m^2` sale «1000 Pa» la primera vez y «1 kPa» las siguientes. Una
+  misma hoja no se imprime igual dos veces. **La reproducción mínima ya está** (las dos líneas
+  de arriba): falta el caso en `verify:motor`; hasta entonces, el caso de la carpeta de
+  `verify:obra` evalúa una vez antes de comparar.
 - **math.js simplifica las unidades al mostrarlas**: `5 kN * 2 m =` sale `10 kJ`, un momento
   escrito como energía, y 1.108 kN sale «1,108 MN». Solo se evita con `= kN*m`. Cambiarlo toca
   miles de resultados del corpus y la paginación: necesita su propia medición antes de decidir.
-- **El prefijo con que se muestra una unidad sin convertir depende de lo evaluado antes en el
-  proceso.** En la obra autocontenida del Pachón, `pf_min := I_nieve * 1 kN/m^2` sale «1000 Pa»
-  en la primera evaluación y «1 kPa» en las siguientes, con el mismo valor; y en una hoja suelta
-  `1 * 1 kN/m^2` sale «1000 Pa» mientras `3 kN/m^2` sale «3 kPa». No cambia ningún número, pero
-  hace que una misma hoja no se imprima igual dos veces. Falta la reproducción mínima en
-  `verify:motor`; hasta entonces, el caso de la carpeta de `verify:obra` evalúa una vez antes
-  de comparar.
+- `atan` devuelve un número sin unidad (radianes implícitos).
+
+### Tablas
+
+- **Una coma decimal en una celda la vuelve texto sin aviso**: `0,5` se imprime como si fuera
+  un número y solo falla si la columna se publica; igual `50%`. Propuesta: un aviso en la celda
+  cuando un texto tiene forma de número.
+- **El tope de iteraciones es por celda**: una tabla de 60×12 que llama funciones caras puede
+  gastar 720 veces el tope de una región. Falta un presupuesto por tabla.
+- Una matriz publicada puede mezclar unidades (`1 kN`, `2 m`) y falla recién al usarla
+  (`sum(M)`). Menor; bastaría un aviso.
+
+### Un solo lector de nombres
+
+- **Los nombres no ASCII funcionan en el motor y no en sus lectores.** `σ_c` y `año` se definen
+  y se usan bien, pero `RE_INDEFINIDO` de la obra, `simbolos` de `canvas-handoff.ts`,
+  `unidadesEclipsadas` y `contrato.ts` (detección de `v_*`) leen `[A-Za-z_]`: faltan flechas en
+  la obra y errores sin detectar. Con `identificadoresDe` (en «Obra») son cinco léxicos; la
+  salida es un lector de símbolos sobre `math.parse`, compartido.
+
+### Lo demás
+
 - **Rendimiento de `evaluateSheet`**: ~1,4 s en `muro-flexocompresion` (646 regiones), y
   escala peor que lineal; el coste está casi entero en las regiones `program` (sin ellas,
   14 ms). Sospecha: math.js normaliza el scope en cada `evaluate`; la vía sería llevarlo como
   `Map`. Hay que instrumentarlo desde Node.
 - Un esquema que llama a una función de usuario la evalúa con el scope **final** de la hoja,
   no con el de su posición.
-- NaN e infinitos se formatean mal (`Infinity` en cursiva) y un `0/0` en una región `math` no
-  es error. Los complejos ya lo son (`ERROR_COMPLEJO` en `worksheet.ts`); con `NaN` habría que
-  medir el corpus antes de decidir.
-- **Una variable con nombre de unidad que falla deja paso a la unidad, en silencio.** Con
-  `A := sqrt(-4)` en rojo, `B := A*2` da «2 A» —dos amperios— sin error propio: solo la región
-  de arriba se ve en rojo. Pasa igual con una variable que aún no se definió (`b` es el barn:
-  `b + 1` al menos falla por tipo, pero `2*b` no). El aviso de unidad tapada cubre el sentido
-  contrario (una variable que tapa una unidad), no este.
-- `atan` devuelve un número sin unidad, y `f(x) := …` en una región `math` da «Value expected
-  (char 10)» sin decir que tiene que ir en un `program`.
+- `f(x) := …` en una región `math` da «Value expected (char 10)» sin decir que tiene que ir en
+  un `program`.
 - `ones(20000, 20000)` agota la memoria dentro de math.js, y no es un error atrapable.
 
 ## Módulos de diseño

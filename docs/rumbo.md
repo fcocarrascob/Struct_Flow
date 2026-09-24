@@ -103,7 +103,8 @@ lectura de resultados y de la configuración de diseño, con el mismo criterio.
 
 ## El grupo es la única forma de organizar la obra
 
-**2026-09-23, rama `grupos-sin-cargas`** (por fusionar). La obra tenía dos formas de agrupar
+**2026-09-23, rama `grupos-sin-cargas`**, fusionada en `master` el 2026-09-24 tras probarla
+con el Pachón. La obra tenía dos formas de agrupar
 que competían: la jerarquía de cargas —el nodo «Cargas» → la carga → sus partidas, con plegado
 cuando había una sola— y el `Grupo` del usuario, que solo pintaba una franja. Para el motor una
 partida ya era un cálculo más; lo que añadía la carga era jerarquía visual y el Load Pattern de
@@ -114,7 +115,7 @@ partidas solo se podía asignar desde una partida.
   (`migrarCargas` de `almacen.ts`): cada partida pasa a ser un cálculo con su mismo id y su
   misma hoja, detrás de los que ya había; una carga de una partida le da su nombre, y una de
   varias, su grupo. Las dos obras del Pachón dan los mismos resultados, región por región, que
-  en `master`.
+  antes del cambio.
 - **«Reordenar» arma franjas por grupo** (`colocarPorGrupo` de `layout.ts`): una banda
   horizontal por grupo, en el orden de la lista, y los sin grupo al final. La columna se
   calcula sobre la obra entera, así que una flecha entre grupos sigue yendo a la derecha. No
