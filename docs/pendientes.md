@@ -8,6 +8,34 @@ Una entrada marcada **(muere con el flujo lineal)** desaparece cuando la hoja pi
 (`rumbo.md`, «La hoja va hacia el flujo lineal»): arreglarla antes es afinar algo que se va a
 retirar.
 
+## Para retomar primero
+
+Lo importante que quedó abierto al cerrar la sesión del 2026-09-23, en la rama
+`grupos-sin-cargas`. La obra de trabajo es `obras/pachon-soldadura`, atada a
+`modelo_prueba.sdb`.
+
+1. **Combinaciones de carga — importantísimo.** El Pachón tiene 165 y no tienen dónde vivir.
+   Leerlas del modelo (cada una con sus casos y factores) y justificarlas desde la obra contra
+   la norma que la obra cita (CIRSOC 301 B.2). Por decidir: cómo se escribe una familia de
+   combinaciones en la obra —165 no se atan una por una—; probablemente una hoja que las genera
+   desde las reglas y el nodo SAP2000 compara la lista entera (`rumbo.md`, etapa 6).
+2. **Segunda pestaña del nodo SAP2000: los Load Cases.** El espectro de respuesta se mueve ahí,
+   porque es un caso. Agregar el **amortiguamiento** y la **combinación modal** como cosas
+   justificables (hoy solo se muestran), y los demás casos (modal, estáticos) con sus patrones
+   y factores. El puente ya lee amortiguamiento y combinación en `/espectro`.
+3. **Masa sísmica.** Leer la fuente de masa del modelo (`SourceMass.GetMassSource`: qué patrones
+   y con qué factor) y justificarla. En el Pachón el modelo lleva S con 0,5, que es el `f2` que
+   la obra perdió al retirar «Casos de carga y fuente de masa»; tiene que volver a estar
+   escrito en algún nodo (el del espectro es el candidato).
+4. **Gráficos y tablas en las hojas.** Bloque tabla (celdas con expresiones) y bloque gráfico
+   (una función o una serie sobre un rango, en SVG, igual en pantalla y en el PDF); el caso que
+   lo pide primero es el espectro, con la curva de la obra y la del modelo juntas. Son regiones
+   nuevas del motor: tocan `src/lib`, `render-html.ts` y `verify:motor`, y obligan a resellar
+   (`rumbo.md`, etapa 4).
+5. **El defecto del motor con el prefijo de las unidades** (abajo, en «Motor»): el mismo valor
+   se muestra «1000 Pa» o «1 kPa» según lo evaluado antes en el proceso. Empieza por su caso
+   en `verify:motor`; hoy `verify:obra` lo esquiva con una evaluación de calentamiento.
+
 ## Obra
 
 - **Sin servidor, dos pestañas con la misma obra se siguen pisando.** El candado es del
@@ -50,10 +78,6 @@ retirar.
   escribiendo cargas.** Se lee igual porque el saneo las migra —y `verify:obra` lo usa como caso
   de migración real—, pero no es el formato de la obra. La autocontenida ya está simplificada:
   sin nodos por patrón, sin totales R = q·A y con grupos.
-- **La fuente de masa quedó sin respaldo en la obra autocontenida.** «Casos de carga y fuente
-  de masa» se retiró con los totales, y con él `f2 = 0,50` (la fracción de la nieve en la
-  masa). Es un dato del modelo, no una carga: vuelve cuando el nodo SAP2000 lea la fuente de
-  masa.
 - **Las franjas de «reordenar» no se rotulan.** El nombre del grupo está en la leyenda y en
   cada tarjeta; una banda sin marco se lee por proximidad, y con muchos grupos puede no bastar.
 - **`identificadoresDe` es un tercer léxico** (`modelo.ts`): una regex donde math.js ya sabe
@@ -83,9 +107,8 @@ abajo queda como estaba en `master`, para cuando vuelvan. Lo que hay en la rama:
   en `sap-cargas.ts` con la conversión de los campos atados y una tolerancia de 0,5 %). Queda
   abierto:
   - **El espectro se lee y se justifica** (el factor de escala de cada dirección y la función,
-    comparada en todos sus puntos con una función que publique la obra), pero no el resto del
-    caso: el amortiguamiento, la combinación modal y el caso modal se muestran sin comparar,
-    y la fuente de masa ni se lee.
+    comparada en todos sus puntos con una función que publique la obra). El resto del caso y la
+    masa sísmica están en «Para retomar primero».
   - **El campo no autocompleta** los nombres de la obra, al revés que una fórmula de la hoja.
   - **Una carga de dos valores** (distribuida trapezoidal) solo justifica el primero.
   - **Una justificación huérfana** (su carga cambió de valor y hay más de una candidata, o se

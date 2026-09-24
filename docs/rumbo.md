@@ -84,8 +84,9 @@ lectura de resultados y de la configuración de diseño, con el mismo criterio.
   verifica lo que dejó: dos caminos, que es lo que da valor a la verificación.
 - **Flow no calcula resultantes.** Quien quiera controlar una la escribe en una variable de la
   obra y la compara a mano.
-- Lo que Flow sí trae **a la obra** —los patrones que no tenía, el tipo y el peso propio de los
-  que no lo decían— no cambia: escribe en la obra, no en el modelo.
+- **Flow tampoco declara el modelo.** Hubo un tiempo en que la obra decía qué patrones debía
+  tener SAP y los comparaba («Flow manda»); se retiró con las cargas. Ahora el modelo es lo
+  que es, y la obra lo **justifica**: ver «El modelo se justifica desde la obra».
 
 ## Lo que no se toca
 
@@ -100,31 +101,60 @@ lectura de resultados y de la configuración de diseño, con el mismo criterio.
   clase del nodo, la franja el grupo del usuario y la bandera ⚑ la marca «Revisar». Un canal
   nuevo no reutiliza uno existente.
 
-## Experimento: el grupo es la única forma de organizar la obra
+## El grupo es la única forma de organizar la obra
 
-**2026-09-23, rama `grupos-sin-cargas`.** La obra tenía dos formas de agrupar que competían: la
-jerarquía de cargas —el nodo «Cargas» → la carga → sus partidas, con plegado cuando había una
-sola— y el `Grupo` del usuario, que solo pintaba una franja. Para el motor una partida ya era
-un cálculo más (`nodosDeLaObra` las ponía detrás de los cálculos); lo que añadía la carga era
-jerarquía visual y el Load Pattern de SAP. Las líneas del nodo «Cargas» cruzaban el lienzo, y
-el grupo de una carga de varias partidas solo se podía asignar desde una partida.
+**2026-09-23, rama `grupos-sin-cargas`** (por fusionar). La obra tenía dos formas de agrupar
+que competían: la jerarquía de cargas —el nodo «Cargas» → la carga → sus partidas, con plegado
+cuando había una sola— y el `Grupo` del usuario, que solo pintaba una franja. Para el motor una
+partida ya era un cálculo más; lo que añadía la carga era jerarquía visual y el Load Pattern de
+SAP. Las líneas del nodo «Cargas» cruzaban el lienzo, y el grupo de una carga de varias
+partidas solo se podía asignar desde una partida.
 
-En la rama:
-
-- **No hay cargas.** Todo nodo con hoja es un cálculo. Una obra anterior se migra al leerla
+- **No hay cargas: todo nodo con hoja es un cálculo.** Una obra anterior se migra al leerla
   (`migrarCargas` de `almacen.ts`): cada partida pasa a ser un cálculo con su mismo id y su
   misma hoja, detrás de los que ya había; una carga de una partida le da su nombre, y una de
-  varias, su grupo (se crea uno con su nombre si no lo tenía). Las dos obras del Pachón dan los
-  mismos resultados, región por región, que en `master`.
+  varias, su grupo. Las dos obras del Pachón dan los mismos resultados, región por región, que
+  en `master`.
 - **«Reordenar» arma franjas por grupo** (`colocarPorGrupo` de `layout.ts`): una banda
   horizontal por grupo, en el orden de la lista, y los sin grupo al final. La columna se
   calcula sobre la obra entera, así que una flecha entre grupos sigue yendo a la derecha. No
   se dibuja marco: el grupo ya tiene su canal, la franja de la tarjeta.
-- **Se retiró lo de SAP que colgaba de la carga**: el Load Pattern, la comparación de
-  patrones y la aplicación de una partida sobre un grupo del modelo. El nodo SAP2000 queda en
-  la conexión. Si el experimento se fusiona, hay que decidir de qué cuelga un patrón —un grupo
-  es el candidato natural: un grupo con patrón ES un Load Pattern—, y reescribir las etapas 2
-  y 6, que todavía hablan de cargas.
+- **Un valor que va al modelo vive en el nodo que lo calcula.** Nada de un nodo por patrón, de
+  alias (`pw_barl_XP := pw_barl`), de totales R = q·A ni de un «resumen de cargas»: el nodo
+  SAP2000 los reemplaza a todos, porque es él quien contrasta cada valor con lo asignado. La
+  obra del taller del Pachón pasó de 34 nodos a 11, en seis grupos (sitio, cargas permanentes
+  y sobrecargas, viento, elementos secundarios, puente grúa, sismo), sin cambiar un número.
+
+## El modelo se justifica desde la obra
+
+**2026-09-23, rama `grupos-sin-cargas`.** La idea es simple: **usar el valor de una variable de
+la obra para justificar un valor asignado en el modelo.** El nodo SAP2000 lee el modelo tal
+como está —no lo declara ni lo corrige— y el ingeniero ata cada cosa leída a una expresión de
+la obra; Flow dice si coincide.
+
+- **Qué se lee** (`puente-sap/puente.py`, solo lectura, siempre en kN-m-°C): los Load
+  Patterns (nombre, tipo, SWF), las cargas asignadas de cada patrón agrupadas por valor
+  (distribuidas y puntuales en barras, uniformes en áreas, áreas a barras, fuerzas en nudos,
+  temperatura) y el espectro de respuesta (cada caso con su dirección, función, factor de
+  escala, amortiguamiento y combinación modal, y los puntos de sus funciones).
+- **La justificación es de la obra** (`obra.justificaciones`), no de la lectura: entra en el
+  historial y viaja con la carpeta. Encuentra su carga por patrón y firma —todo menos el valor—,
+  así que un valor cambiado en SAP no la suelta: la deja en rojo diciendo en cuánto se aparta.
+- **La comparación la hace el motor**, con la misma conversión que un campo atado y 0,5 % de
+  tolerancia: `q_cub := 10 kgf/m^2` coincide con los 0,0981 kN/m² del modelo. Una función del
+  espectro se compara **en todos sus puntos** contra una función que publique la obra
+  (`Sa_esp`), no en una muestra.
+- **El nodo SAP2000 recibe flechas** de los nodos que definen lo que las justificaciones
+  nombran, y se pinta en rojo si algo no coincide. En el Pachón: 21 de 72 justificados; el
+  viento, CLV y CLL del modelo de prueba no coinciden con la obra, que es justo lo que el
+  ingeniero tiene que revisar.
+- **Las unidades en que se muestra el modelo** (kN o tonf) son una elección de la obra
+  (`unidadesSap`) y solo de presentación: se lee, se guarda y se compara siempre en kN.
+
+Lo que sigue en esta línea, en orden: los **Load Cases** en una pestaña propia del nodo
+SAP2000 (el espectro se mueve ahí, porque es un caso, con su amortiguamiento y su combinación
+modal justificables), la **masa sísmica** y las **combinaciones de carga**, que son lo más
+importante que falta (etapa 6).
 
 ## La hoja va hacia el flujo lineal
 
@@ -183,24 +213,17 @@ antes de dar el siguiente:
 
 1. Conectarse al SAP2000 abierto y mostrar el nombre del modelo — **hecho** (2026-09-23).
    Solo se engancha y lee: no lanza SAP, no guarda ni analiza, y se niega con dos instancias.
-1. **Las cargas son Load Patterns, y Flow manda** — primer paso **hecho** (2026-09-23): cada
-   carga lleva su tipo SAP y su multiplicador de peso propio, y el nodo SAP2000 lee los patrones
-   del modelo y dice en qué se aparta de la obra (igual, difiere, sin definir, falta en SAP,
-   solo en SAP), más el peso propio en ninguna o en dos cargas. Un patrón no tiene valor: los
-   valores van en los objetos, y eso es otro paso. **Traer de SAP** también está hecho: la
-   comparación crea en la obra las cargas que solo están en el modelo y adopta el patrón de las
-   que Flow no definía, sin pisar nunca uno que Flow ya define. Un patrón que difiere o falta
-   se corrige **en SAP** («Flow no escribe en el modelo»); el nombre de una carga sugiere los
-   patrones leídos que la obra todavía no tiene.
-1. **La aplicación de una partida sobre los objetos** — **hecho** (2026-09-23): cada partida
-   dice sobre qué **grupo** del modelo va (uno solo, para que cada componente sea su partida),
-   si es área repartida a barras o distribuida en barra, la dirección y la distribución, y su
-   valor convertido a kN/m² o kN/m por el motor —una dimensión que no cuadra es un error—. Es
-   la instrucción para quien aplica la carga. El nodo SAP2000 lee los grupos y compara cada
-   aplicación con lo que su patrón tiene hoy sobre el grupo, objeto por objeto: dos partidas
-   del mismo patrón y grupo esperan las dos cargas en cada objeto. Falta cubrir lo que el
-   Pachón usa y esto no: cargas puntuales (grúa), un patrón por posición (`CLV_P1…P4`) y
-   franjas de viento.
+1. **Los Load Patterns y sus cargas asignadas, justificados desde la obra** — **hecho**
+   (2026-09-23, rama `grupos-sin-cargas`): ver «El modelo se justifica desde la obra». Reemplaza
+   al camino anterior —la obra declaraba los patrones y la aplicación de cada partida sobre un
+   grupo del modelo—, que se retiró con las cargas.
+1. **El espectro de respuesta** — **hecho** (2026-09-23): el factor de escala de cada dirección
+   y la función, comparada en todos sus puntos.
+1. **Los Load Cases, en una pestaña propia del nodo SAP2000** — **siguiente**. El espectro se
+   mueve ahí, porque es un caso; se agregan el amortiguamiento y la combinación modal como
+   cosas justificables, y los demás casos (estáticos, modal) con sus patrones y factores.
+1. **La masa sísmica**: la fuente de masa del modelo (qué patrones y con qué factor; en el
+   Pachón, S con 0,5) contra la obra.
 2. Leer lo medido (reacciones por caso, periodos, cortes basales) con su sello, y publicarlo
    como nombres que las hojas usan en vez de copiarlos a mano. **Exige un modelo analizado**:
    las tablas de uno sin analizar devuelven ceros, no vacío, y un cero parece un dato.
@@ -216,11 +239,13 @@ desaparece el alto estimado de cada bloque que hoy obliga a los generadores a ca
 
 La obra muestra relaciones; falta que muestre **números** sin entrar a cada hoja.
 
-- **Bloque tabla** en la hoja: celdas con expresiones y encabezados. Para el resumen de lo
-  que va al modelo (en el Pachón son 55 líneas `x = unidad`) y para las tablas de norma con
-  interpolación (el `Cp_cub` de la Fig. 3 del CIRSOC 102 es un `program` con `if/else`).
+- **Bloque tabla** en la hoja: celdas con expresiones y encabezados. Para las tablas de norma
+  con interpolación (el `Cp_cub` de la Fig. 3 del CIRSOC 102 es un `program` con `if/else`) y
+  para presentar juntos los valores de una familia (las presiones de viento por cara y
+  franja). El resumen de lo que va al modelo ya no hace falta: lo hace el nodo SAP2000.
 - **Bloque gráfico**: una función o una serie sobre un rango, en SVG, igual en el canvas y en
-  el PDF. El caso que lo pide es el espectro Sa(T).
+  el PDF. El caso que lo pide es el espectro Sa(T), que ahora además se compara con el del
+  modelo punto a punto: el gráfico mostraría las dos curvas.
 - **Valores en la tarjeta**: la tarjeta del grafo se expande con lo que el nodo publica.
 - **Nodo Datos**: una grilla nombre · valor · unidad · fuente que por dentro genera
   `x := valor`. Los supuestos y datos de entrada de una obra, con su cita en una columna.
@@ -240,21 +265,23 @@ shas y sellos y nunca cambia sola.
 - **Plantillas por cliente**: carátula, codificación, tabla de revisiones y firmas.
 - El PDF sale del documento de impresión de hoy; un Word como salida, nunca como fuente.
 
-### 6. La carga aplicada, los casos, las combinaciones y el puente con SAP2000
+### 6. Las combinaciones de carga, los casos y el puente con SAP2000
 
-- **La aplicación de una carga** —grupo, tipo, dirección— ya es parte de la partida (etapa 2).
-  Falta lo que el Pachón usa: cargas puntuales, un patrón por posición y franjas.
-- **Casos**: `RSX`, `RSY` y `EV` son casos y no patrones; la función de espectro, sus factores
-  de escala y la fuente de masa se declaran en Flow y se comparan con los del modelo.
-- **Combinaciones**: un módulo que cita las cargas por su nombre, que ya es su identificador.
-  En el Pachón son 165 y hoy no tienen dónde vivir. Se declaran en Flow y se comparan con las
-  que tiene el modelo, término por término.
+- **Combinaciones — lo más importante que falta.** En el Pachón son 165 y hoy no tienen dónde
+  vivir. Siguen el mismo criterio que el resto: se leen del modelo (cada combinación con sus
+  casos y factores) y se justifican desde la obra, término por término, contra la norma de
+  combinaciones que la obra cita (CIRSOC 301 B.2 en el Pachón). Queda por decidir cómo se
+  escribe en la obra una familia de combinaciones —165 filas no se justifican una por una—:
+  probablemente una hoja que genera la lista desde las reglas de la norma, y el nodo SAP2000
+  la compara entera.
+- **Casos**: la pestaña de Load Cases de la etapa 2 (espectro, modal, estáticos) y la masa
+  sísmica, con lo que el espectro ya tiene: todo lo leído se justifica con la obra.
 - **El puente**: un servicio local en Python (comtypes) al que la aplicación habla por
-  `localhost`. **Trae, no empuja** («Flow no escribe en el modelo»): patrones, grupos, cargas
-  aplicadas, casos, combinaciones y, después, reacciones y esfuerzos con el sello del modelo.
-  Si el modelo cambió después de verificarlo, la verificación se marca atrasada, igual que una
-  instancia cuya genérica avanzó. La API de ETABS es casi la misma, así que el puente sirve
-  también para ETABS.
+  `localhost`. **Trae, no empuja** («Flow no escribe en el modelo»): patrones, cargas
+  asignadas y espectro ya; casos, masa y combinaciones después, y más tarde reacciones y
+  esfuerzos con el sello del modelo. Si el modelo cambió después de verificarlo, la
+  verificación se marca atrasada, igual que una instancia cuya genérica avanzó. La API de ETABS
+  es casi la misma, así que el puente sirve también para ETABS.
 
 ### 7. La navegación cuelga de la obra, y el lanzamiento
 
@@ -292,15 +319,15 @@ el scope de la obra; con frontera tiene scope propio y procedencia (`biblioteca`
 | Tipo | Evalúa | Publica | Estado |
 |---|---|---|---|
 | Cálculo (hoja libre o genérica instanciada) | sí | sus salidas | existe |
-| Cargas | no | el catálogo de la obra | existe como paneles |
 | Datos (grilla con fuente) | sí | cada fila | etapa 4 |
 | Nota o documento (texto, criterio, PDF adjunto) | no | se cita en un informe | por decidir |
-| Modelo SAP | no | lo que se lee del modelo | etapas 2 y 6 |
+| Modelo SAP | no; justifica lo que lee | por ahora nada; después lo medido | existe (patrones, cargas, espectro); etapas 2 y 6 |
 | Informe | no | nada: consume y congela | etapa 5 |
 
-El orden topológico sigue siendo el orden de lectura; los tipos que no evalúan solo ocupan su
-lugar en él. La clase que se dibuja en la tarjeta (carga, cálculo, biblioteca, resumen) **se
-deriva** de esto y no se declara.
+Ya no hay nodo de cargas: una carga es un cálculo, o un grupo de ellos («El grupo es la única
+forma de organizar la obra»). El orden topológico sigue siendo el orden de lectura; los tipos
+que no evalúan solo ocupan su lugar en él. La clase que se dibuja en la tarjeta (cálculo,
+biblioteca, resumen, modelo) **se deriva** de esto y no se declara.
 
 ## Lo que enseñó el Pachón
 
