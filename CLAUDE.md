@@ -18,6 +18,7 @@ npm run verify:planillas # evalúa las 33 planillas de public/planillas/
 npm run verify:planilla -- <archivo.json> [--md]
 npm run verify:modulos   # evalúa los módulos de diseño (TS y declarativos) y sus memorias exportadas
 npm run verify:motor     # casos de regresión del motor: hojas mínimas con su resultado
+npm run huella:motor -- [--salida <base.json>] [--comparar <base.json>]  # qué regiones del corpus cambia un arreglo
 npm run verify:biblioteca          # el contrato de genérica y los casos de public/biblioteca/
 npm run verify:obra                # el grafo de cálculo de una obra, su carpeta y el servidor de obras
 npm run obras                      # el servidor de obras suelto (npm run dev ya lo monta)
