@@ -82,7 +82,10 @@ abajo queda como estaba en `master`, para cuando vuelvan. Lo que hay en la rama:
 - **Una carga se justifica con una expresión de la obra** (`obra.justificaciones`, verificada
   en `sap-cargas.ts` con la conversión de los campos atados y una tolerancia de 0,5 %). Queda
   abierto:
-  - **El espectro** no se lee ni se compara todavía.
+  - **El espectro se lee y se justifica** (el factor de escala de cada dirección y la función,
+    comparada en todos sus puntos con una función que publique la obra), pero no el resto del
+    caso: el amortiguamiento, la combinación modal y el caso modal se muestran sin comparar,
+    y la fuente de masa ni se lee.
   - **El campo no autocompleta** los nombres de la obra, al revés que una fórmula de la hoja.
   - **Una carga de dos valores** (distribuida trapezoidal) solo justifica el primero.
   - **Una justificación huérfana** (su carga cambió de valor y hay más de una candidata, o se

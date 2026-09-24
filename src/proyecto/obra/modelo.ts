@@ -253,6 +253,43 @@ export interface ConexionSap {
   patrones?: LecturaPatrones;
   /** La última lectura de las cargas asignadas, por patrón. */
   cargas?: LecturaCargas;
+  /** La última lectura de los casos de espectro y las funciones que usan. */
+  espectro?: LecturaEspectro;
+}
+
+/** Una dirección de un caso de espectro de respuesta. */
+export interface CargaEspectro {
+  /** `U1`, `U2`, `U3`. */
+  dir: string;
+  funcion: string;
+  /** Factor de escala, en m/s² (el puente lee en kN-m). */
+  sf: number;
+  csys: string;
+  angulo: number;
+}
+
+export interface CasoEspectro {
+  nombre: string;
+  modal: string;
+  /** `CQC`, `SRSS`… */
+  combinacion: string;
+  amortiguamiento: number;
+  cargas: CargaEspectro[];
+}
+
+/** Una función de espectro: pares (T en s, Sa en fracciones de g). */
+export interface FuncionEspectro {
+  nombre: string;
+  puntos: [number, number][];
+}
+
+export interface LecturaEspectro {
+  modelo: string;
+  /** ISO. */
+  leido: string;
+  casos: CasoEspectro[];
+  /** Solo las que usa algún caso. */
+  funciones: FuncionEspectro[];
 }
 
 /** Cómo está aplicada una carga en el modelo. */
@@ -350,6 +387,16 @@ export interface Obra {
  */
 export interface Justificacion {
   id: string;
+  /**
+   * Qué se justifica. Sin ella, una carga asignada (`patron` y `firma` la
+   * encuentran en `sap.cargas`). Las del espectro se encuentran en `sap.espectro`:
+   * - `factor-espectro`: el factor de escala de una dirección de un caso;
+   *   `patron` es el caso y `firma` la dirección (`U1`).
+   * - `funcion-espectro`: una función de espectro, comparada en todos sus puntos;
+   *   `patron` es la función. La expresión nombra una función de la obra de un
+   *   periodo: `Sa_esp`.
+   */
+  clase?: 'factor-espectro' | 'funcion-espectro';
   patron: string;
   firma: string;
   valor: number;

@@ -1,14 +1,24 @@
 import { Fragment, useState } from 'react';
-import type { CargaAsignada, ConexionSap, Justificacion, LecturaCargas, LecturaPatrones } from './modelo';
+import type {
+  CargaAsignada,
+  ConexionSap,
+  Justificacion,
+  LecturaCargas,
+  LecturaEspectro,
+  LecturaPatrones,
+} from './modelo';
 import {
   cargaDe,
   cargasPorPatron,
   cifra,
   comoDe,
+  esDeEspectro,
   justificacionDe,
   objetosDe,
   valorDe,
   verificar,
+  verificarEspectro,
+  type Verificacion,
 } from './sap-cargas';
 import { useEscape } from './useEscape';
 
@@ -63,6 +73,7 @@ const numero = (n: number): string => String(n).replace('.', ',');
 export interface LecturaSap {
   patrones: LecturaPatrones;
   cargas?: LecturaCargas;
+  espectro?: LecturaEspectro;
 }
 
 /** Lo que hace falta para justificar: la obra, sus justificaciones y el gesto. */
@@ -72,6 +83,156 @@ export interface Justificar {
   /** Ata la carga a la expresión, o la desata con `undefined`. `actual` es la
    *  justificación que ya tenía, si la tenía. */
   onJustificar: (carga: CargaAsignada, expr: string | undefined, actual: Justificacion | undefined) => void;
+  /** Lo mismo para el espectro: `que` dice qué se ata, con los campos de la
+   *  justificación que lo identifican. */
+  onJustificarEspectro: (
+    que: Pick<Justificacion, 'clase' | 'patron' | 'firma' | 'valor'>,
+    expr: string | undefined,
+    actual: Justificacion | undefined,
+  ) => void;
+}
+
+/**
+ * Un campo para escribir la expresión que respalda algo del modelo, con su
+ * veredicto debajo. Se aplica al salir del campo o con Enter, como un campo
+ * atado: una expresión a medio escribir no tiene nada que verificar.
+ */
+function CampoJustificacion({
+  j,
+  v,
+  etiqueta,
+  placeholder,
+  onCambiar,
+}: {
+  j: Justificacion | undefined;
+  v: Verificacion | undefined;
+  etiqueta: string;
+  placeholder: string;
+  onCambiar: (expr: string | undefined) => void;
+}) {
+  return (
+    <>
+      <div className="mt-0.5 flex items-center gap-1.5">
+        <span
+          className={`w-3 shrink-0 text-center ${!v ? 'text-muted' : v.estado === 'coincide' ? 'text-emerald-600' : 'text-error'}`}
+          aria-hidden
+        >
+          {!v ? '·' : v.estado === 'coincide' ? '✓' : '✗'}
+        </span>
+        <input
+          type="text"
+          key={`${j?.id ?? 'nueva'}:${j?.expr ?? ''}`}
+          defaultValue={j?.expr ?? ''}
+          onBlur={(e) => {
+            const t = e.target.value.trim();
+            if (t !== (j?.expr ?? '')) onCambiar(t || undefined);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.currentTarget.blur();
+          }}
+          placeholder={placeholder}
+          aria-label={etiqueta}
+          className="min-w-0 flex-1 rounded border border-border px-1.5 py-0.5 font-mono text-[10px] text-ink outline-none placeholder:font-sans placeholder:text-muted/70 focus:border-accent"
+        />
+      </div>
+      {v && <p className={`ml-[18px] mt-0.5 ${v.estado === 'coincide' ? 'text-muted' : 'text-error'}`}>{v.detalle}</p>}
+    </>
+  );
+}
+
+/**
+ * Los casos de espectro de respuesta del modelo y las funciones que usan.
+ *
+ * Cada dirección de un caso se justifica por su factor de escala (en m/s²), y
+ * cada función por una función de la obra de un periodo —la que publica el nodo
+ * del espectro, `Sa_esp`—, que se compara en todos los puntos del modelo.
+ */
+function EspectroSap({ lectura, justificar }: { lectura: LecturaEspectro; justificar: Justificar }) {
+  const buscar = (clase: Justificacion['clase'], patron: string, firma: string) =>
+    justificar.justificaciones.find((j) => j.clase === clase && j.patron === patron && j.firma === firma);
+  const huerfanas = justificar.justificaciones.filter(
+    (j) => esDeEspectro(j) && !verificarEspectro(j, lectura, justificar.scope),
+  );
+  const rango = (p: [number, number][]) =>
+    p.length ? `${p.length} puntos, T de ${cifra(p[0][0])} a ${cifra(p[p.length - 1][0])} s` : 'sin puntos';
+
+  return (
+    <section className="border-t border-border px-5 py-4">
+      <h3 className="mb-2 text-xs font-semibold text-ink">Espectro de respuesta</h3>
+      {lectura.casos.length === 0 ? (
+        <p className="text-[11px] leading-snug text-muted">El modelo no tiene casos de espectro de respuesta.</p>
+      ) : (
+        <>
+          <ul className="space-y-2.5">
+            {lectura.casos.map((c) => (
+              <li key={c.nombre} className="text-[11px]">
+                <p className="flex flex-wrap items-baseline gap-x-2">
+                  <span className="font-mono font-semibold text-ink">{c.nombre}</span>
+                  <span className="text-muted">
+                    {c.combinacion} · {cifra(c.amortiguamiento * 100)} % de amortiguamiento · modal {c.modal || '—'}
+                  </span>
+                </p>
+                <ul className="mt-1 space-y-1.5 border-l border-border pl-2">
+                  {c.cargas.map((k) => {
+                    const que = { clase: 'factor-espectro' as const, patron: c.nombre, firma: k.dir, valor: k.sf };
+                    const j = buscar(que.clase, que.patron, que.firma);
+                    return (
+                      <li key={k.dir} className="text-[10px] leading-snug">
+                        <div className="flex flex-wrap items-baseline gap-x-2">
+                          <span className="font-mono text-ink">SF {cifra(k.sf)} m/s²</span>
+                          <span className="text-muted">
+                            {k.dir} · función {k.funcion}
+                            {k.csys && k.csys.toUpperCase() !== 'GLOBAL' ? ` · ${k.csys}` : ''}
+                            {k.angulo ? ` · ${cifra(k.angulo)}°` : ''}
+                          </span>
+                        </div>
+                        <CampoJustificacion
+                          j={j}
+                          v={j ? verificarEspectro(j, lectura, justificar.scope) : undefined}
+                          etiqueta={`Expresión que justifica el factor de escala de ${c.nombre} en ${k.dir}`}
+                          placeholder="justificar el factor, por ejemplo SF_RSX"
+                          onCambiar={(expr) => justificar.onJustificarEspectro(que, expr, j)}
+                        />
+                      </li>
+                    );
+                  })}
+                </ul>
+              </li>
+            ))}
+          </ul>
+
+          <h4 className="mb-1 mt-4 text-[10px] font-semibold uppercase tracking-wide text-muted">Funciones que usan</h4>
+          <ul className="space-y-1.5">
+            {lectura.funciones.map((f) => {
+              const que = { clase: 'funcion-espectro' as const, patron: f.nombre, firma: 'funcion', valor: f.puntos.length };
+              const j = buscar(que.clase, que.patron, que.firma);
+              return (
+                <li key={f.nombre} className="text-[10px] leading-snug">
+                  <div className="flex flex-wrap items-baseline gap-x-2">
+                    <span className="font-mono text-ink">{f.nombre}</span>
+                    <span className="text-muted">{rango(f.puntos)}</span>
+                  </div>
+                  <CampoJustificacion
+                    j={j}
+                    v={j ? verificarEspectro(j, lectura, justificar.scope) : undefined}
+                    etiqueta={`Función de la obra que justifica ${f.nombre}`}
+                    placeholder="justificar con una función de la obra, por ejemplo Sa_esp"
+                    onCambiar={(expr) => justificar.onJustificarEspectro(que, expr, j)}
+                  />
+                </li>
+              );
+            })}
+          </ul>
+          {huerfanas.length > 0 && (
+            <p className="mt-2 text-[10px] text-aviso">
+              {huerfanas.length} justificación(es) del espectro ya no encuentran su caso o su función en el modelo
+              leído: {huerfanas.map((j) => j.patron).join(', ')}.
+            </p>
+          )}
+        </>
+      )}
+    </section>
+  );
 }
 
 /**
@@ -214,7 +375,7 @@ function PatronesSap({
   const [abiertos, setAbiertos] = useState<ReadonlySet<string>>(new Set());
   const todas = cargas?.lista ?? [];
   const porPatron = cargasPorPatron(todas);
-  const huerfanas = justificar.justificaciones.filter((j) => !cargaDe(j, todas));
+  const huerfanas = justificar.justificaciones.filter((j) => !esDeEspectro(j) && !cargaDe(j, todas));
   /** Por patrón: cuántas cargas coinciden y si alguna no. */
   const estadoDe = (suyas: readonly CargaAsignada[]) => {
     let ok = 0;
@@ -369,13 +530,22 @@ export default function PanelSap({
       const p = await alPuente<{ modelo?: string; patrones?: LecturaPatrones['lista'] }>('/patrones');
       const patrones = { modelo: p.modelo ?? '', leido: new Date().toISOString(), lista: p.patrones ?? [] };
       let cargas: LecturaCargas | undefined;
+      let espectro: LecturaEspectro | undefined;
+      const fallos: string[] = [];
       try {
         const c = await alPuente<{ modelo?: string; cargas?: LecturaCargas['lista'] }>('/cargas');
         cargas = { modelo: c.modelo ?? '', leido: new Date().toISOString(), lista: c.cargas ?? [] };
       } catch (e) {
-        setErrorPatrones(`Las cargas asignadas no se pudieron leer: ${(e as Error).message}`);
+        fallos.push(`Las cargas asignadas no se pudieron leer: ${(e as Error).message}`);
       }
-      onLeido({ patrones, ...(cargas ? { cargas } : {}) });
+      try {
+        const s = await alPuente<Omit<LecturaEspectro, 'leido'>>('/espectro');
+        espectro = { modelo: s.modelo ?? '', leido: new Date().toISOString(), casos: s.casos ?? [], funciones: s.funciones ?? [] };
+      } catch (e) {
+        fallos.push(`El espectro no se pudo leer: ${(e as Error).message}`);
+      }
+      if (fallos.length) setErrorPatrones(fallos.join(' '));
+      onLeido({ patrones, ...(cargas ? { cargas } : {}), ...(espectro ? { espectro } : {}) });
     } catch (e) {
       setErrorPatrones((e as Error).message);
     } finally {
@@ -471,6 +641,7 @@ export default function PanelSap({
           onQuitarJustificacion={onQuitarJustificacion}
         />
       )}
+      {sap?.espectro && <EspectroSap lectura={sap.espectro} justificar={justificar} />}
     </aside>
   );
 }

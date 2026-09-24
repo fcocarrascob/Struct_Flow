@@ -63,6 +63,9 @@ export {
   firmaDe,
   cargaDe,
   verificar,
+  verificarFactor,
+  verificarFuncion,
+  verificarEspectro,
   resumirJustificaciones,
 } from './sap-cargas';
 

@@ -70,6 +70,9 @@ const {
   firmaDe,
   cargaDe,
   verificar,
+  verificarFactor,
+  verificarFuncion,
+  resumirJustificaciones,
 } = motor;
 
 // ── Armar una obra ───────────────────────────────────────────────────────────
@@ -779,7 +782,78 @@ const CASOS = [
 // Funciones puras que no son ni una obra evaluada ni un saneo: dónde cae un
 // bloque nuevo, y qué pasa al desprender una genérica de la biblioteca.
 
+/** El espectro reglamentario del Pachón (CIRSOC 103, zona 4, S_C), como hoja
+ *  con frontera que publica su función, y sus puntos tal como los tiene SAP. */
+const HOJA_ESPECTRO = [
+  reg('math', 'C_a := 0.37', 40),
+  reg('math', 'C_v := 0.612', 88),
+  reg('math', 'T_3 := 13 s', 136),
+  reg('math', 'T_2 := C_v / (2.5 * C_a) * 1 s', 184),
+  reg('math', 'T_1 := 0.2 * T_2', 232),
+  reg('program', [
+    'Sa(T) :=',
+    '    if T <= T_1',
+    '        return C_a * (1 + 1.5 * T / T_1)',
+    '    else if T <= T_2',
+    '        return 2.5 * C_a',
+    '    else if T <= T_3',
+    '        return C_v / (T / (1 s))',
+    '    else',
+    '        return C_v * (T_3 / (1 s)) / (T / (1 s))^2',
+  ].join('\n'), 280),
+];
+const ESPECTRO_SAP = [[0, 0.37], [0.0529297, 0.59023], [0.1323243, 0.925], [0.5, 0.925], [0.6616216, 0.925], [1.1111982, 0.55076], [2.1103, 0.29001], [14, 0.04059], [20, 0.01989]];
+
 const CASOS_HOJA = [
+  {
+    nombre: 'el espectro del modelo se justifica con la función que publica la obra, en todos sus puntos',
+    ok: () => {
+      const o = {
+        ...obra(conFrontera('E', HOJA_ESPECTRO, { procedencia: 'propia', publica: { Sa: 'Sa_esp' } }), calc('F', m('SF_X := 9.80665 m/s^2 / 5'))),
+      };
+      const scope = evaluarObra(o, {}).scope;
+      if (typeof scope.Sa_esp !== 'function') return `Sa_esp no llegó a la obra como función: ${typeof scope.Sa_esp}`;
+      const bien = verificarFuncion('Sa_esp', ESPECTRO_SAP, scope);
+      if (bien.estado !== 'coincide') return `el espectro reglamentario no coincidió: ${bien.detalle}`;
+      // Un espectro con la meseta cortada antes: difiere, y dice dónde.
+      const cortado = ESPECTRO_SAP.map(([T, s]) => [T, T === 0.6616216 ? 0.8 : s]);
+      const mal = verificarFuncion('Sa_esp', cortado, scope);
+      if (mal.estado !== 'difiere' || !mal.detalle.includes('T = 0,6616 s')) return `la meseta cortada: ${JSON.stringify(mal)}`;
+      if (verificarFuncion('2 * Sa_esp', ESPECTRO_SAP, scope).estado !== 'error') return 'aceptó una expresión que no es un nombre';
+      if (verificarFuncion('SF_X', ESPECTRO_SAP, scope).estado !== 'error') return 'aceptó un número como función';
+      // El factor de escala, en m/s²: g/5 es el 1,96133 de RSX.
+      if (verificarFactor('SF_X', 1.96133, scope).estado !== 'coincide') return 'SF_X no coincidió con 1,96133 m/s²';
+      if (verificarFactor('SF_X', 1.40095, scope).estado !== 'difiere') return 'SF_X coincidió con el de RSY';
+      return verificarFactor('SF_X / (1 m/s^2)', 1.96133, scope).estado === 'error' ? null : 'un factor sin unidades no falló';
+    },
+  },
+  {
+    nombre: 'el resumen del nodo SAP2000 cuenta el espectro, y una justificación sin su caso queda huérfana',
+    ok: () => {
+      const o = {
+        ...obra(conFrontera('E', HOJA_ESPECTRO, { procedencia: 'propia', publica: { Sa: 'Sa_esp' } }), calc('F', m('SF_X := 9.80665 m/s^2 / 5'))),
+        sap: {
+          modelo: 'm.sdb', ruta: '', version: '', leido: '',
+          espectro: {
+            modelo: 'm.sdb', leido: '',
+            casos: [{ nombre: 'RSX', modal: 'MODAL', combinacion: 'CQC', amortiguamiento: 0.05, cargas: [{ dir: 'U1', funcion: 'F103', sf: 1.96133, csys: 'GLOBAL', angulo: 0 }] }],
+            funciones: [{ nombre: 'F103', puntos: ESPECTRO_SAP }],
+          },
+        },
+        justificaciones: [
+          { id: 'a', clase: 'factor-espectro', patron: 'RSX', firma: 'U1', valor: 1.96133, expr: 'SF_X' },
+          { id: 'b', clase: 'funcion-espectro', patron: 'F103', firma: 'funcion', valor: 9, expr: 'Sa_esp' },
+          { id: 'c', clase: 'factor-espectro', patron: 'RSZ', firma: 'U3', valor: 1, expr: 'SF_X' },
+        ],
+      };
+      const saneada = sanearObra(o);
+      if (JSON.stringify(sanearObra(archivoDeObra(saneada).obra)) !== JSON.stringify(saneada)) return 'la lectura del espectro cambió en la ida y vuelta';
+      if (saneada.justificaciones[0].clase !== 'factor-espectro') return 'el saneo perdió la clase';
+      const r = resumirJustificaciones(saneada, evaluarObra(saneada, {}).scope);
+      if (r.cargas !== 2 || r.justificadas !== 2) return `resumen: ${JSON.stringify(r)}`;
+      return r.huerfanas.length === 1 && r.huerfanas[0].patron === 'RSZ' ? null : `huérfanas: ${JSON.stringify(r.huerfanas)}`;
+    },
+  },
   {
     nombre: 'una justificación sigue a su carga cuando el valor cambia en SAP, y se suelta cuando no se sabe cuál es',
     ok: () => {

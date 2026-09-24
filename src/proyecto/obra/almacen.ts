@@ -32,7 +32,11 @@ import {
   type ConexionSap,
   type Frontera,
   type CargaAsignada,
+  type CargaEspectro,
+  type CasoEspectro,
   type ClaseCarga,
+  type FuncionEspectro,
+  type LecturaEspectro,
   type Grupo,
   type Justificacion,
   type LecturaCargas,
@@ -125,9 +129,49 @@ function sanearJustificaciones(crudo: unknown): { justificaciones?: Justificacio
     if (typeof j.patron !== 'string' || typeof j.firma !== 'string' || !esNumero(j.valor)) continue;
     if (typeof j.expr !== 'string' || !j.expr.trim()) continue;
     vistos.add(j.id);
-    lista.push({ id: j.id, patron: j.patron, firma: j.firma, valor: j.valor, expr: j.expr.trim() });
+    const clase = j.clase === 'factor-espectro' || j.clase === 'funcion-espectro' ? { clase: j.clase } : {};
+    lista.push({ id: j.id, ...clase, patron: j.patron, firma: j.firma, valor: j.valor, expr: j.expr.trim() });
   }
   return lista.length ? { justificaciones: lista } : {};
+}
+
+/**
+ * Una lectura del espectro. Un caso sin nombre, una dirección sin función o sin
+ * factor, y un punto que no son dos números se descartan: no hay nada que
+ * comparar con ellos.
+ */
+function sanearEspectro(crudo: unknown): LecturaEspectro | undefined {
+  if (typeof crudo !== 'object' || crudo === null) return undefined;
+  const l = crudo as Partial<LecturaEspectro>;
+  if (!Array.isArray(l.casos) || !Array.isArray(l.funciones)) return undefined;
+  const casos: CasoEspectro[] = [];
+  for (const x of l.casos) {
+    const c = (x ?? {}) as Partial<CasoEspectro>;
+    if (typeof c.nombre !== 'string' || !c.nombre) continue;
+    const cargas: CargaEspectro[] = [];
+    for (const y of Array.isArray(c.cargas) ? c.cargas : []) {
+      const k = (y ?? {}) as Partial<CargaEspectro>;
+      if (typeof k.dir !== 'string' || typeof k.funcion !== 'string' || !esNumero(k.sf)) continue;
+      cargas.push({ dir: k.dir, funcion: k.funcion, sf: k.sf, csys: texto(k.csys), angulo: esNumero(k.angulo) ? k.angulo : 0 });
+    }
+    casos.push({
+      nombre: c.nombre,
+      modal: texto(c.modal),
+      combinacion: texto(c.combinacion),
+      amortiguamiento: esNumero(c.amortiguamiento) ? c.amortiguamiento : 0,
+      cargas,
+    });
+  }
+  const funciones: FuncionEspectro[] = [];
+  for (const x of l.funciones) {
+    const f = (x ?? {}) as Partial<FuncionEspectro>;
+    if (typeof f.nombre !== 'string' || !f.nombre || !Array.isArray(f.puntos)) continue;
+    const puntos = f.puntos.filter(
+      (p): p is [number, number] => Array.isArray(p) && p.length === 2 && esNumero(p[0]) && esNumero(p[1]),
+    );
+    funciones.push({ nombre: f.nombre, puntos });
+  }
+  return { modelo: texto(l.modelo), leido: texto(l.leido), casos, funciones };
 }
 
 /**
@@ -141,6 +185,7 @@ function sanearSap(crudo: unknown): { sap?: ConexionSap } {
   if (typeof s.modelo !== 'string' || !s.modelo) return {};
   const patrones = sanearLectura(s.patrones);
   const cargas = sanearCargas(s.cargas);
+  const espectro = sanearEspectro(s.espectro);
   return {
     sap: {
       modelo: s.modelo,
@@ -149,6 +194,7 @@ function sanearSap(crudo: unknown): { sap?: ConexionSap } {
       leido: texto(s.leido),
       ...(patrones ? { patrones } : {}),
       ...(cargas ? { cargas } : {}),
+      ...(espectro ? { espectro } : {}),
     },
   };
 }

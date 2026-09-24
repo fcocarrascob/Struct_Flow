@@ -5,7 +5,7 @@
 // `cargas`), así que la unidad sale de la clase y no hay que convertir nada.
 
 import { resolverExpresion } from './biblioteca';
-import type { CargaAsignada, Justificacion, Obra } from './modelo';
+import type { CargaAsignada, Justificacion, LecturaEspectro, Obra } from './modelo';
 
 /** Los códigos de dirección de la API de SAP2000. */
 const DIRECCION: Record<number, string> = {
@@ -194,6 +194,87 @@ export function verificar(expr: string, c: CargaAsignada, scope: Record<string, 
   };
 }
 
+// ── El espectro ──────────────────────────────────────────────────────────────
+
+/** Una justificación del espectro, no de una carga asignada. */
+export const esDeEspectro = (j: Justificacion): boolean => j.clase !== undefined;
+
+/** El factor de escala de un caso contra una expresión de la obra, en m/s². */
+export function verificarFactor(expr: string, sf: number, scope: Record<string, unknown>): Verificacion {
+  const r = resolverExpresion(expr, 'm/s^2', scope);
+  if (r.error || r.valor === undefined) return { estado: 'error', detalle: r.error ?? 'Sin valor.' };
+  const escala = Math.max(Math.abs(sf), 1e-12);
+  if (Math.abs(r.valor - sf) <= TOLERANCIA * escala) {
+    return { estado: 'coincide', obra: r.valor, detalle: `la obra da ${cifra(r.valor)} m/s²` };
+  }
+  const pct = ((r.valor - sf) / escala) * 100;
+  return {
+    estado: 'difiere',
+    obra: r.valor,
+    detalle: `la obra da ${cifra(r.valor)} m/s² y el modelo ${cifra(sf)} (${pct > 0 ? '+' : ''}${cifra(pct)} %)`,
+  };
+}
+
+const NOMBRE_RE = /^[\p{L}_][\p{L}\p{N}_]*$/u;
+
+/**
+ * Una función de espectro del modelo contra una función de la obra, en TODOS
+ * sus puntos: `nombre(T s)` tiene que dar el Sa del modelo en cada periodo.
+ *
+ * Todos y no una muestra, porque un espectro mal cargado suele fallar en un
+ * tramo —la meseta cortada antes, la rama descendente con otro exponente— y una
+ * muestra puede no caer ahí. El detalle nombra el punto que más se aparta.
+ */
+export function verificarFuncion(
+  expr: string,
+  puntos: readonly [number, number][],
+  scope: Record<string, unknown>,
+): Verificacion {
+  const nombre = expr.trim();
+  if (!NOMBRE_RE.test(nombre)) {
+    return { estado: 'error', detalle: 'Escribe el nombre de una función de la obra de un periodo, por ejemplo Sa_esp.' };
+  }
+  if (!puntos.length) return { estado: 'error', detalle: 'La función del modelo no tiene puntos.' };
+  let peor: { T: number; obra: number; sap: number; rel: number } | null = null;
+  let fuera = 0;
+  for (const [T, sap] of puntos) {
+    const r = resolverExpresion(`${nombre}(${T} s)`, undefined, scope);
+    if (r.error || r.valor === undefined) {
+      return { estado: 'error', detalle: `${nombre}(${cifra(T)} s): ${r.error ?? 'sin valor'}` };
+    }
+    const escala = Math.max(Math.abs(sap), 1e-12);
+    const rel = (r.valor - sap) / escala;
+    if (Math.abs(r.valor - sap) > TOLERANCIA * escala) fuera++;
+    if (!peor || Math.abs(rel) > Math.abs(peor.rel)) peor = { T, obra: r.valor, sap, rel };
+  }
+  const p = peor!;
+  const pct = `${p.rel > 0 ? '+' : ''}${cifra(p.rel * 100)} %`;
+  if (fuera === 0) {
+    return { estado: 'coincide', detalle: `coincide en los ${puntos.length} puntos (el mayor desvío, ${pct} en T = ${cifra(p.T)} s)` };
+  }
+  return {
+    estado: 'difiere',
+    detalle:
+      `difiere en ${fuera} de ${puntos.length} puntos; el mayor, ${pct} en T = ${cifra(p.T)} s ` +
+      `(obra ${cifra(p.obra)}, modelo ${cifra(p.sap)})`,
+  };
+}
+
+/** Lo que una justificación del espectro verifica, o `undefined` si ya no está en la lectura. */
+export function verificarEspectro(
+  j: Justificacion,
+  esp: LecturaEspectro | undefined,
+  scope: Record<string, unknown>,
+): Verificacion | undefined {
+  if (!esp) return undefined;
+  if (j.clase === 'factor-espectro') {
+    const carga = esp.casos.find((c) => c.nombre === j.patron)?.cargas.find((k) => k.dir === j.firma);
+    return carga ? verificarFactor(j.expr, carga.sf, scope) : undefined;
+  }
+  const f = esp.funciones.find((x) => x.nombre === j.patron);
+  return f ? verificarFuncion(j.expr, f.puntos, scope) : undefined;
+}
+
 export interface ResumenJustificaciones {
   /** Cargas leídas del modelo. */
   cargas: number;
@@ -204,17 +285,30 @@ export interface ResumenJustificaciones {
   huerfanas: Justificacion[];
 }
 
-/** Cómo va la obra respaldando el modelo, para la tarjeta del nodo SAP2000. */
+/**
+ * Cómo va la obra respaldando el modelo, para la tarjeta del nodo SAP2000.
+ *
+ * Cuenta las cargas asignadas y, del espectro, cada factor de escala y cada
+ * función que usa algún caso: todo lo que se puede justificar.
+ */
 export function resumirJustificaciones(obra: Obra, scope: Record<string, unknown>): ResumenJustificaciones {
   const cargas = obra.sap?.cargas?.lista ?? [];
-  const r: ResumenJustificaciones = { cargas: cargas.length, justificadas: 0, difieren: 0, errores: 0, huerfanas: [] };
+  const esp = obra.sap?.espectro;
+  const delEspectro = esp ? esp.casos.reduce((n, c) => n + c.cargas.length, 0) + esp.funciones.length : 0;
+  const r: ResumenJustificaciones = {
+    cargas: cargas.length + delEspectro,
+    justificadas: 0,
+    difieren: 0,
+    errores: 0,
+    huerfanas: [],
+  };
   for (const j of obra.justificaciones ?? []) {
-    const c = cargaDe(j, cargas);
-    if (!c) {
+    const c = esDeEspectro(j) ? undefined : cargaDe(j, cargas);
+    const v = esDeEspectro(j) ? verificarEspectro(j, esp, scope) : c ? verificar(j.expr, c, scope) : undefined;
+    if (!v) {
       r.huerfanas.push(j);
       continue;
     }
-    const v = verificar(j.expr, c, scope);
     if (v.estado === 'coincide') r.justificadas++;
     else if (v.estado === 'difiere') r.difieren++;
     else r.errores++;

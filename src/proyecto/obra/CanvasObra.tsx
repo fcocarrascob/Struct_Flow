@@ -1561,17 +1561,28 @@ function CanvasObra({
             onConectado={(sap) =>
               setObra((o) => {
                 if (!o) return o;
-                const { patrones, cargas } = o.sap ?? {};
-                return { ...o, sap: { ...sap, ...(patrones ? { patrones } : {}), ...(cargas ? { cargas } : {}) } };
+                const { patrones, cargas, espectro } = o.sap ?? {};
+                return {
+                  ...o,
+                  sap: {
+                    ...sap,
+                    ...(patrones ? { patrones } : {}),
+                    ...(cargas ? { cargas } : {}),
+                    ...(espectro ? { espectro } : {}),
+                  },
+                };
               })
             }
             // Una lectura sin cargas —las del puente fallaron— no deja las
             // anteriores: serían de otro momento y no lo dirían.
-            onLeido={({ patrones, cargas }) =>
+            onLeido={({ patrones, cargas, espectro }) =>
               setObra((o) => {
                 if (!o?.sap) return o;
-                const { cargas: _vieja, ...resto } = o.sap;
-                return { ...o, sap: { ...resto, patrones, ...(cargas ? { cargas } : {}) } };
+                const { cargas: _vieja, espectro: _viejo, ...resto } = o.sap;
+                return {
+                  ...o,
+                  sap: { ...resto, patrones, ...(cargas ? { cargas } : {}), ...(espectro ? { espectro } : {}) },
+                };
               })
             }
             // El scope final de la obra: una carga del modelo se justifica con lo
@@ -1590,6 +1601,16 @@ function CanvasObra({
                 const j = actual
                   ? { ...actual, expr, valor: carga.valor }
                   : nuevaJustificacion({ patron: carga.patron, firma: firmaDe(carga), valor: carga.valor, expr });
+                setObra(conJustificacion(o, j));
+              },
+              onJustificarEspectro: (que, expr, actual) => {
+                const o = obraRef.current;
+                if (!o) return;
+                if (!expr) {
+                  if (actual) setObra(quitarJustificacion(o, actual.id));
+                  return;
+                }
+                const j = actual ? { ...actual, ...que, expr } : nuevaJustificacion({ ...que, expr });
                 setObra(conJustificacion(o, j));
               },
             }}

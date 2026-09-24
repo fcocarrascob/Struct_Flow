@@ -2823,7 +2823,8 @@
             "f_EV": "f_EV",
             "SF_X": "SF_RSX",
             "SF_Y": "SF_RSY",
-            "T_2": "T_2_esp"
+            "T_2": "T_2_esp",
+            "Sa": "Sa_esp"
           }
         },
         "hoja": [

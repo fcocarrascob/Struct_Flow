@@ -21,6 +21,8 @@ Rutas:
     GET  /grupos     -> {modelo, ruta, grupos: [{nombre, barras, areas}]}
     GET  /cargas     -> {modelo, ruta, cargas: [{patron, clase, valor, dir, ..., n}]}
                      (las cargas asignadas, agrupadas por patrón y valor)
+    GET  /espectro   -> {modelo, ruta, casos: [{nombre, cargas: [{dir, funcion, sf}], ...}],
+                         funciones: [{nombre, puntos: [[T, Sa], ...]}]}
     POST /aplicaciones/leer {aplicaciones} -> la carga de cada patrón sobre su grupo
                      (POST solo porque la lista viaja en el cuerpo: no modifica nada)
 
@@ -378,6 +380,57 @@ def cargas():
     return {"modelo": nombre, "ruta": ruta, "cargas": lista}
 
 
+# ── Espectro de respuesta ────────────────────────────────────────────────────
+
+# eModalComb: cómo combina los modos cada caso.
+COMBINACIONES = {1: "CQC", 2: "SRSS", 3: "Absoluta", 4: "GMC", 5: "NRC 10 %", 6: "Doble suma"}
+
+
+def espectro():
+    """Los casos de espectro de respuesta y las funciones que usan. Solo lee.
+
+    Un caso es de espectro si `ResponseSpectrum.GetLoads` lo reconoce: la lista
+    de casos no se filtra por tipo en todas las versiones de la API. Los factores
+    de escala salen en las unidades de longitud de trabajo, así que se leen en
+    kN-m: m/s².
+    """
+    modelo, ruta, nombre = _modelo_guardado()
+    casos, usadas = [], []
+    with _EnKnM(modelo):
+        _, nombres, ret = modelo.LoadCases.GetNameList()
+        if ret != 0:
+            raise ErrorPuente(502, "SAP2000 no entregó la lista de casos de carga.")
+        rs = modelo.LoadCases.ResponseSpectrum
+        for c in nombres or []:
+            n, dirs, funcs, sfs, csys, angs, ret = rs.GetLoads(c)
+            if ret != 0:
+                continue
+            modal, _ = rs.GetModalCase(c)
+            comb = rs.GetModalComb_1(c)
+            amort, _ = rs.GetDampConstant(c)
+            casos.append({
+                "nombre": str(c),
+                "modal": str(modal or ""),
+                "combinacion": COMBINACIONES.get(int(comb[0]), f"código {comb[0]}"),
+                "amortiguamiento": _num(amort),
+                "cargas": [
+                    {"dir": str(dirs[i]), "funcion": str(funcs[i]), "sf": _num(sfs[i]),
+                     "csys": str(csys[i]), "angulo": _num(angs[i])}
+                    for i in range(n)
+                ],
+            })
+            for f in funcs or []:
+                if str(f) not in usadas:
+                    usadas.append(str(f))
+        funciones = []
+        for f in usadas:
+            n, periodos, valores, ret = modelo.Func.GetValues(f)
+            if ret != 0:
+                raise ErrorPuente(502, f"SAP2000 no entregó los puntos de la función «{f}».")
+            funciones.append({"nombre": f, "puntos": [[_num(t), _num(v)] for t, v in zip(periodos, valores)]})
+    return {"modelo": nombre, "ruta": ruta, "casos": casos, "funciones": funciones}
+
+
 class Manejador(BaseHTTPRequestHandler):
     def _responder(self, codigo, cuerpo):
         datos = json.dumps(cuerpo, ensure_ascii=False).encode("utf-8")
@@ -439,7 +492,7 @@ class Manejador(BaseHTTPRequestHandler):
             return self._responder(500, {"motivo": f"El puente falló: {e}"})
 
     def do_GET(self):  # noqa: N802
-        self._atender({"/salud": lambda: {"ok": True}, "/patrones": patrones, "/grupos": grupos, "/cargas": cargas})
+        self._atender({"/salud": lambda: {"ok": True}, "/patrones": patrones, "/grupos": grupos, "/cargas": cargas, "/espectro": espectro})
 
     def _cuerpo(self):
         largo = int(self.headers.get("Content-Length") or 0)

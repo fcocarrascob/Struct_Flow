@@ -587,7 +587,9 @@ const espectro = {
   frontera: {
     procedencia: 'propia',
     formulas: { g_s: 'g_0' },
-    publica: { C_a: 'C_a_sit', gamma_r: 'gamma_r_sit', f_EV: 'f_EV', SF_X: 'SF_RSX', SF_Y: 'SF_RSY', T_2: 'T_2_esp' },
+    // `Sa` es una función: el nodo SAP2000 la compara, periodo por periodo, con
+    // la función de espectro que usan los casos RSX y RSY del modelo.
+    publica: { C_a: 'C_a_sit', gamma_r: 'gamma_r_sit', f_EV: 'f_EV', SF_X: 'SF_RSX', SF_Y: 'SF_RSY', T_2: 'T_2_esp', Sa: 'Sa_esp' },
   },
   hoja: hoja(
     'esp',
