@@ -308,15 +308,18 @@ testeable y portable):
   es un error, no un número: en una memoria siempre delata un dato o una unidad equivocados.
   Lo mismo un resultado **no finito** (NaN, ±∞), y en una verificación se miran además los
   lados de cada comparación, porque un NaN intermedio da ✗ y no llega al resultado
-  (`comprobarValor` y `comprobarComparacion`). Al **mostrar** un valor sin `= unidad`, un
-  resultado fuerza × longitud nunca sale en julios: `paraMostrar` lo da con la fuerza y la
-  longitud del autor (`tonf·m`, `kN·m`). Y el sistema de unidades «auto» de math.js, que
+  (`comprobarValor` y `comprobarComparacion`). Al **mostrar** un valor sin `= unidad`
+  manda `paraMostrar`: fuerza × longitud nunca sale en julios (va con la fuerza y la
+  longitud del autor, `tonf·m`, `kN·m`); un resultado en la magnitud de una unidad que el
+  autor escribió conserva esa unidad y su prefijo (1108 kN, no 1,108 MN); y si no, el prefijo
+  deja el número entre 1 y 1000, sin la histéresis de math.js. `atan`, `asin`, `acos` y
+  `atan2` devuelven un ángulo **con unidad** (`theta = deg`, `theta >= 25 deg`). Y el sistema de unidades «auto» de math.js, que
   `Unit.parse` reescribe con cada unidad que analiza, se restaura al empezar cada hoja: sin
   eso, lo que se ve dependía de la hoja evaluada antes.
   **Un nombre sin definir nunca se resuelve solo**: math.js leería `phi` como la razón áurea,
   `E` como el número de Euler y `L` como litros. Todo camino de evaluación pasa por
   `evaluarNodo`, que lo convierte en error salvo `pi` y las unidades que una memoria escribe
-  sueltas (`UNIDADES_SUELTAS`: `f_c/MPa`, `2.54*cm`). Qué es «posición de unidad» (`10 kN`,
+  sueltas (`UNIDADES_SUELTAS`: `f_c/MPa`, `2.54*cm`; `N` y `m` no, se escriben `1 N`). Qué es «posición de unidad» (`10 kN`,
   `3 m/s`, `x*1 tonf*m`) lo decide solo `unidadesEnPosicion`, que usan también el aviso de la
   variable que tapa una unidad y `unidadesTapadas` de `verify:planilla`. Qué nombres **usa**
   una fórmula lo dice solo `simbolosDeFormula` (sobre el árbol: sin cadenas, sin la unidad de

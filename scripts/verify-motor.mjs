@@ -520,6 +520,25 @@ const CASOS = [
     },
   },
 
+  // El prefijo: math.js lo cambiaba al mostrar (1108 kN → «1,108 MN») y con
+  // histéresis (1 kN/m² → «1000 Pa», 3 kN/m² → «3 kPa»).
+  {
+    nombre: 'un resultado en la unidad que escribió el autor conserva su prefijo',
+    hoja: hoja(m('F := 1108 kN * 1 ='), m('T := 2*3 tonf ='), m('d := 0.5 mm * 1 ='), m('f := 779.6 MPa * 1 =')),
+    ok: todas(esperaValor('r0', '1108 kN'), esperaValor('r1', '6 tonf'), esperaValor('r2', '0.5 mm'), esperaValor('r3', '779.6 MPa')),
+  },
+  {
+    nombre: 'una unidad que math.js simplifica toma el prefijo que deja el número entre 1 y 1000',
+    hoja: hoja(m('a := 1*1 kN/m^2 ='), m('b := 3 kN/m^2 ='), m('c := 7950 kgf/cm^2 * 1 ='), m('q := 2 kN/m * 3 m =')),
+    ok: todas(esperaValor('r0', '1 kPa'), esperaValor('r1', '3 kPa'), esperaValor('r2', '779.63 MPa'), esperaValor('r3', '6 kN'), (r) =>
+      r.r2?.define?.valor === '779,6 MPa' ? null : `panel: «${r.r2?.define?.valor}»`,
+    ),
+  },
+  {
+    nombre: 'quien convierte con «= unidad» recibe esa unidad, con cualquier prefijo',
+    hoja: hoja(m('F := 1108 kN = MN'), m('p := 3 kN/m^2 = Pa')),
+    ok: todas(esperaValor('r0', '1.108 MN'), esperaValor('r1', '3000 Pa')),
+  },
   // math.js simplifica fuerza × longitud a julios: un momento se imprimía como
   // una energía («224,61 kJ» por 22,9 tonf·m).
   {

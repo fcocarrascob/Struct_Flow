@@ -1021,35 +1021,93 @@ function matrizResumen(value: unknown): string | undefined {
 }
 
 /** LaTeX del valor calculado: número (con exponente) + unidad en redonda. */
+/** Un prefijo de math.js. */
+type Prefijo = { name: string; value: number };
+
 /** Una unidad de la lista de un `Unit` de math.js. */
-type UnidadDeLista = { unit: { name: string; base?: { key: string } }; prefix: { name: string }; power: number };
+type UnidadDeLista = {
+  unit: { name: string; value: number; base?: { key: string }; prefixes?: Record<string, Prefijo> };
+  prefix: Prefijo;
+  power: number;
+};
+
+/** Lo que `paraMostrar` usa de un `Unit` de math.js. */
+type UnitMostrable = {
+  value: number | null;
+  skipAutomaticSimplification: boolean;
+  fixPrefix: boolean;
+  units: UnidadDeLista[];
+  equalBase(o: unknown): boolean;
+  clone(): UnitMostrable;
+  simplify(): UnitMostrable;
+};
+
+/** Los prefijos que se eligen solos: los de ingeniería, sin centi, deci ni hecto. */
+const PREFIJOS_DE_INGENIERIA = ['', 'k', 'M', 'G', 'm', 'u'];
 
 /**
- * Cómo se muestra un valor que no se convirtió con `= unidad`.
+ * Cómo se muestra un valor que no se convirtió con `= unidad`. No pasa por
+ * `Unit.parse`, que tocaría el sistema «auto»: se arma la lista de unidades a
+ * mano, y el valor, que math.js guarda en SI, no cambia. Tres reglas:
  *
- * math.js simplifica al mostrar, y fuerza × longitud tiene la dimensión de una
- * energía: un momento escrito `k*1 tonf*m` se imprimía «29,42 kJ». En una
- * memoria estructural eso es siempre un momento, así que se muestra con la
- * fuerza y la longitud que escribió el autor —la primera de cada una en su
- * lista de unidades, con su prefijo—, o en kN·m si no escribió ninguna. No pasa
- * por `Unit.parse`, que tocaría el sistema «auto»: se arma la lista a mano, y el
- * valor, que math.js guarda en SI, no cambia.
+ * - **Un momento no es una energía.** Fuerza × longitud tiene la dimensión de un
+ *   julio, y `k*1 tonf*m` se imprimía «29,42 kJ». Se muestra con la fuerza y la
+ *   longitud que escribió el autor, o en kN·m si no escribió ninguna.
+ * - **La unidad del autor conserva su prefijo.** math.js lo cambiaba al mostrar:
+ *   1108 kN salía «1,108 MN». Si el resultado se reduce a una unidad de la misma
+ *   magnitud que una que el autor escribió, sale en esa, con su prefijo.
+ * - **Si no, un prefijo sin histéresis.** El `_bestPrefix` de math.js conserva el
+ *   prefijo mientras el número quede entre ~0,006 y 1000, así que 1 kN/m² salía
+ *   «1000 Pa» y 3 kN/m² «3 kPa» en la misma hoja. Aquí el número queda entre 1 y
+ *   1000.
  */
 function paraMostrar(v: unknown): unknown {
   if (!math.isUnit(v)) return v;
-  const u = v as unknown as { value: number | null; skipAutomaticSimplification: boolean; units: UnidadDeLista[]; equalBase(o: unknown): boolean; clone(): typeof u; fixPrefix: boolean };
-  if (u.value === null || u.skipAutomaticSimplification || !u.equalBase(JULIO)) return v;
+  const u = v as unknown as UnitMostrable;
+  // `fixPrefix` es lo que deja `.to()`: el autor pidió esa unidad con `= unidad`.
+  // `skipAutomaticSimplification` no sirve de señal: lo arrastra `1108 kN * 1`.
+  if (u.value === null || u.fixPrefix) return v;
+  if (u.equalBase(JULIO)) return comoMomento(u);
+  const s = u.simplify();
+  if (s.units.length !== 1 || s.units[0].power !== 1) return v;
+  const base = s.units[0].unit.base?.key;
+  const delAutor = u.units.find((x) => x.power === 1 && x.unit.base?.key === base);
+  if (delAutor) return conUnidades(u, [{ unit: delAutor.unit, prefix: delAutor.prefix, power: 1 }]);
+  const unidad = s.units[0].unit;
+  return conUnidades(s, [{ unit: unidad, prefix: prefijoDeIngenieria(s.value ?? 0, unidad) ?? s.units[0].prefix, power: 1 }]);
+}
+
+/** El momento con la fuerza y la longitud del autor (ver `paraMostrar`). */
+function comoMomento(u: UnitMostrable): UnitMostrable {
   const de = (base: string, nombre: string, prefijo: string): UnidadDeLista => {
     const hallada = u.units.find((x) => x.unit.base?.key === base && x.power > 0);
     if (hallada) return { unit: hallada.unit, prefix: hallada.prefix, power: 1 };
-    const unidad = (math.Unit as unknown as { UNITS: Record<string, UnidadDeLista['unit'] & { prefixes: Record<string, UnidadDeLista['prefix']> }> }).UNITS[nombre];
-    return { unit: unidad, prefix: unidad.prefixes[prefijo], power: 1 };
+    const unidad = (math.Unit as unknown as { UNITS: Record<string, UnidadDeLista['unit']> }).UNITS[nombre];
+    return { unit: unidad, prefix: unidad.prefixes![prefijo], power: 1 };
   };
+  return conUnidades(u, [de('FORCE', 'N', 'k'), de('LENGTH', 'm', '')]);
+}
+
+/** Una copia de `u` que se muestra con `units`, tal cual, sin que math.js la simplifique. */
+function conUnidades(u: UnitMostrable, units: UnidadDeLista[]): UnitMostrable {
   const m = u.clone();
-  m.units = [de('FORCE', 'N', 'k'), de('LENGTH', 'm', '')];
+  m.units = units;
   m.skipAutomaticSimplification = true;
   m.fixPrefix = true;
   return m;
+}
+
+/** El prefijo de ingeniería que deja `valorSI` entre 1 y 1000 en `unidad`, si la unidad los admite. */
+function prefijoDeIngenieria(valorSI: number, unidad: UnidadDeLista['unit']): Prefijo | undefined {
+  const x = Math.abs(valorSI / unidad.value);
+  const opciones = PREFIJOS_DE_INGENIERIA.map((n) => unidad.prefixes?.[n]).filter((p): p is Prefijo => Boolean(p));
+  if (opciones.length < 2 || x === 0 || !Number.isFinite(x)) return undefined;
+  const cabe = opciones.find((p) => x / p.value >= 1 && x / p.value < 1000);
+  if (cabe) return cabe;
+  // Fuera de lo que cubren (menos de un micro, más de mil giga): el más cercano.
+  return opciones.reduce((a, b) =>
+    Math.abs(Math.log10(x / a.value) - 1.5) <= Math.abs(Math.log10(x / b.value) - 1.5) ? a : b,
+  );
 }
 
 function resultToTex(value: unknown): string {

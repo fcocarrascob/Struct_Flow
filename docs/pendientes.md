@@ -142,25 +142,16 @@ gravedad: lo primero da **números falsos sin error**. Cada arreglo empieza por 
 
 ### Nombres que el motor resuelve solo
 
-Cerrado en la rama `motor-robusto` (ver `evaluarNodo` en `worksheet.ts`). Lo que queda:
+Cerrado en la rama `motor-robusto` (ver `evaluarNodo` en `worksheet.ts`). Las unidades que
+siguen aceptándose sueltas (`UNIDADES_SUELTAS`: `MPa`, `mm`, `kgf`…) no son nombres de
+variable corrientes; `N` y `m`, que sí lo son, salieron de la lista.
 
-- **Una unidad de `UNIDADES_SUELTAS` sin definir sigue pasando como unidad** fuera de una
-  cantidad: `e := M/N` con `N` sin definir en ninguna parte de la hoja da M entre newtons.
-  Si la hoja define `N` en otro sitio sí es error. Es el precio de aceptar `f_c/MPa` y
-  `(h/mm)^1.5*N`, que el corpus escribe así; endurecerlo pide reescribir esas fórmulas.
+### Cómo se muestran las unidades
 
-### Cómo se muestran las unidades (no cambia números, cambia el papel)
-
-- **El prefijo que elige math.js tiene histéresis.** Ya no depende de lo evaluado antes (el
-  motor restaura el sistema de unidades «auto» al empezar cada hoja), pero dentro de una hoja
-  `1*1 kN/m^2 =` sale «1000 Pa» y `3 kN/m^2 =` «3 kPa»: `_bestPrefix` conserva el prefijo
-  actual mientras el número quede entre ~0,006 y 1000, y 1000 cae justo en el borde. Va con
-  la decisión de la simplificación, abajo.
-- **math.js cambia el prefijo al mostrar**: 1.108 kN sale «1,108 MN» y 779,6 MPa «0,7796 GPa».
-  Solo se evita con `= unidad`. En el corpus no aparece en nada impreso (los autores
-  convierten); se decidió, el 2026-09-24, arreglar solo el momento mostrado como julios
-  (`paraMostrar`) y dejar esto abierto.
-- `atan` devuelve un número sin unidad (radianes implícitos).
+Cerrado (`paraMostrar`: momento en tonf·m o kN·m, prefijo del autor y, si no, prefijo sin
+histéresis; los ángulos llevan unidad). Queda un detalle del **panel de variables**: el valor
+se formatea con 4 cifras y math.js pasa a exponencial desde 10⁵, así que `E_s := 200000 MPa`
+se lee «2e+5 MPa». No toca lo impreso.
 
 ### Un solo lector de nombres
 
