@@ -464,6 +464,24 @@ const CASOS = [
     ok: esperaError('r0', /complejo/),
   },
 
+  // --- Cómo se muestra una unidad sin convertir ------------------------------
+  //
+  // math.js reescribe su sistema de unidades «auto» con cada unidad que analiza
+  // (`= MPa`, `.to(...)`): una presión sin convertir se mostraba «1000 Pa» o
+  // «1 kPa» según qué hoja se hubiera evaluado antes en el proceso.
+  {
+    nombre: 'una hoja se muestra igual aunque antes se haya evaluado otra',
+    hoja: hoja(),
+    ok: () => {
+      const medir = () => valor(evaluateSheet(hoja(m('p := 1*1 kN/m^2 ='))).r0);
+      evaluateSheet(hoja(m('f := 3000 kN/m^2 = Pa')));
+      const trasPa = medir();
+      evaluateSheet(hoja(m('f := 30000 kN/m^2 = MPa')));
+      const trasMPa = medir();
+      return trasPa === trasMPa ? null : `«${trasPa}» tras una hoja en Pa y «${trasMPa}» tras una en MPa`;
+    },
+  },
+
   // --- Valores no finitos -----------------------------------------------------
   //
   // Como el complejo: `0/0` daba NaN, `1/0` Infinity y `log(0)` −Infinity, sin

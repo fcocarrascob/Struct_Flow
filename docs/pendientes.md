@@ -153,12 +153,11 @@ Cerrado en la rama `motor-robusto` (ver `evaluarNodo` en `worksheet.ts`). Lo que
 
 ### Cómo se muestran las unidades (no cambia números, cambia el papel)
 
-- **El prefijo con que se muestra una unidad sin convertir es inestable.** En una misma hoja,
-  `1 * 1 kN/m^2 =` sale «1000 Pa» y `3 kN/m^2 =` «3 kPa»; en la obra autocontenida del Pachón,
-  `pf_min := I_nieve * 1 kN/m^2` sale «1000 Pa» la primera vez y «1 kPa» las siguientes. Una
-  misma hoja no se imprime igual dos veces. **La reproducción mínima ya está** (las dos líneas
-  de arriba): falta el caso en `verify:motor`; hasta entonces, el caso de la carpeta de
-  `verify:obra` evalúa una vez antes de comparar.
+- **El prefijo que elige math.js tiene histéresis.** Ya no depende de lo evaluado antes (el
+  motor restaura el sistema de unidades «auto» al empezar cada hoja), pero dentro de una hoja
+  `1*1 kN/m^2 =` sale «1000 Pa» y `3 kN/m^2 =` «3 kPa»: `_bestPrefix` conserva el prefijo
+  actual mientras el número quede entre ~0,006 y 1000, y 1000 cae justo en el borde. Va con
+  la decisión de la simplificación, abajo.
 - **math.js simplifica las unidades al mostrarlas**: `5 kN * 2 m =` sale `10 kJ`, un momento
   escrito como energía, y 1.108 kN sale «1,108 MN». Solo se evita con `= kN*m`. Cambiarlo toca
   miles de resultados del corpus y la paginación: necesita su propia medición antes de decidir.

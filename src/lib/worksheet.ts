@@ -107,6 +107,27 @@ math.import(
   { override: false },
 );
 
+/**
+ * El sistema de unidades «auto» de math.js, con el que se elige cómo MOSTRAR
+ * una cantidad sin convertir (`1*1 kN/m^2 =` → «1 kPa»).
+ *
+ * `Unit.parse` lo reescribe con cada unidad que analiza —un `= MPa`, un
+ * `.to('kPa')`—, así que es estado global que se hereda de hoja en hoja: la
+ * misma presión salía «1000 Pa» o «1 kPa» según qué se hubiera evaluado antes en
+ * el proceso, y en el navegador, según qué planilla se abrió antes. Se guarda tal
+ * como queda al crear el motor y se restaura al empezar cada hoja: dentro de ella
+ * el orden de lectura sigue mandando, pero una hoja se muestra siempre igual.
+ * Basta una copia superficial, porque `parse` reemplaza la entrada entera.
+ */
+type SistemaDeUnidades = Record<string, unknown>;
+const SISTEMA_AUTO = (math.Unit as unknown as { UNIT_SYSTEMS: { auto: SistemaDeUnidades } }).UNIT_SYSTEMS.auto;
+const SISTEMA_AUTO_INICIAL: SistemaDeUnidades = { ...SISTEMA_AUTO };
+
+function restaurarSistemaDeUnidades(): void {
+  for (const k of Object.keys(SISTEMA_AUTO)) if (!Object.hasOwn(SISTEMA_AUTO_INICIAL, k)) delete SISTEMA_AUTO[k];
+  Object.assign(SISTEMA_AUTO, SISTEMA_AUTO_INICIAL);
+}
+
 /** Los valores de un vector para `interp`: un array, una matriz de una fila o de una columna. */
 function listaDeInterp(v: unknown, que: string): unknown[] {
   const a = math.isMatrix(v) ? (v.valueOf() as unknown[]) : v;
@@ -863,6 +884,7 @@ export function evaluateSheet(
     .sort((a, b) => a.y - b.y || a.x - b.x);
 
   nombresDeLaHoja = nombresDefinidos(ordered);
+  restaurarSistemaDeUnidades();
   try {
     evaluarEnOrden(ordered, scope, results);
   } finally {

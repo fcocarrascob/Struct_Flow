@@ -1629,12 +1629,9 @@ const CASOS_CARPETA = [
   {
     nombre: 'y calcula lo mismo: ningún resultado cambia por pasar por el disco',
     ok: () => {
-      // Una evaluación de calentamiento antes de comparar. El motor elige el
-      // prefijo con que MUESTRA una unidad sin convertir según lo que se evaluó
-      // antes en el proceso (`pf_min` sale «1000 Pa» la primera vez y «1 kPa»
-      // después, con el mismo valor): es un defecto del motor, anotado en
-      // `docs/pendientes.md`, y este caso prueba la carpeta, no eso.
-      evaluarObra(PACHON, genericasPachon);
+      // Sin evaluación de calentamiento: el motor restaura el sistema de unidades
+      // de math.js al empezar cada hoja, así que la primera evaluación y la
+      // segunda muestran lo mismo (`pf_min` salía «1000 Pa» y después «1 kPa»).
       const antes = evaluarObra(PACHON, genericasPachon);
       const despues = evaluarObra(releer(partirObra(PACHON)), genericasPachon);
       const a = JSON.stringify(antes.results);
