@@ -28,9 +28,10 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
    la obra perdió al retirar «Casos de carga y fuente de masa»; tiene que volver a estar
    escrito en algún nodo (el del espectro es el candidato).
 4. **Migrar las tablas de norma escritas como `program` a regiones `table` + `interp`.** En la
-   obra de trabajo del Pachón ya está hecho el nodo de viento SPRFV (2026-09-24): `Cp_sot` y
-   `Cp_cub` leen dos tablas de la Figura 3, con un gráfico de los Cp de cubierta, y los números
-   no cambiaron. Falta llevarlo a `docs/pachon/autocontenida/` y su generador, y el `cp_techo`
+   obra de trabajo del Pachón ya están hechos (2026-09-24) el nodo de viento SPRFV —`Cp_sot` y
+   `Cp_cub` leen dos tablas de la Figura 3, con un gráfico de los Cp de cubierta— y el de
+   presión de viento —`K_h` interpola la Tabla 5, con un gráfico de K_z—; el espectro tiene
+   su gráfico de Sa(T). Los números no cambiaron. Falta llevarlo a `docs/pachon/autocontenida/` y su generador, y el `cp_techo`
    + `interp_lin` de `viento-caras-nch432-generica`, que es una tabla θ × h/L: para esa hace
    falta `interp2`, o interpolar por columnas a mano. La genérica mueve la paginación publicada
    y su sello: con su medición en `/calibrar` y un `verify:biblioteca`.
