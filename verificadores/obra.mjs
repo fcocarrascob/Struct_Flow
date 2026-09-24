@@ -273,6 +273,50 @@ const CASOS = [
     ok: todas(esperaValor('y', '6'), esperaArista('A', 'B', 'dobla'), sinCiclo),
   },
   {
+    nombre: 'un gráfico que dibuja lo que publica otro nodo va después, con su flecha',
+    // Su `src` es el título: lo que usa está en la especificación. Sin leerla, el
+    // nodo del gráfico podía quedar delante de quien define la función.
+    obra: obra(
+      calc('B', {
+        id: `b${n++}`,
+        kind: 'plot',
+        x: 40,
+        y: 40,
+        src: 'Carga',
+        grafico: {
+          version: 1,
+          ejeX: { titulo: 'x' },
+          ejeY: { titulo: 'q' },
+          series: [{ tipo: 'funcion', nombre: 'q', expr: 'q_de(x)', variable: 'x', desde: '0', hasta: 'L_luz' }],
+        },
+      }),
+      calc('A', pr('q_de(u) := 2 * u'), m('L_luz := 6')),
+    ),
+    ok: todas(esperaArista('A', 'B'), sinCiclo),
+  },
+  {
+    nombre: 'la variable de la función de un gráfico no es un uso: no dibuja flecha',
+    // La `x` de `x^2` es del gráfico. Leerla como uso dibujaría una flecha hacia
+    // el nodo que define otra `x`.
+    obra: obra(
+      calc('A', m('x := 3')),
+      calc('B', {
+        id: `b${n++}`,
+        kind: 'plot',
+        x: 40,
+        y: 40,
+        src: 'Parábola',
+        grafico: {
+          version: 1,
+          ejeX: { titulo: 'x' },
+          ejeY: { titulo: 'y' },
+          series: [{ tipo: 'funcion', nombre: 'y', expr: 'x^2', variable: 'x', desde: '0', hasta: '1' }],
+        },
+      }),
+    ),
+    ok: todas(sinArista('A', 'B'), sinCiclo),
+  },
+  {
     nombre: 'ninguna flecha de datos apunta hacia atrás en el canvas',
     // La columna era la del TIPO más el nivel en la cadena, y un nodo que usaba
     // lo que publicaba otro de un tipo más a la derecha quedaba A SU IZQUIERDA:

@@ -332,8 +332,20 @@ testeable y portable):
   `fragmento: true` porque un fragmento también parsea como hoja, y sin ella el Ctrl+V que
   carga una planilla completa borraría la hoja en la que se está pegando.
 
-Tres tipos de región: `math`, `text`, `program` (más `image`). Al añadir funcionalidad al
-motor, extiende los módulos puros y mantén los componentes React delgados.
+- `grafico.ts` + `grafico-svg.ts` — la región **`plot`**: funciones, series x–y y referencias
+  sobre dos ejes con unidad. Se **declara** (`Region.grafico`; `src` es el título), se evalúa
+  en su posición del orden de lectura y no define nada. `grafico.ts` no importa mathjs:
+  `worksheet.ts` le presta sus herramientas (`HERRAMIENTAS_GRAFICO`), como a `program.ts`. El
+  resultado son **datos en unidades de los ejes**, no píxeles; el SVG lo arma
+  `svgDeGrafico`, pura y determinista, que usan `BloqueDoc` y `render-html` — los tres papeles
+  dibujan byte a byte lo mismo. Se edita con `PanelGrafico.tsx` junto a la hoja. La sintaxis
+  de un token `{{expr:unidad}}` vive en `token.ts`, compartida con el esquema.
+
+Cinco tipos de región: `math`, `text`, `program`, `image` y `plot`. Al añadir funcionalidad al
+motor, extiende los módulos puros y mantén los componentes React delgados. Un tipo de región
+nuevo toca unos veinte sitios; la lista está en la historia del commit que introdujo `plot`, y
+el helper `esBloqueEstructurado` de `bloque.ts` es la pregunta «¿su contenido está fuera de
+`src`?» que se hacen los filtros de lo vacío.
 
 ## Invariantes que cuestan caro romper
 

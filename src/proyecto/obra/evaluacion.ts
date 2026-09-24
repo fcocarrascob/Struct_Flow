@@ -68,7 +68,7 @@ import { identificadoresDe, type Frontera, type Obra } from './modelo';
 // `definicionesDe` es una sola, la de `./hoja`: había una copia aquí que solo
 // miraba las regiones `math`, y el panel y el grafo discrepaban sobre qué
 // define una hoja en cuanto aparecía un programa.
-import { definicionesDe, ordenDeLectura } from './hoja';
+import { definicionesDe, ordenDeLectura, usosDeRegion } from './hoja';
 import { idNodoDeCalculo } from './ids';
 
 const CENTINELA = '__scope_final';
@@ -202,11 +202,12 @@ function fuentesDeUso(nodo: NodoObra): string[] {
   // De un cálculo con frontera, las expresiones de sus campos atados: son la
   // única vía por la que la obra entra en él.
   if (nodo.frontera) return Object.values(nodo.frontera.formulas ?? {});
-  // De una hoja libre, solo las fórmulas. Un bloque de texto es prosa: escribir
-  // «el área de planta se midió en terreno» con `area` definida en otro nodo
-  // dibujaba una flecha que no existe y, si la otra dirección ya estaba,
-  // fabricaba un ciclo — dos nodos en rojo por una palabra de un párrafo.
-  return nodo.hoja.filter((r) => r.kind === 'math').map((r) => r.src);
+  // De una hoja libre, las fórmulas y los gráficos (`usosDeRegion`). Un bloque
+  // de texto es prosa: escribir «el área de planta se midió en terreno» con
+  // `area` definida en otro nodo dibujaba una flecha que no existe y, si la otra
+  // dirección ya estaba, fabricaba un ciclo — dos nodos en rojo por una palabra
+  // de un párrafo.
+  return nodo.hoja.flatMap(usosDeRegion);
 }
 
 /**

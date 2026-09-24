@@ -17,6 +17,7 @@
 import type { Item } from './worksheet-layout';
 import type { Region } from './worksheet';
 import type { MetaPlanilla } from './biblioteca/contrato';
+import { expresionesDeGrafico } from './grafico';
 
 /**
  * El formato que leen el canvas, el import/export y `verify:planilla`.
@@ -98,6 +99,16 @@ export function verificarSimbolos(items: Item[]): void {
     // `/esquemas/viga.svg`, que este analizador leería como una ristra de
     // símbolos indefinidos.
     if (it.kind === 'text' || it.kind === 'image') continue;
+    // Un gráfico no define nada, y su `src` es el título: lo que usa está en las
+    // expresiones de su especificación, sin la variable de cada función.
+    if (it.kind === 'plot') {
+      for (const { expr, locales } of it.grafico ? expresionesDeGrafico(it.grafico) : []) {
+        for (const s of simbolos(expr).usa) {
+          if (!definidos.has(s) && !locales.includes(s)) faltantes.push(`«${s}» en el gráfico «${it.src}»`);
+        }
+      }
+      continue;
+    }
     const { define, usa } = simbolos(it.src);
     // De un bloque de programa solo se registra lo que EXPORTA. Su cuerpo
     // declara variables locales y de bucle que un análisis léxico no sabe

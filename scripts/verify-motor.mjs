@@ -20,14 +20,32 @@
 import katex from 'katex';
 import { cargarMotor, cargarMensajes } from './lib/motor.mjs';
 
-const { evaluateSheet, renderEsquema, renderHtml, documentoHtml, ajustarAnchos } = await cargarMotor();
+const { evaluateSheet, renderEsquema, renderHtml, documentoHtml, ajustarAnchos, svgDeGrafico, sanearConInforme } =
+  await cargarMotor();
 
-/** Una hoja a partir de `[tipo, src]`, apiladas en orden de lectura. */
+/** Una hoja a partir de `[tipo, src, extra?]`, apiladas en orden de lectura. */
 function hoja(...filas) {
-  return filas.map(([kind, src], i) => ({ id: `r${i}`, kind, x: 40, y: 40 + i * 48, src }));
+  return filas.map(([kind, src, extra], i) => ({ id: `r${i}`, kind, x: 40, y: 40 + i * 48, src, ...extra }));
 }
 const m = (src) => ['math', src];
 const p = (src) => ['program', src];
+/** Un gráfico: `espec` completa los campos que falten con lo mínimo. */
+const g = (espec, titulo = 'Gráfico') => [
+  'plot',
+  titulo,
+  {
+    grafico: {
+      version: 1,
+      ejeX: { titulo: 'x', ...espec.ejeX },
+      ejeY: { titulo: 'y', ...espec.ejeY },
+      series: espec.series,
+      referencias: espec.referencias,
+      leyenda: espec.leyenda,
+      alto: espec.alto,
+    },
+  },
+];
+const fn = (expr, desde, hasta, extra = {}) => ({ tipo: 'funcion', nombre: 'f', expr, variable: 'x', desde, hasta, ...extra });
 
 /** El LaTeX pasado a texto llano, para comparar valores sin pelear con el marcado. */
 function llano(tex = '') {
@@ -60,6 +78,17 @@ const esperaAviso = (id, patron) => (r) => {
   const a = r[id]?.aviso;
   if (!a) return `${id} no lleva aviso`;
   return patron.test(a) ? null : `${id}: aviso inesperado «${a}»`;
+};
+/** Los tramos de un gráfico, con tolerancia de redondeo. */
+const esperaTramos = (id, esperado) => (r) => {
+  if (r[id]?.error) return `${id} dio error: ${r[id].error}`;
+  const t = r[id]?.grafico?.series?.[0]?.tramos;
+  if (!t) return `${id} no trae tramos`;
+  const cerca = (a, b) => Math.abs(a - b) < 1e-9;
+  const igual =
+    t.length === esperado.length &&
+    t.every((tr, i) => tr.length === esperado[i].length && tr.every(([x, y], k) => cerca(x, esperado[i][k][0]) && cerca(y, esperado[i][k][1])));
+  return igual ? null : `${id}: tramos ${JSON.stringify(t)}, se esperaba ${JSON.stringify(esperado)}`;
 };
 const sinAviso = (id) => (r) => (r[id]?.aviso ? `${id} lleva un aviso que no toca: «${r[id].aviso}»` : null);
 const todas = (...fs) => (r) => fs.map((f) => f(r)).find((x) => x) ?? null;
@@ -313,6 +342,121 @@ const CASOS = [
     hoja: hoja(m('sqrt(-4) < 1')),
     ok: esperaError('r0'),
   },
+
+  // --- Región gráfico -----------------------------------------------------------
+  //
+  // Un gráfico se evalúa en su posición del orden de lectura y no define nada.
+  // Lo que se comprueba son los DATOS en unidades de los ejes: el SVG es una
+  // función pura de ellos, y tiene sus propios casos más abajo.
+  {
+    nombre: 'una función de un programa se muestrea en el rango, punto por punto',
+    hoja: hoja(p('f(x) :=\n    return x^2'), g({ series: [fn('f(x)', '0', '2', { muestras: 3 })] })),
+    ok: esperaTramos('r1', [[[0, 0], [1, 1], [2, 4]]]),
+  },
+  {
+    nombre: 'una expresión directa también, sin programa',
+    hoja: hoja(g({ series: [fn('2*x + 1', '0', '1', { muestras: 2 })] })),
+    ok: esperaTramos('r0', [[[0, 1], [1, 3]]]),
+  },
+  {
+    nombre: 'cada eje se expresa en su unidad: la variable llega con la del eje X',
+    hoja: hoja(
+      m('q := 2 kN/m'),
+      g({ ejeX: { unidad: 'm' }, ejeY: { unidad: 'kN' }, series: [fn('q*x', '0 m', '300 cm', { muestras: 2 })] }),
+    ),
+    ok: esperaTramos('r1', [[[0, 0], [3, 6]]]),
+  },
+  {
+    nombre: 'una dimensión que no casa con el eje es un error de la serie',
+    hoja: hoja(m('q := 2 kN/m'), g({ ejeX: { unidad: 'm' }, ejeY: { unidad: 'm' }, series: [fn('q*x', '0 m', '3 m')] })),
+    ok: esperaError('r1', /Serie «f».*no casan/),
+  },
+  {
+    nombre: 'un valor con unidades en un eje sin unidad pide declararla',
+    hoja: hoja(m('F := 3 kN'), g({ series: [fn('F*x', '0', '1')] })),
+    ok: esperaError('r1', /declara la unidad del eje/),
+  },
+  {
+    nombre: 'una serie de datos N×2 dibuja sus puntos en orden',
+    hoja: hoja(m('P := [0, 1; 1, 3; 2, 2]'), g({ series: [{ tipo: 'datos', nombre: 'P', xy: 'P' }] })),
+    ok: esperaTramos('r1', [[[0, 1], [1, 3], [2, 2]]]),
+  },
+  {
+    nombre: 'dos vectores del mismo largo son una serie de datos',
+    hoja: hoja(m('xs := [1, 2, 3]'), m('ys := [4; 5; 6]'), g({ series: [{ tipo: 'datos', nombre: 'v', x: 'xs', y: 'ys' }] })),
+    ok: esperaTramos('r2', [[[1, 4], [2, 5], [3, 6]]]),
+  },
+  {
+    nombre: 'dos vectores de distinto largo son un error que dice los dos largos',
+    hoja: hoja(m('xs := [1, 2, 3]'), m('ys := [4, 5]'), g({ series: [{ tipo: 'datos', nombre: 'v', x: 'xs', y: 'ys' }] })),
+    ok: esperaError('r2', /3 y 2/),
+  },
+  {
+    nombre: 'una función indefinida en parte del rango se corta y avisa, sin error',
+    hoja: hoja(g({ series: [fn('sqrt(x)', '-1', '1', { muestras: 5 })] })),
+    ok: todas(esperaAviso('r0', /2 de 5 puntos/), esperaTramos('r0', [[[0, 0], [0.5, Math.SQRT1_2], [1, 1]]])),
+  },
+  {
+    nombre: 'una función que no se puede dibujar en ningún punto es un error',
+    hoja: hoja(g({ series: [fn('sqrt(x - 5)', '0', '1')] })),
+    ok: esperaError('r0', /no está definida en 200 de 200/),
+  },
+  {
+    nombre: 'el gráfico no define nada: su variable no existe debajo',
+    hoja: hoja(g({ series: [fn('x^2', '0', '1')] }), m('y := x + 1 =')),
+    ok: esperaError('r1', /Undefined symbol x/),
+  },
+  {
+    nombre: 'orden de lectura: una función definida debajo del gráfico no se ve',
+    hoja: hoja(g({ series: [fn('h(x)', '0', '1')] }), p('h(x) :=\n    return x')),
+    ok: esperaError('r0', /Serie «f»/),
+  },
+  {
+    nombre: 'una etiqueta con token resuelve con coma decimal; un token roto es error',
+    hoja: hoja(
+      m('T_s := 0.45 s'),
+      g({ ejeX: { unidad: 's' }, series: [fn('1', '0 s', '1 s')], referencias: [{ tipo: 'vertical', valor: 'T_s', etiqueta: 'T* = {{T_s:s}} s' }] }),
+      g({ series: [fn('1', '0', '1')], referencias: [{ tipo: 'horizontal', valor: '1', etiqueta: '{{no_existe}}' }] }),
+    ),
+    ok: (r) =>
+      (r.r1?.grafico?.referencias?.[0]?.etiqueta === 'T* = 0,45 s'
+        ? null
+        : `etiqueta: «${r.r1?.grafico?.referencias?.[0]?.etiqueta}» (${r.r1?.error ?? ''})`) ?? esperaError('r2', /no_existe/)(r),
+  },
+  {
+    nombre: 'los ticks caen en números redondos, con coma decimal',
+    hoja: hoja(g({ series: [fn('x', '0', '3')] })),
+    ok: (r) => {
+      const t = r.r0?.grafico?.ejeX?.ticks?.map((k) => k.rotulo).join(' ');
+      return t === '0,0 0,5 1,0 1,5 2,0 2,5 3,0' ? null : `ticks de X: «${t}» (${r.r0?.error ?? ''})`;
+    },
+  },
+  {
+    nombre: 'el eje Y llega al cero por defecto, y sin él no',
+    hoja: hoja(g({ series: [fn('x + 10', '0', '2')] }), g({ ejeY: { incluirCero: false }, series: [fn('x + 10', '0', '2')] })),
+    ok: (r) =>
+      r.r0?.grafico?.ejeY?.min === 0 && r.r1?.grafico?.ejeY?.min > 0
+        ? null
+        : `mínimos de Y: ${r.r0?.grafico?.ejeY?.min} y ${r.r1?.grafico?.ejeY?.min}`,
+  },
+  {
+    // Con el respiro del 4 %, el máximo de 250 000 no queda pegado al marco:
+    // el extremo sube al tick redondo siguiente.
+    nombre: 'valores grandes llevan la escala al título del eje',
+    hoja: hoja(g({ ejeY: { titulo: 'M' }, series: [fn('250000*x', '0', '1')] })),
+    ok: (r) => {
+      const e = r.r0?.grafico?.ejeY;
+      return e?.titulo === 'M [×10³]' && e.ticks.at(-1).rotulo === '300'
+        ? null
+        : `título «${e?.titulo}», último tick «${e?.ticks.at(-1)?.rotulo}»`;
+    },
+  },
+  {
+    nombre: 'el tope de iteraciones corta una función que no termina, y es error',
+    hoja: hoja(p('lenta(x) :=\n    s := 0\n    while true\n        s := s + 1\n    return s'), g({ series: [fn('lenta(x)', '0', '1', { muestras: 3 })] })),
+    ok: esperaError('r1', /Serie «f»/),
+    maxMs: 20000,
+  },
 ];
 
 // --- Esquema paramétrico: `data-repetir` ------------------------------------
@@ -483,6 +627,61 @@ const CASOS_PAPEL = [
   },
 ];
 
+// --- El SVG de un gráfico ------------------------------------------------------
+//
+// `svgDeGrafico` tiene que dar la misma cadena cada vez —el canvas, el papel y
+// el render de Node la comparan sin saberlo— y nada que un navegador rechace.
+{
+  // Textos hostiles a propósito: el SVG se inyecta con `dangerouslySetInnerHTML`.
+  const regiones = [
+    { id: 't', kind: 'text', x: 40, y: 0, src: 'TÍTULO' },
+    ...hoja(
+      m('P := [0, 1; 1, 3; 2, 2]'),
+      g(
+        {
+          ejeX: { titulo: 'T', unidad: 's' },
+          ejeY: { titulo: 'Sa <img src=x onerror=alert(1)>' },
+          series: [
+            { tipo: 'funcion', nombre: 'Obra', expr: '2 - T/(1 s)', variable: 'T', desde: '0 s', hasta: '2 s' },
+            { tipo: 'datos', nombre: 'Modelo & <b>', x: 'P[:, 1] * 1 s', y: 'P[:, 2]' },
+          ],
+          referencias: [
+            { tipo: 'vertical', valor: '0.5 s', etiqueta: 'T*' },
+            { tipo: 'punto', x: '1 s', y: '1', etiqueta: 'diseño' },
+          ],
+        },
+        'Espectro <script>',
+      ),
+    ),
+  ];
+  const res = evaluateSheet(regiones);
+  CASOS_PAPEL.push(
+    {
+      nombre: 'un gráfico sale como figura, con el título escapado y un SVG determinista',
+      hoja: () => regiones,
+      ok: (html) => {
+        if (res.r1?.error) return `el gráfico dio error: ${res.r1.error}`;
+        const a = svgDeGrafico(res.r1.grafico);
+        const b = svgDeGrafico(evaluateSheet(regiones).r1.grafico);
+        if (a !== b) return 'dos evaluaciones dieron SVG distintos';
+        if (/NaN|Infinity|e[+-]\d/.test(a)) return `el SVG lleva un número no dibujable: ${a.match(/NaN|Infinity|e[+-]\d/)[0]}`;
+        const decimales = a.match(/\d+\.\d{3,}/);
+        if (decimales) return `una coordenada con más de 2 decimales: ${decimales[0]}`;
+        if (/<img|<b>|<script/.test(a) || /<script/.test(html)) return 'se coló marcado sin escapar';
+        if (!html.includes('<figure class="wp-fig wp-graf" data-wp-id="r1">')) return `falta la figura: ${html.slice(0, 300)}`;
+        if (!html.includes('<figcaption class="wp-graf-tit">Espectro &lt;script&gt;</figcaption>')) return 'el título no salió escapado';
+        if ((a.match(/<polyline /g) ?? []).length < 2) return 'faltan las polilíneas de las dos series';
+        return null;
+      },
+    },
+    {
+      nombre: 'un gráfico con «imprimir: false» no sale en el papel',
+      hoja: () => regiones.map((r) => (r.id === 'r1' ? { ...r, imprimir: false } : r)),
+      ok: (html) => (html.includes('wp-graf') ? 'el gráfico oculto salió impreso' : null),
+    },
+  );
+}
+
 // El script de ajuste que lleva el HTML de `render-planilla` es la función
 // serializada: si nombrara algo de fuera de su cuerpo, compilaría aquí y
 // reventaría en el navegador que abre el documento. Se compila y se corre
@@ -502,6 +701,19 @@ const CASOS_AJUSTE = [
       return documentoHtml({ titulo: 't', cuerpo: '', css: '', ajuste: false }).includes('<script>')
         ? 'con «ajuste: false» sigue llevando script'
         : null;
+    },
+  },
+  {
+    nombre: 'un gráfico sin especificación válida se descarta al cargar, con el motivo',
+    ok: () => {
+      const inf = sanearConInforme([
+        { id: 'a', kind: 'plot', x: 40, y: 40, src: 'sin nada' },
+        { id: 'b', kind: 'plot', x: 40, y: 90, src: 'sin series', grafico: { version: 1, ejeX: { titulo: 'x' }, ejeY: { titulo: 'y' }, series: [] } },
+        { id: 'c', kind: 'plot', x: 40, y: 140, src: 'bueno', grafico: { version: 1, ejeX: { titulo: 'x' }, ejeY: { titulo: 'y' }, series: [{ tipo: 'datos', nombre: 'p', xy: 'P' }] } },
+      ]);
+      const motivos = inf.descartadas.map((d) => `${d.motivo}/${d.detalle}`).join(' ');
+      if (motivos !== 'grafico/no-es-objeto grafico/sin-series') return `descartes: «${motivos}»`;
+      return inf.regions.length === 1 && inf.regions[0].id === 'c' ? null : `quedaron ${inf.regions.length} regiones`;
     },
   },
   {

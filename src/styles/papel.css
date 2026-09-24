@@ -200,6 +200,21 @@
   max-width: 100%;
   height: auto;
 }
+/* Un gráfico (`grafico-svg.ts`): mide los 680 px del papel, así que nunca
+   desborda, y se imprime entero en una página. El título va en HTML porque ahí
+   envuelve; dentro del SVG no podría. */
+.doc-papel .wp-graf-tit {
+  margin: 0 0 0.2rem;
+  font-size: 9.5pt;
+  font-weight: 600;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.doc-papel .wp-graf-svg svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
 .doc-papel .wp-ok {
   color: #15803d;
   font-weight: 700;

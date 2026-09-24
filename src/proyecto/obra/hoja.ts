@@ -26,6 +26,7 @@ import { parseProgram } from '../../lib/program';
 import { abrirHueco, mismoOrdenDeLectura } from '../../lib/solapes';
 import { sanearRegiones } from '../../lib/hoja-json';
 import { INTRINSECOS } from '../../lib/canvas-handoff';
+import { expresionesDeGrafico } from '../../lib/grafico';
 import { identificadoresDe } from './modelo';
 
 /**
@@ -105,13 +106,40 @@ export function nombresSueltos(hoja: readonly Region[]): string[] {
   const define = new Set(definicionesDe(hoja));
   const sueltos: string[] = [];
   for (const r of ordenDeLectura(hoja)) {
-    if (r.kind !== 'math') continue;
-    for (const id of identificadoresDe(r.src)) {
-      if (define.has(id) || INTRINSECOS.has(id) || sueltos.includes(id)) continue;
-      sueltos.push(id);
+    for (const texto of usosDeRegion(r)) {
+      for (const id of identificadoresDe(texto)) {
+        if (define.has(id) || INTRINSECOS.has(id) || sueltos.includes(id)) continue;
+        sueltos.push(id);
+      }
     }
   }
   return sueltos;
+}
+
+/**
+ * Los textos de los que salen los nombres que una región USA.
+ *
+ * Una fórmula, su `src`. Un gráfico, las expresiones de su especificación —su
+ * `src` es el título— SIN la variable de cada función: la `T` de `Sa(T)` es del
+ * gráfico, y leerla como un uso dibujaría una flecha hacia cualquier nodo que
+ * definiera una `T`. Un texto no usa nada (es prosa), y de un programa la obra
+ * solo lee lo que define.
+ */
+export function usosDeRegion(r: Region): string[] {
+  if (r.kind === 'math') return [r.src];
+  if (r.kind !== 'plot' || !r.grafico) return [];
+  return expresionesDeGrafico(r.grafico).map(({ expr, locales }) =>
+    locales.reduce(
+      (texto, local) =>
+        local
+          ? texto.replace(
+              new RegExp(`(?<![\\p{L}\\p{N}_])${local.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}_])`, 'gu'),
+              ' ',
+            )
+          : texto,
+      expr,
+    ),
+  );
 }
 
 /** Un bloque de las obras guardadas antes de que el nodo llevara regiones. */

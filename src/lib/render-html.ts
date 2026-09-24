@@ -23,6 +23,7 @@ import { renderEsquema, esRutaDeEsquema } from './esquema';
 import { ordenDeLectura } from './orden-lectura';
 import { nivelEncabezado, textoEncabezado, esEspaciador, regionTitulo, seImprime, lineasDePrograma } from './bloque';
 import { ajustarAnchos, ESCALA_MINIMA } from './ajuste-ancho';
+import { svgDeGrafico } from './grafico-svg';
 import { A4_ANCHO_PX } from './paginacion';
 
 export interface OpcionesRender {
@@ -123,6 +124,16 @@ export function renderHtml(
             `${r.w ? ` width="${r.w}"` : ''}${r.h ? ` height="${r.h}"` : ''}></figure>`,
         );
       }
+      continue;
+    }
+
+    // Un gráfico con error cae en la rama de error de abajo, como una fórmula.
+    if (r.kind === 'plot' && res.grafico && !res.error) {
+      bloques.push(
+        `<figure class="${clase('wp-fig wp-graf')}"${rest}>` +
+          `<figcaption class="wp-graf-tit">${escaparHtml(r.src)}</figcaption>` +
+          `<div class="wp-graf-svg">${svgDeGrafico(res.grafico)}</div></figure>`,
+      );
       continue;
     }
 

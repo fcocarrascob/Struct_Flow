@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Region } from '../../lib/worksheet';
+import { esBloqueEstructurado } from '../../lib/bloque';
 
 /**
  * Cuántos estados se recuerdan.
@@ -199,6 +200,8 @@ export function useHistorial<T>(
  * Un texto vacío sí se conserva: es un espaciador, y ocupa sitio a propósito.
  */
 export function sinTransitorias(estado: Region[]): Region[] {
-  const limpio = estado.filter((r) => r.kind === 'text' || r.kind === 'image' || r.src.trim() !== '');
+  const limpio = estado.filter(
+    (r) => r.kind === 'text' || r.kind === 'image' || esBloqueEstructurado(r) || r.src.trim() !== '',
+  );
   return limpio.length === estado.length ? estado : limpio;
 }

@@ -27,12 +27,17 @@ Lo importante que quedó abierto al cerrar la sesión del 2026-09-23, en la rama
    y con qué factor) y justificarla. En el Pachón el modelo lleva S con 0,5, que es el `f2` que
    la obra perdió al retirar «Casos de carga y fuente de masa»; tiene que volver a estar
    escrito en algún nodo (el del espectro es el candidato).
-4. **Gráficos y tablas en las hojas.** Bloque tabla (celdas con expresiones) y bloque gráfico
-   (una función o una serie sobre un rango, en SVG, igual en pantalla y en el PDF); el caso que
-   lo pide primero es el espectro, con la curva de la obra y la del modelo juntas. Son regiones
-   nuevas del motor: tocan `src/lib`, `render-html.ts` y `verify:motor`, y obligan a resellar
-   (`rumbo.md`, etapa 4).
-5. **El defecto del motor con el prefijo de las unidades** (abajo, en «Motor»): el mismo valor
+4. **Tablas en las hojas.** El gráfico ya está (región `plot`). Falta el bloque tabla, con el
+   diseño acordado el 2026-09-24: cada celda es una mini fórmula con la gramática de siempre
+   (`a := 3 m`, `b = kN`, o texto), evaluada por filas en su posición; la tabla puede publicarse
+   entera como matriz y cada columna con nombre como vector; se edita en la grilla, con la
+   estructura en el panel de propiedades. Resultados en `results[id].tabla.celdas[f][c]`, sin
+   ids por celda; `RegionResult.defines[]` para las varias definiciones.
+5. **Migrar las figuras hechas a mano a regiones `plot`.** La genérica
+   `espectro-nch2369-generica` dibuja el espectro con 26 regiones `imprimir: false` de mapeo a
+   píxeles, y `losa-unidireccional` arma sus curvas igual (`pts_fl`). Un `plot` las reemplaza,
+   pero mueve la paginación publicada: cada una con su medición en `/calibrar`.
+6. **El defecto del motor con el prefijo de las unidades** (abajo, en «Motor»): el mismo valor
    se muestra «1000 Pa» o «1 kPa» según lo evaluado antes en el proceso. Empieza por su caso
    en `verify:motor`; hoy `verify:obra` lo esquiva con una evaluación de calentamiento.
 

@@ -20,3 +20,6 @@ export {
 export { nivelEncabezado, textoEncabezado, esEncabezado, esEspaciador } from './bloque';
 export { renderHtml, documentoHtml } from './render-html';
 export { ajustarAnchos, ESCALA_MINIMA } from './ajuste-ancho';
+export { svgDeGrafico } from './grafico-svg';
+export { motivoDeGrafico, expresionesDeGrafico } from './grafico';
+export { sanearConInforme } from './hoja-json';

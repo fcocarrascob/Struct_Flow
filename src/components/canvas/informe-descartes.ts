@@ -8,6 +8,7 @@
 // está fuera de `src/lib/`.
 
 import type { InformeSaneo, MotivoDescarte, RegionDescartada } from '../../lib/hoja-json';
+import { MAX_SERIES, type CodigoGrafico } from '../../lib/grafico';
 
 /** Cómo se lee cada código, en singular y sin sujeto: se compone abajo. */
 const MOTIVOS: Record<MotivoDescarte, string> = {
@@ -15,6 +16,19 @@ const MOTIVOS: Record<MotivoDescarte, string> = {
   'sin-src': 'sin «src»',
   kind: 'con «kind» desconocido',
   coordenadas: 'sin «x» o sin «y»',
+  grafico: 'gráfico con la especificación mal formada',
+};
+
+/** Qué le falta a la especificación de un gráfico (`motivoDeGrafico`). */
+const DETALLES_GRAFICO: Record<CodigoGrafico, string> = {
+  'no-es-objeto': 'no trae «grafico»',
+  version: '«version» tiene que ser 1',
+  eje: '«ejeX» o «ejeY» sin «titulo»',
+  'sin-series': 'sin series',
+  'demasiadas-series': `más de ${MAX_SERIES} series`,
+  serie: 'una serie sin los campos de su «tipo»',
+  referencia: 'una referencia mal formada',
+  opciones: '«leyenda», «cuadricula» o «alto» con un valor que no se admite',
 };
 
 /** El motivo de una descartada, con el `kind` citado cuando lo hay: «"formula"»
@@ -22,6 +36,7 @@ const MOTIVOS: Record<MotivoDescarte, string> = {
  *  viaje de ida y vuelta. */
 function motivoDe(d: RegionDescartada): string {
   const base = MOTIVOS[d.motivo];
+  if (d.motivo === 'grafico' && d.detalle) return `${base}: ${DETALLES_GRAFICO[d.detalle]}`;
   return d.motivo === 'kind' && d.kind ? `${base} («${d.kind}»)` : base;
 }
 
@@ -70,6 +85,6 @@ export function detalleDeDescartes(informe: InformeSaneo): string {
     `La hoja traía ${total} bloques y ${descartadas.length} no se pudieron cargar:`,
     ...lineas,
     '',
-    'Un bloque válido lleva «kind» («math», «text», «program» o «image»), «src» como texto, y «x» e «y» numéricos.',
+    'Un bloque válido lleva «kind» («math», «text», «program», «image» o «plot»), «src» como texto, y «x» e «y» numéricos; un «plot» lleva además «grafico».',
   ].join('\n');
 }

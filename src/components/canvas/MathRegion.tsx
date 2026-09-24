@@ -265,7 +265,11 @@ function MathRegion({
   // no habría forma de seleccionarlo, ni de verlo al pasar el cursor, ni de
   // borrarlo.
   const nivel = nivelEncabezado(region);
-  const anchoCompleto = Boolean(titulo) || nivel === 1 || nivel === 2 || esEspaciador(region);
+  // Un gráfico mide siempre el ancho del papel: su SVG es `width: 100%`, y con
+  // `fit-content` alrededor ese porcentaje no tendría contra qué resolverse.
+  const isPlot = region.kind === 'plot';
+  const anchoCompleto =
+    Boolean(titulo) || nivel === 1 || nivel === 2 || esEspaciador(region) || isPlot;
 
   return (
     <div
@@ -377,7 +381,11 @@ function MathRegion({
           if (!isImage) onActivate(); // una imagen no tiene modo edición
         }}
       >
-        {active && isProgram ? (
+        {active && isPlot ? (
+          // Un gráfico no se edita en el bloque: el panel de propiedades del
+          // canvas (`PanelGrafico`) lo modifica y aquí se ve el resultado en vivo.
+          <BloqueDoc region={region} result={result} />
+        ) : active && isProgram ? (
           <textarea
             ref={(el) => {
               // El mismo alto por `scrollHeight` que el texto: acotado al papel,
@@ -572,7 +580,8 @@ export default memo(MathRegion, (a, b) => {
       x.w === y.w &&
       x.h === y.h &&
       x.pageBreak === y.pageBreak &&
-      x.imprimir === y.imprimir)
+      x.imprimir === y.imprimir &&
+      x.grafico === y.grafico)
   ) && a.result === b.result && a.active === b.active && a.selected === b.selected &&
     a.tapada === b.tapada && a.desborda === b.desborda && a.titulo === b.titulo &&
     a.sugerencias === b.sugerencias;

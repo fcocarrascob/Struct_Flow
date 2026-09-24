@@ -40,6 +40,10 @@
 // `onerror` de un `<img>` sí.
 
 import { evalExpr, formatSvg, formatValor } from './worksheet';
+// La sintaxis del token —y el escape de lo que se sustituye: una hoja pegada de
+// fuera que definiera la variable de un token con `"><img src=x onerror=…>`
+// colaba HTML ejecutable— la comparte con las etiquetas de un gráfico.
+import { TOKEN_RE, separarToken, escaparXml } from './token';
 
 /** Prefijo de ruta desde el que se permite render inline con tokens. */
 export const ESQUEMAS_PREFIX = '/esquemas/';
@@ -52,11 +56,6 @@ export const ESQUEMAS_PREFIX = '/esquemas/';
 export function esRutaDeEsquema(src: string): boolean {
   return src.startsWith(ESQUEMAS_PREFIX) && !src.includes('..') && !src.includes('\\');
 }
-
-const TOKEN_RE = /\{\{([^{}]+)\}\}/g;
-// Cola de unidad: identificadores combinados con * / ^ y dígitos (mismo
-// criterio que el `= unidad` de una región math).
-const UNIT_TAIL_RE = /^[\p{L}\p{N}_*/^\s()-]*$/u;
 
 export interface EsquemaRender {
   /** El SVG con los tokens sustituidos. */
@@ -74,34 +73,6 @@ export interface EsquemaRender {
  * ella: `{{x:cm:svg}}` convierte a cm y después formatea crudo.
  */
 const MOD_SVG = 'svg';
-
-/** Separa `expr:unidad`; el último `:` solo es unidad si la cola lo parece. */
-function separarToken(crudo: string): { expr: string; unidad?: string } {
-  const i = crudo.lastIndexOf(':');
-  if (i === -1) return { expr: crudo };
-  const tail = crudo.slice(i + 1).trim();
-  if (UNIT_TAIL_RE.test(tail) && /\p{L}/u.test(tail)) {
-    return { expr: crudo.slice(0, i).trim(), unidad: tail };
-  }
-  return { expr: crudo };
-}
-
-/**
- * Escapa un rótulo para que entre en el SVG como TEXTO y no como marcado.
- *
- * El valor sale de la hoja y el SVG resultante se inyecta con
- * `dangerouslySetInnerHTML`, así que una hoja pegada de fuera que definiera la
- * variable de un token con `"><img src=x onerror=…>` colaba HTML ejecutable.
- * Se escapan también las comillas porque un token puede ir dentro de un atributo.
- */
-function escaparXml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
 
 /** Cuenta de tokens vistos, compartida entre la expansión y la sustitución. */
 interface Cuenta {

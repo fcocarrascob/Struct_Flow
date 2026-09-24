@@ -14,6 +14,13 @@
 
 import { create, all, type MathNode } from 'mathjs';
 import { nuevoGuard, parseProgram, runFunction, runProgram, type ProgramContext } from './program';
+import {
+  evaluarGrafico,
+  type DatosGrafico,
+  type EspecGrafico,
+  type HerramientasGrafico,
+} from './grafico';
+import { TOKEN_RE, separarToken } from './token';
 
 const math = create(all, {});
 
@@ -157,7 +164,7 @@ function comprobarNombre(nombre: string): void {
   }
 }
 
-export type RegionKind = 'math' | 'text' | 'program' | 'image';
+export type RegionKind = 'math' | 'text' | 'program' | 'image' | 'plot';
 
 export interface Region {
   id: string;
@@ -192,6 +199,12 @@ export interface Region {
    * `validarMeta` lo rechaza.
    */
   imprimir?: boolean;
+  /**
+   * Solo `plot`: qué dibuja y cómo (`grafico.ts`). En un gráfico `src` es el
+   * TÍTULO que se imprime sobre la figura, y nunca está vacío: así un gráfico
+   * no se confunde con un bloque a medio escribir.
+   */
+  grafico?: EspecGrafico;
 }
 
 export interface ParsedMath {
@@ -237,6 +250,11 @@ export interface RegionResult {
    * variables definidas más arriba/izquierda, igual que una región math.
    */
   scope?: Record<string, unknown>;
+  /**
+   * Solo `plot`: lo evaluado, en unidades de los ejes. El SVG lo arma
+   * `svgDeGrafico` al pintar, igual en la hoja, en el papel y en Node.
+   */
+  grafico?: DatosGrafico;
 }
 
 export type SheetResults = Record<string, RegionResult>;
@@ -525,6 +543,15 @@ export function evaluateSheet(
 
     if (region.kind === 'image') {
       results[region.id] = { scope: { ...scope } };
+      continue;
+    }
+
+    // Antes que la rama del `src` vacío: en un gráfico `src` es el título, y lo
+    // que se evalúa es su especificación. No escribe en el scope.
+    if (region.kind === 'plot') {
+      results[region.id] = region.grafico
+        ? evaluarGrafico(region.grafico, scope, HERRAMIENTAS_GRAFICO)
+        : { error: 'El gráfico no tiene especificación' };
       continue;
     }
 
@@ -904,3 +931,59 @@ export function formatSvg(v: unknown, unidad?: string): string {
     })
     .join(' ');
 }
+
+/**
+ * Lo que la región gráfico necesita del motor (`grafico.ts` no importa mathjs:
+ * una segunda instancia perdería `tonf` y los `Unit` del scope).
+ *
+ * La regla de unidades es la de `formatSvg`, estricta: con unidad en el eje,
+ * cada valor se convierte a ella DENTRO del motor —dividir por `1 <unidad>`, sin
+ * tabla de factores— y una dimensión que no casa es un error; sin unidad, un
+ * valor con unidades también lo es, porque dibujarlo exigiría adivinar en qué
+ * unidad se quería leer.
+ */
+const HERRAMIENTAS_GRAFICO: HerramientasGrafico = {
+  compilar(expr) {
+    if (!expr.trim()) throw new Error('falta la expresión');
+    const node = parsear(expr);
+    return (s) => node.evaluate(s);
+  },
+  aNumero(v, unidad, que) {
+    if (esComplejo(v)) throw new Error(`${que} da un número complejo (raíz o logaritmo de un negativo)`);
+    if (unidad) {
+      if (!math.isUnit(v)) {
+        throw new Error(
+          `${que} es un número sin unidad y el eje está en ${unidad}: quita la unidad del eje o da el valor con unidades`,
+        );
+      }
+      try {
+        return math.number(v as never, unidad as never) as number;
+      } catch {
+        throw new Error(`${que} está en ${(v as { formatUnits(): string }).formatUnits()} y el eje en ${unidad}: las unidades no casan`);
+      }
+    }
+    if (math.isUnit(v)) {
+      throw new Error(`${que} tiene unidades (${(v as { formatUnits(): string }).formatUnits()}): declara la unidad del eje`);
+    }
+    if (typeof v === 'number') return v;
+    if (math.isBigNumber(v) || math.isFraction(v)) return math.number(v as never) as number;
+    throw new Error(`${que} no es un número`);
+  },
+  cantidad(n, unidad) {
+    return unidad ? math.unit(n, unidad) : n;
+  },
+  filas: filasDeMatriz,
+  rotular(texto, s) {
+    return texto.replace(TOKEN_RE, (_m, crudo: string) => {
+      const { expr, unidad } = separarToken(crudo.trim());
+      try {
+        const v = parsear(expr).evaluate(Object.create(s));
+        if (esComplejo(v)) throw new Error(ERROR_COMPLEJO);
+        return formatValor(v, unidad);
+      } catch (e) {
+        throw new Error(`la etiqueta no resuelve {{${crudo.trim()}}}: ${errMsg(e)}`);
+      }
+    });
+  },
+  comprobarNombre,
+};

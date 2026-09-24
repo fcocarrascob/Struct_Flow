@@ -6,6 +6,7 @@
 // de memorias del verificador de secciones depende de eso.
 
 import type { Region, RegionKind } from './worksheet';
+import type { EspecGrafico } from './grafico';
 
 export interface Item {
   kind: RegionKind;
@@ -20,9 +21,13 @@ export interface Item {
    * contrato y tienen que sobrevivir a la instanciación.
    */
   id?: string;
+  /** Solo `plot`: qué dibuja (`src` es el título). */
+  grafico?: EspecGrafico;
 }
 
 export const m = (src: string): Item => ({ kind: 'math', src });
+/** Un gráfico con su título. Como un esquema, rotula lo de arriba: va después de los cálculos. */
+export const graf = (titulo: string, grafico: EspecGrafico): Item => ({ kind: 'plot', src: titulo, grafico });
 export const t = (src: string): Item => ({ kind: 'text', src });
 export const p = (src: string): Item => ({ kind: 'program', src });
 
@@ -59,6 +64,10 @@ export function layout(idPrefix: string, x: number, y0: number, items: Item[]): 
       // hueco está dejado a mano (en `viga-flexion-corte.json`, un salto suelto
       // de ~450 px); quien genere una hoja no debería tener que calcularlo.
       y += (it.h ?? 400) + PASO;
+    } else if (it.kind === 'plot') {
+      region.grafico = it.grafico;
+      // Su alto declarado más el del título.
+      y += (it.grafico?.alto ?? 340) + 24 + PASO;
     } else {
       const lines = it.src.split('\n').length;
       y += lines > 1 ? lines * 22 + 28 : PASO;

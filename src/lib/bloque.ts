@@ -96,7 +96,23 @@ export function esEspaciador(region: Pick<Region, 'kind' | 'src'>): boolean {
  * acabarían siendo regiones distintas.
  */
 export function seImprime(region: Pick<Region, 'kind' | 'src' | 'imprimir'>): boolean {
-  return region.imprimir !== false && (region.src.trim() !== '' || esEspaciador(region));
+  return (
+    region.imprimir !== false &&
+    (region.src.trim() !== '' || esEspaciador(region) || esBloqueEstructurado(region))
+  );
+}
+
+/**
+ * Un bloque cuyo contenido no está en `src` sino en una especificación propia:
+ * hoy, el gráfico (`grafico`). Nunca es «un bloque a medio escribir», aunque su
+ * título esté vacío.
+ *
+ * Existe para que las reglas que miran `src` —descartar lo vacío al salir de la
+ * edición, no guardar lo transitorio en el historial, qué sale en el papel—
+ * pregunten por el tipo de bloque en un solo sitio.
+ */
+export function esBloqueEstructurado(region: Pick<Region, 'kind'>): boolean {
+  return region.kind === 'plot';
 }
 
 /** Una línea del fuente de un programa, con su sangría en columnas. */

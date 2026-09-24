@@ -193,6 +193,16 @@ export async function verificarPlanilla(planillaPath, { esquemas = [] } = {}) {
       }
       continue;
     }
+    // Un gráfico es una figura: se cuenta, y su error —una serie que no se puede
+    // dibujar, una unidad que no casa con el eje— es un error de la planilla,
+    // igual que un token de esquema sin resolver. No es un paso del desarrollo.
+    if (r.kind === 'plot') {
+      figuras += 1;
+      const res = results[r.id] ?? {};
+      if (res.aviso) avisos.push({ src: r.src, aviso: res.aviso });
+      if (res.error) errores.push({ id: r.id, src: r.src, error: res.error });
+      continue;
+    }
     const res = results[r.id] ?? {};
     // Un aviso no es un error (la expresión es válida), pero se enseña: hoy, una
     // variable que tapa una unidad en posición de unidad (ver `avisoUnidadTapada`

@@ -4,6 +4,8 @@ import type { Region, RegionResult } from '../../lib/worksheet';
 import { renderEsquema, esRutaDeEsquema } from '../../lib/esquema';
 import { ajustarAnchos, ESCALA_MINIMA } from '../../lib/ajuste-ancho';
 import { A4_ANCHO_PX } from '../../lib/paginacion';
+import { svgDeGrafico } from '../../lib/grafico-svg';
+import { ALTO_POR_DEFECTO, ANCHO_GRAFICO } from '../../lib/grafico';
 import { useEsquema } from '../useEsquema';
 import { mensajeDeMotor } from './mensajes-motor';
 
@@ -125,6 +127,40 @@ function Esquema({
   );
 }
 
+/**
+ * Un gráfico: el título en un `figcaption` —ahí envuelve solo, dentro del SVG no
+ * podría— y el SVG de `svgDeGrafico`, el mismo que emite `render-html.ts`.
+ * Síncrono: el alto se conoce desde el primer pintado, sin reservar hueco.
+ *
+ * Sin datos todavía (la hoja aún no se evaluó) se reserva el alto declarado,
+ * para que la paginación no vea una figura de cero píxeles.
+ */
+function Grafico({
+  region,
+  result,
+  clase,
+  rest,
+}: {
+  region: Region;
+  result?: RegionResult;
+  clase: string;
+  rest: Record<string, string | undefined>;
+}) {
+  const datos = result?.grafico;
+  const svg = useMemo(() => (datos ? svgDeGrafico(datos) : null), [datos]);
+  const alto = region.grafico?.alto ?? ALTO_POR_DEFECTO;
+  return (
+    <figure className={clase} {...rest}>
+      <figcaption className="wp-graf-tit">{region.src}</figcaption>
+      {svg ? (
+        <div className="wp-graf-svg" dangerouslySetInnerHTML={{ __html: svg }} />
+      ) : (
+        <div className="wp-graf-svg" style={{ aspectRatio: `${ANCHO_GRAFICO} / ${alto}` }} />
+      )}
+    </figure>
+  );
+}
+
 // Qué es un encabezado, un espaciador o el título vive en `lib/bloque.ts`,
 // porque el render a HTML de Node (`render-html.ts`) tiene que decidirlo igual
 // que este componente. Se reexporta para que los importadores no cambien.
@@ -205,6 +241,10 @@ export default function BloqueDoc({ region, result, titulo, className = '', wpId
         {region.src} — {mensaje}
       </p>
     );
+  }
+
+  if (region.kind === 'plot') {
+    return <Grafico region={region} result={result} clase={clase('wp-fig wp-graf')} rest={rest} />;
   }
 
   if (region.kind === 'program') {

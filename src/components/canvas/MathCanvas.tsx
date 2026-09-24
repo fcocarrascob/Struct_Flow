@@ -18,6 +18,8 @@ import { usePaginacion } from './usePaginacion';
 import { sinTransitorias, useHistorial } from './useHistorial';
 import { evaluateSheet, type Region, type RegionKind } from '../../lib/worksheet';
 import { ESCALA_MINIMA } from '../../lib/ajuste-ancho';
+import { ALTO_POR_DEFECTO as ALTO_GRAFICO, especPorDefecto, type EspecGrafico } from '../../lib/grafico';
+import PanelGrafico from './PanelGrafico';
 import { FUNCIONES_BASE, variablesVisibles } from '../../lib/autocompletar';
 import {
   detectarSolapes,
@@ -55,7 +57,7 @@ import {
   fitToSheet,
   isImageFile,
 } from '../../lib/canvas-image';
-import { regionTitulo, seImprime } from '../../lib/bloque';
+import { regionTitulo, seImprime, esBloqueEstructurado } from '../../lib/bloque';
 import { hayTrabajoGuardado } from '../../lib/hoja-guardada';
 import { descargarHoja } from '../../lib/canvas-handoff';
 import { useHojaPersistida, type OrigenHoja } from './useHojaPersistida';
@@ -522,6 +524,11 @@ export default function MathCanvas({
   // que es lineal y distinto de este plano 2D: por eso el corte se anuncia
   // sobre la región que ABRE la página, que en orden de lectura es exacto.
   const paginacion = usePaginacion(regions, results);
+  /** El gráfico en edición, si lo hay: su panel de propiedades va junto a la hoja. */
+  const graficoActivo = useMemo(() => {
+    const r = activeId ? regions.find((x) => x.id === activeId) : undefined;
+    return r?.kind === 'plot' && r.grafico ? (r as Region & { grafico: EspecGrafico }) : undefined;
+  }, [activeId, regions]);
   /** Las regiones con una fórmula que no cabe en el ancho ni encogida al mínimo. */
   const desbordadas = useMemo(() => new Set(paginacion.anchos), [paginacion.anchos]);
 
@@ -792,8 +799,11 @@ export default function MathCanvas({
     (avanzar = false) => {
       const id = activeId;
       if (id) {
-        // Una región que queda vacía al salir de edición se elimina.
-        setRegions((prev) => prev.filter((r) => r.id !== id || r.src.trim() !== ''));
+        // Una región que queda vacía al salir de edición se elimina. Un gráfico
+        // no: su contenido es la especificación, y el título puede ir vacío.
+        setRegions((prev) =>
+          prev.filter((r) => r.id !== id || r.src.trim() !== '' || esBloqueEstructurado(r)),
+        );
       }
       setActiveId(null);
       if (!avanzar || !id) return;
@@ -864,13 +874,24 @@ export default function MathCanvas({
    * botón encadena bloques en columna en vez de superponerlos.
    */
   const insertRegion = useCallback(
-    (kind: Exclude<RegionKind, 'image'>, src = '') => {
-      const { x, y } = nextSpot();
-      const region: Region = { id: newId(), kind, x: snap(x), y: snap(y), src };
+    (kind: Exclude<RegionKind, 'image'>, src = '', extra: Partial<Region> = {}) => {
+      const spot = nextSpot();
+      // Un gráfico mide el ancho entero del papel: nace en su borde izquierdo, o
+      // el clic que fijó el punto a media hoja lo sacaría por la derecha.
+      const x = kind === 'plot' ? ORIGEN_PAPEL_X : spot.x;
+      const y = spot.y;
+      const region: Region = { id: newId(), kind, x: snap(x), y: snap(y), src, ...extra };
       setRegions((prev) => [...prev, region]);
       seleccionar(new Set());
       setActiveId(region.id);
-      setInsertAt({ x: snap(x), y: snap(y) + (kind === 'program' ? 5 * GRID : 3 * GRID) });
+      // Un gráfico mide lo que declara: su alto más el del título.
+      const paso =
+        kind === 'plot'
+          ? snap((region.grafico?.alto ?? ALTO_GRAFICO) + 3 * GRID)
+          : kind === 'program'
+            ? 5 * GRID
+            : 3 * GRID;
+      setInsertAt({ x: snap(x), y: snap(y) + paso });
       // Una reserva provisional, no el alto real: el bloque acaba de nacer y
       // todavía no está medido. Y no llega a verse, porque el punto no se dibuja
       // mientras hay algo en edición. Al confirmar con Enter, `commitActive`
@@ -1556,6 +1577,13 @@ export default function MathCanvas({
         >
           ƒ Programa
         </button>
+        <button
+          className={toolBtn}
+          onClick={() => insertRegion('plot', 'Gráfico', { grafico: especPorDefecto() })}
+          title="Inserta un gráfico 2D: funciones, series de datos y rectas de referencia. Doble clic para editarlo."
+        >
+          ◩ Gráfico
+        </button>
         <div className="relative">
           <button
             className={`${toolBtn} ${imageMenuOpen ? '!border-accent !text-accent' : ''}`}
@@ -2132,6 +2160,16 @@ export default function MathCanvas({
         )}
         {showVars && (
           <VariablePanel regions={regions} results={results} onIr={irARegion} />
+        )}
+        {graficoActivo && (
+          <PanelGrafico
+            key={graficoActivo.id}
+            region={graficoActivo}
+            result={results[graficoActivo.id]}
+            sugerencias={sugerencias}
+            onCambiar={(grafico, titulo) => updateRegion(graficoActivo.id, { grafico, src: titulo })}
+            onListo={() => commitActive()}
+          />
         )}
         <SymbolPalette
           onInsert={insertSymbol}

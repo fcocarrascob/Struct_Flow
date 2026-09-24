@@ -70,10 +70,11 @@ Definida en `worksheet.ts:64`:
 | Campo | Tipo | Notas |
 |---|---|---|
 | `id` | `string` | **Único y estable.** `meta.esperadoFalso` se indexa por él. |
-| `kind` | `'math' \| 'text' \| 'program' \| 'image'` | |
+| `kind` | `'math' \| 'text' \| 'program' \| 'image' \| 'plot'` | |
 | `x`, `y` | `number` | Posición en px sobre la hoja, ajustada a la cuadrícula. |
 | `src` | `string` | Expresión, texto libre o fuente de imagen según el `kind`. |
 | `w`, `h` | `number?` | Solo `image`: tamaño mostrado. Sin ellos, el natural. |
+| `grafico` | `object?` | Solo `plot`: qué dibuja (§7.1). En un `plot`, `src` es el título. |
 | `pageBreak` | `boolean?` | Al imprimir, esta región abre una A4 nueva. |
 | `imprimir` | `boolean?` | `false` la deja **fuera del papel**: se evalúa en su sitio del orden de lectura y lo que define sigue visible para lo de abajo y para los tokens de un esquema, pero no sale en el documento. Es para el **mapeo a píxeles de un esquema** (escala, funciones de coordenadas, colores por veredicto). Una entrada `in_*`, un veredicto `v_*` o una salida declarada no se esconden: `validarMeta` lo rechaza con `region.imprimir`. |
 
@@ -240,6 +241,60 @@ El modificador `:svg` es obligatorio dentro de un atributo: el formato de rótul
 decimal y `width="211,4"` es SVG inválido. **Un token que no resuelve hace fallar el
 verificador**, igual que un número.
 
+## 7.1 Regiones `plot` (gráficos)
+
+Un gráfico 2D: funciones de una variable, series x–y y rectas o puntos de referencia, sobre
+dos ejes con unidad. `src` es el **título** que se imprime sobre la figura; lo que se dibuja va
+en `grafico`. Se evalúa en su posición del orden de lectura contra el mismo scope que una
+fórmula —ve lo definido arriba— y **no define nada**. Mide siempre el ancho del papel (680 px)
+y el alto que declara, así que la paginación es estable.
+
+Antes una figura así se armaba a mano: regiones `imprimir: false` que llevaban cada valor a
+píxeles para la polilínea de un esquema. Con un `plot` no hace falta nada de eso.
+
+```json
+{
+  "id": "g-espectro",
+  "kind": "plot",
+  "x": 40, "y": 2400,
+  "src": "Espectro de diseño",
+  "grafico": {
+    "version": 1,
+    "ejeX": { "titulo": "Periodo T", "unidad": "s" },
+    "ejeY": { "titulo": "Sa [g]", "incluirCero": true },
+    "series": [
+      { "tipo": "funcion", "nombre": "referencia", "expr": "I_imp*Sa_ref_de(T)*f_xi",
+        "variable": "T", "desde": "0 s", "hasta": "T_top" },
+      { "tipo": "datos", "nombre": "modelo", "xy": "espectro_sap" }
+    ],
+    "referencias": [
+      { "tipo": "vertical", "valor": "T_est", "etiqueta": "T* = {{T_est:s}} s" },
+      { "tipo": "punto", "x": "T_est", "y": "Sa_dis", "etiqueta": "Sa = {{Sa_dis}} g" }
+    ],
+    "leyenda": "auto",
+    "cuadricula": true,
+    "alto": 340
+  }
+}
+```
+
+| Campo | Notas |
+|---|---|
+| `ejeX`, `ejeY` | `titulo` (texto llano), `unidad` (de mathjs; vacía = adimensional), `min` y `max` (expresiones; vacíos = automáticos). `ejeY.incluirCero` (por defecto `true`). |
+| `series` | De 1 a 8. **`funcion`**: `expr` con la variable libre, `variable`, `desde`, `hasta` y `muestras` (2 a 1000, por defecto 200). **`datos`**: `xy` (matriz N×2) o `x` e `y` (dos vectores del mismo largo). Las dos admiten `nombre`, `trazo` (`continuo`, `discontinuo`, `punteado`, `trazo-punto`) y `marcador` (`ninguno`, `circulo`, `cuadrado`, `triangulo`, `rombo`). |
+| `referencias` | Hasta 12: `horizontal` o `vertical` con `valor`, o `punto` con `x` e `y`. La `etiqueta` admite tokens `{{expr:unidad}}`, como un esquema. |
+| `leyenda` | `auto` (con más de una serie), `si` o `no`. |
+| `alto` | 272, 340 o 425 px de papel. |
+
+**Las unidades son estrictas**, como el `:svg` de un esquema. Con `unidad` en el eje, cada
+valor se convierte a ella dentro del motor, y la variable de una función llega **con** esa
+unidad (así `Sa_ref_de(T)` recibe segundos). Una dimensión que no casa es un error; y sin
+unidad en el eje, un valor con unidades también lo es, con un mensaje que pide declararla.
+
+**Una serie que no se puede dibujar es un error de la región**, y `verify:planilla` lo cuenta.
+Una función indefinida en parte del rango (una raíz de un negativo) se corta en tramos y deja un
+`aviso`; si pierde más de la mitad de los puntos, es error.
+
 ## 8. Footguns registrados
 
 Cosas que no fallan: devuelven otro número en silencio.
@@ -257,6 +312,9 @@ Cosas que no fallan: devuelven otro número en silencio.
   puntos metería 400 números en una región y reventaría la paginación.
 - **`= unidad` sobre algo sin unidades lanza.** Si el resultado es adimensional, deja la cola
   vacía.
+- **En mathjs, `g` es el gramo**, no la aceleración de la gravedad. Un eje «Sa [g]» con unidad
+  `g` da un error de dimensión: un espectro en fracciones de g es adimensional, y la «g» va en
+  el título del eje.
 
 ## 9. Dónde va el archivo
 

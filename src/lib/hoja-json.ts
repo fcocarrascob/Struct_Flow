@@ -8,6 +8,7 @@
 
 import type { Region } from './worksheet';
 import type { MetaPlanilla } from './biblioteca/contrato';
+import { motivoDeGrafico, type CodigoGrafico } from './grafico';
 
 /** Ids pedidos en esta sesión: lo que distingue a dos del mismo milisegundo. */
 let secuencia = 0;
@@ -25,7 +26,7 @@ let secuencia = 0;
 export const newId = (): string =>
   `r${Date.now().toString(36)}${(secuencia++).toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
-const KINDS: ReadonlySet<string> = new Set(['math', 'text', 'program', 'image']);
+const KINDS: ReadonlySet<string> = new Set(['math', 'text', 'program', 'image', 'plot']);
 
 /**
  * ¿Es una región utilizable? Hay que comprobarlo de verdad, región por región:
@@ -42,7 +43,7 @@ export function esRegion(r: unknown): r is Region {
 /** Por qué una entrada del JSON no sirve como región. Códigos, no prosa: la
  *  redacción vive fuera de `src/lib`, donde cambiarla no mueve el sello del
  *  motor ni obliga a resellar las 33 planillas por afinar una frase. */
-export type MotivoDescarte = 'no-es-objeto' | 'sin-src' | 'kind' | 'coordenadas';
+export type MotivoDescarte = 'no-es-objeto' | 'sin-src' | 'kind' | 'coordenadas' | 'grafico';
 
 /**
  * Por qué esa entrada no sirve, o `null` si sirve.
@@ -62,6 +63,9 @@ export function motivoDeRegion(r: unknown): MotivoDescarte | null {
   if (typeof c.src !== 'string') return 'sin-src';
   if (typeof c.kind !== 'string' || !KINDS.has(c.kind)) return 'kind';
   if (!Number.isFinite(c.x) || !Number.isFinite(c.y)) return 'coordenadas';
+  // Un gráfico sin una especificación con forma de gráfico no se puede ni
+  // evaluar ni dibujar; qué le falta lo dice `motivoDeGrafico` en el informe.
+  if (c.kind === 'plot' && motivoDeGrafico(c.grafico) !== null) return 'grafico';
   return null;
 }
 
@@ -118,6 +122,8 @@ export interface RegionDescartada {
   /** El `kind` tal como venía, si era una cadena. `"formula"` en vez de `"math"`
    *  es el error que más manda un chat, y nombrarlo ahorra el viaje. */
   kind?: string;
+  /** Con el motivo `grafico`: qué parte de la especificación falla. */
+  detalle?: CodigoGrafico;
 }
 
 export interface InformeSaneo {
@@ -154,10 +160,12 @@ export function sanearConInforme(regions: unknown[]): InformeSaneo {
       // `kind: 3` se interpolaría un «3» como si fuera algo que alguien escribió,
       // y en un bloque sin `src` el `kind` correcto no explica nada.
       const kind = (r as { kind?: unknown } | null)?.kind;
+      const detalle = motivo === 'grafico' ? motivoDeGrafico((r as { grafico?: unknown }).grafico) : null;
       descartadas.push({
         posicion: i + 1,
         motivo,
         ...(motivo === 'kind' && typeof kind === 'string' ? { kind } : {}),
+        ...(detalle ? { detalle } : {}),
       });
       return;
     }

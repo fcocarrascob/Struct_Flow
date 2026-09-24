@@ -18,6 +18,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import type { Region } from '../../lib/worksheet';
 import type { MetaPlanilla } from '../../lib/biblioteca/contrato';
+import { esBloqueEstructurado } from '../../lib/bloque';
 
 /** Espera del autoguardado tras la última tecla. */
 const PAUSA_MS = 300;
@@ -254,7 +255,9 @@ export function useHojaPersistida(
     // —39 en el corpus, 16 solo en `anclajes-pedestal`— en el primer
     // autoguardado: la hoja se recolocaba sola tras un F5. Una región vacía que
     // no se está editando es una decisión del autor.
-    const persistables = rs.filter((r) => r.id !== editando || r.src.trim() !== '');
+    const persistables = rs.filter(
+      (r) => r.id !== editando || r.src.trim() !== '' || esBloqueEstructurado(r),
+    );
     const hoja = { regions: rs, persistables, meta: metaRef.current };
     // Otro escritor tocó el mismo sitio y el usuario todavía no ha elegido cuál
     // se queda: escribir ahora pisaría su trabajo sin preguntar. Pero tampoco se

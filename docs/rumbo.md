@@ -244,9 +244,14 @@ La obra muestra relaciones; falta que muestre **números** sin entrar a cada hoj
   con interpolación (el `Cp_cub` de la Fig. 3 del CIRSOC 102 es un `program` con `if/else`) y
   para presentar juntos los valores de una familia (las presiones de viento por cara y
   franja). El resumen de lo que va al modelo ya no hace falta: lo hace el nodo SAP2000.
-- **Bloque gráfico**: una función o una serie sobre un rango, en SVG, igual en el canvas y en
-  el PDF. El caso que lo pide es el espectro Sa(T), que ahora además se compara con el del
-  modelo punto a punto: el gráfico mostraría las dos curvas.
+- **Bloque gráfico — hecho** (2026-09-24, región `plot`). Funciones de una variable, series
+  x–y y rectas o puntos de referencia; sin flechas ni ejes logarítmicos todavía. Decisiones:
+  la especificación es **estructurada** (`Region.grafico`) y se edita con un panel, no con un
+  mini lenguaje; el SVG es **propio y puro en `src/lib`**, sin librería de gráficos, para que la
+  hoja, el papel y Node dibujen lo mismo; el resultado del motor son **datos en unidades de los
+  ejes** y el SVG se arma al pintar; la unidad de cada eje se aplica **en el motor**, estricta
+  como el `:svg` de un esquema. El espectro Sa(T) de la obra y el del modelo se dibujan juntos
+  con una serie función y una de datos.
 - **Valores en la tarjeta**: la tarjeta del grafo se expande con lo que el nodo publica.
 - **Nodo Datos**: una grilla nombre · valor · unidad · fuente que por dentro genera
   `x := valor`. Los supuestos y datos de entrada de una obra, con su cita en una columna.
