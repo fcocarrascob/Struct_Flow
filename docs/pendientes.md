@@ -79,8 +79,10 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
   nodo (`partida:` → `calculo:`) y el layout guardado ya no los encuentra: abren colocados por
   grupo y basta con «reordenar».
 - **El generador de la auditoría del Pachón (`docs/pachon/auditoria/generar.mjs`) sigue
-  escribiendo cargas.** Se lee igual porque el saneo las migra —y `verify:obra` lo usa como caso
-  de migración real—, pero no es el formato de la obra. La autocontenida ya está simplificada:
+  escribiendo cargas, y ya no corre**: se cae en `saneada.cargas.flatMap` porque el saneo migra
+  las cargas a grupos y `cargas` no existe después. El JSON se lee igual —`verify:obra` lo usa
+  como caso de migración real—, pero no es el formato de la obra, y mientras el generador esté
+  roto el JSON se corrige a mano en paralelo (así pasó el `atan` del 2026-09-24). La autocontenida ya está simplificada:
   sin nodos por patrón, sin totales R = q·A y con grupos.
 - **Las franjas de «reordenar» no se rotulan.** El nombre del grupo está en la leyenda y en
   cada tarjeta; una banda sin marco se lee por proximidad, y con muchos grupos puede no bastar.
