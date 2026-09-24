@@ -307,16 +307,13 @@ export function svgDeGrafico(d: DatosGrafico): string {
   const rectas = d.referencias.flatMap((r): { x?: number; y?: number }[] =>
     r.tipo === 'vertical' && r.x !== undefined ? [{ x: px(r.x) }] : r.tipo === 'horizontal' && r.y !== undefined ? [{ y: py(r.y) }] : [],
   );
-  const leyenda = conLeyenda
-    ? esquinaDeLeyenda(
-        d.posicionLeyenda,
-        anchoLeyenda,
-        altoLeyenda,
-        caja,
-        d.series.flatMap((s) => s.tramos.flatMap((t) => t.map(([x, y]) => [px(x), py(y)] as [number, number]))),
-        rectas,
-      )
-    : null;
+  /** La curva en píxeles: lo que la leyenda y las etiquetas procuran no tapar. */
+  const puntos = d.series.flatMap((s) => s.tramos.flatMap((t) => t.map(([x, y]) => [px(x), py(y)] as [number, number])));
+  /** Las rectas como cajas finas, para que una etiqueta no quede cruzada por otra recta. */
+  const lineas: Caja[] = rectas.map((r) =>
+    r.x !== undefined ? { x0: r.x - 1, x1: r.x + 1, y0: T, y1: T + ph } : { x0: L, x1: L + pw, y0: r.y! - 1, y1: r.y! + 1 },
+  );
+  const leyenda = conLeyenda ? esquinaDeLeyenda(d.posicionLeyenda, anchoLeyenda, altoLeyenda, caja, puntos, rectas) : null;
   const ocupadas: Caja[] = leyenda ? [leyenda] : [];
 
   // Referencias, bajo las series: son contexto, no el dato.
@@ -337,11 +334,15 @@ export function svgDeGrafico(d: DatosGrafico): string {
     }
     if (!r.etiqueta) continue;
     const opciones = candidatos(r, xr, yr, caja);
-    const elegido =
-      opciones.find((o) => {
-        const k = cajaDeTexto(o, r.etiqueta);
-        return dentro(k, caja) && !ocupadas.some((x) => solapan(k, x));
-      }) ?? opciones[0];
+    const libre = (o: Rotulo, estricto: boolean) => {
+      const k = cajaDeTexto(o, r.etiqueta);
+      if (!dentro(k, caja) || ocupadas.some((x) => solapan(k, x))) return false;
+      if (!estricto) return true;
+      return !lineas.some((l) => solapan(k, l)) && !puntos.some(([x, y]) => x > k.x0 && x < k.x1 && y > k.y0 && y < k.y1);
+    };
+    // Primero un sitio que no toque nada; si no lo hay, uno que al menos no pise
+    // otra etiqueta ni la leyenda; y si tampoco, el preferido.
+    const elegido = opciones.find((o) => libre(o, true)) ?? opciones.find((o) => libre(o, false)) ?? opciones[0];
     ocupadas.push(cajaDeTexto(elegido, r.etiqueta));
     partes.push(
       `<text x="${f(elegido.x)}" y="${f(elegido.y)}" font-size="10" fill="#374151" text-anchor="${elegido.ancla}">${escaparXml(r.etiqueta)}</text>`,

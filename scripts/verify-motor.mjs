@@ -1153,6 +1153,38 @@ const CASOS_AJUSTE = [
     },
   },
   {
+    nombre: 'gráfico: una etiqueta no cae sobre otra recta ni sobre la curva, si hay sitio libre',
+    // El espectro del Pachón con T hasta 5 s: la etiqueta de T₂, bajada una fila
+    // para no pisar la de T₁, quedaba cruzada por la recta de la meseta.
+    ok: () => {
+      const svg = svgDe(g({
+        ejeX: { min: '0', max: '5' },
+        ejeY: { min: '0', max: '1' },
+        series: [fn('x < 0.13 ? 0.37 + 4.3*x : (x < 0.66 ? 0.925 : 0.612/x)', '0', '5', { muestras: 400 })],
+        referencias: [
+          { tipo: 'vertical', valor: '0.1323', etiqueta: 'T₁ = 0,1323 s' },
+          { tipo: 'vertical', valor: '0.6616', etiqueta: 'T₂ = 0,6616 s' },
+          { tipo: 'horizontal', valor: '0.925', etiqueta: 'meseta 2,5·Cₐ = 0,925' },
+        ],
+      }));
+      const lineas = [...svg.matchAll(/<line x1="([-\d.]+)" y1="([-\d.]+)" x2="([-\d.]+)" y2="([-\d.]+)" stroke="#6b7280"/g)].map(
+        ([, x1, y1, x2, y2]) => ({ x0: Math.min(+x1, +x2) - 1, x1: Math.max(+x1, +x2) + 1, y0: Math.min(+y1, +y2) - 1, y1: Math.max(+y1, +y2) + 1 }),
+      );
+      const puntos = [...svg.matchAll(/<polyline points="([^"]+)"/g)].flatMap(([, p]) => p.split(' ').map((q) => q.split(',').map(Number)));
+      // T₁ no tiene sitio libre: entre su recta y la de T₂ caben 64 px y la
+      // etiqueta mide 73, y a su izquierda quedan 16 px hasta el eje. Cruza una
+      // recta en cualquier sitio, así que va a la segunda pasada. T₂ y la meseta
+      // sí lo tienen, y ahí se exige.
+      for (const e of etiquetasDe(svg).filter((x) => !x.texto.startsWith('T₁'))) {
+        // Su propia recta no cuenta: la etiqueta va a 4 px y nunca la toca.
+        const pisa = lineas.find((l) => chocan(e, l));
+        if (pisa) return `«${e.texto}» cae sobre una recta (${JSON.stringify(pisa)})`;
+        if (puntos.some(([x, y]) => x > e.x0 && x < e.x1 && y > e.y0 && y < e.y1)) return `«${e.texto}» cae sobre la curva`;
+      }
+      return null;
+    },
+  },
+  {
     nombre: 'gráfico: la leyenda no tapa la etiqueta de una recta',
     ok: () => {
       const svg = svgDe(g({
