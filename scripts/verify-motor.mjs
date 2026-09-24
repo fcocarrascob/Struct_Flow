@@ -482,6 +482,29 @@ const CASOS = [
     },
   },
 
+  // math.js simplifica fuerza × longitud a julios: un momento se imprimía como
+  // una energía («224,61 kJ» por 22,9 tonf·m).
+  {
+    nombre: 'un momento se muestra con la fuerza y la longitud del autor, no en julios',
+    hoja: hoja(m('k := 3'), m('M := k*1 tonf*m =')),
+    ok: todas(esperaValor('r1', '3 tonf m'), (r) => (r.r1?.define?.valor === '3 tonf m' ? null : `panel: «${r.r1?.define?.valor}»`)),
+  },
+  {
+    nombre: 'fuerza por longitud en kN da kN·m',
+    hoja: hoja(m('M := 5 kN * 2 m =')),
+    ok: esperaValor('r0', '10 kN m'),
+  },
+  {
+    nombre: 'un momento derivado de una carga distribuida también',
+    hoja: hoja(m('q := 2 kN/m'), m('L := 3 m'), m('M := q*L^2/8 =')),
+    ok: esperaValor('r2', '2.25 kN m'),
+  },
+  {
+    nombre: 'quien pide julios los recibe',
+    hoja: hoja(m('W := 10 kN * 2 m = kJ')),
+    ok: esperaValor('r0', '20 kJ'),
+  },
+
   // --- Valores no finitos -----------------------------------------------------
   //
   // Como el complejo: `0/0` daba NaN, `1/0` Infinity y `log(0)` −Infinity, sin

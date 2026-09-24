@@ -308,7 +308,11 @@ testeable y portable):
   es un error, no un número: en una memoria siempre delata un dato o una unidad equivocados.
   Lo mismo un resultado **no finito** (NaN, ±∞), y en una verificación se miran además los
   lados de cada comparación, porque un NaN intermedio da ✗ y no llega al resultado
-  (`comprobarValor` y `comprobarComparacion`).
+  (`comprobarValor` y `comprobarComparacion`). Al **mostrar** un valor sin `= unidad`, un
+  resultado fuerza × longitud nunca sale en julios: `paraMostrar` lo da con la fuerza y la
+  longitud del autor (`tonf·m`, `kN·m`). Y el sistema de unidades «auto» de math.js, que
+  `Unit.parse` reescribe con cada unidad que analiza, se restaura al empezar cada hoja: sin
+  eso, lo que se ve dependía de la hoja evaluada antes.
   **Un nombre sin definir nunca se resuelve solo**: math.js leería `phi` como la razón áurea,
   `E` como el número de Euler y `L` como litros. Todo camino de evaluación pasa por
   `evaluarNodo`, que lo convierte en error salvo `pi` y las unidades que una memoria escribe

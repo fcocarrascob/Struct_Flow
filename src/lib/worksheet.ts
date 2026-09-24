@@ -119,6 +119,12 @@ math.import(
  * el orden de lectura sigue mandando, pero una hoja se muestra siempre igual.
  * Basta una copia superficial, porque `parse` reemplaza la entrada entera.
  */
+/**
+ * Un julio, para reconocer la dimensión fuerza × longitud. Se crea ANTES de
+ * guardar el sistema «auto» de abajo: analizarlo lo toca.
+ */
+const JULIO = math.unit('J');
+
 type SistemaDeUnidades = Record<string, unknown>;
 const SISTEMA_AUTO = (math.Unit as unknown as { UNIT_SYSTEMS: { auto: SistemaDeUnidades } }).UNIT_SYSTEMS.auto;
 const SISTEMA_AUTO_INICIAL: SistemaDeUnidades = { ...SISTEMA_AUTO };
@@ -838,10 +844,42 @@ function matrizResumen(value: unknown): string | undefined {
 }
 
 /** LaTeX del valor calculado: número (con exponente) + unidad en redonda. */
+/** Una unidad de la lista de un `Unit` de math.js. */
+type UnidadDeLista = { unit: { name: string; base?: { key: string } }; prefix: { name: string }; power: number };
+
+/**
+ * Cómo se muestra un valor que no se convirtió con `= unidad`.
+ *
+ * math.js simplifica al mostrar, y fuerza × longitud tiene la dimensión de una
+ * energía: un momento escrito `k*1 tonf*m` se imprimía «29,42 kJ». En una
+ * memoria estructural eso es siempre un momento, así que se muestra con la
+ * fuerza y la longitud que escribió el autor —la primera de cada una en su
+ * lista de unidades, con su prefijo—, o en kN·m si no escribió ninguna. No pasa
+ * por `Unit.parse`, que tocaría el sistema «auto»: se arma la lista a mano, y el
+ * valor, que math.js guarda en SI, no cambia.
+ */
+function paraMostrar(v: unknown): unknown {
+  if (!math.isUnit(v)) return v;
+  const u = v as unknown as { value: number | null; skipAutomaticSimplification: boolean; units: UnidadDeLista[]; equalBase(o: unknown): boolean; clone(): typeof u; fixPrefix: boolean };
+  if (u.value === null || u.skipAutomaticSimplification || !u.equalBase(JULIO)) return v;
+  const de = (base: string, nombre: string, prefijo: string): UnidadDeLista => {
+    const hallada = u.units.find((x) => x.unit.base?.key === base && x.power > 0);
+    if (hallada) return { unit: hallada.unit, prefix: hallada.prefix, power: 1 };
+    const unidad = (math.Unit as unknown as { UNITS: Record<string, UnidadDeLista['unit'] & { prefixes: Record<string, UnidadDeLista['prefix']> }> }).UNITS[nombre];
+    return { unit: unidad, prefix: unidad.prefixes[prefijo], power: 1 };
+  };
+  const m = u.clone();
+  m.units = [de('FORCE', 'N', 'k'), de('LENGTH', 'm', '')];
+  m.skipAutomaticSimplification = true;
+  m.fixPrefix = true;
+  return m;
+}
+
 function resultToTex(value: unknown): string {
   if (typeof value === 'string') return textoTex(value);
   const resumen = matrizResumen(value);
   if (resumen) return resumen;
+  value = paraMostrar(value);
   const formatted = math.format(value, { precision: 5 });
   if (math.isUnit(value)) {
     const sp = formatted.indexOf(' ');
@@ -1547,7 +1585,7 @@ function comaDecimal(s: string): string {
  */
 export function formatValor(v: unknown, unidad?: string): string {
   if (unidad) return comaDecimal(numLabel(math.number(v as never, unidad as never)));
-  if (math.isUnit(v)) return comaDecimal(math.format(v, { precision: 4 }));
+  if (math.isUnit(v)) return comaDecimal(math.format(paraMostrar(v), { precision: 4 }));
   if (typeof v === 'number') return comaDecimal(numLabel(v));
   if (typeof v === 'boolean') return v ? '✓' : '✗';
   return String(v);

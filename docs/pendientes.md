@@ -158,9 +158,10 @@ Cerrado en la rama `motor-robusto` (ver `evaluarNodo` en `worksheet.ts`). Lo que
   `1*1 kN/m^2 =` sale «1000 Pa» y `3 kN/m^2 =` «3 kPa»: `_bestPrefix` conserva el prefijo
   actual mientras el número quede entre ~0,006 y 1000, y 1000 cae justo en el borde. Va con
   la decisión de la simplificación, abajo.
-- **math.js simplifica las unidades al mostrarlas**: `5 kN * 2 m =` sale `10 kJ`, un momento
-  escrito como energía, y 1.108 kN sale «1,108 MN». Solo se evita con `= kN*m`. Cambiarlo toca
-  miles de resultados del corpus y la paginación: necesita su propia medición antes de decidir.
+- **math.js cambia el prefijo al mostrar**: 1.108 kN sale «1,108 MN» y 779,6 MPa «0,7796 GPa».
+  Solo se evita con `= unidad`. En el corpus no aparece en nada impreso (los autores
+  convierten); se decidió, el 2026-09-24, arreglar solo el momento mostrado como julios
+  (`paraMostrar`) y dejar esto abierto.
 - `atan` devuelve un número sin unidad (radianes implícitos).
 
 ### Tablas
