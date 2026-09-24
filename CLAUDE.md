@@ -359,7 +359,10 @@ testeable y portable):
   `worksheet.ts` le presta sus herramientas (`HERRAMIENTAS_GRAFICO`), como a `program.ts`. El
   resultado son **datos en unidades de los ejes**, no píxeles; el SVG lo arma
   `svgDeGrafico`, pura y determinista, que usan `BloqueDoc` y `render-html` — los tres papeles
-  dibujan byte a byte lo mismo. Se edita con `CuerpoGrafico.tsx` dentro de
+  dibujan byte a byte lo mismo. Ahí se decide dónde van la leyenda (la esquina que menos tapa,
+  o la que fije `posicionLeyenda`) y las etiquetas de las rectas (el primer sitio que no choca,
+  o el `lado`/`posicion` fijados, anclados a la recta y no en píxeles, para que la acompañen si
+  cambian los datos). Se edita con `CuerpoGrafico.tsx` dentro de
   `PanelPropiedades.tsx`, junto a la hoja. La sintaxis de un token `{{expr:unidad}}` vive en
   `token.ts`, compartida con el esquema.
 - `tabla.ts` — la región **`table`**: una grilla de celdas, **cada una con la gramática de una
