@@ -151,14 +151,6 @@ Cerrado en la rama `motor-robusto` (ver `evaluarNodo` en `worksheet.ts`). Lo que
   Si la hoja define `N` en otro sitio sí es error. Es el precio de aceptar `f_c/MPa` y
   `(h/mm)^1.5*N`, que el corpus escribe así; endurecerlo pide reescribir esas fórmulas.
 
-### Valores no finitos
-
-- `0/0` da NaN, `1/0` da Infinity, `log(0)` −Infinity y `1 kN/0` «Infinity N», sin error y
-  mal formateados (`Infinity` en cursiva); una comparación con NaN sale ✗ y se lee como un
-  incumplimiento. Propuesta: error, como el complejo (`ERROR_COMPLEJO`); medir el corpus antes.
-- `interp` con un x NaN da un error críptico de math.js (el bucle se pasa del final): falta
-  comprobar que x sea finito.
-
 ### Cómo se muestran las unidades (no cambia números, cambia el papel)
 
 - **El prefijo con que se muestra una unidad sin convertir es inestable.** En una misma hoja,
@@ -202,6 +194,10 @@ Cerrado en la rama `motor-robusto` (ver `evaluarNodo` en `worksheet.ts`). Lo que
 - `f(x) := …` en una región `math` da «Value expected (char 10)» sin decir que tiene que ir en
   un `program`.
 - `ones(20000, 20000)` agota la memoria dentro de math.js, y no es un error atrapable.
+- **Un condicional dentro de un token choca con `:unidad`.** En `{{c ? a : h_c/h_p}}` la rama
+  final parece una unidad y `separarToken` la toma como tal; hay que ordenar las ramas para
+  que la última no lo parezca (así quedó el rótulo de `h_c/h_p` en
+  `viga-carrilera-generica.svg`).
 
 ## Módulos de diseño
 

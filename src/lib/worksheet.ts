@@ -87,6 +87,8 @@ math.import(
           throw new Error(`interp: xs tiene que ser estrictamente creciente, y el valor ${i + 1} no es mayor que el ${i}`);
         }
       }
+      // Con NaN, ninguna comparación es verdadera y el bucle de abajo se pasa del final.
+      if (esNoFinito(x)) throw new Error(`interp: x = ${formatValor(x)} no es un número finito`);
       const n = X.length - 1;
       if (math.smaller(x as never, X[0] as never) || math.larger(x as never, X[n] as never)) {
         throw new Error(
@@ -988,7 +990,8 @@ function evaluarFormula(src: string, scope: Record<string, unknown>, unidadColum
     }
     aviso = avisoUnidadTapada(node, scope);
     let value = evaluarNodo(node, scope);
-    if (esComplejo(value)) throw new Error(ERROR_COMPLEJO);
+    comprobarValor(value);
+    if (typeof value === 'boolean') comprobarComparacion(node, scope);
     const destino =
       parsed.targetUnit ??
       (unidadColumna && typeof value !== 'boolean' && typeof value !== 'string' ? unidadColumna : undefined);
@@ -1374,7 +1377,7 @@ function evalProgramRegion(src: string, scope: Record<string, unknown>): RegionR
   try {
     // Igual que en el closure de arriba: hereda del scope en vez de copiarlo.
     const value = runProgram(prog.body, Object.create(scope) as Record<string, unknown>, ctx);
-    if (esComplejo(value)) throw new Error(ERROR_COMPLEJO);
+    comprobarValor(value);
     if (prog.name) scope[prog.name] = value;
     let tex: string | undefined;
     if (value !== undefined) {
@@ -1412,7 +1415,7 @@ export function evalExpr(expr: string, scope: Record<string, unknown>): unknown 
   const valor = evaluarNodo(parsear(expr), { ...scope });
   // Un rótulo «(1+2i)» sería el mismo número falso que la hoja ya no muestra:
   // quien llama lo trata como un token que no resuelve.
-  if (esComplejo(valor)) throw new Error(ERROR_COMPLEJO);
+  comprobarValor(valor);
   return valor;
 }
 
@@ -1439,6 +1442,57 @@ function esComplejo(v: unknown): boolean {
   if (math.isMatrix(v)) return esComplejo((v as { toArray(): unknown }).toArray());
   if (Array.isArray(v)) return v.some(esComplejo);
   return false;
+}
+
+/**
+ * Lo que la hoja dice ante un valor no finito, por la misma razón que ante un
+ * complejo: `0/0` daba NaN, `1/0` Infinity y `log(0)` −Infinity sin una señal, y
+ * una verificación con un NaN dentro salía ✗, que se lee como un incumplimiento.
+ */
+const ERROR_NO_FINITO =
+  'Da un valor no finito (∞ o NaN): sale de una división por cero, del logaritmo de cero o de operar con un infinito. Revisa los datos.';
+
+/** ¿Es NaN o ±∞, o lo contiene? Como `esComplejo`: cantidades y matrices cuentan. */
+function esNoFinito(v: unknown): boolean {
+  if (typeof v === 'number') return !Number.isFinite(v);
+  if (math.isBigNumber(v)) return !(v as { isFinite(): boolean }).isFinite();
+  if (math.isUnit(v)) {
+    const valor = (v as { value: unknown }).value;
+    return valor !== null && valor !== undefined && esNoFinito(valor);
+  }
+  if (math.isMatrix(v)) return esNoFinito((v as { toArray(): unknown }).toArray());
+  if (Array.isArray(v)) return v.some(esNoFinito);
+  return false;
+}
+
+/** Un resultado que la hoja puede mostrar o guardar: ni complejo ni no finito. */
+function comprobarValor(v: unknown): void {
+  if (esComplejo(v)) throw new Error(ERROR_COMPLEJO);
+  if (esNoFinito(v)) throw new Error(ERROR_NO_FINITO);
+}
+
+const FN_COMPARACION = new Set(['smaller', 'larger', 'smallerEq', 'largerEq', 'equal', 'unequal']);
+
+/**
+ * Una verificación da un booleano, así que un NaN o un ∞ intermedio no llega al
+ * resultado: `V_u/(φ·V_c) <= 1` con `V_c = 0` daba ✗ sin decir por qué. Se
+ * evalúan aparte los lados de cada comparación de primer nivel —la de arriba, o
+ * las unidas por `and`, `or`, `not`— y un lado no finito es un error. Solo corre
+ * sobre las fórmulas que dan un booleano, así que lo que cuesta es poco.
+ */
+function comprobarComparacion(node: MathNode, scope: Record<string, unknown>): void {
+  const n = node as unknown as NodoOp & { params?: MathNode[] };
+  if (n.type === 'ParenthesisNode' && n.content) return comprobarComparacion(n.content, scope);
+  if (n.type === 'RelationalNode' && n.params) {
+    for (const p of n.params) if (esNoFinito(evaluarNodo(p, Object.create(scope)))) throw new Error(ERROR_NO_FINITO);
+    return;
+  }
+  if (n.type !== 'OperatorNode' || !n.args) return;
+  if (n.fn && FN_COMPARACION.has(n.fn)) {
+    for (const a of n.args) if (esNoFinito(evaluarNodo(a, Object.create(scope)))) throw new Error(ERROR_NO_FINITO);
+  } else if (n.fn === 'and' || n.fn === 'or' || n.fn === 'xor' || n.fn === 'not') {
+    for (const a of n.args) comprobarComparacion(a, scope);
+  }
 }
 
 /** Número compacto para rótulos: 4 cifras significativas, sin cola de ceros. */
@@ -1583,7 +1637,7 @@ const HERRAMIENTAS_GRAFICO: HerramientasGrafico = {
       const { expr, unidad } = separarToken(crudo.trim());
       try {
         const v = evaluarNodo(parsear(expr), Object.create(s));
-        if (esComplejo(v)) throw new Error(ERROR_COMPLEJO);
+        comprobarValor(v);
         return formatValor(v, unidad);
       } catch (e) {
         throw new Error(`la etiqueta no resuelve {{${crudo.trim()}}}: ${errMsg(e)}`);

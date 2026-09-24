@@ -306,6 +306,9 @@ testeable y portable):
   `aviso` en el resultado: no es error ni cuenta en `verify:planillas`, y el canvas lo marca
   al margen sin imprimirlo. Un resultado **complejo** (la raíz o el logaritmo de un negativo)
   es un error, no un número: en una memoria siempre delata un dato o una unidad equivocados.
+  Lo mismo un resultado **no finito** (NaN, ±∞), y en una verificación se miran además los
+  lados de cada comparación, porque un NaN intermedio da ✗ y no llega al resultado
+  (`comprobarValor` y `comprobarComparacion`).
   **Un nombre sin definir nunca se resuelve solo**: math.js leería `phi` como la razón áurea,
   `E` como el número de Euler y `L` como litros. Todo camino de evaluación pasa por
   `evaluarNodo`, que lo convierte en error salvo `pi` y las unidades que una memoria escribe

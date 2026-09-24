@@ -463,6 +463,71 @@ const CASOS = [
     hoja: hoja(m('v := [sqrt(4), sqrt(-4)] =')),
     ok: esperaError('r0', /complejo/),
   },
+
+  // --- Valores no finitos -----------------------------------------------------
+  //
+  // Como el complejo: `0/0` daba NaN, `1/0` Infinity y `log(0)` −Infinity, sin
+  // error, y una comparación con NaN salía ✗ —un incumplimiento que no lo es—.
+  {
+    nombre: 'cero entre cero es un error, no NaN',
+    hoja: hoja(m('x := 0/0 =')),
+    ok: esperaError('r0', /no finito/),
+  },
+  {
+    nombre: 'una división por cero es un error, no Infinity',
+    hoja: hoja(m('x := 1/0 =')),
+    ok: esperaError('r0', /no finito/),
+  },
+  {
+    nombre: 'el logaritmo de cero es un error',
+    hoja: hoja(m('x := log(0) =')),
+    ok: esperaError('r0', /no finito/),
+  },
+  {
+    nombre: 'con unidades también',
+    hoja: hoja(m('F := 1 kN/0 =')),
+    ok: esperaError('r0', /no finito/),
+  },
+  {
+    nombre: 'un vector con un infinito es un error',
+    hoja: hoja(m('v := [1, 1/0] =')),
+    ok: esperaError('r0', /no finito/),
+  },
+  {
+    nombre: 'una verificación con una división por cero dentro es un error, no ✗',
+    hoja: hoja(m('V_u := 10 kN'), m('V_c := 0 kN'), m('V_u/(0.75*V_c) <= 1 =')),
+    ok: esperaError('r2', /no finito/),
+  },
+  {
+    nombre: 'una verificación con un NaN dentro es un error, no ✗',
+    hoja: hoja(m('a := 0 kN'), m('a/a < 1 and 2 > 1 =')),
+    ok: esperaError('r1', /no finito/),
+  },
+  {
+    nombre: 'una verificación finita sigue siendo un veredicto',
+    hoja: hoja(m('V_u := 10 kN'), m('V_c := 20 kN'), m('V_u/(0.75*V_c) <= 1 =')),
+    ok: (r) => (r.r2?.bool === true ? null : `r2: ${JSON.stringify(r.r2)}`),
+  },
+  {
+    nombre: 'un programa que devuelve un infinito es un error',
+    hoja: hoja(p('r :=\n    x := 0\n    1/x')),
+    ok: esperaError('r0', /no finito/),
+  },
+  {
+    nombre: 'un programa puede usar Infinity por dentro, como cota inicial',
+    hoja: hoja(p('r :=\n    mejor := Infinity\n    for v in [3, 1, 2]\n        if v < mejor\n            mejor := v\n    mejor')),
+    ok: esperaValor('r0', '1'),
+  },
+  {
+    nombre: 'en una celda de tabla, una división por cero es un error de la celda',
+    hoja: hoja(t([['x := 1/0 =']])),
+    ok: esperaErrorCelda('r0', 0, 0, /no finito/),
+  },
+  {
+    nombre: 'interp con un x no finito es un error que lo dice',
+    hoja: hoja(m('x := interp([1, 2], [10, 20], 0/0) =')),
+    ok: esperaError('r0', /finito/),
+  },
   {
     nombre: 'la raíz de un positivo sigue igual',
     hoja: hoja(m('z := sqrt(4) =')),
