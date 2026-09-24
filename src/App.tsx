@@ -7,7 +7,6 @@ import IndiceDiseno from './components/diseno/IndiceDiseno';
 import PaginaDiseno from './components/diseno/PaginaDiseno';
 import ModuloBiblioteca from './components/diseno/ModuloBiblioteca';
 import IndiceProyectos from './proyecto/IndiceProyectos';
-import { CanvasProyectoConProveedor } from './proyecto/CanvasProyecto';
 import { CanvasObraConProveedor } from './proyecto/obra/CanvasObra';
 import { useRuta } from './components/useRuta';
 import Calibrar from './components/dev/Calibrar';
@@ -84,8 +83,6 @@ function tituloDe(ruta: Ruta): string {
       return `${moduloPorId(ruta.id)?.titulo ?? ruta.id} — ${MARCA}`;
     case 'proyectos':
       return `Proyectos — ${MARCA}`;
-    case 'proyecto':
-      return `${ruta.slug} — ${MARCA}`;
     case 'obra':
       return `${ruta.id} — ${MARCA}`;
     case 'calibrar':
@@ -141,17 +138,8 @@ export default function App() {
         </ErrorBoundary>
       );
 
-    // El canvas de un proyecto ocupa la ventana, como el canvas matemático: la
-    // cabecera, el lienzo y el panel lateral se reparten una altura definida.
-    case 'proyecto':
-      return (
-        <ErrorBoundary key={`proyecto:${ruta.slug}`} rotulo="El proyecto" sinTrabajo>
-          <CanvasProyectoConProveedor slug={ruta.slug} />
-        </ErrorBoundary>
-      );
-
-    // Una obra propia: el mismo lienzo, pero el documento es del usuario y se
-    // guarda en este navegador.
+    // Una obra: el canvas ocupa la ventana, como el canvas matemático. El
+    // documento se guarda en disco o en este navegador.
     case 'obra':
       return (
         <ErrorBoundary key={`obra:${ruta.id}`} rotulo="La obra" rescate={rescateDeObra(ruta.id)}>

@@ -59,9 +59,9 @@ Cómo entra el asistente a una obra:
   datos por confirmar. Es deliberadamente simple: una marca, una nota corta, quién la puso,
   y un «Revisado» que la quita. No vota en ningún CUMPLE ni toca la evaluación.
 - **Las decisiones D-/S-/H- son del Harness.** Flow las muestra o las cita dentro de la obra,
-  pero no las interpreta ni es su dueño. Una vista aparte del grafo del harness
-  (`/proyecto/<slug>`) deja de tener sentido cuando Flow es la GUI; lo que el asistente quiera
-  mostrar va dentro de la obra.
+  pero no las interpreta ni es su dueño. La vista aparte del grafo del harness
+  (`/proyecto/<slug>`), con su proxy `/api` hacia `harness.servidor`, **se retiró**: Flow no
+  lee nada del harness, y lo que el asistente quiera mostrar va dentro de la obra.
 
 ## Flow no escribe en el modelo
 
@@ -180,8 +180,9 @@ referenciadas por slug y sha256, no copiadas. La salida es determinista (dos esp
 así que tocar una fórmula cambia un solo archivo en git.
 
 - **El servidor es propio**: `servidor/obras.mjs`, montado en Vite en `/obras-api` y suelto con
-  `npm run obras`. Se descartó ampliar `harness.servidor`, que es solo GET a propósito; la
-  unificación sigue abierta (abajo). La raíz es `STRUCTFLOW_OBRAS`, o `./obras/` (ignorada).
+  `npm run obras`. Se descartó ampliar `harness.servidor`: Flow no depende del harness, y
+  el asistente entra a una obra por `/obras-api` como cualquier otro cliente. La raíz es
+  `STRUCTFLOW_OBRAS`, o `./obras/` (ignorada).
 - **El servidor es tonto**: lee y escribe mapas ruta → texto. Cómo se parte una obra lo decide
   `obra/carpeta.ts`, puro. Lo suyo son dos garantías: **un solo escritor** (candado con
   latido; la segunda pestaña abre en solo lectura) y **nada se pisa sin saberlo** (cada
@@ -292,7 +293,7 @@ shas y sellos y nunca cambia sola.
 | `/obra/<id>` | la aplicación |
 | `/canvas` | «abrir la hoja de un nodo», que ya hace la pestaña |
 | `/planillas`, `/diseno/<id>` | el panel «agregar a la obra», con búsqueda por disciplina y norma |
-| `/proyecto/<slug>` | desaparece: es una obra |
+| `/proyecto/<slug>` | retirada: es una obra |
 | catálogo del blog | ejemplos de solo lectura |
 | `/calibrar` | sigue, solo en desarrollo |
 

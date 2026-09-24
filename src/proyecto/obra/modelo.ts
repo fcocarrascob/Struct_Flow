@@ -7,7 +7,7 @@
 //
 // POR QUÉ AQUÍ Y NO EN `src/lib/`
 // ------------------------------
-// La misma razón que documenta `../contrato.ts`: el harness sella el motor de
+// La misma razón que documenta `../grafo.ts`: el harness sella el motor de
 // este repo como el hash de árbol de `src/lib` y `scripts`. Una obra no evalúa
 // ninguna planilla; que su código mueva ese hash haría que el sello dijera
 // «cambió el motor» cuando no cambió.
@@ -17,9 +17,8 @@
 // Una obra es un documento de Flow: una carpeta en disco (`carpeta.ts`) o, sin
 // servidor, una entrada en `localStorage`. NO es un proyecto del harness, y no
 // se van a fundir (`docs/rumbo.md`): el asistente trabaja SOBRE la obra, por el
-// contrato de Flow, y lo que crea o toca queda con la marca `revisar`. Los dos se
-// pintan con el mismo contrato de grafo (`../contrato.ts`) porque los dos son
-// proyecciones, pero la fuente es distinta y no se mezclan.
+// contrato de Flow, y lo que crea o toca queda con la marca `revisar`. Flow no
+// lee nada del harness: la dependencia va en un solo sentido.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { INTRINSECOS } from '../../lib/canvas-handoff';

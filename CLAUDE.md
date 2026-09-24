@@ -88,8 +88,8 @@ modelo y la autocontenida), con su generador.
 La separación es estricta y hay que mantenerla:
 
 **Vistas** (`src/App.tsx` + `src/lib/ruta.ts`): `/` es el menú, `/planillas` el catálogo,
-`/canvas` la hoja, `/diseno/<id>` un módulo, `/proyectos` el índice de obras y proyectos,
-`/obra/<id>` el grafo de una obra y `/proyecto/<slug>` el de un proyecto del harness.
+`/canvas` la hoja, `/diseno/<id>` un módulo, `/proyectos` el índice de obras y `/obra/<id>`
+el grafo de una obra.
 `/calibrar` es una vista **solo de desarrollo** (`src/components/dev/`): mide cuántas páginas ocupa cada planilla y calibra
 `A4_ALTO_UTIL_PX` contra un PDF real. Vive dentro de la aplicación porque mide con el
 documento de impresión de verdad, y `App.tsx` la deja fuera con `import.meta.env.DEV`, así
@@ -120,13 +120,11 @@ memoria es poder auditarla de arriba abajo. Y **lo que el módulo no cubre se de
 un veredicto marcado `aviso` que lo señale en pantalla. Un aviso no es un incumplimiento: no dice que la sección falle, dice que el
 resultado puede no ser válido, y por eso no vota en el CUMPLE / NO CUMPLE.
 
-**Proyectos** (`src/proyecto/`): dos canvas de React Flow que comparten el contrato de nodo
-(`contrato.ts`) y el layout (`layout.ts`), y nada más. El del **harness**
-(`/proyecto/<slug>`) pinta lo que `harness.grafo` proyecta desde archivos versionados, lo
-sirve `python -m harness.servidor` por `/api` y **no escribe nada**; se niega a pintar un
-`contrato` que no conoce, porque un grafo más chico se ve perfecto y está viejo. El de una
-**obra** (`/obra/<id>`) es un documento del usuario: una carpeta en disco con el servidor de
-obras, o `localStorage` sin él.
+**Proyectos** (`src/proyecto/`): el canvas de React Flow de una **obra** (`/obra/<id>`), que
+es un documento del usuario: una carpeta en disco con el servidor de obras, o `localStorage`
+sin él. La forma del nodo y de la flecha está en `grafo.ts` y la colocación en `layout.ts`.
+**Flow no lee nada del harness**: la dependencia va en un solo sentido, el harness usa Flow
+(`docs/rumbo.md`). No hay proxy ni vista hacia su servidor.
 
 Vive **fuera de `src/lib/`** por una razón mecánica: el harness sella el motor como el hash
 de árbol de `src/lib` + `scripts`, y mover ese hash marca `eval_de_otro_motor` en todas las
@@ -163,7 +161,7 @@ entrada de otro. Las piezas, y por qué están separadas:
   salida es determinista para que git solo vea lo que cambió.
 - `servidor/obras.mjs` — el servidor de obras, **tonto a propósito**: mapas ruta → texto, un
   candado de escritor con latido y un 409 si la carpeta cambió desde que se leyó. Va montado en
-  Vite en `/obras-api` (fuera del `/api` del harness) y vive fuera de `scripts/` por el sello.
+  Vite en `/obras-api` y vive fuera de `scripts/` por el sello.
 - `obra/almacen-disco.ts` — la **sesión** que recibe `CanvasObra`: guarda en disco o en el
   navegador sin que el canvas lo sepa, serializa las escrituras, lleva el candado, detecta
   conflictos y, al cerrar la página, deja un borrador en `localStorage` con lo que no llegó.

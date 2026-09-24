@@ -1,6 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import { listarProyectos } from './api';
-import type { ProyectoListado } from './contrato';
 import {
   archivoDeObra,
   borrarObra,
@@ -25,17 +23,11 @@ import Enlace from '../components/Enlace';
 import { navegar } from '../lib/ruta';
 
 /**
- * El índice de trabajo: las obras arriba, los proyectos del harness debajo.
+ * El índice de trabajo: las obras del disco (con el servidor local) y las de
+ * `localStorage`.
  *
- * Las listas son independientes A PROPÓSITO. Las obras salen del disco (con el
- * servidor local) y de `localStorage`, y los proyectos del harness de otro
- * servidor; si uno no está corriendo, el aviso ocupa su sección y lo demás se
- * sigue viendo. Cuando una sola pantalla depende de varias fuentes, la que falla
- * suele llevarse a las otras por delante, y aquí eso significaría abrir el
- * navegador y no encontrar el trabajo propio.
- *
- * Y una lista vacía del harness se lee como «no hay proyectos», que es lo
- * contrario de «no pude preguntar»: por eso el error se dice, no se calla.
+ * Flow no lista nada del harness: la dependencia va en un solo sentido, y es el
+ * harness el que usa Flow (`docs/rumbo.md`).
  */
 
 const resumenDe = (o: Obra): ResumenObra => ({
@@ -131,21 +123,7 @@ export default function IndiceProyectos() {
   const [obras, setObras] = useState<Obra[]>(() => listarObras());
   /** `null` mientras no se sabe si hay servidor; `false` si no lo hay. */
   const [enDisco, setEnDisco] = useState<ResumenObra[] | false | null>(null);
-  const [proyectos, setProyectos] = useState<ProyectoListado[] | null>(null);
-  const [error, setError] = useState<{ motivo: string; detalle: string } | null>(null);
   const [avisoObras, setAvisoObras] = useState('');
-
-  useEffect(() => {
-    let vivo = true;
-    listarProyectos()
-      .then((p) => vivo && setProyectos(p))
-      .catch((e: Error & { detalle?: string }) => {
-        if (vivo) setError({ motivo: e.message, detalle: e.detalle ?? '' });
-      });
-    return () => {
-      vivo = false;
-    };
-  }, []);
 
   /**
    * Si el servidor contestó pero no pudo listar la carpeta. Sin esto `enDisco`
@@ -304,13 +282,12 @@ export default function IndiceProyectos() {
       <header className="mb-6">
         <h1 className="text-xl font-semibold text-ink">Proyectos</h1>
         <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted">
-          Un proyecto se abre como un grafo: las acciones y sus cargas, las combinaciones, el
-          modelo, las planillas y los documentos que las publican. El color de un nodo es su
-          desfase, no su tipo.
+          Una obra se abre como un grafo de cálculo: la salida de un nodo es la entrada de
+          otro. El color de un nodo es su desfase, no su tipo.
         </p>
       </header>
 
-      <section className="mb-10">
+      <section>
         <div className="mb-3 flex items-baseline justify-between gap-3">
           <h2 className="text-sm font-semibold text-ink">
             Obras{' '}
@@ -430,51 +407,6 @@ export default function IndiceProyectos() {
         )}
       </section>
 
-      <section>
-        <h2 className="mb-3 text-sm font-semibold text-ink">
-          Del harness <span className="font-normal text-muted">solo lectura</span>
-        </h2>
-
-        {error && (
-          <div className="rounded-lg border border-aviso bg-white p-4">
-            <p className="text-sm font-semibold text-aviso">{error.motivo}</p>
-            {error.detalle && (
-              <p className="mt-1 text-xs leading-relaxed text-muted">{error.detalle}</p>
-            )}
-          </div>
-        )}
-
-        {!error && proyectos === null && <p className="text-sm text-muted">Consultando…</p>}
-
-        {proyectos !== null && proyectos.length === 0 && (
-          <p className="text-sm text-muted">El servidor respondió, y no hay ningún proyecto.</p>
-        )}
-
-        <ul className="grid gap-3 sm:grid-cols-2">
-          {(proyectos ?? []).map((p) => (
-            <li key={p.slug}>
-              <Enlace
-                a={{ vista: 'proyecto', slug: p.slug }}
-                className="group flex h-full flex-col rounded-lg border border-border bg-white p-4 no-underline hover:border-accent"
-              >
-                <div className="flex items-baseline justify-between gap-2">
-                  <h3 className="text-sm font-semibold text-ink group-hover:text-accent">
-                    {p.nombre}
-                  </h3>
-                  <span className="shrink-0 text-[10px] uppercase tracking-wide text-muted">
-                    {p.pais}
-                    {p.fase ? ` · ${p.fase}` : ''}
-                  </span>
-                </div>
-                {p.cliente && <p className="mt-1.5 text-xs text-muted">{p.cliente}</p>}
-                <p className="mt-2 truncate font-mono text-[10px] text-muted">
-                  {p.modelo_vigente || 'sin modelo vigente'}
-                </p>
-              </Enlace>
-            </li>
-          ))}
-        </ul>
-      </section>
     </main>
   );
 }

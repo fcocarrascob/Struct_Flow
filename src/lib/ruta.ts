@@ -14,10 +14,9 @@ export type Ruta =
   | { vista: 'canvas' }
   | { vista: 'diseno' }
   | { vista: 'modulo'; id: string }
-  /** Los proyectos del harness, servidos por `python -m harness.servidor`. */
+  /** El índice de obras. */
   | { vista: 'proyectos' }
-  | { vista: 'proyecto'; slug: string }
-  /** Una obra propia: canvas editable, guardado en este navegador. */
+  /** Una obra: canvas editable, guardado en disco o en este navegador. */
   | { vista: 'obra'; id: string }
   /** Herramientas de calibración de la página. Solo se renderiza en desarrollo. */
   | { vista: 'calibrar' };
@@ -29,14 +28,11 @@ export const EVENTO_RUTA = 'structflow:ruta';
 const ID_RE = /^[a-z0-9-]+$/;
 
 /**
- * El slug de un proyecto del harness es `AAAA-cliente-obra`, así que empieza por
- * dígito y `ID_RE` no le sirve. El alfabeto se mantiene cerrado igual: lo que
- * venga en la URL se le pasa al servidor, y una ruta que acepte cualquier cosa
- * es la primera mitad de un path traversal (la segunda la cierra el servidor,
- * que resuelve y comprueba que no salga de `proyectos/`).
- *
- * El id de una obra local usa el mismo alfabeto, que es lo que garantiza
- * `slugificar()` en `src/proyecto/obra/modelo.ts`.
+ * El id de una obra puede empezar por dígito (`2026-galpon`), así que `ID_RE` no
+ * le sirve. El alfabeto se mantiene cerrado igual: lo que venga en la URL se le
+ * pasa al servidor de obras, y una ruta que acepte cualquier cosa es la primera
+ * mitad de un path traversal (la segunda la cierra el servidor). Es el alfabeto
+ * que garantiza `slugificar()` en `src/proyecto/obra/modelo.ts`.
  */
 const SLUG_PROYECTO_RE = /^[a-z0-9][a-z0-9-]*$/;
 
@@ -51,9 +47,6 @@ export function parsearRuta(pathname: string): Ruta {
     if (partes.length === 2 && ID_RE.test(partes[1])) return { vista: 'modulo', id: partes[1] };
   }
   if (partes[0] === 'proyectos' && partes.length === 1) return { vista: 'proyectos' };
-  if (partes[0] === 'proyecto' && partes.length === 2 && SLUG_PROYECTO_RE.test(partes[1])) {
-    return { vista: 'proyecto', slug: partes[1] };
-  }
   if (partes[0] === 'obra' && partes.length === 2 && SLUG_PROYECTO_RE.test(partes[1])) {
     return { vista: 'obra', id: partes[1] };
   }
@@ -75,8 +68,6 @@ export function href(ruta: Ruta): string {
       return `/diseno/${ruta.id}`;
     case 'proyectos':
       return '/proyectos';
-    case 'proyecto':
-      return `/proyecto/${ruta.slug}`;
     case 'obra':
       return `/obra/${ruta.id}`;
     case 'calibrar':

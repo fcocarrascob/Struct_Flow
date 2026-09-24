@@ -15,9 +15,9 @@
   --color-surface: #f9fafb;
   --color-border: #e5e7eb;
 
-  /* Severidad de un nodo del canvas de proyecto. Son tres y no más: las mismas
-     que emite `harness.grafo` (`ok`, `aviso`, `error`), que a su vez son las del
-     lint. Un cuarto color del lado del front diría algo que el gate no dice. */
+  /* Severidad de un nodo del canvas de obra. Son tres y no más (`ok`, `aviso`,
+     `error`, las de `Severidad` en `src/proyecto/grafo.ts`): un cuarto color
+     diría algo que ninguna comprobación dice. */
   --color-aviso: #d97706;
   --color-error: #dc2626;
 }

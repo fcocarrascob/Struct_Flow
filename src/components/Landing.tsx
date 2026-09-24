@@ -87,8 +87,7 @@ export default function Landing() {
 
         <Tarjeta a={{ vista: 'proyectos' }} titulo="Proyectos">
           Tus obras como un grafo que se arma nodo a nodo —cargas, combinaciones, modelo,
-          planillas— y, debajo, los encargos del harness en solo lectura, con el color puesto en
-          lo que no cuadra.
+          planillas—, con el color puesto en lo que no cuadra.
         </Tarjeta>
       </div>
 

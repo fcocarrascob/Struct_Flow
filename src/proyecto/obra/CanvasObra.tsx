@@ -23,7 +23,7 @@ import type { ResultadoGuardado } from '../../components/canvas/useHojaPersistid
 import { useHistorial } from '../../components/canvas/useHistorial';
 import { origenDeNodo } from './origen-nodo';
 import VistaHoja from './VistaHoja';
-import type { Severidad } from '../contrato';
+import type { Severidad } from '../grafo';
 import { colocarPorGrupo, guardarLayout, layoutGuardado, olvidarLayout, type Posicion } from '../layout';
 import { archivoDeObra, nombreDeArchivo } from './almacen';
 import { abrirObra, olvidarBorrador, type Apertura } from './almacen-disco';
@@ -74,19 +74,14 @@ import {
 
 /**
  * El canvas de una obra: un proyecto propio de Struct_Flow, editable y local.
- *
- * Al revés que `../CanvasProyecto.tsx`, que pinta lo que el harness proyecta
- * desde archivos y no escribe nada, aquí el documento es del usuario y vive en
- * `localStorage`. Comparten el armazón de React Flow y el contrato de nodo, pero
- * son dos componentes: los filtros por tipo, el «solo lo que no cuadra» y los
- * avisos de proyección de aquel no significan nada en una obra que empieza
- * vacía. Cuando aparezca un tercer lienzo valdrá la pena extraer el armazón.
+ * El documento es del usuario y vive en una carpeta en disco o en
+ * `localStorage`.
  *
  * LOS NODOS NO SON ESTADO: SON LA PROYECCIÓN DEL DOCUMENTO
  * --------------------------------------------------------
  * Lo único que se guarda es la obra. Los nodos salen de `proyectar()` en cada
- * render y lo único propio del lienzo es dónde quedó cada uno, que va al mismo
- * almacén de posiciones que usa el canvas del harness.
+ * render y lo único propio del lienzo es dónde quedó cada uno, que va al
+ * almacén de posiciones de `../layout.ts`.
  */
 
 const TIPOS_NODO = { obra: NodoObra };
@@ -609,10 +604,9 @@ function CanvasObra({
     return m;
   }, [proyeccion.nodos]);
 
-  // Encuadra una sola vez, al medir los primeros nodos. A diferencia del canvas
-  // del harness —que se re-encuadra al filtrar, porque el conjunto visible
-  // cambia de golpe—, aquí los nodos aparecen de a uno: re-encuadrar en cada
-  // carga agregada haría que el lienzo se alejara diez veces seguidas.
+  // Encuadra una sola vez, al medir los primeros nodos. Los nodos aparecen de a
+  // uno: re-encuadrar en cada carga agregada haría que el lienzo se alejara diez
+  // veces seguidas.
   //
   // `maxZoom: 1` porque una obra empieza con un nodo: sin tope, encuadrar uno
   // solo lo amplía hasta llenar la pantalla, y la tarjeta queda del tamaño de un

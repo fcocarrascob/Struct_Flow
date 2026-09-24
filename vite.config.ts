@@ -20,30 +20,18 @@ function commitActual(): string {
 
 export default defineConfig({
   // `pluginObras` sirve las carpetas de obra en `/obras-api`, dentro del mismo
-  // servidor: sin proxy ni CORS, y fuera del `/api` que es del harness.
+  // servidor: sin proxy ni CORS.
   plugins: [react(), tailwindcss(), pluginObras()],
   define: {
     'import.meta.env.VITE_COMMIT': JSON.stringify(commitActual()),
   },
   server: {
-    /**
-     * El canvas de proyecto (`/proyecto/<slug>`) lee del servidor local del
-     * harness: `python -m harness.servidor`, que escucha en 127.0.0.1:8787 y
-     * sólo responde GET.
-     *
-     * Va por proxy y no por fetch a `http://127.0.0.1:8787` directo para que
-     * todo quede en el mismo origen: así el servidor del harness no necesita
-     * CORS, que es una cabecera que después cuesta quitar.
-     */
     proxy: {
-      '/api': {
-        target: 'http://127.0.0.1:8787',
-        changeOrigin: false,
-      },
       /**
        * El puente de Flow con SAP2000 (`npm run puente-sap`, 127.0.0.1:8789).
        * Es de este repo, no del harness: la aplicación habla con SAP sin que el
-       * asistente esté corriendo.
+       * asistente esté corriendo. Va por proxy para que todo quede en el mismo
+       * origen y el puente no necesite CORS.
        */
       '/sap-api': {
         target: 'http://127.0.0.1:8789',

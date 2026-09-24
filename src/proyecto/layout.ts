@@ -4,20 +4,20 @@
 // Puro, sin React: colocar es aritmética, y el invariante de `src/lib/` es que
 // se pueda probar fuera del navegador.
 //
-// LAS COLUMNAS SON EL FLUJO DEL TRABAJO, NO UN ALFABETO
+// LAS COLUMNAS SON EL FLUJO DEL CÁLCULO, NO UN ALFABETO
 // ----------------------------------------------------
-// De izquierda a derecha se lee el orden en que un proyecto se construye: la
-// norma manda sobre la acción, la acción produce cargas, las cargas se combinan,
-// el modelo las recibe, de él salen lecturas y respaldos, y al final está el
-// documento que los publica. Un canvas ordenado por otra cosa —el tipo, el
-// nombre— obliga a reconstruir ese orden en la cabeza cada vez que se abre.
+// De izquierda a derecha se lee el orden en que la obra se calcula: lo que un
+// nodo usa está a su izquierda y lo que usa lo que él publica, a su derecha. Un
+// canvas ordenado por otra cosa —el tipo, el nombre— obliga a reconstruir ese
+// orden en la cabeza cada vez que se abre.
 //
-// El layout NO ES DATO DEL PROYECTO. Vive en `localStorage` de este navegador y
-// no vuelve nunca al harness: si el canvas guardara posiciones en el repo,
-// habría dos copias del estado del proyecto y la segunda divergiría sin avisar.
+// El layout NO ES DATO DE LA OBRA. Vive en `localStorage` de este navegador y
+// no viaja con la carpeta: si la obra guardara posiciones, cada arrastre sería
+// un cambio que git vería, y reordenar el canvas ensuciaría el historial del
+// cálculo.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type { AristaGrafo, NodoGrafo } from './contrato';
+import type { AristaGrafo, NodoGrafo } from './grafo';
 
 export interface Posicion {
   x: number;
@@ -29,27 +29,24 @@ export const ALTO = 96;
 const PASO_X = ANCHO + 90;
 const PASO_Y = ALTO + 22;
 
-/** Columna por tipo. Un tipo que no esté aquí cae al final, visible y no perdido. */
-const COLUMNAS: string[][] = [
-  ['proyecto'],
-  ['norma', 'hueco'],
-  ['accion'],
-  ['carga'],
-  ['familia-combinacion'],
-  ['modelo'],
-  // `calculo` es un cálculo suelto de una obra local: una genérica de la
-  // biblioteca instanciada, que es lo mismo que una planilla del proyecto.
-  ['hoja-de-valores', 'planilla', 'calculo'],
-  ['lectura'],
-  ['documento'],
-  ['decision', 'hallazgo'],
-];
+/**
+ * Columna de partida por tipo. Un tipo que no esté aquí cae en `ULTIMA`, visible
+ * y no perdido.
+ *
+ * LOS NÚMEROS NO SON CORRELATIVOS, Y ES A PROPÓSITO. Salen de la tabla que el
+ * canvas compartía con el grafo del harness, donde `modelo` y `calculo` eran las
+ * columnas 5 y 6 de once y `dato` caía al final. Como `columnasEnCadena` toma el
+ * MÁXIMO entre la columna del tipo y la posición en la cadena, la distancia entre
+ * esos números decide qué queda a la izquierda de qué: con 0, 1 y 2, un `dato`
+ * suelto caería junto al segundo de tres cálculos encadenados en vez de a su
+ * derecha. `verify:obra` fija las posiciones.
+ */
+const COLUMNA_DE = new Map<string, number>([
+  ['modelo', 5],
+  ['calculo', 6],
+]);
 
-const COLUMNA_DE = new Map<string, number>(
-  COLUMNAS.flatMap((tipos, i) => tipos.map((t) => [t, i] as [string, number])),
-);
-
-const ULTIMA = COLUMNAS.length;
+const ULTIMA = 10;
 
 export function columnaDe(tipo: string): number {
   return COLUMNA_DE.get(tipo) ?? ULTIMA;

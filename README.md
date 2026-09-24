@@ -38,12 +38,11 @@ Requiere Node >= 22.12.0.
 | `/planillas` | el catálogo de las 33 memorias publicadas |
 | `/canvas` | la hoja |
 | `/diseno` · `/diseno/<id>` | los módulos de diseño |
-| `/proyectos` | las obras de este navegador y los proyectos del harness |
+| `/proyectos` | las obras, en disco o en este navegador |
 | `/obra/<id>` | una obra: el grafo de cálculo, editable |
-| `/proyecto/<slug>` | un proyecto del harness, **solo lectura** |
 | `/calibrar` | herramientas de calibración de la A4 — **solo en desarrollo** |
 
-La navegación es un micro-router propio (`src/lib/ruta.ts`, ~100 líneas): para ocho vistas
+La navegación es un micro-router propio (`src/lib/ruta.ts`, ~100 líneas): para siete vistas
 no se justifica una dependencia más. Al servir la aplicación en producción hace falta el
 *fallback* de SPA —cualquier ruta devuelve `index.html`—, que `vite dev` y `vite preview`
 ya hacen solos.
@@ -125,9 +124,9 @@ tener se dicen en el nodo: un nombre definido en dos sitios y un ciclo.
 De cada planilla instanciada sale su **memoria**, la misma que exporta `/diseno/<slug>`: una
 instancia estampada con el sha256 de la genérica, que pasa `verify:planilla` sin retoques.
 
-Una obra vive en el `localStorage` de un navegador, así que se exporta y se importa como
-archivo. Los **proyectos del harness** (`/proyecto/<slug>`) son otra cosa: se proyectan desde
-archivos versionados, los sirve `python -m harness.servidor` y no se escribe nada de vuelta.
+Una obra vive en una carpeta en disco (con el servidor de obras que monta `npm run dev`) o
+en el `localStorage` de un navegador, y se exporta y se importa como archivo. Flow no lee
+nada del harness: es el harness el que usa Flow.
 
 ### El catálogo
 
@@ -201,7 +200,7 @@ src/
 │   └── diseno/              el armazón de un módulo (4 archivos)
 ├── lib/                     puro, sin React
 │   └── diseno/              contrato de módulo, registro y módulos
-├── proyecto/                el canvas del harness (solo lectura) y el contrato del grafo
+├── proyecto/                el índice de obras, la forma del grafo y su layout
 │   └── obra/                una obra: documento, evaluación, proyección y paneles
 └── styles/global.css        tokens Tailwind + documento de impresión
 public/

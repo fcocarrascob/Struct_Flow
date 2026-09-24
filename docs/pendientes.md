@@ -85,9 +85,6 @@ Lo importante que quedó abierto al cerrar la sesión del 2026-09-23, en la rama
 - **Teclado y foco.** El panel no atrapa el foco ni lleva `role="dialog"`; un nodo no se
   recorre ni se abre sin ratón (React Flow trae navegación propia y no está configurada).
 - **La caché de genéricas es FIFO, no LRU** (`biblioteca.ts`). Con veinte cálculos no se nota.
-- **El armazón común de los dos canvas.** `CanvasObra`/`CanvasProyecto` comparten ~120 líneas
-  y `NodoObra`/`NodoHarness` son casi el mismo archivo. Se extrae con el tercer lienzo, o
-  antes si `/proyecto/<slug>` desaparece (etapa 1).
 - **`sanearConInforme` no tiene caso de regresión**: no encaja en `verify:motor` ni en
   `verify:obra`. Se comprobó a mano; le falta su sitio.
 

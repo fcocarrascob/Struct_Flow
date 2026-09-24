@@ -4,14 +4,8 @@ import IconoClase, { ROTULO_CLASE } from './IconoClase';
 import type { NodoDeObra } from './proyeccion';
 
 /**
- * Un nodo de una obra.
- *
- * Mismo aspecto que `../NodoHarness.tsx` —misma caja, mismo color por severidad,
- * mismos puertos fijos a izquierda y derecha— y aun así es otro componente a
- * propósito: el `detalle()` de aquel lee `campos.Fz_kN`, que es vocabulario del
- * harness, y aquí los campos los escribe el usuario. Los dos van a separarse más
- * en cuanto el nodo de obra reciba gestos de edición; si aparece un tercero, ahí
- * vale la pena extraer la tarjeta.
+ * Un nodo de una obra: la caja de `ANCHO` × `ALTO` que coloca `../layout.ts`,
+ * con puertos fijos a izquierda y derecha.
  *
  * CADA CANAL DICE UNA SOLA COSA, y ninguno pisa a otro:
  * - el BORDE es el desfase: un nodo rojo es un nombre repetido, un ciclo o un

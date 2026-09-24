@@ -22,7 +22,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { parseMathRegion } from '../../lib/worksheet';
-import { peor, type AristaGrafo, type NodoGrafo, type Severidad } from '../contrato';
+import { peor, type AristaGrafo, type NodoGrafo, type Severidad } from '../grafo';
 import { quedoAtras, type Genericas } from './biblioteca';
 import { problemaDeGrafo, type EvaluacionObra } from './evaluacion';
 import { ID_NODO_SAP, idNodoDeCalculo } from './ids';
@@ -41,8 +41,8 @@ export * from './ids';
 export type ClaseNodo = 'calculo' | 'biblioteca' | 'resumen' | 'modelo';
 
 /**
- * El nodo de una obra: el del contrato, más lo que solo este lienzo dibuja.
- * `contrato.ts` no cambia porque lo comparte el canvas del harness.
+ * El nodo de una obra: el de `grafo.ts`, que es el que coloca `layout.ts`, más
+ * lo que solo este lienzo dibuja.
  */
 export interface NodoDeObra extends NodoGrafo {
   clase: ClaseNodo;
