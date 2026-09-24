@@ -1405,6 +1405,7 @@ const CASOS_SANEO = [
 
 const PACHON_CRUDO = await readFile(path.join(ROOT, 'docs/pachon/autocontenida/obra-pachon-soldadura.json'), 'utf8');
 const PACHON = sanearObra(JSON.parse(PACHON_CRUDO).obra);
+const AUDITORIA_CRUDO = await readFile(path.join(ROOT, 'docs/pachon/auditoria/obra-pachon-taller-soldadura.json'), 'utf8');
 const CARRILERA = await generica('acero/viga-carrilera-generica.json');
 const genericasPachon = { [CARRILERA.id]: { fase: 'lista', modulo: CARRILERA } };
 
@@ -1413,16 +1414,19 @@ const releer = (archivos) => sanearObra(unirObra(archivos).crudo);
 
 const CASOS_CARPETA = [
   {
-    nombre: 'el Pachón, escrito con cargas, abre con un cálculo por cada nodo que tenía',
-    // Sus 23 partidas pasan a ser cálculos. Que los resultados no cambian se
-    // comprobó contra `master` región por región al retirar las cargas; aquí
-    // queda lo que se puede comprobar sin el modelo anterior: nadie se pierde,
-    // nadie se duplica, y nada nuevo sale en rojo.
+    nombre: 'la auditoría del Pachón, escrita con cargas, abre con un cálculo por cada nodo que tenía',
+    // Es la obra real que sigue escrita en el formato anterior: sus 20 partidas
+    // pasan a ser cálculos. Que los resultados no cambian se comprobó contra
+    // `master` región por región al retirar las cargas; aquí queda lo que se
+    // puede comprobar sin el modelo anterior: nadie se pierde, nadie se duplica,
+    // y nada nuevo sale en rojo.
     ok: () => {
-      const crudo = JSON.parse(PACHON_CRUDO).obra;
-      const antes = crudo.calculos.length + crudo.cargas.reduce((s, c) => s + c.subcargas.length, 0);
-      if (PACHON.calculos.length !== antes) return `${PACHON.calculos.length} cálculos para ${antes} nodos`;
-      const ev = evaluarObra(PACHON, genericasPachon);
+      const crudo = JSON.parse(AUDITORIA_CRUDO);
+      const o = crudo.obra ?? crudo;
+      const antes = o.calculos.length + o.cargas.reduce((s, c) => s + c.subcargas.length, 0);
+      const auditoria = sanearObra(o);
+      if (auditoria.calculos.length !== antes) return `${auditoria.calculos.length} cálculos para ${antes} nodos`;
+      const ev = evaluarObra(auditoria, genericasPachon);
       const rojos = Object.values(ev.results).filter((r) => r.error).length;
       if (rojos || ev.enCiclo.size || ev.repetidos.size) return `${rojos} errores, ${ev.enCiclo.size} en ciclo, ${ev.repetidos.size} repetidos`;
       return null;
@@ -1438,6 +1442,12 @@ const CASOS_CARPETA = [
   {
     nombre: 'y calcula lo mismo: ningún resultado cambia por pasar por el disco',
     ok: () => {
+      // Una evaluación de calentamiento antes de comparar. El motor elige el
+      // prefijo con que MUESTRA una unidad sin convertir según lo que se evaluó
+      // antes en el proceso (`pf_min` sale «1000 Pa» la primera vez y «1 kPa»
+      // después, con el mismo valor): es un defecto del motor, anotado en
+      // `docs/pendientes.md`, y este caso prueba la carpeta, no eso.
+      evaluarObra(PACHON, genericasPachon);
       const antes = evaluarObra(PACHON, genericasPachon);
       const despues = evaluarObra(releer(partirObra(PACHON)), genericasPachon);
       const a = JSON.stringify(antes.results);

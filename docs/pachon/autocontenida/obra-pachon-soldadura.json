@@ -7,1161 +7,38 @@
     "nombre": "Pachón — Taller de soldadura (cargas a SAP)",
     "creada": "2026-09-22T20:00:00.000Z",
     "modulos": [
-      "cargas"
+      "sap"
     ],
-    "cargas": [
+    "grupos": [
       {
-        "id": "c-dead",
-        "nombre": "DEAD",
-        "subcargas": [
-          {
-            "id": "s-dead",
-            "nombre": "Peso propio del acero, con conexiones",
-            "variable": "f_DEAD",
-            "hoja": [
-              {
-                "id": "dead-01",
-                "x": 40,
-                "y": 40,
-                "kind": "text",
-                "src": "## DEAD — peso propio del acero, con sobrepeso por conexiones"
-              },
-              {
-                "id": "dead-02",
-                "x": 40,
-                "y": 120,
-                "kind": "text",
-                "src": "Modelo: patrón de carga permanente con multiplicador de peso propio. El peso sale de las secciones del modelo."
-              },
-              {
-                "id": "dead-03",
-                "x": 40,
-                "y": 200,
-                "kind": "text",
-                "src": "Se incrementa el peso propio en un 30 % para considerar conexiones, placas y elementos no modelados."
-              },
-              {
-                "id": "dead-04",
-                "x": 40,
-                "y": 280,
-                "kind": "math",
-                "src": "f_DEAD := 1.3"
-              },
-              {
-                "id": "dead-05",
-                "x": 40,
-                "y": 328,
-                "kind": "text",
-                "src": "Peso específico del acero: 7.870 kg/m³ (DSC-BCHL-0001-P1 §6.1.1)."
-              },
-              {
-                "id": "dead-06",
-                "x": 40,
-                "y": 376,
-                "kind": "math",
-                "src": "rho_acero := 7870 kg/m^3"
-              },
-              {
-                "id": "dead-07",
-                "x": 40,
-                "y": 424,
-                "kind": "math",
-                "src": "gamma_acero := rho_acero * g_0 = kN/m^3"
-              }
-            ]
-          }
-        ]
+        "id": "g-sitio",
+        "nombre": "Sitio",
+        "color": "#0891b2"
       },
       {
-        "id": "c-sdlc",
-        "nombre": "SDL_CUB",
-        "subcargas": [
-          {
-            "id": "s-sdlc",
-            "nombre": "Revestimiento de cubierta",
-            "variable": "q_SDL_cub",
-            "hoja": [
-              {
-                "id": "sdlc-01",
-                "x": 40,
-                "y": 40,
-                "kind": "text",
-                "src": "## SDL_CUB — revestimiento de cubierta"
-              },
-              {
-                "id": "sdlc-02",
-                "x": 40,
-                "y": 120,
-                "kind": "text",
-                "src": "Modelo: patrón de carga permanente. Carga de área sobre los paños de cubierta, repartida a las costaneras, en dirección de la gravedad."
-              },
-              {
-                "id": "sdlc-03",
-                "x": 40,
-                "y": 200,
-                "kind": "text",
-                "src": "Supuesto: revestimiento de cubierta de 10 kgf/m²."
-              },
-              {
-                "id": "sdlc-04",
-                "x": 40,
-                "y": 248,
-                "kind": "math",
-                "src": "q_SDL_cub := 10 kgf/m^2 = kN/m^2"
-              },
-              {
-                "id": "sdlc-05",
-                "x": 40,
-                "y": 296,
-                "kind": "math",
-                "src": "R_SDL_CUB := q_SDL_cub * A_cub_incl = kN"
-              }
-            ]
-          }
-        ]
+        "id": "g-cargas",
+        "nombre": "Cargas permanentes y sobrecargas",
+        "color": "#65a30d"
       },
       {
-        "id": "c-sdlm",
-        "nombre": "SDL_MURO",
-        "subcargas": [
-          {
-            "id": "s-sdlm",
-            "nombre": "Revestimiento de muro",
-            "variable": "q_SDL_muro",
-            "hoja": [
-              {
-                "id": "sdlm-01",
-                "x": 40,
-                "y": 40,
-                "kind": "text",
-                "src": "## SDL_MURO — revestimiento de muro"
-              },
-              {
-                "id": "sdlm-02",
-                "x": 40,
-                "y": 120,
-                "kind": "text",
-                "src": "Modelo: patrón de carga permanente. Carga de área sobre los paños de muro y de hastial, en dirección de la gravedad."
-              },
-              {
-                "id": "sdlm-03",
-                "x": 40,
-                "y": 200,
-                "kind": "text",
-                "src": "Supuesto: revestimiento de muro de 10 kgf/m²."
-              },
-              {
-                "id": "sdlm-04",
-                "x": 40,
-                "y": 248,
-                "kind": "math",
-                "src": "q_SDL_muro := 10 kgf/m^2 = kN/m^2"
-              },
-              {
-                "id": "sdlm-05",
-                "x": 40,
-                "y": 296,
-                "kind": "math",
-                "src": "R_SDL_MURO := q_SDL_muro * A_muros = kN"
-              }
-            ]
-          }
-        ]
+        "id": "g-viento",
+        "nombre": "Viento",
+        "color": "#2563eb"
       },
       {
-        "id": "c-sdlh",
-        "nombre": "SDL_HOJA",
-        "subcargas": [
-          {
-            "id": "s-sdlh",
-            "nombre": "Hojas de portón",
-            "variable": "w_SDL_HOJA",
-            "hoja": [
-              {
-                "id": "sdlh-01",
-                "x": 40,
-                "y": 40,
-                "kind": "text",
-                "src": "## SDL_HOJA — peso de las tres hojas de portón"
-              },
-              {
-                "id": "sdlh-02",
-                "x": 40,
-                "y": 120,
-                "kind": "text",
-                "src": "Modelo: patrón de carga permanente. Carga lineal sobre los cordones inferiores de los tres enrejados de transferencia, en dirección de la gravedad: el vano del portón no tiene superficie sobre la que repartir el peso."
-              },
-              {
-                "id": "sdlh-03",
-                "x": 40,
-                "y": 216,
-                "kind": "text",
-                "src": "Supuesto: peso de la hoja de portón 0,40 kN/m², a confirmar con los datos del proveedor."
-              },
-              {
-                "id": "sdlh-04",
-                "x": 40,
-                "y": 264,
-                "kind": "math",
-                "src": "q_hoja := 0.40 kN/m^2"
-              },
-              {
-                "id": "sdlh-05",
-                "x": 40,
-                "y": 312,
-                "kind": "math",
-                "src": "w_SDL_HOJA := q_hoja * H_port = kN/m"
-              },
-              {
-                "id": "sdlh-06",
-                "x": 40,
-                "y": 360,
-                "kind": "math",
-                "src": "R_SDL_HOJA := w_SDL_HOJA * L_port * n_port = kN"
-              }
-            ]
-          }
-        ]
+        "id": "g-secundarios",
+        "nombre": "Elementos secundarios",
+        "color": "#9333ea"
       },
       {
-        "id": "c-polv",
-        "nombre": "POLVO",
-        "subcargas": [
-          {
-            "id": "s-polv",
-            "nombre": "Acumulación de polvo",
-            "variable": "q_polvo",
-            "hoja": [
-              {
-                "id": "polv-01",
-                "x": 40,
-                "y": 40,
-                "kind": "text",
-                "src": "## POLVO — acumulación de polvo"
-              },
-              {
-                "id": "polv-02",
-                "x": 40,
-                "y": 120,
-                "kind": "text",
-                "src": "Modelo: patrón de carga permanente. Paños de cubierta, en dirección de la gravedad."
-              },
-              {
-                "id": "polv-03",
-                "x": 40,
-                "y": 168,
-                "kind": "text",
-                "src": "Según DSC-BCHL-0001-P1 §6.1.1, la acumulación de polvo se considera carga permanente de 50 kg/m²."
-              },
-              {
-                "id": "polv-04",
-                "x": 40,
-                "y": 248,
-                "kind": "math",
-                "src": "q_polvo := 50 kgf/m^2 = kN/m^2"
-              },
-              {
-                "id": "polv-05",
-                "x": 40,
-                "y": 296,
-                "kind": "math",
-                "src": "R_POLVO := q_polvo * A_cub_incl = kN"
-              }
-            ]
-          }
-        ]
+        "id": "g-grua",
+        "nombre": "Puente grúa",
+        "color": "#d97706"
       },
       {
-        "id": "c-cmct",
-        "nombre": "CM_COS_TECHO",
-        "subcargas": [
-          {
-            "id": "s-cmct",
-            "nombre": "Peso de costaneras de techo",
-            "variable": "q_CM_COS_TECHO",
-            "hoja": [
-              {
-                "id": "cmct-01",
-                "x": 40,
-                "y": 40,
-                "kind": "text",
-                "src": "## CM_COS_TECHO — peso de las costaneras de techo"
-              },
-              {
-                "id": "cmct-02",
-                "x": 40,
-                "y": 120,
-                "kind": "text",
-                "src": "Modelo: patrón de carga permanente. Carga de área sobre los paños de cubierta, en dirección de la gravedad. Las costaneras no se modelan como barras."
-              },
-              {
-                "id": "cmct-03",
-                "x": 40,
-                "y": 200,
-                "kind": "math",
-                "src": "q_CM_COS_TECHO := q_COS_techo = kN/m^2"
-              },
-              {
-                "id": "cmct-04",
-                "x": 40,
-                "y": 248,
-                "kind": "math",
-                "src": "R_CM_COS_TECHO := q_CM_COS_TECHO * A_cub_incl = kN"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "c-cmcl",
-        "nombre": "CM_COS_LAT",
-        "subcargas": [
-          {
-            "id": "s-cmcl",
-            "nombre": "Peso de costaneras de muro",
-            "variable": "q_CM_COS_LAT",
-            "hoja": [
-              {
-                "id": "cmcl-01",
-                "x": 40,
-                "y": 40,
-                "kind": "text",
-                "src": "## CM_COS_LAT — peso de las costaneras de muro"
-              },
-              {
-                "id": "cmcl-02",
-                "x": 40,
-                "y": 120,
-                "kind": "text",
-                "src": "Modelo: patrón de carga permanente. Carga de área sobre los paños de muro y de hastial, en dirección de la gravedad."
-              },
-              {
-                "id": "cmcl-03",
-                "x": 40,
-                "y": 200,
-                "kind": "math",
-                "src": "q_CM_COS_LAT := q_COS_lat = kN/m^2"
-              },
-              {
-                "id": "cmcl-04",
-                "x": 40,
-                "y": 248,
-                "kind": "math",
-                "src": "R_CM_COS_LAT := q_CM_COS_LAT * A_muros = kN"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "c-cmvia",
-        "nombre": "CM_VIA",
-        "subcargas": [
-          {
-            "id": "s-cmvia",
-            "nombre": "Riel y accesorios de la vía",
-            "variable": "w_CM_VIA",
-            "hoja": [
-              {
-                "id": "cmvia-01",
-                "x": 40,
-                "y": 40,
-                "kind": "text",
-                "src": "## CM_VIA — riel y accesorios"
-              },
-              {
-                "id": "cmvia-02",
-                "x": 40,
-                "y": 120,
-                "kind": "text",
-                "src": "Modelo: patrón de carga permanente. Carga lineal sobre las vigas carrileras, en dirección de la gravedad."
-              },
-              {
-                "id": "cmvia-03",
-                "x": 40,
-                "y": 200,
-                "kind": "text",
-                "src": "Supuesto: peso del riel y sus accesorios 0,769 kN/m, a confirmar con los datos del puente grúa."
-              },
-              {
-                "id": "cmvia-04",
-                "x": 40,
-                "y": 248,
-                "kind": "math",
-                "src": "w_CM_VIA := 0.769 kN/m"
-              },
-              {
-                "id": "cmvia-05",
-                "x": 40,
-                "y": 296,
-                "kind": "math",
-                "src": "R_CM_VIA := w_CM_VIA * L_via = kN"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "c-cld",
-        "nombre": "CL_D",
-        "subcargas": [
-          {
-            "id": "s-cld",
-            "nombre": "Masa del puente grúa (solo sismo)",
-            "variable": "w_CL_D",
-            "hoja": [
-              {
-                "id": "cld-01",
-                "x": 40,
-                "y": 40,
-                "kind": "text",
-                "src": "## CL_D — masa del puente grúa, para la fuente de masa"
-              },
-              {
-                "id": "cld-02",
-                "x": 40,
-                "y": 120,
-                "kind": "text",
-                "src": "El peso del puente está incluido en las cargas de rueda, por lo que no forma parte de la carga permanente CM."
-              },
-              {
-                "id": "cld-03",
-                "x": 40,
-                "y": 200,
-                "kind": "text",
-                "src": "Su masa se incorpora al análisis sísmico como carga repartida a lo largo de las dos vías, incluida solo en la fuente de masa."
-              },
-              {
-                "id": "cld-04",
-                "x": 40,
-                "y": 280,
-                "kind": "math",
-                "src": "w_CL_D := P_puente / L_via = kN/m"
-              },
-              {
-                "id": "cld-05",
-                "x": 40,
-                "y": 328,
-                "kind": "math",
-                "src": "R_CL_D := w_CL_D * L_via = kN"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "c-niev",
-        "nombre": "S",
-        "subcargas": [
-          {
-            "id": "s-niev",
-            "nombre": "Nieve balanceada — CIRSOC 104",
-            "variable": "p_s",
-            "hoja": [
-              {
-                "id": "niev-01",
-                "x": 40,
-                "y": 40,
-                "kind": "text",
-                "src": "## S — nieve balanceada, CIRSOC 104-2005"
-              },
-              {
-                "id": "niev-02",
-                "x": 40,
-                "y": 120,
-                "kind": "text",
-                "src": "Modelo: patrón de nieve. Paños de cubierta, en dirección de la gravedad, sobre la superficie real."
-              },
-              {
-                "id": "niev-03",
-                "x": 40,
-                "y": 200,
-                "kind": "text",
-                "src": "Carga básica de nieve según el criterio de diseño del proyecto (DSC-BCHL-0001-P1 §6.1.5): el sitio, a 3.600 m, queda fuera del alcance del CIRSOC 104."
-              },
-              {
-                "id": "niev-04",
-                "x": 40,
-                "y": 280,
-                "kind": "math",
-                "src": "p_g := 800 kgf/m^2 = kN/m^2"
-              },
-              {
-                "id": "niev-05",
-                "x": 40,
-                "y": 328,
-                "kind": "text",
-                "src": "Factor de exposición: se adopta C_e = 1,00."
-              },
-              {
-                "id": "niev-06",
-                "x": 40,
-                "y": 376,
-                "kind": "math",
-                "src": "C_e := 1.00"
-              },
-              {
-                "id": "niev-07",
-                "x": 40,
-                "y": 424,
-                "kind": "text",
-                "src": "C_t = 1,2, estructura no calefaccionada (Tabla 3). I = 1,0, Categoría II (Tabla 4). C_s = 1,0 para cubierta fría con 8,5° de pendiente (Figura 2.c). Mínimo según el art. 3.4."
-              },
-              {
-                "id": "niev-08",
-                "x": 40,
-                "y": 504,
-                "kind": "math",
-                "src": "C_t := 1.20"
-              },
-              {
-                "id": "niev-09",
-                "x": 40,
-                "y": 552,
-                "kind": "math",
-                "src": "I_nieve := 1.00"
-              },
-              {
-                "id": "niev-10",
-                "x": 40,
-                "y": 600,
-                "kind": "math",
-                "src": "C_s := 1.00"
-              },
-              {
-                "id": "niev-11",
-                "x": 40,
-                "y": 648,
-                "kind": "math",
-                "src": "pf_min := I_nieve * 1 kN/m^2"
-              },
-              {
-                "id": "niev-12",
-                "x": 40,
-                "y": 696,
-                "kind": "math",
-                "src": "p_f := 0.7 * C_e * C_t * I_nieve * p_g = kN/m^2"
-              },
-              {
-                "id": "niev-13",
-                "x": 40,
-                "y": 744,
-                "kind": "math",
-                "src": "v_pf_min := p_f >= pf_min ="
-              },
-              {
-                "id": "niev-14",
-                "x": 40,
-                "y": 792,
-                "kind": "math",
-                "src": "p_s := C_s * p_f = kN/m^2"
-              },
-              {
-                "id": "niev-15",
-                "x": 40,
-                "y": 840,
-                "kind": "math",
-                "src": "p_s_kgf := p_s = kgf/m^2"
-              },
-              {
-                "id": "niev-16",
-                "x": 40,
-                "y": 888,
-                "kind": "text",
-                "src": "La nieve no balanceada no aplica: el Cap. 6 del CIRSOC 104 no alcanza a las cubiertas de una sola pendiente."
-              },
-              {
-                "id": "niev-17",
-                "x": 40,
-                "y": 968,
-                "kind": "math",
-                "src": "R_S := p_s * A_cub_incl = kN"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "c-lr",
-        "nombre": "LR",
-        "subcargas": [
-          {
-            "id": "s-lr",
-            "nombre": "Sobrecarga de techo",
-            "variable": "q_LR",
-            "hoja": [
-              {
-                "id": "lr-01",
-                "x": 40,
-                "y": 40,
-                "kind": "text",
-                "src": "## LR — sobrecarga de techo"
-              },
-              {
-                "id": "lr-02",
-                "x": 40,
-                "y": 120,
-                "kind": "text",
-                "src": "Modelo: patrón de sobrecarga de techo. Paños de cubierta, en dirección de la gravedad. No concurre con la nieve (CIRSOC 301, combinación B.2.3)."
-              },
-              {
-                "id": "lr-03",
-                "x": 40,
-                "y": 200,
-                "kind": "text",
-                "src": "Sobrecarga mínima de techos: 100 kg/m² (DSC-BCHL-0001-P1 §6.1.3)."
-              },
-              {
-                "id": "lr-04",
-                "x": 40,
-                "y": 248,
-                "kind": "math",
-                "src": "q_LR := 100 kgf/m^2 = kN/m^2"
-              },
-              {
-                "id": "lr-05",
-                "x": 40,
-                "y": 296,
-                "kind": "math",
-                "src": "R_LR := q_LR * A_cub_incl = kN"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "c-clv",
-        "nombre": "CLV",
-        "subcargas": [
-          {
-            "id": "s-clv",
-            "nombre": "Vertical de rueda con impacto",
-            "variable": "P_CLV",
-            "hoja": [
-              {
-                "id": "clv-01",
-                "x": 40,
-                "y": 40,
-                "kind": "text",
-                "src": "## CLV — cargas verticales de rueda, con el impacto dentro del patrón"
-              },
-              {
-                "id": "clv-02",
-                "x": 40,
-                "y": 120,
-                "kind": "text",
-                "src": "Modelo: un patrón por posición del carro, con 4 cargas puntuales sobre las vigas carrileras, en dirección de la gravedad. El impacto se incluye en el patrón."
-              },
-              {
-                "id": "clv-03",
-                "x": 40,
-                "y": 200,
-                "kind": "math",
-                "src": "P_CLV := P_max * (1 + imp) = kN"
-              },
-              {
-                "id": "clv-04",
-                "x": 40,
-                "y": 248,
-                "kind": "math",
-                "src": "P_CLV_2 := P_min * (1 + imp) = kN"
-              },
-              {
-                "id": "clv-05",
-                "x": 40,
-                "y": 296,
-                "kind": "math",
-                "src": "R_CLV := 2 * P_CLV + 2 * P_CLV_2 = kN"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "c-clh",
-        "nombre": "CLH",
-        "subcargas": [
-          {
-            "id": "s-clh",
-            "nombre": "Bamboleo",
-            "variable": "H_CLH",
-            "hoja": [
-              {
-                "id": "clh-01",
-                "x": 40,
-                "y": 40,
-                "kind": "text",
-                "src": "## CLH — fuerza transversal de bamboleo (±Y)"
-              },
-              {
-                "id": "clh-02",
-                "x": 40,
-                "y": 120,
-                "kind": "text",
-                "src": "Modelo: un patrón por posición del carro, 4 cargas puntuales en el tope del riel, en dirección transversal y en los dos sentidos."
-              },
-              {
-                "id": "clh-03",
-                "x": 40,
-                "y": 200,
-                "kind": "text",
-                "src": "Supuesto: la fuerza lateral se reparte en partes iguales entre las cuatro ruedas."
-              },
-              {
-                "id": "clh-04",
-                "x": 40,
-                "y": 248,
-                "kind": "math",
-                "src": "R_CLH := pct_bamb * P_mov = kN"
-              },
-              {
-                "id": "clh-05",
-                "x": 40,
-                "y": 296,
-                "kind": "math",
-                "src": "H_CLH := R_CLH / 4 = kN"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "c-cll",
-        "nombre": "CLL",
-        "subcargas": [
-          {
-            "id": "s-cll",
-            "nombre": "Frenado",
-            "variable": "L_CLL",
-            "hoja": [
-              {
-                "id": "cll-01",
-                "x": 40,
-                "y": 40,
-                "kind": "text",
-                "src": "## CLL — fuerza longitudinal de frenado (±X)"
-              },
-              {
-                "id": "cll-02",
-                "x": 40,
-                "y": 120,
-                "kind": "text",
-                "src": "Modelo: un patrón por posición del carro, 4 cargas puntuales en el tope del riel, en dirección longitudinal y en los dos sentidos. Cada rueda lleva el 10 % de su carga sin impacto."
-              },
-              {
-                "id": "cll-03",
-                "x": 40,
-                "y": 200,
-                "kind": "math",
-                "src": "L_CLL := pct_fren * P_max = kN"
-              },
-              {
-                "id": "cll-04",
-                "x": 40,
-                "y": 248,
-                "kind": "math",
-                "src": "L_CLL_2 := pct_fren * P_min = kN"
-              },
-              {
-                "id": "cll-05",
-                "x": 40,
-                "y": 296,
-                "kind": "math",
-                "src": "R_CLL := 2 * L_CLL + 2 * L_CLL_2 = kN"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "c-wyp",
-        "nombre": "WYP",
-        "subcargas": [
-          {
-            "id": "s-wyp",
-            "nombre": "Viento hacia +Y",
-            "variable": "pw_barl_YP",
-            "hoja": [
-              {
-                "id": "wyp-01",
-                "x": 40,
-                "y": 40,
-                "kind": "text",
-                "src": "## WYP — viento hacia +Y, normal a la cumbrera"
-              },
-              {
-                "id": "wyp-02",
-                "x": 40,
-                "y": 120,
-                "kind": "text",
-                "src": "Modelo: patrón de viento. Presiones de área normales a cada paño. Barlovento: muro alto (y = 0). Sotavento: muro bajo (y = 25,4). Laterales: los dos hastiales. Cubierta: tres franjas desde el alero alto."
-              },
-              {
-                "id": "wyp-03",
-                "x": 40,
-                "y": 216,
-                "kind": "math",
-                "src": "pw_barl_YP := pw_barl = kN/m^2"
-              },
-              {
-                "id": "wyp-04",
-                "x": 40,
-                "y": 264,
-                "kind": "text",
-                "src": "Resultante horizontal (+Y): el empuje de barlovento más la succión de sotavento. Los hastiales se anulan entre sí."
-              },
-              {
-                "id": "wyp-05",
-                "x": 40,
-                "y": 344,
-                "kind": "math",
-                "src": "R_WYP_y := pw_barl * A_muro_alto - pw_sot_Y * A_muro_bajo = kN"
-              },
-              {
-                "id": "wyp-06",
-                "x": 40,
-                "y": 392,
-                "kind": "text",
-                "src": "Resultante vertical, hacia arriba: la cubierta por franjas, sobre la proyección."
-              },
-              {
-                "id": "wyp-07",
-                "x": 40,
-                "y": 440,
-                "kind": "math",
-                "src": "R_WYP_z := -(pw_cubY_1 * bw_1 + pw_cubY_2 * bw_2 + pw_cubY_3 * bw_Y3) * L_nave = kN"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "c-wyn",
-        "nombre": "WYN",
-        "subcargas": [
-          {
-            "id": "s-wyn",
-            "nombre": "Viento hacia −Y",
-            "variable": "pw_barl_YN",
-            "hoja": [
-              {
-                "id": "wyn-01",
-                "x": 40,
-                "y": 40,
-                "kind": "text",
-                "src": "## WYN — viento hacia −Y, normal a la cumbrera"
-              },
-              {
-                "id": "wyn-02",
-                "x": 40,
-                "y": 120,
-                "kind": "text",
-                "src": "Modelo: patrón de viento. Los coeficientes de WYP con las caras cambiadas: barlovento el muro bajo (y = 25,4), sotavento el alto, y las franjas de cubierta medidas desde el alero bajo."
-              },
-              {
-                "id": "wyn-03",
-                "x": 40,
-                "y": 200,
-                "kind": "math",
-                "src": "pw_barl_YN := pw_barl = kN/m^2"
-              },
-              {
-                "id": "wyn-04",
-                "x": 40,
-                "y": 248,
-                "kind": "math",
-                "src": "R_WYN_y := -(pw_barl * A_muro_bajo - pw_sot_Y * A_muro_alto) = kN"
-              },
-              {
-                "id": "wyn-05",
-                "x": 40,
-                "y": 296,
-                "kind": "math",
-                "src": "R_WYN_z := -(pw_cubY_1 * bw_1 + pw_cubY_2 * bw_2 + pw_cubY_3 * bw_Y3) * L_nave = kN"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "c-wxp",
-        "nombre": "WXP",
-        "subcargas": [
-          {
-            "id": "s-wxp",
-            "nombre": "Viento hacia +X",
-            "variable": "pw_barl_XP",
-            "hoja": [
-              {
-                "id": "wxp-01",
-                "x": 40,
-                "y": 40,
-                "kind": "text",
-                "src": "## WXP — viento hacia +X, paralelo a la cumbrera"
-              },
-              {
-                "id": "wxp-02",
-                "x": 40,
-                "y": 120,
-                "kind": "text",
-                "src": "Modelo: patrón de viento. Barlovento: hastial x = 0. Sotavento: hastial x = 88. Laterales: los dos muros largos. Cubierta: cuatro franjas desde x = 0."
-              },
-              {
-                "id": "wxp-03",
-                "x": 40,
-                "y": 200,
-                "kind": "math",
-                "src": "pw_barl_XP := pw_barl = kN/m^2"
-              },
-              {
-                "id": "wxp-04",
-                "x": 40,
-                "y": 248,
-                "kind": "math",
-                "src": "R_WXP_x := (pw_barl - pw_sot_X) * A_hastial = kN"
-              },
-              {
-                "id": "wxp-05",
-                "x": 40,
-                "y": 296,
-                "kind": "math",
-                "src": "R_WXP_z := -(pw_cubX_1 * bw_1 + pw_cubX_2 * bw_2 + pw_cubX_3 * bw_X3 + pw_cubX_4 * bw_X4) * B_nave = kN"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "c-wxn",
-        "nombre": "WXN",
-        "subcargas": [
-          {
-            "id": "s-wxn",
-            "nombre": "Viento hacia −X",
-            "variable": "pw_barl_XN",
-            "hoja": [
-              {
-                "id": "wxn-01",
-                "x": 40,
-                "y": 40,
-                "kind": "text",
-                "src": "## WXN — viento hacia −X"
-              },
-              {
-                "id": "wxn-02",
-                "x": 40,
-                "y": 120,
-                "kind": "text",
-                "src": "Modelo: patrón de viento, simétrico de WXP: barlovento el hastial x = 88 y franjas desde x = 88."
-              },
-              {
-                "id": "wxn-03",
-                "x": 40,
-                "y": 200,
-                "kind": "math",
-                "src": "pw_barl_XN := pw_barl = kN/m^2"
-              },
-              {
-                "id": "wxn-04",
-                "x": 40,
-                "y": 248,
-                "kind": "math",
-                "src": "R_WXN_x := -(pw_barl - pw_sot_X) * A_hastial = kN"
-              },
-              {
-                "id": "wxn-05",
-                "x": 40,
-                "y": 296,
-                "kind": "math",
-                "src": "R_WXN_z := -(pw_cubX_1 * bw_1 + pw_cubX_2 * bw_2 + pw_cubX_3 * bw_X3 + pw_cubX_4 * bw_X4) * B_nave = kN"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "c-wpi",
-        "nombre": "WPI",
-        "subcargas": [
-          {
-            "id": "s-wpi",
-            "nombre": "Presión interna positiva",
-            "variable": "pw_int_P",
-            "hoja": [
-              {
-                "id": "wpi-01",
-                "x": 40,
-                "y": 40,
-                "kind": "text",
-                "src": "## WPI — presión interna positiva"
-              },
-              {
-                "id": "wpi-02",
-                "x": 40,
-                "y": 120,
-                "kind": "text",
-                "src": "Modelo: patrón de viento. Presión uniforme en la cara interior de todos los paños, hacia afuera."
-              },
-              {
-                "id": "wpi-03",
-                "x": 40,
-                "y": 200,
-                "kind": "math",
-                "src": "pw_int_P := pw_int = kN/m^2"
-              },
-              {
-                "id": "wpi-04",
-                "x": 40,
-                "y": 248,
-                "kind": "math",
-                "src": "R_WPI_z := pw_int * A_cub_proy = kN"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "c-wpin",
-        "nombre": "WPIN",
-        "subcargas": [
-          {
-            "id": "s-wpin",
-            "nombre": "Presión interna negativa",
-            "variable": "pw_int_N",
-            "hoja": [
-              {
-                "id": "wpin-01",
-                "x": 40,
-                "y": 40,
-                "kind": "text",
-                "src": "## WPIN — presión interna negativa"
-              },
-              {
-                "id": "wpin-02",
-                "x": 40,
-                "y": 120,
-                "kind": "text",
-                "src": "Modelo: patrón de viento. Succión interior en todos los paños, hacia adentro."
-              },
-              {
-                "id": "wpin-03",
-                "x": 40,
-                "y": 168,
-                "kind": "math",
-                "src": "pw_int_N := -pw_int = kN/m^2"
-              },
-              {
-                "id": "wpin-04",
-                "x": 40,
-                "y": 216,
-                "kind": "math",
-                "src": "R_WPIN_z := -pw_int * A_cub_proy = kN"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "c-rsx",
-        "nombre": "RSX",
-        "subcargas": [
-          {
-            "id": "s-rsx",
-            "nombre": "Espectral en X",
-            "variable": "SF_RSX_c",
-            "hoja": [
-              {
-                "id": "rsx-01",
-                "x": 40,
-                "y": 40,
-                "kind": "text",
-                "src": "## RSX — caso de espectro de respuesta en X"
-              },
-              {
-                "id": "rsx-02",
-                "x": 40,
-                "y": 120,
-                "kind": "text",
-                "src": "Caso de espectro de respuesta con la función del espectro de diseño, CQC y 5 % de amortiguamiento, con su factor de escala."
-              },
-              {
-                "id": "rsx-03",
-                "x": 40,
-                "y": 200,
-                "kind": "math",
-                "src": "SF_RSX_c := SF_RSX = m/s^2"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "c-rsy",
-        "nombre": "RSY",
-        "subcargas": [
-          {
-            "id": "s-rsy",
-            "nombre": "Espectral en Y",
-            "variable": "SF_RSY_c",
-            "hoja": [
-              {
-                "id": "rsy-01",
-                "x": 40,
-                "y": 40,
-                "kind": "text",
-                "src": "## RSY — caso de espectro de respuesta en Y"
-              },
-              {
-                "id": "rsy-02",
-                "x": 40,
-                "y": 120,
-                "kind": "text",
-                "src": "Mismo caso en la otra dirección, con R = 7."
-              },
-              {
-                "id": "rsy-03",
-                "x": 40,
-                "y": 168,
-                "kind": "math",
-                "src": "SF_RSY_c := SF_RSY = m/s^2"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "c-ev",
-        "nombre": "EV",
-        "subcargas": [
-          {
-            "id": "s-ev",
-            "nombre": "Sismo vertical",
-            "variable": "f_EV_c",
-            "hoja": [
-              {
-                "id": "ev-01",
-                "x": 40,
-                "y": 40,
-                "kind": "text",
-                "src": "## EV — sismo vertical"
-              },
-              {
-                "id": "ev-02",
-                "x": 40,
-                "y": 120,
-                "kind": "text",
-                "src": "Caso estático con las cargas permanentes de CM, cada una por f_EV (ec. [3.10])."
-              },
-              {
-                "id": "ev-03",
-                "x": 40,
-                "y": 168,
-                "kind": "math",
-                "src": "f_EV_c := f_EV ="
-              }
-            ]
-          }
-        ]
+        "id": "g-sismo",
+        "nombre": "Sismo",
+        "color": "#dc2626"
       }
     ],
     "calculos": [
@@ -1342,63 +219,442 @@
             "x": 40,
             "y": 1416,
             "kind": "text",
-            "src": "Muros: superficie bruta menos los portones. Con estas áreas se calculan las resultantes de las cargas de muro."
+            "src": "Muros: superficie bruta menos los portones."
           },
           {
             "id": "geo26",
             "x": 40,
-            "y": 1496,
+            "y": 1464,
             "kind": "math",
             "src": "A_muro_alto := L_nave * H_alto - 2 * A_hoja = m^2"
           },
           {
             "id": "geo27",
             "x": 40,
-            "y": 1544,
+            "y": 1512,
             "kind": "math",
             "src": "A_muro_bajo := L_nave * H_bajo - A_hoja = m^2"
           },
           {
             "id": "geo28",
             "x": 40,
-            "y": 1592,
+            "y": 1560,
             "kind": "math",
             "src": "A_hastial := B_nave * (H_alto + H_bajo) / 2 = m^2"
           },
           {
             "id": "geo29",
             "x": 40,
-            "y": 1640,
+            "y": 1608,
             "kind": "math",
             "src": "A_muros := A_muro_alto + A_muro_bajo + 2 * A_hastial = m^2"
           },
           {
             "id": "geo30",
             "x": 40,
-            "y": 1688,
+            "y": 1656,
             "kind": "text",
             "src": "Vía del puente grúa: una viga carrilera por muro largo, a lo largo de toda la nave."
           },
           {
             "id": "geo31",
             "x": 40,
-            "y": 1736,
+            "y": 1704,
             "kind": "math",
             "src": "L_via := 2 * L_nave = m"
           },
           {
             "id": "geo32",
             "x": 40,
-            "y": 1784,
+            "y": 1752,
             "kind": "text",
             "src": "## Constantes"
           },
           {
             "id": "geo33",
             "x": 40,
-            "y": 1832,
+            "y": 1800,
             "kind": "math",
             "src": "g_0 := 9.80665 m/s^2"
+          }
+        ],
+        "grupo": "g-sitio"
+      },
+      {
+        "id": "k-cargas-permanentes",
+        "nombre": "Cargas permanentes",
+        "grupo": "g-cargas",
+        "hoja": [
+          {
+            "id": "per01",
+            "x": 40,
+            "y": 40,
+            "kind": "text",
+            "src": "# Cargas permanentes"
+          },
+          {
+            "id": "per02",
+            "x": 40,
+            "y": 120,
+            "kind": "text",
+            "src": "## DEAD — peso propio del acero, con sobrepeso por conexiones"
+          },
+          {
+            "id": "per03",
+            "x": 40,
+            "y": 168,
+            "kind": "text",
+            "src": "Modelo: patrón de carga permanente con multiplicador de peso propio. El peso sale de las secciones del modelo."
+          },
+          {
+            "id": "per04",
+            "x": 40,
+            "y": 248,
+            "kind": "text",
+            "src": "Se incrementa el peso propio en un 30 % para considerar conexiones, placas y elementos no modelados."
+          },
+          {
+            "id": "per05",
+            "x": 40,
+            "y": 328,
+            "kind": "math",
+            "src": "f_DEAD := 1.3"
+          },
+          {
+            "id": "per06",
+            "x": 40,
+            "y": 376,
+            "kind": "text",
+            "src": "Peso específico del acero: 7.870 kg/m³ (DSC-BCHL-0001-P1 §6.1.1)."
+          },
+          {
+            "id": "per07",
+            "x": 40,
+            "y": 424,
+            "kind": "math",
+            "src": "rho_acero := 7870 kg/m^3"
+          },
+          {
+            "id": "per08",
+            "x": 40,
+            "y": 472,
+            "kind": "math",
+            "src": "gamma_acero := rho_acero * g_0 = kN/m^3"
+          },
+          {
+            "id": "per09",
+            "x": 40,
+            "y": 520,
+            "kind": "text",
+            "src": "## SDL_CUB — revestimiento de cubierta"
+          },
+          {
+            "id": "per10",
+            "x": 40,
+            "y": 568,
+            "kind": "text",
+            "src": "Modelo: patrón de carga permanente. Carga de área sobre los paños de cubierta, repartida a las costaneras, en dirección de la gravedad."
+          },
+          {
+            "id": "per11",
+            "x": 40,
+            "y": 648,
+            "kind": "text",
+            "src": "Supuesto: revestimiento de cubierta de 10 kgf/m²."
+          },
+          {
+            "id": "per12",
+            "x": 40,
+            "y": 696,
+            "kind": "math",
+            "src": "q_SDL_cub := 10 kgf/m^2 = kN/m^2"
+          },
+          {
+            "id": "per13",
+            "x": 40,
+            "y": 744,
+            "kind": "text",
+            "src": "## SDL_MURO — revestimiento de muro"
+          },
+          {
+            "id": "per14",
+            "x": 40,
+            "y": 792,
+            "kind": "text",
+            "src": "Modelo: patrón de carga permanente. Carga de área sobre los paños de muro y de hastial, en dirección de la gravedad."
+          },
+          {
+            "id": "per15",
+            "x": 40,
+            "y": 872,
+            "kind": "text",
+            "src": "Supuesto: revestimiento de muro de 10 kgf/m²."
+          },
+          {
+            "id": "per16",
+            "x": 40,
+            "y": 920,
+            "kind": "math",
+            "src": "q_SDL_muro := 10 kgf/m^2 = kN/m^2"
+          },
+          {
+            "id": "per17",
+            "x": 40,
+            "y": 968,
+            "kind": "text",
+            "src": "## SDL_HOJA — peso de las tres hojas de portón"
+          },
+          {
+            "id": "per18",
+            "x": 40,
+            "y": 1016,
+            "kind": "text",
+            "src": "Modelo: patrón de carga permanente. Carga lineal sobre los cordones inferiores de los tres enrejados de transferencia, en dirección de la gravedad: el vano del portón no tiene superficie sobre la que repartir el peso."
+          },
+          {
+            "id": "per19",
+            "x": 40,
+            "y": 1112,
+            "kind": "text",
+            "src": "Supuesto: peso de la hoja de portón 0,40 kN/m², a confirmar con los datos del proveedor."
+          },
+          {
+            "id": "per20",
+            "x": 40,
+            "y": 1160,
+            "kind": "math",
+            "src": "q_hoja := 0.40 kN/m^2"
+          },
+          {
+            "id": "per21",
+            "x": 40,
+            "y": 1208,
+            "kind": "math",
+            "src": "w_SDL_HOJA := q_hoja * H_port = kN/m"
+          },
+          {
+            "id": "per22",
+            "x": 40,
+            "y": 1256,
+            "kind": "text",
+            "src": "## POLVO — acumulación de polvo"
+          },
+          {
+            "id": "per23",
+            "x": 40,
+            "y": 1304,
+            "kind": "text",
+            "src": "Modelo: patrón de carga permanente. Paños de cubierta, en dirección de la gravedad."
+          },
+          {
+            "id": "per24",
+            "x": 40,
+            "y": 1352,
+            "kind": "text",
+            "src": "Según DSC-BCHL-0001-P1 §6.1.1, la acumulación de polvo se considera carga permanente de 50 kg/m²."
+          },
+          {
+            "id": "per25",
+            "x": 40,
+            "y": 1432,
+            "kind": "math",
+            "src": "q_polvo := 50 kgf/m^2 = kN/m^2"
+          },
+          {
+            "id": "per26",
+            "x": 40,
+            "y": 1480,
+            "kind": "text",
+            "src": "## CM_VIA — riel y accesorios"
+          },
+          {
+            "id": "per27",
+            "x": 40,
+            "y": 1528,
+            "kind": "text",
+            "src": "Modelo: patrón de carga permanente. Carga lineal sobre las vigas carrileras, en dirección de la gravedad."
+          },
+          {
+            "id": "per28",
+            "x": 40,
+            "y": 1608,
+            "kind": "text",
+            "src": "Supuesto: peso del riel y sus accesorios 0,769 kN/m, a confirmar con los datos del puente grúa."
+          },
+          {
+            "id": "per29",
+            "x": 40,
+            "y": 1656,
+            "kind": "math",
+            "src": "w_CM_VIA := 0.769 kN/m"
+          },
+          {
+            "id": "per30",
+            "x": 40,
+            "y": 1704,
+            "kind": "text",
+            "src": "## CM_COS_TECHO y CM_COS_LAT — peso de las costaneras"
+          },
+          {
+            "id": "per31",
+            "x": 40,
+            "y": 1752,
+            "kind": "text",
+            "src": "Modelo: patrones de carga permanente, como carga de área sobre los paños de cubierta y de muro: las costaneras no se modelan como barras. Los valores salen de sus nodos, q_COS_techo y q_COS_lat."
+          }
+        ]
+      },
+      {
+        "id": "k-sobrecargas",
+        "nombre": "Sobrecarga de techo y nieve",
+        "grupo": "g-cargas",
+        "hoja": [
+          {
+            "id": "sob01",
+            "x": 40,
+            "y": 40,
+            "kind": "text",
+            "src": "# Sobrecarga de techo y nieve"
+          },
+          {
+            "id": "sob02",
+            "x": 40,
+            "y": 120,
+            "kind": "text",
+            "src": "## LR — sobrecarga de techo"
+          },
+          {
+            "id": "sob03",
+            "x": 40,
+            "y": 168,
+            "kind": "text",
+            "src": "Modelo: patrón de sobrecarga de techo. Paños de cubierta, en dirección de la gravedad. No concurre con la nieve (CIRSOC 301, combinación B.2.3)."
+          },
+          {
+            "id": "sob04",
+            "x": 40,
+            "y": 248,
+            "kind": "text",
+            "src": "Sobrecarga mínima de techos: 100 kg/m² (DSC-BCHL-0001-P1 §6.1.3)."
+          },
+          {
+            "id": "sob05",
+            "x": 40,
+            "y": 296,
+            "kind": "math",
+            "src": "q_LR := 100 kgf/m^2 = kN/m^2"
+          },
+          {
+            "id": "sob06",
+            "x": 40,
+            "y": 344,
+            "kind": "text",
+            "src": "## S — nieve balanceada, CIRSOC 104-2005"
+          },
+          {
+            "id": "sob07",
+            "x": 40,
+            "y": 392,
+            "kind": "text",
+            "src": "Modelo: patrón de nieve. Paños de cubierta, en dirección de la gravedad, sobre la superficie real."
+          },
+          {
+            "id": "sob08",
+            "x": 40,
+            "y": 472,
+            "kind": "text",
+            "src": "Carga básica de nieve según el criterio de diseño del proyecto (DSC-BCHL-0001-P1 §6.1.5): el sitio, a 3.600 m, queda fuera del alcance del CIRSOC 104."
+          },
+          {
+            "id": "sob09",
+            "x": 40,
+            "y": 552,
+            "kind": "math",
+            "src": "p_g := 800 kgf/m^2 = kN/m^2"
+          },
+          {
+            "id": "sob10",
+            "x": 40,
+            "y": 600,
+            "kind": "text",
+            "src": "Factor de exposición: se adopta C_e = 1,00."
+          },
+          {
+            "id": "sob11",
+            "x": 40,
+            "y": 648,
+            "kind": "math",
+            "src": "C_e := 1.00"
+          },
+          {
+            "id": "sob12",
+            "x": 40,
+            "y": 696,
+            "kind": "text",
+            "src": "C_t = 1,2, estructura no calefaccionada (Tabla 3). I = 1,0, Categoría II (Tabla 4). C_s = 1,0 para cubierta fría con 8,5° de pendiente (Figura 2.c). Mínimo según el art. 3.4."
+          },
+          {
+            "id": "sob13",
+            "x": 40,
+            "y": 776,
+            "kind": "math",
+            "src": "C_t := 1.20"
+          },
+          {
+            "id": "sob14",
+            "x": 40,
+            "y": 824,
+            "kind": "math",
+            "src": "I_nieve := 1.00"
+          },
+          {
+            "id": "sob15",
+            "x": 40,
+            "y": 872,
+            "kind": "math",
+            "src": "C_s := 1.00"
+          },
+          {
+            "id": "sob16",
+            "x": 40,
+            "y": 920,
+            "kind": "math",
+            "src": "pf_min := I_nieve * 1 kN/m^2"
+          },
+          {
+            "id": "sob17",
+            "x": 40,
+            "y": 968,
+            "kind": "math",
+            "src": "p_f := 0.7 * C_e * C_t * I_nieve * p_g = kN/m^2"
+          },
+          {
+            "id": "sob18",
+            "x": 40,
+            "y": 1016,
+            "kind": "math",
+            "src": "v_pf_min := p_f >= pf_min ="
+          },
+          {
+            "id": "sob19",
+            "x": 40,
+            "y": 1064,
+            "kind": "math",
+            "src": "p_s := C_s * p_f = kN/m^2"
+          },
+          {
+            "id": "sob20",
+            "x": 40,
+            "y": 1112,
+            "kind": "math",
+            "src": "p_s_kgf := p_s = kgf/m^2"
+          },
+          {
+            "id": "sob21",
+            "x": 40,
+            "y": 1160,
+            "kind": "text",
+            "src": "La nieve no balanceada no aplica: el Cap. 6 del CIRSOC 104 no alcanza a las cubiertas de una sola pendiente."
           }
         ]
       },
@@ -1579,7 +835,8 @@
             "kind": "math",
             "src": "GC_pi := 0.55"
           }
-        ]
+        ],
+        "grupo": "g-viento"
       },
       {
         "id": "k-viento-cyr",
@@ -1748,7 +1005,8 @@
             "kind": "math",
             "src": "p_muro_CyR := max(abs(p_emp_muro), abs(p_suc_muro)) = kN/m^2"
           }
-        ]
+        ],
+        "grupo": "g-viento"
       },
       {
         "id": "k-viento-sprfv",
@@ -2056,8 +1314,58 @@
             "y": 2536,
             "kind": "text",
             "src": "Todas las presiones son normales a cada superficie; positivas hacia la superficie (art. 5.12.1.1)."
+          },
+          {
+            "id": "vsp40",
+            "x": 40,
+            "y": 2616,
+            "kind": "text",
+            "src": "## Los patrones de viento en el modelo"
+          },
+          {
+            "id": "vsp41",
+            "x": 40,
+            "y": 2664,
+            "kind": "text",
+            "src": "Presiones de área normales a cada paño, con los valores que publica esta hoja."
+          },
+          {
+            "id": "vsp42",
+            "x": 40,
+            "y": 2712,
+            "kind": "text",
+            "src": "WYP, viento hacia +Y, normal a la cumbrera. Barlovento: muro alto (y = 0). Sotavento: muro bajo (y = 25,4). Laterales: los dos hastiales. Cubierta: tres franjas desde el alero alto."
+          },
+          {
+            "id": "vsp43",
+            "x": 40,
+            "y": 2792,
+            "kind": "text",
+            "src": "WYN, viento hacia −Y: los coeficientes de WYP con las caras cambiadas. Barlovento el muro bajo (y = 25,4), sotavento el alto, y las franjas de cubierta medidas desde el alero bajo."
+          },
+          {
+            "id": "vsp44",
+            "x": 40,
+            "y": 2872,
+            "kind": "text",
+            "src": "WXP, viento hacia +X, paralelo a la cumbrera. Barlovento: hastial x = 0. Sotavento: hastial x = 88. Laterales: los dos muros largos. Cubierta: cuatro franjas desde x = 0."
+          },
+          {
+            "id": "vsp45",
+            "x": 40,
+            "y": 2952,
+            "kind": "text",
+            "src": "WXN, viento hacia −X: simétrico de WXP, con barlovento en el hastial x = 88 y las franjas desde x = 88."
+          },
+          {
+            "id": "vsp46",
+            "x": 40,
+            "y": 3032,
+            "kind": "text",
+            "src": "WPI y WPIN, presión interna positiva y negativa: uniforme en la cara interior de todos los paños, hacia afuera en WPI y hacia adentro en WPIN."
           }
-        ]
+        ],
+        "grupo": "g-viento"
       },
       {
         "id": "k-cos-techo",
@@ -2649,7 +1957,8 @@
             "kind": "math",
             "src": "q_CM_kgf := q_CM = kgf/m^2"
           }
-        ]
+        ],
+        "grupo": "g-secundarios"
       },
       {
         "id": "k-cos-muro",
@@ -3103,7 +2412,8 @@
             "kind": "math",
             "src": "q_CM_kgf := q_CM = kgf/m^2"
           }
-        ]
+        ],
+        "grupo": "g-secundarios"
       },
       {
         "id": "k-grua",
@@ -3311,8 +2621,121 @@
             "y": 1496,
             "kind": "text",
             "src": "Cada familia de cargas de grúa se aplica en cuatro posiciones del carro sobre la viga carrilera: P1 con las ruedas a 1,00 y 5,00 m del apoyo (momento máximo), P2 y P3 con una rueda sobre cada apoyo, y P4 con una rueda junto al apoyo (corte máximo en la viga y reacción máxima sobre la ménsula)."
+          },
+          {
+            "id": "gru30",
+            "x": 40,
+            "y": 1608,
+            "kind": "text",
+            "src": "## CLV — cargas verticales de rueda, con el impacto dentro del patrón"
+          },
+          {
+            "id": "gru31",
+            "x": 40,
+            "y": 1656,
+            "kind": "text",
+            "src": "Modelo: un patrón por posición del carro, con 4 cargas puntuales sobre las vigas carrileras, en dirección de la gravedad. El impacto se incluye en el patrón."
+          },
+          {
+            "id": "gru32",
+            "x": 40,
+            "y": 1736,
+            "kind": "math",
+            "src": "P_CLV := P_max * (1 + imp) = kN"
+          },
+          {
+            "id": "gru33",
+            "x": 40,
+            "y": 1784,
+            "kind": "math",
+            "src": "P_CLV_2 := P_min * (1 + imp) = kN"
+          },
+          {
+            "id": "gru34",
+            "x": 40,
+            "y": 1832,
+            "kind": "text",
+            "src": "## CLH — fuerza transversal de bamboleo (±Y)"
+          },
+          {
+            "id": "gru35",
+            "x": 40,
+            "y": 1880,
+            "kind": "text",
+            "src": "Modelo: un patrón por posición del carro, 4 cargas puntuales en el tope del riel, en dirección transversal y en los dos sentidos."
+          },
+          {
+            "id": "gru36",
+            "x": 40,
+            "y": 1960,
+            "kind": "text",
+            "src": "Supuesto: la fuerza lateral se reparte en partes iguales entre las cuatro ruedas."
+          },
+          {
+            "id": "gru37",
+            "x": 40,
+            "y": 2008,
+            "kind": "math",
+            "src": "R_CLH := pct_bamb * P_mov = kN"
+          },
+          {
+            "id": "gru38",
+            "x": 40,
+            "y": 2056,
+            "kind": "math",
+            "src": "H_CLH := R_CLH / 4 = kN"
+          },
+          {
+            "id": "gru39",
+            "x": 40,
+            "y": 2104,
+            "kind": "text",
+            "src": "## CLL — fuerza longitudinal de frenado (±X)"
+          },
+          {
+            "id": "gru40",
+            "x": 40,
+            "y": 2152,
+            "kind": "text",
+            "src": "Modelo: un patrón por posición del carro, 4 cargas puntuales en el tope del riel, en dirección longitudinal y en los dos sentidos. Cada rueda lleva el 10 % de su carga sin impacto."
+          },
+          {
+            "id": "gru41",
+            "x": 40,
+            "y": 2232,
+            "kind": "math",
+            "src": "L_CLL := pct_fren * P_max = kN"
+          },
+          {
+            "id": "gru42",
+            "x": 40,
+            "y": 2280,
+            "kind": "math",
+            "src": "L_CLL_2 := pct_fren * P_min = kN"
+          },
+          {
+            "id": "gru43",
+            "x": 40,
+            "y": 2328,
+            "kind": "text",
+            "src": "## CL_D — masa del puente grúa, para la fuente de masa"
+          },
+          {
+            "id": "gru44",
+            "x": 40,
+            "y": 2376,
+            "kind": "text",
+            "src": "El peso del puente está incluido en las cargas de rueda, por lo que no forma parte de la carga permanente. Su masa se incorpora al análisis sísmico como carga repartida a lo largo de las dos vías, incluida solo en la fuente de masa."
+          },
+          {
+            "id": "gru45",
+            "x": 40,
+            "y": 2472,
+            "kind": "math",
+            "src": "w_CL_D := P_puente / L_via = kN/m"
           }
-        ]
+        ],
+        "grupo": "g-grua"
       },
       {
         "id": "k-viga-carrilera",
@@ -3321,7 +2744,7 @@
         "frontera": {
           "procedencia": "biblioteca",
           "slug": "viga-carrilera-generica",
-          "sha256": "80fef286ed31097fc000c2ce6c2e86aa20913315d524317077266e448c1931b4",
+          "sha256": "ed16874270c0d67efd1ea2ce2117a5024e02c3f76f540915098e8ccfad482225",
           "entradas": {
             "Fy": 248.2,
             "E": 200000,
@@ -3383,7 +2806,8 @@
             "u_H1": "u_H1_via",
             "u_corte": "u_corte_via"
           }
-        }
+        },
+        "grupo": "g-grua"
       },
       {
         "id": "k-espectro",
@@ -3627,586 +3051,8 @@
             "kind": "text",
             "src": "Con los resultados del modelo se verifican la masa participante (90 %, art. 7.2.3), el corte basal modal contra el 85 % del estático (art. 7.2.5, con escalado si no se alcanza) y la frecuencia fundamental supuesta para el viento."
           }
-        ]
-      },
-      {
-        "id": "k-casos",
-        "nombre": "Casos de carga y fuente de masa",
-        "hoja": [
-          {
-            "id": "cas01",
-            "x": 40,
-            "y": 40,
-            "kind": "text",
-            "src": "# Casos de carga y fuente de masa"
-          },
-          {
-            "id": "cas02",
-            "x": 40,
-            "y": 120,
-            "kind": "text",
-            "src": "Casos del modelo a partir de los patrones. Toda carga permanente forma parte de CM, de EV y de la fuente de masa."
-          },
-          {
-            "id": "cas03",
-            "x": 40,
-            "y": 200,
-            "kind": "text",
-            "src": "## CM: los permanentes a factor 1,0"
-          },
-          {
-            "id": "cas04",
-            "x": 40,
-            "y": 248,
-            "kind": "text",
-            "src": "DEAD, SDL_CUB, SDL_MURO, SDL_HOJA, POLVO, CM_COS_TECHO, CM_COS_LAT y CM_VIA. El peso del puente grúa está en las cargas de rueda y no forma parte de CM."
-          },
-          {
-            "id": "cas05",
-            "x": 40,
-            "y": 328,
-            "kind": "text",
-            "src": "Resultante de CM sin el peso propio:"
-          },
-          {
-            "id": "cas06",
-            "x": 40,
-            "y": 376,
-            "kind": "math",
-            "src": "R_CM_sin_DEAD := R_SDL_CUB + R_SDL_MURO + R_SDL_HOJA + R_POLVO + R_CM_COS_TECHO + R_CM_COS_LAT + R_CM_VIA = kN"
-          },
-          {
-            "id": "cas07",
-            "x": 40,
-            "y": 424,
-            "kind": "text",
-            "src": "## EV: los mismos ocho, por f_EV"
-          },
-          {
-            "id": "cas08",
-            "x": 40,
-            "y": 472,
-            "kind": "math",
-            "src": "f_EV_casos := f_EV ="
-          },
-          {
-            "id": "cas09",
-            "x": 40,
-            "y": 520,
-            "kind": "text",
-            "src": "## Fuente de masa"
-          },
-          {
-            "id": "cas10",
-            "x": 40,
-            "y": 568,
-            "kind": "text",
-            "src": "Las ocho cargas permanentes a 1,0, la masa del puente grúa a 1,0 y la nieve con el factor f2. Se adopta f2 = 0,50."
-          },
-          {
-            "id": "cas11",
-            "x": 40,
-            "y": 648,
-            "kind": "math",
-            "src": "f2 := 0.50"
-          },
-          {
-            "id": "cas12",
-            "x": 40,
-            "y": 696,
-            "kind": "math",
-            "src": "R_masa_sin_DEAD := R_CM_sin_DEAD + R_CL_D + f2 * R_S = kN"
-          },
-          {
-            "id": "cas13",
-            "x": 40,
-            "y": 744,
-            "kind": "text",
-            "src": "## Casos espectrales y de viento"
-          },
-          {
-            "id": "cas14",
-            "x": 40,
-            "y": 792,
-            "kind": "text",
-            "src": "RSX y RSY: espectro de respuesta con combinación modal CQC y 5 % de amortiguamiento. Los patrones de viento y de grúa intervienen en las combinaciones de carga."
-          }
-        ]
-      },
-      {
-        "id": "k-entrada-sap",
-        "nombre": "Resumen de cargas del modelo",
-        "hoja": [
-          {
-            "id": "sap01",
-            "x": 40,
-            "y": 40,
-            "kind": "text",
-            "src": "# Resumen de cargas del modelo"
-          },
-          {
-            "id": "sap02",
-            "x": 40,
-            "y": 120,
-            "kind": "text",
-            "src": "Valores de cada patrón y caso de carga del modelo, calculados en las hojas anteriores."
-          },
-          {
-            "id": "sap03",
-            "x": 40,
-            "y": 168,
-            "kind": "text",
-            "src": "## Permanentes (Dead)"
-          },
-          {
-            "id": "sap04",
-            "x": 40,
-            "y": 216,
-            "kind": "math",
-            "src": "f_DEAD ="
-          },
-          {
-            "id": "sap05",
-            "x": 40,
-            "y": 264,
-            "kind": "math",
-            "src": "gamma_acero = kN/m^3"
-          },
-          {
-            "id": "sap06",
-            "x": 40,
-            "y": 312,
-            "kind": "math",
-            "src": "q_SDL_cub = kN/m^2"
-          },
-          {
-            "id": "sap07",
-            "x": 40,
-            "y": 360,
-            "kind": "math",
-            "src": "q_SDL_muro = kN/m^2"
-          },
-          {
-            "id": "sap08",
-            "x": 40,
-            "y": 408,
-            "kind": "math",
-            "src": "w_SDL_HOJA = kN/m"
-          },
-          {
-            "id": "sap09",
-            "x": 40,
-            "y": 456,
-            "kind": "math",
-            "src": "q_polvo = kN/m^2"
-          },
-          {
-            "id": "sap10",
-            "x": 40,
-            "y": 504,
-            "kind": "math",
-            "src": "q_CM_COS_TECHO = kN/m^2"
-          },
-          {
-            "id": "sap11",
-            "x": 40,
-            "y": 552,
-            "kind": "math",
-            "src": "q_CM_COS_LAT = kN/m^2"
-          },
-          {
-            "id": "sap12",
-            "x": 40,
-            "y": 600,
-            "kind": "math",
-            "src": "w_CM_VIA = kN/m"
-          },
-          {
-            "id": "sap13",
-            "x": 40,
-            "y": 648,
-            "kind": "math",
-            "src": "w_CL_D = kN/m"
-          },
-          {
-            "id": "sap14",
-            "x": 40,
-            "y": 696,
-            "kind": "text",
-            "src": "## Sobrecargas (Snow, Roof Live)"
-          },
-          {
-            "id": "sap15",
-            "x": 40,
-            "y": 744,
-            "kind": "math",
-            "src": "p_s = kN/m^2"
-          },
-          {
-            "id": "sap16",
-            "x": 40,
-            "y": 792,
-            "kind": "math",
-            "src": "q_LR = kN/m^2"
-          },
-          {
-            "id": "sap17",
-            "x": 40,
-            "y": 840,
-            "kind": "text",
-            "src": "## Puente grúa (Other), por rueda"
-          },
-          {
-            "id": "sap18",
-            "x": 40,
-            "y": 888,
-            "kind": "math",
-            "src": "P_CLV = kN"
-          },
-          {
-            "id": "sap19",
-            "x": 40,
-            "y": 936,
-            "kind": "math",
-            "src": "P_CLV_2 = kN"
-          },
-          {
-            "id": "sap20",
-            "x": 40,
-            "y": 984,
-            "kind": "math",
-            "src": "H_CLH = kN"
-          },
-          {
-            "id": "sap21",
-            "x": 40,
-            "y": 1032,
-            "kind": "math",
-            "src": "L_CLL = kN"
-          },
-          {
-            "id": "sap22",
-            "x": 40,
-            "y": 1080,
-            "kind": "math",
-            "src": "L_CLL_2 = kN"
-          },
-          {
-            "id": "sap23",
-            "x": 40,
-            "y": 1128,
-            "kind": "text",
-            "src": "## Viento (Wind), presiones externas"
-          },
-          {
-            "id": "sap24",
-            "x": 40,
-            "y": 1176,
-            "kind": "math",
-            "src": "pw_barl = kN/m^2"
-          },
-          {
-            "id": "sap25",
-            "x": 40,
-            "y": 1224,
-            "kind": "math",
-            "src": "pw_sot_Y = kN/m^2"
-          },
-          {
-            "id": "sap26",
-            "x": 40,
-            "y": 1272,
-            "kind": "math",
-            "src": "pw_sot_X = kN/m^2"
-          },
-          {
-            "id": "sap27",
-            "x": 40,
-            "y": 1320,
-            "kind": "math",
-            "src": "pw_lat = kN/m^2"
-          },
-          {
-            "id": "sap28",
-            "x": 40,
-            "y": 1368,
-            "kind": "math",
-            "src": "pw_cubY_1 = kN/m^2"
-          },
-          {
-            "id": "sap29",
-            "x": 40,
-            "y": 1416,
-            "kind": "math",
-            "src": "pw_cubY_2 = kN/m^2"
-          },
-          {
-            "id": "sap30",
-            "x": 40,
-            "y": 1464,
-            "kind": "math",
-            "src": "pw_cubY_3 = kN/m^2"
-          },
-          {
-            "id": "sap31",
-            "x": 40,
-            "y": 1512,
-            "kind": "math",
-            "src": "pw_cubX_1 = kN/m^2"
-          },
-          {
-            "id": "sap32",
-            "x": 40,
-            "y": 1560,
-            "kind": "math",
-            "src": "pw_cubX_2 = kN/m^2"
-          },
-          {
-            "id": "sap33",
-            "x": 40,
-            "y": 1608,
-            "kind": "math",
-            "src": "pw_cubX_3 = kN/m^2"
-          },
-          {
-            "id": "sap34",
-            "x": 40,
-            "y": 1656,
-            "kind": "math",
-            "src": "pw_cubX_4 = kN/m^2"
-          },
-          {
-            "id": "sap35",
-            "x": 40,
-            "y": 1704,
-            "kind": "text",
-            "src": "Anchos de las franjas de cubierta, desde el borde de barlovento:"
-          },
-          {
-            "id": "sap36",
-            "x": 40,
-            "y": 1752,
-            "kind": "math",
-            "src": "bw_1 = m"
-          },
-          {
-            "id": "sap37",
-            "x": 40,
-            "y": 1800,
-            "kind": "math",
-            "src": "bw_2 = m"
-          },
-          {
-            "id": "sap38",
-            "x": 40,
-            "y": 1848,
-            "kind": "math",
-            "src": "bw_Y3 = m"
-          },
-          {
-            "id": "sap39",
-            "x": 40,
-            "y": 1896,
-            "kind": "math",
-            "src": "bw_X3 = m"
-          },
-          {
-            "id": "sap40",
-            "x": 40,
-            "y": 1944,
-            "kind": "math",
-            "src": "bw_X4 = m"
-          },
-          {
-            "id": "sap41",
-            "x": 40,
-            "y": 1992,
-            "kind": "text",
-            "src": "## Viento, presión interna (WPI, WPIN)"
-          },
-          {
-            "id": "sap42",
-            "x": 40,
-            "y": 2040,
-            "kind": "math",
-            "src": "pw_int = kN/m^2"
-          },
-          {
-            "id": "sap43",
-            "x": 40,
-            "y": 2088,
-            "kind": "text",
-            "src": "## Sismo"
-          },
-          {
-            "id": "sap44",
-            "x": 40,
-            "y": 2136,
-            "kind": "math",
-            "src": "SF_RSX = m/s^2"
-          },
-          {
-            "id": "sap45",
-            "x": 40,
-            "y": 2184,
-            "kind": "math",
-            "src": "SF_RSY = m/s^2"
-          },
-          {
-            "id": "sap46",
-            "x": 40,
-            "y": 2232,
-            "kind": "math",
-            "src": "f_EV ="
-          },
-          {
-            "id": "sap47",
-            "x": 40,
-            "y": 2280,
-            "kind": "math",
-            "src": "f2 ="
-          },
-          {
-            "id": "sap48",
-            "x": 40,
-            "y": 2328,
-            "kind": "text",
-            "src": "## Resultantes de carga"
-          },
-          {
-            "id": "sap49",
-            "x": 40,
-            "y": 2376,
-            "kind": "text",
-            "src": "Resultante de cada patrón, para su control en las reacciones del modelo. El peso propio sale del modelo."
-          },
-          {
-            "id": "sap50",
-            "x": 40,
-            "y": 2456,
-            "kind": "math",
-            "src": "R_SDL_CUB = kN"
-          },
-          {
-            "id": "sap51",
-            "x": 40,
-            "y": 2504,
-            "kind": "math",
-            "src": "R_SDL_MURO = kN"
-          },
-          {
-            "id": "sap52",
-            "x": 40,
-            "y": 2552,
-            "kind": "math",
-            "src": "R_SDL_HOJA = kN"
-          },
-          {
-            "id": "sap53",
-            "x": 40,
-            "y": 2600,
-            "kind": "math",
-            "src": "R_POLVO = kN"
-          },
-          {
-            "id": "sap54",
-            "x": 40,
-            "y": 2648,
-            "kind": "math",
-            "src": "R_CM_COS_TECHO = kN"
-          },
-          {
-            "id": "sap55",
-            "x": 40,
-            "y": 2696,
-            "kind": "math",
-            "src": "R_CM_COS_LAT = kN"
-          },
-          {
-            "id": "sap56",
-            "x": 40,
-            "y": 2744,
-            "kind": "math",
-            "src": "R_CM_VIA = kN"
-          },
-          {
-            "id": "sap57",
-            "x": 40,
-            "y": 2792,
-            "kind": "math",
-            "src": "R_CL_D = kN"
-          },
-          {
-            "id": "sap58",
-            "x": 40,
-            "y": 2840,
-            "kind": "math",
-            "src": "R_S = kN"
-          },
-          {
-            "id": "sap59",
-            "x": 40,
-            "y": 2888,
-            "kind": "math",
-            "src": "R_LR = kN"
-          },
-          {
-            "id": "sap60",
-            "x": 40,
-            "y": 2936,
-            "kind": "math",
-            "src": "R_CLV = kN"
-          },
-          {
-            "id": "sap61",
-            "x": 40,
-            "y": 2984,
-            "kind": "math",
-            "src": "R_CLH = kN"
-          },
-          {
-            "id": "sap62",
-            "x": 40,
-            "y": 3032,
-            "kind": "math",
-            "src": "R_CLL = kN"
-          },
-          {
-            "id": "sap63",
-            "x": 40,
-            "y": 3080,
-            "kind": "math",
-            "src": "R_WYP_y = kN"
-          },
-          {
-            "id": "sap64",
-            "x": 40,
-            "y": 3128,
-            "kind": "math",
-            "src": "R_WYP_z = kN"
-          },
-          {
-            "id": "sap65",
-            "x": 40,
-            "y": 3176,
-            "kind": "math",
-            "src": "R_WXP_x = kN"
-          },
-          {
-            "id": "sap66",
-            "x": 40,
-            "y": 3224,
-            "kind": "math",
-            "src": "R_WXP_z = kN"
-          },
-          {
-            "id": "sap67",
-            "x": 40,
-            "y": 3272,
-            "kind": "math",
-            "src": "R_WPI_z = kN"
-          }
-        ]
+        ],
+        "grupo": "g-sismo"
       }
     ]
   }

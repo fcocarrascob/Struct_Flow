@@ -4,10 +4,12 @@
 //
 //   node docs/pachon/autocontenida/generar.mjs
 //
-// Es el punto de partida de la capa de SAP2000: cada partida publica el valor que
-// se escribe en el modelo y la resultante que el modelo tiene que devolver (R_*),
-// que es lo que esa capa va a comparar sola después de empujar y analizar. La
-// auditoría contra v44 es otra obra: docs/pachon/auditoria/.
+// Cada valor que se ingresa al modelo está definido en el nodo que lo calcula, y
+// el nodo SAP2000 lo contrasta con lo que el modelo tiene asignado: se lee el
+// modelo, se ata cada carga a su variable y se ve si coincide. Por eso ya no hay
+// un nodo por patrón, ni totales R = q·A, ni un resumen: esas cargas se agrupan
+// por lo que son (permanentes, sobrecargas, viento, grúa, sismo), y los grupos
+// ordenan la obra. La auditoría contra v44 es otra obra: docs/pachon/auditoria/.
 import { writeFile } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -52,9 +54,6 @@ function hoja(prefijo, ...bloques) {
     return r;
   });
 }
-function carga(id, nombre, etiqueta, variable, bloques) {
-  return { id: `c-${id}`, nombre, subcargas: [{ id: `s-${id}`, nombre: etiqueta, variable, hoja: hoja(`${id}-`, ...bloques) }] };
-}
 
 // ═════════════════════════════════════════════════════════════ GEOMETRÍA
 const geometria = {
@@ -86,7 +85,7 @@ const geometria = {
     t('Cubierta, en proyección y en verdadera magnitud. Las cargas de gravedad de cubierta se aplican sobre la superficie real, lo que queda del lado seguro en un 1,1 % respecto de la proyección horizontal.'),
     m('A_cub_proy := L_nave * B_nave = m^2'),
     m('A_cub_incl := A_cub_proy / cos(alpha_cub) = m^2'),
-    t('Muros: superficie bruta menos los portones. Con estas áreas se calculan las resultantes de las cargas de muro.'),
+    t('Muros: superficie bruta menos los portones.'),
     m('A_muro_alto := L_nave * H_alto - 2 * A_hoja = m^2'),
     m('A_muro_bajo := L_nave * H_bajo - A_hoja = m^2'),
     m('A_hastial := B_nave * (H_alto + H_bajo) / 2 = m^2'),
@@ -99,85 +98,78 @@ const geometria = {
 };
 
 // ═══════════════════════════════════════════════════════ PERMANENTES
-const dead = carga('dead', 'DEAD', 'Peso propio del acero, con conexiones', 'f_DEAD', [
-  t('## DEAD — peso propio del acero, con sobrepeso por conexiones'),
-  t('Modelo: patrón de carga permanente con multiplicador de peso propio. El peso sale de las secciones del modelo.'),
-  t('Se incrementa el peso propio en un 30 % para considerar conexiones, placas y elementos no modelados.'),
-  m('f_DEAD := 1.3'),
-  t('Peso específico del acero: 7.870 kg/m³ (DSC-BCHL-0001-P1 §6.1.1).'),
-  m('rho_acero := 7870 kg/m^3'),
-  m('gamma_acero := rho_acero * g_0 = kN/m^3'),
-]);
-
-const sdlCub = carga('sdlc', 'SDL_CUB', 'Revestimiento de cubierta', 'q_SDL_cub', [
-  t('## SDL_CUB — revestimiento de cubierta'),
-  t('Modelo: patrón de carga permanente. Carga de área sobre los paños de cubierta, repartida a las costaneras, en dirección de la gravedad.'),
-  t('Supuesto: revestimiento de cubierta de 10 kgf/m².'),
-  m('q_SDL_cub := 10 kgf/m^2 = kN/m^2'),
-  m('R_SDL_CUB := q_SDL_cub * A_cub_incl = kN'),
-]);
-
-const sdlMuro = carga('sdlm', 'SDL_MURO', 'Revestimiento de muro', 'q_SDL_muro', [
-  t('## SDL_MURO — revestimiento de muro'),
-  t('Modelo: patrón de carga permanente. Carga de área sobre los paños de muro y de hastial, en dirección de la gravedad.'),
-  t('Supuesto: revestimiento de muro de 10 kgf/m².'),
-  m('q_SDL_muro := 10 kgf/m^2 = kN/m^2'),
-  m('R_SDL_MURO := q_SDL_muro * A_muros = kN'),
-]);
-
-const sdlHoja = carga('sdlh', 'SDL_HOJA', 'Hojas de portón', 'w_SDL_HOJA', [
-  t('## SDL_HOJA — peso de las tres hojas de portón'),
-  t('Modelo: patrón de carga permanente. Carga lineal sobre los cordones inferiores de los tres enrejados de transferencia, en dirección de la gravedad: el vano del portón no tiene superficie sobre la que repartir el peso.'),
-  t('Supuesto: peso de la hoja de portón 0,40 kN/m², a confirmar con los datos del proveedor.'),
-  m('q_hoja := 0.40 kN/m^2'),
-  m('w_SDL_HOJA := q_hoja * H_port = kN/m'),
-  m('R_SDL_HOJA := w_SDL_HOJA * L_port * n_port = kN'),
-]);
-
-const polvo = carga('polv', 'POLVO', 'Acumulación de polvo', 'q_polvo', [
-  t('## POLVO — acumulación de polvo'),
-  t('Modelo: patrón de carga permanente. Paños de cubierta, en dirección de la gravedad.'),
-  t('Según DSC-BCHL-0001-P1 §6.1.1, la acumulación de polvo se considera carga permanente de 50 kg/m².'),
-  m('q_polvo := 50 kgf/m^2 = kN/m^2'),
-  m('R_POLVO := q_polvo * A_cub_incl = kN'),
-]);
-
-const cmVia = carga('cmvia', 'CM_VIA', 'Riel y accesorios de la vía', 'w_CM_VIA', [
-  t('## CM_VIA — riel y accesorios'),
-  t('Modelo: patrón de carga permanente. Carga lineal sobre las vigas carrileras, en dirección de la gravedad.'),
-  t('Supuesto: peso del riel y sus accesorios 0,769 kN/m, a confirmar con los datos del puente grúa.'),
-  m('w_CM_VIA := 0.769 kN/m'),
-  m('R_CM_VIA := w_CM_VIA * L_via = kN'),
-]);
+// Un nodo para todas: cada sección es un patrón del modelo, con el valor que el
+// nodo SAP2000 contrasta contra lo asignado.
+const permanentes = {
+  id: 'k-cargas-permanentes',
+  nombre: 'Cargas permanentes',
+  grupo: 'g-cargas',
+  hoja: hoja(
+    'per',
+    t('# Cargas permanentes'),
+    t('## DEAD — peso propio del acero, con sobrepeso por conexiones'),
+    t('Modelo: patrón de carga permanente con multiplicador de peso propio. El peso sale de las secciones del modelo.'),
+    t('Se incrementa el peso propio en un 30 % para considerar conexiones, placas y elementos no modelados.'),
+    m('f_DEAD := 1.3'),
+    t('Peso específico del acero: 7.870 kg/m³ (DSC-BCHL-0001-P1 §6.1.1).'),
+    m('rho_acero := 7870 kg/m^3'),
+    m('gamma_acero := rho_acero * g_0 = kN/m^3'),
+    t('## SDL_CUB — revestimiento de cubierta'),
+    t('Modelo: patrón de carga permanente. Carga de área sobre los paños de cubierta, repartida a las costaneras, en dirección de la gravedad.'),
+    t('Supuesto: revestimiento de cubierta de 10 kgf/m².'),
+    m('q_SDL_cub := 10 kgf/m^2 = kN/m^2'),
+    t('## SDL_MURO — revestimiento de muro'),
+    t('Modelo: patrón de carga permanente. Carga de área sobre los paños de muro y de hastial, en dirección de la gravedad.'),
+    t('Supuesto: revestimiento de muro de 10 kgf/m².'),
+    m('q_SDL_muro := 10 kgf/m^2 = kN/m^2'),
+    t('## SDL_HOJA — peso de las tres hojas de portón'),
+    t('Modelo: patrón de carga permanente. Carga lineal sobre los cordones inferiores de los tres enrejados de transferencia, en dirección de la gravedad: el vano del portón no tiene superficie sobre la que repartir el peso.'),
+    t('Supuesto: peso de la hoja de portón 0,40 kN/m², a confirmar con los datos del proveedor.'),
+    m('q_hoja := 0.40 kN/m^2'),
+    m('w_SDL_HOJA := q_hoja * H_port = kN/m'),
+    t('## POLVO — acumulación de polvo'),
+    t('Modelo: patrón de carga permanente. Paños de cubierta, en dirección de la gravedad.'),
+    t('Según DSC-BCHL-0001-P1 §6.1.1, la acumulación de polvo se considera carga permanente de 50 kg/m².'),
+    m('q_polvo := 50 kgf/m^2 = kN/m^2'),
+    t('## CM_VIA — riel y accesorios'),
+    t('Modelo: patrón de carga permanente. Carga lineal sobre las vigas carrileras, en dirección de la gravedad.'),
+    t('Supuesto: peso del riel y sus accesorios 0,769 kN/m, a confirmar con los datos del puente grúa.'),
+    m('w_CM_VIA := 0.769 kN/m'),
+    t('## CM_COS_TECHO y CM_COS_LAT — peso de las costaneras'),
+    t('Modelo: patrones de carga permanente, como carga de área sobre los paños de cubierta y de muro: las costaneras no se modelan como barras. Los valores salen de sus nodos, q_COS_techo y q_COS_lat.'),
+  ),
+};
 
 // ═══════════════════════════════════════════════════════ NIEVE Y TECHO
-const nieve = carga('niev', 'S', 'Nieve balanceada — CIRSOC 104', 'p_s', [
-  t('## S — nieve balanceada, CIRSOC 104-2005'),
-  t('Modelo: patrón de nieve. Paños de cubierta, en dirección de la gravedad, sobre la superficie real.'),
-  t('Carga básica de nieve según el criterio de diseño del proyecto (DSC-BCHL-0001-P1 §6.1.5): el sitio, a 3.600 m, queda fuera del alcance del CIRSOC 104.'),
-  m('p_g := 800 kgf/m^2 = kN/m^2'),
-  t('Factor de exposición: se adopta C_e = 1,00.'),
-  m('C_e := 1.00'),
-  t('C_t = 1,2, estructura no calefaccionada (Tabla 3). I = 1,0, Categoría II (Tabla 4). C_s = 1,0 para cubierta fría con 8,5° de pendiente (Figura 2.c). Mínimo según el art. 3.4.'),
-  m('C_t := 1.20'),
-  m('I_nieve := 1.00'),
-  m('C_s := 1.00'),
-  m('pf_min := I_nieve * 1 kN/m^2'),
-  m('p_f := 0.7 * C_e * C_t * I_nieve * p_g = kN/m^2'),
-  m('v_pf_min := p_f >= pf_min ='),
-  m('p_s := C_s * p_f = kN/m^2'),
-  m('p_s_kgf := p_s = kgf/m^2'),
-  t('La nieve no balanceada no aplica: el Cap. 6 del CIRSOC 104 no alcanza a las cubiertas de una sola pendiente.'),
-  m('R_S := p_s * A_cub_incl = kN'),
-]);
-
-const lr = carga('lr', 'LR', 'Sobrecarga de techo', 'q_LR', [
-  t('## LR — sobrecarga de techo'),
-  t('Modelo: patrón de sobrecarga de techo. Paños de cubierta, en dirección de la gravedad. No concurre con la nieve (CIRSOC 301, combinación B.2.3).'),
-  t('Sobrecarga mínima de techos: 100 kg/m² (DSC-BCHL-0001-P1 §6.1.3).'),
-  m('q_LR := 100 kgf/m^2 = kN/m^2'),
-  m('R_LR := q_LR * A_cub_incl = kN'),
-]);
+const sobrecargas = {
+  id: 'k-sobrecargas',
+  nombre: 'Sobrecarga de techo y nieve',
+  grupo: 'g-cargas',
+  hoja: hoja(
+    'sob',
+    t('# Sobrecarga de techo y nieve'),
+    t('## LR — sobrecarga de techo'),
+    t('Modelo: patrón de sobrecarga de techo. Paños de cubierta, en dirección de la gravedad. No concurre con la nieve (CIRSOC 301, combinación B.2.3).'),
+    t('Sobrecarga mínima de techos: 100 kg/m² (DSC-BCHL-0001-P1 §6.1.3).'),
+    m('q_LR := 100 kgf/m^2 = kN/m^2'),
+    t('## S — nieve balanceada, CIRSOC 104-2005'),
+    t('Modelo: patrón de nieve. Paños de cubierta, en dirección de la gravedad, sobre la superficie real.'),
+    t('Carga básica de nieve según el criterio de diseño del proyecto (DSC-BCHL-0001-P1 §6.1.5): el sitio, a 3.600 m, queda fuera del alcance del CIRSOC 104.'),
+    m('p_g := 800 kgf/m^2 = kN/m^2'),
+    t('Factor de exposición: se adopta C_e = 1,00.'),
+    m('C_e := 1.00'),
+    t('C_t = 1,2, estructura no calefaccionada (Tabla 3). I = 1,0, Categoría II (Tabla 4). C_s = 1,0 para cubierta fría con 8,5° de pendiente (Figura 2.c). Mínimo según el art. 3.4.'),
+    m('C_t := 1.20'),
+    m('I_nieve := 1.00'),
+    m('C_s := 1.00'),
+    m('pf_min := I_nieve * 1 kN/m^2'),
+    m('p_f := 0.7 * C_e * C_t * I_nieve * p_g = kN/m^2'),
+    m('v_pf_min := p_f >= pf_min ='),
+    m('p_s := C_s * p_f = kN/m^2'),
+    m('p_s_kgf := p_s = kgf/m^2'),
+    t('La nieve no balanceada no aplica: el Cap. 6 del CIRSOC 104 no alcanza a las cubiertas de una sola pendiente.'),
+  ),
+};
 
 // ═══════════════════════════════════════════════════════ VIENTO
 // La presión dinámica es una sola para todo el edificio: la usan componentes y
@@ -327,52 +319,15 @@ const vientoSprfv = {
     t('q_i = q_h, que la ec. (15) permite como valor conservador. Los dos signos (Tabla 7, nota 3). Actúa en la cara interior de TODOS los paños, cubierta y muros.'),
     m('p_int := q_h * GC_pi = kN/m^2'),
     t('Todas las presiones son normales a cada superficie; positivas hacia la superficie (art. 5.12.1.1).'),
+    t('## Los patrones de viento en el modelo'),
+    t('Presiones de área normales a cada paño, con los valores que publica esta hoja.'),
+    t('WYP, viento hacia +Y, normal a la cumbrera. Barlovento: muro alto (y = 0). Sotavento: muro bajo (y = 25,4). Laterales: los dos hastiales. Cubierta: tres franjas desde el alero alto.'),
+    t('WYN, viento hacia −Y: los coeficientes de WYP con las caras cambiadas. Barlovento el muro bajo (y = 25,4), sotavento el alto, y las franjas de cubierta medidas desde el alero bajo.'),
+    t('WXP, viento hacia +X, paralelo a la cumbrera. Barlovento: hastial x = 0. Sotavento: hastial x = 88. Laterales: los dos muros largos. Cubierta: cuatro franjas desde x = 0.'),
+    t('WXN, viento hacia −X: simétrico de WXP, con barlovento en el hastial x = 88 y las franjas desde x = 88.'),
+    t('WPI y WPIN, presión interna positiva y negativa: uniforme en la cara interior de todos los paños, hacia afuera en WPI y hacia adentro en WPIN.'),
   ),
 };
-
-// Los patrones de viento: dónde va cada presión y qué resultante tiene que dar.
-const wyp = carga('wyp', 'WYP', 'Viento hacia +Y', 'pw_barl_YP', [
-  t('## WYP — viento hacia +Y, normal a la cumbrera'),
-  t('Modelo: patrón de viento. Presiones de área normales a cada paño. Barlovento: muro alto (y = 0). Sotavento: muro bajo (y = 25,4). Laterales: los dos hastiales. Cubierta: tres franjas desde el alero alto.'),
-  m('pw_barl_YP := pw_barl = kN/m^2'),
-  t('Resultante horizontal (+Y): el empuje de barlovento más la succión de sotavento. Los hastiales se anulan entre sí.'),
-  m('R_WYP_y := pw_barl * A_muro_alto - pw_sot_Y * A_muro_bajo = kN'),
-  t('Resultante vertical, hacia arriba: la cubierta por franjas, sobre la proyección.'),
-  m('R_WYP_z := -(pw_cubY_1 * bw_1 + pw_cubY_2 * bw_2 + pw_cubY_3 * bw_Y3) * L_nave = kN'),
-]);
-const wyn = carga('wyn', 'WYN', 'Viento hacia −Y', 'pw_barl_YN', [
-  t('## WYN — viento hacia −Y, normal a la cumbrera'),
-  t('Modelo: patrón de viento. Los coeficientes de WYP con las caras cambiadas: barlovento el muro bajo (y = 25,4), sotavento el alto, y las franjas de cubierta medidas desde el alero bajo.'),
-  m('pw_barl_YN := pw_barl = kN/m^2'),
-  m('R_WYN_y := -(pw_barl * A_muro_bajo - pw_sot_Y * A_muro_alto) = kN'),
-  m('R_WYN_z := -(pw_cubY_1 * bw_1 + pw_cubY_2 * bw_2 + pw_cubY_3 * bw_Y3) * L_nave = kN'),
-]);
-const wxp = carga('wxp', 'WXP', 'Viento hacia +X', 'pw_barl_XP', [
-  t('## WXP — viento hacia +X, paralelo a la cumbrera'),
-  t('Modelo: patrón de viento. Barlovento: hastial x = 0. Sotavento: hastial x = 88. Laterales: los dos muros largos. Cubierta: cuatro franjas desde x = 0.'),
-  m('pw_barl_XP := pw_barl = kN/m^2'),
-  m('R_WXP_x := (pw_barl - pw_sot_X) * A_hastial = kN'),
-  m('R_WXP_z := -(pw_cubX_1 * bw_1 + pw_cubX_2 * bw_2 + pw_cubX_3 * bw_X3 + pw_cubX_4 * bw_X4) * B_nave = kN'),
-]);
-const wxn = carga('wxn', 'WXN', 'Viento hacia −X', 'pw_barl_XN', [
-  t('## WXN — viento hacia −X'),
-  t('Modelo: patrón de viento, simétrico de WXP: barlovento el hastial x = 88 y franjas desde x = 88.'),
-  m('pw_barl_XN := pw_barl = kN/m^2'),
-  m('R_WXN_x := -(pw_barl - pw_sot_X) * A_hastial = kN'),
-  m('R_WXN_z := -(pw_cubX_1 * bw_1 + pw_cubX_2 * bw_2 + pw_cubX_3 * bw_X3 + pw_cubX_4 * bw_X4) * B_nave = kN'),
-]);
-const wpi = carga('wpi', 'WPI', 'Presión interna positiva', 'pw_int_P', [
-  t('## WPI — presión interna positiva'),
-  t('Modelo: patrón de viento. Presión uniforme en la cara interior de todos los paños, hacia afuera.'),
-  m('pw_int_P := pw_int = kN/m^2'),
-  m('R_WPI_z := pw_int * A_cub_proy = kN'),
-]);
-const wpin = carga('wpin', 'WPIN', 'Presión interna negativa', 'pw_int_N', [
-  t('## WPIN — presión interna negativa'),
-  t('Modelo: patrón de viento. Succión interior en todos los paños, hacia adentro.'),
-  m('pw_int_N := -pw_int = kN/m^2'),
-  m('R_WPIN_z := -pw_int * A_cub_proy = kN'),
-]);
 
 // ═══════════════════════════════════════════════════════ COSTANERAS
 const resistencia = (canal) => [
@@ -540,19 +495,6 @@ const costaneraMuro = {
   ),
 };
 
-const cmCosTecho = carga('cmct', 'CM_COS_TECHO', 'Peso de costaneras de techo', 'q_CM_COS_TECHO', [
-  t('## CM_COS_TECHO — peso de las costaneras de techo'),
-  t('Modelo: patrón de carga permanente. Carga de área sobre los paños de cubierta, en dirección de la gravedad. Las costaneras no se modelan como barras.'),
-  m('q_CM_COS_TECHO := q_COS_techo = kN/m^2'),
-  m('R_CM_COS_TECHO := q_CM_COS_TECHO * A_cub_incl = kN'),
-]);
-const cmCosLat = carga('cmcl', 'CM_COS_LAT', 'Peso de costaneras de muro', 'q_CM_COS_LAT', [
-  t('## CM_COS_LAT — peso de las costaneras de muro'),
-  t('Modelo: patrón de carga permanente. Carga de área sobre los paños de muro y de hastial, en dirección de la gravedad.'),
-  m('q_CM_COS_LAT := q_COS_lat = kN/m^2'),
-  m('R_CM_COS_LAT := q_CM_COS_LAT * A_muros = kN'),
-]);
-
 // ═══════════════════════════════════════════════════════ PUENTE GRÚA
 const grua = {
   id: 'k-grua',
@@ -588,37 +530,24 @@ const grua = {
     m('pct_fren := 0.10'),
     t('## Posiciones del carro'),
     t('Cada familia de cargas de grúa se aplica en cuatro posiciones del carro sobre la viga carrilera: P1 con las ruedas a 1,00 y 5,00 m del apoyo (momento máximo), P2 y P3 con una rueda sobre cada apoyo, y P4 con una rueda junto al apoyo (corte máximo en la viga y reacción máxima sobre la ménsula).'),
+    t('## CLV — cargas verticales de rueda, con el impacto dentro del patrón'),
+    t('Modelo: un patrón por posición del carro, con 4 cargas puntuales sobre las vigas carrileras, en dirección de la gravedad. El impacto se incluye en el patrón.'),
+    m('P_CLV := P_max * (1 + imp) = kN'),
+    m('P_CLV_2 := P_min * (1 + imp) = kN'),
+    t('## CLH — fuerza transversal de bamboleo (±Y)'),
+    t('Modelo: un patrón por posición del carro, 4 cargas puntuales en el tope del riel, en dirección transversal y en los dos sentidos.'),
+    t('Supuesto: la fuerza lateral se reparte en partes iguales entre las cuatro ruedas.'),
+    m('R_CLH := pct_bamb * P_mov = kN'),
+    m('H_CLH := R_CLH / 4 = kN'),
+    t('## CLL — fuerza longitudinal de frenado (±X)'),
+    t('Modelo: un patrón por posición del carro, 4 cargas puntuales en el tope del riel, en dirección longitudinal y en los dos sentidos. Cada rueda lleva el 10 % de su carga sin impacto.'),
+    m('L_CLL := pct_fren * P_max = kN'),
+    m('L_CLL_2 := pct_fren * P_min = kN'),
+    t('## CL_D — masa del puente grúa, para la fuente de masa'),
+    t('El peso del puente está incluido en las cargas de rueda, por lo que no forma parte de la carga permanente. Su masa se incorpora al análisis sísmico como carga repartida a lo largo de las dos vías, incluida solo en la fuente de masa.'),
+    m('w_CL_D := P_puente / L_via = kN/m'),
   ),
 };
-
-const clv = carga('clv', 'CLV', 'Vertical de rueda con impacto', 'P_CLV', [
-  t('## CLV — cargas verticales de rueda, con el impacto dentro del patrón'),
-  t('Modelo: un patrón por posición del carro, con 4 cargas puntuales sobre las vigas carrileras, en dirección de la gravedad. El impacto se incluye en el patrón.'),
-  m('P_CLV := P_max * (1 + imp) = kN'),
-  m('P_CLV_2 := P_min * (1 + imp) = kN'),
-  m('R_CLV := 2 * P_CLV + 2 * P_CLV_2 = kN'),
-]);
-const clh = carga('clh', 'CLH', 'Bamboleo', 'H_CLH', [
-  t('## CLH — fuerza transversal de bamboleo (±Y)'),
-  t('Modelo: un patrón por posición del carro, 4 cargas puntuales en el tope del riel, en dirección transversal y en los dos sentidos.'),
-  t('Supuesto: la fuerza lateral se reparte en partes iguales entre las cuatro ruedas.'),
-  m('R_CLH := pct_bamb * P_mov = kN'),
-  m('H_CLH := R_CLH / 4 = kN'),
-]);
-const cll = carga('cll', 'CLL', 'Frenado', 'L_CLL', [
-  t('## CLL — fuerza longitudinal de frenado (±X)'),
-  t('Modelo: un patrón por posición del carro, 4 cargas puntuales en el tope del riel, en dirección longitudinal y en los dos sentidos. Cada rueda lleva el 10 % de su carga sin impacto.'),
-  m('L_CLL := pct_fren * P_max = kN'),
-  m('L_CLL_2 := pct_fren * P_min = kN'),
-  m('R_CLL := 2 * L_CLL + 2 * L_CLL_2 = kN'),
-]);
-const clD = carga('cld', 'CL_D', 'Masa del puente grúa (solo sismo)', 'w_CL_D', [
-  t('## CL_D — masa del puente grúa, para la fuente de masa'),
-  t('El peso del puente está incluido en las cargas de rueda, por lo que no forma parte de la carga permanente CM.'),
-  t('Su masa se incorpora al análisis sísmico como carga repartida a lo largo de las dos vías, incluida solo en la fuente de masa.'),
-  m('w_CL_D := P_puente / L_via = kN/m'),
-  m('R_CL_D := w_CL_D * L_via = kN'),
-]);
 
 const vigaCarrilera = {
   id: 'k-viga-carrilera',
@@ -705,135 +634,35 @@ const espectro = {
   ),
 };
 
-const casos = {
-  id: 'k-casos',
-  nombre: 'Casos de carga y fuente de masa',
-  hoja: hoja(
-    'cas',
-    t('# Casos de carga y fuente de masa'),
-    t('Casos del modelo a partir de los patrones. Toda carga permanente forma parte de CM, de EV y de la fuente de masa.'),
-    t('## CM: los permanentes a factor 1,0'),
-    t('DEAD, SDL_CUB, SDL_MURO, SDL_HOJA, POLVO, CM_COS_TECHO, CM_COS_LAT y CM_VIA. El peso del puente grúa está en las cargas de rueda y no forma parte de CM.'),
-    t('Resultante de CM sin el peso propio:'),
-    m('R_CM_sin_DEAD := R_SDL_CUB + R_SDL_MURO + R_SDL_HOJA + R_POLVO + R_CM_COS_TECHO + R_CM_COS_LAT + R_CM_VIA = kN'),
-    t('## EV: los mismos ocho, por f_EV'),
-    m('f_EV_casos := f_EV ='),
-    t('## Fuente de masa'),
-    t('Las ocho cargas permanentes a 1,0, la masa del puente grúa a 1,0 y la nieve con el factor f2. Se adopta f2 = 0,50.'),
-    m('f2 := 0.50'),
-    m('R_masa_sin_DEAD := R_CM_sin_DEAD + R_CL_D + f2 * R_S = kN'),
-    t('## Casos espectrales y de viento'),
-    t('RSX y RSY: espectro de respuesta con combinación modal CQC y 5 % de amortiguamiento. Los patrones de viento y de grúa intervienen en las combinaciones de carga.'),
-  ),
-};
-
-const rsx = carga('rsx', 'RSX', 'Espectral en X', 'SF_RSX_c', [
-  t('## RSX — caso de espectro de respuesta en X'),
-  t('Caso de espectro de respuesta con la función del espectro de diseño, CQC y 5 % de amortiguamiento, con su factor de escala.'),
-  m('SF_RSX_c := SF_RSX = m/s^2'),
-]);
-const rsy = carga('rsy', 'RSY', 'Espectral en Y', 'SF_RSY_c', [
-  t('## RSY — caso de espectro de respuesta en Y'),
-  t('Mismo caso en la otra dirección, con R = 7.'),
-  m('SF_RSY_c := SF_RSY = m/s^2'),
-]);
-const cargaEV = carga('ev', 'EV', 'Sismo vertical', 'f_EV_c', [
-  t('## EV — sismo vertical'),
-  t('Caso estático con las cargas permanentes de CM, cada una por f_EV (ec. [3.10]).'),
-  m('f_EV_c := f_EV ='),
-]);
-
-// ═══════════════════════════════════════════════════════ ENTRADA A SAP
-// Sin nombres propios: solo muestra lo que publican los demás, así que sus
-// flechas son la lista de lo que el modelo necesita.
-const entrada = {
-  id: 'k-entrada-sap',
-  nombre: 'Resumen de cargas del modelo',
-  hoja: hoja(
-    'sap',
-    t('# Resumen de cargas del modelo'),
-    t('Valores de cada patrón y caso de carga del modelo, calculados en las hojas anteriores.'),
-    t('## Permanentes (Dead)'),
-    m('f_DEAD ='),
-    m('gamma_acero = kN/m^3'),
-    m('q_SDL_cub = kN/m^2'),
-    m('q_SDL_muro = kN/m^2'),
-    m('w_SDL_HOJA = kN/m'),
-    m('q_polvo = kN/m^2'),
-    m('q_CM_COS_TECHO = kN/m^2'),
-    m('q_CM_COS_LAT = kN/m^2'),
-    m('w_CM_VIA = kN/m'),
-    m('w_CL_D = kN/m'),
-    t('## Sobrecargas (Snow, Roof Live)'),
-    m('p_s = kN/m^2'),
-    m('q_LR = kN/m^2'),
-    t('## Puente grúa (Other), por rueda'),
-    m('P_CLV = kN'),
-    m('P_CLV_2 = kN'),
-    m('H_CLH = kN'),
-    m('L_CLL = kN'),
-    m('L_CLL_2 = kN'),
-    t('## Viento (Wind), presiones externas'),
-    m('pw_barl = kN/m^2'),
-    m('pw_sot_Y = kN/m^2'),
-    m('pw_sot_X = kN/m^2'),
-    m('pw_lat = kN/m^2'),
-    m('pw_cubY_1 = kN/m^2'),
-    m('pw_cubY_2 = kN/m^2'),
-    m('pw_cubY_3 = kN/m^2'),
-    m('pw_cubX_1 = kN/m^2'),
-    m('pw_cubX_2 = kN/m^2'),
-    m('pw_cubX_3 = kN/m^2'),
-    m('pw_cubX_4 = kN/m^2'),
-    t('Anchos de las franjas de cubierta, desde el borde de barlovento:'),
-    m('bw_1 = m'),
-    m('bw_2 = m'),
-    m('bw_Y3 = m'),
-    m('bw_X3 = m'),
-    m('bw_X4 = m'),
-    t('## Viento, presión interna (WPI, WPIN)'),
-    m('pw_int = kN/m^2'),
-    t('## Sismo'),
-    m('SF_RSX = m/s^2'),
-    m('SF_RSY = m/s^2'),
-    m('f_EV ='),
-    m('f2 ='),
-    t('## Resultantes de carga'),
-    t('Resultante de cada patrón, para su control en las reacciones del modelo. El peso propio sale del modelo.'),
-    m('R_SDL_CUB = kN'),
-    m('R_SDL_MURO = kN'),
-    m('R_SDL_HOJA = kN'),
-    m('R_POLVO = kN'),
-    m('R_CM_COS_TECHO = kN'),
-    m('R_CM_COS_LAT = kN'),
-    m('R_CM_VIA = kN'),
-    m('R_CL_D = kN'),
-    m('R_S = kN'),
-    m('R_LR = kN'),
-    m('R_CLV = kN'),
-    m('R_CLH = kN'),
-    m('R_CLL = kN'),
-    m('R_WYP_y = kN'),
-    m('R_WYP_z = kN'),
-    m('R_WXP_x = kN'),
-    m('R_WXP_z = kN'),
-    m('R_WPI_z = kN'),
-  ),
-};
-
 const obra = {
   version: 2,
   id: 'pachon-soldadura',
   nombre: 'Pachón — Taller de soldadura (cargas a SAP)',
   creada: '2026-09-22T20:00:00.000Z',
-  modulos: ['cargas'],
-  cargas: [
-    dead, sdlCub, sdlMuro, sdlHoja, polvo, cmCosTecho, cmCosLat, cmVia, clD,
-    nieve, lr, clv, clh, cll, wyp, wyn, wxp, wxn, wpi, wpin, rsx, rsy, cargaEV,
+  // El nodo SAP2000 sin conectar: la obra es autocontenida y no trae la lectura
+  // de ningún modelo. Al conectarse se leen sus cargas y se atan a estas variables.
+  modulos: ['sap'],
+  // En este orden van las franjas de «reordenar».
+  grupos: [
+    { id: 'g-sitio', nombre: 'Sitio', color: '#0891b2' },
+    { id: 'g-cargas', nombre: 'Cargas permanentes y sobrecargas', color: '#65a30d' },
+    { id: 'g-viento', nombre: 'Viento', color: '#2563eb' },
+    { id: 'g-secundarios', nombre: 'Elementos secundarios', color: '#9333ea' },
+    { id: 'g-grua', nombre: 'Puente grúa', color: '#d97706' },
+    { id: 'g-sismo', nombre: 'Sismo', color: '#dc2626' },
   ],
   calculos: [
-    geometria, presion, vientoCyR, vientoSprfv, costaneraTecho, costaneraMuro,
-    grua, vigaCarrilera, espectro, casos, entrada,
+    { ...geometria, grupo: 'g-sitio' },
+    permanentes,
+    sobrecargas,
+    { ...presion, grupo: 'g-viento' },
+    { ...vientoCyR, grupo: 'g-viento' },
+    { ...vientoSprfv, grupo: 'g-viento' },
+    { ...costaneraTecho, grupo: 'g-secundarios' },
+    { ...costaneraMuro, grupo: 'g-secundarios' },
+    { ...grua, grupo: 'g-grua' },
+    { ...vigaCarrilera, grupo: 'g-grua' },
+    { ...espectro, grupo: 'g-sismo' },
   ],
 };
 
@@ -841,10 +670,7 @@ const obra = {
 const saneada = sanearObra(JSON.parse(JSON.stringify(obra)));
 const ev = evaluarObra(saneada, genericas);
 let errores = 0;
-const todas = [
-  ...saneada.calculos.map((k) => [k.nombre, k.hoja]),
-  ...saneada.cargas.flatMap((c) => c.subcargas.map((s) => [`${c.nombre} / ${s.nombre}`, s.hoja])),
-];
+const todas = saneada.calculos.map((k) => [k.nombre, k.hoja]);
 const soloErrores = process.argv.includes('--errores');
 for (const [nombre, h] of todas) {
   if (!soloErrores) console.log(`\n== ${nombre}`);

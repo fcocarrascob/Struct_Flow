@@ -46,8 +46,14 @@ retirar.
 - **Una obra migrada pierde sus posiciones.** Los nodos que eran partidas cambian de id de
   nodo (`partida:` → `calculo:`) y el layout guardado ya no los encuentra: abren colocados por
   grupo y basta con «reordenar» (rama `grupos-sin-cargas`).
-- **Los generadores del Pachón (`docs/pachon/*/generar.mjs`) siguen escribiendo cargas.** Se
-  leen igual porque el saneo las migra, pero lo que escriben ya no es el formato de la obra.
+- **El generador de la auditoría del Pachón (`docs/pachon/auditoria/generar.mjs`) sigue
+  escribiendo cargas.** Se lee igual porque el saneo las migra —y `verify:obra` lo usa como caso
+  de migración real—, pero no es el formato de la obra. La autocontenida ya está simplificada:
+  sin nodos por patrón, sin totales R = q·A y con grupos.
+- **La fuente de masa quedó sin respaldo en la obra autocontenida.** «Casos de carga y fuente
+  de masa» se retiró con los totales, y con él `f2 = 0,50` (la fracción de la nieve en la
+  masa). Es un dato del modelo, no una carga: vuelve cuando el nodo SAP2000 lea la fuente de
+  masa.
 - **Las franjas de «reordenar» no se rotulan.** El nombre del grupo está en la leyenda y en
   cada tarjeta; una banda sin marco se lee por proximidad, y con muchos grupos puede no bastar.
 - **`identificadoresDe` es un tercer léxico** (`modelo.ts`): una regex donde math.js ya sabe
@@ -109,6 +115,13 @@ para la sesión de ajustes:
 - **math.js simplifica las unidades al mostrarlas**: `5 kN * 2 m =` sale `10 kJ`, un momento
   escrito como energía, y 1.108 kN sale «1,108 MN». Solo se evita con `= kN*m`. Cambiarlo toca
   miles de resultados del corpus y la paginación: necesita su propia medición antes de decidir.
+- **El prefijo con que se muestra una unidad sin convertir depende de lo evaluado antes en el
+  proceso.** En la obra autocontenida del Pachón, `pf_min := I_nieve * 1 kN/m^2` sale «1000 Pa»
+  en la primera evaluación y «1 kPa» en las siguientes, con el mismo valor; y en una hoja suelta
+  `1 * 1 kN/m^2` sale «1000 Pa» mientras `3 kN/m^2` sale «3 kPa». No cambia ningún número, pero
+  hace que una misma hoja no se imprima igual dos veces. Falta la reproducción mínima en
+  `verify:motor`; hasta entonces, el caso de la carpeta de `verify:obra` evalúa una vez antes
+  de comparar.
 - **Rendimiento de `evaluateSheet`**: ~1,4 s en `muro-flexocompresion` (646 regiones), y
   escala peor que lineal; el coste está casi entero en las regiones `program` (sin ellas,
   14 ms). Sospecha: math.js normaliza el scope en cada `evaluate`; la vía sería llevarlo como
