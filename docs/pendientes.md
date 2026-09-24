@@ -27,18 +27,22 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
    y con qué factor) y justificarla. En el Pachón el modelo lleva S con 0,5, que es el `f2` que
    la obra perdió al retirar «Casos de carga y fuente de masa»; tiene que volver a estar
    escrito en algún nodo (el del espectro es el candidato).
-4. **Migrar las tablas de norma escritas como `program` a regiones `table` + `interp`.** El
-   `Cp_cub` del CIRSOC 102 del Pachón (`docs/pachon/`, y su generador) y el `cp_techo` +
-   `interp_lin` de `viento-caras-nch432-generica`, que es una tabla θ × h/L: para esa hace falta
-   `interp2`, o interpolar por columnas a mano. La genérica mueve la paginación publicada y su
-   sello: con su medición en `/calibrar` y un `verify:biblioteca`.
+4. **Migrar las tablas de norma escritas como `program` a regiones `table` + `interp`.** En la
+   obra de trabajo del Pachón ya está hecho el nodo de viento SPRFV (2026-09-24): `Cp_sot` y
+   `Cp_cub` leen dos tablas de la Figura 3, con un gráfico de los Cp de cubierta, y los números
+   no cambiaron. Falta llevarlo a `docs/pachon/autocontenida/` y su generador, y el `cp_techo`
+   + `interp_lin` de `viento-caras-nch432-generica`, que es una tabla θ × h/L: para esa hace
+   falta `interp2`, o interpolar por columnas a mano. La genérica mueve la paginación publicada
+   y su sello: con su medición en `/calibrar` y un `verify:biblioteca`.
 5. **Migrar las figuras hechas a mano a regiones `plot`.** La genérica
    `espectro-nch2369-generica` dibuja el espectro con 26 regiones `imprimir: false` de mapeo a
    píxeles, y `losa-unidireccional` arma sus curvas igual (`pts_fl`). Un `plot` las reemplaza,
    pero mueve la paginación publicada: cada una con su medición en `/calibrar`.
-6. **El defecto del motor con el prefijo de las unidades** (abajo, en «Motor»): el mismo valor
-   se muestra «1000 Pa» o «1 kPa» según lo evaluado antes en el proceso. Empieza por su caso
-   en `verify:motor`; hoy `verify:obra` lo esquiva con una evaluación de calentamiento.
+6. **La leyenda de un gráfico tapa las etiquetas de sus referencias.** Va siempre arriba a la
+   derecha y no esquiva nada: en el gráfico de Cp del Pachón cortaba «viento en Y: 0,6772»
+   hasta que el eje se extendió a 1,5. Hace falta que `svgDeGrafico` elija la esquina libre (o
+   mueva la etiqueta), con su caso en `verify:motor`; cambia el SVG, así que se mide en
+   `/calibrar`.
 
 ## Obra
 
