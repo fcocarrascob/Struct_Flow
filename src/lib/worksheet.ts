@@ -213,7 +213,25 @@ function evaluarNodo(node: MathNode, scope: Record<string, unknown>): unknown {
     if (nombresDeLaHoja.has(l.nombre)) throw new Error(mensajeVariableSinValor(l.nombre));
     if (!UNIDADES_SUELTAS.has(l.nombre)) throw new Error(mensajeLibre(l));
   }
-  return node.evaluate(scope);
+  return compilado(node).evaluate(scope);
+}
+
+/**
+ * El árbol compilado. `node.evaluate(scope)` de math.js es
+ * `this.compile().evaluate(scope)`: vuelve a compilar en CADA llamada, y un
+ * programa evalúa la misma sentencia en cada vuelta de sus bucles. Como el árbol,
+ * el compilado no guarda estado entre evaluaciones —el scope va como argumento—,
+ * así que se reutiliza, y vive lo que viva su árbol en `nodeCache`.
+ */
+const compiladoCache = new WeakMap<MathNode, { evaluate(scope: Record<string, unknown>): unknown }>();
+
+function compilado(node: MathNode): { evaluate(scope: Record<string, unknown>): unknown } {
+  let c = compiladoCache.get(node);
+  if (!c) {
+    c = node.compile();
+    compiladoCache.set(node, c);
+  }
+  return c;
 }
 
 /**

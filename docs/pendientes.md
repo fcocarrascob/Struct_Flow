@@ -170,10 +170,12 @@ revisar antes qué acepta el lado de Struct_Harness.
 
 ### Lo demás
 
-- **Rendimiento de `evaluateSheet`**: ~1,4 s en `muro-flexocompresion` (646 regiones), y
-  escala peor que lineal; el coste está casi entero en las regiones `program` (sin ellas,
-  14 ms). Sospecha: math.js normaliza el scope en cada `evaluate`; la vía sería llevarlo como
-  `Map`. Hay que instrumentarlo desde Node.
+- **Rendimiento de `evaluateSheet`**: `muro-flexocompresion` baja de ~2,0 s a ~1,3 s y
+  `losa-unidireccional` de ~230 a ~68 ms desde que el compilado de math.js se cachea
+  (`compilado` en `worksheet.ts`: `node.evaluate` recompilaba en cada llamada). Perfilado lo
+  que queda, es aritmética de `Unit` (`clone`, `multiply`) y el `typed.find` que math.js hace
+  por dentro al multiplicar y al recorrer matrices; el scope pesa ~5 %, así que llevarlo como
+  `Map` no rendiría. Bajar más pide que los bucles calientes de una hoja trabajen sin unidades.
 - Un esquema que llama a una función de usuario la evalúa con el scope **final** de la hoja,
   no con el de su posición.
 - `f(x) := …` en una región `math` da «Value expected (char 10)» sin decir que tiene que ir en
