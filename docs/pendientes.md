@@ -164,16 +164,6 @@ Cerrado en la rama `motor-robusto` (ver `evaluarNodo` en `worksheet.ts`). Lo que
   (`paraMostrar`) y dejar esto abierto.
 - `atan` devuelve un número sin unidad (radianes implícitos).
 
-### Tablas
-
-- **Una coma decimal en una celda la vuelve texto sin aviso**: `0,5` se imprime como si fuera
-  un número y solo falla si la columna se publica; igual `50%`. Propuesta: un aviso en la celda
-  cuando un texto tiene forma de número.
-- **El tope de iteraciones es por celda**: una tabla de 60×12 que llama funciones caras puede
-  gastar 720 veces el tope de una región. Falta un presupuesto por tabla.
-- Una matriz publicada puede mezclar unidades (`1 kN`, `2 m`) y falla recién al usarla
-  (`sum(M)`). Menor; bastaría un aviso.
-
 ### Un solo lector de nombres
 
 - **Los nombres no ASCII funcionan en el motor y no en sus lectores.** `σ_c` y `año` se definen

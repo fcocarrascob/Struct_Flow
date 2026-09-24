@@ -1089,8 +1089,11 @@ function evaluarFormula(src: string, scope: Record<string, unknown>, unidadColum
 
 /**
  * Evalúa una tabla fila a fila, en su posición del orden de lectura, y publica
- * lo que declara. Cada celda de fórmula pasa por `evaluarFormula`, con su propio
- * tope de iteraciones: una celda es una fórmula como una región.
+ * lo que declara. Cada celda de fórmula pasa por `evaluarFormula`.
+ *
+ * El tope de iteraciones es el de la región —la tabla entera—, que
+ * `evaluateSheet` estrena antes de llamarla. Con uno por celda, una tabla de
+ * 60×12 que llama una función cara podía gastar 720 veces el tope de una región.
  */
 function evaluarTabla(t: EspecTabla, scope: Record<string, unknown>): RegionResult {
   const enc = encabezadoDe(t);
@@ -1102,7 +1105,6 @@ function evaluarTabla(t: EspecTabla, scope: Record<string, unknown>): RegionResu
 
   const celdas = t.celdas.map((fila, f) =>
     fila.map((src, c): ResultadoCelda => {
-      ctx.guard = nuevoGuard();
       const cuerpo = f >= enc;
       const col = columna(t, c);
       const unidad = (cuerpo && col.unidad?.trim()) || undefined;
@@ -1159,6 +1161,17 @@ function evaluarTabla(t: EspecTabla, scope: Record<string, unknown>): RegionResu
           return x.v;
         }),
       );
+      // Cada columna en una sola dimensión. Entre columnas no se exige: una serie
+      // x–y publicada como matriz N×2 lleva metros en una y kN en la otra.
+      cols.forEach((c, k) => {
+        const dims = new Set(filas.map((fila) => dimensionDe(fila[k])));
+        if (dims.size > 1) {
+          avisos.push(
+            `«${nombre}»: la columna ${c + 1} mezcla dimensiones (${[...dims].join(', ')}); ` +
+              `fallará al operar con ella.`,
+          );
+        }
+      });
       const valor = math.matrix((vector ? filas.map((f) => f[0]) : filas) as never);
       scope[nombre] = valor;
       publicados.add(nombre);
@@ -1192,8 +1205,9 @@ function evaluarCelda(
   soloValor: boolean,
 ): { res: { celda: ResultadoCelda; defines?: Define[] }; valor?: unknown } {
   if (!src.trim()) return { res: { celda: { tipo: 'vacia' } } };
-  const texto = { res: { celda: { tipo: 'texto' as const, texto: textoDeCelda(src) } } };
-  if (esTextoForzado(src)) return texto;
+  if (esTextoForzado(src)) return { res: { celda: { tipo: 'texto', texto: textoDeCelda(src) } } };
+  const aviso = avisoTextoNumerico(src);
+  const texto = { res: { celda: { tipo: 'texto' as const, texto: textoDeCelda(src), ...(aviso ? { aviso } : {}) } } };
 
   if (esFormulaDeCelda(src)) {
     const fo = evaluarFormula(src, scope, unidad);
@@ -1232,6 +1246,28 @@ function evaluarCelda(
 }
 
 /**
+ * Una celda que parece un número y se lee como texto: `0,5` con coma decimal o
+ * `50%`. Se imprime igual que un número, así que nadie lo nota hasta que la
+ * columna se publica —o nunca, si no se publica—. El texto a propósito se
+ * escribe con `'` delante y no se avisa.
+ */
+function avisoTextoNumerico(src: string): string | undefined {
+  const s = src.trim();
+  if (/^[-+]?\d*,\d+(\s*\p{L}[\p{L}\p{N}_*/^()\s-]*)?$/u.test(s)) {
+    return (
+      `«${s}» se lee como texto: la coma decimal se escribe con punto (${s.replace(',', '.')}). ` +
+      `Si es texto a propósito, empieza la celda con '.`
+    );
+  }
+  const pct = /^([-+]?\d+(?:[.,]\d+)?)\s*%$/.exec(s);
+  if (pct) {
+    const fraccion = Number(pct[1].replace(',', '.')) / 100;
+    return `«${s}» se lee como texto: escribe la fracción (${fraccion}). Si es texto a propósito, empieza la celda con '.`;
+  }
+  return undefined;
+}
+
+/**
  * ¿Es una celda de fórmula? Lleva `:=` o un `=` final y no empieza con `'`.
  *
  * Es la única autoridad: la usan la evaluación y quienes leen qué define o qué
@@ -1262,6 +1298,13 @@ function esLiteral(nodo: MathNode): boolean {
     return esLiteral(n.args[0]);
   }
   return esCantidadLiteral(nodo);
+}
+
+/** La dimensión de un valor de celda, para compararla: «sin unidad» o las unidades base en SI. */
+function dimensionDe(v: unknown): string {
+  if (!math.isUnit(v)) return 'sin unidad';
+  const u = v as unknown as { toSI(): { formatUnits(): string } };
+  return u.toSI().formatUnits() || 'sin unidad';
 }
 
 /** ¿Se puede poner en una matriz numérica? */

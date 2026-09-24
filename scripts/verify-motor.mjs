@@ -1113,6 +1113,41 @@ CASOS.push(
     ),
   },
   {
+    nombre: 'tabla: un número con coma decimal es texto, y la celda lo avisa',
+    hoja: hoja(t([['0,5', '-1,25 m']])),
+    ok: todas(
+      esperaTipos('r0', [['texto', 'texto']]),
+      (r) => (/coma/.test(celda(r, 'r0', 0, 0)?.aviso ?? '') ? null : `[0,0] sin aviso de coma: «${celda(r, 'r0', 0, 0)?.aviso}»`),
+      (r) => (/coma/.test(celda(r, 'r0', 0, 1)?.aviso ?? '') ? null : `[0,1] sin aviso de coma: «${celda(r, 'r0', 0, 1)?.aviso}»`),
+      esperaAviso('r0', /\[1,1\]/),
+    ),
+  },
+  {
+    nombre: 'tabla: un porcentaje escrito es texto, y la celda lo avisa',
+    hoja: hoja(t([['50%']])),
+    ok: (r) => (/%/.test(celda(r, 'r0', 0, 0)?.aviso ?? '') ? null : `sin aviso: «${celda(r, 'r0', 0, 0)?.aviso}»`),
+  },
+  {
+    nombre: 'tabla: un texto que no parece número, o forzado con comilla, no se avisa',
+    hoja: hoja(t([['Franja A, 1,5 veces', "'0,5", 'Zona 2']])),
+    ok: sinAviso('r0'),
+  },
+  {
+    nombre: 'tabla: el tope de iteraciones es de la tabla entera, no de cada celda',
+    hoja: hoja(p('f(n) :=\n    s := 0\n    for i in 1:n\n        s := s + 1\n    s'), t([['a := f(260000) =', 'b := f(260000) =']])),
+    ok: todas(esperaCelda('r1', 0, 0, '2.6\\cdot 10^5'), esperaErrorCelda('r1', 0, 1, /iteraciones/)),
+  },
+  {
+    nombre: 'tabla: una columna publicada que mezcla dimensiones se avisa',
+    hoja: hoja(t([['1 kN'], ['2 m']], { columnas: [{ nombre: 'v_t' }] })),
+    ok: esperaAviso('r0', /v_t/),
+  },
+  {
+    nombre: 'tabla: una matriz con cada columna en su unidad no se avisa (una serie x–y)',
+    hoja: hoja(t([['1 m', '2 kN'], ['2 m', '3 kN']], { matriz: 'S_t' })),
+    ok: sinAviso('r0'),
+  },
+  {
     nombre: 'tabla: un valor escrito sin unidad toma la de su columna, y la columna se publica',
     hoja: hoja(t([['p'], ['0.5']], { encabezado: 1, columnas: [{ unidad: 'kN/m^2', nombre: 'p_t' }] }), m('p_t[1] = kN/m^2')),
     ok: todas(esperaValor('r1', '0.5 kN / m^2'), esperaCelda('r0', 1, 0, '0.5')),
