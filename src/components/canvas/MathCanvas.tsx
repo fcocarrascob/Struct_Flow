@@ -163,6 +163,12 @@ export interface PropsMathCanvas {
    * peor, no se puede arreglar desde donde se ve.
    */
   scopeInicial?: Record<string, unknown>;
+  /**
+   * Una región a la que ir, como si se hubiera pulsado en el panel de variables.
+   * `vez` cambia en cada pedido: pedir dos veces el mismo bloque —volver a él
+   * después de mover la hoja— tiene que volver a desplazarla.
+   */
+  irA?: { id: string; vez: number };
 }
 
 const SIN_SCOPE: Record<string, unknown> = {};
@@ -183,6 +189,7 @@ export default function MathCanvas({
   origen = ORIGEN_LOCAL,
   deepLinks = true,
   scopeInicial = SIN_SCOPE,
+  irA,
 }: PropsMathCanvas = {}) {
   useEffect(() => {
     montados++;
@@ -780,6 +787,20 @@ export default function MathCanvas({
     seleccionar(new Set([id]));
     setActiveId(null);
   }, [seleccionar]);
+
+  // Un pedido de fuera (`irA`). Con un respiro: recién montado, el visor todavía
+  // no tiene su alto y el centrado caería en cualquier sitio.
+  // Por ref: si el efecto dependiera de `irARegion`, un cambio de su identidad
+  // volvería a desplazar la hoja sin que nadie lo pidiera.
+  const irARegionRef = useRef(irARegion);
+  irARegionRef.current = irARegion;
+  const irAId = irA?.id;
+  const irAVez = irA?.vez;
+  useEffect(() => {
+    if (!irAId) return;
+    const t = window.setTimeout(() => irARegionRef.current(irAId), 150);
+    return () => window.clearTimeout(t);
+  }, [irAId, irAVez]);
 
   const updateRegion = useCallback((id: string, patch: Partial<Region>) => {
     setRegions((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));

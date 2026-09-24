@@ -30,6 +30,7 @@ export {
   nombresSueltos,
   ordenDeLectura,
   PASO_LECTURA,
+  regionQueDefine,
 } from './hoja';
 export {
   resolverExpresion,

@@ -72,14 +72,31 @@ export function ordenDeLectura(hoja: readonly Region[]): Region[] {
 export function definicionesDe(hoja: readonly Region[]): string[] {
   const nombres: string[] = [];
   for (const r of ordenDeLectura(hoja)) {
-    // Una tabla define lo de sus celdas de fórmula y, después, lo que publica.
-    const vs =
-      r.kind === 'table' && r.tabla
-        ? [...formulasDeTabla(r.tabla).map((x) => x.varName), ...nombresPublicados(r.tabla)]
-        : [r.kind === 'math' ? parseMathRegion(r.src).varName : r.kind === 'program' ? cabeceraDePrograma(r.src) : undefined];
-    for (const v of vs) if (v && !nombres.includes(v)) nombres.push(v);
+    for (const v of definicionesDeRegion(r)) if (!nombres.includes(v)) nombres.push(v);
   }
   return nombres;
+}
+
+/** Lo que define UNA región. Una tabla define lo de sus celdas de fórmula y,
+ *  después, lo que publica. */
+function definicionesDeRegion(r: Region): string[] {
+  const vs =
+    r.kind === 'table' && r.tabla
+      ? [...formulasDeTabla(r.tabla).map((x) => x.varName), ...nombresPublicados(r.tabla)]
+      : [r.kind === 'math' ? parseMathRegion(r.src).varName : r.kind === 'program' ? cabeceraDePrograma(r.src) : undefined];
+  return vs.filter((v): v is string => !!v);
+}
+
+/**
+ * El bloque que deja el valor FINAL de un nombre: el último que lo define en
+ * orden de lectura, porque una redefinición más abajo es la que ve el resto de
+ * la obra. Es a donde lleva el enlace de una justificación del nodo SAP2000,
+ * para inspeccionar cómo se calculó lo que no coincide con el modelo.
+ */
+export function regionQueDefine(hoja: readonly Region[], nombre: string): string | undefined {
+  let id: string | undefined;
+  for (const r of ordenDeLectura(hoja)) if (definicionesDeRegion(r).includes(nombre)) id = r.id;
+  return id;
 }
 
 /** El nombre que define un programa por su cabecera, o nada. Un programa que no

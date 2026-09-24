@@ -79,6 +79,7 @@ const {
   choquesCon,
   nombresDefinidos,
   trasladarPosiciones,
+  regionQueDefine,
 } = motor;
 
 // ── Armar una obra ───────────────────────────────────────────────────────────
@@ -918,6 +919,25 @@ const HOJA_ESPECTRO = [
 const ESPECTRO_SAP = [[0, 0.37], [0.0529297, 0.59023], [0.1323243, 0.925], [0.5, 0.925], [0.6616216, 0.925], [1.1111982, 0.55076], [2.1103, 0.29001], [14, 0.04059], [20, 0.01989]];
 
 const CASOS_HOJA = [
+  {
+    nombre: 'regionQueDefine encuentra el bloque que deja el valor final de un nombre',
+    // Es a donde lleva el enlace de una justificación del nodo SAP2000: el
+    // bloque cuyo valor es el que la obra ve. Con una redefinición, el último.
+    ok: () => {
+      const hoja = [
+        { id: 'r1', kind: 'math', x: 40, y: 40, src: 'q := 1 kN/m^2' },
+        { id: 'r2', kind: 'text', x: 40, y: 88, src: 'q := esto es prosa' },
+        { id: 'r3', kind: 'program', x: 40, y: 136, src: 'f(x) :=\n  return 2 * x' },
+        { id: 'r4', kind: 'math', x: 40, y: 184, src: 'q := 2 * q' },
+        { id: 'r0', kind: 'math', x: 40, y: 10, src: 'p := 3' },
+      ];
+      if (regionQueDefine(hoja, 'q') !== 'r4') return `q → ${regionQueDefine(hoja, 'q')}, se esperaba r4`;
+      if (regionQueDefine(hoja, 'f') !== 'r3') return `f → ${regionQueDefine(hoja, 'f')}, se esperaba r3`;
+      if (regionQueDefine(hoja, 'p') !== 'r0') return `p → ${regionQueDefine(hoja, 'p')}, se esperaba r0`;
+      if (regionQueDefine(hoja, 'z') !== undefined) return 'encontró un nombre que nadie define';
+      return null;
+    },
+  },
   {
     nombre: 'mostrar las cargas en tonf cambia los textos y nunca el veredicto',
     ok: () => {

@@ -35,6 +35,7 @@ import { evaluarObra, problemaDeGrafo, rupturaPorQuitar } from './evaluacion';
 // mismas, y son las claves de `results` en la hoja global.
 import { idsDeLaObra, trasladarPosiciones, traerNodos } from './copia';
 import TraerDeObra from './TraerDeObra';
+import { regionQueDefine } from './hoja';
 import {
   agregarCalculo,
   agregarGrupo,
@@ -294,6 +295,9 @@ function CanvasObra({
   const [pestanas, setPestanas] = useState<string[]>([]);
   /** Cuál se está mirando. `null` es el grafo. */
   const [activa, setActiva] = useState<string | null>(null);
+  /** El bloque al que ir en la pestaña de `nodo`: lo pide un enlace del panel
+   *  SAP2000. `vez` distingue dos pedidos del mismo bloque. */
+  const [irA, setIrA] = useState<{ nodo: string; id: string; vez: number } | null>(null);
   const [avisoGuardado, setAvisoGuardado] = useState('');
   const { fitView } = useReactFlow();
   const medidos = useNodesInitialized();
@@ -952,6 +956,36 @@ function CanvasObra({
     setActiva(idNodo);
   }, []);
 
+  /**
+   * Abre la hoja del nodo que define `nombre` y la lleva al bloque que lo calcula.
+   *
+   * Lo pide el panel SAP2000 para inspeccionar una carga que no coincide. El
+   * dueño lo dice la evaluación (`duenio`), que es la misma que dibuja las
+   * flechas. Si el nodo tiene frontera, lo que ve la obra es un ALIAS publicado:
+   * se traduce a la salida de la hoja para encontrar su bloque. Una planilla de
+   * la biblioteca sin desprender se abre de solo lectura y sin desplazarse.
+   */
+  const irANombre = useCallback(
+    (nombre: string) => {
+      const idNodo = evaluacionRef.current.duenio.get(nombre);
+      if (!idNodo) return;
+      const nodo = nodoDelDocumento(obraRef.current, idNodo);
+      const salida = nodo?.frontera
+        ? Object.entries(nodo.frontera.publica ?? {}).find(([, alias]) => alias === nombre)?.[0]
+        : nombre;
+      const id = nodo && salida ? regionQueDefine(nodo.hoja, salida) : undefined;
+      abrirPestana(idNodo);
+      setIrA(id ? { nodo: idNodo, id, vez: Date.now() } : null);
+    },
+    [abrirPestana],
+  );
+  // Un pedido se cumple una vez: al salir de esa pestaña se olvida, o volver a
+  // ella más tarde la desplazaría otra vez al mismo bloque.
+  useEffect(() => {
+    if (irA && activa !== irA.nodo) setIrA(null);
+  }, [activa, irA]);
+  const puedeIrA = useCallback((nombre: string) => evaluacion.duenio.has(nombre), [evaluacion.duenio]);
+
   const cerrarPestana = useCallback((idNodo: string) => {
     setPestanas((p) => p.filter((x) => x !== idNodo));
     // Al cerrar la activa se vuelve al grafo, y no a la pestaña de al lado: el
@@ -1512,6 +1546,7 @@ function CanvasObra({
             origen={origenPestana}
             deepLinks={false}
             scopeInicial={evaluacion.scopeEnNodo.get(activa)}
+            irA={irA?.nodo === activa ? irA : undefined}
           />
         </div>
       )}
@@ -1628,6 +1663,8 @@ function CanvasObra({
               scope: evaluacion.scope,
               justificaciones: obra.justificaciones ?? [],
               unidades: obra.unidadesSap ?? 'kN',
+              puedeIrA,
+              onIrA: irANombre,
               // Por `setObra`: es la convención de la obra, y se deshace con Ctrl+Z.
               // `kN` no se escribe, porque es lo que se asume sin nada.
               onUnidades: (u) =>

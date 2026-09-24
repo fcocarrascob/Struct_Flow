@@ -22,6 +22,7 @@ import {
   type Verificacion,
 } from './sap-cargas';
 import { useEscape } from './useEscape';
+import { simbolosDeFormula } from '../../lib/worksheet';
 
 /**
  * El panel del nodo SAP2000: qué modelo está abierto y qué Load Patterns tiene.
@@ -84,6 +85,10 @@ export interface Justificar {
   /** En qué se muestran las cargas del modelo. Solo presentación. */
   unidades: SistemaUnidades;
   onUnidades: (u: SistemaUnidades) => void;
+  /** Si algún nodo de la obra define ese nombre. */
+  puedeIrA: (nombre: string) => boolean;
+  /** Abre la hoja del nodo que lo define, en el bloque que lo calcula. */
+  onIrA: (nombre: string) => void;
   /** Ata la carga a la expresión, o la desata con `undefined`. `actual` es la
    *  justificación que ya tenía, si la tenía. */
   onJustificar: (carga: CargaAsignada, expr: string | undefined, actual: Justificacion | undefined) => void;
@@ -106,14 +111,20 @@ function CampoJustificacion({
   v,
   etiqueta,
   placeholder,
+  justificar,
   onCambiar,
 }: {
   j: Justificacion | undefined;
   v: Verificacion | undefined;
   etiqueta: string;
   placeholder: string;
+  justificar: Justificar;
   onCambiar: (expr: string | undefined) => void;
 }) {
+  // Los nombres de la obra que la expresión usa, cada uno con su enlace a la
+  // hoja que lo calcula: cuando no coincide con el modelo, lo siguiente es ver
+  // de dónde salió el número. `simbolosDeFormula` es el único lector de nombres.
+  const nombres = j ? simbolosDeFormula(j.expr).filter(justificar.puedeIrA) : [];
   return (
     <>
       <div className="mt-0.5 flex items-center gap-1.5">
@@ -140,6 +151,21 @@ function CampoJustificacion({
         />
       </div>
       {v && <p className={`ml-[18px] mt-0.5 ${v.estado === 'coincide' ? 'text-muted' : 'text-error'}`}>{v.detalle}</p>}
+      {nombres.length > 0 && (
+        <p className="ml-[18px] mt-0.5 flex flex-wrap gap-x-2">
+          {nombres.map((n) => (
+            <button
+              key={n}
+              type="button"
+              onClick={() => justificar.onIrA(n)}
+              title={`Abrir la hoja donde se calcula ${n}`}
+              className="font-mono text-accent hover:underline"
+            >
+              → {n}
+            </button>
+          ))}
+        </p>
+      )}
     </>
   );
 }
@@ -195,6 +221,7 @@ function EspectroSap({ lectura, justificar }: { lectura: LecturaEspectro; justif
                           v={j ? verificarEspectro(j, lectura, justificar.scope) : undefined}
                           etiqueta={`Expresión que justifica el factor de escala de ${c.nombre} en ${k.dir}`}
                           placeholder="justificar el factor, por ejemplo SF_RSX"
+                          justificar={justificar}
                           onCambiar={(expr) => justificar.onJustificarEspectro(que, expr, j)}
                         />
                       </li>
@@ -221,6 +248,7 @@ function EspectroSap({ lectura, justificar }: { lectura: LecturaEspectro; justif
                     v={j ? verificarEspectro(j, lectura, justificar.scope) : undefined}
                     etiqueta={`Función de la obra que justifica ${f.nombre}`}
                     placeholder="justificar con una función de la obra, por ejemplo Sa_esp"
+                    justificar={justificar}
                     onCambiar={(expr) => justificar.onJustificarEspectro(que, expr, j)}
                   />
                 </li>
@@ -263,38 +291,14 @@ function CargaJustificable({
         <span className="text-muted">{comoDe(carga)}</span>
         <span className="ml-auto whitespace-nowrap text-muted">{objetosDe(carga)}</span>
       </div>
-      <div className="mt-0.5 flex items-center gap-1.5">
-        <span
-          className={`w-3 shrink-0 text-center ${
-            !v ? 'text-muted' : v.estado === 'coincide' ? 'text-emerald-600' : 'text-error'
-          }`}
-          aria-hidden
-        >
-          {!v ? '·' : v.estado === 'coincide' ? '✓' : '✗'}
-        </span>
-        <input
-          type="text"
-          // Por `key`: si la justificación cambia por fuera (Ctrl+Z, otra lectura),
-          // el campo se rehace con lo que dice el documento.
-          key={`${j?.id ?? 'nueva'}:${j?.expr ?? ''}`}
-          defaultValue={j?.expr ?? ''}
-          onBlur={(e) => {
-            const t = e.target.value.trim();
-            if (t !== (j?.expr ?? '')) justificar.onJustificar(carga, t || undefined, j);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') e.currentTarget.blur();
-          }}
-          placeholder="justificar con una expresión de la obra"
-          aria-label={`Expresión que justifica ${valorDe(carga, justificar.unidades)} de ${carga.patron}`}
-          className="min-w-0 flex-1 rounded border border-border px-1.5 py-0.5 font-mono text-[10px] text-ink outline-none placeholder:font-sans placeholder:text-muted/70 focus:border-accent"
-        />
-      </div>
-      {v && (
-        <p className={`ml-[18px] mt-0.5 ${v.estado === 'coincide' ? 'text-muted' : 'text-error'}`}>
-          {v.detalle}
-        </p>
-      )}
+      <CampoJustificacion
+        j={j}
+        v={v}
+        etiqueta={`Expresión que justifica ${valorDe(carga, justificar.unidades)} de ${carga.patron}`}
+        placeholder="justificar con una expresión de la obra"
+        justificar={justificar}
+        onCambiar={(expr) => justificar.onJustificar(carga, expr, j)}
+      />
     </li>
   );
 }
