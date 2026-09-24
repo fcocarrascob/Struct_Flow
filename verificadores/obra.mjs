@@ -22,7 +22,7 @@
 // Cada caso es una obra y una comprobación que recibe la evaluación y la
 // proyección y devuelve `null` si cuadra, o el motivo del fallo.
 
-import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import os from 'node:os';
 import path from 'node:path';
@@ -1949,6 +1949,49 @@ const CASOS_SERVIDOR = [
       if ((await s.listar()).length) return 'sigue listada';
       const papelera = await readdir(path.join(s.raiz, '.papelera'));
       return papelera.length === 1 ? null : `papelera: ${papelera.join(', ')}`;
+    },
+  },
+  {
+    nombre: 'borrar reintenta si Windows rechaza el renombre un momento (EPERM)',
+    // Con `npm run dev`, el vigilante de Vite tenía abierta la carpeta de cada
+    // obra y el renombre a la papelera daba EPERM. Ahora Vite no vigila las
+    // obras, pero lo mismo hacen el Explorador, un antivirus o un editor.
+    ok: async () => {
+      let fallos = 2;
+      const renombrar = async (a, b) => {
+        if (fallos-- > 0) throw Object.assign(new Error('EPERM: operation not permitted, rename'), { code: 'EPERM' });
+        await rename(a, b);
+      };
+      const s = crearObras(path.join(TMP, 'borrar-eperm-breve'), { ahora: () => reloj, renombrar, pausaMs: 1 });
+      await s.escribir('pachon', { token: TOKEN_A, base: null, archivos: ARCHIVOS });
+      await s.borrar('pachon', { token: TOKEN_A });
+      if (fallos !== -1) return `el renombre se intentó ${2 - fallos} veces, se esperaban 3`;
+      if ((await s.listar()).length) return 'sigue listada';
+      const papelera = await readdir(path.join(s.raiz, '.papelera'));
+      return papelera.length === 1 ? null : `papelera: ${papelera.join(', ')}`;
+    },
+  },
+  {
+    nombre: 'si el renombre no se libera, borrar copia a la papelera, comprueba y recién ahí quita la obra',
+    ok: async () => {
+      let intentos = 0;
+      const renombrar = async () => {
+        intentos += 1;
+        throw Object.assign(new Error('EPERM: operation not permitted, rename'), { code: 'EPERM' });
+      };
+      const s = crearObras(path.join(TMP, 'borrar-eperm-siempre'), { ahora: () => reloj, renombrar, pausaMs: 1 });
+      await s.escribir('pachon', { token: TOKEN_A, base: null, archivos: ARCHIVOS });
+      await s.borrar('pachon', { token: TOKEN_A });
+      if (intentos === 0) return 'no usó el renombre inyectado';
+      if ((await s.listar()).length) return 'sigue listada';
+      const [enPapelera, ...otras] = await readdir(path.join(s.raiz, '.papelera'));
+      if (!enPapelera || otras.length) return 'la papelera no tiene exactamente una obra';
+      const copia = path.join(s.raiz, '.papelera', enPapelera);
+      for (const [ruta, texto] of Object.entries(ARCHIVOS)) {
+        const leido = await readFile(path.join(copia, ...ruta.split('/')), 'utf8').catch(() => null);
+        if (leido !== texto) return `en la papelera, ${ruta} no es el original`;
+      }
+      return null;
     },
   },
 ];

@@ -29,7 +29,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { createHash, randomBytes } from 'node:crypto';
-import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -66,9 +66,10 @@ export function raizPorDefecto() {
  * para que `verify:obra` las pruebe sobre un directorio temporal.
  *
  * `ahora` se inyecta para poder comprobar la caducidad del candado sin esperar
- * treinta segundos.
+ * treinta segundos; `renombrar` y `pausaMs`, para probar el paso a la papelera
+ * cuando Windows rechaza el renombre (ver `moverAPapelera`).
  */
-export function crearObras(raiz, { ahora = () => Date.now() } = {}) {
+export function crearObras(raiz, { ahora = () => Date.now(), renombrar = rename, pausaMs = 100 } = {}) {
   /** id de obra → { token, hasta } */
   const escritores = new Map();
 
@@ -276,11 +277,55 @@ export function crearObras(raiz, { ahora = () => Date.now() } = {}) {
       await mkdir(path.join(raiz, PAPELERA), { recursive: true });
       const sello = new Date(ahora()).toISOString().replace(/[:.]/g, '-');
       const destino = path.join(raiz, PAPELERA, `${id}-${sello}`);
-      await rename(dir, destino);
+      await moverAPapelera(dir, destino, renombrar, pausaMs);
       escritores.delete(id);
       return { ok: true, papelera: destino };
     },
   };
+}
+
+/** Errores con los que, en Windows, un renombre puede salir bien un momento después. */
+const RENOMBRE_TRANSITORIO = new Set(['EPERM', 'EBUSY', 'EACCES']);
+const REINTENTOS = 5;
+
+/**
+ * Mueve una obra a la papelera.
+ *
+ * En Windows no se puede renombrar una carpeta que otro proceso tiene abierta:
+ * el vigilante de un editor o de Vite, el Explorador, un antivirus. El rename
+ * da EPERM aunque borrar sus archivos sí se pueda. Se reintenta unas veces, y si
+ * no se libera, se copia a la papelera, se comprueba la copia archivo por
+ * archivo y recién entonces se quita la original. Si la copia no coincide, se
+ * descarta y no se borra nada: una obra nunca se pierde por esto.
+ */
+async function moverAPapelera(origen, destino, renombrar, pausaMs) {
+  for (let i = 0; i < REINTENTOS; i++) {
+    try {
+      await renombrar(origen, destino);
+      return;
+    } catch (e) {
+      if (!RENOMBRE_TRANSITORIO.has(e?.code)) throw e;
+      if (i < REINTENTOS - 1) await new Promise((r) => setTimeout(r, pausaMs * (i + 1)));
+    }
+  }
+  await cp(origen, destino, { recursive: true, errorOnExist: true, force: false });
+  const [a, b] = await Promise.all([arbolDe(origen), arbolDe(destino)]);
+  if (JSON.stringify(a) !== JSON.stringify(b)) {
+    await rm(destino, { recursive: true, force: true });
+    throw new Error('La copia a la papelera no coincide con la obra; no se borró nada.');
+  }
+  await rm(origen, { recursive: true, force: true });
+}
+
+/** Todos los archivos de una carpeta, ruta relativa → contenido, en orden. */
+async function arbolDe(dir, base = dir) {
+  const out = {};
+  for (const e of (await readdir(dir, { withFileTypes: true })).sort((x, y) => x.name.localeCompare(y.name))) {
+    const ruta = path.join(dir, e.name);
+    if (e.isDirectory()) Object.assign(out, await arbolDe(ruta, base));
+    else out[path.relative(base, ruta).split(path.sep).join('/')] = await readFile(ruta, 'utf8');
+  }
+  return out;
 }
 
 // ── HTTP ─────────────────────────────────────────────────────────────────────

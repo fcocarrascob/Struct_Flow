@@ -26,6 +26,15 @@ export default defineConfig({
     'import.meta.env.VITE_COMMIT': JSON.stringify(commitActual()),
   },
   server: {
+    /**
+     * Las obras son datos, no código: Vite no tiene nada que recompilar ahí. Y
+     * vigilarlas es dañino en Windows: el vigilante deja abierta la carpeta de
+     * cada obra, y borrar una —que es moverla a la papelera— fallaba con EPERM.
+     * Si `STRUCTFLOW_OBRAS` apunta a otra carpeta dentro del proyecto, también.
+     */
+    watch: {
+      ignored: ['**/obras/**', ...(process.env.STRUCTFLOW_OBRAS ? [`${process.env.STRUCTFLOW_OBRAS.replace(/\\/g, '/')}/**`] : [])],
+    },
     proxy: {
       /**
        * El puente de Flow con SAP2000 (`npm run puente-sap`, 127.0.0.1:8789).
