@@ -19,12 +19,19 @@ const cache = new Map<string, string>();
  * un hueco del tamaño de la figura en vez de saltar de altura.
  */
 export function useEsquema(src: string): string | null {
-  const [raw, setRaw] = useState<string | null>(() => cache.get(src) ?? null);
+  // El texto va con la ruta de la que salió. Cuando `src` cambia —otra planilla
+  // montada en el mismo componente—, el estado conserva el esquema anterior al
+  // menos un render, y resolverlo contra el scope nuevo dibujaba una figura
+  // ajena llena de «¿token?». Lo que no es de esta ruta no se devuelve.
+  const [cargado, setCargado] = useState<{ src: string; raw: string | null }>(() => ({
+    src,
+    raw: cache.get(src) ?? null,
+  }));
 
   useEffect(() => {
     const guardado = cache.get(src);
     if (guardado !== undefined) {
-      setRaw(guardado);
+      setCargado({ src, raw: guardado });
       return;
     }
     let vivo = true;
@@ -32,13 +39,14 @@ export function useEsquema(src: string): string | null {
       .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
       .then((text) => {
         cache.set(src, text);
-        if (vivo) setRaw(text);
+        if (vivo) setCargado({ src, raw: text });
       })
-      .catch(() => vivo && setRaw(null));
+      .catch(() => vivo && setCargado({ src, raw: null }));
     return () => {
       vivo = false;
     };
   }, [src]);
 
-  return raw;
+  if (cargado.src === src) return cargado.raw;
+  return cache.get(src) ?? null;
 }

@@ -30,6 +30,23 @@ interface Fila {
   largos: number;
   /** El bloque más alto, en px. Delata la figura que fuerza un corte. */
   altoMax: number;
+  /**
+   * Un resumen de los altos de TODOS los bloques, redondeados al píxel. Dos
+   * mediciones con la misma firma tienen la misma paginación bloque a bloque;
+   * contar páginas no lo garantiza, porque un bloque puede crecer sin mover un
+   * corte todavía.
+   */
+  firma: string;
+}
+
+/** FNV-1a de 32 bits en hexadecimal: corto, estable y sin dependencias. */
+function firmaDe(altos: number[]): string {
+  let h = 0x811c9dc5;
+  for (const c of altos.map((a) => Math.round(a)).join(',')) {
+    h ^= c.charCodeAt(0);
+    h = Math.imul(h, 0x01000193);
+  }
+  return (h >>> 0).toString(16).padStart(8, '0');
 }
 
 type Estado = 'inicio' | 'midiendo' | 'listo' | 'error';
@@ -114,6 +131,7 @@ export default function TablaDePaginas() {
               paginas: paginar(bloques).length,
               largos: bloques.filter((b) => b.alto > A4_ALTO_UTIL_PX).length,
               altoMax: Math.round(Math.max(0, ...bloques.map((b) => b.alto))),
+              firma: firmaDe(bloques.map((b) => b.alto)),
             },
           ]);
           setI((n) => n + 1);
@@ -131,11 +149,13 @@ export default function TablaDePaginas() {
   /** La tabla en TSV, para pegarla en la nota de la línea base. */
   const tsv = useMemo(
     () =>
-      ['slug\tregiones\tpaginas\tlargos\taltoMax']
+      ['slug\tregiones\tpaginas\tlargos\taltoMax\tfirma']
         .concat(
-          filas.map((f) => `${f.slug}\t${f.regiones}\t${f.paginas}\t${f.largos}\t${f.altoMax}`),
+          filas.map(
+            (f) => `${f.slug}\t${f.regiones}\t${f.paginas}\t${f.largos}\t${f.altoMax}\t${f.firma}`,
+          ),
         )
-        .concat(`TOTAL\t\t${total}\t\t`)
+        .concat(`TOTAL\t\t${total}\t\t\t`)
         .join('\n'),
     [filas, total],
   );
@@ -168,6 +188,14 @@ export default function TablaDePaginas() {
       </div>
 
       {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+
+      {/* El mismo TSV, legible desde una prueba automatizada sin pasar por el
+          portapapeles. */}
+      {estado === 'listo' && (
+        <pre hidden data-tsv-paginas>
+          {tsv}
+        </pre>
+      )}
 
       {filas.length > 0 && (
         <table className="mt-4 w-full border-collapse text-sm">

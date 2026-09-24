@@ -71,7 +71,10 @@ function Esquema({
   h?: number;
 }) {
   const raw = useEsquema(src);
-  const html = useMemo(() => (raw ? renderEsquema(raw, scope ?? {}).svg : null), [raw, scope]);
+  // Sin scope todavía —la hoja aún no se evaluó, el debounce del canvas— no se
+  // resuelve contra `{}`: cada token saldría «¿expr?», el navegador protestaría
+  // por cada atributo inválido y el papel mostraría un instante una figura rota.
+  const html = useMemo(() => (raw && scope ? renderEsquema(raw, scope).svg : null), [raw, scope]);
 
   // El tamaño va reservado desde el principio: sin esto el bloque mide 0 hasta
   // que llega el SVG, y la medición vería una figura inexistente.
