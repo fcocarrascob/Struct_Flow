@@ -6,6 +6,7 @@ import type {
   LecturaCargas,
   LecturaEspectro,
   LecturaPatrones,
+  SistemaUnidades,
 } from './modelo';
 import {
   cargaDe,
@@ -80,6 +81,9 @@ export interface LecturaSap {
 export interface Justificar {
   scope: Record<string, unknown>;
   justificaciones: readonly Justificacion[];
+  /** En qué se muestran las cargas del modelo. Solo presentación. */
+  unidades: SistemaUnidades;
+  onUnidades: (u: SistemaUnidades) => void;
   /** Ata la carga a la expresión, o la desata con `undefined`. `actual` es la
    *  justificación que ya tenía, si la tenía. */
   onJustificar: (carga: CargaAsignada, expr: string | undefined, actual: Justificacion | undefined) => void;
@@ -251,11 +255,11 @@ function CargaJustificable({
   justificar: Justificar;
 }) {
   const j = justificacionDe(carga, todas, justificar.justificaciones);
-  const v = j ? verificar(j.expr, carga, justificar.scope) : undefined;
+  const v = j ? verificar(j.expr, carga, justificar.scope, justificar.unidades) : undefined;
   return (
     <li className="text-[10px] leading-snug">
       <div className="flex flex-wrap items-baseline gap-x-2">
-        <span className="font-mono text-ink">{valorDe(carga)}</span>
+        <span className="font-mono text-ink">{valorDe(carga, justificar.unidades)}</span>
         <span className="text-muted">{comoDe(carga)}</span>
         <span className="ml-auto whitespace-nowrap text-muted">{objetosDe(carga)}</span>
       </div>
@@ -282,7 +286,7 @@ function CargaJustificable({
             if (e.key === 'Enter') e.currentTarget.blur();
           }}
           placeholder="justificar con una expresión de la obra"
-          aria-label={`Expresión que justifica ${valorDe(carga)} de ${carga.patron}`}
+          aria-label={`Expresión que justifica ${valorDe(carga, justificar.unidades)} de ${carga.patron}`}
           className="min-w-0 flex-1 rounded border border-border px-1.5 py-0.5 font-mono text-[10px] text-ink outline-none placeholder:font-sans placeholder:text-muted/70 focus:border-accent"
         />
       </div>
@@ -400,14 +404,37 @@ function PatronesSap({
     <section className="border-t border-border px-5 py-4">
       <div className="mb-2 flex items-baseline justify-between gap-2">
         <h3 className="text-xs font-semibold text-ink">Load Patterns</h3>
-        <button
-          type="button"
-          onClick={onLeer}
-          disabled={leyendo}
-          className="rounded border border-border px-2 py-0.5 text-[11px] text-muted hover:border-accent hover:text-accent disabled:opacity-50"
-        >
-          {leyendo ? 'Leyendo…' : lectura ? 'Volver a leer' : 'Leer del modelo'}
-        </button>
+        <div className="flex items-baseline gap-2">
+          {/* Solo cambia cómo se muestran: se lee, se guarda y se compara en kN. */}
+          <div
+            role="group"
+            aria-label="Unidades en que se muestran las cargas"
+            title="Cómo se muestran las cargas del modelo. Se leen y se comparan siempre en kN."
+            className="flex overflow-hidden rounded border border-border text-[11px]"
+          >
+            {(['kN', 'tonf'] as const).map((u) => (
+              <button
+                key={u}
+                type="button"
+                aria-pressed={justificar.unidades === u}
+                onClick={() => justificar.onUnidades(u)}
+                className={`px-2 py-0.5 ${
+                  justificar.unidades === u ? 'bg-accent text-white' : 'text-muted hover:text-accent'
+                }`}
+              >
+                {u}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={onLeer}
+            disabled={leyendo}
+            className="rounded border border-border px-2 py-0.5 text-[11px] text-muted hover:border-accent hover:text-accent disabled:opacity-50"
+          >
+            {leyendo ? 'Leyendo…' : lectura ? 'Volver a leer' : 'Leer del modelo'}
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -431,7 +458,7 @@ function PatronesSap({
             )}
             .{' '}
             {cargas
-              ? 'Pulsa un patrón para ver sus cargas asignadas (en kN, m y °C).'
+              ? `Pulsa un patrón para ver sus cargas asignadas (en ${justificar.unidades}, m y °C).`
               : 'Las cargas asignadas no se pudieron leer.'}
           </p>
           {lectura.lista.length > 0 && (

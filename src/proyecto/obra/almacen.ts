@@ -489,6 +489,8 @@ export function sanearObra(crudo: unknown): Obra | null {
     ...(grupos.length ? { grupos } : {}),
     ...sanearSap(o.sap),
     ...sanearJustificaciones(o.justificaciones),
+    // `kN` es lo que se asume sin nada escrito: guardarlo sería un campo que no dice nada.
+    ...(o.unidadesSap === 'tonf' ? { unidadesSap: 'tonf' as const } : {}),
   };
 }
 

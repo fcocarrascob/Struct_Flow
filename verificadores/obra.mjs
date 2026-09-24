@@ -806,6 +806,28 @@ const ESPECTRO_SAP = [[0, 0.37], [0.0529297, 0.59023], [0.1323243, 0.925], [0.5,
 
 const CASOS_HOJA = [
   {
+    nombre: 'mostrar las cargas en tonf cambia los textos y nunca el veredicto',
+    ok: () => {
+      const scope = evaluarObra(obra(calc('A', m('q := 10 kgf/m^2'), m('w := 0.75 kN/m'))), {}).scope;
+      if (valorDe(CARGA_CUB, 'tonf') !== '0,01 tonf/m²') return `SDL_CUB en tonf: ${valorDe(CARGA_CUB, 'tonf')}`;
+      if (valorDe(CARGA_VIA, 'tonf') !== '0,07842 tonf/m') return `CM_VIA en tonf: ${valorDe(CARGA_VIA, 'tonf')}`;
+      if (valorDe(CARGA_VIA) !== '0,769 kN/m') return 'sin sistema dejó de ser kN';
+      const temp = { patron: 'TEMP', clase: 'barra-temperatura', tipoTemperatura: 1, valor: 10, n: 381 };
+      if (valorDe(temp, 'tonf') !== '10 °C') return 'la temperatura se convirtió como una fuerza';
+      // El veredicto sale de la comparación en kN: el mismo en los dos sistemas.
+      for (const [expr, c] of [['q', CARGA_CUB], ['w', CARGA_VIA]]) {
+        const a = verificar(expr, c, scope, 'kN'), b = verificar(expr, c, scope, 'tonf');
+        if (a.estado !== b.estado || a.obra !== b.obra) return `${c.patron}: ${a.estado} en kN y ${b.estado} en tonf`;
+      }
+      const d = verificar('w', CARGA_VIA, scope, 'tonf').detalle;
+      if (d !== 'la obra da 0,07648 tonf/m y el modelo 0,07842 (-2,471 %)') return `detalle en tonf: «${d}»`;
+      // Se guarda en la obra; `kN`, que es lo que se asume, no se escribe.
+      if (sanearObra({ id: 'o', calculos: [], unidadesSap: 'tonf' }).unidadesSap !== 'tonf') return 'se perdió tonf';
+      if ('unidadesSap' in sanearObra({ id: 'o', calculos: [], unidadesSap: 'kN' })) return 'se escribió kN';
+      return 'unidadesSap' in sanearObra({ id: 'o', calculos: [], unidadesSap: 'lbf' }) ? 'aceptó lbf' : null;
+    },
+  },
+  {
     nombre: 'el espectro del modelo se justifica con la función que publica la obra, en todos sus puntos',
     ok: () => {
       const o = {

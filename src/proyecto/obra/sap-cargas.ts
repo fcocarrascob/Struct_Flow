@@ -2,10 +2,20 @@
 //
 // Puro, sin React: el panel del nodo SAP2000 lo pinta y `verify:obra` lo
 // comprueba. Los valores llegan del puente en kN, m y °C (`puente-sap/puente.py`,
-// `cargas`), así que la unidad sale de la clase y no hay que convertir nada.
+// `cargas`), y así se guardan y se comparan. Mostrarlos en tonf es solo eso,
+// mostrar: cada texto recibe el sistema de unidades y convierte al final.
 
 import { resolverExpresion } from './biblioteca';
-import type { CargaAsignada, Justificacion, LecturaEspectro, Obra } from './modelo';
+import type { CargaAsignada, Justificacion, LecturaEspectro, Obra, SistemaUnidades } from './modelo';
+
+/** kN por tonf: la tonelada fuerza es 1000 kgf. */
+const KN_POR_TONF = 9.80665;
+
+/** Lo que vale 1 kN en el sistema en que se muestra. La temperatura no es una
+ *  fuerza y no se convierte. */
+function factor(c: CargaAsignada, sis: SistemaUnidades): number {
+  return sis === 'tonf' && c.clase !== 'barra-temperatura' ? 1 / KN_POR_TONF : 1;
+}
 
 /** Los códigos de dirección de la API de SAP2000. */
 const DIRECCION: Record<number, string> = {
@@ -27,29 +37,31 @@ export function cifra(n: number): string {
   return String(Number(n.toPrecision(4))).replace('.', ',');
 }
 
-export function unidadDe(c: CargaAsignada): string {
+export function unidadDe(c: CargaAsignada, sis: SistemaUnidades = 'kN'): string {
+  const F = sis;
   switch (c.clase) {
     case 'barra-distribuida':
-      return c.momento ? 'kN·m/m' : 'kN/m';
+      return c.momento ? `${F}·m/m` : `${F}/m`;
     case 'barra-puntual':
-      return c.momento ? 'kN·m' : 'kN';
+      return c.momento ? `${F}·m` : F;
     case 'area-uniforme':
     case 'area-a-barras':
-      return 'kN/m²';
+      return `${F}/m²`;
     case 'nudo':
-      return c.componente?.startsWith('M') ? 'kN·m' : 'kN';
+      return c.componente?.startsWith('M') ? `${F}·m` : F;
     case 'barra-temperatura':
       return '°C';
   }
 }
 
 /** El valor con su unidad. Una distribuida no uniforme dice de cuánto a cuánto. */
-export function valorDe(c: CargaAsignada): string {
-  const u = unidadDe(c);
+export function valorDe(c: CargaAsignada, sis: SistemaUnidades = 'kN'): string {
+  const u = unidadDe(c, sis);
+  const f = factor(c, sis);
   if (c.clase === 'barra-distribuida' && c.valor2 !== undefined) {
-    return `${cifra(c.valor)} → ${cifra(c.valor2)} ${u}`;
+    return `${cifra(c.valor * f)} → ${cifra(c.valor2 * f)} ${u}`;
   }
-  return `${cifra(c.valor)} ${u}`;
+  return `${cifra(c.valor * f)} ${u}`;
 }
 
 /** Cómo está aplicada: la clase, dónde y en qué dirección. */
@@ -175,7 +187,18 @@ export interface Verificacion {
 }
 
 /** Lo que da la expresión contra lo que tiene el modelo. */
-export function verificar(expr: string, c: CargaAsignada, scope: Record<string, unknown>): Verificacion {
+/**
+ * Lo que da la expresión contra lo que tiene el modelo.
+ *
+ * La comparación es SIEMPRE en kN: `sis` solo decide en qué unidad se escribe el
+ * detalle. Así el veredicto no puede cambiar por mirar la obra en tonf.
+ */
+export function verificar(
+  expr: string,
+  c: CargaAsignada,
+  scope: Record<string, unknown>,
+  sis: SistemaUnidades = 'kN',
+): Verificacion {
   const unidad = unidadMotor(c);
   let r = resolverExpresion(expr, unidad, scope);
   if (c.clase === 'barra-temperatura' && r.error) r = resolverExpresion(expr, 'K', scope);
@@ -183,14 +206,16 @@ export function verificar(expr: string, c: CargaAsignada, scope: Record<string, 
   const obra = r.valor;
   const escala = Math.max(Math.abs(c.valor), 1e-12);
   const desvio = (obra - c.valor) / escala;
+  const f = factor(c, sis);
+  const u = unidadDe(c, sis);
   if (Math.abs(obra - c.valor) <= TOLERANCIA * escala) {
-    return { estado: 'coincide', obra, detalle: `la obra da ${cifra(obra)} ${unidadDe(c)}` };
+    return { estado: 'coincide', obra, detalle: `la obra da ${cifra(obra * f)} ${u}` };
   }
   const pct = c.valor === 0 ? '' : ` (${desvio > 0 ? '+' : ''}${cifra(desvio * 100)} %)`;
   return {
     estado: 'difiere',
     obra,
-    detalle: `la obra da ${cifra(obra)} ${unidadDe(c)} y el modelo ${cifra(c.valor)}${pct}`,
+    detalle: `la obra da ${cifra(obra * f)} ${u} y el modelo ${cifra(c.valor * f)}${pct}`,
   };
 }
 

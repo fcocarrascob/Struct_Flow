@@ -370,7 +370,19 @@ export interface Obra {
   sap?: ConexionSap;
   /** Las cargas del modelo que la obra respalda. Ausente mientras no haya ninguna. */
   justificaciones?: Justificacion[];
+  /**
+   * En qué se MUESTRAN las cargas del modelo. Ausente es `kN`.
+   *
+   * Es presentación y nada más: el puente lee siempre en kN-m, lo leído se guarda
+   * así y la comparación se hace así. Va en la obra y no en `sap` porque es la
+   * convención del proyecto —todos la ven igual— y porque `sap` es una lectura
+   * que no entra en el historial, y esto sí se deshace.
+   */
+  unidadesSap?: SistemaUnidades;
 }
+
+/** Cómo se muestran las fuerzas del modelo. */
+export type SistemaUnidades = 'kN' | 'tonf';
 
 /**
  * Una carga asignada en SAP2000, respaldada por una expresión de la obra.

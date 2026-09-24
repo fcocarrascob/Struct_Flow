@@ -1590,6 +1590,15 @@ function CanvasObra({
             justificar={{
               scope: evaluacion.scope,
               justificaciones: obra.justificaciones ?? [],
+              unidades: obra.unidadesSap ?? 'kN',
+              // Por `setObra`: es la convención de la obra, y se deshace con Ctrl+Z.
+              // `kN` no se escribe, porque es lo que se asume sin nada.
+              onUnidades: (u) =>
+                setObra((o) => {
+                  if (!o) return o;
+                  const { unidadesSap: _, ...resto } = o;
+                  return u === 'tonf' ? { ...resto, unidadesSap: u } : resto;
+                }),
               onJustificar: (carga, expr, actual) => {
                 const o = obraRef.current;
                 if (!o) return;
