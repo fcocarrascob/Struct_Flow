@@ -565,70 +565,89 @@ export function evaluateSheet(
       continue;
     }
 
-    const parsed = parseMathRegion(region.src);
-
-    // LaTeX de la parte izquierda (definición + expresión), independiente de
-    // que la evaluación tenga éxito: así una región con error se ve igual.
-    const known = new Set(Object.keys(scope));
-    let tex: string | undefined;
-    try {
-      const lhs = parsed.varName ? `${symbolTex(parsed.varName)}\\,{:=}\\,` : '';
-      tex = lhs + (parsed.expr ? exprToTex(parsed.expr, known) : '');
-    } catch {
-      tex = undefined; // sintaxis inválida: la región mostrará el texto crudo
-    }
-
-    if (!parsed.expr) {
-      results[region.id] = { tex, error: 'Falta la expresión' };
-      continue;
-    }
-
-    let aviso: string | undefined;
-    try {
-      if (parsed.varName) comprobarNombre(parsed.varName);
-      const node = parsear(parsed.expr);
-      if (esAsignacion(node)) {
-        throw new Error(
-          'Para definir una variable usa «:=» (por ejemplo «x := 5»); un «=» al final solo muestra el resultado',
-        );
-      }
-      aviso = avisoUnidadTapada(node, scope);
-      let value = node.evaluate(scope);
-      if (esComplejo(value)) throw new Error(ERROR_COMPLEJO);
-      if (parsed.targetUnit) {
-        if (!math.isUnit(value)) throw new Error(`El resultado no tiene unidades, no se puede convertir a ${parsed.targetUnit}`);
-        value = value.to(parsed.targetUnit);
-      }
-      if (parsed.varName) scope[parsed.varName] = value;
-
-      // Para el panel de inspección: qué define esta región, ya formateado.
-      // `parsed.targetUnit` ya se aplicó arriba, así que el valor se muestra en
-      // la unidad que pidió el autor y no en la interna de math.js.
-      const define = parsed.varName
-        ? { nombre: parsed.varName, valor: formatValor(value) }
-        : undefined;
-
-      const isBool = typeof value === 'boolean';
-      if (isBool && parsed.showResult) {
-        // `tex` es la comparación renderizada; el veredicto ✓/✗ lo pinta MathRegion.
-        results[region.id] = { tex, bool: value as boolean, define, aviso };
-      } else {
-        if (!isBool && parsed.showResult && tex !== undefined) {
-          tex += `=${resultToTex(value)}`;
-        }
-        results[region.id] = { tex, define, aviso };
-      }
-    } catch (err) {
-      // Una definición que falla RETIRA la variable. Conservar la anterior hacía
-      // que lo de abajo calculara con un valor que la hoja ya no dice: con
-      // `a := 1` y luego `a := 1 kN + 2 m` en rojo, `b := a*10` daba 10 sin
-      // quejarse. Así el error se propaga a todo lo que depende de ella.
-      if (parsed.varName && Object.hasOwn(scope, parsed.varName)) delete scope[parsed.varName];
-      results[region.id] = { tex, error: errMsg(err), aviso };
-    }
+    results[region.id] = evaluarFormula(region.src, scope).res;
   }
 
   return results;
+}
+
+/** Lo que da una fórmula: lo que se muestra y, si llegó a evaluarse, su valor. */
+interface Formula {
+  res: RegionResult;
+  /** El valor calculado (el definido o el mostrado); ausente si hubo error. */
+  valor?: unknown;
+  evaluada: boolean;
+}
+
+/**
+ * Evalúa una fórmula —`nombre := expr`, `expr =`, `… = unidad`— contra el scope
+ * compartido, y escribe en él lo que define.
+ *
+ * **Es la única gramática de una fórmula.** La usan la región math y cada celda
+ * de fórmula de una tabla: si la celda tuviera la suya, las dos acabarían
+ * discrepando en lo que es una definición, en cómo se convierte una unidad o en
+ * qué se retira cuando algo falla.
+ */
+function evaluarFormula(src: string, scope: Record<string, unknown>): Formula {
+  const parsed = parseMathRegion(src);
+
+  // LaTeX de la parte izquierda (definición + expresión), independiente de
+  // que la evaluación tenga éxito: así una región con error se ve igual.
+  const known = new Set(Object.keys(scope));
+  let tex: string | undefined;
+  try {
+    const lhs = parsed.varName ? `${symbolTex(parsed.varName)}\\,{:=}\\,` : '';
+    tex = lhs + (parsed.expr ? exprToTex(parsed.expr, known) : '');
+  } catch {
+    tex = undefined; // sintaxis inválida: la región mostrará el texto crudo
+  }
+
+  if (!parsed.expr) {
+    return { res: { tex, error: 'Falta la expresión' }, evaluada: false };
+  }
+
+  let aviso: string | undefined;
+  try {
+    if (parsed.varName) comprobarNombre(parsed.varName);
+    const node = parsear(parsed.expr);
+    if (esAsignacion(node)) {
+      throw new Error(
+        'Para definir una variable usa «:=» (por ejemplo «x := 5»); un «=» al final solo muestra el resultado',
+      );
+    }
+    aviso = avisoUnidadTapada(node, scope);
+    let value = node.evaluate(scope);
+    if (esComplejo(value)) throw new Error(ERROR_COMPLEJO);
+    if (parsed.targetUnit) {
+      if (!math.isUnit(value)) throw new Error(`El resultado no tiene unidades, no se puede convertir a ${parsed.targetUnit}`);
+      value = value.to(parsed.targetUnit);
+    }
+    if (parsed.varName) scope[parsed.varName] = value;
+
+    // Para el panel de inspección: qué define esta región, ya formateado.
+    // `parsed.targetUnit` ya se aplicó arriba, así que el valor se muestra en
+    // la unidad que pidió el autor y no en la interna de math.js.
+    const define = parsed.varName
+      ? { nombre: parsed.varName, valor: formatValor(value) }
+      : undefined;
+
+    const isBool = typeof value === 'boolean';
+    if (isBool && parsed.showResult) {
+      // `tex` es la comparación renderizada; el veredicto ✓/✗ lo pinta MathRegion.
+      return { res: { tex, bool: value as boolean, define, aviso }, valor: value, evaluada: true };
+    }
+    if (!isBool && parsed.showResult && tex !== undefined) {
+      tex += `=${resultToTex(value)}`;
+    }
+    return { res: { tex, define, aviso }, valor: value, evaluada: true };
+  } catch (err) {
+    // Una definición que falla RETIRA la variable. Conservar la anterior hacía
+    // que lo de abajo calculara con un valor que la hoja ya no dice: con
+    // `a := 1` y luego `a := 1 kN + 2 m` en rojo, `b := a*10` daba 10 sin
+    // quejarse. Así el error se propaga a todo lo que depende de ella.
+    if (parsed.varName && Object.hasOwn(scope, parsed.varName)) delete scope[parsed.varName];
+    return { res: { tex, error: errMsg(err), aviso }, evaluada: false };
+  }
 }
 
 /** ¿Es una asignación de math.js (`x = 5`, `f(x) = x^2`, `A[1] = 3`)? */
