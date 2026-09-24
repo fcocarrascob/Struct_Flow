@@ -11,7 +11,7 @@
 // del papel (`.doc-papel`).
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type { DatosGrafico, DatosSerie, Marcador, Trazo } from './grafico';
+import type { DatosGrafico, DatosReferencia, DatosSerie, Marcador, PosicionLeyenda, Trazo } from './grafico';
 import { escaparXml } from './token';
 
 const TONOS = ['#111827', '#374151', '#4b5563', '#6b7280'];
@@ -127,6 +127,121 @@ function marcador(tipo: Marcador, x: number, y: number, color: string): string {
   }
 }
 
+// ── Dónde van las etiquetas y la leyenda ────────────────────────────────────────
+//
+// Sin poder medir el texto (en Node no hay DOM), se estima su caja por el número
+// de caracteres. Cada etiqueta prueba sitios en orden de preferencia —el primero
+// es donde iba siempre— y se queda con el primero que cabe en el área y no pisa
+// la leyenda ni otra etiqueta; si ninguno sirve, el primero. Lo que el autor fijó
+// (`lado`, `posicion`, `posicionLeyenda`) va donde lo pidió, sin probar nada más.
+
+/** Ancho medio de un carácter de una etiqueta de 10 px. */
+const ANCHO_ETIQUETA = 5.6;
+/** Salto entre filas cuando dos etiquetas de rectas verticales chocan. */
+const PASO_FILA = 13;
+/** Filas que se prueban por posición antes de rendirse. */
+const FILAS = 6;
+
+type Ancla = 'start' | 'middle' | 'end';
+interface Rotulo {
+  x: number;
+  y: number;
+  ancla: Ancla;
+}
+
+/** La caja de un texto de 10 px con su línea de base en `y`. */
+function cajaDeTexto({ x, y, ancla }: Rotulo, texto: string): Caja {
+  const w = texto.length * ANCHO_ETIQUETA;
+  const x0 = ancla === 'start' ? x : ancla === 'end' ? x - w : x - w / 2;
+  return { x0, y0: y - 9, x1: x0 + w, y1: y + 3 };
+}
+
+function solapan(a: Caja, b: Caja): boolean {
+  return a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
+}
+
+function dentro(a: Caja, c: Caja): boolean {
+  return a.x0 >= c.x0 - 0.5 && a.x1 <= c.x1 + 0.5 && a.y0 >= c.y0 - 0.5 && a.y1 <= c.y1 + 0.5;
+}
+
+/**
+ * Los sitios que prueba la etiqueta de una recta, en orden de preferencia. `xr`
+ * o `yr` es la recta en píxeles.
+ */
+function candidatos(r: DatosReferencia, xr: number, yr: number, c: Caja): Rotulo[] {
+  const out: Rotulo[] = [];
+  if (r.tipo === 'vertical') {
+    const preferido = xr < c.x0 + (c.x1 - c.x0) * 0.7 ? 'derecha' : 'izquierda';
+    const lados = r.lado ? [r.lado] : [preferido, preferido === 'derecha' ? 'izquierda' : 'derecha'];
+    const posiciones = r.posicion ? [r.posicion] : ['arriba', 'abajo', 'medio'];
+    for (const p of posiciones) {
+      for (let k = 0; k < (r.posicion ? 1 : FILAS); k++) {
+        const y = p === 'arriba' ? c.y0 + 12 + k * PASO_FILA : p === 'abajo' ? c.y1 - 4 - k * PASO_FILA : (c.y0 + c.y1) / 2 + k * PASO_FILA;
+        for (const lado of lados) {
+          out.push(lado === 'derecha' ? { x: xr + 4, y, ancla: 'start' } : { x: xr - 4, y, ancla: 'end' });
+        }
+      }
+    }
+  } else {
+    const preferido = yr - c.y0 > 16 ? 'arriba' : 'abajo';
+    const lados = r.lado ? [r.lado] : [preferido, preferido === 'arriba' ? 'abajo' : 'arriba'];
+    const posiciones = r.posicion ? [r.posicion] : ['inicio', 'fin', 'medio'];
+    for (const p of posiciones) {
+      for (const lado of lados) {
+        const y = lado === 'arriba' ? yr - 4 : yr + 12;
+        out.push(
+          p === 'inicio'
+            ? { x: c.x0 + 4, y, ancla: 'start' }
+            : p === 'fin'
+              ? { x: c.x1 - 4, y, ancla: 'end' }
+              : { x: (c.x0 + c.x1) / 2, y, ancla: 'middle' },
+        );
+      }
+    }
+  }
+  return out;
+}
+
+const ESQUINAS: Exclude<PosicionLeyenda, 'auto'>[] = ['arriba-derecha', 'arriba-izquierda', 'abajo-derecha', 'abajo-izquierda'];
+
+function cajaDeLeyenda(esquina: Exclude<PosicionLeyenda, 'auto'>, ancho: number, alto: number, c: Caja): Caja {
+  const x0 = esquina.endsWith('derecha') ? c.x1 - ancho - 8 : c.x0 + 8;
+  const y0 = esquina.startsWith('arriba') ? c.y0 + 8 : c.y1 - alto - 8;
+  return { x0, y0, x1: x0 + ancho, y1: y0 + alto };
+}
+
+/**
+ * La esquina de la leyenda: la fijada, o la primera —en el orden de `ESQUINAS`,
+ * que empieza por la de siempre— que tapa menos curva y menos rectas.
+ */
+function esquinaDeLeyenda(
+  fijada: PosicionLeyenda | undefined,
+  ancho: number,
+  alto: number,
+  c: Caja,
+  puntos: [number, number][],
+  rectas: { x?: number; y?: number }[],
+): Caja {
+  if (fijada && fijada !== 'auto') return cajaDeLeyenda(fijada, ancho, alto, c);
+  let mejor = cajaDeLeyenda(ESQUINAS[0], ancho, alto, c);
+  let menor = Infinity;
+  for (const e of ESQUINAS) {
+    const k = cajaDeLeyenda(e, ancho, alto, c);
+    let tapa = 0;
+    for (const [x, y] of puntos) if (x >= k.x0 && x <= k.x1 && y >= k.y0 && y <= k.y1) tapa += 1;
+    for (const r of rectas) {
+      if (r.x !== undefined && r.x >= k.x0 && r.x <= k.x1) tapa += 20;
+      if (r.y !== undefined && r.y >= k.y0 && r.y <= k.y1) tapa += 20;
+    }
+    if (tapa < menor) {
+      menor = tapa;
+      mejor = k;
+    }
+    if (tapa === 0) break;
+  }
+  return mejor;
+}
+
 function trazo(serie: DatosSerie, color: string): string {
   const dash = DASH[serie.trazo];
   return `fill="none" stroke="${color}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"${
@@ -185,31 +300,52 @@ export function svgDeGrafico(d: DatosGrafico): string {
     );
   }
 
+  // La leyenda se decide antes que las etiquetas, para que ellas la esquiven.
+  const conLeyenda = d.leyenda && d.series.length > 0;
+  const altoLeyenda = 8 + d.series.length * 16;
+  const anchoLeyenda = 12 + 24 + 8 + Math.max(0, ...d.series.map((s) => s.nombre.length)) * 6.2 + 10;
+  const rectas = d.referencias.flatMap((r): { x?: number; y?: number }[] =>
+    r.tipo === 'vertical' && r.x !== undefined ? [{ x: px(r.x) }] : r.tipo === 'horizontal' && r.y !== undefined ? [{ y: py(r.y) }] : [],
+  );
+  const leyenda = conLeyenda
+    ? esquinaDeLeyenda(
+        d.posicionLeyenda,
+        anchoLeyenda,
+        altoLeyenda,
+        caja,
+        d.series.flatMap((s) => s.tramos.flatMap((t) => t.map(([x, y]) => [px(x), py(y)] as [number, number]))),
+        rectas,
+      )
+    : null;
+  const ocupadas: Caja[] = leyenda ? [leyenda] : [];
+
   // Referencias, bajo las series: son contexto, no el dato.
   for (const r of d.referencias) {
     const estilo = 'stroke="#6b7280" stroke-width="0.8" stroke-dasharray="4 3"';
+    let xr = 0;
+    let yr = 0;
     if (r.tipo === 'horizontal' && r.y !== undefined) {
-      const y = py(r.y);
-      if (y < T - 0.5 || y > T + ph + 0.5) continue;
-      partes.push(`<line x1="${f(L)}" y1="${f(y)}" x2="${f(L + pw)}" y2="${f(y)}" ${estilo}/>`);
-      // A la izquierda: la derecha de arriba es de la leyenda.
-      if (r.etiqueta) {
-        const arriba = y - T > 16;
-        partes.push(
-          `<text x="${f(L + 4)}" y="${f(arriba ? y - 4 : y + 12)}" font-size="10" fill="#374151" text-anchor="start">${escaparXml(r.etiqueta)}</text>`,
-        );
-      }
+      yr = py(r.y);
+      if (yr < T - 0.5 || yr > T + ph + 0.5) continue;
+      partes.push(`<line x1="${f(L)}" y1="${f(yr)}" x2="${f(L + pw)}" y2="${f(yr)}" ${estilo}/>`);
     } else if (r.tipo === 'vertical' && r.x !== undefined) {
-      const x = px(r.x);
-      if (x < L - 0.5 || x > L + pw + 0.5) continue;
-      partes.push(`<line x1="${f(x)}" y1="${f(T)}" x2="${f(x)}" y2="${f(T + ph)}" ${estilo}/>`);
-      if (r.etiqueta) {
-        const derecha = x < L + pw * 0.7;
-        partes.push(
-          `<text x="${f(derecha ? x + 4 : x - 4)}" y="${f(T + 12)}" font-size="10" fill="#374151" text-anchor="${derecha ? 'start' : 'end'}">${escaparXml(r.etiqueta)}</text>`,
-        );
-      }
+      xr = px(r.x);
+      if (xr < L - 0.5 || xr > L + pw + 0.5) continue;
+      partes.push(`<line x1="${f(xr)}" y1="${f(T)}" x2="${f(xr)}" y2="${f(T + ph)}" ${estilo}/>`);
+    } else {
+      continue;
     }
+    if (!r.etiqueta) continue;
+    const opciones = candidatos(r, xr, yr, caja);
+    const elegido =
+      opciones.find((o) => {
+        const k = cajaDeTexto(o, r.etiqueta);
+        return dentro(k, caja) && !ocupadas.some((x) => solapan(k, x));
+      }) ?? opciones[0];
+    ocupadas.push(cajaDeTexto(elegido, r.etiqueta));
+    partes.push(
+      `<text x="${f(elegido.x)}" y="${f(elegido.y)}" font-size="10" fill="#374151" text-anchor="${elegido.ancla}">${escaparXml(r.etiqueta)}</text>`,
+    );
   }
 
   // Las series.
@@ -251,15 +387,12 @@ export function svgDeGrafico(d: DatosGrafico): string {
     }
   }
 
-  // La leyenda, dentro del área, arriba a la derecha.
-  if (d.leyenda && d.series.length) {
-    const alto = 8 + d.series.length * 16;
-    const largo = Math.max(...d.series.map((s) => s.nombre.length));
-    const ancho = 12 + 24 + 8 + largo * 6.2 + 10;
-    const x0 = L + pw - ancho - 8;
-    const y0 = T + 8;
+  // La leyenda, dentro del área, en la esquina elegida arriba.
+  if (leyenda) {
+    const x0 = leyenda.x0;
+    const y0 = leyenda.y0;
     partes.push(
-      `<rect x="${f(x0)}" y="${f(y0)}" width="${f(ancho)}" height="${f(alto)}" fill="#ffffff" fill-opacity="0.92" stroke="#d1d5db" stroke-width="0.6"/>`,
+      `<rect x="${f(x0)}" y="${f(y0)}" width="${f(anchoLeyenda)}" height="${f(altoLeyenda)}" fill="#ffffff" fill-opacity="0.92" stroke="#d1d5db" stroke-width="0.6"/>`,
     );
     d.series.forEach((s, i) => {
       const color = TONOS[i % TONOS.length];

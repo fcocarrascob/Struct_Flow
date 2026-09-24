@@ -3,14 +3,20 @@ import type { Region } from '../../lib/worksheet';
 import type { Sugerencia } from '../../lib/autocompletar';
 import {
   ALTOS_GRAFICO,
+  LADOS_ETIQUETA,
   MARCADORES,
   MAX_REFERENCIAS,
   MAX_SERIES,
+  POSICIONES_ETIQUETA,
+  POSICIONES_LEYENDA,
   TRAZOS,
   type EspecGrafico,
   type EspecReferencia,
   type EspecSerie,
+  type LadoEtiqueta,
   type Marcador,
+  type PosicionEtiqueta,
+  type PosicionLeyenda,
   type Trazo,
 } from '../../lib/grafico';
 import { boton, CampoExpr, CampoTexto, entrada, etiqueta, Seccion } from './PanelPropiedades';
@@ -352,6 +358,44 @@ export default function CuerpoGrafico({ region, sugerencias, onCambiar, onListo 
               <CampoExpr valor={r.valor} onChange={(v) => cambiarRef(i, { ...r, valor: v })} sugerencias={sugerencias} placeholder="valor" onListo={onListo} />
             )}
             <CampoTexto valor={r.etiqueta ?? ''} onChange={(v) => cambiarRef(i, { ...r, etiqueta: v })} placeholder="etiqueta" onListo={onListo} />
+            {r.tipo !== 'punto' && r.etiqueta && (
+              // Dónde va la etiqueta. «auto» la deja esquivar la leyenda y las demás;
+              // fijada, va anclada a la recta y la acompaña si cambian los datos.
+              <div className="grid grid-cols-2 gap-1">
+                <select
+                  className={`${entrada} !font-sans`}
+                  value={r.lado ?? ''}
+                  onChange={(e) => {
+                    const { lado: _, ...resto } = r;
+                    cambiarRef(i, e.target.value ? { ...resto, lado: e.target.value as LadoEtiqueta } : resto);
+                  }}
+                  title="De qué lado de la recta va la etiqueta"
+                >
+                  <option value="">lado: auto</option>
+                  {LADOS_ETIQUETA[r.tipo].map((l) => (
+                    <option key={l} value={l}>
+                      {l}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className={`${entrada} !font-sans`}
+                  value={r.posicion ?? ''}
+                  onChange={(e) => {
+                    const { posicion: _, ...resto } = r;
+                    cambiarRef(i, e.target.value ? { ...resto, posicion: e.target.value as PosicionEtiqueta } : resto);
+                  }}
+                  title="En qué punto de la recta va la etiqueta"
+                >
+                  <option value="">posición: auto</option>
+                  {POSICIONES_ETIQUETA[r.tipo].map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
         ))}
       </Seccion>
@@ -367,6 +411,23 @@ export default function CuerpoGrafico({ region, sugerencias, onCambiar, onListo 
             <option value="auto">con más de una serie</option>
             <option value="si">siempre</option>
             <option value="no">nunca</option>
+          </select>
+        </label>
+        <label className="flex items-center justify-between gap-2 text-[11px] text-ink">
+          Esquina de la leyenda
+          <select
+            className={`${entrada} !w-32 !font-sans`}
+            value={espec.posicionLeyenda ?? 'auto'}
+            onChange={(e) => {
+              const v = e.target.value as PosicionLeyenda;
+              cambiar({ posicionLeyenda: v === 'auto' ? undefined : v });
+            }}
+          >
+            {POSICIONES_LEYENDA.map((p) => (
+              <option key={p} value={p}>
+                {p === 'auto' ? 'la más libre' : p.replace('-', ' ')}
+              </option>
+            ))}
           </select>
         </label>
         <label className="flex items-center justify-between gap-2 text-[11px] text-ink">

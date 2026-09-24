@@ -50,11 +50,34 @@ const g = (espec, titulo = 'Gráfico') => [
       series: espec.series,
       referencias: espec.referencias,
       leyenda: espec.leyenda,
+      posicionLeyenda: espec.posicionLeyenda,
       alto: espec.alto,
     },
   },
 ];
 const fn = (expr, desde, hasta, extra = {}) => ({ tipo: 'funcion', nombre: 'f', expr, variable: 'x', desde, hasta, ...extra });
+/** El SVG de un gráfico `g(...)` evaluado solo en una hoja. */
+function svgDe(grafico) {
+  const r = evaluateSheet(hoja(grafico)).r0;
+  if (r?.error) throw new Error(`el gráfico dio error: ${r.error}`);
+  return svgDeGrafico(r.grafico);
+}
+/** Las etiquetas de las rectas de un SVG de gráfico, con la caja que estima el motor (10 px, 5,6 px por carácter). */
+function etiquetasDe(svg) {
+  return [...svg.matchAll(/<text x="([-\d.]+)" y="([-\d.]+)" font-size="10" fill="#374151" text-anchor="(start|middle|end)">([^<]*)<\/text>/g)].map(
+    ([, x, y, ancla, texto]) => {
+      const w = texto.length * 5.6;
+      const x0 = ancla === 'start' ? +x : ancla === 'end' ? +x - w : +x - w / 2;
+      return { texto, ancla, x0, x1: x0 + w, y0: +y - 9, y1: +y + 3 };
+    },
+  );
+}
+/** La caja de la leyenda de un SVG de gráfico, o `null`. */
+function leyendaDe(svg) {
+  const m = /<rect x="([-\d.]+)" y="([-\d.]+)" width="([\d.]+)" height="([\d.]+)" fill="#ffffff"/.exec(svg);
+  return m && { x0: +m[1], y0: +m[2], x1: +m[1] + +m[3], y1: +m[2] + +m[4] };
+}
+const chocan = (a, b) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
 /** Una tabla: `celdas` es la grilla de `src`, `extra` el resto de la especificación. */
 const t = (celdas, extra = {}, titulo = '') => ['table', titulo, { tabla: { version: 1, celdas, ...extra } }];
 
@@ -1101,6 +1124,90 @@ const CASOS_AJUSTE = [
       const motivos = inf.descartadas.map((d) => `${d.motivo}/${d.detalle}`).join(' ');
       if (motivos !== 'grafico/no-es-objeto grafico/sin-series') return `descartes: «${motivos}»`;
       return inf.regions.length === 1 && inf.regions[0].id === 'c' ? null : `quedaron ${inf.regions.length} regiones`;
+    },
+  },
+  // --- Etiquetas y leyenda de un gráfico ---------------------------------------
+  //
+  // Las etiquetas de las rectas se dibujaban siempre en el mismo sitio y la
+  // leyenda siempre arriba a la derecha: en el Pachón, T₁ y T₂ a 70 px salían
+  // una sobre otra, y la leyenda cortaba la etiqueta de h/L del viento en Y.
+  {
+    nombre: 'gráfico: las etiquetas de rectas cercanas no se pisan',
+    ok: () => {
+      const svg = svgDe(g({
+        ejeX: { min: '0', max: '5' },
+        ejeY: { min: '0', max: '1' },
+        series: [fn('0.5', '0', '5')],
+        referencias: [
+          { tipo: 'vertical', valor: '0.13', etiqueta: 'T1 = 0,1323 s' },
+          { tipo: 'vertical', valor: '0.66', etiqueta: 'T2 = 0,6616 s' },
+          { tipo: 'horizontal', valor: '0.925', etiqueta: 'meseta 2,5 Ca = 0,925' },
+        ],
+      }));
+      const e = etiquetasDe(svg);
+      if (e.length !== 3) return `se esperaban 3 etiquetas y hay ${e.length}`;
+      for (let i = 0; i < e.length; i++) for (let k = i + 1; k < e.length; k++) {
+        if (chocan(e[i], e[k])) return `«${e[i].texto}» pisa a «${e[k].texto}»`;
+      }
+      return null;
+    },
+  },
+  {
+    nombre: 'gráfico: la leyenda no tapa la etiqueta de una recta',
+    ok: () => {
+      const svg = svgDe(g({
+        ejeX: { min: '0', max: '1.2' },
+        ejeY: { min: '-1.5', max: '0' },
+        series: [fn('-0.9', '0', '1.2'), fn('-0.7', '0', '1.2', { nombre: 'Franja 2: de h/2 a h' })],
+        referencias: [{ tipo: 'vertical', valor: '0.6772', etiqueta: 'viento en Y: 0,6772' }],
+        leyenda: 'si',
+      }));
+      const [e] = etiquetasDe(svg);
+      const l = leyendaDe(svg);
+      if (!e || !l) return 'falta la etiqueta o la leyenda';
+      return chocan(e, l) ? 'la leyenda tapa la etiqueta' : null;
+    },
+  },
+  {
+    nombre: 'gráfico: la leyenda automática deja la esquina por donde pasa la curva',
+    ok: () => {
+      const svg = svgDe(g({
+        ejeX: { min: '0', max: '1' },
+        ejeY: { min: '0', max: '1' },
+        series: [fn('x', '0', '1'), fn('0.95*x', '0', '1', { nombre: 'g' })],
+      }));
+      const l = leyendaDe(svg);
+      return l && l.x0 > 340 && l.y1 < 170 ? `la leyenda sigue arriba a la derecha, sobre la curva (${JSON.stringify(l)})` : null;
+    },
+  },
+  {
+    nombre: 'gráfico: la leyenda y la etiqueta fijadas por el autor van donde se pidieron',
+    ok: () => {
+      const svg = svgDe(g({
+        ejeX: { min: '0', max: '1' },
+        ejeY: { min: '0', max: '1' },
+        series: [fn('0.2', '0', '1'), fn('0.3', '0', '1', { nombre: 'g' })],
+        referencias: [{ tipo: 'vertical', valor: '0.5', etiqueta: 'aquí', lado: 'izquierda', posicion: 'abajo' }],
+        posicionLeyenda: 'abajo-izquierda',
+      }));
+      const l = leyendaDe(svg);
+      const [e] = etiquetasDe(svg);
+      if (!l || l.x0 > 120 || l.y0 < 170) return `leyenda en ${JSON.stringify(l)}`;
+      if (!e || e.ancla !== 'end' || e.y0 < 170) return `etiqueta en ${JSON.stringify(e)}`;
+      return null;
+    },
+  },
+  {
+    nombre: 'gráfico: un lado o una posición que no corresponde a la recta se descarta al cargar',
+    ok: () => {
+      const base = { version: 1, ejeX: { titulo: 'x' }, ejeY: { titulo: 'y' }, series: [{ tipo: 'datos', nombre: 'p', xy: 'P' }] };
+      const inf = sanearConInforme([
+        { id: 'a', kind: 'plot', x: 40, y: 40, src: 'a', grafico: { ...base, referencias: [{ tipo: 'vertical', valor: '1', lado: 'arriba' }] } },
+        { id: 'b', kind: 'plot', x: 40, y: 90, src: 'b', grafico: { ...base, posicionLeyenda: 'centro' } },
+        { id: 'c', kind: 'plot', x: 40, y: 140, src: 'c', grafico: { ...base, referencias: [{ tipo: 'horizontal', valor: '1', lado: 'abajo', posicion: 'fin' }] } },
+      ]);
+      const motivos = inf.descartadas.map((d) => `${d.motivo}/${d.detalle}`).join(' ');
+      return motivos === 'grafico/referencia grafico/opciones' && inf.regions.length === 1 ? null : `descartes: «${motivos}»`;
     },
   },
   {

@@ -80,9 +80,26 @@ export interface SerieDatos extends SerieBase {
 
 export type EspecSerie = SerieFuncion | SerieDatos;
 
+/**
+ * Dónde va la etiqueta de una recta, si el autor la fija. Sin fijar, la elige
+ * `svgDeGrafico` esquivando la leyenda y las demás etiquetas. No es una posición
+ * en píxeles: se ancla a la recta, así que la acompaña cuando cambian los datos.
+ *
+ * - Vertical: `lado` izquierda / derecha de la recta; `posicion` arriba / medio / abajo.
+ * - Horizontal: `lado` arriba / abajo de la recta; `posicion` inicio / medio / fin.
+ */
+export const LADOS_ETIQUETA = { vertical: ['izquierda', 'derecha'], horizontal: ['arriba', 'abajo'] } as const;
+export const POSICIONES_ETIQUETA = { vertical: ['arriba', 'medio', 'abajo'], horizontal: ['inicio', 'medio', 'fin'] } as const;
+export type LadoEtiqueta = 'izquierda' | 'derecha' | 'arriba' | 'abajo';
+export type PosicionEtiqueta = 'arriba' | 'medio' | 'abajo' | 'inicio' | 'fin';
+
+/** La esquina de la leyenda; `auto` elige la primera libre. */
+export const POSICIONES_LEYENDA = ['auto', 'arriba-derecha', 'arriba-izquierda', 'abajo-derecha', 'abajo-izquierda'] as const;
+export type PosicionLeyenda = (typeof POSICIONES_LEYENDA)[number];
+
 /** Una recta o un punto rotulado. La etiqueta admite tokens `{{expr:unidad}}`. */
 export type EspecReferencia =
-  | { tipo: 'horizontal' | 'vertical'; valor: string; etiqueta?: string }
+  | { tipo: 'horizontal' | 'vertical'; valor: string; etiqueta?: string; lado?: LadoEtiqueta; posicion?: PosicionEtiqueta }
   | { tipo: 'punto'; x: string; y: string; etiqueta?: string };
 
 export interface EspecGrafico {
@@ -93,6 +110,8 @@ export interface EspecGrafico {
   referencias?: EspecReferencia[];
   /** `auto`: con más de una serie. */
   leyenda?: 'auto' | 'si' | 'no';
+  /** Sin fijar, `auto`. */
+  posicionLeyenda?: PosicionLeyenda;
   cuadricula?: boolean;
   alto?: number;
 }
@@ -128,6 +147,9 @@ export interface DatosReferencia {
   x?: number;
   y?: number;
   etiqueta: string;
+  /** Solo si el autor los fijó (ver `EspecReferencia`). */
+  lado?: LadoEtiqueta;
+  posicion?: PosicionEtiqueta;
 }
 
 export interface DatosGrafico {
@@ -138,6 +160,8 @@ export interface DatosGrafico {
   series: DatosSerie[];
   referencias: DatosReferencia[];
   leyenda: boolean;
+  /** Solo si el autor la fijó; sin ella, `auto`. */
+  posicionLeyenda?: PosicionLeyenda;
   cuadricula: boolean;
 }
 
@@ -206,7 +230,13 @@ function serieValida(v: unknown): boolean {
 
 function referenciaValida(v: unknown): boolean {
   if (!esObjeto(v) || !esTextoOpcional(v.etiqueta)) return false;
-  if (v.tipo === 'horizontal' || v.tipo === 'vertical') return esTexto(v.valor);
+  if (v.tipo === 'horizontal' || v.tipo === 'vertical') {
+    const lados: readonly unknown[] = LADOS_ETIQUETA[v.tipo];
+    const posiciones: readonly unknown[] = POSICIONES_ETIQUETA[v.tipo];
+    if (v.lado !== undefined && !lados.includes(v.lado)) return false;
+    if (v.posicion !== undefined && !posiciones.includes(v.posicion)) return false;
+    return esTexto(v.valor);
+  }
   if (v.tipo === 'punto') return esTexto(v.x) && esTexto(v.y);
   return false;
 }
@@ -223,6 +253,9 @@ export function motivoDeGrafico(v: unknown): CodigoGrafico | null {
     if (!v.referencias.every(referenciaValida)) return 'referencia';
   }
   if (v.leyenda !== undefined && !['auto', 'si', 'no'].includes(v.leyenda as string)) return 'opciones';
+  if (v.posicionLeyenda !== undefined && !(POSICIONES_LEYENDA as readonly unknown[]).includes(v.posicionLeyenda)) {
+    return 'opciones';
+  }
   if (v.cuadricula !== undefined && typeof v.cuadricula !== 'boolean') return 'opciones';
   if (v.alto !== undefined && !(ALTOS_GRAFICO as readonly unknown[]).includes(v.alto)) return 'opciones';
   return null;
@@ -537,7 +570,10 @@ export function evaluarGrafico(
       } else {
         const unidad = r.tipo === 'horizontal' ? uy : ux;
         const v = r12(h.aNumero(h.compilar(r.valor)(scope), unidad, 'el valor'));
-        referencias.push(r.tipo === 'horizontal' ? { tipo: r.tipo, y: v, etiqueta } : { tipo: r.tipo, x: v, etiqueta });
+        const fijada = { ...(r.lado ? { lado: r.lado } : {}), ...(r.posicion ? { posicion: r.posicion } : {}) };
+        referencias.push(
+          r.tipo === 'horizontal' ? { tipo: r.tipo, y: v, etiqueta, ...fijada } : { tipo: r.tipo, x: v, etiqueta, ...fijada },
+        );
       }
     } catch (e) {
       return { error: `Referencia ${i + 1}: ${mensaje(e)}` };
@@ -615,6 +651,7 @@ export function evaluarGrafico(
       series,
       referencias,
       leyenda,
+      ...(espec.posicionLeyenda && espec.posicionLeyenda !== 'auto' ? { posicionLeyenda: espec.posicionLeyenda } : {}),
       cuadricula: espec.cuadricula !== false,
     },
     aviso: avisos.length ? avisos.join(' ') : undefined,
