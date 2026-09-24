@@ -72,7 +72,7 @@ const geometria = {
     m('H_alto := 17.2 m'),
     m('H_bajo := 13.4 m'),
     t('Pendiente de la cubierta:'),
-    m('alpha_cub := atan((H_alto - H_bajo) / B_nave) * 1 rad = deg'),
+    m('alpha_cub := atan((H_alto - H_bajo) / B_nave) = deg'),
     t('Ejes del hastial: y = 0 · 8,5 · 16,9 · 25,4 m. El tramo mayor de costanera de muro es el del hastial.'),
     m('L_hastial := 8.5 m'),
     t('## Portones'),

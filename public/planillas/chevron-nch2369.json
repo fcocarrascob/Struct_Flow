@@ -180,7 +180,7 @@
       "kind": "math",
       "x": 40,
       "y": 1168,
-      "src": "grados := alf*180/pi ="
+      "src": "grados := alf = deg"
     },
     {
       "id": "r024",

@@ -609,7 +609,7 @@
       "kind": "math",
       "x": 40,
       "y": 4080,
-      "src": "theta_gr := theta*180/pi ="
+      "src": "theta_gr := theta = deg"
     },
     {
       "id": "r117",
@@ -623,7 +623,7 @@
       "kind": "math",
       "x": 40,
       "y": 4176,
-      "src": "v_theta := theta_gr >= 25 ="
+      "src": "v_theta := theta_gr >= 25 deg ="
     },
     {
       "id": "r120",
@@ -1225,7 +1225,7 @@
       "kind": "math",
       "x": 40,
       "y": 8336,
-      "src": "v_alpha := alpha_1*180/pi >= 40 ="
+      "src": "v_alpha := alpha_1 >= 40 deg ="
     },
     {
       "id": "v_sh",
@@ -1858,7 +1858,7 @@
       "kind": "math",
       "x": 40,
       "y": 13520,
-      "src": "abs(theta_gr - 67.4) < 0.05 ="
+      "src": "abs(theta_gr - 67.4 deg) < 0.05 deg ="
     },
     {
       "id": "c_C",

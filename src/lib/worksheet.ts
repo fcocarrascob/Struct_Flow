@@ -210,6 +210,41 @@ function elementosDeRango(args: unknown[]): number | undefined {
  */
 const JULIO = math.unit('J');
 
+/** Un radián, plantilla de los ángulos que devuelven las trigonométricas inversas. */
+const RADIAN = math.unit(1, 'rad');
+
+/**
+ * `atan`, `asin`, `acos` y `atan2` devuelven un ÁNGULO, no un número en radianes
+ * sin unidad: así `= deg` convierte, un ángulo se compara con `25 deg`, y el paso
+ * a grados no se escribe a mano (`*180/pi`, que con un número sin unidad era la
+ * única forma). `sin`, `cos` y `tan` ya aceptan un ángulo. Sobre un vector,
+ * ángulo a ángulo. El `Unit` se arma clonando `RADIAN`, sin `Unit.parse`, que
+ * tocaría el sistema «auto».
+ */
+{
+  type Fn = (...a: unknown[]) => unknown;
+  const m = math as unknown as Record<string, Fn>;
+  const comoAngulo = (v: unknown): unknown => {
+    const n = typeof v === 'number' ? v : math.isBigNumber(v) ? (v as { toNumber(): number }).toNumber() : undefined;
+    if (n === undefined) return v; // un complejo sigue su camino y lo rechaza `comprobarValor`
+    const u = RADIAN.clone() as unknown as { value: number };
+    u.value = n;
+    return u;
+  };
+  const angular = (nombre: string): Fn => {
+    const original = m[nombre];
+    return (...args: unknown[]) => {
+      const vectorial = args.length === 1 && (Array.isArray(args[0]) || math.isMatrix(args[0]));
+      const r = vectorial ? math.map(args[0] as never, (x: unknown) => original(x) as never) : original(...args);
+      return Array.isArray(r) || math.isMatrix(r) ? math.map(r as never, comoAngulo as never) : comoAngulo(r);
+    };
+  };
+  math.import(
+    { atan: angular('atan'), asin: angular('asin'), acos: angular('acos'), atan2: angular('atan2') },
+    { override: true },
+  );
+}
+
 type SistemaDeUnidades = Record<string, unknown>;
 const SISTEMA_AUTO = (math.Unit as unknown as { UNIT_SYSTEMS: { auto: SistemaDeUnidades } }).UNIT_SYSTEMS.auto;
 const SISTEMA_AUTO_INICIAL: SistemaDeUnidades = { ...SISTEMA_AUTO };

@@ -543,6 +543,26 @@ const CASOS = [
     ok: esperaValor('r0', '20 kJ'),
   },
 
+  // --- Ángulos -----------------------------------------------------------------
+  //
+  // atan, asin, acos y atan2 devolvían un número en radianes sin unidad: `= deg`
+  // fallaba y el paso a grados se escribía a mano (`*180/pi`).
+  {
+    nombre: 'las trigonométricas inversas devuelven un ángulo, que se convierte a grados',
+    hoja: hoja(m('a := atan(1) = deg'), m('b := asin(0.5) = deg'), m('c := acos(0.5) = deg'), m('d := atan2(1, 1) = deg')),
+    ok: todas(esperaValor('r0', '45 deg'), esperaValor('r1', '30 deg'), esperaValor('r2', '60 deg'), esperaValor('r3', '45 deg')),
+  },
+  {
+    nombre: 'un ángulo con unidad entra en sin y cos, y se compara en grados',
+    hoja: hoja(m('t := atan(1)'), m('s := sin(t) ='), m('t >= 25 deg ='), m('c := cos(t)^2 + sin(t)^2 =')),
+    ok: todas(esperaValor('r1', '0.70711'), (r) => (r.r2?.bool === true ? null : `r2: ${JSON.stringify(r.r2)}`), esperaValor('r3', '1')),
+  },
+  {
+    nombre: 'sobre un vector, ángulo a ángulo',
+    hoja: hoja(m('v := atan([0, 1])'), m('g := v[2] = deg')),
+    ok: esperaValor('r1', '45 deg'),
+  },
+
   // --- Lo demás ------------------------------------------------------------------
   {
     nombre: 'un esquema que llama a una función de usuario la evalúa con el scope de su posición',

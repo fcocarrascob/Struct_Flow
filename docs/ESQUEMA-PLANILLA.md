@@ -392,7 +392,11 @@ Cosas que no fallan: devuelven otro número en silencio.
   razón áurea, `E` y `e` el número de Euler) o a una unidad (`L` son litros, `Es` un
   exasegundo). El motor lo convierte en error: solo `pi` se usa sin definir, y una unidad
   suelta —fuera de una cantidad como `10 kN`— solo vale si es de las que una memoria escribe
-  así (`f_c/MPa`, `2.54*cm`); cualquier otra se escribe detrás de un número (`1 L`).
+  así (`f_c/MPa`, `2.54*cm`); cualquier otra se escribe detrás de un número (`1 L`). `N` y `m`
+  sueltas también son error: se escriben `1 N`, `1 m`.
+- **Un ángulo lleva unidad.** `atan`, `asin`, `acos` y `atan2` devuelven radianes **con
+  unidad**: en grados se escribe `theta = deg`, y se compara con `theta >= 25 deg`. El
+  `theta*180/pi` de antes da «67,38 rad», que es un número falso con otra unidad.
 - **Un resultado enorme se resume, no se vuelca.** Por encima de 12 entradas, una matriz se
   imprime como `matriz 200×2` (`MAX_ENTRADAS_TEX`, `worksheet.ts:212`). La variable queda
   íntegra en el scope; lo que se recorta es la impresión. Es deliberado: un barrido de 200

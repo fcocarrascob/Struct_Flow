@@ -1737,14 +1737,14 @@
             "x": 40,
             "y": 584,
             "kind": "text",
-            "src": "atan devuelve un número en radianes, sin unidad: se multiplica por 1 rad para que el ángulo lleve su unidad."
+            "src": "atan devuelve el ángulo con su unidad: «= deg» lo muestra en grados."
           },
           {
             "id": "geo12",
             "x": 40,
             "y": 664,
             "kind": "math",
-            "src": "alpha_cub := atan((H_alto - H_bajo) / B_nave) * 1 rad = deg"
+            "src": "alpha_cub := atan((H_alto - H_bajo) / B_nave) = deg"
           },
           {
             "id": "geo13",
