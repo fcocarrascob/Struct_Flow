@@ -8,7 +8,7 @@
 //
 // Es la parte pura: recibe alturas ya medidas y devuelve el reparto en páginas.
 // Quien mide el DOM es `usePaginacion` (que para eso necesita un navegador);
-// acá no se toca el documento, y así el algoritmo se puede razonar y probar
+// aquí no se toca el documento, y así el algoritmo se puede razonar y probar
 // solo.
 //
 // El reparto imita lo que hace el navegador con bloques que no se pueden
@@ -105,7 +105,7 @@ export interface Pagina {
  *
  * Un bloque más alto que la página entera no tiene reparto posible: se le da
  * su propia página y se desborda (con `break-inside: avoid` el navegador hace
- * lo mismo). No es un caso a resolver acá sino a avisar arriba — una figura
+ * lo mismo). No es un caso a resolver aquí sino a avisar arriba — una figura
  * así hay que achicarla.
  */
 export function paginar(bloques: Bloque[], altoPagina: number = A4_ALTO_UTIL_PX): Pagina[] {

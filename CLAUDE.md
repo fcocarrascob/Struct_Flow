@@ -186,7 +186,7 @@ es el orden de lectura**, así que reordenarlo cambia lo que cada nodo ve.
   secciones; con la comprobación repetida, los tres acabarían discrepando — que es justo lo
   que pasaba cuando solo contaba la raya pesada y 19 subtítulos escritos con la ligera salían
   como párrafo gris, sin `break-after: avoid` y colgando al pie de página. Lo usan la hoja y el
-  documento de impresión, y el aspecto está en `global.css` bajo `.doc-papel`, que llevan los
+  documento de impresión, y el aspecto está en `papel.css` bajo `.doc-papel`, que llevan los
   dos raíces. Antes eran dos renderizados —el canvas con `text-sm` (14 px) y el documento con
   `11pt` e interlineado propio—, así que un mismo bloque no medía lo mismo en pantalla y en el
   papel. Con el papel dentro del canvas eso es imposible: lo que se ve tiene que **ser** lo
@@ -250,8 +250,9 @@ es el orden de lectura**, así que reordenarlo cambia lo que cada nodo ve.
   El origen es la constante `ORIGEN_PAPEL_X = 40`, que es donde está el 100 % del corpus;
   anclarlo al contenido haría saltar la hoja al mover un bloque.
 
-**Los avisos flotan, no empujan.** Las cinco bandas —bloques largos, bloques tapados, fallo de
-autoguardado, hoja apartada y el acuse efímero— van en una pila `absolute` sobre el visor del
+**Los avisos flotan, no empujan.** Las bandas —bloques largos, fórmulas que no caben en el
+ancho, bloques tapados, fallo de autoguardado, hoja apartada y el acuse efímero— van en una
+pila `absolute` sobre el visor del
 lienzo, no como hermanas de la fila de trabajo. Ahí eran hijas del mismo flex en columna que
 el visor, que es el único con `flex-1`: cada una que se montaba le robaba alto y el papel daba
 un salto, y la del acuse lo hacía dos veces porque se retira sola. La pila va
@@ -261,7 +262,7 @@ propósito: lo abre el usuario.
 
 **Un espaciador es una región de texto vacía**, y ocupa `ALTO_ESPACIADOR` (16 px, un paso de
 la cuadrícula) **en la hoja y en el papel**. Ese número vive en dos sitios que tienen que
-coincidir —la constante de `BloqueDoc.tsx` y `.doc-papel .wp-space` de `global.css`—, igual
+coincidir —la constante de `lib/bloque.ts` y `.doc-papel .wp-space` de `papel.css`—, igual
 que `A4` de `paginacion.ts` coincide con la regla `@page`: el canvas lo necesita para saber
 cuánto empujar al abrir el hueco, y el bloque para ocupar ese alto. `WorksheetPrint` conserva
 las vacías **solo si son de tipo texto**; una `math` o una `program` vacía no es un hueco, es
@@ -281,7 +282,14 @@ espaciador de la hoja se convertiría en el `<h1>`.
   tiene por qué leer. Lo que vota o entra —`in_*`, `v_*`, una salida declarada— no se
   esconde, y `validarMeta` lo rechaza. En el canvas la región sigue editable, atenuada y
   con un ⊘ al margen.
-- `usePaginacion.ts` — mide ese documento y reporta en qué página cae cada región.
+- `usePaginacion.ts` — mide ese documento y reporta en qué página cae cada región, y antes de
+  leer un solo alto ajusta sus fórmulas al ancho (ver «Nada se sale del papel» abajo).
+- `mensajes-motor.ts` — los errores de mathjs en español, para lo que se muestra. **El motor
+  deja el mensaje crudo** en `RegionResult.error`, porque la obra lo lee para sus flechas
+  (`RE_INDEFINIDO` busca «Undefined symbol») y `verify:motor` compara por texto; la
+  traducción se aplica al pintarlo (`BloqueDoc`, la tarjeta de la obra, `PanelResultados`, y
+  en Node por `cargarMensajes()` de `motor.mjs`). Vive fuera de `src/lib` por el sello, igual
+  que `informe-descartes.ts`. Los mensajes propios del motor ya están en español.
 
 **Capa motor** (`src/lib/`, pura, sin React — *mantenerla así*, para que siga siendo
 testeable y portable):
@@ -294,7 +302,8 @@ testeable y portable):
   en vez de dejar a lo de abajo calculando con el valor anterior. Y una variable que tapa una
   unidad del mismo nombre en posición de unidad (`s := 20 cm` y luego `3 m/s`) deja un
   `aviso` en el resultado: no es error ni cuenta en `verify:planillas`, y el canvas lo marca
-  al margen sin imprimirlo.
+  al margen sin imprimirlo. Un resultado **complejo** (la raíz o el logaritmo de un negativo)
+  es un error, no un número: en una memoria siempre delata un dato o una unidad equivocados.
 - `program.ts` — intérprete **imperativo** mínimo para las regiones `program`, porque mathjs
   no tiene control de flujo. Bloques definidos por **indentación** estilo Python (`if` /
   `else if` / `else`, `for … in range/list`, `while`, `break`/`continue`, `return`),
@@ -328,7 +337,15 @@ motor, extiende los módulos puros y mantén los componentes React delgados.
 
 ## Invariantes que cuestan caro romper
 
-- **Los estilos del bloque van FUERA de `@media print`** en `global.css`; el media query solo
+- **Nada se sale del papel (680 px).** Un texto parte una palabra larga (`overflow-wrap`), un
+  programa envuelve bajo su propia sangría (`lineasDePrograma` de `bloque.ts` + `.wp-l`), y
+  una fórmula cuyo tramo no cabe se encoge sola hasta `ESCALA_MINIMA` (75 %); si ni así, se
+  marca «↔» al margen y en la banda de avisos. El ajuste es **una sola función,
+  `ajustarAnchos` de `lib/ajuste-ancho.ts`, autocontenida** porque `render-html` la serializa
+  dentro del HTML: no puede nombrar nada de fuera de su cuerpo. La corren el `Katex` de
+  `BloqueDoc`, `medirBloques` antes de leer los altos y `beforeprint`, **siempre contra
+  `A4_ANCHO_PX`, nunca contra el contenedor** (la caja de interacción es `fit-content`).
+- **Los estilos del bloque van FUERA de `@media print`** en `papel.css`; el media query solo
   decide visibilidad. Ya no es una sutileza de medición: `.doc-papel` es el estilo **de la
   hoja**, y el canvas lo usa en pantalla todo el tiempo. Dentro del media query el canvas se
   quedaría sin él.

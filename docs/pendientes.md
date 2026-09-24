@@ -151,7 +151,14 @@ para la sesión de ajustes:
   `Map`. Hay que instrumentarlo desde Node.
 - Un esquema que llama a una función de usuario la evalúa con el scope **final** de la hoja,
   no con el de su posición.
-- NaN, infinitos y complejos se formatean mal (`Infinity` en cursiva, `1e+6i`).
+- NaN e infinitos se formatean mal (`Infinity` en cursiva) y un `0/0` en una región `math` no
+  es error. Los complejos ya lo son (`ERROR_COMPLEJO` en `worksheet.ts`); con `NaN` habría que
+  medir el corpus antes de decidir.
+- **Una variable con nombre de unidad que falla deja paso a la unidad, en silencio.** Con
+  `A := sqrt(-4)` en rojo, `B := A*2` da «2 A» —dos amperios— sin error propio: solo la región
+  de arriba se ve en rojo. Pasa igual con una variable que aún no se definió (`b` es el barn:
+  `b + 1` al menos falla por tipo, pero `2*b` no). El aviso de unidad tapada cubre el sentido
+  contrario (una variable que tapa una unidad), no este.
 - `atan` devuelve un número sin unidad, y `f(x) := …` en una región `math` da «Value expected
   (char 10)» sin decir que tiene que ir en un `program`.
 - `ones(20000, 20000)` agota la memoria dentro de math.js, y no es un error atrapable.
@@ -207,23 +214,20 @@ Por gravedad:
   igual.
 - **Rutas profundas sin *fallback* de SPA**: un despliegue estático sin `try_files` da 404 en
   cualquier recarga o enlace `?planilla=`.
-- El aviso de «bloques más altos que una A4» no dice cuáles; `usePaginacion` ya tiene la
-  lista.
 - Si el corte de página cae en el pie, la línea no se dibuja (`__footer` no es una región).
 - Las imágenes se descodifican enteras antes de mirar `file.size`; los SVG entran sin límite.
 - No se puede copiar texto del canvas: `select-none` va en la raíz de cada región.
 - Diálogos nativos (`confirm`/`alert`) en siete sitios; si el navegador los desactiva, varios
   errores se vuelven silenciosos.
 - Deshacer descarta siempre la selección; dos deep-links a la vez disparan dos cargas.
-- El textarea de un programa no tiene tope de ancho.
 - La copia apartada por un conflicto entre pestañas se descarga, no se restaura en la hoja.
 - Un espaciador solo se ve con el cursor encima: nada marca un hueco deliberado.
 - Falta `touch-action: none` en el arrastre: en táctil hace scroll.
-- **Limpieza pendiente dentro de `src/lib/`**, para el próximo cambio del motor (no vale un
-  resellado por sí sola): `ruta.ts` dice «cinco vistas» (son nueve); `abrirEnCanvas` de
-  `canvas-handoff.ts` quedó sin uso —lo reemplazó `components/canvas/abrir-en-canvas.ts`, que
-  no pisa la hoja— y su comentario cita un `loadInitial()` que ya no existe; y quedan «acá»
-  en comentarios. Fuera de `src/lib/` ya se corrigieron.
+- **El PDF de `render:planilla` no pagina igual que `/calibrar`.** Con el tamaño de KaTeX ya
+  igualado, `viga-ltb` coincide (6 páginas), pero `losa-unidireccional` da 18 contra 20 y
+  `viga-hss-flexion` 15 contra 17. El PDF de uso normal sale de «Imprimir» en el navegador,
+  así que no se persiguió; el HTML de consola lleva el mismo ajuste al ancho, que corre si se
+  abre en un navegador.
 - **Accesibilidad**: las regiones no tienen `tabIndex`, `role` ni `aria-`; no se recorren ni
   mueven sin ratón, y los estados se comunican solo por color; las figuras van con `alt=""`.
   Conviene esperar a la lista ordenada, donde «recorrer con el teclado» tiene respuesta obvia.

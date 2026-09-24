@@ -567,6 +567,7 @@ export function evaluateSheet(
       }
       aviso = avisoUnidadTapada(node, scope);
       let value = node.evaluate(scope);
+      if (esComplejo(value)) throw new Error(ERROR_COMPLEJO);
       if (parsed.targetUnit) {
         if (!math.isUnit(value)) throw new Error(`El resultado no tiene unidades, no se puede convertir a ${parsed.targetUnit}`);
         value = value.to(parsed.targetUnit);
@@ -741,6 +742,7 @@ function evalProgramRegion(src: string, scope: Record<string, unknown>): RegionR
   try {
     // Igual que en el closure de arriba: hereda del scope en vez de copiarlo.
     const value = runProgram(prog.body, Object.create(scope) as Record<string, unknown>, ctx);
+    if (esComplejo(value)) throw new Error(ERROR_COMPLEJO);
     if (prog.name) scope[prog.name] = value;
     let tex: string | undefined;
     if (value !== undefined) {
@@ -775,7 +777,36 @@ export function evalExpr(expr: string, scope: Record<string, unknown>): unknown 
   // Un token puede llamar a una función de usuario, que cuenta contra el tope:
   // que estrene contador, y no herede el de la última región de la hoja.
   ctx.guard = nuevoGuard();
-  return math.evaluate(expr, { ...scope });
+  const valor = math.evaluate(expr, { ...scope });
+  // Un rótulo «(1+2i)» sería el mismo número falso que la hoja ya no muestra:
+  // quien llama lo trata como un token que no resuelve.
+  if (esComplejo(valor)) throw new Error(ERROR_COMPLEJO);
+  return valor;
+}
+
+/**
+ * Lo que la hoja dice ante un resultado complejo.
+ *
+ * mathjs responde a la raíz de un negativo, a su logaritmo o a una potencia
+ * fraccionaria de un negativo con un número complejo, y la hoja lo mostraba
+ * como «(91,07 − 26,37i) cm²» sin una sola señal. En una memoria de cálculo eso
+ * es siempre un dato o una unidad equivocados más arriba —un número plausible y
+ * falso—, así que es un error y retira la variable como cualquier otro.
+ *
+ * Se detecta el resultado en vez de configurar `predictable: true`: ese modo
+ * devuelve `NaN`, que se propaga igual de callado (toda comparación con `NaN`
+ * da falso), y además cambia la semántica de `pow` en todo el motor.
+ */
+const ERROR_COMPLEJO =
+  'Da un número complejo: sale de una raíz, una potencia fraccionaria o un logaritmo de un negativo. Revisa los datos y las unidades.';
+
+/** ¿Es complejo, o lo contiene? Una cantidad con valor complejo y una matriz con algún complejo cuentan. */
+function esComplejo(v: unknown): boolean {
+  if (math.isComplex(v)) return true;
+  if (math.isUnit(v)) return math.isComplex((v as { value: unknown }).value);
+  if (math.isMatrix(v)) return esComplejo((v as { toArray(): unknown }).toArray());
+  if (Array.isArray(v)) return v.some(esComplejo);
+  return false;
 }
 
 /** Número compacto para rótulos: 4 cifras significativas, sin cola de ceros. */
@@ -827,7 +858,7 @@ function numSvg(n: unknown): string {
 
 /**
  * Valor como geometría para un ATRIBUTO SVG (`{{expr:svg}}`), que es otra cosa
- * que un rótulo: acá el consumidor es el parser del navegador, no un lector.
+ * que un rótulo: aquí el consumidor es el parser del navegador, no un lector.
  * Sale con PUNTO decimal, sin unidad y sin el redondeo a 4 cifras — la coma de
  * `formatValor` produce `width="211,4"`, que es SVG inválido y dibuja ancho cero.
  *
@@ -844,7 +875,7 @@ function numSvg(n: unknown): string {
 /**
  * Las filas de una matriz del scope, o `null` si el valor no es una.
  *
- * Una matriz de mathjs no es un array: hay que pasar por `valueOf()`. Vive acá y
+ * Una matriz de mathjs no es un array: hay que pasar por `valueOf()`. Vive aquí y
  * no en cada consumidor porque ya son dos —el `points` de un `<polyline>` y la
  * tabla de una salida `serie`— y con la comprobación repetida acabarían
  * discrepando en qué cuenta como matriz.
@@ -857,7 +888,7 @@ export function filasDeMatriz(v: unknown): unknown[] | null {
 export function formatSvg(v: unknown, unidad?: string): string {
   if (unidad) return numSvg(math.number(v as never, unidad as never));
   if (math.isUnit(v)) {
-    throw new Error('un atributo SVG no lleva unidad: convertila con `:unidad:svg`');
+    throw new Error('un atributo SVG no lleva unidad: conviértela con `:unidad:svg`');
   }
   if (typeof v === 'number') return numSvg(v);
 

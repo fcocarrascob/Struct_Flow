@@ -14,7 +14,12 @@ import { existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
-import { cargarMotor, ROOT } from './motor.mjs';
+import { cargarMotor, cargarMensajes, ROOT } from './motor.mjs';
+
+// Los informes (consola, `.eval.md`) muestran el error en español; lo que se
+// guarda en `v.errores` sigue siendo el crudo del motor, que es lo que se
+// compara. Ver `src/components/canvas/mensajes-motor.ts`.
+const { mensajeDeMotor } = await cargarMensajes();
 
 let motor;
 /** El motor, compilado una vez por proceso. */
@@ -273,7 +278,7 @@ export function informeConsola(v, { cwd = process.cwd() } = {}) {
   out.push('');
   for (const e of v.errores) {
     out.push(`  [ERROR] ${e.src}`);
-    out.push(`          ${e.error}`);
+    out.push(`          ${mensajeDeMotor(e.error)}`);
   }
   for (const h of v.hallazgosMeta) {
     out.push(`  [${h.severidad === 'error' ? 'ERROR' : 'AVISO'}] meta · ${h.codigo}: ${h.mensaje}`);
@@ -344,7 +349,7 @@ export function markdownEval(v, opciones = {}) {
       }
       // Un programa es multilínea; en una celda de tabla va en una sola línea.
       const src = f.src.replace(/\n\s*/g, ' · ');
-      if (f.tipo === 'error') md.push(`| — | \`${src}\` | ⚠ ${f.error} |`);
+      if (f.tipo === 'error') md.push(`| — | \`${src}\` | ⚠ ${mensajeDeMotor(f.error)} |`);
       else md.push(`| ${f.n} | \`${src}\` | ${f.valor} |`);
     }
   }

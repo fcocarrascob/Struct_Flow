@@ -12,7 +12,7 @@
 // único que no tiene contra qué contrastarse. Está escrito directo de la norma
 // y anotado como tal en la propia hoja.
 //
-// Igual que en el módulo de hormigón: acá no se calcula nada, se arma una hoja.
+// Igual que en el módulo de hormigón: aquí no se calcula nada, se arma una hoja.
 // Quien calcula es `evaluateSheet`.
 // ─────────────────────────────────────────────────────────────────────────────
 

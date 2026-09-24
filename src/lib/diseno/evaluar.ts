@@ -1,6 +1,6 @@
 // Evaluar un módulo y empaquetar su memoria.
 //
-// Vive acá y no dentro de la pantalla porque tiene dos consumidores: la
+// Vive aquí y no dentro de la pantalla porque tiene dos consumidores: la
 // interfaz y `verify:modulos`. Si el verificador reprodujera estos pasos por su
 // cuenta, comprobaría su propia copia y no lo que exporta el botón.
 

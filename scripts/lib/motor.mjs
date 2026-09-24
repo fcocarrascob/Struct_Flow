@@ -54,6 +54,15 @@ export function cargarMotor() {
   return compilarEntrada('src/lib/planilla-engine.ts');
 }
 
+/**
+ * `mensajeDeMotor`: los errores de mathjs en español, para lo que se imprime o
+ * se informa. Vive fuera de `src/lib` (ver su cabecera) y no importa mathjs, así
+ * que compilarlo aparte no crea una segunda instancia.
+ */
+export function cargarMensajes() {
+  return compilarEntrada('src/components/canvas/mensajes-motor.ts');
+}
+
 /** El catálogo de módulos de diseño más `layout` y `verificarSimbolos`. */
 export function cargarModulosDiseno() {
   return compilarEntrada('src/lib/diseno/engine.ts');

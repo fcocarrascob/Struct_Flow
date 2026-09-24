@@ -59,7 +59,7 @@ export function esEncabezado(region: Pick<Region, 'kind' | 'src'>): boolean {
 /**
  * Alto de un espaciador, en píxeles CSS.
  *
- * **Tiene que coincidir con `.doc-papel .wp-space` de `global.css`**, igual que
+ * **Tiene que coincidir con `.doc-papel .wp-space` de `papel.css`**, igual que
  * `A4` de `paginacion.ts` coincide con la regla `@page`: aquí lo necesita el
  * canvas para saber cuánto empujar hacia abajo al abrir el hueco, y allí lo
  * necesita el bloque para ocupar ese alto en la hoja y en el papel. Si
@@ -97,6 +97,44 @@ export function esEspaciador(region: Pick<Region, 'kind' | 'src'>): boolean {
  */
 export function seImprime(region: Pick<Region, 'kind' | 'src' | 'imprimir'>): boolean {
   return region.imprimir !== false && (region.src.trim() !== '' || esEspaciador(region));
+}
+
+/** Una línea del fuente de un programa, con su sangría en columnas. */
+export interface LineaPrograma {
+  /** Columnas de sangría: los espacios iniciales, contando un tabulador por 4. */
+  sangria: number;
+  /** La línea entera, con su sangría: copiar del papel conserva la indentación. */
+  texto: string;
+}
+
+/**
+ * El fuente de un programa partido en líneas, para imprimirlo con **sangría
+ * colgante**: una línea más ancha que el papel sigue en la línea de abajo, cuatro
+ * columnas más adentro que su propia sangría, en vez de salirse del margen.
+ *
+ * El papel lo dibujaba en un `<pre>` con `white-space: pre`, y una línea larga
+ * cruzaba el margen derecho: en la hoja, en la impresión y en el PDF. Envolver
+ * a secas pegaría la continuación al margen izquierdo y la indentación —que en
+ * un programa ES la estructura— se perdería de vista. Para envolver bajo su
+ * propia sangría, cada línea necesita saber cuánta tiene, y eso es lo que da
+ * esta función; el CSS (`.wp-l` en `papel.css`) hace el resto.
+ *
+ * Vive aquí porque la usan `BloqueDoc.tsx` y `render-html.ts`, que tienen que
+ * emitir el mismo marcado. Un salto de línea final no da una línea vacía: un
+ * `<pre>` tampoco la dibujaba, y el alto del bloque no debe cambiar por eso.
+ */
+export function lineasDePrograma(src: string): LineaPrograma[] {
+  const lineas = src.split('\n');
+  if (lineas.length > 1 && lineas[lineas.length - 1] === '') lineas.pop();
+  return lineas.map((texto) => {
+    let sangria = 0;
+    for (const c of texto) {
+      if (c === ' ') sangria += 1;
+      else if (c === '\t') sangria += 4;
+      else break;
+    }
+    return { sangria, texto };
+  });
 }
 
 /**

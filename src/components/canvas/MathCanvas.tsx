@@ -17,6 +17,7 @@ import CatalogoMenu from './CatalogoMenu';
 import { usePaginacion } from './usePaginacion';
 import { sinTransitorias, useHistorial } from './useHistorial';
 import { evaluateSheet, type Region, type RegionKind } from '../../lib/worksheet';
+import { ESCALA_MINIMA } from '../../lib/ajuste-ancho';
 import { FUNCIONES_BASE, variablesVisibles } from '../../lib/autocompletar';
 import {
   detectarSolapes,
@@ -89,6 +90,42 @@ const toolBtn =
  */
 const tarjetaAviso =
   'pointer-events-auto flex flex-col rounded border px-3 py-2 text-xs shadow-sm';
+
+/**
+ * Los bloques que nombra un aviso, cada uno con un clic que salta a él. Un aviso
+ * que dice «3 bloques» sin decir cuáles obliga a recorrer la hoja buscándolos.
+ */
+function ListaIrA({
+  ids,
+  regions,
+  onIr,
+}: {
+  ids: readonly string[];
+  regions: readonly Region[];
+  onIr: (id: string) => void;
+}) {
+  const MAX = 8;
+  const porId = new Map(regions.map((r) => [r.id, r]));
+  return (
+    <ul className="mt-1.5 flex flex-col gap-0.5">
+      {ids.slice(0, MAX).map((id) => {
+        const src = porId.get(id)?.src ?? id;
+        return (
+          <li key={id}>
+            <button
+              className="max-w-full truncate text-left font-mono text-[11px] underline decoration-amber-400 hover:text-amber-700"
+              onClick={() => onIr(id)}
+              title="Ir al bloque"
+            >
+              {src.length > 60 ? `${src.slice(0, 60)}…` : src}
+            </button>
+          </li>
+        );
+      })}
+      {ids.length > MAX && <li className="text-[11px]">y {ids.length - MAX} más</li>}
+    </ul>
+  );
+}
 
 /**
  * Cuántos canvas hay montados a la vez.
@@ -485,6 +522,8 @@ export default function MathCanvas({
   // que es lineal y distinto de este plano 2D: por eso el corte se anuncia
   // sobre la región que ABRE la página, que en orden de lectura es exacto.
   const paginacion = usePaginacion(regions, results);
+  /** Las regiones con una fórmula que no cabe en el ancho ni encogida al mínimo. */
+  const desbordadas = useMemo(() => new Set(paginacion.anchos), [paginacion.anchos]);
 
   /**
    * Los cortes, ya llevados a la geometría de la hoja. La `y` es la de la
@@ -1780,9 +1819,26 @@ export default function MathCanvas({
           <div className="pointer-events-none absolute right-3 top-3 z-40 flex w-[22rem] max-w-[calc(100%-1.5rem)] flex-col gap-1.5">
             {paginacion.largos.length > 0 && (
               <div className={`${tarjetaAviso} border-amber-300 bg-amber-50 text-amber-900`}>
-                ⚠ {paginacion.largos.length === 1 ? 'Un bloque es' : `${paginacion.largos.length} bloques son`}{' '}
-                más alto que una A4 completa: al imprimir se desborda de la página. Suele ser una
-                figura — achícala arrastrando su esquina.
+                <span>
+                  ⚠ {paginacion.largos.length === 1 ? 'Un bloque es' : `${paginacion.largos.length} bloques son`}{' '}
+                  más alto que una A4 completa: al imprimir se desborda de la página. Suele ser una
+                  figura — achícala arrastrando su esquina.
+                </span>
+                <ListaIrA ids={paginacion.largos} regions={regions} onIr={irARegion} />
+              </div>
+            )}
+
+            {paginacion.anchos.length > 0 && (
+              <div className={`${tarjetaAviso} border-amber-300 bg-amber-50 text-amber-900`}>
+                <span>
+                  {/* La concordancia va entera en cada rama, como en la de los
+                      bloques tapados: partida, el plural se cuela en el singular. */}
+                  ↔{' '}
+                  {paginacion.anchos.length === 1
+                    ? `Una fórmula no cabe en el ancho del papel ni encogida al ${Math.round(ESCALA_MINIMA * 100)} %: al imprimir se corta en el margen. Pártela en variables intermedias.`
+                    : `${paginacion.anchos.length} fórmulas no caben en el ancho del papel ni encogidas al ${Math.round(ESCALA_MINIMA * 100)} %: al imprimir se cortan en el margen. Pártelas en variables intermedias.`}
+                </span>
+                <ListaIrA ids={paginacion.anchos} regions={regions} onIr={irARegion} />
               </div>
             )}
 
@@ -2041,6 +2097,7 @@ export default function MathCanvas({
                   active={activeId === r.id}
                   selected={selected.has(r.id)}
                   tapada={tapadas.has(r.id)}
+                  desborda={desbordadas.has(r.id)}
                   titulo={r.id === idTitulo}
                   onChange={(src) => updateRegion(r.id, { src })}
                   onCommit={commitActive}

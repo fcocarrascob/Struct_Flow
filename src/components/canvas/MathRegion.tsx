@@ -40,6 +40,11 @@ interface Props {
   selected: boolean;
   /** Queda debajo de otra región: se señala para poder encontrarla. */
   tapada?: boolean;
+  /**
+   * Su fórmula no cabe en el ancho del papel ni encogida al mínimo
+   * (`ajustarAnchos`): se señala al margen, sin imprimirlo.
+   */
+  desborda?: boolean;
   /** Es la primera región de texto de la hoja: se dibuja como título. */
   titulo?: boolean;
   onChange: (src: string) => void;
@@ -81,6 +86,7 @@ function MathRegion({
   active,
   selected,
   tapada,
+  desborda,
   titulo,
   onChange,
   onCommit,
@@ -304,6 +310,18 @@ function MathRegion({
           ⚠
         </span>
       )}
+      {/* A la derecha del papel, que es por donde se sale: donde el ojo ya va
+          a mirar el corte. */}
+      {desborda && !active && (
+        <span
+          className="pointer-events-auto absolute top-0 -right-6 cursor-help select-none text-[13px] leading-5 text-amber-600"
+          title="Se sale del papel aun encogida al mínimo: al imprimir se corta en el margen. Pártela en variables intermedias."
+          aria-label="Se sale del papel"
+          role="img"
+        >
+          ↔
+        </span>
+      )}
       {/* Lo que no sale en el papel se señala al margen y se atenúa: sigue
           calculándose y alimentando al esquema, pero el autor tiene que poder
           ver de un vistazo que ese bloque no llega a la memoria. */}
@@ -362,12 +380,18 @@ function MathRegion({
         {active && isProgram ? (
           <textarea
             ref={(el) => {
+              // El mismo alto por `scrollHeight` que el texto: acotado al papel,
+              // una línea larga envuelve y el editor tiene que crecer con ella.
+              textoRef.current = el;
               registerInput(el);
               auto.registrar(el);
             }}
             autoFocus
-            className="resize-none bg-transparent font-mono text-[9.5pt] leading-snug text-ink outline-none"
-            style={{ width: `${progCols + 2}ch` }}
+            className="resize-none overflow-hidden bg-transparent font-mono text-[9.5pt] leading-snug text-ink outline-none"
+            // El ancho sigue a la línea más larga, pero nunca más que el papel:
+            // sin el tope, una línea de 120 caracteres se editaba en una caja que
+            // cruzaba el margen, y el bloque impreso la envolvía distinto.
+            style={{ width: `${progCols + 2}ch`, maxWidth: '100%' }}
             rows={progRows}
             value={region.src}
             placeholder={'S :=\n    s := 0\n    for i in 1:10\n        s := s + i\n    return s'}
@@ -550,5 +574,6 @@ export default memo(MathRegion, (a, b) => {
       x.pageBreak === y.pageBreak &&
       x.imprimir === y.imprimir)
   ) && a.result === b.result && a.active === b.active && a.selected === b.selected &&
-    a.tapada === b.tapada && a.titulo === b.titulo && a.sugerencias === b.sugerencias;
+    a.tapada === b.tapada && a.desborda === b.desborda && a.titulo === b.titulo &&
+    a.sugerencias === b.sugerencias;
 });

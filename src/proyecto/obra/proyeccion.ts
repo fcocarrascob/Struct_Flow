@@ -24,6 +24,7 @@
 import { parseMathRegion } from '../../lib/worksheet';
 import { peor, type AristaGrafo, type NodoGrafo, type Severidad } from '../grafo';
 import { quedoAtras, type Genericas } from './biblioteca';
+import { mensajeDeMotor } from '../../components/canvas/mensajes-motor';
 import { problemaDeGrafo, type EvaluacionObra } from './evaluacion';
 import { ID_NODO_SAP, idNodoDeCalculo } from './ids';
 import { grupoPorId, identificadoresDe, type Grupo, type NodoCalculo, type Obra, type Revision } from './modelo';
@@ -227,7 +228,7 @@ function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra,
     motivos.push(
       enGrafo
         ? `${errores.length} región(es) con error.`
-        : `${errores.length} región(es) con error: ${errores[0].error}`,
+        : `${errores.length} región(es) con error: ${mensajeDeMotor(errores[0].error)}`,
     );
     severidad = peor(severidad, 'error');
   }

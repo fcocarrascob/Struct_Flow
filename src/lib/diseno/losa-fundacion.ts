@@ -11,7 +11,7 @@
 // 8.5.1.1 para las condiciones de resistencia, 8.5.3.1.1 y 8.5.3.1.2 para el
 // corte en sus dos formas, 7.3.3.1 para la ductilidad.
 //
-// Las expresiones se copian de dos planillas del corpus, no se inventan acá:
+// Las expresiones se copian de dos planillas del corpus, no se inventan aquí:
 //   · `public/planillas/losa-punzonamiento-momento.json` — el punzonamiento de
 //     la Tabla 22.6.5.2 y los dos mínimos de 8.6.1;
 //   · `public/planillas/zapata-aislada.json` — el corte en una dirección con el
@@ -674,7 +674,7 @@ const POR_DEFECTO: EntradasLosaFundacion = {
  * interior de 50×50, recubrimiento 20 mm y φ12.
  *
  * `P_u` es el `V_marco` de esa planilla —que ella misma resuelve con un
- * `lusolve` sobre el marco— escrito acá como literal de precisión completa, con
+ * `lusolve` sobre el marco— escrito aquí como literal de precisión completa, con
  * el mismo razonamiento con que `seccion-acero-i` fija su `C_b`: si esa planilla
  * cambia, el contraste falla, que es exactamente lo que se le pide.
  */
@@ -770,13 +770,13 @@ export const losaFundacion: ModuloDiseno<EntradasLosaFundacion> = {
       // ACI 318-14 —0,17·(1 + 2/β) en vez de 0,17 + 0,33/β, y 0,083·(2 + α_s·d/b_0)
       // en vez de 0,17 + 0,083·α_s·d/b_0—, y este módulo es de una sola edición.
       // El punzonamiento se contrasta contra `losa-punzonamiento-momento`, que sí
-      // usa la forma de 318-25. Añadir acá `v_2a`, `v_2b` o `v_2c` metería la
+      // usa la forma de 318-25. Añadir aquí `v_2a`, `v_2b` o `v_2c` metería la
       // edición vieja por la puerta de atrás: no se hace.
       valores: [
         // EXACTO: los coeficientes de la edición SI y los dos límites de
         // 22.5.5.1.1, que solo dependen del material. Todos son de la Tabla
         // 22.5.5.1 de 318-19/25, ninguno arrastra la edición anterior. Y `v_c1`,
-        // que acá es el piso: es el contraste que de verdad importa.
+        // que aquí es el piso: es el contraste que de verdad importa.
         'fconv', 'rfck', 'k_clas', 'k_1d', 'k_piso', 'k_tope', 'k_2a',
         'v_piso', 'v_tope', 'v_c1',
 

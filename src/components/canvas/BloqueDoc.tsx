@@ -1,8 +1,11 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, type CSSProperties } from 'react';
 import katex from 'katex';
 import type { Region, RegionResult } from '../../lib/worksheet';
 import { renderEsquema, esRutaDeEsquema } from '../../lib/esquema';
+import { ajustarAnchos, ESCALA_MINIMA } from '../../lib/ajuste-ancho';
+import { A4_ANCHO_PX } from '../../lib/paginacion';
 import { useEsquema } from '../useEsquema';
+import { mensajeDeMotor } from './mensajes-motor';
 
 /**
  * Un bloque de la hoja, tal como se ve **y** tal como se imprime.
@@ -14,7 +17,7 @@ import { useEsquema } from '../useEsquema';
  * dentro del canvas es imposible: lo que se ve tiene que ser lo que sale, y
  * para eso tiene que ser lo mismo, no algo parecido.
  *
- * Aquí vive el marcado; el aspecto está en `global.css` bajo `.doc-papel`, que
+ * Aquí vive el marcado; el aspecto está en `papel.css` bajo `.doc-papel`, que
  * llevan los dos raíces. El chrome de edición —el anillo de selección, el
  * tirador de la imagen, el input— se queda en `MathRegion`, envolviendo a esto.
  *
@@ -42,13 +45,35 @@ interface Props {
   wpId?: string;
 }
 
-/** Render KaTeX imperativo (sin `dangerouslySetInnerHTML`). */
+/**
+ * Render KaTeX imperativo (sin `dangerouslySetInnerHTML`), ajustado al ancho del
+ * papel.
+ *
+ * El envoltorio lleva `data-ajuste`: es lo que busca `ajustarAnchos`, que encoge
+ * la fórmula si un tramo no cabe en `A4_ANCHO_PX` (ver `lib/ajuste-ancho.ts`).
+ * React no controla su `style`, así que el tamaño que le deja el ajuste
+ * sobrevive a los rerenders; por eso se reajusta tras cada `tex` nuevo. Y otra
+ * vez cuando cargan las tipografías: medir con la de respaldo daría otra escala.
+ */
 function Katex({ tex }: { tex: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   useEffect(() => {
-    if (ref.current) katex.render(tex, ref.current, { throwOnError: false });
+    const el = ref.current;
+    if (!el) return;
+    katex.render(tex, el, { throwOnError: false });
+    const ajustar = () => {
+      if (el.parentElement) ajustarAnchos(el.parentElement, A4_ANCHO_PX, ESCALA_MINIMA);
+    };
+    ajustar();
+    let vivo = true;
+    if (document.fonts && document.fonts.status !== 'loaded') {
+      void document.fonts.ready.then(() => vivo && ajustar());
+    }
+    return () => {
+      vivo = false;
+    };
   }, [tex]);
-  return <span ref={ref} />;
+  return <span ref={ref} className="wp-tex" data-ajuste="katex" />;
 }
 
 /**
@@ -103,7 +128,14 @@ function Esquema({
 // Qué es un encabezado, un espaciador o el título vive en `lib/bloque.ts`,
 // porque el render a HTML de Node (`render-html.ts`) tiene que decidirlo igual
 // que este componente. Se reexporta para que los importadores no cambien.
-import { nivelEncabezado, textoEncabezado, esEncabezado, esEspaciador, ALTO_ESPACIADOR } from '../../lib/bloque';
+import {
+  nivelEncabezado,
+  textoEncabezado,
+  esEncabezado,
+  esEspaciador,
+  lineasDePrograma,
+  ALTO_ESPACIADOR,
+} from '../../lib/bloque';
 export { nivelEncabezado, textoEncabezado, esEncabezado, esEspaciador, ALTO_ESPACIADOR };
 
 export default function BloqueDoc({ region, result, titulo, className = '', wpId }: Props) {
@@ -165,9 +197,12 @@ export default function BloqueDoc({ region, result, titulo, className = '', wpId
   // Un error se muestra junto a su fuente, y en el flujo. Antes el canvas lo
   // añadía DEBAJO del bloque, que es alto que el papel no tenía.
   if (result?.error) {
+    // El mensaje en español para leer; el crudo de mathjs queda en el `title`,
+    // que es lo que hace falta para buscarlo o reportarlo.
+    const mensaje = mensajeDeMotor(result.error);
     return (
-      <p className={clase('wp-eq wp-err')} {...rest}>
-        {region.src} — {result.error}
+      <p className={clase('wp-eq wp-err')} title={mensaje !== result.error ? result.error : undefined} {...rest}>
+        {region.src} — {mensaje}
       </p>
     );
   }
@@ -175,7 +210,15 @@ export default function BloqueDoc({ region, result, titulo, className = '', wpId
   if (region.kind === 'program') {
     return (
       <div className={clase('wp-prog')} {...rest}>
-        <pre>{region.src}</pre>
+        {/* Una línea por `span`, con su sangría en `--s`: es lo que deja envolver
+            una línea larga bajo su propia indentación (`lineasDePrograma`). */}
+        <pre>
+          {lineasDePrograma(region.src).map((l, i) => (
+            <span key={i} className="wp-l" style={{ '--s': l.sangria } as CSSProperties}>
+              {l.texto}
+            </span>
+          ))}
+        </pre>
         {result?.tex && (
           <span className="wp-prog-val">
             <span className="wp-flecha">→</span>

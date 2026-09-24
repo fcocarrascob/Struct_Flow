@@ -21,7 +21,9 @@ import type { Region, SheetResults } from './worksheet';
 import type { MetaPlanilla } from './biblioteca/contrato';
 import { renderEsquema, esRutaDeEsquema } from './esquema';
 import { ordenDeLectura } from './orden-lectura';
-import { nivelEncabezado, textoEncabezado, esEspaciador, regionTitulo, seImprime } from './bloque';
+import { nivelEncabezado, textoEncabezado, esEspaciador, regionTitulo, seImprime, lineasDePrograma } from './bloque';
+import { ajustarAnchos, ESCALA_MINIMA } from './ajuste-ancho';
+import { A4_ANCHO_PX } from './paginacion';
 
 export interface OpcionesRender {
   /** Texto de cada SVG de `/esquemas/`, por `src`. Quien llama lo lee del disco. */
@@ -38,6 +40,14 @@ export interface OpcionesRender {
    * sale igual.
    */
   programas?: 'visibles' | 'plegados';
+  /**
+   * Cómo se redacta un error del motor en el papel. Por defecto, tal cual.
+   *
+   * Es un parámetro porque la traducción al español vive fuera de `src/lib`
+   * (`components/canvas/mensajes-motor.ts`, para que afinar una frase no
+   * reselle el motor) y este módulo no puede importarla: quien llama la pasa.
+   */
+  mensajeError?: (crudo: string) => string;
 }
 
 export function escaparHtml(s: unknown): string {
@@ -50,7 +60,9 @@ export function escaparHtml(s: unknown): string {
 
 function tex(t: string | undefined, src: string): string {
   if (!t) return `<span class="wp-raw">${escaparHtml(src)}</span>`;
-  return katex.renderToString(t, { throwOnError: false, displayMode: false });
+  // El mismo envoltorio que `Katex` de `BloqueDoc.tsx`: es lo que busca
+  // `ajustarAnchos` en el script que lleva el documento.
+  return `<span class="wp-tex" data-ajuste="katex">${katex.renderToString(t, { throwOnError: false, displayMode: false })}</span>`;
 }
 
 function fechaHoy(): string {
@@ -129,12 +141,15 @@ export function renderHtml(
     }
 
     if (res.error) {
-      bloques.push(`<p class="${clase('wp-eq wp-err')}"${rest}>${escaparHtml(r.src)} — ${escaparHtml(res.error)}</p>`);
+      const mensaje = opciones.mensajeError ? opciones.mensajeError(res.error) : res.error;
+      bloques.push(`<p class="${clase('wp-eq wp-err')}"${rest}>${escaparHtml(r.src)} — ${escaparHtml(mensaje)}</p>`);
       continue;
     }
 
     if (r.kind === 'program') {
-      const fuente = `<pre>${escaparHtml(r.src)}</pre>`;
+      const fuente = `<pre>${lineasDePrograma(r.src)
+        .map((l) => `<span class="wp-l" style="--s:${l.sangria}">${escaparHtml(l.texto)}</span>`)
+        .join('')}</pre>`;
       const cuerpo =
         programas === 'plegados'
           ? `<details open class="wp-src"><summary>las ramas del programa</summary>${fuente}</details>`
@@ -162,8 +177,32 @@ export function renderHtml(
   return `<div class="worksheet-print doc-papel">\n${bloques.join('\n')}\n</div>`;
 }
 
+/**
+ * El script que ajusta las fórmulas al ancho del papel en el navegador que abra
+ * el documento: la MISMA función que corren el canvas y el documento de
+ * impresión, serializada. Espera a las tipografías, porque medir con la de
+ * respaldo daría otra escala, y deja en `<html data-ajuste>` los ids que no
+ * caben ni encogidos («-» si ninguno), para quien quiera comprobarlo.
+ */
+export function scriptAjuste(): string {
+  return (
+    `<script>(function(){var f=(${ajustarAnchos.toString()});` +
+    `function correr(){var r=document.querySelector('.worksheet-print');if(!r)return;` +
+    `var d=f(r,${A4_ANCHO_PX},${ESCALA_MINIMA});document.documentElement.setAttribute('data-ajuste',d.join(' ')||'-');}` +
+    `(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(correr);` +
+    `window.addEventListener('beforeprint',correr);})();</script>`
+  );
+}
+
 /** Un documento completo alrededor del cuerpo: quien llama aporta el CSS. */
-export function documentoHtml(d: { titulo: string; cuerpo: string; css: string; extraHead?: string }): string {
+export function documentoHtml(d: {
+  titulo: string;
+  cuerpo: string;
+  css: string;
+  extraHead?: string;
+  /** El script de ajuste al ancho. Por defecto va; `false` da un HTML sin JS. */
+  ajuste?: boolean;
+}): string {
   return `<!doctype html>
 <html lang="es">
 <head>
@@ -177,6 +216,7 @@ ${d.css}
 </head>
 <body>
 ${d.cuerpo}
+${d.ajuste === false ? '' : scriptAjuste()}
 </body>
 </html>
 `;

@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Las rutas de la aplicación, sin dependencias.
 //
-// Hay cinco vistas y el repo tiene cuatro dependencias de runtime; traer un
+// Hay ocho vistas y el repo tiene cinco dependencias de runtime; traer un
 // router entero para esto sería desproporcionado. Vive en `src/lib/` y no
 // importa React a propósito: parsear y construir una URL es lógica pura, y el
 // invariante de esta capa es que se pueda usar (y probar) fuera del navegador.

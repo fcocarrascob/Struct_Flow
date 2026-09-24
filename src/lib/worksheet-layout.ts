@@ -2,7 +2,7 @@
 //
 // Vive aparte de worksheet-templates.ts porque quien genera una hoja no siempre
 // necesita el motor: los tipos de `worksheet` son type-only y se borran al
-// compilar, así que importar de acá NO arrastra mathjs al bundle. El generador
+// compilar, así que importar de aquí NO arrastra mathjs al bundle. El generador
 // de memorias del verificador de secciones depende de eso.
 
 import type { Region, RegionKind } from './worksheet';

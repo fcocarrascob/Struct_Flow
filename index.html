@@ -14,15 +14,8 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
-    <!-- KaTeX 0.16.11, la MISMA versión de CSS que sirve struct_pad. El paquete npm
-         es 0.17, así que hay una discrepancia heredada — está anotada en el README.
-         No subirla a la ligera: `paginacion.ts` está calibrado al píxel contra PDFs
-         reales y los cortes de página dependen de estas métricas tipográficas. -->
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
-      crossorigin="anonymous"
-    />
+    <!-- El CSS de KaTeX lo importa `src/main.tsx` desde el paquete npm: la misma
+         versión que compone las fórmulas y que incrusta `render-planilla`. -->
   </head>
   <!-- `#root` va como hijo DIRECTO de <body>: WorksheetPrint monta su portal en
        document.body y la regla de impresión `body > :not(.worksheet-print)` es un

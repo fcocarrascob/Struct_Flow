@@ -9,6 +9,7 @@ import {
   type Pagina,
 } from '../../lib/paginacion';
 import type { Region, SheetResults } from '../../lib/worksheet';
+import { ajustarAnchos, ESCALA_MINIMA } from '../../lib/ajuste-ancho';
 
 /**
  * Mide el documento de impresión y devuelve en qué página A4 cae cada región.
@@ -33,22 +34,22 @@ export interface Paginacion {
   cortes: { id: string; pagina: number }[];
   /** Regiones más altas que una página entera: se imprimen desbordadas. */
   largos: string[];
+  /** Regiones con una fórmula que no cabe en el ancho ni encogida al mínimo. */
+  anchos: string[];
 }
 
-const VACIA: Paginacion = { paginas: [], porRegion: new Map(), cortes: [], largos: [] };
+const VACIA: Paginacion = { paginas: [], porRegion: new Map(), cortes: [], largos: [], anchos: [] };
 
 /**
- * Altos de cada bloque del documento, con el colapso de márgenes resuelto.
+ * Corre `fn` con el documento de impresión destapado fuera de la pantalla, con
+ * el ancho exacto de la caja de contenido de una A4, y lo vuelve a tapar.
  *
- * Se exporta porque la vista de calibración (`/calibrar`) mide las 33 planillas
- * con este mismo código. Medirlas con una copia sería medir la copia: el punto
- * de esa vista es contrastar contra lo que de verdad se imprime.
+ * Tapado (`display: none`) no se puede medir nada. `fixed` lo saca del flujo:
+ * nada de la página se mueve mientras dura. Todo ocurre dentro del mismo frame,
+ * así que el usuario no ve el parpadeo.
  */
-export function medirBloques(root: HTMLElement, saltos: Set<string>): Bloque[] {
+export function conDocumentoDestapado<T>(root: HTMLElement, fn: () => T): T {
   const previo = root.getAttribute('style');
-
-  // Fuera de la pantalla, con el ancho exacto del papel. `fixed` lo saca del
-  // flujo: nada de la página se mueve mientras dura la medición.
   Object.assign(root.style, {
     display: 'block',
     position: 'fixed',
@@ -58,7 +59,37 @@ export function medirBloques(root: HTMLElement, saltos: Set<string>): Bloque[] {
     visibility: 'hidden',
     pointerEvents: 'none',
   });
+  try {
+    return fn();
+  } finally {
+    if (previo === null) root.removeAttribute('style');
+    else root.setAttribute('style', previo);
+  }
+}
 
+/**
+ * Altos de cada bloque del documento, con el colapso de márgenes resuelto, y
+ * los bloques cuya fórmula no cabe en el ancho.
+ *
+ * Antes de leer un solo alto se ajustan las fórmulas al ancho
+ * (`ajustarAnchos`): una fórmula encogida mide menos, y la paginación tiene que
+ * contar con el alto que de verdad se imprime.
+ *
+ * Se exporta porque la vista de calibración (`/calibrar`) mide las 33 planillas
+ * con este mismo código. Medirlas con una copia sería medir la copia: el punto
+ * de esa vista es contrastar contra lo que de verdad se imprime.
+ */
+export function medirBloques(
+  root: HTMLElement,
+  saltos: Set<string>,
+): { bloques: Bloque[]; anchos: string[] } {
+  return conDocumentoDestapado(root, () => {
+    const anchos = ajustarAnchos(root, A4_ANCHO_PX, ESCALA_MINIMA);
+    return { bloques: leerBloques(root, saltos), anchos };
+  });
+}
+
+function leerBloques(root: HTMLElement, saltos: Set<string>): Bloque[] {
   const bloques: Bloque[] = [];
   for (const el of root.querySelectorAll<HTMLElement>('[data-wp-id]')) {
     const cs = getComputedStyle(el);
@@ -81,10 +112,6 @@ export function medirBloques(root: HTMLElement, saltos: Set<string>): Bloque[] {
       pegaAlSiguiente: cs.breakAfter === 'avoid',
     });
   }
-
-  if (previo === null) root.removeAttribute('style');
-  else root.setAttribute('style', previo);
-
   return bloques;
 }
 
@@ -103,7 +130,7 @@ export function usePaginacion(regions: Region[], results: SheetResults): Paginac
       const root = document.querySelector<HTMLElement>('.worksheet-print');
       if (!root || cancelado) return;
       const saltos = new Set(regions.filter((r) => r.pageBreak).map((r) => r.id));
-      const bloques = medirBloques(root, saltos);
+      const { bloques, anchos } = medirBloques(root, saltos);
       if (cancelado || bloques.length === 0) return;
       const paginas = paginar(bloques);
       setPag({
@@ -111,6 +138,7 @@ export function usePaginacion(regions: Region[], results: SheetResults): Paginac
         porRegion: paginaPorBloque(paginas),
         cortes: cortesDe(paginas),
         largos: bloques.filter((b) => b.alto > A4_ALTO_UTIL_PX).map((b) => b.id),
+        anchos,
       });
     };
 

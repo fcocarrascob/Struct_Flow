@@ -1,6 +1,10 @@
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { redirigirDeepLinkAntiguo } from './lib/ruta';
+// El CSS de KaTeX del mismo paquete que compone las fórmulas y que incrusta el
+// PDF de `render-planilla`. Antes venía de un CDN en otra versión (0.16.11 contra
+// la 0.17 de npm), así que el canvas y el PDF medían con métricas distintas.
+import 'katex/dist/katex.min.css';
 import './styles/global.css';
 
 // Antes del primer render: los deep-links publicados apuntan a `/?planilla=…`,

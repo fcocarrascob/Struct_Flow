@@ -111,6 +111,11 @@ siguiente lo corrige. No afecta a las alturas —la figura reserva su tamaño co
 desde el principio— ni a lo que se imprime. Queda anotado porque es ruido que confunde al
 depurar, no porque haya que arreglarlo ahora.
 
+**Arreglado el 2026-09-24**, junto con una segunda causa que el primer diagnóstico no vio: al
+montar otra planilla en el mismo componente, `useEsquema` devolvía un render más el SVG de la
+anterior, resuelto contra el scope nuevo. `/calibrar` pasó de 105 errores de consola a cero,
+con las 33 firmas de altos idénticas.
+
 ---
 
 # Después de la fase 3 (renderizado unificado)
@@ -266,3 +271,47 @@ px, ajustado a la cuadrícula) en lugar del paso fijo de 48/80 px. Encadenando t
 en el canvas los saltos salen de **48 px**, que es el paso con el que están escritas 7.471 de
 las 8.344 separaciones del corpus; un texto de tres líneas deja el siguiente 80 px más abajo,
 y un bloque de programa, por debajo de sí mismo en vez de encima.
+
+---
+
+# Después de «nada se sale del papel» (2026-09-24)
+
+Cuatro cambios en el papel, medidos con `/calibrar`, que desde esta tanda anota además una
+**firma de altos** por planilla (FNV-1a de los altos de todos sus bloques, redondeados al
+píxel) y cuántas fórmulas encogió o dio por desbordadas el ajuste al ancho:
+
+1. **KaTeX al mismo tamaño en los tres papeles.** `.doc-papel .katex { font-size: 1em }` pasa
+   a `papel.css`; antes solo lo tenía `global.css`, que el HTML de `render-planilla` no carga,
+   y ahí las fórmulas salían un 21 % más grandes. El CSS de KaTeX sale del paquete npm (0.17)
+   en vez del CDN (0.16.11). **En el canvas: 33 firmas idénticas**; en el PDF de consola,
+   `viga-ltb` pasa de 7 a 6 páginas y coincide con `/calibrar`.
+2. **Textos**: `overflow-wrap: anywhere`. Solo actúa ante una palabra más ancha que el papel;
+   ninguna del corpus lo es.
+3. **Programas con sangría colgante** (`lineasDePrograma` + `.wp-l`): una línea más ancha que
+   el papel sigue abajo, bajo su propia sangría más cuatro columnas, en vez de cruzar el
+   margen.
+4. **Fórmulas que se encogen hasta el 75 %** (`ajustarAnchos`), y si ni así caben, se marcan.
+
+## Lo que cambia en el papel: 290 → 290 páginas
+
+| Planilla | Firma antes | Firma ahora | Páginas |
+|---|---|---|---:|
+| losa-unidireccional | `c4d8885f` | `66b29def` | 20 = 20 |
+| viga-hss-flexion | `6df9ab3e` | `718166d5` | 17 = 17 |
+| las otras 31 | — | idénticas | sin cambio |
+
+**La comprobación que descarta otra causa:** las dos únicas firmas que cambian son las de las
+dos planillas con líneas de programa de más de ~88 caracteres —el ancho del papel en JetBrains
+Mono a 9,5 pt—: `ffila` en la losa y tres regiones de la viga HSS. Esas líneas cruzaban el
+margen derecho y ahora envuelven. Las otras 31 se quedan bloque a bloque donde estaban, así
+que ni el marcado nuevo del programa (un `span` por línea) ni el envoltorio de KaTeX mueven
+nada que ya cabía. El ajuste al ancho da **0 fórmulas encogidas y 0 desbordadas** en las 33:
+la más ancha del corpus cabe, como se había anotado en `papel.css`.
+
+El reporte de `verify-planilla.mjs` sigue idéntico byte a byte (md5
+`9af17f8e51a95cc46c85fdf29ce42e91`).
+
+**Una trampa de la medición, para la próxima vez:** si Google Fonts no carga, TODAS las firmas
+cambian y varias planillas ganan o pierden una página, porque se mide con la tipografía de
+respaldo. Antes de dar por buena una medición, comprobar que `document.fonts` tiene Inter y
+JetBrains Mono cargadas.

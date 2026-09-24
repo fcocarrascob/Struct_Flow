@@ -18,9 +18,9 @@
 // la hoja aunque el cálculo esté bien.
 
 import katex from 'katex';
-import { cargarMotor } from './lib/motor.mjs';
+import { cargarMotor, cargarMensajes } from './lib/motor.mjs';
 
-const { evaluateSheet, renderEsquema, renderHtml } = await cargarMotor();
+const { evaluateSheet, renderEsquema, renderHtml, documentoHtml, ajustarAnchos } = await cargarMotor();
 
 /** Una hoja a partir de `[tipo, src]`, apiladas en orden de lectura. */
 function hoja(...filas) {
@@ -250,6 +250,69 @@ const CASOS = [
         (String(inicial.a) !== '5' ? `la hoja pisó «a» del llamador: ${inicial.a}` : null),
     };
   })(),
+
+  // --- Números complejos ------------------------------------------------------
+  //
+  // mathjs responde a la raíz de un negativo con un complejo, y la hoja lo
+  // mostraba como «(91,07 − 26,37i) cm²» sin una sola señal: un número plausible
+  // y falso, que es la peor clase de fallo. En una memoria de cálculo un
+  // complejo es siempre un dato o una unidad equivocados, así que es un error.
+  {
+    nombre: 'la raíz de un negativo es un error, no un complejo',
+    hoja: hoja(m('A := sqrt(-4) =')),
+    ok: esperaError('r0', /complejo/),
+  },
+  {
+    nombre: 'con unidades también',
+    hoja: hoja(m('a := -2 m^2'), m('b := sqrt(a) = m')),
+    ok: esperaError('r1', /complejo/),
+  },
+  {
+    nombre: 'el logaritmo de un negativo es un error',
+    hoja: hoja(m('c := log(-1) =')),
+    ok: esperaError('r0', /complejo/),
+  },
+  {
+    nombre: 'una potencia fraccionaria de un negativo es un error',
+    hoja: hoja(m('x := (-8)^(1/3) =')),
+    ok: esperaError('r0', /complejo/),
+  },
+  {
+    nombre: 'una región que solo muestra un complejo también es un error',
+    hoja: hoja(m('sqrt(-9) =')),
+    ok: esperaError('r0', /complejo/),
+  },
+  {
+    // Con un nombre que no es unidad: retirada `A`, `A*2` serían dos amperios.
+    nombre: 'el complejo no se propaga como número: lo de abajo no lo encuentra',
+    hoja: hoja(m('raiz_1 := sqrt(-4)'), m('doble := raiz_1*2 =')),
+    ok: todas(esperaError('r0', /complejo/), esperaError('r1')),
+  },
+  {
+    nombre: 'un programa que devuelve un complejo es un error',
+    hoja: hoja(p('r :=\n    return sqrt(-1)')),
+    ok: esperaError('r0', /complejo/),
+  },
+  {
+    nombre: 'una función de usuario que da un complejo lo delata donde se usa',
+    hoja: hoja(p('f(x) :=\n    return sqrt(x)'), m('y := f(-1) =')),
+    ok: esperaError('r1', /complejo/),
+  },
+  {
+    nombre: 'un vector con un complejo es un error',
+    hoja: hoja(m('v := [sqrt(4), sqrt(-4)] =')),
+    ok: esperaError('r0', /complejo/),
+  },
+  {
+    nombre: 'la raíz de un positivo sigue igual',
+    hoja: hoja(m('z := sqrt(4) =')),
+    ok: esperaValor('r0', '2'),
+  },
+  {
+    nombre: 'una comparación con un complejo intermedio no se cuela como veredicto',
+    hoja: hoja(m('sqrt(-4) < 1')),
+    ok: esperaError('r0'),
+  },
 ];
 
 // --- Esquema paramétrico: `data-repetir` ------------------------------------
@@ -345,6 +408,12 @@ const CASOS_ESQUEMA = [
     ok: (e) => sinFaltantes(e) ?? (!e.svg.includes('usa data-repetir para repetir') ? `tocó el texto: ${e.svg}` : null),
   },
   {
+    nombre: 'un token que da un complejo cae en faltantes, no se rotula «(1+2i)»',
+    scope: () => scopeDe(p('f(x) :=\n    return sqrt(x)')),
+    svg: '<svg><text>{{f(-1)}}</text></svg>',
+    ok: conFaltante(/f\(-1\)/),
+  },
+  {
     nombre: 'un color calculado como texto entra por el token normal',
     scope: () => scopeDe(m('ok := 3 > 5'), m('color := ok ? "#111827" : "#dc2626"')),
     svg: '<svg><line stroke="{{color}}" x1="0" x2="1" y1="0" y2="1"/></svg>',
@@ -391,9 +460,117 @@ const CASOS_PAPEL = [
     ok: (html) =>
       html.includes('<h1>TÍTULO DE VERDAD</h1>') ? null : `el título salió de la región oculta: ${html}`,
   },
+
+  // --- Nada se sale del papel --------------------------------------------------
+  {
+    nombre: 'una fórmula va en el envoltorio que ajusta al ancho, igual que en el canvas',
+    hoja: () => hoja(['text', 'TÍTULO'], m('k := 7 =')),
+    ok: (html) =>
+      /<span class="wp-tex" data-ajuste="katex"><span class="katex">/.test(html)
+        ? null
+        : `falta el envoltorio wp-tex: ${html.slice(0, 400)}`,
+  },
+  {
+    nombre: 'un programa sale una línea por span, con su sangría',
+    hoja: () => hoja(['text', 'TÍTULO'], p('r :=\n    a := 2\n\n    return a\n')),
+    ok: (html) => {
+      const lineas = html.match(/<span class="wp-l" style="--s:\d+">[^<]*<\/span>/g) ?? [];
+      if (lineas.length !== 4) return `se esperaban 4 líneas (sin la del salto final), hubo ${lineas.length}: ${lineas.join('')}`;
+      if (!lineas[1].includes('--s:4">    a := 2')) return `la sangría no llegó: ${lineas[1]}`;
+      if (!lineas[2].includes('--s:0"></span>')) return `la línea en blanco no quedó vacía: ${lineas[2]}`;
+      return null;
+    },
+  },
 ];
 
+// El script de ajuste que lleva el HTML de `render-planilla` es la función
+// serializada: si nombrara algo de fuera de su cuerpo, compilaría aquí y
+// reventaría en el navegador que abre el documento. Se compila y se corre
+// contra una raíz sin fórmulas, que es lo que caza una referencia libre.
+const CASOS_AJUSTE = [
+  {
+    nombre: 'el documento lleva el script de ajuste, y compila',
+    ok: () => {
+      const doc = documentoHtml({ titulo: 't', cuerpo: '', css: '' });
+      const m = /<script>([\s\S]*?)<\/script>/.exec(doc);
+      if (!m) return 'el documento no lleva el script de ajuste';
+      try {
+        new Function(m[1]);
+      } catch (e) {
+        return `el script no compila: ${e.message}`;
+      }
+      return documentoHtml({ titulo: 't', cuerpo: '', css: '', ajuste: false }).includes('<script>')
+        ? 'con «ajuste: false» sigue llevando script'
+        : null;
+    },
+  },
+  {
+    nombre: 'la función de ajuste es autocontenida: corre sola, sin nada de su módulo',
+    ok: () => {
+      const f = new Function(`return (${ajustarAnchos.toString()})`)();
+      const r = f({ querySelectorAll: () => [] }, 680, 0.75);
+      return Array.isArray(r) && r.length === 0 ? null : `devolvió ${JSON.stringify(r)}`;
+    },
+  },
+];
+
+// --- Los errores de mathjs, en español ---------------------------------------
+//
+// El motor deja el mensaje crudo (la obra lo lee para sus flechas) y la capa de
+// presentación lo traduce. Estos casos son la red ante una actualización de
+// mathjs que cambie un texto: si el crudo cambia, la regex deja de reconocerlo
+// y el usuario vuelve a ver inglés sin que nada avise.
+const { mensajeDeMotor } = await cargarMensajes();
+const INGLES = /\b(the|of|is|not|do|does|expected|unexpected|undefined|function|argument|found|match)\b/i;
+
+const CASOS_MENSAJES = [
+  ['a := b_no_existe + 1', /Undefined symbol/, /«b_no_existe» no está definida/],
+  ['a := g_no(3)', /Undefined function/, /la función «g_no» no está definida/],
+  ['a := 1 kN + 2 m', /Units do not match/, /unidades no casan/],
+  ['a := 3 kN = m', /Units do not match/, /«3 kN» no se puede expresar en «m»/],
+  ['a := 3 kilopondios', /Undefined symbol/, /«kilopondios»/],
+  ['a := sqrt("x")', /Cannot convert/, /«x» no es un número/],
+  ['a := sqrt()', /Too few arguments/, /faltan argumentos en sqrt/],
+  ['a := round(1, 2, 3, 4)', /Too many arguments/, /sobran argumentos en round: admite 2 y recibió 4/],
+  ['a := [1, 2] + [1, 2, 3]', /shape mismatch/, /los tamaños no coinciden/],
+  ['a := [1, 2; 3, 4] * [1, 2, 3]', /Dimension mismatch/, /2 columnas y el vector 3/],
+  ['a := [1,2][0]', /Index out of range/, /índice fuera de rango: 0/],
+  ['a := (1 + 2', /Parenthesis \) expected/, /falta cerrar un paréntesis \(carácter \d+\)/],
+  ['a := 1 +', /Unexpected end of expression/, /termina de golpe/],
+  ['a := 1 2 3 4', /Unexpected part/, /sobra «2»/],
+  ['a := b + 1', /Unexpected type of argument/, /tipo inesperado en el argumento 2 de addScalar/],
+  ['sqrt(-4) < 1', /No ordering relation/, /no se pueden comparar números complejos/],
+].map(([src, crudo, espanol]) => ({
+  nombre: `mensaje en español: ${src}`,
+  ok: () => {
+    const e = evaluateSheet(hoja(m(src))).r0?.error;
+    if (!e) return `«${src}» no dio error`;
+    if (!crudo.test(e)) return `el crudo de mathjs cambió: «${e}»`;
+    const t = mensajeDeMotor(e);
+    // Sin distinguir mayúsculas: la traducción que abre el mensaje lleva la
+    // inicial en mayúscula.
+    if (!new RegExp(espanol.source, 'i').test(t)) return `traducción inesperada: «${t}» (crudo «${e}»)`;
+    const resto = t.replace(/«[^»]*»/g, '');
+    return INGLES.test(resto) ? `quedó inglés: «${t}»` : null;
+  },
+}));
+
 let fallos = 0;
+for (const caso of [...CASOS_AJUSTE, ...CASOS_MENSAJES]) {
+  let motivo;
+  try {
+    motivo = caso.ok();
+  } catch (e) {
+    motivo = `lanzó: ${e.message}`;
+  }
+  if (motivo) {
+    fallos++;
+    console.log(`  [FALLA] ${caso.nombre}\n          ${motivo}`);
+  } else {
+    console.log(`  [ OK  ] ${caso.nombre}`);
+  }
+}
+
 for (const caso of CASOS_PAPEL) {
   let motivo;
   try {
@@ -454,6 +631,7 @@ for (const caso of CASOS) {
   }
 }
 
-const total = CASOS.length + CASOS_ESQUEMA.length + CASOS_PAPEL.length;
+const total =
+  CASOS.length + CASOS_ESQUEMA.length + CASOS_PAPEL.length + CASOS_AJUSTE.length + CASOS_MENSAJES.length;
 console.log(`\n${fallos ? 'FALLA' : 'OK'}: ${total - fallos} de ${total} casos.\n`);
 process.exit(fallos ? 1 : 0);

@@ -29,6 +29,7 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { verificarPlanilla, informeConsola, motorCompartido, ROOT } from './lib/planilla.mjs';
+import { cargarMensajes } from './lib/motor.mjs';
 
 const args = process.argv.slice(2);
 
@@ -73,8 +74,13 @@ if (!v.ok) {
 }
 
 const { renderHtml, documentoHtml } = await motorCompartido();
+const { mensajeDeMotor } = await cargarMensajes();
 
-const cuerpo = renderHtml(v.regions, v.results, v.meta, { esquemas: v.esquemas, programas });
+const cuerpo = renderHtml(v.regions, v.results, v.meta, {
+  esquemas: v.esquemas,
+  programas,
+  mensajeError: mensajeDeMotor,
+});
 const css = [
   await cssKatex(),
   await readFile(path.join(ROOT, 'src', 'styles', 'papel.css'), 'utf8'),

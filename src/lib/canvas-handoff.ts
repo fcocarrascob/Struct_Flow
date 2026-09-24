@@ -1,10 +1,11 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Entrega de una hoja generada al canvas matemático.
 //
-// Vive acá y no dentro del generador de una herramienta porque nada de esto es
-// específico de un dominio: escribir el slot de `localStorage` que `loadInitial()`
-// de MathCanvas lee al montar, confirmar antes de pisar trabajo guardado, y
-// descargar el .json en el mismo formato que lee `npm run verify:planilla`.
+// Vive aquí y no dentro del generador de una herramienta porque nada de esto es
+// específico de un dominio: el formato de la hoja y descargarla como .json en
+// el mismo formato que lee `npm run verify:planilla`. Mandarla al canvas es
+// `abrirEnCanvas` de `components/canvas/abrir-en-canvas.ts`, que la deja en
+// espera en vez de pisar la hoja guardada.
 //
 // El guardián de símbolos viaja junto porque tiene la misma naturaleza: revisa
 // que la hoja sea EJECUTABLE antes de entregarla. Nació de un error real en la
@@ -16,7 +17,6 @@
 import type { Item } from './worksheet-layout';
 import type { Region } from './worksheet';
 import type { MetaPlanilla } from './biblioteca/contrato';
-import { STORAGE_KEY, hayTrabajoGuardado } from './hoja-guardada';
 
 /**
  * El formato que leen el canvas, el import/export y `verify:planilla`.
@@ -117,40 +117,6 @@ export function verificarSimbolos(items: Item[]): void {
         'Falta emitir el bloque que los define.'
     );
   }
-}
-
-/**
- * Escribe la hoja en el slot del canvas y navega a `/canvas`. `loadInitial()`
- * de MathCanvas lee esa clave al montar, así que la hoja aparece cargada.
- *
- * Se navega con `location.href` y no con el router de la aplicación: la recarga
- * completa es lo que garantiza que `MathCanvas` monte de cero y vuelva a leer
- * el slot.
- */
-export function abrirEnCanvas(hoja: { meta?: MetaPlanilla; regions: Region[] }): void {
-  if (typeof window === 'undefined') return;
-  try {
-    // `hayTrabajoGuardado` y no un `regions.length > 0`: la hoja de ejemplo se
-    // autoguarda a los 300 ms de la primera visita, así que contarla haría
-    // salir el diálogo de reemplazo en la primera exportación de todo usuario
-    // nuevo, sobre una hoja que nunca tocó.
-    if (
-      hayTrabajoGuardado() &&
-      !window.confirm('El canvas tiene una hoja guardada. ¿Reemplazarla por esta?')
-    ) {
-      return;
-    }
-    // Con su `meta`: el canvas lo conserva y lo vuelve a exportar, y en la
-    // memoria de un módulo declarativo ahí va el sello de la instancia.
-    window.localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ version: 1, ...(hoja.meta ? { meta: hoja.meta } : {}), regions: hoja.regions })
-    );
-  } catch {
-    window.alert('No se pudo escribir en el almacenamiento local del navegador.');
-    return;
-  }
-  window.location.href = '/canvas';
 }
 
 /**

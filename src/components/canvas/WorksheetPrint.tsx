@@ -1,4 +1,8 @@
+import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { ajustarAnchos, ESCALA_MINIMA } from '../../lib/ajuste-ancho';
+import { A4_ANCHO_PX } from '../../lib/paginacion';
+import { conDocumentoDestapado } from './usePaginacion';
 import BloqueDoc from './BloqueDoc';
 import { regionTitulo, seImprime } from '../../lib/bloque';
 import type { Region, SheetResults } from '../../lib/worksheet';
@@ -41,10 +45,25 @@ export default function WorksheetPrint({
   // la hoja y en otro en el papel — que es justo el fallo que costó arreglar.
   const titleRegion = regionTitulo(ordered);
 
+  // Las fórmulas se ajustan al ancho cada vez que se mide la paginación
+  // (`medirBloques`), pero entre la última medición y el clic en «Imprimir» la
+  // hoja pudo cambiar. Justo antes de imprimir se ajustan otra vez, con el
+  // documento destapado: tapado no se puede medir.
+  const raiz = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const alImprimir = () => {
+      if (raiz.current) {
+        conDocumentoDestapado(raiz.current, () => ajustarAnchos(raiz.current!, A4_ANCHO_PX, ESCALA_MINIMA));
+      }
+    };
+    window.addEventListener('beforeprint', alImprimir);
+    return () => window.removeEventListener('beforeprint', alImprimir);
+  }, []);
+
   if (typeof document === 'undefined') return null;
 
   return createPortal(
-    <div className="worksheet-print doc-papel">
+    <div ref={raiz} className="worksheet-print doc-papel">
       {ordered.map((r) => (
         <BloqueDoc
           key={r.id}

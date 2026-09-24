@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { SalidaDef } from '../../lib/diseno/tipos';
 import { filasDeMatriz, formatValor } from '../../lib/worksheet';
+import { mensajeDeMotor } from '../canvas/mensajes-motor';
 
 interface Props {
   salidas: SalidaDef[];
@@ -223,7 +224,7 @@ export default function PanelResultados({ salidas, scope, errores }: Props) {
           <ul className="mt-1 space-y-0.5">
             {errores.slice(0, 4).map((e) => (
               <li key={e.id} className="font-mono text-[10px] text-[#b91c1c]">
-                {e.src.split('\n')[0]} — {e.error}
+                {e.src.split('\n')[0]} — {mensajeDeMotor(e.error)}
               </li>
             ))}
           </ul>

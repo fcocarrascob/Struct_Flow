@@ -37,6 +37,10 @@ interface Fila {
    * corte todavía.
    */
   firma: string;
+  /** Fórmulas que el ajuste al ancho tuvo que encoger. */
+  encogidas: number;
+  /** Fórmulas que no caben ni encogidas al mínimo. */
+  desbordadas: number;
 }
 
 /** FNV-1a de 32 bits en hexadecimal: corto, estable y sin dependencias. */
@@ -122,7 +126,11 @@ export default function TablaDePaginas() {
           const root = document.querySelector<HTMLElement>('.worksheet-print');
           if (!root) return;
           const saltos = new Set(actual.regions.filter((r) => r.pageBreak).map((r) => r.id));
-          const bloques = medirBloques(root, saltos);
+          const { bloques, anchos } = medirBloques(root, saltos);
+          // Encogida = el ajuste al ancho le dejó un tamaño propio.
+          const encogidas = [...root.querySelectorAll<HTMLElement>('[data-ajuste]')].filter(
+            (e) => e.style.fontSize !== '',
+          ).length;
           setFilas((prev) => [
             ...prev,
             {
@@ -132,6 +140,8 @@ export default function TablaDePaginas() {
               largos: bloques.filter((b) => b.alto > A4_ALTO_UTIL_PX).length,
               altoMax: Math.round(Math.max(0, ...bloques.map((b) => b.alto))),
               firma: firmaDe(bloques.map((b) => b.alto)),
+              encogidas,
+              desbordadas: anchos.length,
             },
           ]);
           setI((n) => n + 1);
@@ -149,13 +159,15 @@ export default function TablaDePaginas() {
   /** La tabla en TSV, para pegarla en la nota de la línea base. */
   const tsv = useMemo(
     () =>
-      ['slug\tregiones\tpaginas\tlargos\taltoMax\tfirma']
+      ['slug\tregiones\tpaginas\tlargos\taltoMax\tfirma\tencogidas\tdesbordadas']
         .concat(
           filas.map(
-            (f) => `${f.slug}\t${f.regiones}\t${f.paginas}\t${f.largos}\t${f.altoMax}\t${f.firma}`,
+            (f) =>
+              `${f.slug}\t${f.regiones}\t${f.paginas}\t${f.largos}\t${f.altoMax}\t${f.firma}` +
+              `\t${f.encogidas}\t${f.desbordadas}`,
           ),
         )
-        .concat(`TOTAL\t\t${total}\t\t\t`)
+        .concat(`TOTAL\t\t${total}\t\t\t\t\t`)
         .join('\n'),
     [filas, total],
   );

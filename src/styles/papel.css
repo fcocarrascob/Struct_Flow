@@ -29,11 +29,19 @@
   font-size: 11pt;
   line-height: 1.5;
 }
+/* KaTeX trae `.katex { font-size: 1.21em }`. El canvas lo bajaba a 1em desde
+   `global.css`, que el PDF de consola no carga: ahí las fórmulas salían un 21 %
+   más grandes que en la hoja y el PDF paginaba distinto. Va aquí para que los
+   tres papeles —hoja, impresión del navegador y `render-planilla`— lo lean. */
+.doc-papel .katex {
+  font-size: 1em;
+}
 .doc-papel .wp-header {
   border-bottom: 2px solid #1a1a1a;
   padding-bottom: 0.4rem;
 }
 .doc-papel .wp-header h1 {
+  overflow-wrap: anywhere;
   font-size: 15pt;
   font-weight: 700;
   margin: 0;
@@ -74,6 +82,11 @@
   color: #374151;
   break-after: avoid;
 }
+.doc-papel .wp-h1,
+.doc-papel .wp-h2,
+.doc-papel .wp-h3 {
+  overflow-wrap: anywhere;
+}
 /* Un espaciador: una región de texto vacía, que existe solo para abrir hueco.
    El alto tiene que coincidir con `ALTO_ESPACIADOR` de `lib/bloque.ts`, que es
    lo que el canvas empuja hacia abajo al insertarlo.
@@ -87,6 +100,9 @@
 .doc-papel .wp-label {
   font-size: 9.5pt;
   color: #4b5563;
+  /* Una palabra más ancha que el papel —una URL, una ruta— se parte en vez de
+     cruzar el margen derecho. Solo actúa cuando no hay otro punto de corte. */
+  overflow-wrap: anywhere;
   /* Conserva los saltos y la sangría que escribió el autor, pero ajusta línea.
      Ninguna de las 2.231 regiones de texto del corpus lleva salto, así que hoy
      no cambia nada de lo publicado; es lo que hace que el canvas y el papel
@@ -123,14 +139,32 @@
   flex-wrap: wrap;
   break-inside: avoid;
 }
+/* El fuente envuelve en vez de cruzar el margen derecho, y cada línea continúa
+   BAJO SU PROPIA SANGRÍA más cuatro columnas (`lineasDePrograma` en
+   lib/bloque.ts da la sangría en `--s`). La primera línea empieza en la columna
+   0 e imprime sus espacios; `padding-left` + `text-indent` negativo es lo que
+   lleva las continuaciones a su sitio.
+
+   Lo que cabe no cambia: el tamaño que el flex de `.wp-prog` le supone al `pre`
+   sigue siendo su línea más larga, así que solo lo que pasa de los 680 px del
+   papel se parte. `min-height: 1lh` es para las líneas en blanco, que como
+   bloque vacío medirían cero y en el `pre` de antes ocupaban una línea. */
 .doc-papel .wp-prog pre {
   margin: 0;
-  white-space: pre;
+  max-width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
   font-family: 'JetBrains Mono', monospace;
   font-size: 9.5pt;
   line-height: 1.35;
   border-left: 2px solid #2563eb;
   padding-left: 0.5rem;
+}
+.doc-papel .wp-l {
+  display: block;
+  min-height: 1lh;
+  padding-left: calc((var(--s, 0) + 4) * 1ch);
+  text-indent: calc(-1ch * (var(--s, 0) + 4));
 }
 /* El fuente plegado del render de línea de comandos (`programas: 'plegados'`).
    Va abierto y sin el triangulito: en papel no hay clic. */
@@ -175,6 +209,7 @@
   font-weight: 700;
 }
 .doc-papel .wp-err {
+  overflow-wrap: anywhere;
   color: #b91c1c;
   font-family: 'JetBrains Mono', monospace;
   font-size: 9.5pt;

@@ -179,7 +179,7 @@ function extensionElemento(svg: string, inicio: number): { fin: number; abreHast
 /**
  * Expande los elementos con `data-repetir` antes de sustituir los tokens.
  *
- * Cada clon se sustituye acá mismo, con el scope aumentado con `fila`, porque
+ * Cada clon se sustituye aquí mismo, con el scope aumentado con `fila`, porque
  * la pasada general tiene un solo scope y no podría dar a cada perno su
  * coordenada. Si la fila no es una lista, `fila` queda ligada al escalar, y así
  * `data-repetir` sirve igual sobre un vector.

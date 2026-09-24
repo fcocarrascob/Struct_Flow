@@ -19,3 +19,4 @@ export {
 } from './biblioteca/contrato';
 export { nivelEncabezado, textoEncabezado, esEncabezado, esEspaciador } from './bloque';
 export { renderHtml, documentoHtml } from './render-html';
+export { ajustarAnchos, ESCALA_MINIMA } from './ajuste-ancho';
