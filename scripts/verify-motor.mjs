@@ -20,8 +20,16 @@
 import katex from 'katex';
 import { cargarMotor, cargarMensajes } from './lib/motor.mjs';
 
-const { evaluateSheet, renderEsquema, renderHtml, documentoHtml, ajustarAnchos, svgDeGrafico, sanearConInforme } =
-  await cargarMotor();
+const {
+  evaluateSheet,
+  renderEsquema,
+  renderHtml,
+  documentoHtml,
+  ajustarAnchos,
+  svgDeGrafico,
+  sanearConInforme,
+  unidadesTapadas,
+} = await cargarMotor();
 
 /** Una hoja a partir de `[tipo, src, extra?]`, apiladas en orden de lectura. */
 function hoja(...filas) {
@@ -258,6 +266,109 @@ const CASOS = [
     nombre: 'la unidad de conversión tras «=» no pasa por el scope y no se avisa',
     hoja: hoja(m('m := 2'), m('L := 450 cm = m')),
     ok: todas(esperaValor('r1', '4.5 m'), sinAviso('r1')),
+  },
+
+  // --- Nombres sin definir que math.js resuelve solo ------------------------
+  //
+  // math.js busca un símbolo en el scope, después entre sus constantes y después
+  // entre las unidades. Un nombre que la hoja no define —o cuya definición falló y
+  // se retiró— no daba «Undefined symbol»: daba la razón áurea, el número de Euler
+  // o litros, y la hoja seguía calculando con eso.
+  {
+    nombre: '«phi» sin definir no es la razón áurea',
+    hoja: hoja(m('Mn := 100 kN*m'), m('Md := phi*Mn =')),
+    ok: esperaError('r1', /«phi»/),
+  },
+  {
+    nombre: '«E» sin definir no es el número de Euler',
+    hoja: hoja(m('sigma := E*0.001 =')),
+    ok: esperaError('r0', /«E»/),
+  },
+  {
+    nombre: 'una definición de «E» que falla no deja pasar la constante',
+    hoja: hoja(m('E := 200000 MPa + 3 m'), m('sigma := E*0.001 =')),
+    ok: todas(esperaError('r0'), esperaError('r1', /«E»/)),
+  },
+  {
+    nombre: '«L» sin definir no son litros',
+    hoja: hoja(m('q := 2 kN/m'), m('M := q*L^2/8 =')),
+    ok: esperaError('r1', /«L»/),
+  },
+  {
+    nombre: 'una variable que falló no se vuelve la unidad de su nombre',
+    hoja: hoja(m('A := sqrt(-4)'), m('B := A*2 =')),
+    ok: todas(esperaError('r0'), esperaError('r1', /«A»/)),
+  },
+  {
+    nombre: '«Es» sin definir no es un exasegundo',
+    hoja: hoja(m('eps := 0.002'), m('fs := Es*eps =')),
+    ok: esperaError('r1', /«Es»/),
+  },
+  {
+    nombre: 'un nombre corto con prefijo sin definir no es una unidad',
+    hoja: hoja(m('x := dA*2 =')),
+    ok: esperaError('r0', /«dA»/),
+  },
+  {
+    nombre: 'dentro de un programa, una constante sin definir también es error',
+    hoja: hoja(p('r :=\n    x := 2\n    x*phi')),
+    ok: esperaError('r0', /«phi»/),
+  },
+  {
+    nombre: 'en una celda de tabla, una unidad sin definir también es error',
+    hoja: hoja(t([['M := 3*L =']])),
+    ok: esperaErrorCelda('r0', 0, 0, /«L»/),
+  },
+  {
+    nombre: 'verify:planilla: una unidad con nombre de variable de la hoja se detecta antes y después de definirla',
+    // La comprobación es estática, sin evaluar: la hoja del caso va vacía.
+    hoja: hoja(),
+    ok: () => {
+      const tapa = (h) => unidadesTapadas(h).map((x) => `${x.id}:${x.nombre}`).join(' ');
+      const despues = tapa(hoja(m('m := 12 cm'), m('L_col := 4 m')));
+      const antes = tapa(hoja(m('L_col := 4 m'), m('m := 12 cm')));
+      const cadena = tapa(hoja(m('s := 2'), m('v := 3 m/s')));
+      const libre = tapa(hoja(m('h := 3 m'), m('A := 2*h'), m('p := (26 cm)/h')));
+      if (despues !== 'r1:m') return `definida antes: «${despues}»`;
+      if (antes !== 'r0:m') return `definida después: «${antes}»`;
+      if (cadena !== 'r1:s') return `en una cadena: «${cadena}»`;
+      return libre ? `usada como variable no se detecta: «${libre}»` : null;
+    },
+  },
+  {
+    nombre: 'una constante detrás de un número no pasa por unidad',
+    hoja: hoja(m('x := 2 phi =')),
+    ok: esperaError('r0', /«phi»/),
+  },
+  {
+    nombre: 'una variable que no es unidad, detrás de un número, no se avisa',
+    hoja: hoja(m('x := 4'), m('y := 3 x =')),
+    ok: todas(esperaValor('r1', '12'), sinAviso('r1')),
+  },
+  {
+    nombre: 'una variable que tapa una unidad al final de una cadena también se avisa',
+    hoja: hoja(m('m := 2'), m('k := 3'), m('M := k*1 tonf*m =')),
+    ok: esperaAviso('r2', /«m»/),
+  },
+  {
+    nombre: 'pi sigue siendo pi',
+    hoja: hoja(m('r := 2 m'), m('A := pi*r^2 = m^2')),
+    ok: todas(esperaValor('r1', '12.566 m^2'), sinAviso('r1')),
+  },
+  {
+    nombre: 'las unidades escritas como unidad siguen valiendo',
+    hoja: hoja(m('F := 10 kN ='), m('v := 3 m/s ='), m('fc := 25 MPa'), m('k := fc/MPa ='), m('x := 5 cm to mm =')),
+    ok: todas(esperaValor('r0', '10 kN'), esperaValor('r1', '3 m / s'), esperaValor('r3', '25'), esperaValor('r4', '50 mm')),
+  },
+  {
+    nombre: 'una variable local de un programa y un parámetro de función no son constantes',
+    hoja: hoja(p('f(E) := E*2'), p('r :=\n    phi := 0.9\n    phi*f(3)'), m('y := f(4) =')),
+    ok: todas(esperaValor('r1', '5.4'), esperaValor('r2', '8')),
+  },
+  {
+    nombre: 'una variable definida con nombre de constante o de unidad es la variable',
+    hoja: hoja(m('phi := 0.9'), m('E := 200 MPa'), m('L := 5 m'), m('x := phi*E*L = MPa*m')),
+    ok: esperaValor('r3', '900 MPa m'),
   },
 
   // --- Scope inicial --------------------------------------------------------
@@ -820,7 +931,7 @@ const CASOS_MENSAJES = [
   ['a := (1 + 2', /Parenthesis \) expected/, /falta cerrar un paréntesis \(carácter \d+\)/],
   ['a := 1 +', /Unexpected end of expression/, /termina de golpe/],
   ['a := 1 2 3 4', /Unexpected part/, /sobra «2»/],
-  ['a := b + 1', /Unexpected type of argument/, /tipo inesperado en el argumento 2 de addScalar/],
+  ['a := 1 m + 1', /Unexpected type of argument/, /tipo inesperado en el argumento 2 de addScalar/],
   ['sqrt(-4) < 1', /No ordering relation/, /no se pueden comparar números complejos/],
 ].map(([src, crudo, espanol]) => ({
   nombre: `mensaje en español: ${src}`,

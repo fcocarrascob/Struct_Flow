@@ -716,6 +716,18 @@ const CASOS = [
     ok: esperaProblema('B', /Ningún nodo de la obra define «A_planta»/),
   },
   {
+    nombre: 'un nombre huérfano que además es una unidad también es un nombre roto, no litros',
+    // `L` sin dueño era un litro para math.js: el nodo calculaba sin quejarse.
+    // Ahora el motor lo rechaza con su propio mensaje, y la obra tiene que leerlo.
+    obra: obra(calc('B', m('total := L * 2'))),
+    ok: esperaProblema('B', /Ningún nodo de la obra define «L»/),
+  },
+  {
+    nombre: 'un nombre huérfano con letras no ASCII también es un nombre roto',
+    obra: obra(calc('B', m('total := σ_c * 2'))),
+    ok: esperaProblema('B', /Ningún nodo de la obra define «σ_c»/),
+  },
+  {
     nombre: 'si el nombre SÍ tiene dueño, el diagnóstico manda a arreglar ESE nodo',
     // La cascada: A no logró calcular lo que publica, así que B se queda sin
     // valor. Decirle a B que «nadie define A_planta» sería falso y lo mandaría a

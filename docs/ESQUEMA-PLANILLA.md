@@ -385,9 +385,14 @@ Cosas que no fallan: devuelven otro número en silencio.
   hoja haya definido una variable `m`: ahí son `4·m`. El 2026-08-07 la planilla de rigidez
   rotacional definió `m` (el voladizo de la placa, como lo llama la DG1) y su `L_col := 4 m`
   pasó a valer 33 cm, con el índice β·L/EI 12,1 veces más chico; solo lo delató el contraste
-  contra el post. El verificador ahora lo caza (`unidadesEclipsadas`), pero la regla al
-  escribir es simple: **no uses como nombre de variable algo que sea una unidad** (`m`, `s`,
-  `A`, `N`, `T`, `W`, `g`, `t`…), o escribe el producto explícito con `*`.
+  contra el post. El verificador ahora lo caza (`unidadesTapadas` del motor), pero la regla
+  al escribir es simple: **no uses como nombre de variable algo que sea una unidad** (`m`,
+  `s`, `A`, `N`, `T`, `W`, `g`, `t`…), o escribe el producto explícito con `*`.
+- **Un nombre sin definir no es un error en math.js**: resuelve a una constante (`phi` es la
+  razón áurea, `E` y `e` el número de Euler) o a una unidad (`L` son litros, `Es` un
+  exasegundo). El motor lo convierte en error: solo `pi` se usa sin definir, y una unidad
+  suelta —fuera de una cantidad como `10 kN`— solo vale si es de las que una memoria escribe
+  así (`f_c/MPa`, `2.54*cm`); cualquier otra se escribe detrás de un número (`1 L`).
 - **Un resultado enorme se resume, no se vuelca.** Por encima de 12 entradas, una matriz se
   imprime como `matriz 200×2` (`MAX_ENTRADAS_TEX`, `worksheet.ts:212`). La variable queda
   íntegra en el scope; lo que se recorta es la impresión. Es deliberado: un barrido de 200

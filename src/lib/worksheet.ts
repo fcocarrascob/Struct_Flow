@@ -25,6 +25,8 @@ import {
   columna,
   encabezadoDe,
   esTextoForzado,
+  idDeCelda,
+  nombresPublicados,
   textoDeCelda,
   type DatosTabla,
   type EspecTabla,
@@ -158,7 +160,237 @@ function parsear(expr: string): MathNode {
 function evalCached(expr: string, scope: Record<string, unknown>): unknown {
   const node = parsear(expr);
   copiarAntesDeEscribir(node, scope);
+  return evaluarNodo(node, scope);
+}
+
+/**
+ * Evalúa un árbol contra el scope, pero antes exige que cada nombre libre esté
+ * definido. **Todo camino de evaluación de una expresión de la hoja pasa por
+ * aquí**: la fórmula, cada sentencia de un programa, el gráfico y los tokens.
+ *
+ * math.js busca un símbolo en el scope, después entre sus constantes y después
+ * entre las unidades, así que un nombre que la hoja no define no daba «Undefined
+ * symbol»: `phi*Mn` multiplicaba por la razón áurea, `E*0.001` por el número de
+ * Euler y `q*L^2/8` daba litros. Lo mismo cuando la definición existía pero
+ * falló, porque se retira del scope. En una memoria de cálculo es siempre un
+ * número falso, así que es un error.
+ */
+function evaluarNodo(node: MathNode, scope: Record<string, unknown>): unknown {
+  for (const l of libresDe(node)) {
+    if (l.nombre in scope) continue;
+    if (l.que === 'constante') throw new Error(mensajeLibre(l));
+    // Una unidad suelta: es variable que falta si la hoja la define en otro
+    // sitio, o si no es una unidad que se escriba así a propósito.
+    if (nombresDeLaHoja.has(l.nombre)) throw new Error(mensajeVariableSinValor(l.nombre));
+    if (!UNIDADES_SUELTAS.has(l.nombre)) throw new Error(mensajeLibre(l));
+  }
   return node.evaluate(scope);
+}
+
+/**
+ * Unidades que una memoria escribe sueltas, fuera de una cantidad: `f_c/MPa`
+ * para adimensionalizar, `(h/mm)^1.5*N` en una fórmula empírica, `2.54*cm`.
+ * Medido sobre el corpus: son todas las que aparecen así.
+ *
+ * Cualquier otra unidad suelta y sin definir es casi siempre una variable que
+ * falta —`L` (litro), `A` (amperio), `Es` (exasegundo), `h` (hora), `t`
+ * (tonelada), `dA` (decíamperio)—, y se escribe detrás de un número si de
+ * verdad se quiere la unidad (`1 L`).
+ */
+const UNIDADES_SUELTAS = new Set([
+  'mm', 'cm', 'm', 'km',
+  'N', 'kN', 'MN', 'kgf', 'tonf', 'tf', 'lbf', 'kip',
+  'Pa', 'kPa', 'MPa', 'GPa', 'psi', 'ksi',
+  'kg', 'deg', 'rad', 'inch', 'ft',
+]);
+
+/** Un símbolo que, sin definir, math.js resolvería por su cuenta. */
+interface Libre {
+  nombre: string;
+  que: 'constante' | 'unidad';
+}
+
+/**
+ * Constantes de math.js que se pueden usar sin definir: son lo que dicen ser en
+ * cualquier memoria. `e` no está: en cálculo estructural es una excentricidad o
+ * un espesor mucho antes que el número de Euler (`exp(1)` lo escribe sin
+ * ambigüedad).
+ */
+const CONSTANTES_LIBRES = new Set(['pi', 'true', 'false', 'null', 'Infinity', 'NaN']);
+
+/** Los libres de cada árbol: se calculan una vez, como el árbol mismo. */
+const libresCache = new WeakMap<MathNode, Libre[]>();
+
+/**
+ * Los símbolos del árbol que no nombran una función llamada ni van en posición
+ * de unidad (`10 kN`, `3 m/s`, `x to mm`) y que, si el scope no los tiene,
+ * math.js leería como una constante o como una unidad.
+ */
+function libresDe(node: MathNode): Libre[] {
+  let libres = libresCache.get(node);
+  if (libres) return libres;
+  const deUnidad = new Set(unidadesEnPosicion(node).map((u) => u.simbolo));
+  libres = [];
+  const vistos = new Set<string>();
+  node.traverse((nodo, ruta) => {
+    const n = nodo as unknown as NodoOp;
+    if (n.type !== 'SymbolNode' || !n.name || ruta === 'fn' || deUnidad.has(nodo) || vistos.has(n.name)) return;
+    const que = resolucionPropia(n.name);
+    if (que) {
+      vistos.add(n.name);
+      libres!.push({ nombre: n.name, que });
+    }
+  });
+  libresCache.set(node, libres);
+  return libres;
+}
+
+/**
+ * ¿Termina en una cantidad escrita? `res[1,1]*1 tonf` y `1.02*231.8 kgf` sí: la
+ * unidad que las siga (`*m`, `/m`) sigue siendo parte de esa cantidad aunque el
+ * árbol la cuelgue de toda la cadena.
+ */
+function terminaEnCantidad(nodo: MathNode): boolean {
+  if (esCantidadLiteral(nodo)) return true;
+  const n = nodo as unknown as NodoOp;
+  return n.type === 'OperatorNode' && (n.op === '*' || n.op === '/') && n.args?.length === 2 && terminaEnCantidad(n.args[1]);
+}
+
+/** Un símbolo escrito en posición de unidad. */
+interface EnPosicion {
+  simbolo: MathNode;
+  nombre: string;
+  /**
+   * Cómo se escribe la variable del mismo nombre en ese sitio sin ambigüedad;
+   * ausente tras `to`, donde math.js solo admite una unidad.
+   */
+  forma?: string;
+}
+
+const enPosicionCache = new WeakMap<MathNode, EnPosicion[]>();
+
+/**
+ * Los símbolos que el árbol escribe en posición de unidad: detrás de un número
+ * (`10 N`, `-2 m^2`), encadenados a una cantidad (`3 m/s`, `x*1 tonf*m`) o tras
+ * `to`. **Es la única definición de «posición de unidad» del motor**: la usan el
+ * detector de nombres libres (lo que va aquí es unidad y no variable que falta),
+ * el aviso de la variable que tapa una unidad y la comprobación estática del
+ * verificador. Con tres detectores, discrepaban.
+ *
+ * Un paréntesis corta la cadena a propósito: `(26 cm)/h` es la forma de escribir
+ * «entre la variable `h`».
+ */
+function unidadesEnPosicion(node: MathNode): EnPosicion[] {
+  let lista = enPosicionCache.get(node);
+  if (lista) return lista;
+  const out: EnPosicion[] = [];
+  const marcar = (nodo: MathNode, forma: ((u: string) => string) | undefined): void => {
+    const n = nodo as unknown as NodoOp;
+    if (n.type === 'SymbolNode' && n.name) {
+      // `2 phi` o `3 x` no son cantidades: solo un nombre de unidad está en posición de unidad.
+      if (esUnidad(n.name) && !Object.hasOwn(math, n.name)) out.push({ simbolo: nodo, nombre: n.name, forma: forma?.(n.name) });
+    }
+    else if (n.type === 'OperatorNode' && n.op === '^' && n.args) marcar(n.args[0], forma);
+    else if (n.type === 'ParenthesisNode' && n.content) marcar(n.content, forma);
+    else if (n.type === 'OperatorNode' && (n.op === '*' || n.op === '/') && n.args?.length === 2) {
+      n.args.forEach((a) => marcar(a, forma));
+    }
+  };
+  node.traverse((nodo) => {
+    const n = nodo as unknown as NodoOp;
+    if (n.type !== 'OperatorNode' || !n.args || n.args.length !== 2) return;
+    const [izq, der] = n.args;
+    if (n.fn === 'to') {
+      marcar(der, undefined);
+    } else if (n.op === '*' || n.op === '/') {
+      if (n.implicit && n.op === '*' && esNumeroEscrito(izq)) {
+        marcar(der, (u) => `con «*» delante (${izq.toString()}*${u})`);
+      } else if (terminaEnCantidad(izq)) {
+        marcar(der, (u) => `con la cantidad entre paréntesis ((${izq.toString()})${n.op}${u})`);
+      }
+    }
+  });
+  lista = out;
+  enPosicionCache.set(node, lista);
+  return lista;
+}
+
+/**
+ * Las unidades escritas en posición de unidad cuyo nombre la hoja usa también
+ * como variable, en cualquier parte: la comprobación estática de
+ * `verify:planilla`. Es más estricta que el aviso de la evaluación, que solo ve
+ * la variable si ya está definida en ese punto: en una planilla publicada, que
+ * `4 m` sea cuatro metros solo porque `m` se define más abajo es un número que
+ * cambia al reordenar.
+ */
+export function unidadesTapadas(regions: Region[]): { id: string; nombre: string; frag: string }[] {
+  const nombres = nombresDefinidos(regions);
+  const formulas: { id: string; src: string }[] = [];
+  for (const r of regions) {
+    if (r.kind === 'math') formulas.push({ id: r.id, src: r.src });
+    if (r.kind === 'table' && r.tabla) {
+      for (const { f, c, src } of formulasDeTabla(r.tabla)) formulas.push({ id: idDeCelda(r.id, f, c), src });
+    }
+  }
+  const out: { id: string; nombre: string; frag: string }[] = [];
+  for (const { id, src } of formulas) {
+    const expr = parseMathRegion(src).expr;
+    if (!expr) continue;
+    let nodo: MathNode;
+    try {
+      nodo = parsear(expr);
+    } catch {
+      continue; // la sintaxis la informa la evaluación
+    }
+    const vistos = new Set<string>();
+    for (const u of unidadesEnPosicion(nodo)) {
+      if (u.forma === undefined || !nombres.has(u.nombre) || vistos.has(u.nombre)) continue;
+      vistos.add(u.nombre);
+      out.push({ id, nombre: u.nombre, frag: expr.trim() });
+    }
+  }
+  return out;
+}
+
+/** ¿Qué haría math.js con `nombre` si el scope no lo tiene? */
+function resolucionPropia(nombre: string): Libre['que'] | undefined {
+  if (CONSTANTES_LIBRES.has(nombre)) return undefined;
+  if (Object.hasOwn(math, nombre)) {
+    return typeof (math as unknown as Record<string, unknown>)[nombre] === 'function' ? undefined : 'constante';
+  }
+  return esUnidad(nombre) ? 'unidad' : undefined;
+}
+
+/**
+ * Los nombres que un mensaje de error del motor declara sin definir: el
+ * «Undefined symbol X» crudo de math.js y los dos mensajes propios de arriba.
+ * Vive junto a los mensajes para que su redacción y su lectura no se separen;
+ * lo usa la obra para saber qué nombre le falta a un nodo.
+ */
+export function nombresSinDefinir(mensaje: string): string[] {
+  const nombres: string[] = [];
+  for (const m of mensaje.matchAll(/Undefined symbol ([\p{L}_][\p{L}\p{N}_]*)/gu)) nombres.push(m[1]);
+  for (const m of mensaje.matchAll(/«([^»]+)» (?:no está definida|es una variable de esta hoja)/g)) nombres.push(m[1]);
+  return nombres;
+}
+
+function mensajeVariableSinValor(nombre: string): string {
+  return (
+    `«${nombre}» es una variable de esta hoja, pero aquí no tiene valor: se define más abajo o su definición ` +
+    `tiene un error. math.js la leería como la unidad «${nombre}».`
+  );
+}
+
+function mensajeLibre({ nombre, que }: Libre): string {
+  if (que === 'constante') {
+    const v = (math as unknown as Record<string, unknown>)[nombre];
+    const cual = typeof v === 'number' ? ` (${numLabel(v).replace('.', ',')})` : '';
+    return `«${nombre}» no está definida (o su definición tiene un error): math.js la leería como su constante ${nombre}${cual}. Defínela más arriba.`;
+  }
+  return (
+    `«${nombre}» no está definida (o su definición tiene un error): math.js la leería como la unidad «${nombre}». ` +
+    `Defínela más arriba; si querías la unidad, escríbela detrás de un número (1 ${nombre}).`
+  );
 }
 
 /**
@@ -628,6 +860,44 @@ export function evaluateSheet(
     .filter((r) => r.kind !== 'text')
     .sort((a, b) => a.y - b.y || a.x - b.x);
 
+  nombresDeLaHoja = nombresDefinidos(ordered);
+  try {
+    evaluarEnOrden(ordered, scope, results);
+  } finally {
+    nombresDeLaHoja = new Set();
+  }
+  return results;
+}
+
+/**
+ * Los nombres que la hoja define en alguna parte: los lee `evaluarNodo` para
+ * saber que una unidad sin valor en el scope es, en esta hoja, una variable que
+ * falta —definida más abajo, o retirada porque su definición falló—.
+ */
+let nombresDeLaHoja = new Set<string>();
+
+/** Lo que define cada región, sin evaluarla. */
+function nombresDefinidos(regions: Region[]): Set<string> {
+  const nombres = new Set<string>();
+  for (const r of regions) {
+    if (r.kind === 'math') {
+      const n = parseMathRegion(r.src).varName;
+      if (n) nombres.add(n);
+    } else if (r.kind === 'program') {
+      const n = RE_CABECERA_PROGRAMA.exec(r.src)?.[1];
+      if (n) nombres.add(n);
+    } else if (r.kind === 'table' && r.tabla) {
+      for (const f of formulasDeTabla(r.tabla)) if (f.varName) nombres.add(f.varName);
+      for (const n of nombresPublicados(r.tabla)) nombres.add(n);
+    }
+  }
+  return nombres;
+}
+
+/** El nombre de la cabecera de un programa: `nombre :=` o `nombre(a, b) :=`. */
+const RE_CABECERA_PROGRAMA = /^\s*([\p{L}_][\p{L}\p{N}_]*)\s*(?:\([^)]*\))?\s*:=/u;
+
+function evaluarEnOrden(ordered: Region[], scope: Record<string, unknown>, results: SheetResults): void {
   for (const region of ordered) {
     // Cada región estrena contador: el tope es por región, y cubre todo lo que
     // ella desencadene —sus bucles y los de las funciones a las que llame—.
@@ -666,8 +936,6 @@ export function evaluateSheet(
 
     results[region.id] = evaluarFormula(region.src, scope).res;
   }
-
-  return results;
 }
 
 /** Lo que da una fórmula: lo que se muestra y, si llegó a evaluarse, su valor. */
@@ -719,7 +987,7 @@ function evaluarFormula(src: string, scope: Record<string, unknown>, unidadColum
       );
     }
     aviso = avisoUnidadTapada(node, scope);
-    let value = node.evaluate(scope);
+    let value = evaluarNodo(node, scope);
     if (esComplejo(value)) throw new Error(ERROR_COMPLEJO);
     const destino =
       parsed.targetUnit ??
@@ -1003,8 +1271,19 @@ function esCantidadLiteral(nodo: MathNode): boolean {
   if (n.type !== 'OperatorNode' || !n.args || n.args.length !== 2) return false;
   const [izq, der] = n.args;
   if (!simboloDeUnidad(der)) return false;
-  if (n.implicit && n.op === '*') return izq.type === 'ConstantNode';
+  if (n.implicit && n.op === '*') return esNumeroEscrito(izq);
   return (n.op === '*' || n.op === '/') && esCantidadLiteral(izq);
+}
+
+/**
+ * ¿Es un número escrito, con su signo: `2`, `-2`? math.js parsea `-2 m^2` como
+ * `(-2)·m^2`, así que el número delante de una unidad puede llegar envuelto en
+ * un menos unario.
+ */
+function esNumeroEscrito(nodo: MathNode): boolean {
+  const n = nodo as unknown as NodoOp;
+  if (n.type === 'ConstantNode') return true;
+  return n.type === 'OperatorNode' && (n.fn === 'unaryMinus' || n.fn === 'unaryPlus') && n.args?.length === 1 && n.args[0].type === 'ConstantNode';
 }
 
 /**
@@ -1024,19 +1303,9 @@ function esCantidadLiteral(nodo: MathNode): boolean {
 function avisoUnidadTapada(node: MathNode, scope: Record<string, unknown>): string | undefined {
   // Por nombre, cómo se escribe la variable sin ambigüedad en ese sitio.
   const tapadas = new Map<string, string>();
-  node.traverse((nodo) => {
-    const n = nodo as unknown as NodoOp;
-    if (n.type !== 'OperatorNode' || !n.args || n.args.length !== 2) return;
-    if (n.op !== '*' && n.op !== '/') return;
-    const [izq, der] = n.args;
-    const unidad = simboloDeUnidad(der);
-    if (!unidad || !Object.hasOwn(scope, unidad) || tapadas.has(unidad)) return;
-    if (n.implicit && n.op === '*') {
-      if (izq.type === 'ConstantNode') tapadas.set(unidad, `con «*» delante (${izq.toString()}*${unidad})`);
-    } else if (esCantidadLiteral(izq)) {
-      tapadas.set(unidad, `con la cantidad entre paréntesis ((${izq.toString()})${n.op}${unidad})`);
-    }
-  });
+  for (const u of unidadesEnPosicion(node)) {
+    if (u.forma !== undefined && Object.hasOwn(scope, u.nombre) && !tapadas.has(u.nombre)) tapadas.set(u.nombre, u.forma);
+  }
   if (tapadas.size === 0) return undefined;
   return [...tapadas]
     .map(
@@ -1065,7 +1334,7 @@ function evalProgramRegion(src: string, scope: Record<string, unknown>): RegionR
   try {
     prog = parseProgram(src);
   } catch (err) {
-    retirar(/^\s*([\p{L}_][\p{L}\p{N}_]*)\s*(?:\([^)]*\))?\s*:=/u.exec(src)?.[1]);
+    retirar(RE_CABECERA_PROGRAMA.exec(src)?.[1]);
     return { error: errMsg(err) };
   }
 
@@ -1140,7 +1409,7 @@ export function evalExpr(expr: string, scope: Record<string, unknown>): unknown 
   // Un token puede llamar a una función de usuario, que cuenta contra el tope:
   // que estrene contador, y no herede el de la última región de la hoja.
   ctx.guard = nuevoGuard();
-  const valor = math.evaluate(expr, { ...scope });
+  const valor = evaluarNodo(parsear(expr), { ...scope });
   // Un rótulo «(1+2i)» sería el mismo número falso que la hoja ya no muestra:
   // quien llama lo trata como un token que no resuelve.
   if (esComplejo(valor)) throw new Error(ERROR_COMPLEJO);
@@ -1282,7 +1551,7 @@ const HERRAMIENTAS_GRAFICO: HerramientasGrafico = {
   compilar(expr) {
     if (!expr.trim()) throw new Error('falta la expresión');
     const node = parsear(expr);
-    return (s) => node.evaluate(s);
+    return (s) => evaluarNodo(node, s);
   },
   aNumero(v, unidad, que) {
     if (esComplejo(v)) throw new Error(`${que} da un número complejo (raíz o logaritmo de un negativo)`);
@@ -1313,7 +1582,7 @@ const HERRAMIENTAS_GRAFICO: HerramientasGrafico = {
     return texto.replace(TOKEN_RE, (_m, crudo: string) => {
       const { expr, unidad } = separarToken(crudo.trim());
       try {
-        const v = parsear(expr).evaluate(Object.create(s));
+        const v = evaluarNodo(parsear(expr), Object.create(s));
         if (esComplejo(v)) throw new Error(ERROR_COMPLEJO);
         return formatValor(v, unidad);
       } catch (e) {

@@ -3,7 +3,7 @@
 //
 // El motor deja pasar el mensaje de mathjs tal cual (`RegionResult.error`), y
 // así tiene que seguir: la obra lo lee para dibujar sus flechas
-// (`RE_INDEFINIDO` de `obra/evaluacion.ts` busca «Undefined symbol X») y
+// (`nombresSinDefinir` del motor busca «Undefined symbol X») y
 // `verify:motor` compara mensajes por texto. Lo que se traduce es lo que VE el
 // usuario, en el último paso antes de pintarlo.
 //

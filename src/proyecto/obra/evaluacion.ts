@@ -60,6 +60,7 @@ import {
   erroresDeResultado,
   evaluateSheet,
   formatValor,
+  nombresSinDefinir,
   type Region,
   type SheetResults,
 } from '../../lib/worksheet';
@@ -212,7 +213,8 @@ function fuentesDeUso(nodo: NodoObra): string[] {
 }
 
 /**
- * Los nombres que el motor declaró indefinidos en un mensaje de error.
+ * Los nombres que el motor declaró indefinidos en un mensaje de error
+ * (`nombresSinDefinir`, junto a los mensajes que los redactan).
  *
  * Es la única señal fiable de «este nombre no está». No se puede listar «lo que
  * el nodo usa y nadie define» porque `usos` filtra por `duenio` a propósito: sin
@@ -220,13 +222,7 @@ function fuentesDeUso(nodo: NodoObra): string[] {
  * dependencia rota. El motor, en cambio, ya resolvió funciones y unidades cuando
  * se queja.
  */
-const RE_INDEFINIDO = /Undefined symbol ([A-Za-z_]\w*)/g;
-
-function simbolosIndefinidos(mensaje: string): string[] {
-  const nombres: string[] = [];
-  for (const m of mensaje.matchAll(RE_INDEFINIDO)) nombres.push(m[1]);
-  return nombres;
-}
+const simbolosIndefinidos = nombresSinDefinir;
 
 /**
  * Orden topológico de los nodos. Kahn: lo que no queda en la salida es

@@ -287,7 +287,8 @@ espaciador de la hoja se convertiría en el `<h1>`.
   leer un solo alto ajusta sus fórmulas al ancho (ver «Nada se sale del papel» abajo).
 - `mensajes-motor.ts` — los errores de mathjs en español, para lo que se muestra. **El motor
   deja el mensaje crudo** en `RegionResult.error`, porque la obra lo lee para sus flechas
-  (`RE_INDEFINIDO` busca «Undefined symbol») y `verify:motor` compara por texto; la
+  (`nombresSinDefinir` de `worksheet.ts` busca «Undefined symbol» y los mensajes propios de
+  un nombre sin definir) y `verify:motor` compara por texto; la
   traducción se aplica al pintarlo (`BloqueDoc`, la tarjeta de la obra, `PanelResultados`, y
   en Node por `cargarMensajes()` de `motor.mjs`). Vive fuera de `src/lib` por el sello, igual
   que `informe-descartes.ts`. Los mensajes propios del motor ya están en español.
@@ -305,6 +306,12 @@ testeable y portable):
   `aviso` en el resultado: no es error ni cuenta en `verify:planillas`, y el canvas lo marca
   al margen sin imprimirlo. Un resultado **complejo** (la raíz o el logaritmo de un negativo)
   es un error, no un número: en una memoria siempre delata un dato o una unidad equivocados.
+  **Un nombre sin definir nunca se resuelve solo**: math.js leería `phi` como la razón áurea,
+  `E` como el número de Euler y `L` como litros. Todo camino de evaluación pasa por
+  `evaluarNodo`, que lo convierte en error salvo `pi` y las unidades que una memoria escribe
+  sueltas (`UNIDADES_SUELTAS`: `f_c/MPa`, `2.54*cm`). Qué es «posición de unidad» (`10 kN`,
+  `3 m/s`, `x*1 tonf*m`) lo decide solo `unidadesEnPosicion`, que usan también el aviso de la
+  variable que tapa una unidad y `unidadesTapadas` de `verify:planilla`.
 - `program.ts` — intérprete **imperativo** mínimo para las regiones `program`, porque mathjs
   no tiene control de flujo. Bloques definidos por **indentación** estilo Python (`if` /
   `else if` / `else`, `for … in range/list`, `while`, `break`/`continue`, `return`),

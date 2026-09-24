@@ -57,49 +57,6 @@ export function resolverEsquema(src, carpetasExtra = []) {
 }
 
 /**
- * Variables cuyo nombre se come una unidad.
- *
- * En mathjs `4 m` son cuatro metros, salvo que la hoja haya definido una
- * variable `m`: ahí son `4·m`. No falla — devuelve OTRO número. El 2026-08-07
- * la planilla de rigidez rotacional definió `m` (el voladizo de la placa, como
- * lo llama la DG1) y su `L_col := 4 m` pasó a valer 33 cm, con el índice
- * β·L/EI 12,1 veces más chico. Solo lo delató el contraste contra el post.
- *
- * El patrón peligroso es un literal numérico seguido de identificador SIN `*`.
- * `2*h` con `h` definida es lo que el autor quiere, y no se toca.
- */
-export function unidadesEclipsadas(regions, { formulasDeTabla, idDeCelda }) {
-  // Las fórmulas de la hoja: las regiones math y las celdas de fórmula de cada
-  // tabla, que tienen la misma gramática y el mismo riesgo. Los valores escritos
-  // de una tabla (`3 m`) se leen contra un scope vacío, así que no lo corren.
-  const formulas = [];
-  for (const r of regions) {
-    if (r.kind === 'math') formulas.push({ id: r.id, src: r.src ?? '' });
-    if (r.kind === 'table' && r.tabla) {
-      for (const { f, c, src } of formulasDeTabla(r.tabla)) formulas.push({ id: idDeCelda(r.id, f, c), src });
-    }
-  }
-  const definidas = new Set();
-  for (const r of [...formulas, ...regions.filter((x) => x.kind === 'program')]) {
-    const mo = /^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:=/.exec(r.src ?? '');
-    if (mo) definidas.add(mo[1]);
-  }
-  const choques = [];
-  for (const r of formulas) {
-    const src = r.src;
-    // Solo el cuerpo de la expresión: la unidad de despliegue (`= tonf*m`) se
-    // resuelve aparte y NO pasa por el scope, así que ahí no hay riesgo.
-    const cuerpo = (src.includes(':=') ? src.split(':=')[1] : src).split('=')[0];
-    for (const mo of cuerpo.matchAll(/\d\s+([A-Za-z_][A-Za-z0-9_]*)/g)) {
-      if (definidas.has(mo[1])) {
-        choques.push({ id: r.id, frag: mo[0].trim(), nombre: mo[1] });
-      }
-    }
-  }
-  return choques;
-}
-
-/**
  * El motor devuelve el resultado como LaTeX (es lo que consume el canvas).
  * Acá se revierte a texto plano para las tablas.
  *
@@ -138,8 +95,8 @@ export async function verificarPlanilla(planillaPath, { esquemas = [] } = {}) {
     ESQUEMAS_PREFIX,
     validarMeta,
     ordenDeLectura,
-    formulasDeTabla,
     idDeCelda,
+    unidadesTapadas,
   } = await motorCompartido();
 
   const crudo = await readFile(planillaPath);
@@ -162,14 +119,19 @@ export async function verificarPlanilla(planillaPath, { esquemas = [] } = {}) {
   let tokensEsquema = 0;
 
   // Antes que nada: una variable que eclipsa una unidad no rompe nada, cambia el
-  // número en silencio. Ver `unidadesEclipsadas`.
-  for (const { id, frag, nombre } of unidadesEclipsadas(regions, { formulasDeTabla, idDeCelda })) {
+  // número en silencio. En mathjs `4 m` son cuatro metros, salvo que la hoja
+  // defina una variable `m`: ahí son `4·m`. El 2026-08-07 la planilla de rigidez
+  // rotacional definió `m` (el voladizo de la placa, como lo llama la DG1) y su
+  // `L_col := 4 m` pasó a valer 33 cm; solo lo delató el contraste contra el
+  // post. La detección es la del motor (`unidadesTapadas`), la misma que da el
+  // aviso en la hoja; aquí es error porque la planilla se publica.
+  for (const { id, frag, nombre } of unidadesTapadas(regions)) {
     errores.push({
       id,
       src: frag,
       error:
-        `«${frag}» se lee como ${frag.replace(/\s+/, '·')}, no como unidad: ` +
-        `la hoja define «${nombre}» como variable. Renómbrala (y di por qué).`,
+        `en «${frag}», «${nombre}» está escrita como unidad, pero la hoja define «${nombre}» como variable. ` +
+        `Renómbrala (y di por qué).`,
     });
   }
 

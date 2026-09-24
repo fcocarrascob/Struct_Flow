@@ -144,26 +144,12 @@ gravedad: lo primero da **números falsos sin error**. Cada arreglo empieza por 
 
 ### Nombres que el motor resuelve solo
 
-Los tres son el mismo mecanismo —qué hacer con un nombre que la hoja no define— y conviene
-atacarlos juntos.
+Cerrado en la rama `motor-robusto` (ver `evaluarNodo` en `worksheet.ts`). Lo que queda:
 
-- **Una constante de math.js ocupa el lugar de una variable sin definir.** `phi` vale 1,618 (la
-  razón áurea), así que `phi*Mn` sin φ definido da 1,618·Mn; `E` y `e` valen 2,718
-  (`sigma := E*0.001` da 0,0027); también `tau`, `pi`, `LN2`, `SQRT2`. Pasa además cuando la
-  definición existe pero falla: se retira del scope y lo de abajo toma la constante. El corpus
-  define `E` 14 veces y `phi` 5. Propuesta: un nombre sin definir que resuelve a una constante
-  es error, salvo `pi`; medir antes cuántas regiones usan `pi` o `e` a propósito.
-- **Una unidad ocupa el lugar de una variable sin definir.** `M := q*L^2/8` con `L` sin definir
-  da «0,25 kN·L²/m» (litros); tampoco fallan `A`, `N`, `V`, `T`, `F`, `h` (hora), `t`
-  (tonelada), `g` (gramo), `b` (barn), `s`, `m` ni `Es` (exasegundo: el módulo del acero). Con
-  `A := sqrt(-4)` en rojo, `B := A*2` da «2 A» sin error propio. Y con los prefijos casi
-  cualquier nombre corto es unidad: el corpus define `dA`, `mA`, `mC`, `dT`, `pm`, `Yb`, `qK`,
-  `amp` y `alt`. Propuesta: el aviso inverso al de «unidad tapada» —una unidad escrita fuera de
-  una cantidad literal—; medir antes patrones legítimos como `fc/MPa`.
-- **Dos detectores del mismo problema.** `unidadesEclipsadas` (regex ASCII en
-  `scripts/lib/planilla.mjs`, error en el verificador) y `avisoUnidadTapada` (árbol, en el
-  motor, aviso en la hoja) pueden discrepar. Tiene que quedar uno, en el motor, que cubra
-  también lo de arriba.
+- **Una unidad de `UNIDADES_SUELTAS` sin definir sigue pasando como unidad** fuera de una
+  cantidad: `e := M/N` con `N` sin definir en ninguna parte de la hoja da M entre newtons.
+  Si la hoja define `N` en otro sitio sí es error. Es el precio de aceptar `f_c/MPa` y
+  `(h/mm)^1.5*N`, que el corpus escribe así; endurecerlo pide reescribir esas fórmulas.
 
 ### Valores no finitos
 
@@ -199,10 +185,11 @@ atacarlos juntos.
 ### Un solo lector de nombres
 
 - **Los nombres no ASCII funcionan en el motor y no en sus lectores.** `σ_c` y `año` se definen
-  y se usan bien, pero `RE_INDEFINIDO` de la obra, `simbolos` de `canvas-handoff.ts`,
-  `unidadesEclipsadas` y `contrato.ts` (detección de `v_*`) leen `[A-Za-z_]`: faltan flechas en
-  la obra y errores sin detectar. Con `identificadoresDe` (en «Obra») son cinco léxicos; la
-  salida es un lector de símbolos sobre `math.parse`, compartido.
+  y se usan bien, pero `simbolos` de `canvas-handoff.ts` y `contrato.ts` (detección de `v_*`)
+  leen `[A-Za-z_]`: faltan flechas en la obra y errores sin detectar. Con `identificadoresDe`
+  (en «Obra») son tres léxicos; la salida es un lector de símbolos sobre `math.parse`,
+  compartido. (`RE_INDEFINIDO` y `unidadesEclipsadas` ya salieron: los reemplazan
+  `nombresSinDefinir` y `unidadesTapadas` del motor.)
 
 ### Lo demás
 
