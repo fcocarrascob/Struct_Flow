@@ -83,6 +83,9 @@ const {
   quitarModulo,
   resumenModal,
   atrasoDe,
+  cortesSismicos,
+  gravitacionalesConHorizontal,
+  fuerza,
   obraDesde,
   traerNodos,
   dependenciasDe,
@@ -271,6 +274,40 @@ const MODOS = [
   modo(5, 0.378, 0.02, 0.01, 0.93, 0.96),
 ];
 const LECTURA_MODAL = { modelo: 'm.sdb', leido: '2026-09-25T12:30:00Z', modificado: '2026-09-25T12:29:49Z', caso: 'MODAL', modos: MODOS };
+
+// La reacción basal del Pachón, tal como la lee el puente (kN, kN·m), más un
+// caso gravitacional que empuja de lado, inventado para que el control salte.
+const basal = (caso, fx, fy, fz, paso) => ({ caso, ...(paso ? { paso } : {}), fx, fy, fz, mx: 0, my: 0, mz: 0 });
+const LECTURA_BASAL = {
+  modelo: 'm.sdb', leido: '2026-09-25T13:00:00Z', modificado: '2026-09-25T12:29:49Z',
+  filas: [
+    basal('CM', 7e-12, 9e-11, 10483.1932),
+    basal('RSX', 3585.98921, 3e-13, -2e-12),
+    basal('RSY', 25.7196751, 2198.58839, 261.488616, 'Max'),
+    basal('WXP', -260.76402, 179.344, -603.440226),
+    basal('SDL_MAL', 40, 0, 1000),
+  ],
+  sinAnalizar: [],
+};
+const SAP_BASAL = {
+  modelo: 'm.sdb', ruta: '', version: '', leido: '', modificado: '2026-09-25T12:29:49Z',
+  patrones: { modelo: 'm.sdb', leido: '', lista: [
+    { nombre: 'DEAD', tipo: 'Dead', pesoPropio: 1 },
+    { nombre: 'SDL', tipo: 'Dead', pesoPropio: 0 },
+    { nombre: 'WXP', tipo: 'Wind', pesoPropio: 0 },
+  ] },
+  casos: { modelo: 'm.sdb', leido: '', lista: [
+    { nombre: 'CM', tipo: 'LinearStatic', estado: 'analizado', cargas: [{ tipo: 'Load', nombre: 'DEAD', sf: 1 }] },
+    { nombre: 'RSY', tipo: 'ResponseSpectrum', estado: 'analizado' },
+    { nombre: 'RSX', tipo: 'ResponseSpectrum', estado: 'analizado' },
+    { nombre: 'WXP', tipo: 'LinearStatic', estado: 'analizado', cargas: [{ tipo: 'Load', nombre: 'WXP', sf: 1 }] },
+    { nombre: 'SDL_MAL', tipo: 'LinearStatic', estado: 'analizado', cargas: [{ tipo: 'Load', nombre: 'SDL', sf: 1 }] },
+  ] },
+  espectro: { modelo: 'm.sdb', leido: '', funciones: [], casos: [
+    { nombre: 'RSX', modal: 'MODAL', combinacion: 'CQC', amortiguamiento: 0.05, cargas: [{ dir: 'U1', funcion: 'F', sf: 1.96, csys: 'GLOBAL', angulo: 0 }] },
+    { nombre: 'RSY', modal: 'MODAL', combinacion: 'CQC', amortiguamiento: 0.05, cargas: [{ dir: 'U2', funcion: 'F', sf: 1.4, csys: 'GLOBAL', angulo: 0 }] },
+  ] },
+};
 
 // Cuatro combinaciones del Pachón, tal como las lee el puente: una envolvente
 // que entra anidada en dos sísmicas, y una de viento.
@@ -926,6 +963,35 @@ const CASOS = [
     },
   },
   {
+    nombre: 'el sub-nodo Reacción basal dice el corte de cada dirección y avisa de un caso gravitacional que empuja',
+    obra: {
+      ...obra(calc('G', m('q := 1'))),
+      modulos: ['sap', 'sap-basal'],
+      sap: { ...SAP_BASAL, basal: LECTURA_BASAL },
+    },
+    ok: (_ev, proy) => {
+      const n = proy.nodos.find((x) => x.id === 'sap:basal');
+      if (!n) return 'no está el nodo Reacción basal';
+      if (n.subtitulo !== 'Vx = 3586 kN · RSX\nVy = 2199 kN · RSY') return `subtítulo «${n.subtitulo}»`;
+      if (n.severidad !== 'aviso' || n.motivos.length !== 1 || !n.motivos[0].startsWith('SDL_MAL')) return `motivos: ${n.motivos}`;
+      return proy.aristas.some((x) => x.desde === 'sap' && x.hasta === 'sap:basal' && x.tipo === 'deriva') ? null : 'falta la arista';
+    },
+  },
+  {
+    nombre: 'la tarjeta de la reacción basal se muestra en tonf si la obra lo pide, y sin avisos si todo equilibra',
+    obra: {
+      ...obra(calc('G', m('q := 1'))),
+      modulos: ['sap', 'sap-basal'],
+      unidadesSap: 'tonf',
+      sap: { ...SAP_BASAL, basal: { ...LECTURA_BASAL, filas: LECTURA_BASAL.filas.filter((f) => f.caso !== 'SDL_MAL') } },
+    },
+    ok: (_ev, proy) => {
+      const n = proy.nodos.find((x) => x.id === 'sap:basal');
+      if (n.subtitulo !== 'Vx = 365,7 tonf · RSX\nVy = 224,2 tonf · RSY') return `subtítulo «${n.subtitulo}»`;
+      return n.severidad === 'ok' ? null : `severidad ${n.severidad}: ${n.motivos}`;
+    },
+  },
+  {
     nombre: 'el sub-nodo Modal al día y con la masa juntada no avisa; con menos del 90 % en X, sí',
     obra: {
       ...obra(calc('G', m('q := 1'))),
@@ -1279,6 +1345,40 @@ const CASOS_HOJA = [
       if (sanearObra({ ...o, sap: { ...o.sap, modal: { ...LECTURA_MODAL, modificado: '' } } }).sap.modal) return 'aceptó una lectura sin sello';
       const rota = sanearObra({ ...o, sap: { ...o.sap, modal: { ...LECTURA_MODAL, modos: [{ n: 1 }, { n: 2, T: 0.5, ux: 'mucho' }] } } }).sap.modal.modos;
       return JSON.stringify(rota) === '[{"n":2,"T":0.5,"f":0}]' ? null : `modos rotos: ${JSON.stringify(rota)}`;
+    },
+  },
+  {
+    nombre: 'el corte basal sale en la dirección de su espectro, y el viento puede tener vertical sin avisar',
+    ok: () => {
+      const c = cortesSismicos(LECTURA_BASAL, SAP_BASAL).map((x) => `${x.caso}:${x.dir}:${Math.round(x.V)}`).join();
+      if (c !== 'RSX:X:3586,RSY:Y:2199') return `cortes ${c}`;
+      // RSX como estático con aceleración en UX (así quedó el modelo de prueba):
+      // sigue siendo un corte sísmico, en X.
+      const estatico = {
+        ...SAP_BASAL,
+        espectro: { ...SAP_BASAL.espectro, casos: SAP_BASAL.espectro.casos.filter((x) => x.nombre !== 'RSX') },
+        casos: { ...SAP_BASAL.casos, lista: SAP_BASAL.casos.lista.map((x) =>
+          x.nombre === 'RSX' ? { nombre: 'RSX', tipo: 'LinearStatic', estado: 'analizado', cargas: [{ tipo: 'Accel', nombre: 'UX', sf: 1.9613 }] } : x) },
+      };
+      const e = cortesSismicos(LECTURA_BASAL, estatico).map((x) => `${x.caso}:${x.dir}:${x.origen}`).join();
+      if (e !== 'RSX:X:aceleracion,RSY:Y:espectro') return `con RSX estático: ${e}`;
+      // Sin el espectro leído, la dirección sale de la componente mayor.
+      const sinEsp = cortesSismicos(LECTURA_BASAL, { ...SAP_BASAL, espectro: undefined }).map((x) => x.dir).join();
+      if (sinEsp !== 'X,Y') return `sin espectro: ${sinEsp}`;
+      // WXP tiene FZ y no es gravitacional: no avisa. CM equilibra. SDL_MAL no.
+      const g = gravitacionalesConHorizontal(LECTURA_BASAL, SAP_BASAL).map((x) => x.caso).join();
+      if (g !== 'SDL_MAL') return `gravitacionales que empujan: ${g}`;
+      // Sin saber qué carga cada caso, no se dice nada.
+      if (gravitacionalesConHorizontal(LECTURA_BASAL, { ...SAP_BASAL, casos: undefined }).length) return 'avisó sin casos leídos';
+      if (fuerza(0.3e-12) !== '0 kN' || fuerza(52.345, 'kN', true) !== '52,35 kN·m') return `fuerza: ${fuerza(0.3e-12)} ${fuerza(52.345, 'kN', true)}`;
+      // El saneo: ida y vuelta intacta; sin sello, fuera; una fila con un NaN, fuera.
+      const o = { ...obra(calc('G', m('q := 1'))), modulos: ['sap', 'sap-basal'], sap: { ...SAP_BASAL, basal: LECTURA_BASAL } };
+      const saneada = sanearObra(o);
+      if (JSON.stringify(saneada.sap.basal) !== JSON.stringify(LECTURA_BASAL)) return 'el saneo cambió la lectura basal';
+      if (JSON.stringify(sanearObra(archivoDeObra(saneada).obra)) !== JSON.stringify(saneada)) return 'cambió en la ida y vuelta';
+      if (sanearObra({ ...o, sap: { ...o.sap, basal: { ...LECTURA_BASAL, modificado: '' } } }).sap.basal) return 'aceptó una lectura sin sello';
+      const rota = sanearObra({ ...o, sap: { ...o.sap, basal: { ...LECTURA_BASAL, filas: [basal('A', 1, 2, 3), { ...basal('B', 1, 2, 3), fz: 'x' }] } } }).sap.basal.filas;
+      return rota.map((f) => f.caso).join() === 'A' ? null : `filas rotas: ${JSON.stringify(rota)}`;
     },
   },
   {

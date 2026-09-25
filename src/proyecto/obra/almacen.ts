@@ -42,6 +42,8 @@ import {
   type Combinacion,
   type LecturaCombinaciones,
   type LecturaModal,
+  type LecturaBasal,
+  type FilaBasal,
   type ModoLeido,
   type TerminoCombinacion,
   type FuenteMasa,
@@ -295,6 +297,7 @@ function sanearSap(crudo: unknown): { sap?: ConexionSap } {
   const resumen = sanearResumen(s.resumen);
   const combinaciones = sanearCombinaciones(s.combinaciones);
   const modal = sanearModal(s.modal);
+  const basal = sanearBasal(s.basal);
   return {
     sap: {
       modelo: s.modelo,
@@ -310,8 +313,33 @@ function sanearSap(crudo: unknown): { sap?: ConexionSap } {
       ...(resumen ? { resumen } : {}),
       ...(combinaciones ? { combinaciones } : {}),
       ...(modal ? { modal } : {}),
+      ...(basal ? { basal } : {}),
     },
   };
+}
+
+/**
+ * Una lectura de la reacción basal. Sin sello se descarta entera; una fila sin
+ * caso o con alguna componente que no sea un número, sola.
+ */
+function sanearBasal(crudo: unknown): LecturaBasal | undefined {
+  if (typeof crudo !== 'object' || crudo === null) return undefined;
+  const l = crudo as Partial<LecturaBasal>;
+  if (!Array.isArray(l.filas) || typeof l.modificado !== 'string' || !l.modificado) return undefined;
+  const filas: FilaBasal[] = [];
+  for (const x of l.filas) {
+    const f = (x ?? {}) as Partial<FilaBasal>;
+    if (typeof f.caso !== 'string' || !f.caso) continue;
+    const { fx, fy, fz, mx, my, mz } = f;
+    if (![fx, fy, fz, mx, my, mz].every(esNumero)) continue;
+    filas.push({
+      caso: f.caso,
+      ...(typeof f.paso === 'string' && f.paso ? { paso: f.paso } : {}),
+      fx: fx!, fy: fy!, fz: fz!, mx: mx!, my: my!, mz: mz!,
+    });
+  }
+  const sinAnalizar = Array.isArray(l.sinAnalizar) ? l.sinAnalizar.filter((c): c is string => typeof c === 'string') : [];
+  return { modelo: texto(l.modelo), leido: texto(l.leido), modificado: l.modificado, filas, sinAnalizar };
 }
 
 /**

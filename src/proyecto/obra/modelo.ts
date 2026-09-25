@@ -229,14 +229,14 @@ export const COLOR_RE = /^#[0-9a-f]{6}$/i;
  * Los nodos únicos que el usuario agregó desde la paleta. Un cálculo no vive
  * aquí sino en su propia lista: puede haber tantos como la obra necesite.
  */
-export type Modulo = 'sap' | 'sap-combinaciones' | 'sap-modal';
+export type Modulo = 'sap' | 'sap-combinaciones' | 'sap-modal' | 'sap-basal';
 
 /**
  * Los sub-nodos del SAP2000: cuelgan de él en el grafo y leen del mismo modelo.
  * Uno por tema —las combinaciones, y después los resultados—, cada uno con su
  * panel y su lectura dentro de `obra.sap`. Sin el SAP2000 no tienen sentido.
  */
-export const SUBMODULOS_SAP: readonly Modulo[] = ['sap-combinaciones', 'sap-modal'];
+export const SUBMODULOS_SAP: readonly Modulo[] = ['sap-combinaciones', 'sap-modal', 'sap-basal'];
 
 /**
  * Lo último que el nodo SAP2000 leyó del modelo abierto, por el puente de Flow
@@ -276,6 +276,34 @@ export interface ConexionSap {
   combinaciones?: LecturaCombinaciones;
   /** La última lectura de resultados modales (la del sub-nodo Modal). */
   modal?: LecturaModal;
+  /** La última lectura de la reacción basal (la del sub-nodo Reacción basal). */
+  basal?: LecturaBasal;
+}
+
+/** La reacción en la base de un caso, en kN y kN·m, ejes globales. */
+export interface FilaBasal {
+  caso: string;
+  /** El tipo de paso que reporta SAP: `Max` en un espectro; ausente en un estático. */
+  paso?: string;
+  fx: number;
+  fy: number;
+  fz: number;
+  mx: number;
+  my: number;
+  mz: number;
+}
+
+/** Una lectura de resultados, con el sello del modelo como la modal. */
+export interface LecturaBasal {
+  modelo: string;
+  /** ISO. */
+  leido: string;
+  /** ISO: la fecha del `.sdb` al leer. */
+  modificado: string;
+  /** Una por caso analizado, sin el modal. */
+  filas: FilaBasal[];
+  /** Los casos que no se leyeron porque no estaban analizados. */
+  sinAnalizar: string[];
 }
 
 /**

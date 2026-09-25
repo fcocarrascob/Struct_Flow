@@ -33,6 +33,8 @@ Rutas:
                          terminos: [{clase: caso|combinacion, nombre, sf}]}]}
     GET  /modal?caso=MODAL -> {modelo, ruta, modificado, caso, modos: [{n, T, f, ux, uy,
                          uz, rz, sux, suy, suz}]}   o 409 si el caso no está analizado
+    GET  /basal      -> {modelo, ruta, modificado, filas: [{caso, paso?, fx, fy, fz, mx,
+                         my, mz}], sinAnalizar}   (kN, kN·m; sin el caso modal)
     POST /aplicaciones/leer {aplicaciones} -> la carga de cada patrón sobre su grupo
                      (POST solo porque la lista viaja en el cuerpo: no modifica nada)
 
@@ -608,16 +610,16 @@ def combinaciones():
 
 
 class _SalidaSolo:
-    """Deja seleccionado para salida solo un caso, y devuelve la selección que había.
+    """Deja seleccionados para salida solo esos casos, y devuelve la selección que había.
 
     Los resultados de la API salen de los casos y combinaciones SELECCIONADOS en
     la pantalla de SAP. Cambiarle la selección al usuario sin devolvérsela le
     cambiaría lo que ve en sus tablas, igual que las unidades (`_EnKnM`).
     """
 
-    def __init__(self, modelo, caso):
+    def __init__(self, modelo, casos):
         self.modelo = modelo
-        self.caso = caso
+        self.pedidos = [casos] if isinstance(casos, str) else list(casos)
 
     def __enter__(self):
         setup = self.modelo.Results.Setup
@@ -626,8 +628,10 @@ class _SalidaSolo:
         self.combos = {c: bool(setup.GetComboSelectedForOutput(c)[0])
                        for c in _nombres(self.modelo.RespCombo, "la lista de combinaciones")}
         setup.DeselectAllCasesAndCombosForOutput()
-        if setup.SetCaseSelectedForOutput(self.caso) != 0:
-            raise ErrorPuente(502, f"SAP2000 no dejó seleccionar «{self.caso}» para leer sus resultados.")
+        for caso in self.pedidos:
+            if setup.SetCaseSelectedForOutput(caso) != 0:
+                self.__exit__()
+                raise ErrorPuente(502, f"SAP2000 no dejó seleccionar «{caso}» para leer sus resultados.")
         return self.modelo
 
     def __exit__(self, *_):
@@ -680,6 +684,45 @@ def modal(caso):
             } if j is not None else {}),
         })
     return {"modelo": nombre, "ruta": ruta, "modificado": _modificado(ruta), "caso": caso, "modos": modos}
+
+
+# ── Resultados: la reacción basal ────────────────────────────────────────────
+
+
+def basal():
+    """La reacción en la base de cada caso analizado, en kN y kN·m. Solo lee.
+
+    Solo casos: una combinación envolvente devuelve máximo y mínimo por fila, y
+    eso es para cuando se lean las combinaciones. Un caso modal da una fila por
+    modo, que no es una reacción de diseño, y se deja fuera. Los casos sin
+    analizar no se piden: darían ceros, y un cero parece un dato.
+    """
+    modelo, ruta, nombre = _modelo_guardado()
+    tipos = _enum("eLoadCaseType_")
+    estados = _estados(modelo)
+    pedidos, sin_analizar = [], []
+    for c in _nombres(modelo.LoadCases, "la lista de casos"):
+        r = modelo.LoadCases.GetTypeOAPI_1(c)
+        if r[-1] == 0 and tipos.get(r[0]) == "Modal":
+            continue
+        (pedidos if estados.get(c) == "analizado" else sin_analizar).append(c)
+    if not pedidos:
+        raise ErrorPuente(409, "Ningún caso está analizado. Analiza el modelo en SAP2000 y vuelve a leer.")
+    with _EnKnM(modelo), _SalidaSolo(modelo, pedidos):
+        r = modelo.Results.BaseReact()
+        if r[-1] != 0:
+            raise ErrorPuente(502, "SAP2000 no entregó la reacción basal.")
+        n, casos, pasos, _, fx, fy, fz, mx, my, mz = r[:10]
+    filas = []
+    for i in range(n or 0):
+        filas.append({
+            "caso": str(casos[i]),
+            # Un espectro reporta «Max»; un estático, nada.
+            **({"paso": str(pasos[i])} if pasos[i] else {}),
+            "fx": _num(fx[i]), "fy": _num(fy[i]), "fz": _num(fz[i]),
+            "mx": _num(mx[i]), "my": _num(my[i]), "mz": _num(mz[i]),
+        })
+    return {"modelo": nombre, "ruta": ruta, "modificado": _modificado(ruta), "filas": filas, "sinAnalizar": sin_analizar}
 
 
 class Manejador(BaseHTTPRequestHandler):
@@ -754,6 +797,7 @@ class Manejador(BaseHTTPRequestHandler):
             "/resumen": resumen,
             "/combinaciones": combinaciones,
             "/modal": lambda: modal(self._query().get("caso", "")),
+            "/basal": basal,
         })
 
     def _query(self):

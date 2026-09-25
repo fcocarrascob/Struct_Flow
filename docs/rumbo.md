@@ -224,10 +224,24 @@ que devolverlo con sus datos.
     atrasada» para lo que tiene sello.
   - Todavía **no publica** nombres al scope.
 
+- **Reacción basal** (`sap:basal`): la resultante en la base de cada caso analizado (sin el
+  modal; las combinaciones, más adelante), con el mismo sello. Lo que se revisa:
+  - el **corte basal de cada caso sísmico**, en su dirección. Son sísmicos los de espectro
+    (U1 es X, U2 es Y) y los estáticos que cargan una aceleración horizontal (UX, UY), el
+    método estático equivalente;
+  - que un caso **solo gravitacional** —sus patrones son `Dead`, `Live`, `Rooflive`, `Snow`…—
+    no tenga reacción horizontal de más del 1 % de la vertical, que suele ser una carga con la
+    dirección equivocada.
+
+  La tarjeta dice Vx y Vy, una línea por dirección. No se calcula el peso sísmico W ni V/W: desde
+  la reacción de cada caso podría contar dos veces el peso propio, según la fuente de masa, y un
+  número dudoso ahí es peor que ninguno.
+
 Lo que sigue en esta línea, de a uno:
-- que el modal publique nombres (T₁, los dominantes) para que las hojas los usen en vez de
-  copiarlos;
-- las reacciones y los esfuerzos, con el mismo patrón;
+- que el modal y la reacción basal publiquen nombres (Tx, Ty, Vx, Vy) para que las hojas los
+  usen en vez de copiarlos;
+- las reacciones por apoyo (para fundaciones y placas base) y los esfuerzos, con el mismo
+  patrón;
 - la **justificación de las combinaciones** (etapa 6).
 
 ## Una obra parte de otra

@@ -26,7 +26,8 @@ import { peor, type AristaGrafo, type NodoGrafo, type Severidad } from '../grafo
 import { quedoAtras, type Genericas } from './biblioteca';
 import { mensajeDeMotor } from '../../components/canvas/mensajes-motor';
 import { problemaDeGrafo, type EvaluacionObra } from './evaluacion';
-import { ID_NODO_COMBINACIONES, ID_NODO_MODAL, ID_NODO_SAP, idNodoDeCalculo } from './ids';
+import { ID_NODO_BASAL, ID_NODO_COMBINACIONES, ID_NODO_MODAL, ID_NODO_SAP, idNodoDeCalculo } from './ids';
+import { cortesSismicos, fuerza, gravitacionalesConHorizontal } from './sap-basal';
 import { atrasoDe, MASA_MINIMA, porcentaje, resumenModal, segundos } from './sap-modal';
 import { grupoPorId, type Grupo, type NodoCalculo, type Obra, type Revision } from './modelo';
 import { resumirJustificaciones } from './sap-cargas';
@@ -322,6 +323,39 @@ function nodoModal(obra: Obra): NodoDeObra {
   });
 }
 
+/**
+ * El sub-nodo Reacción basal: el corte basal sísmico de cada dirección, una
+ * línea por dirección como el modal. En aviso si la lectura quedó atrasada o si
+ * un caso gravitacional tiene reacción horizontal.
+ */
+function nodoBasal(obra: Obra): NodoDeObra {
+  const lectura = obra.sap?.basal;
+  const base = { id: ID_NODO_BASAL, tipo: 'modelo', clase: 'resultado' as const, etiqueta: 'Reacción basal' };
+  if (!lectura) return nodo({ ...base, subtitulo: 'sin leer' });
+  const sis = obra.unidadesSap ?? 'kN';
+  const motivos: string[] = [];
+  const atraso = atrasoDe(lectura, obra.sap);
+  if (atraso) motivos.push(`Lectura atrasada: ${atraso}. Vuelve a leer.`);
+  const empujan = gravitacionalesConHorizontal(lectura, obra.sap);
+  if (empujan.length) {
+    motivos.push(`${empujan.map((e) => e.caso).join(', ')}: solo cargas gravitacionales, pero con reacción horizontal.`);
+  }
+  // Por dirección, el mayor de sus casos de espectro.
+  const lineas: string[] = [];
+  for (const d of ['X', 'Y'] as const) {
+    const c = cortesSismicos(lectura, obra.sap)
+      .filter((x) => x.dir === d)
+      .sort((a, b) => b.V - a.V)[0];
+    if (c) lineas.push(`V${d.toLowerCase()} = ${fuerza(c.V, sis)} · ${c.caso}`);
+  }
+  return nodo({
+    ...base,
+    subtitulo: lineas.length ? lineas.join('\n') : `${lectura.filas.length} casos · sin espectro`,
+    severidad: motivos.length ? 'aviso' : 'ok',
+    motivos,
+  });
+}
+
 export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas = {}): Proyeccion {
   const nodos: NodoDeObra[] = [];
   const aristas: AristaGrafo[] = [];
@@ -367,6 +401,10 @@ export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas =
     if (obra.modulos.includes('sap-combinaciones')) {
       nodos.push(nodoCombinaciones(obra));
       aristas.push({ desde: ID_NODO_SAP, hasta: ID_NODO_COMBINACIONES, tipo: 'deriva', etiqueta: '', severidad: 'ok' });
+    }
+    if (obra.modulos.includes('sap-basal')) {
+      nodos.push(nodoBasal(obra));
+      aristas.push({ desde: ID_NODO_SAP, hasta: ID_NODO_BASAL, tipo: 'deriva', etiqueta: '', severidad: 'ok' });
     }
     if (obra.modulos.includes('sap-modal')) {
       nodos.push(nodoModal(obra));

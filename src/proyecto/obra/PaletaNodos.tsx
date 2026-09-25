@@ -45,6 +45,13 @@ const ENTRADAS: Entrada[] = [
     requiere: 'sap',
   },
   {
+    clave: 'sap-basal',
+    titulo: 'SAP2000 · Reacción basal',
+    detalle: 'la reacción en la base de cada caso (exige el modelo analizado)',
+    unico: true,
+    requiere: 'sap',
+  },
+  {
     clave: 'calculo',
     titulo: 'Cálculo',
     detalle: 'una planilla genérica de la biblioteca, instanciada',
@@ -58,7 +65,7 @@ const ENTRADAS: Entrada[] = [
   },
 ];
 
-const POR_VENIR = ['más resultados de SAP2000 (reacciones, esfuerzos)', 'Documento'];
+const POR_VENIR = ['más resultados de SAP2000 (reacciones por apoyo, esfuerzos)', 'Documento'];
 
 export default function PaletaNodos({
   puestos,

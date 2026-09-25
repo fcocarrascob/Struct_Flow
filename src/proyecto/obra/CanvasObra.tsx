@@ -66,6 +66,7 @@ import MarcaRevision from './MarcaRevision';
 import PanelSap, { LECTURAS_DEL_NODO_SAP, type PestanaSap } from './PanelSap';
 import PanelCombinaciones from './PanelCombinaciones';
 import PanelModal from './PanelModal';
+import PanelBasal from './PanelBasal';
 import TablaCombinaciones from './TablaCombinaciones';
 import { firmaDe } from './sap-cargas';
 import IconoClase from './IconoClase';
@@ -77,6 +78,7 @@ import PanelCalculo from './PanelCalculo';
 import {
   calculoDeNodo,
   ID_DE_MODULO,
+  ID_NODO_BASAL,
   ID_NODO_COMBINACIONES,
   ID_NODO_MODAL,
   ID_NODO_SAP,
@@ -1735,6 +1737,34 @@ function CanvasObra({
               },
             }}
             onQuitarJustificacion={(id) => setObra((o) => (o ? quitarJustificacion(o, id) : o))}
+            onCerrar={() => setSeleccion(null)}
+          />
+        )}
+
+        {!activa && seleccion === ID_NODO_BASAL && obra.modulos.includes('sap-basal') && (
+          <PanelBasal
+            sap={obra.sap}
+            unidades={obra.unidadesSap ?? 'kN'}
+            // Por `setObra`, como en el SAP2000: es la convención de la obra.
+            onUnidades={(u) =>
+              setObra((o) => {
+                if (!o) return o;
+                const { unidadesSap: _, ...resto } = o;
+                return u === 'tonf' ? { ...resto, unidadesSap: u } : resto;
+              })
+            }
+            onLeido={(basal) =>
+              setObra((o) =>
+                o?.sap
+                  ? { ...o, sap: { ...o.sap, basal, ...(basal.modificado ? { modificado: basal.modificado } : {}) } }
+                  : o,
+              )
+            }
+            onQuitar={() => {
+              const o = obraRef.current;
+              if (o) setObra(quitarModulo(o, 'sap-basal'));
+              setSeleccion(null);
+            }}
             onCerrar={() => setSeleccion(null)}
           />
         )}
