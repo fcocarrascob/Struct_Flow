@@ -52,8 +52,23 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
    los Ejemplos 4.7-1 y 4.7-3), elegida con `placa: rotulada`, que apaga la silla y la hoja de
    capacidad (`Opcion.soloSi`). Con las gobernantes de las cuatro COL-HASTIAL de
    `modelo_prueba.sdb` la base cierra: placa 0,69 (espesor por el arranque O0 de 182 kN),
-   anclaje 0,54, pedestal 0,67. Siguen, en orden: el dominio en `placa-base-generica` (toca una
-   genérica publicada) y la recomendación de variante en el diálogo «+ base».
+   anclaje 0,54, pedestal 0,67. **La base del hastial ya está armada en el Pachón** («Base de
+   columna COL_VIENTO», sufijo `_CV`, placa rotulada con llave en cruz; placa 0,69, anclaje
+   0,54, llave 0,53, pedestal 0,67), con sus valores de partida marcados ⚑ para confirmar.
+   **Pasos siguientes, en orden:**
+   1. **El dominio en `placa-base-generica`**: que vote en contra con e ≤ e_crit (momento bajo,
+      que es de la rotulada), como la rotulada vota con e > e_crit. Toca una genérica publicada:
+      `verify:biblioteca --casos-escribir`, y su instancia del Pachón queda «atrás» hasta
+      resellar.
+   2. **La recomendación de variante en el diálogo «+ base»**: con la envolvente del tipo (M = 0,
+      e máx frente a e_crit, si hay tracción) proponer placa rotulada o con momento; decide el
+      ingeniero.
+   3. **Que las genéricas de anclaje y pedestal fallen limpio** con cero barras contables (ver
+      abajo), y que la vista cuente barras contra las dos filas cuando traccionan las dos.
+   4. **El choque de la llave con los estribos de la cabeza del pedestal** (se revisa en la
+      sesión del 2026-09-25; ver la entrada de la vista geométrica más abajo).
+   5. La hoja de capacidad como variante por norma (NCh2369 para Chile) y las fuerzas de las
+      diagonales como externa opcional.
    Lo que salió en el camino:
    - **`anclaje-hormigon-generica` y `pedestal-generico` dividen por cero** cuando no cuenta
      ninguna barra (`n_arm = 0`, `n_contables = 0`): dan error en vez de un ✗ limpio.
