@@ -394,6 +394,30 @@ misma plantilla y ata la base al SAP2000.
 
 Las familias JSON quedan, si hacen falta, para grupos sin variantes (el arriostramiento).
 
+**El armado del pedestal se deriva de la geometría, no se declara** (2026-09-25). Lo que las
+genéricas contaban de los estribos lo cuenta ahora la vista, sobre los niveles que dibuja:
+`n_est_ll` (los estribos equivalentes que cortan el sólido de falla de la llave), `n_est_cab`
+(los que caen en los 125 mm superiores, §10.7.6.1.5) y `ramas_cab_x/y` (las ramas por dirección
+de un nivel de cabeza). El primer estribo se declara (`s1_est`), porque la hoja suponía uno en la
+misma cara. Tres criterios con los que se decidió:
+
+- **Barra en cada esquina.** El reparto (vista y `pedestal-generico`, idénticos) pone una por
+  esquina y el resto a paso constante por cara, con los vanos en proporción al largo. El paso
+  uniforme por el perímetro dejaba las esquinas vacías cuando el lado no era múltiplo del paso,
+  y ACI 318-25 §25.7.2.3(a) las exige.
+- **El rombo de cabeza es un amarre adicional**, no el obligatorio. Los niveles que la llave
+  cruzaría van sin ramas interiores y pueden llevar un rombo por las barras centrales de las
+  caras (Fig. R25.7.2.3a), que aporta la proyección de sus ramas. La regla de los 150 mm libres
+  del §25.7.2.3(a) vota en los niveles normales y **avisa** en los de cabeza: la vista tiene
+  avisos, que no entran en `v_global` y dejan el nodo en ámbar.
+- **El detallamiento chileno es referencia, no norma.** El *Manual de Detallamiento* del ICH
+  (2.ª ed., 2019) está en el catálogo del Harness (`CL/ICH-DETALLAMIENTO-2019`) con su acta: es
+  práctica sobre ACI 318-14, así que cada regla se cita contra la norma vigente, y el manual sirve
+  por sus tipologías (columnas de 4 a 36 barras, pp. 29-40) para proponer armados.
+
+«+ base» sugiere la placa (rotulada o con momento) con las gobernantes del tipo y el e_crit de la
+rotulada de partida; decide el ingeniero.
+
 ## La hoja va hacia el flujo lineal
 
 **2026-09-09.** Se descartó el modelo de SMath —posición libre en un plano, bloque impreso en

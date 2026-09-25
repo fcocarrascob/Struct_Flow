@@ -55,54 +55,37 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
    anclaje 0,54, pedestal 0,67. **La base del hastial ya está armada en el Pachón** («Base de
    columna COL_VIENTO», sufijo `_CV`, placa rotulada con llave en cruz; placa 0,69, anclaje
    0,54, llave 0,53, pedestal 0,67), con sus valores de partida marcados ⚑ para confirmar.
+   **El armado del pedestal** (2026-09-25, `rumbo.md`): barra en cada esquina, el rombo de
+   cabeza como amarre adicional, y `n_est_ll`, `n_est_cab` y `ramas_cab_x/y` derivados por la
+   vista; `placa-base-generica` vota fuera de dominio con momento bajo, «+ base» sugiere la placa
+   y anclaje y pedestal fallan limpio sin barras. En el Pachón: COL_PPALES con el primer estribo
+   a 50 mm, dos niveles de cabeza sin ramas con rombo (placa 0,852, anclaje 0,859, llave 0,918,
+   silla 0,986, pedestal 0,867); COL_VIENTO pasó a 16 φ25 con 4 ramas y φ16 a 75 mm en la zona
+   (placa 0,685, anclaje 0,435, llave 0,316, pedestal 0,333), porque con 14 φ25 y solo el
+   perimetral la barra central de la cara larga quedaba a 365 mm libres (§25.7.2.3(a)) y la
+   cabeza tenía 1 estribo φ10 en los 125 mm (§10.7.6.1.5 pide 3).
    **Pasos siguientes, en orden:**
-   1. **El dominio en `placa-base-generica`**: que vote en contra con e ≤ e_crit (momento bajo,
-      que es de la rotulada), como la rotulada vota con e > e_crit. Toca una genérica publicada:
-      `verify:biblioteca --casos-escribir`, y su instancia del Pachón queda «atrás» hasta
-      resellar.
-   2. **La recomendación de variante en el diálogo «+ base»**: con la envolvente del tipo (M = 0,
-      e máx frente a e_crit, si hay tracción) proponer placa rotulada o con momento; decide el
-      ingeniero.
-   3. **Que las genéricas de anclaje y pedestal fallen limpio** con cero barras contables (ver
-      abajo), y que la vista cuente barras contra las dos filas cuando traccionan las dos.
-   4. **El choque de la llave con los estribos de la cabeza del pedestal** (revisado el
-      2026-09-25). En COL_PPALES la llave (cruz 1100×65, fondo a z = −100) cruza las **8 ramas
-      interiores del primer nivel** (z = −75 ± 10); el estribo perimetral no choca y del segundo
-      nivel para abajo tampoco. La vista no lo ve (solo compara la llave con el perimetral) y la
-      llave y el pedestal cuentan ese nivel completo (15 estribos; u_arm = 0,94). Con la genérica:
-      sin las ramas interiores del nivel 1, u = 1,08; con estribos φ25 en la zona, 0,92 (manda el
-      aplastamiento); bajando el nivel 1 a −145 con perimetral en la cabeza, 1,41 con φ20 y 0,92
-      con φ25; dos chapas paralelas por dirección no ayudan (2×540: aplastamiento 1,44, flexión
-      de la chapa 2,03). **Aplicado en el Pachón el mismo día**: nivel 1 sin ramas interiores
-      (`n_niv_sin_ramas_ll_CP := 1`, atado a la vista, que ya no las dibuja y verifica
-      `v_llave_ramas`: 37,5 ≥ 33,3 mm) y estribos φ25; llave 0,918 (manda el aplastamiento),
-      pedestal 0,694. `pedestal-generico` tiene desde el mismo día la entrada `n_niv_sin_ramas`
-      (cada nivel sin ramas aporta 2 por dirección en su sección 13) y el aviso
-      `v_sin_ramas_hx`, que salta en el Pachón: con el §18.7 en juego, en ese nivel las barras
-      de la cara quedan sin el apoyo lateral del §18.7.5.2 (⁉️ lectura, por confirmar contra la
-      fuente, y decisión de quien diseña). Queda: que `n_est_ll` lo derive la vista en vez de la
-      fórmula de la hoja de datos.
-      **Rombo de cabeza** (probado el 2026-09-25, ACI 318-25 §25.7.2.3, §18.7.5.1 a §18.7.5.3 y
-      R17.5.2.1 leídos): la vista lo dibuja con `amarre_cab = 1` (apagado por defecto) y verifica
-      el ángulo interior ≤ 135° (105,8° en COL_PPALES) y el hueco con la llave (73,3 mm). Aporta
-      4,41 ramas equivalentes en X por nivel (2 solo con el perimetral, 6 con el nivel completo),
-      contando cada rama inclinada por su proyección (⁉️ lectura). Llave: armadura 0,69 → 0,64,
-      pero manda el aplastamiento (0,92). No da el h_x ≤ 350 mm del §18.7.5.2(e) en ese nivel
-      —con un pedestal de 1500×1950 hacen falta más amarres—, y el §18.7.5.1 no dice a qué
-      distancia de la cara va el primer aro: si el nivel de cabeza es un amarre adicional a los
-      obligatorios, el aviso del pedestal sobra. Falta decidir, y llevar el rombo a la hoja de
-      datos (`ramas_cab`) y a `pedestal-generico` (ramas de cabeza en vez de 2 fijas). La base del hastial (`_CV`) tiene el mismo dato y
-      la misma cuenta desde el mismo día; con 2 ramas por dirección no tiene ramas interiores
-      y sus números no cambiaron.
-   5. La hoja de capacidad como variante por norma (NCh2369 para Chile) y las fuerzas de las
+   1. **El aviso `v_sin_ramas_hx` de `pedestal-generico`.** Con el rombo como amarre adicional,
+      el §18.7.5.2 lo cumplen los niveles completos, y el aviso sobraría si el primero de ellos
+      cae donde debe. Pero ACI 318-25 §18.7.5.1 no fija, para columnas, a qué distancia de la
+      cara va el primer aro (acta del 2026-09-25); el ICH (§5.4.4, p. 23) pide menos de s/2 de la
+      cara de apoyo, y eso es práctica sobre ACI 318-14. Decisión de quien diseña; mientras, el
+      aviso sigue.
+   2. **El proponedor de armado** con las tipologías del ICH (Manual de Detallamiento, pp.
+      29-40): con la sección, n_barras y db, que la vista proponga anillos, rombo o trabas para
+      que ninguna barra quede a más de 150 mm libres de una apoyada, y compruebe el choque con
+      la llave. Para 36 barras el manual usa perimetral y cuatro anillos, sin rombo (p. 40).
+      Hoy las ramas interiores se eligen repartidas y no «una sí, una no».
+   3. La hoja de capacidad como variante por norma (NCh2369 para Chile) y las fuerzas de las
       diagonales como externa opcional.
    Lo que salió en el camino:
-   - **`anclaje-hormigon-generica` y `pedestal-generico` dividen por cero** cuando no cuenta
-     ninguna barra (`n_arm = 0`, `n_contables = 0`): dan error en vez de un ✗ limpio.
-   - **La vista cuenta las barras solo contra la fila `y > 0`**; con la base rotulada
-     traccionan las dos filas.
    - **La rotulada toma la tracción del criterio `t` del conjunto de sobrerresistencia**: si ese
      conjunto no tracciona, el nombre no se publica y la hoja queda en rojo.
+   - **La plantilla no propaga sus cambios a una base ya armada**: `reconfigurar` aplica solo lo
+     que cambia entre dos configuraciones. El Pachón se actualizó a mano (respaldos en
+     `obras/_respaldos/`).
+   - **El dato de partida de la placa rotulada vive dos veces**: en la plantilla y en
+     `PLACA_ROTULADA_DE_PARTIDA` de `obra/recomendar-placa.ts`; `verify:obra` exige que coincidan.
    Límites de la plantilla: la hoja de capacidad es la del Pachón (AISC 341 §D2.6, pórtico
    arriostrado en X y de momento en Y) y usa las externas `H_int_dg`, `H_ext_dg` y
    `T_ext_dg` del arriostramiento, sin sufijo; una base sin diagonales, o sin
