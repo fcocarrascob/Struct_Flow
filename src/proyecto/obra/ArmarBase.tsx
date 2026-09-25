@@ -21,6 +21,7 @@ export default function ArmarBase({
   tipo,
   conjuntos,
   recomendacion,
+  configInicial,
   error,
   onArmar,
   onCerrar,
@@ -32,6 +33,8 @@ export default function ArmarBase({
   conjuntos: readonly string[];
   /** La placa que sugieren las gobernantes del tipo; parte seleccionada, y decide el ingeniero. */
   recomendacion?: Recomendacion | null;
+  /** La tipología elegida en «crear apoyo»: manda sobre la sugerida, y cada opción se sigue pudiendo cambiar. */
+  configInicial?: Config;
   error: string;
   onArmar: (params: Parametros, config: Config, aMano: boolean) => void;
   onCerrar: () => void;
@@ -42,7 +45,7 @@ export default function ArmarBase({
   const [diseno, setDiseno] = useState(conjuntos[0] ?? 'LRFD');
   const [sobre, setSobre] = useState(conjuntos[1] ?? conjuntos[0] ?? 'O0');
   const [config, setConfig] = useState<Config>(() =>
-    configCompleta(def, recomendacion ? { placa: recomendacion.variante } : undefined),
+    configCompleta(def, configInicial ?? (recomendacion ? { placa: recomendacion.variante } : undefined)),
   );
 
   const aliasEfectivo = alias.trim() || aliasPorDefecto(grupoSap.trim() || 'X');

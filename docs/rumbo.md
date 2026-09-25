@@ -415,8 +415,11 @@ misma cara. Tres criterios con los que se decidió:
   práctica sobre ACI 318-14, así que cada regla se cita contra la norma vigente, y el manual sirve
   por sus tipologías (columnas de 4 a 36 barras, pp. 29-40) para proponer armados.
 
-«+ base» sugiere la placa (rotulada o con momento) con las gobernantes del tipo y el e_crit de la
-rotulada de partida; decide el ingeniero.
+En el panel de apoyos, **«crear apoyo»** ofrece tipologías de partida —momento grande con o sin
+silla, momento bajo o rotulada con o sin llave (`TIPOLOGIAS_BASE_COLUMNA`, combinaciones de las
+opciones, no bases aparte)— y «personalizar». Marca la sugerida con las gobernantes del tipo y el
+e_crit de la rotulada de partida, y abre el armado con esa configuración: cada componente se sigue
+eligiendo ahí y en la ficha de la vista. Decide el ingeniero.
 
 ## La hoja va hacia el flujo lineal
 

@@ -5,7 +5,7 @@
 // tuerca, el árido, cómo se disponen los nervios— son datos propios de la
 // geometría y llevan su `supuesto`.
 
-import type { Campo, Opcion } from '../tipos';
+import type { Campo, Config, Opcion } from '../tipos';
 
 /**
  * Los componentes que pueden faltar. La columna en I, la placa, los pernos y el
@@ -54,6 +54,45 @@ export const OPCIONES_BASE_COLUMNA: Opcion[] = [
     porDefecto: 'aisc341',
     soloSi: 'placa=momento',
     soloSiTexto: 'una base rotulada no transmite el momento de la columna',
+  },
+];
+
+/**
+ * Las tipologías con que parte «crear apoyo» en el panel de apoyos: combinaciones
+ * de las opciones de arriba, no bases aparte. El diálogo que abren deja cambiar
+ * cada componente antes de armar, y la ficha de la vista, después.
+ */
+export interface TipologiaBase {
+  id: string;
+  titulo: string;
+  descripcion: string;
+  config: Config;
+}
+
+export const TIPOLOGIAS_BASE_COLUMNA: TipologiaBase[] = [
+  {
+    id: 'momento-completa',
+    titulo: 'Momento grande',
+    descripcion: 'placa con momento, silla de anclaje y llave en cruz',
+    config: { placa: 'momento', silla: 'nervios', llave: 'cruz' },
+  },
+  {
+    id: 'momento-sin-silla',
+    titulo: 'Momento grande, sin silla',
+    descripcion: 'placa con momento y llave; el perno aprieta sobre la placa',
+    config: { placa: 'momento', silla: 'no', llave: 'cruz' },
+  },
+  {
+    id: 'rotulada-llave',
+    titulo: 'Momento bajo o rotulada',
+    descripcion: 'placa rotulada con llave en cruz',
+    config: { placa: 'rotulada', llave: 'cruz' },
+  },
+  {
+    id: 'rotulada-sin-llave',
+    titulo: 'Rotulada sin llave',
+    descripcion: 'el corte lo toman los pernos o la fricción',
+    config: { placa: 'rotulada', llave: 'no' },
   },
 ];
 

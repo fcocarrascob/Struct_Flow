@@ -1,4 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { Recomendacion } from './recomendar-placa';
+import { TIPOLOGIAS_BASE_COLUMNA } from '../vistas/base-columna/campos';
+import type { Config } from '../vistas/tipos';
 import type {
   ConexionSap,
   ConjuntoDiseno,
@@ -50,13 +53,20 @@ export default function PanelApoyos({
   onAliasTipo,
   bases,
   onArmarBase,
+  recomendacionDe,
   onVerBase,
   onQuitar,
   onCerrar,
 }: {
   /** Las bases ya armadas, por alias de tipo: se derivan de las vistas con ensamble. */
   bases: Readonly<Record<string, { idVista: string; nombre: string }>>;
-  onArmarBase: (grupo: string, alias: string) => void;
+  /**
+   * Abre el armado de la base del tipo con la configuración de la tipología elegida
+   * en «crear apoyo»; `null` es «personalizar», que parte de la sugerida.
+   */
+  onArmarBase: (grupo: string, alias: string, config: Config | null) => void;
+  /** La placa que sugieren las gobernantes del tipo, si hay lectura de conjuntos. */
+  recomendacionDe: (grupo: string) => Recomendacion | null;
   onVerBase: (idVista: string) => void;
   sap: ConexionSap | undefined;
   unidades: SistemaUnidades;
@@ -271,14 +281,10 @@ export default function PanelApoyos({
                                 ver base
                               </button>
                             ) : (
-                              <button
-                                type="button"
-                                onClick={() => onArmarBase(t.grupo!, alias)}
-                                title="Armar el grupo de la base de columna de este tipo, atado a sus gobernantes"
-                                className="shrink-0 rounded border border-accent px-1.5 py-0.5 text-[10px] text-accent hover:bg-accent hover:text-white"
-                              >
-                                + base
-                              </button>
+                              <MenuCrearApoyo
+                                recomendacion={recomendacionDe(t.grupo)}
+                                onElegir={(config) => onArmarBase(t.grupo!, alias, config)}
+                              />
                             );
                           })()}
                       </li>
@@ -515,5 +521,82 @@ function Publicados({ publicacion, usan }: { publicacion: PublicacionApoyos; usa
         </p>
       ))}
     </section>
+  );
+}
+
+/**
+ * «crear apoyo»: las tipologías de partida de la base de columna —combinaciones
+ * de placa, silla y llave— y «personalizar». Elegir una abre el armado con esa
+ * configuración ya puesta; ahí se ajusta cada componente y los conjuntos. La
+ * sugerida sale de las gobernantes del tipo (`recomendarPlaca`).
+ */
+function MenuCrearApoyo({
+  recomendacion,
+  onElegir,
+}: {
+  recomendacion: Recomendacion | null;
+  onElegir: (config: Config | null) => void;
+}) {
+  const [abierto, setAbierto] = useState(false);
+  const caja = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!abierto) return;
+    const fuera = (e: MouseEvent) => {
+      if (caja.current && !caja.current.contains(e.target as Node)) setAbierto(false);
+    };
+    document.addEventListener('mousedown', fuera);
+    return () => document.removeEventListener('mousedown', fuera);
+  }, [abierto]);
+  const sugerida = recomendacion ? TIPOLOGIAS_BASE_COLUMNA.find((t) => t.config.placa === recomendacion.variante) : undefined;
+  const elegir = (config: Config | null) => {
+    setAbierto(false);
+    onElegir(config);
+  };
+
+  return (
+    <div ref={caja} className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => setAbierto((a) => !a)}
+        aria-expanded={abierto}
+        title="Armar la base de columna de este tipo, atada a sus gobernantes: elige la tipología de partida"
+        className="rounded border border-accent px-1.5 py-0.5 text-[10px] text-accent hover:bg-accent hover:text-white"
+      >
+        crear apoyo ▾
+      </button>
+      {abierto && (
+        <div className="absolute right-0 z-20 mt-1 w-72 rounded border border-border bg-white p-1 shadow-lg">
+          {recomendacion && sugerida && (
+            <p className="px-2 pb-1 pt-0.5 text-[10px] leading-snug text-muted">
+              Sugerida: <span className="text-ink">{sugerida.titulo.toLowerCase()}</span>, porque {recomendacion.motivo}.
+            </p>
+          )}
+          <ul>
+            {TIPOLOGIAS_BASE_COLUMNA.map((t) => (
+              <li key={t.id}>
+                <button
+                  type="button"
+                  onClick={() => elegir(t.config)}
+                  className="block w-full rounded px-2 py-1 text-left hover:bg-accent/10"
+                >
+                  <span className="text-[11px] font-medium text-ink">{t.titulo}</span>
+                  {t === sugerida && (
+                    <span className="ml-1.5 rounded bg-accent/15 px-1 text-[9px] font-medium text-accent">sugerida</span>
+                  )}
+                  <span className="block text-[10px] leading-snug text-muted">{t.descripcion}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            onClick={() => elegir(null)}
+            className="mt-0.5 block w-full rounded border-t border-border px-2 py-1 text-left text-[11px] text-muted hover:bg-accent/10 hover:text-accent"
+          >
+            Personalizar…
+          </button>
+        </div>
+      )}
+    </div>
   );
 }

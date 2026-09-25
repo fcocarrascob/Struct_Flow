@@ -3361,6 +3361,24 @@ function CASOS_ENSAMBLE() {
       },
     },
     {
+      nombre: '«crear apoyo»: cada tipología es una configuración válida y arma su base sin errores',
+      ok: () => {
+        const ids = new Set();
+        for (const t of motor.TIPOLOGIAS_BASE_COLUMNA) {
+          if (ids.has(t.id)) return `id repetido: ${t.id}`;
+          ids.add(t.id);
+          const c = configCompleta(VISTAS['base-columna'], t.config);
+          for (const [k, v] of Object.entries(t.config)) if (c[k] !== v) return `${t.id}: ${k} = ${v} no sobrevive a la normalización (${c[k]})`;
+          const r = base(c);
+          if (r.error) return `${t.id}: ${r.error}`;
+          const ev = evaluarObra(sanearObra(r.obra), genericasConRotulada);
+          const e = errores(ev);
+          if (e.length) return `${t.id}: ${e.length} región(es) con error: ${e[0]}`;
+        }
+        return null;
+      },
+    },
+    {
       nombre: 'ensamble de la base: dos tipos conviven sin choques, y otro del mismo tipo se rechaza',
       ok: () => {
         const nuevoId = idsDe();

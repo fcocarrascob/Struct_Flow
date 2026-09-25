@@ -955,7 +955,11 @@ function CanvasObra({
 
   // ── La base de columna como ensamble (`./ensamble.ts`) ─────────────────────
   /** El diálogo de armar una base: `tipo` si viene del panel de apoyos. */
-  const [armandoBase, setArmandoBase] = useState<{ tipo?: { grupoSap: string; alias: string } } | null>(null);
+  const [armandoBase, setArmandoBase] = useState<{
+    tipo?: { grupoSap: string; alias: string };
+    /** La tipología elegida en «crear apoyo»; sin ella, parte de la sugerida. */
+    config?: Config;
+  } | null>(null);
   const [errorBase, setErrorBase] = useState('');
 
   /**
@@ -1428,6 +1432,7 @@ function CanvasObra({
               tipo={armandoBase.tipo}
               conjuntos={armandoBase.tipo ? aliasDeConjuntos(obra) : []}
               recomendacion={armandoBase.tipo ? recomendarPlaca(solicitacionesDeTipo(obra, armandoBase.tipo.grupoSap)) : null}
+              configInicial={armandoBase.config}
               error={errorBase}
               onArmar={(params, config, aMano) => void armarBase(params, config, aMano)}
               onCerrar={() => setArmandoBase(null)}
@@ -1981,10 +1986,11 @@ function CanvasObra({
                 k.frontera?.ensamble ? [[k.frontera.ensamble.tipo, { idVista: k.id, nombre: k.nombre }]] : [],
               ),
             )}
-            onArmarBase={(grupo, alias) => {
+            onArmarBase={(grupo, alias, config) => {
               setErrorBase('');
-              setArmandoBase({ tipo: { grupoSap: grupo, alias } });
+              setArmandoBase({ tipo: { grupoSap: grupo, alias }, ...(config ? { config } : {}) });
             }}
+            recomendacionDe={(grupo) => recomendarPlaca(solicitacionesDeTipo(obra, grupo))}
             onVerBase={(idVista) => setSeleccion(idNodoDeCalculo(idVista))}
             onQuitarConjunto={(id) => {
               const o = obraRef.current;
