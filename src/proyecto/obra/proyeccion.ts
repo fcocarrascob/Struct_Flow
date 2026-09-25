@@ -302,12 +302,19 @@ function nodoModal(obra: Obra): NodoDeObra {
       if (a < MASA_MINIMA) motivos.push(`La masa acumulada en ${d} es ${porcentaje(a)}, menos del 90 %.`);
     }
   }
-  const masas = r.conMasas
-    ? ` · ΣX ${porcentaje(r.porDireccion.X.acumulada)} · ΣY ${porcentaje(r.porDireccion.Y.acumulada)}`
-    : '';
+  // Lo que se revisa es el periodo de cada dirección —el del modo que más masa
+  // mueve en ella—, no el fundamental: Tx y Ty son los que entran al espectro.
+  // Sin masas no se sabe cuál domina, y queda T₁.
+  const { X, Y } = r.porDireccion;
+  const subtitulo =
+    r.T1 === undefined
+      ? `${lectura.caso} sin modos`
+      : X.dominante && Y.dominante
+        ? `Tx = ${segundos(X.dominante.T)} · Ty = ${segundos(Y.dominante.T)} · ΣX ${porcentaje(X.acumulada)} · ΣY ${porcentaje(Y.acumulada)}`
+        : `T₁ = ${segundos(r.T1)}`;
   return nodo({
     ...base,
-    subtitulo: r.T1 !== undefined ? `T₁ = ${segundos(r.T1)}${masas}` : `${lectura.caso} sin modos`,
+    subtitulo,
     severidad: motivos.length ? 'aviso' : 'ok',
     motivos,
   });

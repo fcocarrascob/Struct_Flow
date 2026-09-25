@@ -132,18 +132,20 @@ export default function PanelModal({
         ) : (
           <>
             <section className="grid grid-cols-3 gap-2">
-              <Ficha titulo="Periodo fundamental" valor={r.T1 !== undefined ? segundos(r.T1) : '—'} detalle={`modo 1 de ${r.modos}`} />
+              {/* Tx y Ty primero: son los que se revisan y los que entran al
+                  espectro. El fundamental va después, como referencia. */}
               {(['X', 'Y'] as const).map((d) => {
                 const dom = r.porDireccion[d].dominante;
                 return (
                   <Ficha
                     key={d}
-                    titulo={`Dominante en ${d}`}
+                    titulo={`T${d.toLowerCase()} · dominante en ${d}`}
                     valor={dom ? segundos(dom.T) : '—'}
                     detalle={dom ? `modo ${dom.n} · ${porcentaje(dom.masa)} de la masa` : 'sin masas'}
                   />
                 );
               })}
+              <Ficha titulo="Periodo fundamental" valor={r.T1 !== undefined ? segundos(r.T1) : '—'} detalle={`modo 1 de ${r.modos}`} />
             </section>
 
             {r.conMasas && (
