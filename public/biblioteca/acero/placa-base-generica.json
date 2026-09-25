@@ -17,6 +17,32 @@
     "ayuda": "Negativo cuando tracciona la columna: es el caso que más tracciona el grupo"
    },
    {
+    "nombre": "M_trac_2",
+    "etiqueta": "Momento del segundo caso de tracción",
+    "unidad": "kN*m",
+    "grupo": "Solicitaciones mayoradas",
+    "ayuda": "En cero si no se usa"
+   },
+   {
+    "nombre": "P_trac_2",
+    "etiqueta": "Axial concurrente del segundo caso",
+    "unidad": "kN",
+    "grupo": "Solicitaciones mayoradas"
+   },
+   {
+    "nombre": "M_trac_3",
+    "etiqueta": "Momento del tercer caso de tracción",
+    "unidad": "kN*m",
+    "grupo": "Solicitaciones mayoradas",
+    "ayuda": "En cero si no se usa"
+   },
+   {
+    "nombre": "P_trac_3",
+    "etiqueta": "Axial concurrente del tercer caso",
+    "unidad": "kN",
+    "grupo": "Solicitaciones mayoradas"
+   },
+   {
     "nombre": "M_comp",
     "etiqueta": "Momento de la combinación que más aplasta",
     "unidad": "kN*m",
@@ -239,6 +265,18 @@
     "grupo": "Llave de corte"
    },
    {
+    "nombre": "V_trac_2",
+    "etiqueta": "Corte concurrente con M_trac_2",
+    "unidad": "kN",
+    "grupo": "Llave de corte"
+   },
+   {
+    "nombre": "V_trac_3",
+    "etiqueta": "Corte concurrente con M_trac_3",
+    "unidad": "kN",
+    "grupo": "Llave de corte"
+   },
+   {
     "nombre": "z_llave",
     "etiqueta": "Brazo placa - resultante sobre la llave",
     "unidad": "m",
@@ -311,6 +349,11 @@
     "nombre": "T_grupo",
     "etiqueta": "Tracción del grupo (entrega)",
     "unidad": "kN",
+    "tipo": "valor"
+   },
+   {
+    "nombre": "caso_trac",
+    "etiqueta": "Caso de tracción que gobierna",
     "tipo": "valor"
    },
    {
@@ -419,7 +462,8 @@
    "Compresión positiva en el axial de la columna",
    "Los n_col pernos de cada fila, equiespaciados entre −x_ext y +x_ext",
    "Para el recubrimiento de la Tabla 20.5.1.3.1 el perno se asimila a la barra de su diámetro",
-   "⁉️ Lectura de la hoja: el borde de hormigón se exige como recubrimiento + d_a/2 al centro del perno (lo más exigente de las dos lecturas de la Tabla 17.9.2(a))"
+   "⁉️ Lectura de la hoja: el borde de hormigón se exige como recubrimiento + d_a/2 al centro del perno (lo más exigente de las dos lecturas de la Tabla 17.9.2(a))",
+   "Hasta tres casos de tracción; la tracción del grupo es la mayor de las tres"
   ],
   "entrega": {
    "T_grupo": [
@@ -466,6 +510,15 @@
      "v_borde_horm",
      "v_global"
     ]
+   },
+   {
+    "nombre": "el segundo caso de tracción gobierna los pernos",
+    "entradas": {
+     "M_trac_2": 5500,
+     "P_trac_2": -600,
+     "V_trac_2": 700
+    },
+    "cumple": true
    }
   ]
  },
@@ -496,7 +549,7 @@
    "kind": "text",
    "x": 40,
    "y": 368,
-   "src": "Dos combinaciones distintas suelen gobernar: la que más TRACCIONA el grupo —momento alto con axial\nbaja o negativa— y la que más APLASTA el hormigón. Las dos entran, y cada una dimensiona lo suyo."
+   "src": "Dos combinaciones distintas suelen gobernar: la que más TRACCIONA el grupo —momento alto con axial\nbaja o negativa— y la que más APLASTA el hormigón. Las dos entran, y cada una dimensiona lo suyo.\nCuál tracciona más no se sabe antes de calcular: depende del momento Y del axial que lo acompaña.\nPor eso entran hasta TRES casos de tracción (M_trac, M_trac_2, M_trac_3 con su axial y su corte), la\nhoja calcula la tracción del grupo de cada uno y diseña con la mayor. Un caso que no se usa va en cero."
   },
   {
    "id": "in_M_trac",
@@ -513,108 +566,150 @@
    "src": "P_trac := -320.8 kN"
   },
   {
-   "id": "in_M_comp",
+   "id": "in_M_trac_2",
    "kind": "math",
    "x": 40,
    "y": 536,
+   "src": "M_trac_2 := 0 kN*m"
+  },
+  {
+   "id": "in_P_trac_2",
+   "kind": "math",
+   "x": 40,
+   "y": 584,
+   "src": "P_trac_2 := 0 kN"
+  },
+  {
+   "id": "in_M_trac_3",
+   "kind": "math",
+   "x": 40,
+   "y": 632,
+   "src": "M_trac_3 := 0 kN*m"
+  },
+  {
+   "id": "in_P_trac_3",
+   "kind": "math",
+   "x": 40,
+   "y": 680,
+   "src": "P_trac_3 := 0 kN"
+  },
+  {
+   "id": "in_M_comp",
+   "kind": "math",
+   "x": 40,
+   "y": 728,
    "src": "M_comp := 4859.1 kN*m"
   },
   {
    "id": "in_P_comp",
    "kind": "math",
    "x": 40,
-   "y": 584,
+   "y": 776,
    "src": "P_comp := 1269.4 kN"
   },
   {
    "id": "r005",
    "kind": "text",
    "x": 40,
-   "y": 632,
+   "y": 824,
    "src": "━━ DATOS · LLAVE DE CORTE · ACI 318-25 §17.11.1.1.9 ━━"
   },
   {
    "id": "r006",
    "kind": "text",
    "x": 40,
-   "y": 680,
-   "src": "El §17.11.1.1.9 pide considerar en el diseño del anclaje «the moment from the couple developed by the\nbearing reaction on the shear lug and the shear»: con llave, el corte y su reacción forman un par que\nse suma al momento de la combinación que tracciona. V_trac es el corte CONCURRENTE con M_trac y\nz_llave el brazo, que entrega llave-corte-generica como exc. Con hay_llave := 0 el par no entra."
+   "y": 872,
+   "src": "El §17.11.1.1.9 pide considerar en el diseño del anclaje «the moment from the couple developed by the\nbearing reaction on the shear lug and the shear»: con llave, el corte y su reacción forman un par que\nse suma al momento de la combinación que tracciona. V_trac es el corte CONCURRENTE con M_trac (V_trac_2 con M_trac_2, V_trac_3 con M_trac_3) y\nz_llave el brazo, que entrega llave-corte-generica como exc. Con hay_llave := 0 el par no entra."
   },
   {
    "id": "in_hay_llave",
    "kind": "math",
    "x": 40,
-   "y": 800,
+   "y": 992,
    "src": "hay_llave := 1"
   },
   {
    "id": "in_V_trac",
    "kind": "math",
    "x": 40,
-   "y": 848,
+   "y": 1040,
    "src": "V_trac := 600 kN"
+  },
+  {
+   "id": "in_V_trac_2",
+   "kind": "math",
+   "x": 40,
+   "y": 1088,
+   "src": "V_trac_2 := 0 kN"
+  },
+  {
+   "id": "in_V_trac_3",
+   "kind": "math",
+   "x": 40,
+   "y": 1136,
+   "src": "V_trac_3 := 0 kN"
   },
   {
    "id": "in_z_llave",
    "kind": "math",
    "x": 40,
-   "y": 896,
+   "y": 1184,
    "src": "z_llave := 0.150 m"
   },
   {
    "id": "r007",
    "kind": "text",
    "x": 40,
-   "y": 944,
+   "y": 1232,
    "src": "━━ DATOS · GEOMETRÍA DE LA PLACA, LA COLUMNA Y EL PEDESTAL ━━"
   },
   {
    "id": "r008",
    "kind": "text",
    "x": 40,
-   "y": 992,
+   "y": 1280,
    "src": "L_bp es el lado en la dirección de la flexión y B_bp el perpendicular; d_col es el canto de la columna\nen esa misma dirección. Los lados del pedestal van en el mismo orden, y de ellos sale el\nconfinamiento √(A2/A1) del §J8. exposicion fija el recubrimiento del §20.5.1.3: 1 colado contra el\nterreno, 2 a la intemperie o en contacto con el terreno, 3 no expuesto."
   },
   {
    "id": "in_L_bp",
    "kind": "math",
    "x": 40,
-   "y": 1112,
+   "y": 1400,
    "src": "L_bp := 1.700 m"
   },
   {
    "id": "in_B_bp",
    "kind": "math",
    "x": 40,
-   "y": 1160,
+   "y": 1448,
    "src": "B_bp := 0.950 m"
   },
   {
    "id": "in_t_bp",
    "kind": "math",
    "x": 40,
-   "y": 1208,
+   "y": 1496,
    "src": "t_bp := 45 mm"
   },
   {
    "id": "in_d_col",
    "kind": "math",
    "x": 40,
-   "y": 1256,
+   "y": 1544,
    "src": "d_col := 1.000 m"
   },
   {
    "id": "in_PED_L",
    "kind": "math",
    "x": 40,
-   "y": 1304,
+   "y": 1592,
    "src": "PED_L := 1.950 m"
   },
   {
    "id": "in_PED_B",
    "kind": "math",
    "x": 40,
-   "y": 1352,
+   "y": 1640,
    "src": "PED_B := 1.500 m"
   },
   {
@@ -622,62 +717,62 @@
    "kind": "math",
    "x": 40,
    "src": "exposicion := 2",
-   "y": 1400
+   "y": 1688
   },
   {
    "id": "r009",
    "kind": "text",
    "x": 40,
-   "y": 1448,
+   "y": 1736,
    "src": "━━ DATOS · GRUPO DE PERNOS ━━"
   },
   {
    "id": "r010",
    "kind": "text",
    "x": 40,
-   "y": 1496,
+   "y": 1784,
    "src": "y_t es la distancia del eje de la fila traccionada al centro de la placa y x_ext la del perno más\nalejado, en la dirección perpendicular. La holgura del hueco sobre el diámetro nominal se descuenta\ndel área comprimida: los huecos de la fila caen dentro del bloque cuando el momento invierte.\ntorque := 1 si los pernos se TORQUEAN, que cambia la separación y el borde mínimos de la\nTabla 17.9.2(a) del ACI 318-25."
   },
   {
    "id": "in_n_col",
    "kind": "math",
    "x": 40,
-   "y": 1640,
+   "y": 1928,
    "src": "n_col := 5"
   },
   {
    "id": "in_y_t",
    "kind": "math",
    "x": 40,
-   "y": 1688,
+   "y": 1976,
    "src": "y_t := 0.767 m"
   },
   {
    "id": "in_x_ext",
    "kind": "math",
    "x": 40,
-   "y": 1736,
+   "y": 2024,
    "src": "x_ext := 384 mm"
   },
   {
    "id": "in_d_perno",
    "kind": "math",
    "x": 40,
-   "y": 1784,
+   "y": 2072,
    "src": "d_perno := 48 mm"
   },
   {
    "id": "in_Ase_perno",
    "kind": "math",
    "x": 40,
-   "y": 1832,
+   "y": 2120,
    "src": "Ase_perno := 1473 mm^2"
   },
   {
    "id": "in_holgura",
    "kind": "math",
    "x": 40,
-   "y": 1880,
+   "y": 2168,
    "src": "holgura := 12 mm"
   },
   {
@@ -685,118 +780,118 @@
    "kind": "math",
    "x": 40,
    "src": "torque := 0",
-   "y": 1928
+   "y": 2216
   },
   {
    "id": "r011",
    "kind": "text",
    "x": 40,
-   "y": 1976,
+   "y": 2264,
    "src": "━━ DATOS · RIGIDIZACIÓN DE LA PLACA, MATERIALES Y FACTORES ━━"
   },
   {
    "id": "r012",
    "kind": "text",
    "x": 40,
-   "y": 2024,
+   "y": 2312,
    "src": "hay_nervios := 1 con silla de anclaje y nervios; := 0 con placa lisa. sep_nerv es la separación libre\nentre nervios y x_nerv_ext la posición del nervio de borde. φ_b: flexión de la chapa, §F1 de AISC 360;\nφ_brg: aplastamiento sobre hormigón, §J8; φ_sa: acero del anclaje en tracción, Tabla 21.2.1 (o) del\nACI 318-25 con anclaje dúctil. β entra como DATO con su procedencia —se mide por elementos finitos o\nse toma de tabla—, y la hoja solo lo acota entre los dos extremos conocidos de la placa rectangular."
   },
   {
    "id": "in_hay_nervios",
    "kind": "math",
    "x": 40,
-   "y": 2168,
+   "y": 2456,
    "src": "hay_nervios := 1"
   },
   {
    "id": "in_sep_nerv",
    "kind": "math",
    "x": 40,
-   "y": 2216,
+   "y": 2504,
    "src": "sep_nerv := 192 mm"
   },
   {
    "id": "in_x_nerv_ext",
    "kind": "math",
    "x": 40,
-   "y": 2264,
+   "y": 2552,
    "src": "x_nerv_ext := 460 mm"
   },
   {
    "id": "in_Fy_ac",
    "kind": "math",
    "x": 40,
-   "y": 2312,
+   "y": 2600,
    "src": "Fy_ac := 248.2 MPa"
   },
   {
    "id": "in_fpc",
    "kind": "math",
    "x": 40,
-   "y": 2360,
+   "y": 2648,
    "src": "fpc := 30 MPa"
   },
   {
    "id": "in_futa",
    "kind": "math",
    "x": 40,
-   "y": 2408,
+   "y": 2696,
    "src": "futa := 862 MPa"
   },
   {
    "id": "in_phi_b",
    "kind": "math",
    "x": 40,
-   "y": 2456,
+   "y": 2744,
    "src": "phi_b := 0.90"
   },
   {
    "id": "in_phi_brg",
    "kind": "math",
    "x": 40,
-   "y": 2504,
+   "y": 2792,
    "src": "phi_brg := 0.65"
   },
   {
    "id": "in_phi_sa",
    "kind": "math",
    "x": 40,
-   "y": 2552,
+   "y": 2840,
    "src": "phi_sa := 0.75"
   },
   {
    "id": "in_beta",
    "kind": "math",
    "x": 40,
-   "y": 2600,
+   "y": 2888,
    "src": "beta := 0.0831"
   },
   {
    "id": "r013",
    "kind": "text",
    "x": 40,
-   "y": 2648,
+   "y": 2936,
    "src": "━━ 1 — CONTROL DE LOS DATOS Y PRESIÓN ADMISIBLE · AISC 360-22 §J8 ━━"
   },
   {
    "id": "r014",
    "kind": "text",
    "x": 40,
-   "y": 2696,
+   "y": 2984,
    "src": "Los dos extremos conocidos de la solución de placa rectangular acotan a β cualquiera sea la relación\nde lados: 0,0479 en la placa cuadrada y 0,125 en la franja infinitamente larga. [J8-2] la presión\nadmisible es f_p = φ·0,85·f'c·√(A2/A1), con A2 semejante y concéntrica con A1 y la raíz topada en 2,0;\nsi el pedestal desborda tanto que llega al tope, manda el tope y no la geometría."
   },
   {
    "id": "v_beta_inf",
    "kind": "math",
    "x": 40,
-   "y": 2816,
+   "y": 3104,
    "src": "v_beta_inf := beta >= 0.0479 ="
   },
   {
    "id": "v_beta_sup",
    "kind": "math",
    "x": 40,
-   "y": 2864,
+   "y": 3152,
    "src": "v_beta_sup := beta <= 0.125 ="
   },
   {
@@ -804,167 +899,235 @@
    "kind": "math",
    "x": 40,
    "src": "v_datos_opciones := (torque == 0 or torque == 1) and exposicion >= 1 and exposicion <= 3 and exposicion == round(exposicion) =",
-   "y": 2912
+   "y": 3200
   },
   {
    "id": "r054",
    "kind": "math",
    "x": 40,
-   "y": 2960,
+   "y": 3248,
    "src": "conf := min(PED_L/L_bp, PED_B/B_bp, 2.0) ="
   },
   {
    "id": "v_conf_no_topa",
    "kind": "math",
    "x": 40,
-   "y": 3008,
+   "y": 3296,
    "src": "v_conf_no_topa := conf < 2.0 ="
   },
   {
    "id": "r058",
    "kind": "math",
    "x": 40,
-   "y": 3056,
+   "y": 3344,
    "src": "f_p := phi_brg*0.85*fpc*conf = kPa"
   },
   {
    "id": "r015",
    "kind": "text",
    "x": 40,
-   "y": 3104,
+   "y": 3392,
    "src": "━━ 2 — EQUILIBRIO CON GRAN EXCENTRICIDAD · AISC DG1 §4.3.7 ━━"
   },
   {
    "id": "r016",
    "kind": "text",
    "x": 40,
-   "y": 3152,
-   "src": "El equilibrio es ITERATIVO: la longitud del bloque comprimido depende de la compresión, y la\ncompresión del equilibrio con la tracción. Va como programa y devuelve la tracción del grupo. La\ntracción se toma de la combinación que la gobierna —con el par de la llave sumado en valor absoluto,\nporque el corte y el momento pueden venir con cualquier signo— y el aplastamiento de la otra: son dos\nestados distintos de la misma placa. El bloque comprimido tiene que caber en el voladizo; si no cabe,\nla placa carga donde no tiene apoyo debajo y el modelo de bloque no vale."
+   "y": 3440,
+   "src": "El equilibrio es ITERATIVO: la longitud del bloque comprimido depende de la compresión, y la\ncompresión del equilibrio con la tracción. Va como programa y devuelve la tracción del grupo. La\ntracción se calcula para cada caso de tracción, en la tabla, y se toma la mayor —con el par de la llave sumado en valor absoluto,\nporque el corte y el momento pueden venir con cualquier signo— y el aplastamiento de la otra: son dos\nestados distintos de la misma placa. El bloque comprimido tiene que caber en el voladizo; si no cabe,\nla placa carga donde no tiene apoyo debajo y el modelo de bloque no vale."
   },
   {
    "id": "r060",
    "kind": "math",
    "x": 40,
-   "y": 3320,
+   "y": 3608,
    "src": "volad := L_bp/2 - d_col/2 = mm"
   },
   {
    "id": "r061",
    "kind": "math",
    "x": 40,
-   "y": 3368,
+   "y": 3656,
    "src": "d_hueco := d_perno + holgura = mm"
   },
   {
    "id": "r062",
    "kind": "math",
    "x": 40,
-   "y": 3416,
+   "y": 3704,
    "src": "A_hueco := n_col*pi*d_hueco^2/4 = mm^2"
   },
   {
    "id": "r064",
    "kind": "program",
    "x": 40,
-   "y": 3464,
+   "y": 3752,
    "src": "equilibrio(M_ap, P_ap) :=\n    Mn := abs(M_ap)/(1 kN*m)\n    Pn := P_ap/(1 kN)\n    Lm := L_bp/(1 m)\n    Bm := B_bp/(1 m)\n    ytm := y_t/(1 m)\n    fpm := f_p/(1 kPa)\n    Ah := A_hueco/(1 m^2)\n    Tv := max(0, Mn/ytm - Pn)\n    for k in 1:200\n        Cv := max(Pn + Tv, 1)\n        Yb := Cv/(fpm*Bm)\n        if Lm/2 - ytm <= Yb\n            Yb := (Cv/fpm + Ah)/Bm\n        yc := Lm/2 - Yb/2\n        Tn := (Mn - Pn*yc)/(ytm + yc)\n        if abs(Tn - Tv) < 0.0001\n            Tv := Tn\n            break\n        Tv := Tn\n    return Tv"
   },
   {
-   "id": "r205",
-   "kind": "math",
+   "id": "r210",
+   "kind": "table",
    "x": 40,
-   "y": 3992,
-   "src": "M_trac_ef := abs(M_trac) + hay_llave*V_trac*z_llave = kN*m"
+   "y": 3800,
+   "src": "Casos de tracción: el momento eficaz suma el par de la llave, y T es la tracción del grupo",
+   "tabla": {
+    "version": 1,
+    "encabezado": 1,
+    "celdas": [
+     [
+      "'Caso",
+      "'M",
+      "'P",
+      "'V",
+      "'M con llave",
+      "'T del grupo"
+     ],
+     [
+      "'1",
+      "M_trac =",
+      "P_trac =",
+      "V_trac =",
+      "M_ef_1 := abs(M_trac) + hay_llave*V_trac*z_llave =",
+      "T_1 := equilibrio(M_ef_1, P_trac)*(1 kN) ="
+     ],
+     [
+      "'2",
+      "M_trac_2 =",
+      "P_trac_2 =",
+      "V_trac_2 =",
+      "M_ef_2 := abs(M_trac_2) + hay_llave*V_trac_2*z_llave =",
+      "T_2 := equilibrio(M_ef_2, P_trac_2)*(1 kN) ="
+     ],
+     [
+      "'3",
+      "M_trac_3 =",
+      "P_trac_3 =",
+      "V_trac_3 =",
+      "M_ef_3 := abs(M_trac_3) + hay_llave*V_trac_3*z_llave =",
+      "T_3 := equilibrio(M_ef_3, P_trac_3)*(1 kN) ="
+     ]
+    ],
+    "columnas": [
+     {},
+     {
+      "unidad": "kN*m",
+      "soloValor": true
+     },
+     {
+      "unidad": "kN",
+      "soloValor": true
+     },
+     {
+      "unidad": "kN",
+      "soloValor": true
+     },
+     {
+      "unidad": "kN*m",
+      "soloValor": true
+     },
+     {
+      "unidad": "kN",
+      "soloValor": true
+     }
+    ]
+   }
   },
   {
    "id": "r066",
    "kind": "math",
    "x": 40,
-   "y": 4040,
-   "src": "T_grupo := equilibrio(M_trac_ef, P_trac)*(1 kN) = kN"
+   "y": 3944,
+   "src": "T_grupo := max(T_1, T_2, T_3) = kN"
+  },
+  {
+   "id": "r211",
+   "kind": "math",
+   "x": 40,
+   "y": 3992,
+   "src": "caso_trac := T_grupo == T_1 ? 1 : (T_grupo == T_2 ? 2 : 3) ="
   },
   {
    "id": "r067",
    "kind": "math",
    "x": 40,
-   "y": 4088,
+   "y": 4040,
    "src": "T_c := equilibrio(M_comp, P_comp)*(1 kN) = kN"
   },
   {
    "id": "r068",
    "kind": "math",
    "x": 40,
-   "y": 4136,
+   "y": 4088,
    "src": "C_max := T_c + P_comp = kN"
   },
   {
    "id": "r069",
    "kind": "math",
    "x": 40,
-   "y": 4184,
+   "y": 4136,
    "src": "Yb_comp := (C_max/f_p + A_hueco)/B_bp = mm"
   },
   {
    "id": "v_bloque",
    "kind": "math",
    "x": 40,
-   "y": 4232,
+   "y": 4184,
    "src": "v_bloque := Yb_comp <= volad ="
   },
   {
    "id": "r017",
    "kind": "text",
    "x": 40,
-   "y": 4280,
+   "y": 4232,
    "src": "━━ 3 — GRUPO DE PERNOS EN TRACCIÓN · ACI 318-25 §17.6.1 ━━"
   },
   {
    "id": "r018",
    "kind": "text",
    "x": 40,
-   "y": 4328,
+   "y": 4280,
    "src": "[17.6.1.2] N_sa = A_se·f_uta. El φ de la Tabla 21.2.1 (o), a la que remite el §17.5.3, supone anclaje\nDÚCTIL: si el perno no lo es, el factor baja a la fila (p) y hay que cambiarlo en DATOS. Los modos de\nfalla del hormigón —cono, extracción, descascaramiento— van en anclaje-hormigon-generica, que recibe\nesta T_grupo como Nua_g."
   },
   {
    "id": "r076",
    "kind": "math",
    "x": 40,
-   "y": 4448,
+   "y": 4400,
    "src": "Ase_req := T_grupo/(phi_sa*futa) = mm^2"
   },
   {
    "id": "r077",
    "kind": "math",
    "x": 40,
-   "y": 4496,
+   "y": 4448,
    "src": "Ase_prov := n_col*Ase_perno = mm^2"
   },
   {
    "id": "r078",
    "kind": "math",
    "x": 40,
-   "y": 4544,
+   "y": 4496,
    "src": "u_pernos := Ase_req/Ase_prov ="
   },
   {
    "id": "r079",
    "kind": "math",
    "x": 40,
-   "y": 4592,
+   "y": 4544,
    "src": "P_perno := T_grupo/n_col = kN"
   },
   {
    "id": "r019",
    "kind": "text",
    "x": 40,
-   "y": 4640,
+   "y": 4592,
    "src": "━━ 4 — GEOMETRÍA MÍNIMA DEL GRUPO ━━"
   },
   {
    "id": "r020",
    "kind": "text",
    "x": 40,
-   "y": 4688,
+   "y": 4640,
    "src": "Son tres distancias DISTINTAS y ninguna reemplaza a otra. (1) PASO entre pernos: [ACI 318-25\nTabla 17.9.2(a)] anclajes colados, 4·d_a sin torque y 6·d_a con torque. (2) BORDE DE LA CHAPA:\n[AISC 360-22 §J3.5 y Tabla J3.4M] del centro del agujero al canto, el valor de tabla hasta 36 mm y\n1,25·d por encima, más el incremento C2 de la Tabla J3.5M —que es normativa— por la holgura del hueco; y la\nrecomendación del DG1 §4.5.3 de dejar 2 in de chapa libre entre el agujero y el canto. (3) BORDE DEL\nHORMIGÓN: [Tabla 17.9.2(a)] sin torque, el recubrimiento especificado del §20.5.1.3; con torque,\n6·d_a. La hoja mide c_a al CENTRO del perno y el recubrimiento a su superficie, así que suma d_a/2:\nes una lectura declarada, no una cita textual. Y la fila tiene que caer fuera de la huella del fuste,\nque es geometría y no norma."
   },
   {
@@ -972,265 +1135,265 @@
    "kind": "math",
    "x": 40,
    "src": "paso_real := 2*x_ext/(n_col - 1) = mm",
-   "y": 4928
+   "y": 4880
   },
   {
    "id": "r084",
    "kind": "math",
    "x": 40,
    "src": "paso_min := (torque == 1 ? 6 : 4)*d_perno = mm",
-   "y": 4976
+   "y": 4928
   },
   {
    "id": "v_paso",
    "kind": "math",
    "x": 40,
    "src": "v_paso := paso_real >= paso_min*(1 - 1e-9) =",
-   "y": 5024
+   "y": 4976
   },
   {
    "id": "r121",
    "kind": "program",
    "x": 40,
    "src": "borde_J34 :=\n    dm := d_perno/(1 mm)\n    if dm > 36\n        return 1.25*d_perno\n    tabla := [12, 18; 16, 22; 20, 26; 22, 28; 24, 30; 27, 34; 30, 38; 36, 46]\n    for k in 1:8\n        if dm <= tabla[k, 1]\n            return tabla[k, 2]*(1 mm)",
-   "y": 5072
+   "y": 5024
   },
   {
    "id": "r122",
    "kind": "math",
    "x": 40,
    "src": "C2 := (d_perno <= 22 mm ? 2 : 3)*(1 mm) = mm",
-   "y": 5288
+   "y": 5240
   },
   {
    "id": "r124",
    "kind": "math",
    "x": 40,
    "src": "borde_DG1 := d_hueco/2 + 2 inch = mm",
-   "y": 5336
+   "y": 5288
   },
   {
    "id": "r125",
    "kind": "math",
    "x": 40,
    "src": "borde_placa_min := max(borde_J34 + C2, borde_DG1) = mm",
-   "y": 5384
+   "y": 5336
   },
   {
    "id": "r126",
    "kind": "math",
    "x": 40,
    "src": "borde_placa_B := B_bp/2 - x_ext = mm",
-   "y": 5432
+   "y": 5384
   },
   {
    "id": "r127",
    "kind": "math",
    "x": 40,
    "src": "ancho_req := 2*(x_ext + borde_placa_min) = mm",
-   "y": 5480
+   "y": 5432
   },
   {
    "id": "v_ancho",
    "kind": "math",
    "x": 40,
    "src": "v_ancho := B_bp >= ancho_req =",
-   "y": 5528
+   "y": 5480
   },
   {
    "id": "r128",
    "kind": "math",
    "x": 40,
    "src": "borde_placa_L := L_bp/2 - y_t = mm",
-   "y": 5576
+   "y": 5528
   },
   {
    "id": "r129",
    "kind": "math",
    "x": 40,
    "src": "largo_req := 2*(y_t + borde_placa_min) = mm",
-   "y": 5624
+   "y": 5576
   },
   {
    "id": "v_largo",
    "kind": "math",
    "x": 40,
    "src": "v_largo := L_bp >= largo_req =",
-   "y": 5672
+   "y": 5624
   },
   {
    "id": "r131",
    "kind": "math",
    "x": 40,
    "src": "recub := exposicion == 1 ? 75 mm : (exposicion == 3 ? 40 mm : (d_perno > 16 mm ? 50 mm : 40 mm)) = mm",
-   "y": 5720
+   "y": 5672
   },
   {
    "id": "r133",
    "kind": "math",
    "x": 40,
    "src": "borde_horm_min := torque == 1 ? 6*d_perno : recub + d_perno/2 = mm",
-   "y": 5768
+   "y": 5720
   },
   {
    "id": "r134",
    "kind": "math",
    "x": 40,
    "src": "borde_horm_B := PED_B/2 - x_ext = mm",
-   "y": 5816
+   "y": 5768
   },
   {
    "id": "r135",
    "kind": "math",
    "x": 40,
    "src": "borde_horm_L := PED_L/2 - y_t = mm",
-   "y": 5864
+   "y": 5816
   },
   {
    "id": "r136",
    "kind": "math",
    "x": 40,
    "src": "c_horm := min(borde_horm_B, borde_horm_L) = mm",
-   "y": 5912
+   "y": 5864
   },
   {
    "id": "v_borde_horm",
    "kind": "math",
    "x": 40,
    "src": "v_borde_horm := c_horm >= borde_horm_min =",
-   "y": 5960
+   "y": 5912
   },
   {
    "id": "r138",
    "kind": "math",
    "x": 40,
    "src": "libre_col := y_t - d_hueco/2 - d_col/2 = mm",
-   "y": 6008
+   "y": 5960
   },
   {
    "id": "v_fila_libre",
    "kind": "math",
    "x": 40,
    "src": "v_fila_libre := libre_col >= 0 mm =",
-   "y": 6056
+   "y": 6008
   },
   {
    "id": "r021",
    "kind": "text",
    "x": 40,
-   "y": 6104,
+   "y": 6056,
    "src": "━━ 5 — ESPESOR DE LA CHAPA · AISC 360-22 §J4.5 ━━"
   },
   {
    "id": "r022",
    "kind": "text",
    "x": 40,
-   "y": 6152,
+   "y": 6104,
    "src": "Módulo plástico de una franja de ancho unitario Z = t²/4, de donde t = √(4·M/(φ·F_y)). Se evalúan las\ntres formas de trabajar de la chapa: (a) VOLADIZO LIBRE, que es la que gobierna la placa lisa;\n(b) PANEL ENTRE NERVIOS, con M = β·f_p·a² y a el lado corto del panel; (c) ESQUINA EN VOLADIZO desde\nla cara externa del nervio de borde, que desaparece si el nervio llega al canto. Con nervios manda el\nmayor entre panel y esquina; sin nervios, el voladizo libre. La chapa no sabe de tipologías: sabe de\ncuál es su luz."
   },
   {
    "id": "r089",
    "kind": "math",
    "x": 40,
-   "y": 6320,
+   "y": 6272,
    "src": "m_libre := f_p*volad^2/2 = kN*m/m"
   },
   {
    "id": "r090",
    "kind": "math",
    "x": 40,
-   "y": 6368,
+   "y": 6320,
    "src": "t_libre := sqrt(4*m_libre/(phi_b*Fy_ac)) = mm"
   },
   {
    "id": "r092",
    "kind": "math",
    "x": 40,
-   "y": 6416,
+   "y": 6368,
    "src": "a_corto := min(volad, sep_nerv) = mm"
   },
   {
    "id": "r093",
    "kind": "math",
    "x": 40,
-   "y": 6464,
+   "y": 6416,
    "src": "m_panel := beta*f_p*a_corto^2 = kN*m/m"
   },
   {
    "id": "r094",
    "kind": "math",
    "x": 40,
-   "y": 6512,
+   "y": 6464,
    "src": "t_panel := sqrt(4*m_panel/(phi_b*Fy_ac)) = mm"
   },
   {
    "id": "r096",
    "kind": "math",
    "x": 40,
-   "y": 6560,
+   "y": 6512,
    "src": "vol_esq := max(B_bp/2 - x_nerv_ext, 0 mm) = mm"
   },
   {
    "id": "r097",
    "kind": "math",
    "x": 40,
-   "y": 6608,
+   "y": 6560,
    "src": "m_esq := f_p*vol_esq^2/2 = kN*m/m"
   },
   {
    "id": "r098",
    "kind": "math",
    "x": 40,
-   "y": 6656,
+   "y": 6608,
    "src": "t_esq := sqrt(4*m_esq/(phi_b*Fy_ac)) = mm"
   },
   {
    "id": "r100",
    "kind": "program",
    "x": 40,
-   "y": 6704,
+   "y": 6656,
    "src": "t_req :=\n    if hay_nervios == 1\n        return max(t_panel, t_esq)\n    else\n        return t_libre"
   },
   {
    "id": "r102",
    "kind": "math",
    "x": 40,
-   "y": 6848,
+   "y": 6800,
    "src": "u_espesor := t_req/t_bp ="
   },
   {
    "id": "r023",
    "kind": "text",
    "x": 40,
-   "y": 6896,
+   "y": 6848,
    "src": "━━ RESUMEN ━━"
   },
   {
    "id": "r106",
    "kind": "math",
    "x": 40,
-   "y": 6944,
+   "y": 6896,
    "src": "u_max := max(u_pernos, u_espesor) ="
   },
   {
    "id": "r107",
    "kind": "program",
    "x": 40,
-   "y": 6992,
+   "y": 6944,
    "src": "gobierna :=\n    if u_max == u_pernos\n        return \"area de los pernos en traccion\"\n    else\n        return \"espesor de la chapa por flexion de aplastamiento\""
   },
   {
    "id": "v_global",
    "kind": "math",
    "x": 40,
-   "y": 7136,
+   "y": 7088,
    "src": "v_global := u_max <= 1 and v_paso and v_ancho and v_largo and v_borde_horm and v_fila_libre ="
   },
   {
    "id": "r024",
    "kind": "text",
    "x": 40,
-   "y": 7184,
+   "y": 7136,
    "src": "RECORDATORIO DE FRONTERA: con llave de corte, el espesor de la placa se comprueba además contra la\nregla t_bp ≥ t_sl de la DG1 §4.3.3 y contra la flexión local que la llave induce, las dos en\nllave-corte-generica; el par de esa llave sí está aquí, sumado a la tracción del grupo."
   },
   {
@@ -1238,7 +1401,7 @@
    "kind": "text",
    "x": 40,
    "src": "━━ ESQUEMA · MAPEO A PÍXELES ━━",
-   "y": 7280,
+   "y": 7232,
    "imprimir": false
   },
   {
@@ -1246,7 +1409,7 @@
    "kind": "text",
    "x": 40,
    "src": "El dibujo sale de las mismas variables que las verificaciones: una cota roja y un v_* en falso son el\nmismo número. Elevación y planta comparten escala y eje horizontal, así que la fila traccionada y el\nbloque comprimido caen en la misma vertical en las dos vistas. hx lleva una distancia medida desde el\ncentro de la placa, en la dirección de L_bp, a píxeles; vp hace lo mismo en planta, en la dirección de\nB_bp. Este bloque no se imprime.",
-   "y": 7328,
+   "y": 7280,
    "imprimir": false
   },
   {
@@ -1254,7 +1417,7 @@
    "kind": "math",
    "x": 40,
    "src": "esc := min(440/(max(PED_L, L_bp)/(1 m)), 250/(max(PED_B, B_bp)/(1 m))) =",
-   "y": 7472,
+   "y": 7424,
    "imprimir": false
   },
   {
@@ -1262,7 +1425,7 @@
    "kind": "program",
    "x": 40,
    "src": "hx(u) := 290 + u/(1 m)*esc",
-   "y": 7520,
+   "y": 7472,
    "imprimir": false
   },
   {
@@ -1270,7 +1433,7 @@
    "kind": "program",
    "x": 40,
    "src": "vp(v) := 400 + v/(1 m)*esc",
-   "y": 7568,
+   "y": 7520,
    "imprimir": false
   },
   {
@@ -1278,7 +1441,7 @@
    "kind": "math",
    "x": 40,
    "src": "tp_px := max(3, t_bp/(1 m)*esc) =",
-   "y": 7616,
+   "y": 7568,
    "imprimir": false
   },
   {
@@ -1286,7 +1449,7 @@
    "kind": "math",
    "x": 40,
    "src": "r_hueco_px := d_hueco/(1 m)*esc/2 =",
-   "y": 7664,
+   "y": 7616,
    "imprimir": false
   },
   {
@@ -1294,7 +1457,7 @@
    "kind": "program",
    "x": 40,
    "src": "pernos_px :=\n    Q := zeros(2*n_col, 2)\n    for i in 1:n_col\n        xb := -x_ext + (i - 1)*paso_real\n        Q[i, 1] = hx(-y_t)\n        Q[i, 2] = vp(xb)\n        Q[n_col + i, 1] = hx(y_t)\n        Q[n_col + i, 2] = vp(xb)\n    Q",
-   "y": 7712,
+   "y": 7664,
    "imprimir": false
   },
   {
@@ -1302,13 +1465,13 @@
    "kind": "math",
    "x": 40,
    "src": "v_pernos_dibujados := size(pernos_px)[1] == 2*n_col =",
-   "y": 7952
+   "y": 7904
   },
   {
    "id": "r_cu",
    "kind": "program",
    "x": 40,
-   "y": 8000,
+   "y": 7952,
    "src": "cu(u) := u <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1317,7 +1480,7 @@
    "kind": "math",
    "x": 40,
    "src": "col_paso := v_paso ? \"#1c7c3c\" : \"#c0392b\"",
-   "y": 8048,
+   "y": 8000,
    "imprimir": false
   },
   {
@@ -1325,7 +1488,7 @@
    "kind": "math",
    "x": 40,
    "src": "col_ancho := v_ancho ? \"#1c7c3c\" : \"#c0392b\"",
-   "y": 8096,
+   "y": 8048,
    "imprimir": false
   },
   {
@@ -1333,7 +1496,7 @@
    "kind": "math",
    "x": 40,
    "src": "col_largo := v_largo ? \"#1c7c3c\" : \"#c0392b\"",
-   "y": 8144,
+   "y": 8096,
    "imprimir": false
   },
   {
@@ -1341,7 +1504,7 @@
    "kind": "math",
    "x": 40,
    "src": "col_horm_B := borde_horm_B >= borde_horm_min ? \"#1c7c3c\" : \"#c0392b\"",
-   "y": 8192,
+   "y": 8144,
    "imprimir": false
   },
   {
@@ -1349,7 +1512,7 @@
    "kind": "math",
    "x": 40,
    "src": "col_horm_L := borde_horm_L >= borde_horm_min ? \"#1c7c3c\" : \"#c0392b\"",
-   "y": 8240,
+   "y": 8192,
    "imprimir": false
   },
   {
@@ -1357,7 +1520,7 @@
    "kind": "math",
    "x": 40,
    "src": "col_fila := v_fila_libre ? \"#1c7c3c\" : \"#c0392b\"",
-   "y": 8288,
+   "y": 8240,
    "imprimir": false
   },
   {
@@ -1365,7 +1528,7 @@
    "kind": "math",
    "x": 40,
    "src": "col_bloque := v_bloque ? \"#1a63a8\" : \"#c0392b\"",
-   "y": 8336,
+   "y": 8288,
    "imprimir": false
   },
   {
@@ -1375,7 +1538,7 @@
    "src": "/esquemas/placa-base-generica.svg",
    "w": 720,
    "h": 514,
-   "y": 8384
+   "y": 8336
   }
  ]
 }

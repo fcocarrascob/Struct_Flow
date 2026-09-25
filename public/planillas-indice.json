@@ -502,16 +502,16 @@
       "clase": "generica",
       "disciplina": "acero",
       "ruta": "/biblioteca/acero/placa-base-generica.json",
-      "regiones": 127,
+      "regiones": 134,
       "normas": [
         "US/AISC-DG1-3ed",
         "US/AISC360-22",
         "US/ACI318-25-SI"
       ],
-      "entradas": 31,
-      "salidas": 20,
+      "entradas": 37,
+      "salidas": 21,
       "promovible": true,
-      "sha256": "68975d6b84a18abf8e447c257729a6c1ee74ec56b65c4d6997aa4270774edf00",
+      "sha256": "8e6360afb49d5bb1bc0fd7e6440ae3d21501ee7a730842cfc2b7c6b26d865bb1",
       "resumen": "Placa lisa o rigidizada (hay_nervios) bajo columna con momento: aplastamiento en bloque, equilibrio iterativo, grupo de pernos y espesor de chapa. Entrega T_grupo e Yb_comp al resto de la base de columna."
     },
     {
