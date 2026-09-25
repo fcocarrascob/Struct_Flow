@@ -73,16 +73,16 @@
       "clase": "generica",
       "disciplina": "acero",
       "ruta": "/biblioteca/acero/placa-base-generica.json",
-      "regiones": 134,
+      "regiones": 139,
       "normas": [
         "US/AISC-DG1-3ed",
         "US/AISC360-22",
         "US/ACI318-25-SI"
       ],
       "entradas": 37,
-      "salidas": 21,
+      "salidas": 22,
       "promovible": true,
-      "sha256": "bea5833e21b99e42971334c85c23369580fde4fad18955805da50a883943e01d",
+      "sha256": "1b67dae9c1dfd198684934375c39d5cbcdee6b73baa994d8e3b215c29b779026",
       "resumen": "Placa lisa o rigidizada (hay_nervios) bajo columna con momento: aplastamiento en bloque, equilibrio iterativo, grupo de pernos y espesor de chapa. Entrega T_grupo e Yb_comp al resto de la base de columna."
     },
     {
@@ -142,14 +142,14 @@
       "clase": "generica",
       "disciplina": "hormigon",
       "ruta": "/biblioteca/hormigon/anclaje-hormigon-generica.json",
-      "regiones": 136,
+      "regiones": 137,
       "normas": [
         "US/ACI318-25-SI"
       ],
       "entradas": 31,
-      "salidas": 19,
+      "salidas": 20,
       "promovible": true,
-      "sha256": "cfbf24d6d9436acb54273c0b18d38d271ddcff877342a29a6f192769387ca046",
+      "sha256": "ea3ca93c63c06de5e5d3db7bbccabd473bd4742aff5fc266c84e99f6cf5e7bd1",
       "resumen": "El Cap. 17 del ACI 318-25 en tracción para pernos colados, con los dos factores nuevos de la edición 25 (psi_a y psi_cm,N) y el diseño sísmico del §17.10 (opción (d), factor 0,75 sobre los modos del hormigón). Recibe Nua_g de placa-base-generica y decide si hace falta armadura de anclaje."
     },
     {
@@ -158,15 +158,15 @@
       "clase": "generica",
       "disciplina": "hormigon",
       "ruta": "/biblioteca/hormigon/pedestal-generico.json",
-      "regiones": 335,
+      "regiones": 336,
       "normas": [
         "US/ACI318-25-SI",
         "CL/NCh2369-2025"
       ],
       "entradas": 59,
-      "salidas": 39,
+      "salidas": 40,
       "promovible": true,
-      "sha256": "6cfa773ddba89dbeccffad158405df65899800c5d9974d3d4a94cd286b522a33",
+      "sha256": "dfc298ee7b2bc9719fd7bb8902e06d3ddf83213ad87a6e786d9f75e0a7bb98aa",
       "resumen": "Pedestal rectangular bajo placa base: cuantías del §10.6.1.1 y del §18.7.4.1, el diagrama de interacción P-M calculado por compatibilidad de deformaciones en los dos ejes y en los dos sentidos, seis combinaciones (P, M_X, M_Y) leídas sobre él, flexión biaxial por contorno lineal, corte con V_c y V_s en las dos direcciones, estribos, la armadura de anclaje que puede contarse y el detallado sísmico por NCh2369:2025 §9.5 y por ACI 318-25 §18.7. Recibe T_grupo de placa-base-generica y As_req de anclaje-hormigon-generica."
     },
     {

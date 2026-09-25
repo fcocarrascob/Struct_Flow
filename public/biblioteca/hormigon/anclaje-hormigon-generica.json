@@ -364,6 +364,11 @@
     "nombre": "v_fu_fy",
     "etiqueta": "f_uta/f_ya ≥ 1,3",
     "tipo": "veredicto"
+   },
+   {
+    "nombre": "v_n_arm",
+    "etiqueta": "Hay barras que toman la armadura de anclaje",
+    "tipo": "veredicto"
    }
   ],
   "fronteras": [
@@ -445,6 +450,17 @@
      "A_brg": 4000
     },
     "cumple": true
+   },
+   {
+    "nombre": "armadura de anclaje sin ninguna barra que cuente: no cumple, sin error",
+    "entradas": {
+     "n_arm": 0
+    },
+    "cumple": false,
+    "esperadoFalso": [
+     "v_n_arm",
+     "v_global"
+    ]
    }
   ]
  },
@@ -1140,34 +1156,41 @@
    "kind": "math",
    "x": 40,
    "y": 5890,
-   "src": "u_armadura := usa_arm == 1 ? As_req/As_prov : 0 ="
+   "src": "u_armadura := usa_arm == 1 and n_arm >= 1 ? As_req/As_prov : 0 ="
+  },
+  {
+   "id": "v_n_arm",
+   "kind": "math",
+   "x": 40,
+   "y": 5938,
+   "src": "v_n_arm := usa_arm == 0 or n_arm >= 1 ="
   },
   {
    "id": "r089",
    "kind": "text",
    "x": 40,
-   "y": 5938,
+   "y": 5986,
    "src": "━━ 6 — SEPARACIÓN Y DISTANCIA DE BORDE · §17.9 ━━"
   },
   {
    "id": "r090",
    "kind": "text",
    "x": 40,
-   "y": 5986,
+   "y": 6034,
    "src": "[Tabla 17.9.2(a)] Separación mínima entre anclajes colados NO torqueados: 4·d_a. Si el pliego manda\npretensar pasa a 6·d_a, y eso puede tumbar la configuración entera: no es una propiedad del perno\nsino de cómo se aprieta. [17.6.2.1.2] Con tres o más bordes el cono se calcula con h_efc, y el dato\nc_a_max tiene que ser una distancia de borde que influye: no mayor que 1,5·h_ef ni menor que la\nmenor de c_a1 y c_a2."
   },
   {
    "id": "v_sep_min",
    "kind": "math",
    "x": 40,
-   "y": 6130,
+   "y": 6178,
    "src": "v_sep_min := s_1 >= 4*d_a ="
   },
   {
    "id": "v_ca_max",
    "kind": "math",
    "x": 40,
-   "y": 6178,
+   "y": 6226,
    "src": "v_ca_max := n_bordes <= 2 or (c_a_max <= 1.5*h_ef and c_a_max >= min(c_a1, c_a2)) ="
   },
   {
@@ -1175,111 +1198,111 @@
    "kind": "text",
    "src": "━━ 7 — ANCLAJE DÚCTIL · §17.10.5.3(a) ━━",
    "x": 40,
-   "y": 6226
+   "y": 6274
   },
   {
    "id": "r_s7_txt",
    "kind": "text",
    "src": "[17.10.5.3(a)] El acero del perno tiene que fluir antes de que falle el hormigón. Con la fila\ncargada por igual, la razón del perno más solicitado contra 1,2·N_sa (i) no puede quedar por debajo\nde la del grupo contra la resistencia NOMINAL gobernada por el hormigón (ii): extracción,\ndescascaramiento y arrancamiento, sin φ ni el 0,75 del §17.10.5.4. Eso es pedir que esa resistencia\nsupere 1,2·n·N_sa. ⁉️ Lectura de la hoja: con armadura de anclaje, el arrancamiento lo toma ella\n(§17.5.2.1) y entra con su resistencia nominal A_s·f_y.",
    "x": 40,
-   "y": 6274
+   "y": 6322
   },
   {
    "id": "r_N_sa_12",
    "kind": "math",
    "src": "N_sa_12 := 1.2*n_trac*N_sa = kN",
    "x": 40,
-   "y": 6442
+   "y": 6490
   },
   {
    "id": "r_N_horm_dc",
    "kind": "program",
    "src": "N_horm_dc :=\n    Nh := n_trac*N_pn\n    if h_ef > hef_lim_sb\n        if s_1 < 6*c_a1\n            Nh := min(Nh, N_sbg)\n        else\n            Nh := min(Nh, n_trac*N_sb)\n    if usa_arm == 1\n        Nh := min(Nh, As_prov*fy_arm)\n    else\n        Nh := min(Nh, N_cbg)\n    return Nh",
    "x": 40,
-   "y": 6490
+   "y": 6538
   },
   {
    "id": "r_N_horm_dc_ver",
    "kind": "math",
    "src": "N_horm_dc = kN",
    "x": 40,
-   "y": 6802
+   "y": 6850
   },
   {
    "id": "r_u_ductil",
    "kind": "math",
-   "src": "u_ductil := ductil == 1 ? N_sa_12/N_horm_dc : 0 =",
+   "src": "u_ductil := ductil == 1 and N_horm_dc > 0 kN ? N_sa_12/N_horm_dc : 0 =",
    "x": 40,
-   "y": 6850
+   "y": 6898
   },
   {
    "id": "r_s7_txt2",
    "kind": "text",
    "src": "[17.10.5.3(a)(iii) y (v)] El tramo de estiramiento es de al menos 8·d_a, y con una rosca que no\nrecorre todo el perno f_uta/f_ya no baja de 1,3 salvo que la rosca sea recalcada: la hoja lo exige\nsiempre, del lado seguro. La protección contra el pandeo del tramo libre (iv) no se verifica aquí.",
    "x": 40,
-   "y": 6898
+   "y": 6946
   },
   {
    "id": "v_estir",
    "kind": "math",
    "src": "v_estir := ductil == 0 or l_est >= 8*d_a =",
    "x": 40,
-   "y": 6994
+   "y": 7042
   },
   {
    "id": "v_fu_fy",
    "kind": "math",
    "src": "v_fu_fy := ductil == 0 or futa/fya >= 1.3 =",
    "x": 40,
-   "y": 7042
+   "y": 7090
   },
   {
    "id": "r093",
    "kind": "text",
    "x": 40,
-   "y": 7090,
+   "y": 7138,
    "src": "━━ RESUMEN ━━"
   },
   {
    "id": "r094",
    "kind": "text",
    "x": 40,
-   "y": 7138,
+   "y": 7186,
    "src": "La vía del hormigón y la de la armadura son EXCLUYENTES en el cono: la armadura lo reemplaza. La\nextracción y el descascaramiento aplican en las dos."
   },
   {
    "id": "r095",
    "kind": "math",
    "x": 40,
-   "y": 7210,
+   "y": 7258,
    "src": "u_cono := usa_arm == 1 ? u_armadura : u_breakout ="
   },
   {
    "id": "r_u_max",
    "kind": "math",
    "x": 40,
-   "y": 7258,
+   "y": 7306,
    "src": "u_max := max(u_acero, u_cono, u_pullout, u_blowout, u_ductil) ="
   },
   {
    "id": "r_gobierna",
    "kind": "program",
    "x": 40,
-   "y": 7306,
+   "y": 7354,
    "src": "gobierna :=\n    if u_max == u_acero\n        return \"acero del perno en tracción\"\n    else if u_max == u_pullout\n        return \"extracción de la cabeza (pullout)\"\n    else if u_max == u_blowout\n        return \"descascaramiento lateral\"\n    else if u_max == u_ductil\n        return \"ductilidad del anclaje (17.10.5.3(a))\"\n    else if usa_arm == 1\n        return \"armadura de anclaje\"\n    else\n        return \"arrancamiento del cono de hormigón\""
   },
   {
    "id": "v_global",
    "kind": "math",
    "x": 40,
-   "y": 7642,
-   "src": "v_global := u_max <= 1 and v_sep_min and v_ca_max and v_estir and v_fu_fy ="
+   "y": 7690,
+   "src": "v_global := u_max <= 1 and v_n_arm and v_sep_min and v_ca_max and v_estir and v_fu_fy ="
   },
   {
    "id": "r099",
    "kind": "text",
    "x": 40,
-   "y": 7690,
+   "y": 7738,
    "src": "━━ ESQUEMA · MAPEO A PÍXELES ━━",
    "imprimir": false
   },
@@ -1287,7 +1310,7 @@
    "id": "r100",
    "kind": "text",
    "x": 40,
-   "y": 7738,
+   "y": 7786,
    "src": "px y py llevan una distancia medida desde el centro del grupo a píxeles de planta, con y positivo\nhacia adentro del pedestal; ey hace lo propio en elevación, medida hacia abajo desde la cara\nsuperior del hormigón. Este bloque no se imprime.",
    "imprimir": false
   },
@@ -1295,7 +1318,7 @@
    "id": "r101",
    "kind": "math",
    "x": 40,
-   "y": 7834,
+   "y": 7882,
    "src": "esc := min(300/(lado_1/(1 mm)), 150/(lado_2/(1 mm)), 300/(3*h_ef/(1 mm))) =",
    "imprimir": false
   },
@@ -1303,7 +1326,7 @@
    "id": "r102",
    "kind": "program",
    "x": 40,
-   "y": 7882,
+   "y": 7930,
    "src": "px(u) := 250 + u/(1 mm)*esc",
    "imprimir": false
   },
@@ -1311,7 +1334,7 @@
    "id": "r103",
    "kind": "program",
    "x": 40,
-   "y": 7930,
+   "y": 7978,
    "src": "py(v) := 150 + v/(1 mm)*esc",
    "imprimir": false
   },
@@ -1319,7 +1342,7 @@
    "id": "r104",
    "kind": "program",
    "x": 40,
-   "y": 7978,
+   "y": 8026,
    "src": "ey(w) := 360 + w/(1 mm)*esc",
    "imprimir": false
   },
@@ -1327,7 +1350,7 @@
    "id": "r105",
    "kind": "math",
    "x": 40,
-   "y": 8026,
+   "y": 8074,
    "src": "media_fila := (n_trac - 1)*s_1/2 = mm",
    "imprimir": false
   },
@@ -1335,7 +1358,7 @@
    "id": "r106",
    "kind": "program",
    "x": 40,
-   "y": 8074,
+   "y": 8122,
    "src": "pernos_px :=\n    Q := zeros(n_trac, 2)\n    for i in 1:n_trac\n        Q[i, 1] = px(-media_fila + (i - 1)*s_1)\n        Q[i, 2] = py(0 mm)\n    Q",
    "imprimir": false
   },
@@ -1343,7 +1366,7 @@
    "id": "r107",
    "kind": "program",
    "x": 40,
-   "y": 8242,
+   "y": 8290,
    "src": "armadura_px :=\n    if usa_arm == 0\n        return zeros(0, 1)\n    n := n_arm\n    ancho := 2*media_fila + h_ef\n    Q := zeros(n, 1)\n    for i in 1:n\n        Q[i, 1] = px(-ancho/2 + (i - 1)*ancho/max(n - 1, 1))\n    Q",
    "imprimir": false
   },
@@ -1351,7 +1374,7 @@
    "id": "r_arm_si",
    "kind": "program",
    "x": 40,
-   "y": 8386,
+   "y": 8434,
    "src": "arm_si :=\n    if usa_arm == 1\n        return zeros(1, 1)\n    return zeros(0, 1)",
    "imprimir": false
   },
@@ -1359,7 +1382,7 @@
    "id": "r_arm_no",
    "kind": "program",
    "x": 40,
-   "y": 8434,
+   "y": 8482,
    "src": "arm_no :=\n    if usa_arm == 1\n        return zeros(0, 1)\n    return zeros(1, 1)",
    "imprimir": false
   },
@@ -1367,7 +1390,7 @@
    "id": "r_cu",
    "kind": "program",
    "x": 40,
-   "y": 8482,
+   "y": 8530,
    "src": "cu(u) := u <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1375,7 +1398,7 @@
    "id": "r108",
    "kind": "math",
    "x": 40,
-   "y": 8530,
+   "y": 8578,
    "src": "col_acero := u_acero <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1383,7 +1406,7 @@
    "id": "r109",
    "kind": "math",
    "x": 40,
-   "y": 8578,
+   "y": 8626,
    "src": "col_cono := u_cono <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1391,15 +1414,15 @@
    "id": "r110",
    "kind": "math",
    "x": 40,
-   "y": 8626,
-   "src": "col_arm := (usa_arm == 1 and u_armadura <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
+   "y": 8674,
+   "src": "col_arm := (usa_arm == 1 and n_arm >= 1 and u_armadura <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
   {
    "id": "r111",
    "kind": "math",
    "x": 40,
-   "y": 8674,
+   "y": 8722,
    "src": "col_sep := v_sep_min ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1407,7 +1430,7 @@
    "id": "r112",
    "kind": "math",
    "x": 40,
-   "y": 8722,
+   "y": 8770,
    "src": "col_global := v_global ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1415,7 +1438,7 @@
    "id": "esquema",
    "kind": "image",
    "x": 40,
-   "y": 8770,
+   "y": 8818,
    "src": "/esquemas/anclaje-hormigon-generica.svg",
    "w": 720,
    "h": 480

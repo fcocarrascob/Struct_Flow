@@ -701,6 +701,11 @@
     "tipo": "veredicto",
     "aviso": true,
     "avisoTexto": "Hay niveles sin ramas interiores con el §18.7 en juego: en ellos las barras de la cara no tienen el apoyo lateral del §18.7.5.2"
+   },
+   {
+    "nombre": "v_contables_min",
+    "etiqueta": "Hay barras dentro del cono que toman la armadura de anclaje",
+    "tipo": "veredicto"
    }
   ],
   "fronteras": [
@@ -854,6 +859,17 @@
      "ramas_cab_y": 4.2
     },
     "cumple": true
+   },
+   {
+    "nombre": "ninguna barra dentro del cono: no cumple, sin error",
+    "entradas": {
+     "n_contables": 0
+    },
+    "cumple": false,
+    "esperadoFalso": [
+     "v_contables_min",
+     "v_global"
+    ]
    }
   ]
  },
@@ -2753,27 +2769,34 @@
    "kind": "math",
    "x": 40,
    "y": 20672,
-   "src": "u_anclaje := n_req/n_contables ="
+   "src": "u_anclaje := n_contables >= 1 ? n_req/n_contables : 0 ="
+  },
+  {
+   "id": "v_contables_min",
+   "kind": "math",
+   "x": 40,
+   "y": 20720,
+   "src": "v_contables_min := n_req <= 0 or n_contables >= 1 ="
   },
   {
    "id": "r186",
    "kind": "text",
    "x": 40,
-   "y": 20720,
+   "y": 20768,
    "src": "━━ 12 — UNIÓN CON LA ZAPATA · ACI 318-25 §18.13.2 ━━"
   },
   {
    "id": "r187",
    "kind": "text",
    "x": 40,
-   "y": 20768,
+   "y": 20816,
    "src": "§18.13.2.2: la armadura longitudinal de columnas que resisten sismo se prolonga dentro de la zapata\ny desarrolla fy en tracción EN LA INTERFAZ. §18.13.2.3: con base empotrada, si lleva ganchos van a\n90 grados cerca del fondo de la zapata, con el extremo libre hacia el centro de la columna. Es\ndetallado: la hoja lo declara, no lo calcula."
   },
   {
    "id": "r188",
    "kind": "program",
    "x": 40,
-   "y": 20912,
+   "y": 20960,
    "src": "detallado_18_13 :=\n    if sdc_def == 1\n        return \"RIGE 18.13.2.2 y 18.13.2.3: barras desarrolladas para fy en la interfaz, ganchos a 90 grados hacia el centro\"\n    else\n        return \"no rige 18.13.2 (SDC A, B o C)\""
   },
   {
@@ -2781,41 +2804,41 @@
    "kind": "text",
    "src": "━━ 13 — LA ZONA DE PROTECCIÓN ES LA ARMADURA DE ANCLAJE DE LA LLAVE · ACI 318-25 §17.5.2.1.2 y NCh2369 C9.5.2 ━━",
    "x": 40,
-   "y": 21104
+   "y": 21152
   },
   {
    "id": "r_llave_texto",
    "kind": "text",
    "src": "El C9.5.2 asigna a los estribos del sector superior la prevención del desprendimiento del sólido de\nfalla en corte de la llave, igual que asigna a las barras longitudinales la del sólido de tracción de\nlos pernos. Y el §9.5.3 (b) define esa zona como la altura de la llave más la proyección de un plano\na 45°: la zona de protección ES el sólido de falla. Aquí se comprueba que el área que cae dentro de\nella cubre la que exige el §17.5.2.1.2, con el mismo φ = 0,90 de la Tabla 21.2.1 (k) de la sección 11.\nNo se suma al confinamiento del §18.7.5.4: ese es detallado por ductilidad, no una demanda de\nequilibrio bajo la combinación que produce el corte, y las dos responden por la envolvente.",
    "x": 40,
-   "y": 21152
+   "y": 21200
   },
   {
    "id": "r_zp_llave",
    "kind": "math",
    "src": "zp_llave := h_llave > 0 mm ? zp_b : 0 mm = mm",
    "x": 40,
-   "y": 21392
+   "y": 21440
   },
   {
    "id": "r_n_niv_llave",
    "kind": "math",
    "src": "n_niv_llave := max(floor((zp_llave - s1_est)/sep_est_zp) + 1, 1) =",
    "x": 40,
-   "y": 21440
+   "y": 21488
   },
   {
    "id": "r_sin_ramas_texto",
    "kind": "text",
    "x": 40,
-   "y": 21488,
+   "y": 21536,
    "src": "Los niveles se cuentan desde el primer estribo, a s1_est de la cara superior, hasta zp_llave. Los primeros pueden ir sin ramas interiores —solo el perimetral— para que la llave no las cruce (n_niv_sin_ramas), y llevar además un amarre en rombo: cada uno aporta al área, por dirección, ramas_cab_x o ramas_cab_y en vez de n_ramas (2 con solo el perimetral)."
   },
   {
    "id": "r_n_sin_ramas",
    "kind": "math",
    "x": 40,
-   "y": 21536,
+   "y": 21584,
    "src": "n_sin_ramas := min(max(n_niv_sin_ramas, 0), n_niv_llave) ="
   },
   {
@@ -2823,13 +2846,13 @@
    "kind": "math",
    "src": "As_prov_llave_X := (n_niv_llave*n_ramas - n_sin_ramas*(n_ramas - ramas_cab_x))*area_est = mm^2",
    "x": 40,
-   "y": 21584
+   "y": 21632
   },
   {
    "id": "r_as_prov_llave_y",
    "kind": "math",
    "x": 40,
-   "y": 21632,
+   "y": 21680,
    "src": "As_prov_llave_Y := (n_niv_llave*n_ramas - n_sin_ramas*(n_ramas - ramas_cab_y))*area_est = mm^2"
   },
   {
@@ -2837,69 +2860,69 @@
    "kind": "math",
    "src": "As_req_llave := max(As_req_llave_X, As_req_llave_Y) = mm^2",
    "x": 40,
-   "y": 21680
+   "y": 21728
   },
   {
    "id": "r_u_arm_llave",
    "kind": "math",
    "src": "u_arm_llave := h_llave > 0 mm ? max(As_req_llave_X/As_prov_llave_X, As_req_llave_Y/As_prov_llave_Y) : 0 =",
    "x": 40,
-   "y": 21728
+   "y": 21776
   },
   {
    "id": "v_zona_llave",
    "kind": "math",
    "src": "v_zona_llave := (As_req_llave <= 0 mm^2) or (h_llave > 0 mm) =",
    "x": 40,
-   "y": 21776
+   "y": 21824
   },
   {
    "id": "r_sin_ramas_hx_texto",
    "kind": "text",
    "x": 40,
-   "y": 21824,
+   "y": 21872,
    "src": "⁉️ Lectura de la hoja: con el §18.7 en juego, un nivel de la zona confinada sin ramas interiores deja las barras de la cara sin apoyo lateral en ese nivel (h_x del §18.7.5.2). La hoja no lo verifica nivel por nivel: lo avisa."
   },
   {
    "id": "v_sin_ramas_hx",
    "kind": "math",
    "x": 40,
-   "y": 21872,
+   "y": 21920,
    "src": "v_sin_ramas_hx := sis_aci18 == 0 or n_niv_sin_ramas <= 0 ="
   },
   {
    "id": "r189",
    "kind": "text",
    "x": 40,
-   "y": 21920,
+   "y": 21968,
    "src": "━━ RESUMEN ━━"
   },
   {
    "id": "r190",
    "kind": "math",
    "x": 40,
-   "y": 21968,
+   "y": 22016,
    "src": "u_max := max(u_comp, u_trac, u_pm, u_biax, u_corte_X, u_corte_Y, u_corte_biax, u_anclaje, u_Ash, u_arm_llave, u_95T, u_95V) ="
   },
   {
    "id": "r191",
    "kind": "program",
    "x": 40,
-   "y": 22016,
+   "y": 22064,
    "src": "gobierna :=\n    if u_max == u_anclaje\n        return \"armadura de anclaje: barras dentro del cono\"\n    else if u_max == u_arm_llave\n        return \"armadura de anclaje de la llave (17.5.2.1.2)\"\n    else if u_max == u_Ash\n        return \"confinamiento del 18.7.5.4\"\n    else if u_max == u_95T\n        return \"capacidad esperada del anclaje en traccion (9.5.2)\"\n    else if u_max == u_95V\n        return \"capacidad esperada del anclaje en corte (9.5.2)\"\n    else if u_max == u_biax\n        return \"flexion biaxial (contorno lineal): ver comb_gob\"\n    else if u_max == u_pm\n        return \"flexocompresion uniaxial\"\n    else if u_max == u_corte_biax\n        return \"interaccion de corte biaxial (22.5.1.11)\"\n    else if u_max == u_corte_X\n        return \"corte en X del pedestal\"\n    else if u_max == u_corte_Y\n        return \"corte en Y del pedestal\"\n    else if u_max == u_comp\n        return \"compresion axial\"\n    else\n        return \"traccion axial\""
   },
   {
    "id": "v_global",
    "kind": "math",
    "x": 40,
-   "y": 22688,
-   "src": "v_global := u_max <= 1 and v_cuantia_min and v_cuantia_max and v_rho_sismico and v_Av and v_sep_est and v_db_est and v_confina_pernos and v_hx and v_sep_conf and v_s_todo and v_s_zp and v_s_libre ="
+   "y": 22736,
+   "src": "v_global := u_max <= 1 and v_contables_min and v_cuantia_min and v_cuantia_max and v_rho_sismico and v_Av and v_sep_est and v_db_est and v_confina_pernos and v_hx and v_sep_conf and v_s_todo and v_s_zp and v_s_libre ="
   },
   {
    "id": "r192",
    "kind": "text",
    "x": 40,
-   "y": 22736,
+   "y": 22784,
    "src": "━━ ESQUEMA · MAPEO A PÍXELES ━━",
    "imprimir": false
   },
@@ -2907,7 +2930,7 @@
    "id": "r193",
    "kind": "text",
    "x": 40,
-   "y": 22784,
+   "y": 22832,
    "src": "El dibujo sale de las mismas variables que las verificaciones. px y py llevan una distancia medida\ndesde el centro de la sección a píxeles de planta; ey hace lo propio en elevación, medida hacia\nabajo desde la cara superior del pedestal. Las barras salen de barras_xy, la misma disposición con\nla que se calculó el diagrama. Los dos P-M llevan su propio mapeo. Este bloque no se imprime.",
    "imprimir": false
   },
@@ -2915,7 +2938,7 @@
    "id": "r194",
    "kind": "math",
    "x": 40,
-   "y": 22928,
+   "y": 22976,
    "src": "esc := min(300/(PED_X/(1 mm)), 200/(PED_Y/(1 mm))) =",
    "imprimir": false
   },
@@ -2923,7 +2946,7 @@
    "id": "r195",
    "kind": "program",
    "x": 40,
-   "y": 22976,
+   "y": 23024,
    "src": "px(u) := 230 + u/(1 mm)*esc",
    "imprimir": false
   },
@@ -2931,7 +2954,7 @@
    "id": "r196",
    "kind": "program",
    "x": 40,
-   "y": 23024,
+   "y": 23072,
    "src": "py(v) := 175 + v/(1 mm)*esc",
    "imprimir": false
   },
@@ -2939,7 +2962,7 @@
    "id": "r197",
    "kind": "program",
    "x": 40,
-   "y": 23072,
+   "y": 23120,
    "src": "ey(w) := 360 + w/(1 mm)*esc",
    "imprimir": false
   },
@@ -2947,7 +2970,7 @@
    "id": "r198",
    "kind": "math",
    "x": 40,
-   "y": 23120,
+   "y": 23168,
    "src": "r_barra_px := max(1.6, db_long/(1 mm)*esc/2) =",
    "imprimir": false
   },
@@ -2955,7 +2978,7 @@
    "id": "r199",
    "kind": "program",
    "x": 40,
-   "y": 23168,
+   "y": 23216,
    "src": "barras_px :=\n    Q := zeros(n_barras, 2)\n    for i in 1:n_barras\n        Q[i, 1] = 230 + barras_xy[i, 1]*esc\n        Q[i, 2] = 175 + barras_xy[i, 2]*esc\n    Q",
    "imprimir": false
   },
@@ -2963,7 +2986,7 @@
    "id": "r200",
    "kind": "program",
    "x": 40,
-   "y": 23360,
+   "y": 23408,
    "src": "estribos_px :=\n    acc := [[ey(0 mm)]]\n    yy := 0 mm\n    while yy < PED_H\n        paso := yy < zp_ef ? sep_est_zp : sep_est\n        yy := yy + paso\n        if yy > PED_H\n            break\n        acc := concat(acc, [[ey(yy)]], 1)\n    return acc",
    "imprimir": false
   },
@@ -2971,7 +2994,7 @@
    "id": "r201",
    "kind": "program",
    "x": 40,
-   "y": 23648,
+   "y": 23696,
    "src": "cu(u) := u <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -2979,7 +3002,7 @@
    "id": "r202",
    "kind": "program",
    "x": 40,
-   "y": 23696,
+   "y": 23744,
    "src": "cdem(f) := f == 0 ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -2987,7 +3010,7 @@
    "id": "r203",
    "kind": "math",
    "x": 40,
-   "y": 23744,
+   "y": 23792,
    "src": "col_barras := (v_cuantia_min and v_cuantia_max and v_rho_sismico) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -2995,7 +3018,7 @@
    "id": "r204",
    "kind": "math",
    "x": 40,
-   "y": 23792,
+   "y": 23840,
    "src": "col_est := (v_Av and v_sep_est and v_db_est and v_sep_conf and v_s_todo and v_s_zp and v_s_libre) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -3003,15 +3026,15 @@
    "id": "r205",
    "kind": "math",
    "x": 40,
-   "y": 23840,
-   "src": "col_anc := u_anclaje <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
+   "y": 23888,
+   "src": "col_anc := v_contables_min and u_anclaje <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
   {
    "id": "r206",
    "kind": "math",
    "x": 40,
-   "y": 23888,
+   "y": 23936,
    "src": "col_pm := (u_pm <= 1 and u_biax <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -3019,7 +3042,7 @@
    "id": "r207",
    "kind": "math",
    "x": 40,
-   "y": 23936,
+   "y": 23984,
    "src": "col_global := v_global ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -3027,7 +3050,7 @@
    "id": "r208",
    "kind": "math",
    "x": 40,
-   "y": 23984,
+   "y": 24032,
    "src": "col_zp := (v_s_zp and v_s_libre and v_razon_hb and u_arm_llave <= 1) ? \"#1a63a8\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -3035,7 +3058,7 @@
    "id": "r_col_llave",
    "kind": "math",
    "x": 40,
-   "y": 24032,
+   "y": 24080,
    "src": "col_llave := h_llave > 0 mm ? (u_arm_llave <= 1 ? \"#1c7c3c\" : \"#c0392b\") : \"none\"",
    "imprimir": false
   },
@@ -3043,7 +3066,7 @@
    "id": "r209",
    "kind": "math",
    "x": 40,
-   "y": 24080,
+   "y": 24128,
    "src": "ey_zp := ey(zp_ef) =",
    "imprimir": false
   },
@@ -3051,7 +3074,7 @@
    "id": "r210",
    "kind": "math",
    "x": 40,
-   "y": 24128,
+   "y": 24176,
    "src": "w_dib := 300",
    "imprimir": false
   },
@@ -3059,7 +3082,7 @@
    "id": "r211",
    "kind": "math",
    "x": 40,
-   "y": 24176,
+   "y": 24224,
    "src": "h_dib := 240",
    "imprimir": false
   },
@@ -3067,7 +3090,7 @@
    "id": "r212",
    "kind": "math",
    "x": 40,
-   "y": 24224,
+   "y": 24272,
    "src": "x0_X := 92",
    "imprimir": false
   },
@@ -3075,7 +3098,7 @@
    "id": "r213",
    "kind": "math",
    "x": 40,
-   "y": 24272,
+   "y": 24320,
    "src": "x0_Y := 482",
    "imprimir": false
   },
@@ -3083,7 +3106,7 @@
    "id": "r214",
    "kind": "math",
    "x": 40,
-   "y": 24320,
+   "y": 24368,
    "src": "y0_pm := 978",
    "imprimir": false
   },
@@ -3091,7 +3114,7 @@
    "id": "r215",
    "kind": "program",
    "x": 40,
-   "y": 24368,
+   "y": 24416,
    "src": "Mmax_de(C) :=\n    n := size(C)[1]\n    mx := 0\n    for i in 1:n\n        if C[i,1] > mx\n            mx := C[i,1]\n    return mx",
    "imprimir": false
   },
@@ -3099,7 +3122,7 @@
    "id": "r216",
    "kind": "math",
    "x": 40,
-   "y": 24608,
+   "y": 24656,
    "src": "M_esc_X := 1.12*max(Mmax_de(curva_X_pos), Mmax_de(curva_X_neg), max(comb[1:6,2])) =",
    "imprimir": false
   },
@@ -3107,7 +3130,7 @@
    "id": "r217",
    "kind": "math",
    "x": 40,
-   "y": 24656,
+   "y": 24704,
    "src": "M_esc_Y := 1.12*max(Mmax_de(curva_Y_pos), Mmax_de(curva_Y_neg), max(comb[1:6,3])) =",
    "imprimir": false
   },
@@ -3115,7 +3138,7 @@
    "id": "r218",
    "kind": "program",
    "x": 40,
-   "y": 24704,
+   "y": 24752,
    "src": "xX_px(M) := x0_X + M/M_esc_X*w_dib",
    "imprimir": false
   },
@@ -3123,7 +3146,7 @@
    "id": "r219",
    "kind": "program",
    "x": 40,
-   "y": 24752,
+   "y": 24800,
    "src": "xY_px(M) := x0_Y + M/M_esc_Y*w_dib",
    "imprimir": false
   },
@@ -3131,7 +3154,7 @@
    "id": "r220",
    "kind": "program",
    "x": 40,
-   "y": 24800,
+   "y": 24848,
    "src": "y_pm_px(P) := y0_pm - (P + Pnt_n)/(Rd_P_n + Pnt_n)*h_dib",
    "imprimir": false
   },
@@ -3139,7 +3162,7 @@
    "id": "r221",
    "kind": "program",
    "x": 40,
-   "y": 24848,
+   "y": 24896,
    "src": "curva_px_de(C, x0, Mesc) :=\n    n := size(C)[1]\n    Q := zeros(n, 2)\n    for i in 1:n\n        Q[i, 1] = x0 + C[i,1]/Mesc*w_dib\n        Q[i, 2] = y_pm_px(C[i,2])\n    Q",
    "imprimir": false
   },
@@ -3147,7 +3170,7 @@
    "id": "r222",
    "kind": "program",
    "x": 40,
-   "y": 25088,
+   "y": 25136,
    "src": "curva_X_pos_px := curva_px_de(curva_X_pos, x0_X, M_esc_X)",
    "imprimir": false
   },
@@ -3155,7 +3178,7 @@
    "id": "r223",
    "kind": "program",
    "x": 40,
-   "y": 25136,
+   "y": 25184,
    "src": "curva_X_neg_px := curva_px_de(curva_X_neg, x0_X, M_esc_X)",
    "imprimir": false
   },
@@ -3163,7 +3186,7 @@
    "id": "r224",
    "kind": "program",
    "x": 40,
-   "y": 25184,
+   "y": 25232,
    "src": "curva_Y_pos_px := curva_px_de(curva_Y_pos, x0_Y, M_esc_Y)",
    "imprimir": false
   },
@@ -3171,7 +3194,7 @@
    "id": "r225",
    "kind": "program",
    "x": 40,
-   "y": 25232,
+   "y": 25280,
    "src": "curva_Y_neg_px := curva_px_de(curva_Y_neg, x0_Y, M_esc_Y)",
    "imprimir": false
   },
@@ -3179,7 +3202,7 @@
    "id": "r226",
    "kind": "program",
    "x": 40,
-   "y": 25280,
+   "y": 25328,
    "src": "pts_dem_X_px :=\n    Q := zeros(6, 3)\n    for i in 1:6\n        Q[i, 1] = xX_px(comb[i,2])\n        Q[i, 2] = y_pm_px(comb[i,1])\n        Q[i, 3] = usos_biax[i] <= 1 ? 0 : 1\n    Q",
    "imprimir": false
   },
@@ -3187,7 +3210,7 @@
    "id": "r227",
    "kind": "program",
    "x": 40,
-   "y": 25520,
+   "y": 25568,
    "src": "pts_dem_Y_px :=\n    Q := zeros(6, 3)\n    for i in 1:6\n        Q[i, 1] = xY_px(comb[i,3])\n        Q[i, 2] = y_pm_px(comb[i,1])\n        Q[i, 3] = usos_biax[i] <= 1 ? 0 : 1\n    Q",
    "imprimir": false
   },
@@ -3195,7 +3218,7 @@
    "id": "r228",
    "kind": "math",
    "x": 40,
-   "y": 25760,
+   "y": 25808,
    "src": "yg_px := y_pm_px(comb[comb_gob,1]) =",
    "imprimir": false
   },
@@ -3203,7 +3226,7 @@
    "id": "r229",
    "kind": "math",
    "x": 40,
-   "y": 25808,
+   "y": 25856,
    "src": "xgX_px := xX_px(comb[comb_gob,2]) =",
    "imprimir": false
   },
@@ -3211,7 +3234,7 @@
    "id": "r230",
    "kind": "math",
    "x": 40,
-   "y": 25856,
+   "y": 25904,
    "src": "xfX_px := xX_px(tabla_pm[comb_gob,2]) =",
    "imprimir": false
   },
@@ -3219,7 +3242,7 @@
    "id": "r231",
    "kind": "math",
    "x": 40,
-   "y": 25904,
+   "y": 25952,
    "src": "xgY_px := xY_px(comb[comb_gob,3]) =",
    "imprimir": false
   },
@@ -3227,7 +3250,7 @@
    "id": "r232",
    "kind": "math",
    "x": 40,
-   "y": 25952,
+   "y": 26000,
    "src": "xfY_px := xY_px(tabla_pm[comb_gob,3]) =",
    "imprimir": false
   },
@@ -3235,7 +3258,7 @@
    "id": "r233",
    "kind": "math",
    "x": 40,
-   "y": 26000,
+   "y": 26048,
    "src": "col_gob := cdem(usos_biax[comb_gob] <= 1 ? 0 : 1)",
    "imprimir": false
   },
@@ -3243,7 +3266,7 @@
    "id": "esquema",
    "kind": "image",
    "x": 40,
-   "y": 26048,
+   "y": 26096,
    "src": "/esquemas/pedestal-generico.svg",
    "w": 720,
    "h": 900

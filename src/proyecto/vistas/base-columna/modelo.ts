@@ -462,14 +462,19 @@ export function construirBaseColumna(d: Record<string, number>, config: Config =
   }
 
   // ── Derivados ────────────────────────────────────────────────────────────
-  // Barras a menos de 0,5·h_ef de algún perno de la fila traccionada, en planta.
-  const filaT = pernos.filter((p) => p.y > 0);
+  // Barras a menos de 0,5·h_ef de algún perno traccionado, en planta. Con la placa
+  // de momento tracciona la fila y > 0; con la rotulada, el arranque es concéntrico
+  // (DG1 §4.3.2) y traccionan las dos.
+  const rotulada = config.placa === 'rotulada';
+  const filaT = rotulada ? pernos : pernos.filter((p) => p.y > 0);
   const cont = barras.filter((b) => filaT.some((p) => Math.hypot(b.x - p.x, b.y - p.y) <= 0.5 * d.h_ef + 1e-6));
   derivados.push({
     nombre: 'n_cont',
     valor: cont.length,
     unidad: '',
-    criterio: 'barras longitudinales a menos de 0,5·h_ef de algún perno de la fila traccionada, medido en planta entre ejes',
+    criterio: rotulada
+      ? 'barras longitudinales a menos de 0,5·h_ef de algún perno, de cualquiera de las dos filas, que traccionan juntas con la placa rotulada; medido en planta entre ejes'
+      : 'barras longitudinales a menos de 0,5·h_ef de algún perno de la fila traccionada, medido en planta entre ejes',
   });
   if (conSilla) {
     derivados.push({ nombre: 'luz_real', valor: r1(luzReal), unidad: 'mm', criterio: 'luz libre mayor entre los nervios que flanquean un perno' });

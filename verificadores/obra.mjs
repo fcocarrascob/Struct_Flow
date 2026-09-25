@@ -3247,6 +3247,17 @@ const CASOS_VISTA = [
     },
   },
   {
+    nombre: 'vista base-columna: con la placa rotulada cuentan las barras de las dos filas, que traccionan juntas',
+    ok: () => {
+      const n = (m) => m.derivados.find((d) => d.nombre === 'n_cont')?.valor;
+      const mom = n(VISTA_BASE.construir(DATOS_BASE, configCompleta(VISTA_BASE)));
+      const rot = n(VISTA_BASE.construir(DATOS_BASE, configCompleta(VISTA_BASE, { placa: 'rotulada' })));
+      // Las zonas de 0,5·h_ef de las dos filas se solapan: cuenta la unión, más que con
+      // una fila y no más que las barras del pedestal (21 y 36 con los datos del Pachón).
+      return mom === 21 && rot === 36 ? null : `n_cont: ${mom} con momento, ${rot} rotulada`;
+    },
+  },
+  {
     nombre: '«+ base» sugiere la rotulada con momento nulo o bajo, y la de momento con tracción y momento o con e > e_crit',
     ok: () => {
       const { recomendarPlaca, PLACA_ROTULADA_DE_PARTIDA: P } = motor;
