@@ -75,7 +75,7 @@
   <line x1="{{px(-PED_X/2):svg}}" x2="{{px(PED_X/2):svg}}" y1="{{ey(zp_llave):svg}}" y2="{{ey(zp_llave):svg}}"
         stroke="{{col_llave}}" stroke-width="1.4" stroke-dasharray="3 2"/>
   <text x="{{px(PED_X/2) + 12:svg}}" y="{{ey(zp_ef/2) + 33:svg}}" font-size="9.5" fill="{{col_llave}}">llave §17.5.2.1.2: {{zp_llave:mm}} mm de cono, {{n_niv_llave}} niveles</text>
-  <text x="{{px(PED_X/2) + 12:svg}}" y="{{ey(zp_ef/2) + 45:svg}}" font-size="9.5" fill="{{col_llave}}">A_s ≥ {{As_req_llave:mm^2}} mm² · provista {{As_prov_llave:mm^2}} mm²</text>
+  <text x="{{px(PED_X/2) + 12:svg}}" y="{{ey(zp_ef/2) + 45:svg}}" font-size="9.5" fill="{{col_llave}}">A_s ≥ {{As_req_llave:mm^2}} mm² · provista {{As_prov_llave_X:mm^2}} (X) · {{As_prov_llave_Y:mm^2}} (Y) mm²</text>
 
   <!-- Zapata bajo el pedestal, esquemática -->
   <rect x="{{px(-PED_X/2) - 26:svg}}" y="{{ey(PED_H):svg}}" width="{{PED_X/(1 mm)*esc + 52:svg}}" height="16"

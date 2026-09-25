@@ -50,7 +50,7 @@ export default function FichaVista({
   // Un campo de un componente ausente conserva su atadura, pero no cuenta ni se muestra.
   const atadosActivos = campos.filter((c) => formulas[c.nombre]).length;
   const publicables = [...modelo.derivados.map((d) => d.nombre), 'v_global'];
-  const enFalso = modelo.chequeos.filter((c) => !c.cumple).length;
+  const enFalso = modelo.chequeos.filter((c) => !c.cumple && !c.aviso).length;
   const errorDe = new Map(errores.map((e) => [e.campo, e.error]));
   const dibujo = vista.hoja.find((r) => r.kind === 'image');
 
@@ -127,7 +127,12 @@ export default function FichaVista({
         <ul className="mt-1.5 space-y-1">
           {modelo.chequeos.map((c) => (
             <li key={c.id} className="flex items-baseline gap-1.5 text-[11px] leading-snug">
-              <span className={c.cumple ? 'text-emerald-600' : 'text-error'}>{c.cumple ? '✓' : '✗'}</span>
+              <span
+                className={c.cumple ? 'text-emerald-600' : c.aviso ? 'text-[color:var(--color-aviso)]' : 'text-error'}
+                title={c.aviso ? 'Aviso: no vota en el CUMPLE / NO CUMPLE' : undefined}
+              >
+                {c.cumple ? '✓' : c.aviso ? '⚠' : '✗'}
+              </span>
               <span className="min-w-0 flex-1 text-ink">{c.texto}</span>
               <span className="shrink-0 font-mono text-[10px] text-muted">
                 {num(c.valor)} {c.sentido === '>=' ? '≥' : '≤'} {num(c.limite)} {c.unidad}

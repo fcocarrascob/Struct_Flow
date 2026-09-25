@@ -127,14 +127,17 @@ export const CAMPOS_BASE_COLUMNA: Campo[] = [
     nombre: 'n_niv_sin_ramas',
     unidad: '',
     descripcion: 'Niveles de estribo de la cabeza que van sin ramas interiores, para que la llave no las cruce: solo el perimetral',
-    porDefecto: 1,
-    supuesto: 'el primer nivel de estribos, que cae en la altura de la llave, va sin ramas interiores',
+    porDefecto: 2,
+    supuesto: 'los dos primeros niveles de estribos, que caen en la altura de la llave o a menos del hueco bajo su fondo, van sin ramas interiores',
   }),
   llave({
     nombre: 'amarre_cab',
     unidad: '',
-    descripcion: 'Amarre de los niveles de cabeza sin ramas interiores: 0, solo el perimetral; 1, el perimetral más un rombo por las barras centrales de las caras',
-    porDefecto: 0,
+    descripcion:
+      'Amarre de los niveles de cabeza sin ramas interiores: 0, solo el perimetral; 1, el perimetral más un rombo por las barras ' +
+      'centrales de las caras, ADICIONAL a los obligatorios',
+    porDefecto: 1,
+    supuesto: 'los niveles de cabeza llevan un rombo por las barras centrales de las caras (ACI 318-25 Fig. R25.7.2.3a; ICH §5.5)',
   }),
 
   // Pedestal
@@ -148,6 +151,13 @@ export const CAMPOS_BASE_COLUMNA: Campo[] = [
   { nombre: 'n_ramas', unidad: '', descripcion: 'Ramas de estribo por dirección', porDefecto: 6 },
   { nombre: 'sep_est', unidad: 'mm', descripcion: 'Separación de estribos en el fuste', porDefecto: 150 },
   { nombre: 'sep_zp', unidad: 'mm', descripcion: 'Separación de estribos en la zona confinada', porDefecto: 75 },
+  {
+    nombre: 's1_est',
+    unidad: 'mm',
+    descripcion: 'Del borde superior del pedestal al eje del primer estribo',
+    porDefecto: 50,
+    supuesto: 'primer estribo a 50 mm de la cara superior del pedestal',
+  },
   {
     nombre: 'd_agg',
     unidad: 'mm',

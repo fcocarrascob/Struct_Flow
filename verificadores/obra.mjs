@@ -2954,7 +2954,8 @@ const CASOS_COPIA = [
 
 const VISTA_BASE = VISTAS['base-columna'];
 const DATOS_BASE = datosPorDefecto(VISTA_BASE.campos);
-const fallanEn = (m) => m.chequeos.filter((c) => !c.cumple).map((c) => c.id).sort().join(',');
+// Un aviso no vota: no es una verificación que falle.
+const fallanEn = (m) => m.chequeos.filter((c) => !c.cumple && !c.aviso).map((c) => c.id).sort().join(',');
 const SILLA_DEL_PACHON = 'v_chapa_nervio,v_luz_nervio,v_nervio_ala,v_nervio_placa';
 /** Una silla que cierra: dos nervios por perno a la luz declarada, sobre un ala y una chapa que los cubren. */
 const SILLA_QUE_CIERRA = { disp_nerv: 2, luz_nerv: 150, NER_T: 16, ALA_EXT: 1150, CH_B: 1150, B_bp: 1300, x_ext: 400, a_tuerca: 90 };
@@ -3115,7 +3116,7 @@ const CASOS_VISTA = [
     ['v_nervio_placa', { B_bp: 950 }],
     ['v_chapa_nervio', { CH_B: 950 }],
     ['v_llave_perno', { y_t: 600 }],
-    ['v_llave_ped', { b_sl: 1380 }],
+    ['v_llave_ped', { b_sl: 1380, amarre_cab: 0 }],
     ['v_llave_ramas', { n_niv_sin_ramas: 0 }],
   ].map(([id, cambio]) => ({
     nombre: `vista base-columna: «${id}» falla sola`,
@@ -3133,8 +3134,23 @@ const CASOS_VISTA = [
       const ids = m0.chequeos.map((c) => c.id);
       if (!ids.includes('v_rombo_angulo') || !ids.includes('v_rombo_llave')) return `verificaciones: ${ids.join(', ')}`;
       if (!m0.piezas.some((p) => p.id === 'rombo_1')) return 'no dibujó el rombo';
-      const rx = m0.derivados.find((x) => x.nombre === 'ramas_cab_x')?.valor;
+      const der = (m, n) => m.derivados.find((x) => x.nombre === n)?.valor;
+      const rx = der(m0, 'ramas_cab_x');
       if (!(rx > 2 && rx < 6)) return `ramas_cab_x = ${rx}`;
+      // Con barra en las esquinas, h_x de cabeza va de la esquina a la barra central de la cara larga.
+      if (der(m0, 'hx_cab') !== 891) return `hx_cab = ${der(m0, 'hx_cab')}`;
+      // Primer estribo a 50 mm: dos niveles en los 125 mm de arriba (§10.7.6.1.5), y en la
+      // zona de la llave (300 mm) cuatro, los dos primeros con el rombo.
+      if (der(m0, 'n_est_cab') !== 2) return `n_est_cab = ${der(m0, 'n_est_cab')}`;
+      const esperado = Math.round(((2 * Math.min(rx, der(m0, 'ramas_cab_y')) + 2 * 6) / 2) * 100) / 100;
+      if (Math.abs(der(m0, 'n_est_ll') - esperado) > 0.011) return `n_est_ll = ${der(m0, 'n_est_ll')}, se esperaba ${esperado}`;
+      const sinRombo = VISTA_BASE.construir({ ...DATOS_BASE, ...SILLA_QUE_CIERRA, amarre_cab: 0 });
+      if (der(sinRombo, 'n_est_ll') !== 8 || der(sinRombo, 'ramas_cab_x') !== 2) return `sin rombo: n_est_ll = ${der(sinRombo, 'n_est_ll')}`;
+      // El nivel de cabeza no amarra todas las barras de cara: avisa, no vota.
+      const cab = m0.chequeos.find((c) => c.id === 'v_amarre_150_cab');
+      if (!cab?.aviso || cab.cumple) return `v_amarre_150_cab: ${JSON.stringify(cab)}`;
+      const normal = m0.chequeos.find((c) => c.id === 'v_amarre_150');
+      if (!normal || normal.aviso || !normal.cumple) return `v_amarre_150: ${JSON.stringify(normal)}`;
       // Sin niveles sin ramas no hay rombo.
       const m1 = VISTA_BASE.construir({ ...DATOS_BASE, ...SILLA_QUE_CIERRA, amarre_cab: 1, n_niv_sin_ramas: 0 });
       return m1.piezas.some((p) => p.id === 'rombo_1') ? 'dibujó un rombo sin nivel de cabeza' : null;
@@ -3259,9 +3275,11 @@ function CASOS_ENSAMBLE() {
     // La llave y el pedestal, después de resolver el choque de la llave con las ramas
     // de estribo (2026-09-25): nivel 1 sin ramas interiores y estribos φ25, y el
     // pedestal contando ese nivel con solo el perimetral. Antes, 0,9396 y 0,9396.
+    // El pedestal, con los niveles contados desde el primer estribo (s1 = 50 mm): 4 en la
+    // zona de la llave y no 5, los dos primeros sin ramas interiores y con el rombo. Antes, 0,6939.
     u_llave_CP: 0.9180084007925408,
     u_silla_CP: 0.9857142857142857,
-    u_ped_CP: 0.6938855234278464,
+    u_ped_CP: 0.8673569042848078,
   };
   const PARAMS = { tipo: 'CP', grupoSap: 'COL_PPALES', diseno: 'LRFD', sobrerresistencia: 'O0' };
   const PLANTILLA = VISTAS['base-columna'].plantilla;
@@ -3297,6 +3315,10 @@ function CASOS_ENSAMBLE() {
         for (const v of ['v_geo_base_CP', 'v_t_llave_CP', 'v_dom_m_CP', 'v_dom_e_CP', 'v_d26c_CP'])
           if (ev.scope[v] !== true) return `${v} = ${ev.scope[v]}`;
         if (ev.scope.L_pb !== undefined) return 'quedó un nombre sin sufijo';
+        // El aviso de los niveles de cabeza no vota (v_geo_base_CP es true), pero el
+        // nodo de la vista sale en ámbar y lo dice.
+        const nv = proyectar(o, ev, genericasBase).nodos.find((n) => n.id === idNodoDeCalculo(r.idVista));
+        if (nv?.severidad !== 'aviso' || !nv.motivos?.some((t) => t.startsWith('Aviso:'))) return `nodo de la vista: ${nv?.severidad} ${JSON.stringify(nv?.motivos)}`;
         return u(ev) ?? sinCiclo(ev);
       },
     },
@@ -3459,7 +3481,9 @@ function CASOS_ENSAMBLE() {
         if (ev.scope.n_trac_pb_CV !== 4) return `n_trac_pb_CV = ${ev.scope.n_trac_pb_CV}`;
         if (!(ev.scope.u_pb_CV > 0 && ev.scope.u_pb_CV <= 1)) return `u_pb_CV = ${ev.scope.u_pb_CV}`;
         for (const n of ['u_anc_CV', 'u_ped_CV']) if (!(ev.scope[n] > 0 && ev.scope[n] <= 1)) return `${n} = ${ev.scope[n]}`;
-        return ev.scope.v_geo_base_CV === true ? null : 'la vista de la base rotulada no cierra';
+        if (ev.scope.v_geo_base_CV === true) return null;
+        const v = [...ev.importadas.values()].find((i) => i?.vista)?.vista;
+        return `la vista de la base rotulada no cierra: ${v?.modelo.chequeos.filter((c) => !c.cumple && !c.aviso).map((c) => `${c.id}=${c.valor}`).join(' ')}`;
       },
     },
     {

@@ -56,7 +56,7 @@ export function hojaDeVista(
 
   t('## Verificaciones geométricas');
   for (const c of m.chequeos) {
-    t(c.texto + '.');
+    t(c.aviso ? `AVISO, NO VOTA: ${c.texto}.` : c.texto + '.');
     f(`${medida(c.id)} := ${conUnidad(c.valor, c.unidad)}`);
     f(`${c.id} := ${medida(c.id)} ${c.sentido} ${conUnidad(c.limite, c.unidad)} =`);
   }
@@ -68,7 +68,7 @@ export function hojaDeVista(
   }
 
   t('## Resumen');
-  f(`v_global := ${m.chequeos.map((c) => c.id).join(' and ') || 'true'} =`);
+  f(`v_global := ${m.chequeos.filter((c) => !c.aviso).map((c) => c.id).join(' and ') || 'true'} =`);
 
   const regiones: Region[] = bloques.map((b, i) => ({ id: `${idBase}:${i + 1}`, kind: b.kind, x: 40, y: 40 + i * 48, src: b.src }));
 

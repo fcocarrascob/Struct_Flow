@@ -90,6 +90,13 @@
     "ayuda": "§9.5.3 de NCh2369: no mayor que 50 mm"
    },
    {
+    "nombre": "s1_est",
+    "unidad": "mm",
+    "etiqueta": "Del borde superior al eje del primer estribo",
+    "grupo": "Armadura adoptada",
+    "ayuda": "De ahí salen los niveles que cortan el sólido de falla de la llave: el primero no está en la cara"
+   },
+   {
     "nombre": "n_est_cab",
     "etiqueta": "Estribos en los 125 mm superiores",
     "grupo": "Armadura adoptada",
@@ -384,6 +391,18 @@
     "etiqueta": "Niveles de cabeza sin ramas interiores",
     "grupo": "Sismo",
     "ayuda": "Los que la llave cruzaría: van solo con el perimetral y aportan 2 ramas por dirección en vez de n_ramas. Sin ellos, 0"
+   },
+   {
+    "nombre": "ramas_cab_x",
+    "etiqueta": "Ramas por dirección X de un nivel de cabeza",
+    "grupo": "Sismo",
+    "ayuda": "Las de un nivel sin ramas interiores: 2 con solo el perimetral; con un amarre en rombo, 2 más la proyección de sus 4 ramas sobre X. La cuenta la vista geométrica"
+   },
+   {
+    "nombre": "ramas_cab_y",
+    "etiqueta": "Ramas por dirección Y de un nivel de cabeza",
+    "grupo": "Sismo",
+    "ayuda": "Como ramas_cab_x, sobre Y"
    },
    {
     "nombre": "cat_III_IV",
@@ -823,6 +842,18 @@
      "n_niv_sin_ramas": 1
     },
     "cumple": true
+   },
+   {
+    "nombre": "los niveles sin ramas llevan un rombo: cuentan su proyección por dirección",
+    "entradas": {
+     "h_llave": 200,
+     "b_llave": 400,
+     "As_req_llave_X": 2000,
+     "n_niv_sin_ramas": 1,
+     "ramas_cab_x": 4.41,
+     "ramas_cab_y": 4.2
+    },
+    "cumple": true
    }
   ]
  },
@@ -954,1774 +985,1795 @@
    "src": "sep_libre_top := 50 mm"
   },
   {
-   "id": "in_n_est_cab",
+   "id": "in_s1_est",
    "kind": "math",
    "x": 40,
    "y": 1040,
+   "src": "s1_est := 50 mm"
+  },
+  {
+   "id": "in_n_est_cab",
+   "kind": "math",
+   "x": 40,
+   "y": 1088,
    "src": "n_est_cab := 3"
   },
   {
    "id": "in_n_ramas",
    "kind": "math",
    "x": 40,
-   "y": 1088,
+   "y": 1136,
    "src": "n_ramas := 3"
   },
   {
    "id": "in_malla_sup",
    "kind": "math",
    "x": 40,
-   "y": 1136,
+   "y": 1184,
    "src": "malla_sup := 1"
   },
   {
    "id": "r005",
    "kind": "text",
    "x": 40,
-   "y": 1184,
+   "y": 1232,
    "src": "━━ DATOS · DEMANDAS MAYORADAS ━━"
   },
   {
    "id": "r006",
    "kind": "text",
    "x": 40,
-   "y": 1232,
+   "y": 1280,
    "src": "Las envolventes axiales y los cortes en las dos direcciones. La tracción entra POSITIVA y la hoja le\npone el signo donde la norma lo pide. Con NCh2369 las combinaciones ya llegan con el estado sísmico\nhorizontal amplificado por 0,7·R1 ≥ 1,0 (§9.5.2): la hoja no amplifica nada."
   },
   {
    "id": "in_N_comp_max",
    "kind": "math",
    "x": 40,
-   "y": 1376,
+   "y": 1424,
    "src": "N_comp_max := 2644.8 kN"
   },
   {
    "id": "in_N_trac_max",
    "kind": "math",
    "x": 40,
-   "y": 1424,
+   "y": 1472,
    "src": "N_trac_max := 1222.5 kN"
   },
   {
    "id": "in_Vu_X",
    "kind": "math",
    "x": 40,
-   "y": 1472,
+   "y": 1520,
    "src": "Vu_X := 1013.5 kN"
   },
   {
    "id": "in_Vu_Y",
    "kind": "math",
    "x": 40,
-   "y": 1520,
+   "y": 1568,
    "src": "Vu_Y := 682.2 kN"
   },
   {
    "id": "in_frac_E_V",
    "kind": "math",
    "x": 40,
-   "y": 1568,
+   "y": 1616,
    "src": "frac_E_V := 1"
   },
   {
    "id": "r007",
    "kind": "text",
    "x": 40,
-   "y": 1616,
+   "y": 1664,
    "src": "━━ DATOS · COMBINACIONES (P, M_X, M_Y) CONCURRENTES ━━"
   },
   {
    "id": "r008",
    "kind": "text",
    "x": 40,
-   "y": 1664,
+   "y": 1712,
    "src": "Seis ternas concurrentes de la MISMA fila de resultados: la axial mayorada y los dos momentos en la\nbase del pedestal. P entra con la compresión POSITIVA y la tracción negativa, que es el signo con el\nque se lee el diagrama. En la base el momento es M + V·PED_H en el eje de la columna y V_débil·PED_H\nen el otro: una columna rotulada en su eje débil igual le entrega corte al pedestal. Una ranura sin\nusar va con P := 0 kN y los dos momentos en 0, que da uso nulo."
   },
   {
    "id": "in_Pu_1",
    "kind": "math",
    "x": 40,
-   "y": 1856,
+   "y": 1904,
    "src": "Pu_1 := 2644.8 kN"
   },
   {
    "id": "in_Mux_1",
    "kind": "math",
    "x": 40,
-   "y": 1904,
+   "y": 1952,
    "src": "Mux_1 := 639.6 kN*m"
   },
   {
    "id": "in_Muy_1",
    "kind": "math",
    "x": 40,
-   "y": 1952,
+   "y": 2000,
    "src": "Muy_1 := 120 kN*m"
   },
   {
    "id": "in_Pu_2",
    "kind": "math",
    "x": 40,
-   "y": 2000,
+   "y": 2048,
    "src": "Pu_2 := 1500 kN"
   },
   {
    "id": "in_Mux_2",
    "kind": "math",
    "x": 40,
-   "y": 2048,
+   "y": 2096,
    "src": "Mux_2 := 4859.1 kN*m"
   },
   {
    "id": "in_Muy_2",
    "kind": "math",
    "x": 40,
-   "y": 2096,
+   "y": 2144,
    "src": "Muy_2 := 500 kN*m"
   },
   {
    "id": "in_Pu_3",
    "kind": "math",
    "x": 40,
-   "y": 2144,
+   "y": 2192,
    "src": "Pu_3 := 400 kN"
   },
   {
    "id": "in_Mux_3",
    "kind": "math",
    "x": 40,
-   "y": 2192,
+   "y": 2240,
    "src": "Mux_3 := 4353.7 kN*m"
   },
   {
    "id": "in_Muy_3",
    "kind": "math",
    "x": 40,
-   "y": 2240,
+   "y": 2288,
    "src": "Muy_3 := 886.9 kN*m"
   },
   {
    "id": "in_Pu_4",
    "kind": "math",
    "x": 40,
-   "y": 2288,
+   "y": 2336,
    "src": "Pu_4 := -1222.5 kN"
   },
   {
    "id": "in_Mux_4",
    "kind": "math",
    "x": 40,
-   "y": 2336,
+   "y": 2384,
    "src": "Mux_4 := 2800 kN*m"
   },
   {
    "id": "in_Muy_4",
    "kind": "math",
    "x": 40,
-   "y": 2384,
+   "y": 2432,
    "src": "Muy_4 := 600 kN*m"
   },
   {
    "id": "in_Pu_5",
    "kind": "math",
    "x": 40,
-   "y": 2432,
+   "y": 2480,
    "src": "Pu_5 := 900 kN"
   },
   {
    "id": "in_Mux_5",
    "kind": "math",
    "x": 40,
-   "y": 2480,
+   "y": 2528,
    "src": "Mux_5 := 1200 kN*m"
   },
   {
    "id": "in_Muy_5",
    "kind": "math",
    "x": 40,
-   "y": 2528,
+   "y": 2576,
    "src": "Muy_5 := 2400 kN*m"
   },
   {
    "id": "in_Pu_6",
    "kind": "math",
    "x": 40,
-   "y": 2576,
+   "y": 2624,
    "src": "Pu_6 := 0 kN"
   },
   {
    "id": "in_Mux_6",
    "kind": "math",
    "x": 40,
-   "y": 2624,
+   "y": 2672,
    "src": "Mux_6 := 0 kN*m"
   },
   {
    "id": "in_Muy_6",
    "kind": "math",
    "x": 40,
-   "y": 2672,
+   "y": 2720,
    "src": "Muy_6 := 0 kN*m"
   },
   {
    "id": "in_n_pasos_pm",
    "kind": "math",
    "x": 40,
-   "y": 2720,
+   "y": 2768,
    "src": "n_pasos_pm := 120"
   },
   {
    "id": "r009",
    "kind": "text",
    "x": 40,
-   "y": 2768,
+   "y": 2816,
    "src": "━━ DATOS · ARMADURA DE ANCLAJE ━━"
   },
   {
    "id": "r010",
    "kind": "text",
    "x": 40,
-   "y": 2816,
+   "y": 2864,
    "src": "n_contables son las barras dentro de 0,5·h_ef de un perno traccionado, medido en planta: NO son las\nn_barras del pedestal. As_req_anc es la armadura que exige anclaje-hormigon-generica, dimensionada\npor la CAPACIDAD del perno, y manda cuando supera a la de la demanda. As_req_llave_X y As_req_llave_Y\nson las que exige llave-corte-generica cuando acredita el §17.5.2.1.2, y las toma la sección 13."
   },
   {
    "id": "in_h_ef",
    "kind": "math",
    "x": 40,
-   "y": 2960,
+   "y": 3008,
    "src": "h_ef := 1250 mm"
   },
   {
    "id": "in_n_contables",
    "kind": "math",
    "x": 40,
-   "y": 3008,
+   "y": 3056,
    "src": "n_contables := 13"
   },
   {
    "id": "in_T_grupo",
    "kind": "math",
    "x": 40,
-   "y": 3056,
+   "y": 3104,
    "src": "T_grupo := 3267.9 kN"
   },
   {
    "id": "in_As_req_anc",
    "kind": "math",
    "x": 40,
-   "y": 3104,
+   "y": 3152,
    "src": "As_req_anc := 6678 mm^2"
   },
   {
    "id": "in_As_req_llave_X",
    "kind": "math",
    "x": 40,
-   "y": 3152,
+   "y": 3200,
    "src": "As_req_llave_X := 0 mm^2"
   },
   {
    "id": "in_As_req_llave_Y",
    "kind": "math",
    "x": 40,
-   "y": 3200,
+   "y": 3248,
    "src": "As_req_llave_Y := 0 mm^2"
   },
   {
    "id": "r011",
    "kind": "text",
    "x": 40,
-   "y": 3248,
+   "y": 3296,
    "src": "━━ DATOS · SISMO ━━"
   },
   {
    "id": "r012",
    "kind": "text",
    "x": 40,
-   "y": 3296,
+   "y": 3344,
    "src": "Los dos cuerpos de detallado sísmico se activan por separado y solo vota el que se pide. NCh2369 §9.5\nes el del pedestal que recibe una columna de acero de un sistema sismorresistente; el §18.7 de ACI\nes el de una columna de pórtico especial de hormigón, y es mucho más exigente en confinamiento. Un\npedestal bajo placa base normalmente no es lo segundo —el C9.5.2 de NCh2369 es explícito en que el\npedestal no es un fusible ni una zona donde se quiera disipar energía—, y por eso el ejemplo de\nreferencia trae el §18.7 en cero."
   },
   {
    "id": "in_sis_nch2369",
    "kind": "math",
    "x": 40,
-   "y": 3488,
+   "y": 3536,
    "src": "sis_nch2369 := 1"
   },
   {
    "id": "in_sis_aci18",
    "kind": "math",
    "x": 40,
-   "y": 3536,
+   "y": 3584,
    "src": "sis_aci18 := 0"
   },
   {
    "id": "in_sdc_def",
    "kind": "math",
    "x": 40,
-   "y": 3584,
+   "y": 3632,
    "src": "sdc_def := 1"
   },
   {
    "id": "in_h_llave",
    "kind": "math",
    "x": 40,
-   "y": 3632,
+   "y": 3680,
    "src": "h_llave := 0 mm"
   },
   {
    "id": "in_b_llave",
    "kind": "math",
    "x": 40,
-   "y": 3680,
+   "y": 3728,
    "src": "b_llave := 0 mm"
   },
   {
    "id": "in_n_niv_sin_ramas",
    "kind": "math",
    "x": 40,
-   "y": 3728,
+   "y": 3776,
    "src": "n_niv_sin_ramas := 0"
+  },
+  {
+   "id": "in_ramas_cab_x",
+   "kind": "math",
+   "x": 40,
+   "y": 3824,
+   "src": "ramas_cab_x := 2"
+  },
+  {
+   "id": "in_ramas_cab_y",
+   "kind": "math",
+   "x": 40,
+   "y": 3872,
+   "src": "ramas_cab_y := 2"
   },
   {
    "id": "in_cat_III_IV",
    "kind": "math",
    "x": 40,
-   "y": 3776,
+   "y": 3920,
    "src": "cat_III_IV := 0"
   },
   {
    "id": "in_T_esp",
    "kind": "math",
    "x": 40,
-   "y": 3824,
+   "y": 3968,
    "src": "T_esp := 4000 kN"
   },
   {
    "id": "in_V_esp",
    "kind": "math",
    "x": 40,
-   "y": 3872,
+   "y": 4016,
    "src": "V_esp := 1500 kN"
   },
   {
    "id": "r013",
    "kind": "text",
    "x": 40,
-   "y": 3920,
+   "y": 4064,
    "src": "━━ 1 — SECCIÓN, ACERO Y REPARTO DE BARRAS ━━"
   },
   {
    "id": "r014",
    "kind": "math",
    "x": 40,
-   "y": 3968,
+   "y": 4112,
    "src": "fc_n := fc/(1 MPa) ="
   },
   {
    "id": "r015",
    "kind": "math",
    "x": 40,
-   "y": 4016,
+   "y": 4160,
    "src": "fy_n := fy/(1 MPa) ="
   },
   {
    "id": "r016",
    "kind": "math",
    "x": 40,
-   "y": 4064,
+   "y": 4208,
    "src": "Ag := PED_X*PED_Y = mm^2"
   },
   {
    "id": "r017",
    "kind": "math",
    "x": 40,
-   "y": 4112,
+   "y": 4256,
    "src": "area_barra := pi/4*db_long^2 = mm^2"
   },
   {
    "id": "r018",
    "kind": "math",
    "x": 40,
-   "y": 4160,
+   "y": 4304,
    "src": "area_est := pi/4*db_est^2 = mm^2"
   },
   {
    "id": "r019",
    "kind": "math",
    "x": 40,
-   "y": 4208,
+   "y": 4352,
    "src": "Ast := n_barras*area_barra = mm^2"
   },
   {
    "id": "r020",
    "kind": "math",
    "x": 40,
-   "y": 4256,
+   "y": 4400,
    "src": "b_min := min(PED_X, PED_Y) = mm"
   },
   {
    "id": "r021",
    "kind": "text",
    "x": 40,
-   "y": 4304,
+   "y": 4448,
    "src": "El §22.5.2.1(a) admite tomar d = 0,8·h en columnas rectangulares, y es lo que corresponde aquí: con\nlas barras repartidas por el perímetro, tomar d = h − recubrimiento pondría toda la tracción en la\ncara opuesta y sobreestimaría el brazo. Los 0,8·h son la simplificación que la norma autoriza."
   },
   {
    "id": "r022",
    "kind": "math",
    "x": 40,
-   "y": 4448,
+   "y": 4592,
    "src": "d_ped_X := 0.8*PED_X = mm"
   },
   {
    "id": "r023",
    "kind": "math",
    "x": 40,
-   "y": 4496,
+   "y": 4640,
    "src": "d_ped_Y := 0.8*PED_Y = mm"
   },
   {
    "id": "r024",
    "kind": "text",
    "x": 40,
-   "y": 4544,
+   "y": 4688,
    "src": "El reparto de las barras por el perímetro del núcleo es UNA sola disposición, y de ella salen tanto\nel diagrama P-M como el dibujo: si fueran dos podrían discrepar. Va una barra en cada esquina (ACI\n318-25 §25.7.2.3(a)) y el resto a paso constante por cara, con los vanos repartidos en proporción al\nlargo de la cara; con n_barras impar, la cara izquierda se lleva el vano de más. vanos da los de una\ncara en X, la derecha y la izquierda. barras_xy da la coordenada (x, y) de cada barra respecto del\ncentro de la sección, en mm y sin unidad, en el orden en que se colocan: desde la esquina (−ax, −ay)\nen sentido antihorario."
   },
   {
    "id": "r025",
    "kind": "math",
    "x": 40,
-   "y": 4688,
+   "y": 4832,
    "src": "ax_nucleo := (PED_X - 2*recub_ped)/2 = mm"
   },
   {
    "id": "r026",
    "kind": "math",
    "x": 40,
-   "y": 4736,
+   "y": 4880,
    "src": "ay_nucleo := (PED_Y - 2*recub_ped)/2 = mm"
   },
   {
    "id": "r027",
    "kind": "program",
    "x": 40,
-   "y": 4784,
+   "y": 4928,
    "src": "vanos :=\n    nx := min(max(round(n_barras/2*ax_nucleo/(ax_nucleo + ay_nucleo)), 1), max(floor(n_barras/2) - 1, 1))\n    ny := max(floor((n_barras - 2*nx)/2), 1)\n    [nx, ny, n_barras - 2*nx - ny]"
   },
   {
    "id": "r_paso_x",
    "kind": "math",
    "x": 40,
-   "y": 4928,
+   "y": 5072,
    "src": "paso_x := 2*ax_nucleo/vanos[1] = mm"
   },
   {
    "id": "r_paso_y",
    "kind": "math",
    "x": 40,
-   "y": 4976,
+   "y": 5120,
    "src": "paso_y := 2*ay_nucleo/min(vanos[2], vanos[3]) = mm"
   },
   {
    "id": "r028",
    "kind": "program",
    "x": 40,
-   "y": 5024,
+   "y": 5168,
    "src": "barras_xy :=\n    ax := ax_nucleo/(1 mm)\n    ay := ay_nucleo/(1 mm)\n    nx := vanos[1]\n    ny := vanos[2]\n    ni := vanos[3]\n    Q := zeros(n_barras, 2)\n    for i in 1:n_barras\n        if i <= nx\n            xb := -ax + 2*ax*(i - 1)/nx\n            yb := -ay\n        else if i <= nx + ny\n            xb := ax\n            yb := -ay + 2*ay*(i - 1 - nx)/ny\n        else if i <= 2*nx + ny\n            xb := ax - 2*ax*(i - 1 - nx - ny)/nx\n            yb := ay\n        else\n            xb := -ax\n            yb := ay - 2*ay*(i - 1 - 2*nx - ny)/ni\n        Q[i, 1] = xb\n        Q[i, 2] = yb\n    Q"
   },
   {
    "id": "v_reparto",
    "kind": "math",
    "x": 40,
-   "y": 5696,
+   "y": 5840,
    "src": "v_reparto := (max(abs(barras_xy[1:n_barras, 1])) <= ax_nucleo/(1 mm) + 0.001) and (max(abs(barras_xy[1:n_barras, 2])) <= ay_nucleo/(1 mm) + 0.001) ="
   },
   {
    "id": "r029",
    "kind": "text",
    "x": 40,
-   "y": 5744,
+   "y": 5888,
    "src": "━━ 2 — CUANTÍA LONGITUDINAL · ACI 318-25 §10.6.1.1 y §18.7.4.1 ━━"
   },
   {
    "id": "r030",
    "kind": "text",
    "x": 40,
-   "y": 5792,
+   "y": 5936,
    "src": "El §10.6.1.1 pide A_st entre 0,01·Ag y 0,08·Ag. El uso de cuantía es de DETALLADO —mínima contra\nprovista— y no dice cuánto falta para agotar la sección, así que no entra en u_max. Con el §18.7\nactivo el techo baja de 0,08 a 0,06 (§18.7.4.1), que es un veredicto aparte."
   },
   {
    "id": "r031",
    "kind": "math",
    "x": 40,
-   "y": 5936,
+   "y": 6080,
    "src": "As_min := 0.01*Ag = mm^2"
   },
   {
    "id": "r032",
    "kind": "math",
    "x": 40,
-   "y": 5984,
+   "y": 6128,
    "src": "As_max := 0.08*Ag = mm^2"
   },
   {
    "id": "r033",
    "kind": "math",
    "x": 40,
-   "y": 6032,
+   "y": 6176,
    "src": "rho_long := Ast/Ag ="
   },
   {
    "id": "v_cuantia_min",
    "kind": "math",
    "x": 40,
-   "y": 6080,
+   "y": 6224,
    "src": "v_cuantia_min := Ast >= As_min ="
   },
   {
    "id": "v_cuantia_max",
    "kind": "math",
    "x": 40,
-   "y": 6128,
+   "y": 6272,
    "src": "v_cuantia_max := Ast <= As_max ="
   },
   {
    "id": "r034",
    "kind": "math",
    "x": 40,
-   "y": 6176,
+   "y": 6320,
    "src": "u_cuantia := As_min/Ast ="
   },
   {
    "id": "v_rho_sismico",
    "kind": "math",
    "x": 40,
-   "y": 6224,
+   "y": 6368,
    "src": "v_rho_sismico := (sis_aci18 == 0) or (rho_long <= 0.06) ="
   },
   {
    "id": "r035",
    "kind": "text",
    "x": 40,
-   "y": 6272,
+   "y": 6416,
    "src": "━━ 3 — EXTREMOS DEL DIAGRAMA P-M · ACI 318-25 §22.4.2, §22.4.3 y Tabla 21.2.2 ━━"
   },
   {
    "id": "r036",
    "kind": "text",
    "x": 40,
-   "y": 6320,
+   "y": 6464,
    "src": "§22.4.2.2: P_o = 0,85·f'c·(Ag − A_st) + fy·A_st. §22.4.2.1 con estribos: φ·P_n,max = 0,80·φ·P_o.\nLos dos φ salen de la Tabla 21.2.2 y no se afirman: 0,65 en sección controlada por compresión y 0,90\nen la controlada por tracción, que es el caso de la tracción pura del §22.4.3.1. El §21.2.2.1 fija\nε_ty = f_y/E_s, y admite 0,002 para el Grado 420."
   },
   {
    "id": "r037",
    "kind": "math",
    "x": 40,
-   "y": 6464,
+   "y": 6608,
    "src": "Po := 0.85*fc*(Ag - Ast) + fy*Ast = kN"
   },
   {
    "id": "r038",
    "kind": "math",
    "x": 40,
-   "y": 6512,
+   "y": 6656,
    "src": "phi_comp := 0.65"
   },
   {
    "id": "r039",
    "kind": "math",
    "x": 40,
-   "y": 6560,
+   "y": 6704,
    "src": "phi_trac := 0.90"
   },
   {
    "id": "r040",
    "kind": "math",
    "x": 40,
-   "y": 6608,
+   "y": 6752,
    "src": "phiPn_max := 0.80*phi_comp*Po = kN"
   },
   {
    "id": "r041",
    "kind": "math",
    "x": 40,
-   "y": 6656,
+   "y": 6800,
    "src": "phiPnt := phi_trac*fy*Ast = kN"
   },
   {
    "id": "r042",
    "kind": "math",
    "x": 40,
-   "y": 6704,
+   "y": 6848,
    "src": "u_comp := N_comp_max/phiPn_max ="
   },
   {
    "id": "r043",
    "kind": "math",
    "x": 40,
-   "y": 6752,
+   "y": 6896,
    "src": "u_trac := N_trac_max/phiPnt ="
   },
   {
    "id": "r044",
    "kind": "text",
    "x": 40,
-   "y": 6800,
+   "y": 6944,
    "src": "━━ 4 — LA SECCIÓN, FIJADO EL EJE NEUTRO · ACI 318-25 §22.2 ━━"
   },
   {
    "id": "r045",
    "kind": "text",
    "x": 40,
-   "y": 6848,
+   "y": 6992,
    "src": "Compatibilidad de deformaciones con ε_cu = 0,003 (§22.2.2.1), acero elastoplástico (§22.2.3.2 con\n§20.2.2.1) y bloque rectangular equivalente acotado al canto (§22.2.2.4.1). El β1 se deriva de la\nTabla 22.2.2.4.3 y no se afirma, porque f'c es entrada. A cada barra dentro del bloque comprimido se\nle descuenta el hormigón que desplaza. pm(c, eje, sen) devuelve [P_n en kN, M_n en kN·m, ε_t]:\neje 1 es flexión en X (canto PED_X) y eje 2 en Y; sen = +1 o −1 recorre los dos sentidos, porque\ncon un número impar de barras el reparto perimetral no es simétrico y las dos ramas no coinciden."
   },
   {
    "id": "r046",
    "kind": "math",
    "x": 40,
-   "y": 7040,
+   "y": 7184,
    "src": "E_s := 200000 MPa"
   },
   {
    "id": "r047",
    "kind": "math",
    "x": 40,
-   "y": 7088,
+   "y": 7232,
    "src": "eps_cu := 0.003"
   },
   {
    "id": "r048",
    "kind": "math",
    "x": 40,
-   "y": 7136,
+   "y": 7280,
    "src": "eps_ty := fy/E_s ="
   },
   {
    "id": "r049",
    "kind": "math",
    "x": 40,
-   "y": 7184,
+   "y": 7328,
    "src": "eps_tc := eps_ty + 0.003 ="
   },
   {
    "id": "r050",
    "kind": "math",
    "x": 40,
-   "y": 7232,
+   "y": 7376,
    "src": "k_bloque := 0.85"
   },
   {
    "id": "r051",
    "kind": "math",
    "x": 40,
-   "y": 7280,
+   "y": 7424,
    "src": "beta_1 := max(0.65, min(0.85, 0.85 - 0.05*(fc_n - 28)/7)) ="
   },
   {
    "id": "r052",
    "kind": "text",
    "x": 40,
-   "y": 7328,
+   "y": 7472,
    "src": "El barrido corre SIN UNIDADES, en mm y MPa, y no es una comodidad: son cuatro envolventes por unos\ncien puntos por 37 barras, y una cantidad con unidad de mathjs cuesta un orden de magnitud más que\nun número. Con unidades la hoja entera tardaba 0,62 s, que en el visor de diseño —que reevalúa en\ncada tecla— se siente. Lo que se pierde es la comprobación dimensional DENTRO del bucle, y por eso\nel amarre v_pm_Po compara el extremo del barrido contra el P_o del §22.4.2.2, que sí lleva unidades:\nsi la conversión estuviera mal, ese veredicto lo dice."
   },
   {
    "id": "r053",
    "kind": "math",
    "x": 40,
-   "y": 7520,
+   "y": 7664,
    "src": "PED_X_n := PED_X/(1 mm) ="
   },
   {
    "id": "r054",
    "kind": "math",
    "x": 40,
-   "y": 7568,
+   "y": 7712,
    "src": "PED_Y_n := PED_Y/(1 mm) ="
   },
   {
    "id": "r055",
    "kind": "math",
    "x": 40,
-   "y": 7616,
+   "y": 7760,
    "src": "Es_n := E_s/(1 MPa) ="
   },
   {
    "id": "r056",
    "kind": "math",
    "x": 40,
-   "y": 7664,
+   "y": 7808,
    "src": "Ab_n := area_barra/(1 mm^2) ="
   },
   {
    "id": "r057",
    "kind": "program",
    "x": 40,
-   "y": 7712,
+   "y": 7856,
    "src": "pm(c, eje, sen) :=\n    h := eje == 1 ? PED_X_n : PED_Y_n\n    b := eje == 1 ? PED_Y_n : PED_X_n\n    a := min(beta_1*c, h)\n    Cc := k_bloque*fc_n*a*b\n    Pt := Cc\n    Mt := Cc*(h/2 - a/2)\n    dm := 0\n    for i in 1:n_barras\n        d_i := h/2 + sen*barras_xy[i, eje]\n        fsi := min(max(Es_n*eps_cu*(c - d_i)/c, -fy_n), fy_n)\n        if d_i <= a\n            fsi := fsi - k_bloque*fc_n\n        Pt := Pt + Ab_n*fsi\n        Mt := Mt + Ab_n*fsi*(h/2 - d_i)\n        if d_i > dm\n            dm := d_i\n    return [[Pt/1000, Mt/1000000, eps_cu*(dm - c)/c]]"
   },
   {
    "id": "v_pm_Po",
    "kind": "math",
    "x": 40,
-   "y": 8240,
+   "y": 8384,
    "src": "v_pm_Po := abs(pm(6*PED_X_n, 1, 1)[1,1]*(1 kN) - Po) < 0.05 kN ="
   },
   {
    "id": "r058",
    "kind": "text",
    "x": 40,
-   "y": 8288,
+   "y": 8432,
    "src": "φ no es uno solo a lo largo de la curva. La Tabla 21.2.2 lo lleva de 0,65 a 0,90 con la deformación\nneta de tracción de la barra extrema, y el §21.2.2.3 lo acota además en función de P_n: entre\n0,1·f'c·A_g y P_n,bal no puede superar la recta que va de 0,90 en el primero a φ_cc en el segundo. El\npunto balanceado se calcula para cada eje y sentido, porque la barra extrema traccionada cambia."
   },
   {
    "id": "r059",
    "kind": "program",
    "x": 40,
-   "y": 8432,
+   "y": 8576,
    "src": "phi_tab(e_t) :=\n    if e_t <= eps_ty\n        return 0.65\n    else if e_t >= eps_tc\n        return 0.90\n    else\n        return 0.65 + 0.25*(e_t - eps_ty)/0.003"
   },
   {
    "id": "r060",
    "kind": "math",
    "x": 40,
-   "y": 8672,
+   "y": 8816,
    "src": "P_lo := 0.1*fc*Ag = kN"
   },
   {
    "id": "r061",
    "kind": "math",
    "x": 40,
-   "y": 8720,
+   "y": 8864,
    "src": "P_lo_n := P_lo/(1 kN) ="
   },
   {
    "id": "r062",
    "kind": "program",
    "x": 40,
-   "y": 8768,
+   "y": 8912,
    "src": "dt_de(eje, sen) :=\n    h := eje == 1 ? PED_X_n : PED_Y_n\n    dm := 0\n    for i in 1:n_barras\n        d_i := h/2 + sen*barras_xy[i, eje]\n        if d_i > dm\n            dm := d_i\n    return dm"
   },
   {
    "id": "r063",
    "kind": "program",
    "x": 40,
-   "y": 9008,
+   "y": 9152,
    "src": "c_bal_de(eje, sen) := eps_cu/(eps_cu + eps_ty)*dt_de(eje, sen)"
   },
   {
    "id": "r064",
    "kind": "program",
    "x": 40,
-   "y": 9056,
+   "y": 9200,
    "src": "Pnb_de(eje, sen) := pm(c_bal_de(eje, sen), eje, sen)[1,1]"
   },
   {
    "id": "r065",
    "kind": "program",
    "x": 40,
-   "y": 9104,
+   "y": 9248,
    "src": "phi_lim(Pn, Pnb) :=\n    if Pnb <= P_lo_n\n        return 0.90\n    else if Pn < P_lo_n\n        return 0.90\n    else if Pn > Pnb\n        return phi_comp\n    else\n        return 0.90 - (0.90 - phi_comp)*(Pn - P_lo_n)/(Pnb - P_lo_n)"
   },
   {
    "id": "r066",
    "kind": "text",
    "x": 40,
-   "y": 9392,
+   "y": 9536,
    "src": "━━ 5 — EL BARRIDO: LAS CUATRO ENVOLVENTES ━━"
   },
   {
    "id": "r067",
    "kind": "text",
    "x": 40,
-   "y": 9440,
+   "y": 9584,
    "src": "Cada envolvente se recorre con la profundidad del eje neutro, de casi nada hasta 1,5·h, y se corta\ndonde φP_n pasa el tope del §22.4.2.1. El tramo que baja hasta la tracción pura es una RECTA\ndeclarada, no puntos calculados: el barrido de c no llega a P_nt, y cerrar con el punto (0, −φP_nt)\nes la construcción habitual. La curva se guarda adimensional, en kN·m y kN."
   },
   {
    "id": "r068",
    "kind": "math",
    "x": 40,
-   "y": 9584,
+   "y": 9728,
    "src": "c_ini := 0.004*max(PED_X_n, PED_Y_n) ="
   },
   {
    "id": "r069",
    "kind": "math",
    "x": 40,
-   "y": 9632,
+   "y": 9776,
    "src": "Rd_P_n := phiPn_max/(1 kN) ="
   },
   {
    "id": "r070",
    "kind": "math",
    "x": 40,
-   "y": 9680,
+   "y": 9824,
    "src": "Pnt_n := phiPnt/(1 kN) ="
   },
   {
    "id": "r071",
    "kind": "program",
    "x": 40,
-   "y": 9728,
+   "y": 9872,
    "src": "curva_de(eje, sen) :=\n    h := eje == 1 ? PED_X_n : PED_Y_n\n    c_fin := 1.5*h\n    Pnb := Pnb_de(eje, sen)\n    acc := [[0, -Pnt_n]]\n    for i in 0:n_pasos_pm\n        c := c_ini + (c_fin - c_ini)*i/n_pasos_pm\n        r := pm(c, eje, sen)\n        ph := min(phi_tab(r[1,3]), phi_lim(r[1,1], Pnb))\n        Pd := ph*r[1,1]\n        if Pd > Rd_P_n\n            break\n        acc := concat(acc, [[ph*r[1,2], Pd]], 1)\n    acc := concat(acc, [[0, Rd_P_n]], 1)\n    return acc"
   },
   {
    "id": "r072",
    "kind": "program",
    "x": 40,
-   "y": 10160,
+   "y": 10304,
    "src": "curva_X_pos := curva_de(1, 1)"
   },
   {
    "id": "r073",
    "kind": "program",
    "x": 40,
-   "y": 10208,
+   "y": 10352,
    "src": "curva_X_neg := curva_de(1, -1)"
   },
   {
    "id": "r074",
    "kind": "program",
    "x": 40,
-   "y": 10256,
+   "y": 10400,
    "src": "curva_Y_pos := curva_de(2, 1)"
   },
   {
    "id": "r075",
    "kind": "program",
    "x": 40,
-   "y": 10304,
+   "y": 10448,
    "src": "curva_Y_neg := curva_de(2, -1)"
   },
   {
    "id": "r076",
    "kind": "math",
    "x": 40,
-   "y": 10352,
+   "y": 10496,
    "src": "nX_pos := size(curva_X_pos)[1] ="
   },
   {
    "id": "r077",
    "kind": "math",
    "x": 40,
-   "y": 10400,
+   "y": 10544,
    "src": "nX_neg := size(curva_X_neg)[1] ="
   },
   {
    "id": "r078",
    "kind": "math",
    "x": 40,
-   "y": 10448,
+   "y": 10592,
    "src": "nY_pos := size(curva_Y_pos)[1] ="
   },
   {
    "id": "r079",
    "kind": "math",
    "x": 40,
-   "y": 10496,
+   "y": 10640,
    "src": "nY_neg := size(curva_Y_neg)[1] ="
   },
   {
    "id": "r080",
    "kind": "text",
    "x": 40,
-   "y": 10544,
+   "y": 10688,
    "src": "Cuatro amarres, que son toda la red que tiene un barrido: que el extremo del barrido reproduzca la\nEc. (22.4.2.2), que la curva arranque pegada a la tracción pura, que el corte por el tope de\ncompresión haya ocurrido de verdad —si no, el cierre sería una recta larga inventada— y que P crezca\npunto a punto, que es lo único que autoriza a interpolar sobre ella."
   },
   {
    "id": "v_pm_trac",
    "kind": "math",
    "x": 40,
-   "y": 10688,
+   "y": 10832,
    "src": "v_pm_trac := (curva_X_pos[2,2] > -Pnt_n) and (curva_X_pos[2,2] < -0.95*Pnt_n) ="
   },
   {
    "id": "v_pm_comp",
    "kind": "math",
    "x": 40,
-   "y": 10736,
+   "y": 10880,
    "src": "v_pm_comp := curva_X_pos[nX_pos - 1, 2] > 0.90*Rd_P_n ="
   },
   {
    "id": "v_pm_corta",
    "kind": "math",
    "x": 40,
-   "y": 10784,
+   "y": 10928,
    "src": "v_pm_corta := (nX_pos < n_pasos_pm + 3) and (nX_neg < n_pasos_pm + 3) and (nY_pos < n_pasos_pm + 3) and (nY_neg < n_pasos_pm + 3) ="
   },
   {
    "id": "r081",
    "kind": "program",
    "x": 40,
-   "y": 10832,
+   "y": 10976,
    "src": "sube_de(C) :=\n    n := size(C)[1]\n    ok := 1\n    for i in 2:(n - 1)\n        if C[i,2] < C[i-1,2]\n            ok := 0\n    return ok"
   },
   {
    "id": "v_pm_sube",
    "kind": "math",
    "x": 40,
-   "y": 11072,
+   "y": 11216,
    "src": "v_pm_sube := (sube_de(curva_X_pos) == 1) and (sube_de(curva_X_neg) == 1) and (sube_de(curva_Y_pos) == 1) and (sube_de(curva_Y_neg) == 1) ="
   },
   {
    "id": "r082",
    "kind": "text",
    "x": 40,
-   "y": 11120,
+   "y": 11264,
    "src": "━━ 6 — LAS COMBINACIONES CONTRA EL DIAGRAMA ━━"
   },
   {
    "id": "r083",
    "kind": "text",
    "x": 40,
-   "y": 11168,
+   "y": 11312,
    "src": "Se entra a la envolvente con la axial de cada combinación y se lee la resistencia a flexión que le\nqueda, INTERPOLANDO SOBRE LA MISMA MATRIZ QUE SE DIBUJA: con una bisección aparte, el número del\npanel y la curva del dibujo serían dos cálculos que pueden separarse. De los dos sentidos de cada\neje manda el menor. La biaxial se resuelve por suma lineal de los dos usos uniaxiales con la misma\naxial: no es una ecuación de la norma, es una COTA SUPERIOR por mecánica —la superficie de falla de\nuna sección con armadura simétrica es convexa, así que la recta entre sus dos trazas uniaxiales queda\npor dentro—. Si no cumple no quiere decir que falle: hay que calcular el punto biaxial con el eje\nneutro inclinado."
   },
   {
    "id": "r084",
    "kind": "program",
    "x": 40,
-   "y": 11408,
+   "y": 11552,
    "src": "comb :=\n    A := [[Pu_1/(1 kN), Mux_1/(1 kN*m), Muy_1/(1 kN*m)]]\n    A := concat(A, [[Pu_2/(1 kN), Mux_2/(1 kN*m), Muy_2/(1 kN*m)]], 1)\n    A := concat(A, [[Pu_3/(1 kN), Mux_3/(1 kN*m), Muy_3/(1 kN*m)]], 1)\n    A := concat(A, [[Pu_4/(1 kN), Mux_4/(1 kN*m), Muy_4/(1 kN*m)]], 1)\n    A := concat(A, [[Pu_5/(1 kN), Mux_5/(1 kN*m), Muy_5/(1 kN*m)]], 1)\n    A := concat(A, [[Pu_6/(1 kN), Mux_6/(1 kN*m), Muy_6/(1 kN*m)]], 1)\n    return A"
   },
   {
    "id": "v_pu_en_curva",
    "kind": "math",
    "x": 40,
-   "y": 11648,
+   "y": 11792,
    "src": "v_pu_en_curva := (min(comb[1:6,1]) >= -Pnt_n) and (max(comb[1:6,1]) <= Rd_P_n) ="
   },
   {
    "id": "r085",
    "kind": "program",
    "x": 40,
-   "y": 11696,
+   "y": 11840,
    "src": "phiMn_de(C, P) :=\n    n := size(C)[1]\n    if P <= C[1,2]\n        return C[1,1]\n    if P >= C[n,2]\n        return C[n,1]\n    for i in 2:n\n        if C[i,2] >= P\n            dP := C[i,2] - C[i-1,2]\n            if dP <= 0\n                return min(C[i-1,1], C[i,1])\n            return C[i-1,1] + (P - C[i-1,2])/dP*(C[i,1] - C[i-1,1])\n    return C[n,1]"
   },
   {
    "id": "r086",
    "kind": "text",
    "x": 40,
-   "y": 12080,
+   "y": 12224,
    "src": "tabla_pm lleva una fila por combinación, con las columnas [P (kN) · φM_nX (kN·m) · φM_nY (kN·m) ·\nu_X · u_Y]. La resistencia se acota por debajo en 0,001 kN·m para que una axial pegada al tope no\nproduzca una división por cero: cuando eso pasa el uso se dispara y v_pu_en_curva lo señala."
   },
   {
    "id": "r087",
    "kind": "program",
    "x": 40,
-   "y": 12224,
+   "y": 12368,
    "src": "tabla_pm :=\n    A := [[0, 0, 0, 0, 0]]\n    for i in 1:6\n        P := comb[i,1]\n        MX := max(min(phiMn_de(curva_X_pos, P), phiMn_de(curva_X_neg, P)), 0.001)\n        MY := max(min(phiMn_de(curva_Y_pos, P), phiMn_de(curva_Y_neg, P)), 0.001)\n        A := concat(A, [[P, MX, MY, comb[i,2]/MX, comb[i,3]/MY]], 1)\n    return A[2:end, 1:5]"
   },
   {
    "id": "r088",
    "kind": "math",
    "x": 40,
-   "y": 12464,
+   "y": 12608,
    "src": "u_pm := max(max(tabla_pm[1:6,4]), max(tabla_pm[1:6,5])) ="
   },
   {
    "id": "r089",
    "kind": "math",
    "x": 40,
-   "y": 12512,
+   "y": 12656,
    "src": "usos_biax := tabla_pm[1:6,4] + tabla_pm[1:6,5] ="
   },
   {
    "id": "r090",
    "kind": "math",
    "x": 40,
-   "y": 12560,
+   "y": 12704,
    "src": "u_biax := max(usos_biax) ="
   },
   {
    "id": "r091",
    "kind": "program",
    "x": 40,
-   "y": 12608,
+   "y": 12752,
    "src": "comb_gob :=\n    k := 1\n    mx := usos_biax[1]\n    for i in 2:6\n        if usos_biax[i] > mx\n            mx := usos_biax[i]\n            k := i\n    return k"
   },
   {
    "id": "r092",
    "kind": "text",
    "x": 40,
-   "y": 12848,
+   "y": 12992,
    "src": "La combinación que gobierna la flexión biaxial, con la resistencia que le queda en cada eje:"
   },
   {
    "id": "r093",
    "kind": "math",
    "x": 40,
-   "y": 12896,
+   "y": 13040,
    "src": "Pu_gob := comb[comb_gob,1]*(1 kN) = kN"
   },
   {
    "id": "r094",
    "kind": "math",
    "x": 40,
-   "y": 12944,
+   "y": 13088,
    "src": "Mux_gob := comb[comb_gob,2]*(1 kN*m) = kN*m"
   },
   {
    "id": "r095",
    "kind": "math",
    "x": 40,
-   "y": 12992,
+   "y": 13136,
    "src": "Muy_gob := comb[comb_gob,3]*(1 kN*m) = kN*m"
   },
   {
    "id": "r096",
    "kind": "math",
    "x": 40,
-   "y": 13040,
+   "y": 13184,
    "src": "phiMnX_gob := tabla_pm[comb_gob,2]*(1 kN*m) = kN*m"
   },
   {
    "id": "r097",
    "kind": "math",
    "x": 40,
-   "y": 13088,
+   "y": 13232,
    "src": "phiMnY_gob := tabla_pm[comb_gob,3]*(1 kN*m) = kN*m"
   },
   {
    "id": "r098",
    "kind": "text",
    "x": 40,
-   "y": 13136,
+   "y": 13280,
    "src": "━━ 7 — CORTE · ACI 318-25 Tabla 22.5.5.1 (a), §22.5.1.2, §22.5.1.11 y §18.7.6.2.1 ━━"
   },
   {
    "id": "r099",
    "kind": "text",
    "x": 40,
-   "y": 13184,
+   "y": 13328,
    "src": "Nota 1 de la tabla: N_u es NEGATIVO en tracción, que es la condición desfavorable porque resta\ncapacidad, y por eso se toma la tracción máxima. El §22.5.5.1.2 no deja tomar el término axial\nN_u/(6·Ag) mayor que 0,05·f'c, y la misma tabla pone un techo de 0,42·λ·√f'c."
   },
   {
    "id": "r100",
    "kind": "math",
    "x": 40,
-   "y": 13328,
+   "y": 13472,
    "src": "Nu := -N_trac_max = kN"
   },
   {
    "id": "r101",
    "kind": "math",
    "x": 40,
-   "y": 13376,
+   "y": 13520,
    "src": "term_axial := min(Nu/(6*Ag), 0.05*fc) = MPa"
   },
   {
    "id": "r102",
    "kind": "math",
    "x": 40,
-   "y": 13424,
+   "y": 13568,
    "src": "vc_ped := 0.17*lam*sqrt(fc_n)*(1 MPa) + term_axial = MPa"
   },
   {
    "id": "v_vc_positivo",
    "kind": "math",
    "x": 40,
-   "y": 13472,
+   "y": 13616,
    "src": "v_vc_positivo := vc_ped > 0 MPa ="
   },
   {
    "id": "v_vc_techo",
    "kind": "math",
    "x": 40,
-   "y": 13520,
+   "y": 13664,
    "src": "v_vc_techo := vc_ped <= 0.42*lam*sqrt(fc_n)*(1 MPa) ="
   },
   {
    "id": "r103",
    "kind": "text",
    "x": 40,
-   "y": 13568,
+   "y": 13712,
    "src": "El §18.7.6.2.1 anula V_c dentro de lo cuando concurren las dos condiciones: que el corte de origen\nsísmico sea al menos la mitad del corte requerido, y que P_u esté por debajo de A_g·f'c/20 — el\numbral es VEINTE, no diez. Ahí el corte lo toman solo los estribos, y por eso la capacidad lleva V_s\ny no solo V_c: sin V_s la hoja no tendría con qué resistir."
   },
   {
    "id": "r104",
    "kind": "math",
    "x": 40,
-   "y": 13712,
+   "y": 13856,
    "src": "anula_vc := ((sis_aci18 == 1) and (frac_E_V >= 0.5) and (N_comp_max < Ag*fc/20)) ? 1 : 0 ="
   },
   {
    "id": "r105",
    "kind": "math",
    "x": 40,
-   "y": 13760,
+   "y": 13904,
    "src": "vc_ef := anula_vc == 1 ? 0 MPa : vc_ped = MPa"
   },
   {
    "id": "r106",
    "kind": "math",
    "x": 40,
-   "y": 13808,
+   "y": 13952,
    "src": "phi_corte := 0.75"
   },
   {
    "id": "r107",
    "kind": "math",
    "x": 40,
-   "y": 13856,
+   "y": 14000,
    "src": "phiVc_X := phi_corte*vc_ped*PED_Y*d_ped_X = kN"
   },
   {
    "id": "r108",
    "kind": "math",
    "x": 40,
-   "y": 13904,
+   "y": 14048,
    "src": "phiVc_Y := phi_corte*vc_ped*PED_X*d_ped_Y = kN"
   },
   {
    "id": "r109",
    "kind": "text",
    "x": 40,
-   "y": 13952,
+   "y": 14096,
    "src": "El §22.5.8.5.3 da V_s = A_v·f_yt·d/s con los estribos del FUSTE, que es la separación que manda donde\nel corte es máximo fuera de la zona confinada. El §22.5.1.2 acota lo que se puede sumar:\nV_u ≤ φ·(V_c + 0,66·√f'c·b_w·d)."
   },
   {
    "id": "r110",
    "kind": "math",
    "x": 40,
-   "y": 14096,
+   "y": 14240,
    "src": "Av_prov := n_ramas*area_est = mm^2"
   },
   {
    "id": "r111",
    "kind": "math",
    "x": 40,
-   "y": 14144,
+   "y": 14288,
    "src": "Vs_prov_X := Av_prov*fyt*d_ped_X/sep_est = kN"
   },
   {
    "id": "r112",
    "kind": "math",
    "x": 40,
-   "y": 14192,
+   "y": 14336,
    "src": "Vs_prov_Y := Av_prov*fyt*d_ped_Y/sep_est = kN"
   },
   {
    "id": "r113",
    "kind": "math",
    "x": 40,
-   "y": 14240,
+   "y": 14384,
    "src": "Vs_tope_X := 0.66*sqrt(fc_n)*(1 MPa)*PED_Y*d_ped_X = kN"
   },
   {
    "id": "r114",
    "kind": "math",
    "x": 40,
-   "y": 14288,
+   "y": 14432,
    "src": "Vs_tope_Y := 0.66*sqrt(fc_n)*(1 MPa)*PED_X*d_ped_Y = kN"
   },
   {
    "id": "r115",
    "kind": "math",
    "x": 40,
-   "y": 14336,
+   "y": 14480,
    "src": "Vs_ef_X := min(Vs_prov_X, Vs_tope_X) = kN"
   },
   {
    "id": "r116",
    "kind": "math",
    "x": 40,
-   "y": 14384,
+   "y": 14528,
    "src": "Vs_ef_Y := min(Vs_prov_Y, Vs_tope_Y) = kN"
   },
   {
    "id": "r117",
    "kind": "math",
    "x": 40,
-   "y": 14432,
+   "y": 14576,
    "src": "phiVn_X := phi_corte*(vc_ef*PED_Y*d_ped_X + Vs_ef_X) = kN"
   },
   {
    "id": "r118",
    "kind": "math",
    "x": 40,
-   "y": 14480,
+   "y": 14624,
    "src": "phiVn_Y := phi_corte*(vc_ef*PED_X*d_ped_Y + Vs_ef_Y) = kN"
   },
   {
    "id": "r119",
    "kind": "math",
    "x": 40,
-   "y": 14528,
+   "y": 14672,
    "src": "u_corte_X := Vu_X/phiVn_X ="
   },
   {
    "id": "r120",
    "kind": "math",
    "x": 40,
-   "y": 14576,
+   "y": 14720,
    "src": "u_corte_Y := Vu_Y/phiVn_Y ="
   },
   {
    "id": "r121",
    "kind": "text",
    "x": 40,
-   "y": 14624,
+   "y": 14768,
    "src": "Los dos cortes no se verifican por separado. El §22.5.1.10 permite DESPRECIAR la interacción solo si\nuno de los dos cocientes no pasa de 0,5; si los dos lo pasan, el §22.5.1.11 exige que su suma no\nsupere 1,5. La R22.5.1.10 dice por qué: la resistencia al corte biaxial sigue un diagrama de\ninteracción elíptico, y mirar cada eje por su cuenta puede quedar del lado inseguro. Dos cortes a\n0,9 pasarían uno a uno y suman 1,8. Se adimensionaliza contra ese techo de 1,5 para que entre en\nu_max como un uso más."
   },
   {
    "id": "r122",
    "kind": "math",
    "x": 40,
-   "y": 14816,
+   "y": 14960,
    "src": "u_corte_biax := (u_corte_X > 0.5 and u_corte_Y > 0.5) ? (u_corte_X + u_corte_Y)/1.5 : 0 ="
   },
   {
    "id": "r123",
    "kind": "text",
    "x": 40,
-   "y": 14864,
+   "y": 15008,
    "src": "━━ 8 — ESTRIBOS DEL FUSTE · ACI 318-25 §10.6.2.2, §10.7.6.1 y §25.7.2 ━━"
   },
   {
    "id": "r124",
    "kind": "text",
    "x": 40,
-   "y": 14912,
+   "y": 15056,
    "src": "El 0,062·√f'c y el 0,35 del §10.6.2.2 son coeficientes en MPa, no números, y el mínimo se\ndimensiona sobre la cara larga, que es la que pide más ramas. La separación sale del §25.7.2.1(b),\nal que remite el §10.7.6.1.2: la menor de 16·db longitudinal, 48·db del estribo y la dimensión\nmenor del elemento. El §25.7.2.2 pide estribo No. 10 con barras No. 32 o menores, y No. 13 arriba."
   },
   {
    "id": "r125",
    "kind": "math",
    "x": 40,
-   "y": 15056,
+   "y": 15200,
    "src": "Av_min := max(0.062*sqrt(fc_n), 0.35)*(1 MPa)*PED_Y*sep_est/fyt = mm^2"
   },
   {
    "id": "v_Av",
    "kind": "math",
    "x": 40,
-   "y": 15104,
+   "y": 15248,
    "src": "v_Av := Av_prov >= Av_min ="
   },
   {
    "id": "r126",
    "kind": "text",
    "x": 40,
-   "y": 15152,
+   "y": 15296,
    "src": "La del §25.7.2.1(b) no es la única separación que rige. El §10.7.6.1.1 obliga a aplicar «the most\nrestrictive requirements for reinforcement spacing», y donde hace falta armadura de corte —§10.6.2.1:\nV_u > 0,5·φ·V_c— los estribos SON armadura de corte y les alcanza también la Tabla 10.7.6.5.2: la\nmenor de d/2 y 600 mm con V_s ≤ 0,33·√f'c·b_w·d, y la menor de d/4 y 300 mm por encima. Se evalúa en\nlas dos direcciones y manda la más apretada; donde no hace falta armadura de corte la tabla no\naplica y la separación la fija solo el §25.7.2.1(b)."
   },
   {
    "id": "r127",
    "kind": "math",
    "x": 40,
-   "y": 15344,
+   "y": 15488,
    "src": "hace_falta_Av := (Vu_X > 0.5*phiVc_X or Vu_Y > 0.5*phiVc_Y) ? 1 : 0 ="
   },
   {
    "id": "r128",
    "kind": "math",
    "x": 40,
-   "y": 15392,
+   "y": 15536,
    "src": "Vs_X := max(Vu_X/phi_corte - vc_ef*PED_Y*d_ped_X, 0 kN) = kN"
   },
   {
    "id": "r129",
    "kind": "math",
    "x": 40,
-   "y": 15440,
+   "y": 15584,
    "src": "Vs_Y := max(Vu_Y/phi_corte - vc_ef*PED_X*d_ped_Y, 0 kN) = kN"
   },
   {
    "id": "r130",
    "kind": "math",
    "x": 40,
-   "y": 15488,
+   "y": 15632,
    "src": "Vs_lim_X := 0.33*sqrt(fc_n)*(1 MPa)*PED_Y*d_ped_X = kN"
   },
   {
    "id": "r131",
    "kind": "math",
    "x": 40,
-   "y": 15536,
+   "y": 15680,
    "src": "Vs_lim_Y := 0.33*sqrt(fc_n)*(1 MPa)*PED_X*d_ped_Y = kN"
   },
   {
    "id": "r132",
    "kind": "program",
    "x": 40,
-   "y": 15584,
+   "y": 15728,
    "src": "sep_tabla :=\n    if hace_falta_Av == 0\n        return b_min\n    sX := Vs_X <= Vs_lim_X ? min(d_ped_X/2, 600 mm) : min(d_ped_X/4, 300 mm)\n    sY := Vs_Y <= Vs_lim_Y ? min(d_ped_Y/2, 600 mm) : min(d_ped_Y/4, 300 mm)\n    return min(sX, sY)"
   },
   {
    "id": "r133",
    "kind": "math",
    "x": 40,
-   "y": 15776,
+   "y": 15920,
    "src": "sep_est_max := min(16*db_long, 48*db_est, b_min, sep_tabla) = mm"
   },
   {
    "id": "v_sep_est",
    "kind": "math",
    "x": 40,
-   "y": 15824,
+   "y": 15968,
    "src": "v_sep_est := sep_est <= sep_est_max ="
   },
   {
    "id": "r134",
    "kind": "program",
    "x": 40,
-   "y": 15872,
+   "y": 16016,
    "src": "db_est_min :=\n    if db_long <= 32 mm\n        return 10 mm\n    else\n        return 13 mm"
   },
   {
    "id": "v_db_est",
    "kind": "math",
    "x": 40,
-   "y": 16064,
+   "y": 16208,
    "src": "v_db_est := db_est >= db_est_min ="
   },
   {
    "id": "r135",
    "kind": "text",
    "x": 40,
-   "y": 16112,
+   "y": 16256,
    "src": "El §10.7.6.1.5 es aparte y no lo cubre la separación del fuste: si hay pernos de anclaje en la\ncabeza del pedestal —que es exactamente lo que esta hoja calcula—, esos pernos tienen que quedar\nencerrados por armadura transversal que rodee además al menos CUATRO barras longitudinales, repartida\ndentro de los 125 mm superiores y con al menos dos estribos No. 13 o tres No. 10. Lo exigido se\nderiva del diámetro adoptado; por debajo de No. 10 ninguna de las dos opciones se cumple."
   },
   {
    "id": "r136",
    "kind": "program",
    "x": 40,
-   "y": 16304,
+   "y": 16448,
    "src": "n_est_cab_req :=\n    if db_est >= 13 mm\n        return 2\n    else if db_est >= 10 mm\n        return 3\n    else\n        return 999"
   },
   {
    "id": "v_confina_pernos",
    "kind": "math",
    "x": 40,
-   "y": 16544,
+   "y": 16688,
    "src": "v_confina_pernos := n_est_cab >= n_est_cab_req and n_barras >= 4 ="
   },
   {
    "id": "r137",
    "kind": "text",
    "x": 40,
-   "y": 16592,
+   "y": 16736,
    "src": "━━ 9 — DETALLADO SÍSMICO · NCh2369:2025 §9.5 ━━"
   },
   {
    "id": "r138",
    "kind": "text",
    "x": 40,
-   "y": 16640,
+   "y": 16784,
    "src": "El C9.5 define pedestal como el elemento cuya razón entre altura y lado menor no supera 3. El §9.5.1\nmanda a los que la superan a cumplir además los requisitos de columnas de marcos ordinarios\nresistentes a momento, que esta hoja NO cubre: por eso la razón es un aviso y no un incumplimiento.\nEl §9.5.3 define la zona de protección superior como la mayor de (a) el lado menor y (b) la altura\nde la llave de corte más la proyección vertical de un plano a 45° trazado desde su pie hasta la cara\ndel pedestal, y ahí aprieta los estribos."
   },
   {
    "id": "r139",
    "kind": "math",
    "x": 40,
-   "y": 16832,
+   "y": 16976,
    "src": "razon_hb := PED_H/b_min ="
   },
   {
    "id": "v_razon_hb",
    "kind": "math",
    "x": 40,
-   "y": 16880,
+   "y": 17024,
    "src": "v_razon_hb := (sis_nch2369 == 0) or (razon_hb <= 3) ="
   },
   {
    "id": "r140",
    "kind": "math",
    "x": 40,
-   "y": 16928,
+   "y": 17072,
    "src": "zp_a := b_min = mm"
   },
   {
    "id": "r141",
    "kind": "math",
    "x": 40,
-   "y": 16976,
+   "y": 17120,
    "src": "proy_45 := (b_min - b_llave)/2 = mm"
   },
   {
    "id": "r142",
    "kind": "math",
    "x": 40,
-   "y": 17024,
+   "y": 17168,
    "src": "zp_b := h_llave + proy_45 = mm"
   },
   {
    "id": "r143",
    "kind": "math",
    "x": 40,
-   "y": 17072,
+   "y": 17216,
    "src": "zp := max(zp_a, zp_b) = mm"
   },
   {
    "id": "r144",
    "kind": "math",
    "x": 40,
-   "y": 17120,
+   "y": 17264,
    "src": "zp_ef := min(zp, PED_H) = mm"
   },
   {
    "id": "r145",
    "kind": "math",
    "x": 40,
-   "y": 17168,
+   "y": 17312,
    "src": "frac_zp := zp_ef/PED_H*100 ="
   },
   {
    "id": "r146",
    "kind": "math",
    "x": 40,
-   "y": 17216,
+   "y": 17360,
    "src": "s_todo := 0.4*b_min = mm"
   },
   {
    "id": "r147",
    "kind": "math",
    "x": 40,
-   "y": 17264,
+   "y": 17408,
    "src": "s_zp := 0.2*b_min = mm"
   },
   {
    "id": "v_s_todo",
    "kind": "math",
    "x": 40,
-   "y": 17312,
+   "y": 17456,
    "src": "v_s_todo := (sis_nch2369 == 0) or (sep_est <= s_todo) ="
   },
   {
    "id": "v_s_zp",
    "kind": "math",
    "x": 40,
-   "y": 17360,
+   "y": 17504,
    "src": "v_s_zp := (sis_nch2369 == 0) or (sep_est_zp <= s_zp) ="
   },
   {
    "id": "v_s_libre",
    "kind": "math",
    "x": 40,
-   "y": 17408,
+   "y": 17552,
    "src": "v_s_libre := (sis_nch2369 == 0) or (sep_libre_top <= 50 mm) ="
   },
   {
    "id": "r148",
    "kind": "text",
    "x": 40,
-   "y": 17456,
+   "y": 17600,
    "src": "C9.5.3, práctica nacional recogida en el comentario: malla superior desde 700 mm de lado y doble capa\nde armadura en cada lado desde 2 000 mm. Es una recomendación, no una prescripción, y por eso vota\ncomo aviso."
   },
   {
    "id": "r149",
    "kind": "program",
    "x": 40,
-   "y": 17600,
+   "y": 17744,
    "src": "malla_req :=\n    if b_min >= 2000 mm\n        return 2\n    else if b_min >= 700 mm\n        return 1\n    else\n        return 0"
   },
   {
    "id": "v_malla_sup",
    "kind": "math",
    "x": 40,
-   "y": 17840,
+   "y": 17984,
    "src": "v_malla_sup := (sis_nch2369 == 0) or (malla_sup >= malla_req) ="
   },
   {
    "id": "r150",
    "kind": "text",
    "x": 40,
-   "y": 17888,
+   "y": 18032,
    "src": "El §9.5.2 pide, en Categorías III y IV, que la resistencia de DISEÑO del pedestal iguale o supere la\ncapacidad esperada del anclaje en tracción y en corte. La resistencia de diseño en tracción es la\nφP_nt del §22.4.3.1 y la de corte, la menor de las dos direcciones. La capacidad esperada entra como\ndato, ya acotada por la máxima carga que el sistema puede transferir, que es la salvedad del propio\nartículo. En Categorías I y II los dos usos son nulos."
   },
   {
    "id": "r151",
    "kind": "math",
    "x": 40,
-   "y": 18080,
+   "y": 18224,
    "src": "u_95T := (sis_nch2369 == 1 and cat_III_IV == 1) ? T_esp/phiPnt : 0 ="
   },
   {
    "id": "r152",
    "kind": "math",
    "x": 40,
-   "y": 18128,
+   "y": 18272,
    "src": "u_95V := (sis_nch2369 == 1 and cat_III_IV == 1) ? V_esp/min(phiVn_X, phiVn_Y) : 0 ="
   },
   {
    "id": "r153",
    "kind": "text",
    "x": 40,
-   "y": 18176,
+   "y": 18320,
    "src": "━━ 10 — DETALLADO SÍSMICO · ACI 318-25 §18.7 (columna de pórtico especial) ━━"
   },
   {
    "id": "r154",
    "kind": "text",
    "x": 40,
-   "y": 18224,
+   "y": 18368,
    "src": "Este bloque solo vota con sis_aci18 = 1. El §18.7.5.1 fija la longitud confinada lo como la mayor de\nel canto de la columna, un sexto de su luz libre y 450 mm. El §18.7.5.3 limita la separación a la\nmenor de un cuarto de la dimensión menor, 6·db (5·db en Grado 550) y el s_o de la Ec. (18.7.5.3),\nque va acotado entre 100 y 150 mm. El h_x del §18.7.5.2(e) es la mayor distancia entre barras\nlongitudinales soportadas lateralmente, y baja de 350 a 200 mm cuando P_u supera 0,3·A_g·f'c o f'c\npasa de 70 MPa. La hoja lo toma igual al mayor paso del reparto por cara, y eso supone que cada barra\nqueda amarrada por una esquina de estribo o una traba: está declarado en las hipótesis."
   },
   {
    "id": "r155",
    "kind": "math",
    "x": 40,
-   "y": 18464,
+   "y": 18608,
    "src": "lo_conf := max(PED_X, PED_Y, PED_H/6, 450 mm) = mm"
   },
   {
    "id": "r156",
    "kind": "math",
    "x": 40,
-   "y": 18512,
+   "y": 18656,
    "src": "h_x := max(paso_x, paso_y) = mm"
   },
   {
    "id": "r157",
    "kind": "math",
    "x": 40,
-   "y": 18560,
+   "y": 18704,
    "src": "gatillo_18 := ((N_comp_max > 0.3*Ag*fc) or (fc > 70 MPa)) ? 1 : 0 ="
   },
   {
    "id": "r158",
    "kind": "math",
    "x": 40,
-   "y": 18608,
+   "y": 18752,
    "src": "h_x_lim := gatillo_18 == 1 ? 200 mm : 350 mm = mm"
   },
   {
    "id": "v_hx",
    "kind": "math",
    "x": 40,
-   "y": 18656,
+   "y": 18800,
    "src": "v_hx := (sis_aci18 == 0) or (h_x <= h_x_lim) ="
   },
   {
    "id": "r159",
    "kind": "math",
    "x": 40,
-   "y": 18704,
+   "y": 18848,
    "src": "s_o := min(max(100 mm + (350 mm - h_x)/3, 100 mm), 150 mm) = mm"
   },
   {
    "id": "r160",
    "kind": "math",
    "x": 40,
-   "y": 18752,
+   "y": 18896,
    "src": "s_db := fy >= 550 MPa ? 5*db_long : 6*db_long = mm"
   },
   {
    "id": "r161",
    "kind": "math",
    "x": 40,
-   "y": 18800,
+   "y": 18944,
    "src": "sep_conf_max := min(b_min/4, s_db, s_o) = mm"
   },
   {
    "id": "v_sep_conf",
    "kind": "math",
    "x": 40,
-   "y": 18848,
+   "y": 18992,
    "src": "v_sep_conf := (sis_aci18 == 0) or (sep_est_zp <= sep_conf_max) ="
   },
   {
    "id": "r162",
    "kind": "text",
    "x": 40,
-   "y": 18896,
+   "y": 19040,
    "src": "La Tabla 18.7.5.4 pide A_sh/(s·b_c) en las DOS direcciones del núcleo, con b_c la dimensión del\nnúcleo PERPENDICULAR a las ramas que constituyen A_sh. Las expresiones (a) y (b) rigen siempre; la\n(c), con k_f y k_n, se suma cuando P_u supera 0,3·A_g·f'c o f'c pasa de 70 MPa. El núcleo se mide al\nexterior del estribo, así que el recubrimiento libre se deriva del recubrimiento al eje de la barra."
   },
   {
    "id": "r163",
    "kind": "math",
    "x": 40,
-   "y": 19040,
+   "y": 19184,
    "src": "rec_libre := recub_ped - db_est - db_long/2 = mm"
   },
   {
    "id": "r164",
    "kind": "math",
    "x": 40,
-   "y": 19088,
+   "y": 19232,
    "src": "b_c_X := PED_X - 2*rec_libre = mm"
   },
   {
    "id": "r165",
    "kind": "math",
    "x": 40,
-   "y": 19136,
+   "y": 19280,
    "src": "b_c_Y := PED_Y - 2*rec_libre = mm"
   },
   {
    "id": "r166",
    "kind": "math",
    "x": 40,
-   "y": 19184,
+   "y": 19328,
    "src": "A_ch := b_c_X*b_c_Y = mm^2"
   },
   {
    "id": "r167",
    "kind": "math",
    "x": 40,
-   "y": 19232,
+   "y": 19376,
    "src": "k_f := max(fc_n/175 + 0.6, 1) ="
   },
   {
    "id": "r168",
    "kind": "math",
    "x": 40,
-   "y": 19280,
+   "y": 19424,
    "src": "k_n := n_barras/max(n_barras - 2, 1) ="
   },
   {
    "id": "r169",
    "kind": "math",
    "x": 40,
-   "y": 19328,
+   "y": 19472,
    "src": "k_sh_a := 0.3*(Ag/A_ch - 1)*fc/fyt ="
   },
   {
    "id": "r170",
    "kind": "math",
    "x": 40,
-   "y": 19376,
+   "y": 19520,
    "src": "k_sh_b := 0.09*fc/fyt ="
   },
   {
    "id": "r171",
    "kind": "math",
    "x": 40,
-   "y": 19424,
+   "y": 19568,
    "src": "k_sh_c := 0.2*k_f*k_n*N_comp_max/(fyt*A_ch) ="
   },
   {
    "id": "r172",
    "kind": "math",
    "x": 40,
-   "y": 19472,
+   "y": 19616,
    "src": "k_sh := gatillo_18 == 1 ? max(k_sh_a, k_sh_b, k_sh_c) : max(k_sh_a, k_sh_b) ="
   },
   {
    "id": "r173",
    "kind": "math",
    "x": 40,
-   "y": 19520,
+   "y": 19664,
    "src": "Ash_X_req := k_sh*sep_est_zp*b_c_Y = mm^2"
   },
   {
    "id": "r174",
    "kind": "math",
    "x": 40,
-   "y": 19568,
+   "y": 19712,
    "src": "Ash_Y_req := k_sh*sep_est_zp*b_c_X = mm^2"
   },
   {
    "id": "r175",
    "kind": "math",
    "x": 40,
-   "y": 19616,
+   "y": 19760,
    "src": "Ash_prov := n_ramas*area_est = mm^2"
   },
   {
    "id": "r176",
    "kind": "math",
    "x": 40,
-   "y": 19664,
+   "y": 19808,
    "src": "u_Ash := sis_aci18 == 1 ? max(Ash_X_req, Ash_Y_req)/Ash_prov : 0 ="
   },
   {
    "id": "v_fc_alto",
    "kind": "math",
    "x": 40,
-   "y": 19712,
+   "y": 19856,
    "src": "v_fc_alto := fc <= 70 MPa ="
   },
   {
    "id": "r177",
    "kind": "text",
    "x": 40,
-   "y": 19760,
+   "y": 19904,
    "src": "El §25.3.4 pide gancho sísmico —doblez de 135° en estribos rectilíneos, con la extensión hacia el\ninterior— y el §25.3.5 lo mismo en un extremo de cada traba. Es detallado de plano: la hoja lo\ndeclara, no lo calcula."
   },
   {
    "id": "r178",
    "kind": "program",
    "x": 40,
-   "y": 19904,
+   "y": 20048,
    "src": "detallado_18_7 :=\n    if sis_aci18 == 1\n        return \"RIGE 18.7: estribos y trabas con gancho sismico de 135 grados (25.3.4), armadura de confinamiento en l_o desde cada extremo y s <= 150 mm mas alla de l_o (18.7.5.5)\"\n    else\n        return \"no rige 18.7: el pedestal no forma parte de un sistema sismorresistente de hormigon\""
   },
   {
    "id": "r179",
    "kind": "text",
    "x": 40,
-   "y": 20096,
+   "y": 20240,
    "src": "━━ 11 — LA ARMADURA DEL PEDESTAL ES LA ARMADURA DE ANCLAJE · §17.5.2.1 y Tabla 21.2.1 (k) ━━"
   },
   {
    "id": "r180",
    "kind": "text",
    "x": 40,
-   "y": 20144,
+   "y": 20288,
    "src": "La tracción del grupo de pernos y la del lado traccionado del pedestal son el MISMO fenómeno: no\nhay doble conteo. Pero no cuentan todas las barras, solo las que caen dentro del radio del cono.\nEl φ de la armadura de anclaje del §17.5.2.1 es 0,90 (Tabla 21.2.1 (k))."
   },
   {
    "id": "r181",
    "kind": "math",
    "x": 40,
-   "y": 20288,
+   "y": 20432,
    "src": "radio_cono := 0.5*h_ef = mm"
   },
   {
    "id": "v_contables",
    "kind": "math",
    "x": 40,
-   "y": 20336,
+   "y": 20480,
    "src": "v_contables := n_contables <= n_barras ="
   },
   {
    "id": "r182",
    "kind": "math",
    "x": 40,
-   "y": 20384,
+   "y": 20528,
    "src": "phi_anclaje := 0.90"
   },
   {
    "id": "r183",
    "kind": "math",
    "x": 40,
-   "y": 20432,
+   "y": 20576,
    "src": "As_anclaje := max(T_grupo/(phi_anclaje*fy), As_req_anc) = mm^2"
   },
   {
    "id": "r184",
    "kind": "math",
    "x": 40,
-   "y": 20480,
+   "y": 20624,
    "src": "n_req := ceil(As_anclaje/area_barra) ="
   },
   {
    "id": "r185",
    "kind": "math",
    "x": 40,
-   "y": 20528,
+   "y": 20672,
    "src": "u_anclaje := n_req/n_contables ="
   },
   {
    "id": "r186",
    "kind": "text",
    "x": 40,
-   "y": 20576,
+   "y": 20720,
    "src": "━━ 12 — UNIÓN CON LA ZAPATA · ACI 318-25 §18.13.2 ━━"
   },
   {
    "id": "r187",
    "kind": "text",
    "x": 40,
-   "y": 20624,
+   "y": 20768,
    "src": "§18.13.2.2: la armadura longitudinal de columnas que resisten sismo se prolonga dentro de la zapata\ny desarrolla fy en tracción EN LA INTERFAZ. §18.13.2.3: con base empotrada, si lleva ganchos van a\n90 grados cerca del fondo de la zapata, con el extremo libre hacia el centro de la columna. Es\ndetallado: la hoja lo declara, no lo calcula."
   },
   {
    "id": "r188",
    "kind": "program",
    "x": 40,
-   "y": 20768,
+   "y": 20912,
    "src": "detallado_18_13 :=\n    if sdc_def == 1\n        return \"RIGE 18.13.2.2 y 18.13.2.3: barras desarrolladas para fy en la interfaz, ganchos a 90 grados hacia el centro\"\n    else\n        return \"no rige 18.13.2 (SDC A, B o C)\""
   },
   {
@@ -2729,118 +2781,125 @@
    "kind": "text",
    "src": "━━ 13 — LA ZONA DE PROTECCIÓN ES LA ARMADURA DE ANCLAJE DE LA LLAVE · ACI 318-25 §17.5.2.1.2 y NCh2369 C9.5.2 ━━",
    "x": 40,
-   "y": 20960
+   "y": 21104
   },
   {
    "id": "r_llave_texto",
    "kind": "text",
    "src": "El C9.5.2 asigna a los estribos del sector superior la prevención del desprendimiento del sólido de\nfalla en corte de la llave, igual que asigna a las barras longitudinales la del sólido de tracción de\nlos pernos. Y el §9.5.3 (b) define esa zona como la altura de la llave más la proyección de un plano\na 45°: la zona de protección ES el sólido de falla. Aquí se comprueba que el área que cae dentro de\nella cubre la que exige el §17.5.2.1.2, con el mismo φ = 0,90 de la Tabla 21.2.1 (k) de la sección 11.\nNo se suma al confinamiento del §18.7.5.4: ese es detallado por ductilidad, no una demanda de\nequilibrio bajo la combinación que produce el corte, y las dos responden por la envolvente.",
    "x": 40,
-   "y": 21008
+   "y": 21152
   },
   {
    "id": "r_zp_llave",
    "kind": "math",
    "src": "zp_llave := h_llave > 0 mm ? zp_b : 0 mm = mm",
    "x": 40,
-   "y": 21248
+   "y": 21392
   },
   {
    "id": "r_n_niv_llave",
    "kind": "math",
-   "src": "n_niv_llave := max(floor(zp_llave/sep_est_zp) + 1, 1) =",
+   "src": "n_niv_llave := max(floor((zp_llave - s1_est)/sep_est_zp) + 1, 1) =",
    "x": 40,
-   "y": 21296
+   "y": 21440
   },
   {
    "id": "r_sin_ramas_texto",
    "kind": "text",
    "x": 40,
-   "y": 21344,
-   "src": "Los primeros niveles de estribo pueden ir sin ramas interiores —solo el perimetral— para que la llave no las cruce (n_niv_sin_ramas). Cada uno aporta al área las 2 ramas del perimetral por dirección en vez de n_ramas."
+   "y": 21488,
+   "src": "Los niveles se cuentan desde el primer estribo, a s1_est de la cara superior, hasta zp_llave. Los primeros pueden ir sin ramas interiores —solo el perimetral— para que la llave no las cruce (n_niv_sin_ramas), y llevar además un amarre en rombo: cada uno aporta al área, por dirección, ramas_cab_x o ramas_cab_y en vez de n_ramas (2 con solo el perimetral)."
   },
   {
    "id": "r_n_sin_ramas",
    "kind": "math",
    "x": 40,
-   "y": 21392,
+   "y": 21536,
    "src": "n_sin_ramas := min(max(n_niv_sin_ramas, 0), n_niv_llave) ="
   },
   {
    "id": "r_as_prov_llave",
    "kind": "math",
-   "src": "As_prov_llave := (n_niv_llave*n_ramas - n_sin_ramas*(n_ramas - 2))*area_est = mm^2",
+   "src": "As_prov_llave_X := (n_niv_llave*n_ramas - n_sin_ramas*(n_ramas - ramas_cab_x))*area_est = mm^2",
    "x": 40,
-   "y": 21440
+   "y": 21584
+  },
+  {
+   "id": "r_as_prov_llave_y",
+   "kind": "math",
+   "x": 40,
+   "y": 21632,
+   "src": "As_prov_llave_Y := (n_niv_llave*n_ramas - n_sin_ramas*(n_ramas - ramas_cab_y))*area_est = mm^2"
   },
   {
    "id": "r_as_req_llave",
    "kind": "math",
    "src": "As_req_llave := max(As_req_llave_X, As_req_llave_Y) = mm^2",
    "x": 40,
-   "y": 21488
+   "y": 21680
   },
   {
    "id": "r_u_arm_llave",
    "kind": "math",
-   "src": "u_arm_llave := h_llave > 0 mm ? As_req_llave/As_prov_llave : 0 =",
+   "src": "u_arm_llave := h_llave > 0 mm ? max(As_req_llave_X/As_prov_llave_X, As_req_llave_Y/As_prov_llave_Y) : 0 =",
    "x": 40,
-   "y": 21536
+   "y": 21728
   },
   {
    "id": "v_zona_llave",
    "kind": "math",
    "src": "v_zona_llave := (As_req_llave <= 0 mm^2) or (h_llave > 0 mm) =",
    "x": 40,
-   "y": 21584
+   "y": 21776
   },
   {
    "id": "r_sin_ramas_hx_texto",
    "kind": "text",
    "x": 40,
-   "y": 21632,
+   "y": 21824,
    "src": "⁉️ Lectura de la hoja: con el §18.7 en juego, un nivel de la zona confinada sin ramas interiores deja las barras de la cara sin apoyo lateral en ese nivel (h_x del §18.7.5.2). La hoja no lo verifica nivel por nivel: lo avisa."
   },
   {
    "id": "v_sin_ramas_hx",
    "kind": "math",
    "x": 40,
-   "y": 21680,
+   "y": 21872,
    "src": "v_sin_ramas_hx := sis_aci18 == 0 or n_niv_sin_ramas <= 0 ="
   },
   {
    "id": "r189",
    "kind": "text",
    "x": 40,
-   "y": 21728,
+   "y": 21920,
    "src": "━━ RESUMEN ━━"
   },
   {
    "id": "r190",
    "kind": "math",
    "x": 40,
-   "y": 21776,
+   "y": 21968,
    "src": "u_max := max(u_comp, u_trac, u_pm, u_biax, u_corte_X, u_corte_Y, u_corte_biax, u_anclaje, u_Ash, u_arm_llave, u_95T, u_95V) ="
   },
   {
    "id": "r191",
    "kind": "program",
    "x": 40,
-   "y": 21824,
+   "y": 22016,
    "src": "gobierna :=\n    if u_max == u_anclaje\n        return \"armadura de anclaje: barras dentro del cono\"\n    else if u_max == u_arm_llave\n        return \"armadura de anclaje de la llave (17.5.2.1.2)\"\n    else if u_max == u_Ash\n        return \"confinamiento del 18.7.5.4\"\n    else if u_max == u_95T\n        return \"capacidad esperada del anclaje en traccion (9.5.2)\"\n    else if u_max == u_95V\n        return \"capacidad esperada del anclaje en corte (9.5.2)\"\n    else if u_max == u_biax\n        return \"flexion biaxial (contorno lineal): ver comb_gob\"\n    else if u_max == u_pm\n        return \"flexocompresion uniaxial\"\n    else if u_max == u_corte_biax\n        return \"interaccion de corte biaxial (22.5.1.11)\"\n    else if u_max == u_corte_X\n        return \"corte en X del pedestal\"\n    else if u_max == u_corte_Y\n        return \"corte en Y del pedestal\"\n    else if u_max == u_comp\n        return \"compresion axial\"\n    else\n        return \"traccion axial\""
   },
   {
    "id": "v_global",
    "kind": "math",
    "x": 40,
-   "y": 22496,
+   "y": 22688,
    "src": "v_global := u_max <= 1 and v_cuantia_min and v_cuantia_max and v_rho_sismico and v_Av and v_sep_est and v_db_est and v_confina_pernos and v_hx and v_sep_conf and v_s_todo and v_s_zp and v_s_libre ="
   },
   {
    "id": "r192",
    "kind": "text",
    "x": 40,
-   "y": 22544,
+   "y": 22736,
    "src": "━━ ESQUEMA · MAPEO A PÍXELES ━━",
    "imprimir": false
   },
@@ -2848,7 +2907,7 @@
    "id": "r193",
    "kind": "text",
    "x": 40,
-   "y": 22592,
+   "y": 22784,
    "src": "El dibujo sale de las mismas variables que las verificaciones. px y py llevan una distancia medida\ndesde el centro de la sección a píxeles de planta; ey hace lo propio en elevación, medida hacia\nabajo desde la cara superior del pedestal. Las barras salen de barras_xy, la misma disposición con\nla que se calculó el diagrama. Los dos P-M llevan su propio mapeo. Este bloque no se imprime.",
    "imprimir": false
   },
@@ -2856,7 +2915,7 @@
    "id": "r194",
    "kind": "math",
    "x": 40,
-   "y": 22736,
+   "y": 22928,
    "src": "esc := min(300/(PED_X/(1 mm)), 200/(PED_Y/(1 mm))) =",
    "imprimir": false
   },
@@ -2864,7 +2923,7 @@
    "id": "r195",
    "kind": "program",
    "x": 40,
-   "y": 22784,
+   "y": 22976,
    "src": "px(u) := 230 + u/(1 mm)*esc",
    "imprimir": false
   },
@@ -2872,7 +2931,7 @@
    "id": "r196",
    "kind": "program",
    "x": 40,
-   "y": 22832,
+   "y": 23024,
    "src": "py(v) := 175 + v/(1 mm)*esc",
    "imprimir": false
   },
@@ -2880,7 +2939,7 @@
    "id": "r197",
    "kind": "program",
    "x": 40,
-   "y": 22880,
+   "y": 23072,
    "src": "ey(w) := 360 + w/(1 mm)*esc",
    "imprimir": false
   },
@@ -2888,7 +2947,7 @@
    "id": "r198",
    "kind": "math",
    "x": 40,
-   "y": 22928,
+   "y": 23120,
    "src": "r_barra_px := max(1.6, db_long/(1 mm)*esc/2) =",
    "imprimir": false
   },
@@ -2896,7 +2955,7 @@
    "id": "r199",
    "kind": "program",
    "x": 40,
-   "y": 22976,
+   "y": 23168,
    "src": "barras_px :=\n    Q := zeros(n_barras, 2)\n    for i in 1:n_barras\n        Q[i, 1] = 230 + barras_xy[i, 1]*esc\n        Q[i, 2] = 175 + barras_xy[i, 2]*esc\n    Q",
    "imprimir": false
   },
@@ -2904,7 +2963,7 @@
    "id": "r200",
    "kind": "program",
    "x": 40,
-   "y": 23168,
+   "y": 23360,
    "src": "estribos_px :=\n    acc := [[ey(0 mm)]]\n    yy := 0 mm\n    while yy < PED_H\n        paso := yy < zp_ef ? sep_est_zp : sep_est\n        yy := yy + paso\n        if yy > PED_H\n            break\n        acc := concat(acc, [[ey(yy)]], 1)\n    return acc",
    "imprimir": false
   },
@@ -2912,7 +2971,7 @@
    "id": "r201",
    "kind": "program",
    "x": 40,
-   "y": 23456,
+   "y": 23648,
    "src": "cu(u) := u <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -2920,7 +2979,7 @@
    "id": "r202",
    "kind": "program",
    "x": 40,
-   "y": 23504,
+   "y": 23696,
    "src": "cdem(f) := f == 0 ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -2928,7 +2987,7 @@
    "id": "r203",
    "kind": "math",
    "x": 40,
-   "y": 23552,
+   "y": 23744,
    "src": "col_barras := (v_cuantia_min and v_cuantia_max and v_rho_sismico) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -2936,7 +2995,7 @@
    "id": "r204",
    "kind": "math",
    "x": 40,
-   "y": 23600,
+   "y": 23792,
    "src": "col_est := (v_Av and v_sep_est and v_db_est and v_sep_conf and v_s_todo and v_s_zp and v_s_libre) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -2944,7 +3003,7 @@
    "id": "r205",
    "kind": "math",
    "x": 40,
-   "y": 23648,
+   "y": 23840,
    "src": "col_anc := u_anclaje <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -2952,7 +3011,7 @@
    "id": "r206",
    "kind": "math",
    "x": 40,
-   "y": 23696,
+   "y": 23888,
    "src": "col_pm := (u_pm <= 1 and u_biax <= 1) ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -2960,7 +3019,7 @@
    "id": "r207",
    "kind": "math",
    "x": 40,
-   "y": 23744,
+   "y": 23936,
    "src": "col_global := v_global ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -2968,7 +3027,7 @@
    "id": "r208",
    "kind": "math",
    "x": 40,
-   "y": 23792,
+   "y": 23984,
    "src": "col_zp := (v_s_zp and v_s_libre and v_razon_hb and u_arm_llave <= 1) ? \"#1a63a8\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -2976,7 +3035,7 @@
    "id": "r_col_llave",
    "kind": "math",
    "x": 40,
-   "y": 23840,
+   "y": 24032,
    "src": "col_llave := h_llave > 0 mm ? (u_arm_llave <= 1 ? \"#1c7c3c\" : \"#c0392b\") : \"none\"",
    "imprimir": false
   },
@@ -2984,7 +3043,7 @@
    "id": "r209",
    "kind": "math",
    "x": 40,
-   "y": 23888,
+   "y": 24080,
    "src": "ey_zp := ey(zp_ef) =",
    "imprimir": false
   },
@@ -2992,7 +3051,7 @@
    "id": "r210",
    "kind": "math",
    "x": 40,
-   "y": 23936,
+   "y": 24128,
    "src": "w_dib := 300",
    "imprimir": false
   },
@@ -3000,7 +3059,7 @@
    "id": "r211",
    "kind": "math",
    "x": 40,
-   "y": 23984,
+   "y": 24176,
    "src": "h_dib := 240",
    "imprimir": false
   },
@@ -3008,7 +3067,7 @@
    "id": "r212",
    "kind": "math",
    "x": 40,
-   "y": 24032,
+   "y": 24224,
    "src": "x0_X := 92",
    "imprimir": false
   },
@@ -3016,7 +3075,7 @@
    "id": "r213",
    "kind": "math",
    "x": 40,
-   "y": 24080,
+   "y": 24272,
    "src": "x0_Y := 482",
    "imprimir": false
   },
@@ -3024,7 +3083,7 @@
    "id": "r214",
    "kind": "math",
    "x": 40,
-   "y": 24128,
+   "y": 24320,
    "src": "y0_pm := 978",
    "imprimir": false
   },
@@ -3032,7 +3091,7 @@
    "id": "r215",
    "kind": "program",
    "x": 40,
-   "y": 24176,
+   "y": 24368,
    "src": "Mmax_de(C) :=\n    n := size(C)[1]\n    mx := 0\n    for i in 1:n\n        if C[i,1] > mx\n            mx := C[i,1]\n    return mx",
    "imprimir": false
   },
@@ -3040,7 +3099,7 @@
    "id": "r216",
    "kind": "math",
    "x": 40,
-   "y": 24416,
+   "y": 24608,
    "src": "M_esc_X := 1.12*max(Mmax_de(curva_X_pos), Mmax_de(curva_X_neg), max(comb[1:6,2])) =",
    "imprimir": false
   },
@@ -3048,7 +3107,7 @@
    "id": "r217",
    "kind": "math",
    "x": 40,
-   "y": 24464,
+   "y": 24656,
    "src": "M_esc_Y := 1.12*max(Mmax_de(curva_Y_pos), Mmax_de(curva_Y_neg), max(comb[1:6,3])) =",
    "imprimir": false
   },
@@ -3056,7 +3115,7 @@
    "id": "r218",
    "kind": "program",
    "x": 40,
-   "y": 24512,
+   "y": 24704,
    "src": "xX_px(M) := x0_X + M/M_esc_X*w_dib",
    "imprimir": false
   },
@@ -3064,7 +3123,7 @@
    "id": "r219",
    "kind": "program",
    "x": 40,
-   "y": 24560,
+   "y": 24752,
    "src": "xY_px(M) := x0_Y + M/M_esc_Y*w_dib",
    "imprimir": false
   },
@@ -3072,7 +3131,7 @@
    "id": "r220",
    "kind": "program",
    "x": 40,
-   "y": 24608,
+   "y": 24800,
    "src": "y_pm_px(P) := y0_pm - (P + Pnt_n)/(Rd_P_n + Pnt_n)*h_dib",
    "imprimir": false
   },
@@ -3080,7 +3139,7 @@
    "id": "r221",
    "kind": "program",
    "x": 40,
-   "y": 24656,
+   "y": 24848,
    "src": "curva_px_de(C, x0, Mesc) :=\n    n := size(C)[1]\n    Q := zeros(n, 2)\n    for i in 1:n\n        Q[i, 1] = x0 + C[i,1]/Mesc*w_dib\n        Q[i, 2] = y_pm_px(C[i,2])\n    Q",
    "imprimir": false
   },
@@ -3088,7 +3147,7 @@
    "id": "r222",
    "kind": "program",
    "x": 40,
-   "y": 24896,
+   "y": 25088,
    "src": "curva_X_pos_px := curva_px_de(curva_X_pos, x0_X, M_esc_X)",
    "imprimir": false
   },
@@ -3096,7 +3155,7 @@
    "id": "r223",
    "kind": "program",
    "x": 40,
-   "y": 24944,
+   "y": 25136,
    "src": "curva_X_neg_px := curva_px_de(curva_X_neg, x0_X, M_esc_X)",
    "imprimir": false
   },
@@ -3104,7 +3163,7 @@
    "id": "r224",
    "kind": "program",
    "x": 40,
-   "y": 24992,
+   "y": 25184,
    "src": "curva_Y_pos_px := curva_px_de(curva_Y_pos, x0_Y, M_esc_Y)",
    "imprimir": false
   },
@@ -3112,7 +3171,7 @@
    "id": "r225",
    "kind": "program",
    "x": 40,
-   "y": 25040,
+   "y": 25232,
    "src": "curva_Y_neg_px := curva_px_de(curva_Y_neg, x0_Y, M_esc_Y)",
    "imprimir": false
   },
@@ -3120,7 +3179,7 @@
    "id": "r226",
    "kind": "program",
    "x": 40,
-   "y": 25088,
+   "y": 25280,
    "src": "pts_dem_X_px :=\n    Q := zeros(6, 3)\n    for i in 1:6\n        Q[i, 1] = xX_px(comb[i,2])\n        Q[i, 2] = y_pm_px(comb[i,1])\n        Q[i, 3] = usos_biax[i] <= 1 ? 0 : 1\n    Q",
    "imprimir": false
   },
@@ -3128,7 +3187,7 @@
    "id": "r227",
    "kind": "program",
    "x": 40,
-   "y": 25328,
+   "y": 25520,
    "src": "pts_dem_Y_px :=\n    Q := zeros(6, 3)\n    for i in 1:6\n        Q[i, 1] = xY_px(comb[i,3])\n        Q[i, 2] = y_pm_px(comb[i,1])\n        Q[i, 3] = usos_biax[i] <= 1 ? 0 : 1\n    Q",
    "imprimir": false
   },
@@ -3136,7 +3195,7 @@
    "id": "r228",
    "kind": "math",
    "x": 40,
-   "y": 25568,
+   "y": 25760,
    "src": "yg_px := y_pm_px(comb[comb_gob,1]) =",
    "imprimir": false
   },
@@ -3144,7 +3203,7 @@
    "id": "r229",
    "kind": "math",
    "x": 40,
-   "y": 25616,
+   "y": 25808,
    "src": "xgX_px := xX_px(comb[comb_gob,2]) =",
    "imprimir": false
   },
@@ -3152,7 +3211,7 @@
    "id": "r230",
    "kind": "math",
    "x": 40,
-   "y": 25664,
+   "y": 25856,
    "src": "xfX_px := xX_px(tabla_pm[comb_gob,2]) =",
    "imprimir": false
   },
@@ -3160,7 +3219,7 @@
    "id": "r231",
    "kind": "math",
    "x": 40,
-   "y": 25712,
+   "y": 25904,
    "src": "xgY_px := xY_px(comb[comb_gob,3]) =",
    "imprimir": false
   },
@@ -3168,7 +3227,7 @@
    "id": "r232",
    "kind": "math",
    "x": 40,
-   "y": 25760,
+   "y": 25952,
    "src": "xfY_px := xY_px(tabla_pm[comb_gob,3]) =",
    "imprimir": false
   },
@@ -3176,7 +3235,7 @@
    "id": "r233",
    "kind": "math",
    "x": 40,
-   "y": 25808,
+   "y": 26000,
    "src": "col_gob := cdem(usos_biax[comb_gob] <= 1 ? 0 : 1)",
    "imprimir": false
   },
@@ -3184,7 +3243,7 @@
    "id": "esquema",
    "kind": "image",
    "x": 40,
-   "y": 25856,
+   "y": 26048,
    "src": "/esquemas/pedestal-generico.svg",
    "w": 720,
    "h": 900

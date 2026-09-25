@@ -259,6 +259,12 @@ function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra,
   const global = instancia.salidas.v_global;
   const veredicto = global === true ? 'CUMPLE' : global === false ? 'NO CUMPLE' : '';
   if (global === false) severidad = peor(severidad, 'error');
+  // Un aviso de la vista no vota en v_global: el nodo sale en ámbar y dice cuál.
+  for (const c of vista?.modelo.chequeos ?? []) {
+    if (!c.aviso || c.cumple) continue;
+    motivos.push(`Aviso: ${c.texto} (${c.valor} ${c.sentido === '<=' ? '>' : '<'} ${c.limite} ${c.unidad}).`);
+    severidad = peor(severidad, 'aviso');
+  }
 
   // Lo que publica va en el subtítulo, como en un nodo de hoja libre: es lo que
   // el resto de la obra puede nombrar, y no verlo obliga a abrir el panel para

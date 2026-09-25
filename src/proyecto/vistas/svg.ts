@@ -129,7 +129,8 @@ const rot = (v: number) => n1(v).replace('.', ',');
 
 export function svgVistas(modelo: ModeloGeometrico, ancho = 680): SvgVistas {
   const { piezas } = modelo;
-  const fallidas = modelo.chequeos.filter((c) => !c.cumple);
+  // Un aviso no vota, y no se pinta en rojo: lo dice la ficha.
+  const fallidas = modelo.chequeos.filter((c) => !c.cumple && !c.aviso);
   // En rojo va la pieza culpable de cada verificación —la primera que nombra—,
   // no la de referencia: con el nervio fuera de la placa, lo que está mal es el
   // nervio, y pintar la placa entera taparía todo lo demás.

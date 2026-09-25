@@ -82,10 +82,11 @@ function chequeo(
   limite: number,
   unidad: string,
   piezas: string[],
+  aviso = false,
 ): Chequeo {
   const v = r1(valor);
   const l = r1(limite);
-  return { id, texto, valor: v, limite: l, sentido, unidad, cumple: sentido === '>=' ? v >= l : v <= l, piezas };
+  return { id, texto, valor: v, limite: l, sentido, unidad, cumple: sentido === '>=' ? v >= l : v <= l, piezas, ...(aviso ? { aviso } : {}) };
 }
 
 /** La base completa, la del Pachón: con silla de nervios y llave en cruz. */
@@ -194,12 +195,10 @@ export function construirBaseColumna(d: Record<string, number>, config: Config =
   // Sin llave, la zona confinada es el lado menor, como el pedestal con h_llave = 0.
   const zpLlave = conLlave ? d.h_sl + (bMin - d.b_sl) / 2 : 0;
   const zp = Math.min(Math.max(bMin, zpLlave), d.H_PED);
+  // El primer estribo, a s1_est de la cara superior; de ahí, al paso de la zona
+  // confinada mientras no se sale de ella y al del fuste después.
   const niveles: number[] = [];
-  for (let z = 0; ; ) {
-    z += z < zp ? d.sep_zp : d.sep_est;
-    if (z > d.H_PED - d.recub_inf) break;
-    niveles.push(r1(-z));
-  }
+  for (let z = d.s1_est; z <= d.H_PED - d.recub_inf; z += z < zp ? d.sep_zp : d.sep_est) niveles.push(r1(-z));
   // Ramas interiores: sobre las barras de las caras, lo más repartidas posible.
   const nInt = Math.max(d.n_ramas - 2, 0);
   const elegir = (cands: number[], lim: number) => {
@@ -414,7 +413,52 @@ export function construirBaseColumna(d: Record<string, number>, config: Config =
       const w = [n[0] - v[0], n[1] - v[1]];
       return (Math.acos((u[0] * w[0] + u[1] * w[1]) / (Math.hypot(u[0], u[1]) * Math.hypot(w[0], w[1]))) * 180) / Math.PI;
     });
-    chequeos.push(chequeo('v_rombo_angulo', 'Ángulo interior del rombo en la barra que apoya (ACI 318-25 §25.7.2.3(a))', Math.max(...angulos), '<=', 135, '°', ['rombo_1']));
+    chequeos.push(chequeo('v_rombo_angulo', 'Ángulo interior del rombo en la barra que apoya (ACI 318-25 §25.7.2.3(a))', Math.max(...angulos), '<=', 135, 'deg', ['rombo_1']));
+  }
+
+  // ACI 318-25 §25.7.2.3(a), y el ICH (Manual de Detallamiento, §5.5 y Fig. 5): ninguna
+  // barra sin apoyo lateral a más de 150 mm libres, a lo largo de la cara, de una que lo
+  // tenga. Tienen apoyo las esquinas del perimetral y las barras de cara que abraza una
+  // rama interior o, en los niveles de cabeza, el rombo.
+  const esquina = ([x, y]: [number, number]) => Math.abs(Math.abs(x) - ax) < tol && Math.abs(Math.abs(y) - ay) < tol;
+  const libreMax = (apoyada: (b: [number, number]) => boolean) => {
+    let peor = 0;
+    let par: string[] = [];
+    const caras: [number, number][][] = [cara(false, -1), cara(true, 1), cara(false, 1), cara(true, -1)];
+    const esquinas = posBarras.filter(esquina);
+    caras.forEach((c, i) => {
+      const eje = i % 2 === 0 ? 0 : 1;
+      // La cara con sus dos esquinas, ordenada a lo largo de ella.
+      const extremos = esquinas.filter(([x, y]) => (eje === 0 ? Math.abs(y - c[0]?.[1]) < tol : Math.abs(x - c[0]?.[0]) < tol));
+      const fila = [...extremos, ...c].sort((a, b) => a[eje] - b[eje]);
+      const conApoyo = fila.filter((b) => esquina(b) || apoyada(b));
+      for (const b of fila) {
+        if (esquina(b) || apoyada(b)) continue;
+        const cerca = conApoyo.reduce((m, a) => Math.min(m, Math.abs(a[eje] - b[eje])), Infinity) - d.db_long;
+        if (cerca > peor) {
+          peor = cerca;
+          par = [`barra_${posBarras.findIndex(([x, y]) => x === b[0] && y === b[1]) + 1}`];
+        }
+      }
+    });
+    return { peor, par };
+  };
+  const enRama = ([x, y]: [number, number]) =>
+    (Math.abs(Math.abs(y) - ay) < tol && ramasX.some((r) => Math.abs(r - x) < tol)) ||
+    (Math.abs(Math.abs(x) - ax) < tol && ramasY.some((r) => Math.abs(r - y) < tol));
+  const normal = libreMax(enRama);
+  chequeos.push(
+    chequeo('v_amarre_150', 'Mayor distancia libre de una barra sin apoyo lateral a la apoyada más cercana, en un nivel con ramas interiores (ACI 318-25 §25.7.2.3(a))',
+      normal.peor, '<=', 150, 'mm', normal.par.length ? normal.par : ['estribo_1']),
+  );
+  if (sinRamas > 0) {
+    const cab = libreMax((b) => barrasRombo.some(([x, y]) => x === b[0] && y === b[1]));
+    chequeos.push(
+      chequeo('v_amarre_150_cab',
+        `Mayor distancia libre de una barra sin apoyo lateral a la apoyada más cercana, en los niveles de cabeza ${conRombo ? 'con el rombo' : 'con solo el perimetral'}: ` +
+          'son amarres adicionales a los obligatorios, así que no vota (ACI 318-25 §25.7.2.3(a))',
+        cab.peor, '<=', 150, 'mm', cab.par.length ? cab.par : ['estribo_1'], true),
+    );
   }
 
   // ── Derivados ────────────────────────────────────────────────────────────
@@ -437,17 +481,46 @@ export function construirBaseColumna(d: Record<string, number>, config: Config =
     unidad: 'mm',
     criterio: conLlave ? 'zona confinada: min(max(lado menor, llave + 45°), altura), como el pedestal' : 'zona confinada sin llave: min(lado menor, altura), como el pedestal',
   });
-  if (conRombo) {
-    // Cada rama del rombo cuenta por su proyección sobre la dirección del corte (⁉️
-    // lectura: ACI 318-25 Fig. R17.5.2.1b(i) admite horquillas inclinadas sin dar factor);
-    // el perimetral, con sus dos ramas.
+  // Estribos a no más de 125 mm de la cara superior: son los que confinan los pernos
+  // (ACI 318-25 §10.7.6.1.5).
+  derivados.push({
+    nombre: 'n_est_cab',
+    valor: niveles.filter((z) => -z <= 125 + 1e-6).length,
+    unidad: '',
+    criterio: 'niveles de estribo a no más de 125 mm de la cara superior, los que confinan los pernos (ACI 318-25 §10.7.6.1.5)',
+  });
+  if (conLlave) {
+    // Ramas por dirección de cada nivel. Cada rama del rombo cuenta por su proyección
+    // sobre la dirección del corte (⁉️ lectura: ACI 318-25 Fig. R17.5.2.1b(i) admite
+    // horquillas inclinadas sin dar factor); el perimetral, con sus dos ramas. Las
+    // ramas interiores paralelas a X resisten el corte en X.
     const proy = (eje: 0 | 1) =>
-      2 + vertices.reduce((s, v, i) => {
-        const w = vertices[(i + 1) % 4];
-        return s + Math.abs(w[eje] - v[eje]) / Math.hypot(w[0] - v[0], w[1] - v[1]);
-      }, 0);
-    derivados.push({ nombre: 'ramas_cab_x', valor: Math.round(proy(0) * 100) / 100, unidad: '', criterio: 'ramas por dirección X de un nivel de cabeza: las 2 del perimetral más la proyección de las 4 del rombo' });
-    derivados.push({ nombre: 'ramas_cab_y', valor: Math.round(proy(1) * 100) / 100, unidad: '', criterio: 'ramas por dirección Y de un nivel de cabeza: las 2 del perimetral más la proyección de las 4 del rombo' });
+      conRombo
+        ? 2 + vertices.reduce((s, v, i) => {
+            const w = vertices[(i + 1) % 4];
+            return s + Math.abs(w[eje] - v[eje]) / Math.hypot(w[0] - v[0], w[1] - v[1]);
+          }, 0)
+        : 2;
+    const cabX = Math.round(proy(0) * 100) / 100;
+    const cabY = Math.round(proy(1) * 100) / 100;
+    const deCab = conRombo ? 'las 2 del perimetral más la proyección de las 4 del rombo' : 'las 2 del perimetral';
+    derivados.push({ nombre: 'ramas_cab_x', valor: cabX, unidad: '', criterio: `ramas por dirección X de un nivel de cabeza: ${deCab}` });
+    derivados.push({ nombre: 'ramas_cab_y', valor: cabY, unidad: '', criterio: `ramas por dirección Y de un nivel de cabeza: ${deCab}` });
+    // Estribos cerrados equivalentes que cortan el sólido de falla de la llave: los
+    // niveles hasta zp_llave, cada uno con las ramas de su dirección menor, a dos
+    // ramas por estribo. Es lo que cuenta la llave (n_est_sl).
+    const nEst = niveles
+      .map((z, k) => ({ z, k }))
+      .filter(({ z }) => -z <= zpLlave + 1e-6)
+      .reduce((s, { k }) => s + (k < sinRamas ? Math.min(cabX, cabY) : 2 + Math.min(ramasX.length, ramasY.length)) / 2, 0);
+    derivados.push({
+      nombre: 'n_est_ll',
+      valor: Math.round(nEst * 100) / 100,
+      unidad: '',
+      criterio: 'estribos cerrados equivalentes en la zona de la llave: los niveles hasta zp_llave, con las ramas de su dirección menor, a dos por estribo',
+    });
+  }
+  if (conRombo) {
     // h_x del nivel de cabeza: la mayor distancia entre barras apoyadas consecutivas
     // a lo largo del perímetro (las esquinas y las del rombo).
     const apoyadas = posBarras.filter(([x, y]) => (Math.abs(Math.abs(x) - ax) < tol && Math.abs(Math.abs(y) - ay) < tol) || barrasRombo.some(([bx, by]) => bx === x && by === y));

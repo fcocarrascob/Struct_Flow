@@ -87,7 +87,7 @@ export default function Vista3D({ modelo }: { modelo: ModeloGeometrico }) {
     if (!div) return;
     const escena = new THREE.Scene();
     escena.background = new THREE.Color(0xf8fafc);
-    const culpables = new Set(modelo.chequeos.filter((c) => !c.cumple).map((c) => c.piezas[0]));
+    const culpables = new Set(modelo.chequeos.filter((c) => !c.cumple && !c.aviso).map((c) => c.piezas[0]));
 
     // Un material por rol (y uno rojo), compartido por todas sus piezas.
     const materiales = new Map<string, THREE.Material>();

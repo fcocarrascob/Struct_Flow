@@ -82,6 +82,11 @@ export interface Chequeo {
   unidad: string;
   cumple: boolean;
   piezas: string[];
+  /**
+   * No vota: dice que el resultado puede no valer, no que la base falle. Queda fuera
+   * de `v_global` y, si no cumple, el nodo sale en aviso y no en error.
+   */
+  aviso?: boolean;
 }
 
 /** Un valor que sale de la geometría, con el criterio con que se obtuvo. */

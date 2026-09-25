@@ -220,15 +220,17 @@ const DATOS = [
     f('H_ped_pb := 1500 mm'),
     t(
       'Supuesto: armadura longitudinal repartida en el perímetro, con estribos cerrados. Es la armadura de anclaje de los ' +
-        'pernos: el pedestal es chico para que sus barras caigan dentro del cono de los pernos, que están dentro del perfil.',
+        'pernos: el pedestal es chico para que sus barras caigan dentro del cono de los pernos, que están dentro del perfil. ' +
+        'El primer estribo va a s1_est_ped de la cara superior.',
     ),
     f('db_long_ped := 25 mm'),
-    f('n_barras_ped := 14'),
+    f('n_barras_ped := 16'),
     f('recub_ped := 60 mm'),
     f('db_est_ped := 10 mm'),
-    f('n_ramas_ped := 2'),
+    f('n_ramas_ped := 4'),
     f('sep_est_ped := 150 mm'),
     f('sep_zp_ped := 100 mm'),
+    f('s1_est_ped := 50 mm'),
     t('Supuesto: la columna rotulada no forma parte del sistema sismorresistente, así que el pedestal no lleva el detallado del §18.7 de ACI 318-25.'),
   ], ROT),
   sec('pedestal', [
@@ -253,7 +255,7 @@ const DATOS = [
     t(
       'Supuesto: armadura longitudinal repartida en el perímetro, con estribos cerrados. Las barras del pedestal son la ' +
         'armadura de anclaje de los pernos: cuentan las que quedan a menos de 0,5·h_ef de la fila traccionada, medido en ' +
-        'planta, y las cuenta la vista geométrica (n_cont_ped).',
+        'planta, y las cuenta la vista geométrica (n_cont_ped). El primer estribo va a s1_est_ped de la cara superior.',
     ),
     f('db_long_ped := 36 mm', MOM),
     f('n_barras_ped := 36', MOM),
@@ -262,6 +264,7 @@ const DATOS = [
     f('n_ramas_ped := 6', MOM),
     f('sep_est_ped := 150 mm', MOM),
     f('sep_zp_ped := 75 mm', MOM),
+    f('s1_est_ped := 50 mm', MOM),
     t(
       'Los casos de sobrerresistencia reemplazan a los de diseño de tracción porque los dominan: más momento con menos ' +
         'compresión, también con el corte por la altura del pedestal. El de momento máximo cubre además el de corte máximo. ' +
@@ -356,8 +359,15 @@ const DATOS = [
           'perimetral— para que la llave no las cruce; cada uno aporta un estribo cerrado en vez de n_ramas/2. La vista ' +
           'geométrica comprueba que las ramas que siguen pasan bajo el fondo de la llave.',
       ),
-      f('n_niv_sin_ramas_ll := 1'),
-      f('n_est_ll := n_ramas_ped/2*(floor(zp_ll/sep_zp_ped) + 1) - (n_ramas_ped/2 - 1)*n_niv_sin_ramas_ll ='),
+      f('n_niv_sin_ramas_ll := 2'),
+      t(
+        'Los niveles sin ramas interiores pueden llevar además un amarre en rombo por las barras centrales de las caras ' +
+          '(amarre_cab_ll = 1; 0 sin él). Es un amarre ADICIONAL a los obligatorios (ACI 318-25 Fig. R25.7.2.3a; ICH, ' +
+          'Manual de Detallamiento, §5.5): no los reemplaza. Cada rama del rombo aporta su proyección a cada dirección, y ' +
+          'los estribos que cortan el sólido de falla de la llave (n_est_ll) los cuenta la vista geométrica sobre los ' +
+          'niveles que dibuja.',
+      ),
+      f('amarre_cab_ll := 1'),
     ],
     'llave',
   ),
@@ -596,7 +606,7 @@ export const PLANTILLA_BASE_COLUMNA: Plantilla = {
         procedencia: 'biblioteca',
         id: 'pedestal-generico',
         entradas: {
-          fy: 420, fyt: 420, lam: 1, sep_libre_top: 50, n_est_cab: 3, malla_sup: 1, frac_E_V: 1, Muy_1: 0, Muy_2: 0,
+          fy: 420, fyt: 420, lam: 1, sep_libre_top: 50, malla_sup: 1, frac_E_V: 1, Muy_1: 0, Muy_2: 0,
           Muy_3: 0, Muy_4: 0, Mux_5: 0, Pu_6: 0, Mux_6: 0, n_pasos_pm: 120, sis_nch2369: 0, sis_aci18: 1, sdc_def: 1,
           cat_III_IV: 0, T_esp: 0, V_esp: 0,
         },
@@ -607,14 +617,18 @@ export const PLANTILLA_BASE_COLUMNA: Plantilla = {
           Mux_4: 'M_p4', h_ef: 'h_ef_pno', n_contables: 'n_cont_ped', T_grupo: 'T_pb', As_req_anc: 'As_req_anc',
           As_req_llave_X: 'As_llx', As_req_llave_Y: 'As_lly', h_llave: 'h_sl_ll', b_llave: 'b_sl_ll', N_trac_max: 'T_ext_dg',
           Pu_5: 'N_t3_cl', Muy_5: 'Muy_ext_cl', Muy_6: 'Muy_int_cl', sep_est_zp: 'sep_zp_ped', n_ramas: 'n_ramas_ped',
-          n_niv_sin_ramas: 'n_niv_sin_ramas_ll',
+          n_niv_sin_ramas: 'n_niv_sin_ramas_ll', ramas_cab_x: 'ramas_cab_x_ped', ramas_cab_y: 'ramas_cab_y_ped',
+          s1_est: 's1_est_ped', n_est_cab: 'n_est_cab_ped',
         },
         publica: { u_max: 'u_ped' },
         capas: [
           {
             si: '!llave',
-            entradas: { h_llave: 0, b_llave: 0, As_req_llave_X: 0, As_req_llave_Y: 0, n_niv_sin_ramas: 0 },
-            formulas: { As_req_llave_X: null, As_req_llave_Y: null, h_llave: null, b_llave: null, n_niv_sin_ramas: null },
+            entradas: { h_llave: 0, b_llave: 0, As_req_llave_X: 0, As_req_llave_Y: 0, n_niv_sin_ramas: 0, ramas_cab_x: 2, ramas_cab_y: 2 },
+            formulas: {
+              As_req_llave_X: null, As_req_llave_Y: null, h_llave: null, b_llave: null, n_niv_sin_ramas: null, ramas_cab_x: null,
+              ramas_cab_y: null,
+            },
           },
           // Sin capacidad: el corte del modelo, y sin los casos del arranque de las diagonales.
           {
@@ -643,9 +657,12 @@ export const PLANTILLA_BASE_COLUMNA: Plantilla = {
           PED_Y: 'PED_L_pb', H_PED: 'H_ped_pb', n_barras: 'n_barras_ped', db_long: 'db_long_ped', recub: 'recub_ped',
           db_est: 'db_est_ped', n_ramas: 'n_ramas_ped', sep_est: 'sep_est_ped', sep_zp: 'sep_zp_ped', ALA_EXT: 'ALA_EXT_sl',
           NER_H: 'NER_H_sl', NER_L: 'NER_L_sl', NER_T: 'NER_T_sl', CH_B: 'CH_B_sl', CH_L: 'CH_L_sl', CH_T: 'CH_T_sl',
-          n_niv_sin_ramas: 'n_niv_sin_ramas_ll',
+          n_niv_sin_ramas: 'n_niv_sin_ramas_ll', amarre_cab: 'amarre_cab_ll', s1_est: 's1_est_ped',
         },
-        publica: { n_cont: 'n_cont_ped', v_global: 'v_geo_base' },
+        publica: {
+          n_cont: 'n_cont_ped', n_est_cab: 'n_est_cab_ped', ramas_cab_x: 'ramas_cab_x_ped', ramas_cab_y: 'ramas_cab_y_ped',
+          n_est_ll: 'n_est_ll', v_global: 'v_geo_base',
+        },
       },
     },
   ],
