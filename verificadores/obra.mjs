@@ -108,6 +108,10 @@ const {
   nombresDefinidos,
   trasladarPosiciones,
   regionQueDefine,
+  evaluateSheet,
+  VISTAS,
+  datosPorDefecto,
+  barrasPerimetro,
 } = motor;
 
 // ── Armar una obra ───────────────────────────────────────────────────────────
@@ -2920,9 +2924,108 @@ const CASOS_COPIA = [
   },
 ];
 
+// ── La vista geométrica de la base de columna ────────────────────────────────
+//
+// El modelo es puro y determinista. Con los datos del Pachón: la silla supuesta
+// no cierra (el nervio extremo cae fuera del ala extendida, de la placa y de la
+// chapa superior, y la luz real entre nervios es mayor que la declarada), y las
+// barras que cuentan como armadura de anclaje son 20: la 33 queda a 984 mm del
+// perno más cercano, más allá de 0,5·h_ef = 975 mm. Cada verificación tiene un
+// caso que la hace fallar sola, salvo `v_gol_estribo`: las barras van por dentro
+// del estribo, así que una placa de apoyo que lo toca toca antes una barra.
+
+const VISTA_BASE = VISTAS['base-columna'];
+const DATOS_BASE = datosPorDefecto(VISTA_BASE.campos);
+const fallanEn = (m) => m.chequeos.filter((c) => !c.cumple).map((c) => c.id).sort().join(',');
+const SILLA_DEL_PACHON = 'v_chapa_nervio,v_luz_nervio,v_nervio_ala,v_nervio_placa';
+/** Una silla que cierra: dos nervios por perno a la luz declarada, sobre un ala y una chapa que los cubren. */
+const SILLA_QUE_CIERRA = { disp_nerv: 2, luz_nerv: 150, NER_T: 16, ALA_EXT: 1150, CH_B: 1150, B_bp: 1300, x_ext: 400, a_tuerca: 90 };
+
+const CASOS_VISTA = [
+  {
+    nombre: 'vista base-columna: con los datos del Pachón, la silla supuesta no cierra y cuentan 20 barras',
+    ok: () => {
+      const m = VISTA_BASE.construir(DATOS_BASE);
+      if (JSON.stringify(m) !== JSON.stringify(VISTA_BASE.construir(DATOS_BASE))) return 'dos corridas dan modelos distintos';
+      const cuenta = (rol) => m.piezas.filter((p) => p.rol === rol).length;
+      if (cuenta('perno') !== 10 || cuenta('golilla') !== 10 || cuenta('barra') !== 36) return `pernos ${cuenta('perno')}, golillas ${cuenta('golilla')}, barras ${cuenta('barra')}`;
+      if (new Set(m.piezas.map((p) => p.id)).size !== m.piezas.length) return 'piezas con el mismo id';
+      const f = fallanEn(m);
+      if (f !== SILLA_DEL_PACHON) return `fallan «${f}»`;
+      const n = m.derivados.find((d) => d.nombre === 'n_cont')?.valor;
+      return n === 20 ? null : `n_cont = ${n}`;
+    },
+  },
+  {
+    nombre: 'vista base-columna: con dos nervios por perno sobre un ala y una chapa que los cubren, cierra todo',
+    ok: () => {
+      const f = fallanEn(VISTA_BASE.construir({ ...DATOS_BASE, ...SILLA_QUE_CIERRA }));
+      return f === '' ? null : `fallan «${f}»`;
+    },
+  },
+  {
+    nombre: 'vista base-columna: reparte las barras exactamente como pedestal-generico',
+    ok: () => {
+      // barras_xy del pedestal, del scope que captura su esquema.
+      const res = evaluateSheet(hojaDe(PEDESTAL));
+      const foto = res.esquema?.scope;
+      const bxy = foto?.barras_xy;
+      if (!bxy) return 'el pedestal no dejó barras_xy en el scope de su esquema';
+      const filas = bxy.toArray ? bxy.toArray() : bxy;
+      const num = (v) => (typeof v === 'number' ? v : v.toNumber('mm'));
+      const n = filas.length;
+      const ax = num(foto.ax_nucleo);
+      const ay = num(foto.ay_nucleo);
+      const nuestras = barrasPerimetro(n, ax, ay);
+      for (let i = 0; i < n; i++) {
+        const [x, y] = filas[i].map((v) => Number(v));
+        if (Math.abs(x - nuestras[i][0]) > 0.1 || Math.abs(y - nuestras[i][1]) > 0.1)
+          return `barra ${i + 1}: pedestal (${x}, ${y}), vista (${nuestras[i][0]}, ${nuestras[i][1]})`;
+      }
+      return null;
+    },
+  },
+  // Cada verificación, rota sola a partir de una base que cierra.
+  ...[
+    ['v_gol_gol', { b_ap: 180, y_t: 700 }],
+    ['v_gol_barra', { y_t: 800 }],
+    ['v_hef_ped', { h_ef: 2000 }],
+    ['v_sep_barras', { n_barras: 60 }],
+    ['v_ramas', { n_ramas: 14 }],
+    ['v_perno_nervio', { a_tuerca: 160 }],
+    ['v_luz_nervio', { disp_nerv: 1, NER_T: 16, x_ext: 480, ALA_EXT: 1500, CH_B: 1500, B_bp: 1500, luz_nerv: 150 }],
+    ['v_chapa_perno', { CH_L: 300 }],
+    ['v_nervio_ala', { ALA_EXT: 900 }],
+    ['v_nervio_placa', { B_bp: 950 }],
+    ['v_chapa_nervio', { CH_B: 950 }],
+    ['v_llave_perno', { y_t: 600 }],
+    ['v_llave_ped', { b_sl: 1380 }],
+  ].map(([id, cambio]) => ({
+    nombre: `vista base-columna: «${id}» falla sola`,
+    ok: () => {
+      const f = fallanEn(VISTA_BASE.construir({ ...DATOS_BASE, ...SILLA_QUE_CIERRA, ...cambio }));
+      return f === id ? null : `fallan «${f}»`;
+    },
+  })),
+];
+
 // ── Correr ───────────────────────────────────────────────────────────────────
 
 let fallos = 0;
+for (const caso of CASOS_VISTA) {
+  let motivo;
+  try {
+    motivo = caso.ok();
+  } catch (e) {
+    motivo = `lanzó: ${e.message}`;
+  }
+  if (motivo) {
+    fallos++;
+    console.log(`  [FALLA] ${caso.nombre}\n          ${motivo}`);
+  } else {
+    console.log(`  [ OK  ] ${caso.nombre}`);
+  }
+}
 for (const caso of CASOS_COPIA) {
   let motivo;
   try {
@@ -3013,6 +3116,6 @@ for (const caso of CASOS) {
   }
 }
 
-const total = CASOS.length + CASOS_COPIA.length + CASOS_SANEO.length + CASOS_HOJA.length + CASOS_CARPETA.length + CASOS_SERVIDOR.length;
+const total = CASOS.length + CASOS_VISTA.length + CASOS_COPIA.length + CASOS_SANEO.length + CASOS_HOJA.length + CASOS_CARPETA.length + CASOS_SERVIDOR.length;
 console.log(`\n${fallos ? 'FALLA' : 'OK'}: ${total - fallos} de ${total} casos.\n`);
 process.exit(fallos ? 1 : 0);
