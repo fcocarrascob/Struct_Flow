@@ -78,9 +78,10 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
       `v_llave_ramas`: 37,5 ≥ 33,3 mm) y estribos φ25; llave 0,918 (manda el aplastamiento),
       pedestal 0,601. Queda: `pedestal-generico` cuenta en su sección 13 todos los niveles de la
       zona con `n_ramas` completas (As_prov 14.726 mm² en vez de 12.763; el uso real es 0,694,
-      no 0,601), le falta la entrada de niveles sin ramas; la base del hastial (`_CV`) se armó
-      antes del cambio y su `n_est_ll` todavía cuenta el nivel 1 completo; y que `n_est_ll` lo
-      derive la vista en vez de la fórmula de la hoja de datos.
+      no 0,601), le falta la entrada de niveles sin ramas; y que `n_est_ll` lo derive la vista
+      en vez de la fórmula de la hoja de datos. La base del hastial (`_CV`) tiene el mismo dato y
+      la misma cuenta desde el mismo día; con 2 ramas por dirección no tiene ramas interiores
+      y sus números no cambiaron.
    5. La hoja de capacidad como variante por norma (NCh2369 para Chile) y las fuerzas de las
       diagonales como externa opcional.
    Lo que salió en el camino:
