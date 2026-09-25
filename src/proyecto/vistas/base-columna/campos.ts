@@ -130,6 +130,12 @@ export const CAMPOS_BASE_COLUMNA: Campo[] = [
     porDefecto: 1,
     supuesto: 'el primer nivel de estribos, que cae en la altura de la llave, va sin ramas interiores',
   }),
+  llave({
+    nombre: 'amarre_cab',
+    unidad: '',
+    descripcion: 'Amarre de los niveles de cabeza sin ramas interiores: 0, solo el perimetral; 1, el perimetral más un rombo por las barras centrales de las caras',
+    porDefecto: 0,
+  }),
 
   // Pedestal
   { nombre: 'PED_X', unidad: 'mm', descripcion: 'Lado del pedestal en X', porDefecto: 1500 },

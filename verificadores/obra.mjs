@@ -3105,6 +3105,22 @@ const CASOS_VISTA = [
       return f === id ? null : `fallan «${f}»`;
     },
   })),
+  {
+    nombre: 'vista base-columna: el rombo de cabeza rodea la llave, cumple el ángulo de 135° y aporta ramas inclinadas',
+    ok: () => {
+      const m0 = VISTA_BASE.construir({ ...DATOS_BASE, ...SILLA_QUE_CIERRA, amarre_cab: 1 });
+      const f = fallanEn(m0);
+      if (f) return `fallan «${f}»`;
+      const ids = m0.chequeos.map((c) => c.id);
+      if (!ids.includes('v_rombo_angulo') || !ids.includes('v_rombo_llave')) return `verificaciones: ${ids.join(', ')}`;
+      if (!m0.piezas.some((p) => p.id === 'rombo_1')) return 'no dibujó el rombo';
+      const rx = m0.derivados.find((x) => x.nombre === 'ramas_cab_x')?.valor;
+      if (!(rx > 2 && rx < 6)) return `ramas_cab_x = ${rx}`;
+      // Sin niveles sin ramas no hay rombo.
+      const m1 = VISTA_BASE.construir({ ...DATOS_BASE, ...SILLA_QUE_CIERRA, amarre_cab: 1, n_niv_sin_ramas: 0 });
+      return m1.piezas.some((p) => p.id === 'rombo_1') ? 'dibujó un rombo sin nivel de cabeza' : null;
+    },
+  },
 
   // ── La configuración: componentes que pueden faltar ──
   {

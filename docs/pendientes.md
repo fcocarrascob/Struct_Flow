@@ -81,7 +81,17 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
       `v_sin_ramas_hx`, que salta en el Pachón: con el §18.7 en juego, en ese nivel las barras
       de la cara quedan sin el apoyo lateral del §18.7.5.2 (⁉️ lectura, por confirmar contra la
       fuente, y decisión de quien diseña). Queda: que `n_est_ll` lo derive la vista en vez de la
-      fórmula de la hoja de datos. La base del hastial (`_CV`) tiene el mismo dato y
+      fórmula de la hoja de datos.
+      **Rombo de cabeza** (probado el 2026-09-25, ACI 318-25 §25.7.2.3, §18.7.5.1 a §18.7.5.3 y
+      R17.5.2.1 leídos): la vista lo dibuja con `amarre_cab = 1` (apagado por defecto) y verifica
+      el ángulo interior ≤ 135° (105,8° en COL_PPALES) y el hueco con la llave (73,3 mm). Aporta
+      4,41 ramas equivalentes en X por nivel (2 solo con el perimetral, 6 con el nivel completo),
+      contando cada rama inclinada por su proyección (⁉️ lectura). Llave: armadura 0,69 → 0,64,
+      pero manda el aplastamiento (0,92). No da el h_x ≤ 350 mm del §18.7.5.2(e) en ese nivel
+      —con un pedestal de 1500×1950 hacen falta más amarres—, y el §18.7.5.1 no dice a qué
+      distancia de la cara va el primer aro: si el nivel de cabeza es un amarre adicional a los
+      obligatorios, el aviso del pedestal sobra. Falta decidir, y llevar el rombo a la hoja de
+      datos (`ramas_cab`) y a `pedestal-generico` (ramas de cabeza en vez de 2 fijas). La base del hastial (`_CV`) tiene el mismo dato y
       la misma cuenta desde el mismo día; con 2 ramas por dirección no tiene ramas interiores
       y sus números no cambiaron.
    5. La hoja de capacidad como variante por norma (NCh2369 para Chile) y las fuerzas de las

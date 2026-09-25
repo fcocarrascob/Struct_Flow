@@ -220,6 +220,34 @@ export function construirBaseColumna(d: Record<string, number>, config: Config =
   });
   piezas.push(...ramas);
 
+  // En los niveles de cabeza sin ramas interiores puede ir un amarre en ROMBO,
+  // superpuesto al perimetral (ACI 318-25 Fig. R25.7.2.3a): apoya la barra central de
+  // cada cara y rodea la llave en cruz sin cruzarla. Sus vértices son esas barras, con
+  // el eje del amarre por fuera de ellas.
+  const conRombo = sinRamas > 0 && (d.amarre_cab ?? 0) >= 1;
+  const rb = d.db_long / 2 + re;
+  const centroDe = (cara: [number, number][], eje: 0 | 1) => cara.reduce((a, b) => (Math.abs(b[eje]) < Math.abs(a[eje]) ? b : a));
+  const cara = (enX: boolean, signo: 1 | -1) =>
+    posBarras.filter(([x, y]) =>
+      enX ? Math.abs(x - signo * ax) < tol && Math.abs(Math.abs(y) - ay) > tol : Math.abs(y - signo * ay) < tol && Math.abs(Math.abs(x) - ax) > tol,
+    );
+  const vertices: [number, number][] = [];
+  const barrasRombo: [number, number][] = [];
+  if (conRombo) {
+    const arriba = centroDe(cara(false, 1), 0);
+    const derecha = centroDe(cara(true, 1), 1);
+    const abajo = centroDe(cara(false, -1), 0);
+    const izquierda = centroDe(cara(true, -1), 1);
+    barrasRombo.push(arriba, derecha, abajo, izquierda);
+    vertices.push(
+      [r1(arriba[0]), r1(arriba[1] + rb)],
+      [r1(derecha[0] + rb), r1(derecha[1])],
+      [r1(abajo[0]), r1(abajo[1] - rb)],
+      [r1(izquierda[0] - rb), r1(izquierda[1])],
+    );
+    niveles.slice(0, sinRamas).forEach((z, k) => piezas.push({ tipo: 'lazo', id: `rombo_${k + 1}`, rol: 'estribo', puntos: vertices, z, r: r1(re) }));
+  }
+
   // ── Verificaciones ───────────────────────────────────────────────────────
   // Hueco para que pase el hormigón: se lee como el §25.2.1 de ACI 318-25 para
   // barras, 25 mm y 4/3 del árido (⁉️ lectura: la placa embebida no es una barra).
@@ -352,6 +380,30 @@ export function construirBaseColumna(d: Record<string, number>, config: Config =
     if (Number.isFinite(minLR)) {
       chequeos.push(chequeo('v_llave_ramas', 'Hueco libre entre el fondo de la llave y la rama interior de estribo que la cruza en planta', minLR, '>=', hueco, 'mm', parLR));
     }
+    if (conRombo) {
+      // Las ramas del rombo, en planta, lejos de las chapas de la llave.
+      let minRL = Infinity;
+      for (let i = 0; i < 4; i++) {
+        const [a, b] = [vertices[i], vertices[(i + 1) % 4]];
+        for (let s = 0; s <= 200; s++) {
+          const px = a[0] + ((b[0] - a[0]) * s) / 200;
+          const py = a[1] + ((b[1] - a[1]) * s) / 200;
+          for (const l of llaves) minRL = Math.min(minRL, distPuntoRect(px, py, l.x0, l.x1, l.y0, l.y1) - re);
+        }
+      }
+      chequeos.push(chequeo('v_rombo_llave', 'Hueco libre en planta entre las ramas del rombo y la llave', minRL, '>=', hueco, 'mm', ['rombo_1', 'llave_x']));
+    }
+  }
+  if (conRombo) {
+    // ACI 318-25 §25.7.2.3(a): el ángulo interior del amarre en cada barra que apoya.
+    const angulos = vertices.map((v, i) => {
+      const p = vertices[(i + 3) % 4];
+      const n = vertices[(i + 1) % 4];
+      const u = [p[0] - v[0], p[1] - v[1]];
+      const w = [n[0] - v[0], n[1] - v[1]];
+      return (Math.acos((u[0] * w[0] + u[1] * w[1]) / (Math.hypot(u[0], u[1]) * Math.hypot(w[0], w[1]))) * 180) / Math.PI;
+    });
+    chequeos.push(chequeo('v_rombo_angulo', 'Ángulo interior del rombo en la barra que apoya (ACI 318-25 §25.7.2.3(a))', Math.max(...angulos), '<=', 135, '°', ['rombo_1']));
   }
 
   // ── Derivados ────────────────────────────────────────────────────────────
@@ -374,6 +426,24 @@ export function construirBaseColumna(d: Record<string, number>, config: Config =
     unidad: 'mm',
     criterio: conLlave ? 'zona confinada: min(max(lado menor, llave + 45°), altura), como el pedestal' : 'zona confinada sin llave: min(lado menor, altura), como el pedestal',
   });
+  if (conRombo) {
+    // Cada rama del rombo cuenta por su proyección sobre la dirección del corte (⁉️
+    // lectura: ACI 318-25 Fig. R17.5.2.1b(i) admite horquillas inclinadas sin dar factor);
+    // el perimetral, con sus dos ramas.
+    const proy = (eje: 0 | 1) =>
+      2 + vertices.reduce((s, v, i) => {
+        const w = vertices[(i + 1) % 4];
+        return s + Math.abs(w[eje] - v[eje]) / Math.hypot(w[0] - v[0], w[1] - v[1]);
+      }, 0);
+    derivados.push({ nombre: 'ramas_cab_x', valor: Math.round(proy(0) * 100) / 100, unidad: '', criterio: 'ramas por dirección X de un nivel de cabeza: las 2 del perimetral más la proyección de las 4 del rombo' });
+    derivados.push({ nombre: 'ramas_cab_y', valor: Math.round(proy(1) * 100) / 100, unidad: '', criterio: 'ramas por dirección Y de un nivel de cabeza: las 2 del perimetral más la proyección de las 4 del rombo' });
+    // h_x del nivel de cabeza: la mayor distancia entre barras apoyadas consecutivas
+    // a lo largo del perímetro (las esquinas y las del rombo).
+    const apoyadas = posBarras.filter(([x, y]) => (Math.abs(Math.abs(x) - ax) < tol && Math.abs(Math.abs(y) - ay) < tol) || barrasRombo.some(([bx, by]) => bx === x && by === y));
+    const orden = apoyadas.map(([x, y]) => ({ x, y, s: posBarras.findIndex(([bx, by]) => bx === x && by === y) })).sort((a, b) => a.s - b.s);
+    const hx = orden.reduce((m, p, i) => Math.max(m, Math.hypot(orden[(i + 1) % orden.length].x - p.x, orden[(i + 1) % orden.length].y - p.y)), 0);
+    derivados.push({ nombre: 'hx_cab', valor: r1(hx), unidad: 'mm', criterio: 'mayor distancia entre barras apoyadas consecutivas en un nivel de cabeza con rombo (ACI 318-25 §18.7.5.2(e) pide no más de 350 mm)' });
+  }
   if (conLlave) {
     derivados.push({ nombre: 'zp_llave', valor: r1(zpLlave), unidad: 'mm', criterio: 'altura de la llave más la proyección a 45° desde su pie hasta la cara' });
   }
