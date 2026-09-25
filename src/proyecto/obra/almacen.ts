@@ -44,6 +44,9 @@ import {
   type LecturaModal,
   type LecturaBasal,
   type FilaBasal,
+  type LecturaApoyos,
+  type ApoyoLeido,
+  type ReaccionesDeCaso,
   type ModoLeido,
   type TerminoCombinacion,
   type FuenteMasa,
@@ -298,6 +301,7 @@ function sanearSap(crudo: unknown): { sap?: ConexionSap } {
   const combinaciones = sanearCombinaciones(s.combinaciones);
   const modal = sanearModal(s.modal);
   const basal = sanearBasal(s.basal);
+  const apoyos = sanearApoyos(s.apoyos);
   return {
     sap: {
       modelo: s.modelo,
@@ -314,8 +318,44 @@ function sanearSap(crudo: unknown): { sap?: ConexionSap } {
       ...(combinaciones ? { combinaciones } : {}),
       ...(modal ? { modal } : {}),
       ...(basal ? { basal } : {}),
+      ...(apoyos ? { apoyos } : {}),
     },
   };
+}
+
+/**
+ * Una lectura de reacciones en apoyos. Sin sello se descarta entera. Un apoyo
+ * sin nombre, o un caso sin nombre, también; una fila que no son seis números
+ * queda en `null`, para no correr las demás de su apoyo.
+ */
+function sanearApoyos(crudo: unknown): LecturaApoyos | undefined {
+  if (typeof crudo !== 'object' || crudo === null) return undefined;
+  const l = crudo as Partial<LecturaApoyos>;
+  if (!Array.isArray(l.apoyos) || !Array.isArray(l.casos)) return undefined;
+  if (typeof l.modificado !== 'string' || !l.modificado) return undefined;
+  // Un apoyo sin nombre se descarta, y con él su columna en cada caso.
+  const quedan: number[] = [];
+  const apoyos: ApoyoLeido[] = [];
+  l.apoyos.forEach((x, i) => {
+    const a = (x ?? {}) as Partial<ApoyoLeido>;
+    if (typeof a.nombre !== 'string' || !a.nombre) return;
+    quedan.push(i);
+    const xyz = Array.isArray(a.xyz) && a.xyz.length === 3 && a.xyz.every(esNumero) ? { xyz: a.xyz as [number, number, number] } : {};
+    apoyos.push({ nombre: a.nombre, ...xyz });
+  });
+  const casos: ReaccionesDeCaso[] = [];
+  for (const x of l.casos) {
+    const c = (x ?? {}) as Partial<ReaccionesDeCaso>;
+    if (typeof c.caso !== 'string' || !c.caso || !Array.isArray(c.valores)) continue;
+    const fuente = c.valores;
+    const valores = quedan.map((i) => {
+      const v = fuente[i];
+      return Array.isArray(v) && v.length === 6 && v.every(esNumero) ? (v as ReaccionesDeCaso['valores'][number]) : null;
+    });
+    casos.push({ caso: c.caso, ...(typeof c.paso === 'string' && c.paso ? { paso: c.paso } : {}), valores });
+  }
+  const sinAnalizar = Array.isArray(l.sinAnalizar) ? l.sinAnalizar.filter((c): c is string => typeof c === 'string') : [];
+  return { modelo: texto(l.modelo), leido: texto(l.leido), modificado: l.modificado, apoyos, casos, sinAnalizar };
 }
 
 /**

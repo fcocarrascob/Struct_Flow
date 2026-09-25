@@ -237,11 +237,34 @@ que devolverlo con sus datos.
   la reacción de cada caso podría contar dos veces el peso propio, según la fuente de masa, y un
   número dudoso ahí es peor que ninguno.
 
+- **Reacciones en apoyos** (`sap:apoyos`), para placas base, pedestales y fundaciones. Son
+  apoyos los nudos restringidos o con resorte, y cualquiera con reacción en algún caso (un link
+  a tierra). **Paso 1, hecho: por caso.**
+  - El panel muestra, por caso, qué apoyo se lleva la mayor compresión, tracción, corte y
+    momento.
+  - La tabla ancha muestra todos los apoyos de un caso, con ubicación, las seis componentes y V.
+    Se ordena por columna y la suma de F3 queda al pie.
+  - **El signo de F3 se dice con palabras**: positiva es compresión sobre la fundación, negativa
+    es tracción.
+  - Un espectro da máximos sin signo y no se le atribuye tracción.
+  - Si la basal está leída, la suma de F3 de cada caso estático tiene que ser su FZ. Si no lo
+    es, falta un apoyo en la lectura, y el nodo avisa.
+
+  **Paso 2: conjuntos de diseño.** El ingeniero arma conjuntos con nombre a partir de las
+  **familias** de combinaciones («Hormigón (LRFD)» = B21…B27, «Estabilidad» = SERV…). Para cada
+  apoyo, Flow da las combinaciones que gobiernan (compresión, tracción, corte, momento) con
+  sus valores **concurrentes**. Una combinación con espectro o envolvente no tiene
+  concurrentes: SAP da máximo y mínimo por componente, y la tabla tiene que decirlo, no
+  inventar la concurrencia. Los conjuntos son decisión del ingeniero y van en la obra, con
+  historial; la lectura se guarda resumida.
+
+  **Paso 3:** agrupar los apoyos por grupo de SAP (una placa por grupo) y publicar.
+
 Lo que sigue en esta línea, de a uno:
-- que el modal y la reacción basal publiquen nombres (Tx, Ty, Vx, Vy) para que las hojas los
-  usen en vez de copiarlos;
-- las reacciones por apoyo (para fundaciones y placas base) y los esfuerzos, con el mismo
-  patrón;
+- los conjuntos de diseño de los apoyos (paso 2, arriba);
+- que el modal, la basal y los apoyos publiquen nombres (Tx, Ty, Vx, Vy, las gobernantes) para
+  que las hojas los usen en vez de copiarlos;
+- los esfuerzos, con el mismo patrón;
 - la **justificación de las combinaciones** (etapa 6).
 
 ## Una obra parte de otra

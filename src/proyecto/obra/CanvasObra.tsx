@@ -67,6 +67,8 @@ import PanelSap, { LECTURAS_DEL_NODO_SAP, type PestanaSap } from './PanelSap';
 import PanelCombinaciones from './PanelCombinaciones';
 import PanelModal from './PanelModal';
 import PanelBasal from './PanelBasal';
+import PanelApoyos from './PanelApoyos';
+import TablaApoyos from './TablaApoyos';
 import TablaCombinaciones from './TablaCombinaciones';
 import { firmaDe } from './sap-cargas';
 import IconoClase from './IconoClase';
@@ -78,6 +80,7 @@ import PanelCalculo from './PanelCalculo';
 import {
   calculoDeNodo,
   ID_DE_MODULO,
+  ID_NODO_APOYOS,
   ID_NODO_BASAL,
   ID_NODO_COMBINACIONES,
   ID_NODO_MODAL,
@@ -187,7 +190,10 @@ function sinChocarConLaObra(hoja: Region[], obra: Obra, idNodo: string): Region[
 const MODULO_DE_ID = new Map(Object.entries(ID_DE_MODULO).map(([m, id]) => [id as string, m as Modulo]));
 
 /** El título de la pestaña de un nodo que no es una hoja. */
-const TITULO_PESTANA: Record<string, string> = { [ID_NODO_COMBINACIONES]: 'Combinaciones' };
+const TITULO_PESTANA: Record<string, string> = {
+  [ID_NODO_COMBINACIONES]: 'Combinaciones',
+  [ID_NODO_APOYOS]: 'Reacciones en apoyos',
+};
 
 /** ¿Ese nodo del grafo sigue existiendo en el documento? */
 function existeNodo(obra: Obra | null, idNodo: string): boolean {
@@ -305,6 +311,8 @@ function CanvasObra({
   // El filtro de familia de la tabla de combinaciones: lo fija también el panel,
   // al pulsar una familia, y la tabla se abre ya filtrada.
   const [familiaCombinaciones, setFamiliaCombinaciones] = useState<string | null>(null);
+  // Lo mismo para el caso de la tabla de apoyos: el panel lo fija al pulsar un caso.
+  const [casoApoyos, setCasoApoyos] = useState<string | null>(null);
   /** El nodo bajo el puntero: da la misma vista del trazo que seleccionar, sin
    *  abrir el panel. Solo cuenta mientras no hay nada seleccionado. */
   const [bajoPuntero, setBajoPuntero] = useState<string | null>(null);
@@ -1593,6 +1601,19 @@ function CanvasObra({
           />
         </div>
       )}
+      {activa === ID_NODO_APOYOS && obra.sap?.apoyos && (
+        <div className="min-h-0 flex-1">
+          <TablaApoyos
+            lectura={obra.sap.apoyos}
+            unidades={obra.unidadesSap ?? 'kN'}
+            caso={casoApoyos}
+            onCaso={setCasoApoyos}
+          />
+        </div>
+      )}
+      {activa === ID_NODO_APOYOS && !obra.sap?.apoyos && (
+        <p className="p-6 text-sm text-muted">Las reacciones todavía no se leyeron. Léelas desde el nodo.</p>
+      )}
       {activa === ID_NODO_COMBINACIONES && !obra.sap?.combinaciones && (
         <p className="p-6 text-sm text-muted">Las combinaciones todavía no se leyeron. Léelas desde el nodo.</p>
       )}
@@ -1737,6 +1758,38 @@ function CanvasObra({
               },
             }}
             onQuitarJustificacion={(id) => setObra((o) => (o ? quitarJustificacion(o, id) : o))}
+            onCerrar={() => setSeleccion(null)}
+          />
+        )}
+
+        {!activa && seleccion === ID_NODO_APOYOS && obra.modulos.includes('sap-apoyos') && (
+          <PanelApoyos
+            sap={obra.sap}
+            unidades={obra.unidadesSap ?? 'kN'}
+            onUnidades={(u) =>
+              setObra((o) => {
+                if (!o) return o;
+                const { unidadesSap: _, ...resto } = o;
+                return u === 'tonf' ? { ...resto, unidadesSap: u } : resto;
+              })
+            }
+            onLeido={(apoyos) =>
+              setObra((o) =>
+                o?.sap
+                  ? { ...o, sap: { ...o.sap, apoyos, ...(apoyos.modificado ? { modificado: apoyos.modificado } : {}) } }
+                  : o,
+              )
+            }
+            onAbrirTabla={(caso) => {
+              if (caso) setCasoApoyos(caso);
+              abrirPestana(ID_NODO_APOYOS);
+            }}
+            onQuitar={() => {
+              const o = obraRef.current;
+              if (o) setObra(quitarModulo(o, 'sap-apoyos'));
+              cerrarPestana(ID_NODO_APOYOS);
+              setSeleccion(null);
+            }}
             onCerrar={() => setSeleccion(null)}
           />
         )}

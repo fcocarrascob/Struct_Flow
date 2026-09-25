@@ -35,6 +35,8 @@ Rutas:
                          uz, rz, sux, suy, suz}]}   o 409 si el caso no está analizado
     GET  /basal      -> {modelo, ruta, modificado, filas: [{caso, paso?, fx, fy, fz, mx,
                          my, mz}], sinAnalizar}   (kN, kN·m; sin el caso modal)
+    GET  /apoyos     -> {modelo, ruta, modificado, apoyos: [{nombre, xyz}], casos: [{caso,
+                         paso?, valores: [[F1..M3] por apoyo]}], sinAnalizar}
     POST /aplicaciones/leer {aplicaciones} -> la carga de cada patrón sobre su grupo
                      (POST solo porque la lista viaja en el cuerpo: no modifica nada)
 
@@ -725,6 +727,83 @@ def basal():
     return {"modelo": nombre, "ruta": ruta, "modificado": _modificado(ruta), "filas": filas, "sinAnalizar": sin_analizar}
 
 
+# ── Resultados: las reacciones en los apoyos ─────────────────────────────────
+
+COMPONENTES_REACCION = ("F1", "F2", "F3", "M1", "M2", "M3")
+
+
+def _casos_de_resultados(modelo):
+    """Los casos cuyos resultados se leen: analizados y no modales. Y los que no."""
+    tipos = _enum("eLoadCaseType_")
+    estados = _estados(modelo)
+    pedidos, sin_analizar = [], []
+    for c in _nombres(modelo.LoadCases, "la lista de casos"):
+        r = modelo.LoadCases.GetTypeOAPI_1(c)
+        if r[-1] == 0 and tipos.get(r[0]) == "Modal":
+            continue
+        (pedidos if estados.get(c) == "analizado" else sin_analizar).append(c)
+    if not pedidos:
+        raise ErrorPuente(409, "Ningún caso está analizado. Analiza el modelo en SAP2000 y vuelve a leer.")
+    return pedidos, sin_analizar
+
+
+def _es_apoyo(modelo, nudo):
+    """Un nudo con algún grado restringido o con un resorte."""
+    restr, ret = modelo.PointObj.GetRestraint(nudo)
+    if ret == 0 and any(restr or []):
+        return True
+    r = modelo.PointObj.GetSpring(nudo)
+    return r[-1] == 0 and any(abs(k) > 0 for k in (r[0] or []))
+
+
+def apoyos():
+    """Las reacciones en los apoyos, por caso, en kN y kN·m. Solo lee.
+
+    Son apoyos los nudos restringidos o con resorte, y además cualquiera con
+    reacción en algún caso (un link a tierra). Las reacciones van en los ejes
+    locales del nudo, que en un apoyo corriente son los globales. Un espectro
+    reporta máximos (`Max`), sin signo.
+    """
+    modelo, ruta, nombre = _modelo_guardado()
+    pedidos, sin_analizar = _casos_de_resultados(modelo)
+    with _EnKnM(modelo):
+        with _SalidaSolo(modelo, pedidos):
+            r = modelo.Results.JointReact("ALL", 2)  # eItemTypeElm.GroupElm
+            if r[-1] != 0:
+                raise ErrorPuente(502, "SAP2000 no entregó las reacciones en los nudos.")
+        n, objs, _, casos, pasos = r[:5]
+        comps = r[6:12]
+        por_nudo = {}
+        for i in range(n or 0):
+            por_nudo.setdefault(str(objs[i]), []).append(i)
+        nudos = [k for k, filas in por_nudo.items()
+                 if any(abs(c[i]) > 1e-9 for i in filas for c in comps) or _es_apoyo(modelo, k)]
+        coords = {}
+        for k in nudos:
+            x, y, z, ret = modelo.PointObj.GetCoordCartesian(k)
+            coords[k] = [_num(x), _num(y), _num(z)] if ret == 0 else None
+    # Por caso, una fila de 6 valores por apoyo, en el orden de `apoyos`.
+    orden = {k: j for j, k in enumerate(nudos)}
+    lecturas = {}
+    for i in range(n or 0):
+        k = str(objs[i])
+        if k not in orden:
+            continue
+        caso = str(casos[i])
+        entrada = lecturas.setdefault(caso, {"caso": caso, "valores": [None] * len(nudos)})
+        if pasos[i]:
+            entrada["paso"] = str(pasos[i])
+        entrada["valores"][orden[k]] = [_num(c[i]) for c in comps]
+    return {
+        "modelo": nombre,
+        "ruta": ruta,
+        "modificado": _modificado(ruta),
+        "apoyos": [{"nombre": k, "xyz": coords[k]} for k in nudos],
+        "casos": [lecturas[c] for c in pedidos if c in lecturas],
+        "sinAnalizar": sin_analizar,
+    }
+
+
 class Manejador(BaseHTTPRequestHandler):
     def _responder(self, codigo, cuerpo):
         datos = json.dumps(cuerpo, ensure_ascii=False).encode("utf-8")
@@ -798,6 +877,7 @@ class Manejador(BaseHTTPRequestHandler):
             "/combinaciones": combinaciones,
             "/modal": lambda: modal(self._query().get("caso", "")),
             "/basal": basal,
+            "/apoyos": apoyos,
         })
 
     def _query(self):

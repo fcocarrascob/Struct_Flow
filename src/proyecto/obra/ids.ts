@@ -13,6 +13,7 @@ export const ID_NODO_SAP = 'sap';
 export const ID_NODO_COMBINACIONES = 'sap:combinaciones';
 export const ID_NODO_MODAL = 'sap:modal';
 export const ID_NODO_BASAL = 'sap:basal';
+export const ID_NODO_APOYOS = 'sap:apoyos';
 
 /** El id del nodo de cada módulo de la obra. */
 export const ID_DE_MODULO = {
@@ -20,6 +21,7 @@ export const ID_DE_MODULO = {
   'sap-combinaciones': ID_NODO_COMBINACIONES,
   'sap-modal': ID_NODO_MODAL,
   'sap-basal': ID_NODO_BASAL,
+  'sap-apoyos': ID_NODO_APOYOS,
 } as const;
 
 const PREFIJO_CALCULO = 'calculo:';

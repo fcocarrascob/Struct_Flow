@@ -229,14 +229,14 @@ export const COLOR_RE = /^#[0-9a-f]{6}$/i;
  * Los nodos únicos que el usuario agregó desde la paleta. Un cálculo no vive
  * aquí sino en su propia lista: puede haber tantos como la obra necesite.
  */
-export type Modulo = 'sap' | 'sap-combinaciones' | 'sap-modal' | 'sap-basal';
+export type Modulo = 'sap' | 'sap-combinaciones' | 'sap-modal' | 'sap-basal' | 'sap-apoyos';
 
 /**
  * Los sub-nodos del SAP2000: cuelgan de él en el grafo y leen del mismo modelo.
  * Uno por tema —las combinaciones, y después los resultados—, cada uno con su
  * panel y su lectura dentro de `obra.sap`. Sin el SAP2000 no tienen sentido.
  */
-export const SUBMODULOS_SAP: readonly Modulo[] = ['sap-combinaciones', 'sap-modal', 'sap-basal'];
+export const SUBMODULOS_SAP: readonly Modulo[] = ['sap-combinaciones', 'sap-modal', 'sap-basal', 'sap-apoyos'];
 
 /**
  * Lo último que el nodo SAP2000 leyó del modelo abierto, por el puente de Flow
@@ -278,6 +278,38 @@ export interface ConexionSap {
   modal?: LecturaModal;
   /** La última lectura de la reacción basal (la del sub-nodo Reacción basal). */
   basal?: LecturaBasal;
+  /** La última lectura de las reacciones en los apoyos (la del sub-nodo Apoyos). */
+  apoyos?: LecturaApoyos;
+}
+
+/** Un apoyo: el nudo y dónde está, en m. */
+export interface ApoyoLeido {
+  nombre: string;
+  xyz?: [number, number, number];
+}
+
+/**
+ * Las reacciones de un caso en todos los apoyos: una fila de seis valores
+ * (F1, F2, F3 en kN; M1, M2, M3 en kN·m, ejes del nudo) por apoyo, en el orden
+ * de `LecturaApoyos.apoyos`. `null` si SAP no dio ese apoyo en ese caso.
+ */
+export interface ReaccionesDeCaso {
+  caso: string;
+  /** `Max` en un espectro: los valores son máximos sin signo. */
+  paso?: string;
+  valores: ([number, number, number, number, number, number] | null)[];
+}
+
+/** Una lectura de resultados, con el sello del modelo como la modal y la basal. */
+export interface LecturaApoyos {
+  modelo: string;
+  /** ISO. */
+  leido: string;
+  /** ISO: la fecha del `.sdb` al leer. */
+  modificado: string;
+  apoyos: ApoyoLeido[];
+  casos: ReaccionesDeCaso[];
+  sinAnalizar: string[];
 }
 
 /** La reacción en la base de un caso, en kN y kN·m, ejes globales. */

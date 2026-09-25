@@ -26,7 +26,8 @@ import { peor, type AristaGrafo, type NodoGrafo, type Severidad } from '../grafo
 import { quedoAtras, type Genericas } from './biblioteca';
 import { mensajeDeMotor } from '../../components/canvas/mensajes-motor';
 import { problemaDeGrafo, type EvaluacionObra } from './evaluacion';
-import { ID_NODO_BASAL, ID_NODO_COMBINACIONES, ID_NODO_MODAL, ID_NODO_SAP, idNodoDeCalculo } from './ids';
+import { ID_NODO_APOYOS, ID_NODO_BASAL, ID_NODO_COMBINACIONES, ID_NODO_MODAL, ID_NODO_SAP, idNodoDeCalculo } from './ids';
+import { casosConTraccion, descuadresConBasal } from './sap-apoyos';
 import { cortesSismicos, fuerza, gravitacionalesConHorizontal } from './sap-basal';
 import { atrasoDe, MASA_MINIMA, porcentaje, resumenModal, segundos } from './sap-modal';
 import { grupoPorId, type Grupo, type NodoCalculo, type Obra, type Revision } from './modelo';
@@ -356,6 +357,33 @@ function nodoBasal(obra: Obra): NodoDeObra {
   });
 }
 
+/**
+ * El sub-nodo Apoyos: cuántos apoyos y casos hay, y en cuántos casos algún apoyo
+ * tracciona. En aviso si la lectura quedó atrasada o si la suma de F3 de un caso
+ * no es la FZ de su reacción basal: falta algún apoyo.
+ */
+function nodoApoyos(obra: Obra): NodoDeObra {
+  const lectura = obra.sap?.apoyos;
+  const base = { id: ID_NODO_APOYOS, tipo: 'modelo', clase: 'resultado' as const, etiqueta: 'Reacciones en apoyos' };
+  if (!lectura) return nodo({ ...base, subtitulo: 'sin leer' });
+  const motivos: string[] = [];
+  const atraso = atrasoDe(lectura, obra.sap);
+  if (atraso) motivos.push(`Lectura atrasada: ${atraso}. Vuelve a leer.`);
+  const noCuadran = descuadresConBasal(lectura, obra.sap?.basal);
+  if (noCuadran.length) {
+    motivos.push(`${noCuadran.join(', ')}: la suma de F3 en los apoyos no es la FZ de la reacción basal.`);
+  }
+  const traccionan = casosConTraccion(lectura).length;
+  return nodo({
+    ...base,
+    subtitulo:
+      `${lectura.apoyos.length} apoyos · ${lectura.casos.length} casos\n` +
+      (traccionan ? `tracción en ${traccionan} caso${traccionan === 1 ? '' : 's'}` : 'sin tracción en ningún caso'),
+    severidad: motivos.length ? 'aviso' : 'ok',
+    motivos,
+  });
+}
+
 export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas = {}): Proyeccion {
   const nodos: NodoDeObra[] = [];
   const aristas: AristaGrafo[] = [];
@@ -405,6 +433,10 @@ export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas =
     if (obra.modulos.includes('sap-basal')) {
       nodos.push(nodoBasal(obra));
       aristas.push({ desde: ID_NODO_SAP, hasta: ID_NODO_BASAL, tipo: 'deriva', etiqueta: '', severidad: 'ok' });
+    }
+    if (obra.modulos.includes('sap-apoyos')) {
+      nodos.push(nodoApoyos(obra));
+      aristas.push({ desde: ID_NODO_SAP, hasta: ID_NODO_APOYOS, tipo: 'deriva', etiqueta: '', severidad: 'ok' });
     }
     if (obra.modulos.includes('sap-modal')) {
       nodos.push(nodoModal(obra));

@@ -52,6 +52,13 @@ const ENTRADAS: Entrada[] = [
     requiere: 'sap',
   },
   {
+    clave: 'sap-apoyos',
+    titulo: 'SAP2000 · Reacciones en apoyos',
+    detalle: 'lo que llega a cada apoyo, por caso (exige el modelo analizado)',
+    unico: true,
+    requiere: 'sap',
+  },
+  {
     clave: 'calculo',
     titulo: 'Cálculo',
     detalle: 'una planilla genérica de la biblioteca, instanciada',
@@ -65,7 +72,7 @@ const ENTRADAS: Entrada[] = [
   },
 ];
 
-const POR_VENIR = ['más resultados de SAP2000 (reacciones por apoyo, esfuerzos)', 'Documento'];
+const POR_VENIR = ['esfuerzos de SAP2000', 'Documento'];
 
 export default function PaletaNodos({
   puestos,

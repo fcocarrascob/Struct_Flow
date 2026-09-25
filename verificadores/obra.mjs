@@ -86,6 +86,9 @@ const {
   cortesSismicos,
   gravitacionalesConHorizontal,
   fuerza,
+  extremosPorCaso,
+  casosConTraccion,
+  descuadresConBasal,
   obraDesde,
   traerNodos,
   dependenciasDe,
@@ -307,6 +310,19 @@ const SAP_BASAL = {
     { nombre: 'RSX', modal: 'MODAL', combinacion: 'CQC', amortiguamiento: 0.05, cargas: [{ dir: 'U1', funcion: 'F', sf: 1.96, csys: 'GLOBAL', angulo: 0 }] },
     { nombre: 'RSY', modal: 'MODAL', combinacion: 'CQC', amortiguamiento: 0.05, cargas: [{ dir: 'U2', funcion: 'F', sf: 1.4, csys: 'GLOBAL', angulo: 0 }] },
   ] },
+};
+
+// Tres apoyos y tres casos, con la forma que entrega el puente: CM comprime
+// todo (y suma la FZ basal de CM), WXP levanta el nudo 7, RSY es un espectro.
+const LECTURA_APOYOS = {
+  modelo: 'm.sdb', leido: '2026-09-25T13:00:00Z', modificado: '2026-09-25T12:29:49Z',
+  apoyos: [{ nombre: '1', xyz: [0, 0, 0] }, { nombre: '3', xyz: [0, 25.4, 0] }, { nombre: '7', xyz: [8, 0, 0] }],
+  casos: [
+    { caso: 'CM', valores: [[48.7, 13.2, 330, -97.1, 0, -0.1], [0.3, 5.6, 10000, -78.9, 0, 0], [-49, -18.8, 153.1932, 0, 0, 0]] },
+    { caso: 'WXP', valores: [[-80, 60, 120, 10, 0, 0], [-100, 60, 50, 5, 0, 0], [-80.76, 59.3, -40.5, 300, 20, 0]] },
+    { caso: 'RSY', paso: 'Max', valores: [[6.7, 129, 64.3, 976.8, 0, 1.6], [0.04, 107.5, 127, 979.7, 0, 0], null] },
+  ],
+  sinAnalizar: [],
 };
 
 // Cuatro combinaciones del Pachón, tal como las lee el puente: una envolvente
@@ -992,6 +1008,22 @@ const CASOS = [
     },
   },
   {
+    nombre: 'el sub-nodo Apoyos dice cuántos apoyos y casos hay, cuántos traccionan, y si no cuadra con la basal',
+    obra: {
+      ...obra(calc('G', m('q := 1'))),
+      modulos: ['sap', 'sap-apoyos', 'sap-basal'],
+      // WXP suma 129,5 en los apoyos y la basal dice -603,4: no cuadra.
+      sap: { ...SAP_BASAL, basal: LECTURA_BASAL, apoyos: LECTURA_APOYOS },
+    },
+    ok: (_ev, proy) => {
+      const n = proy.nodos.find((x) => x.id === 'sap:apoyos');
+      if (!n) return 'no está el nodo Apoyos';
+      if (n.subtitulo !== '3 apoyos · 3 casos\ntracción en 1 caso') return `subtítulo «${n.subtitulo}»`;
+      if (n.severidad !== 'aviso' || n.motivos.length !== 1 || !n.motivos[0].startsWith('WXP:')) return `motivos: ${n.motivos}`;
+      return proy.aristas.some((x) => x.desde === 'sap' && x.hasta === 'sap:apoyos' && x.tipo === 'deriva') ? null : 'falta la arista';
+    },
+  },
+  {
     nombre: 'el sub-nodo Modal al día y con la masa juntada no avisa; con menos del 90 % en X, sí',
     obra: {
       ...obra(calc('G', m('q := 1'))),
@@ -1379,6 +1411,37 @@ const CASOS_HOJA = [
       if (sanearObra({ ...o, sap: { ...o.sap, basal: { ...LECTURA_BASAL, modificado: '' } } }).sap.basal) return 'aceptó una lectura sin sello';
       const rota = sanearObra({ ...o, sap: { ...o.sap, basal: { ...LECTURA_BASAL, filas: [basal('A', 1, 2, 3), { ...basal('B', 1, 2, 3), fz: 'x' }] } } }).sap.basal.filas;
       return rota.map((f) => f.caso).join() === 'A' ? null : `filas rotas: ${JSON.stringify(rota)}`;
+    },
+  },
+  {
+    nombre: 'los extremos de cada caso en los apoyos: compresión, tracción, corte y momento, sin tracción en un espectro',
+    ok: () => {
+      const [cm, wxp, rsy] = extremosPorCaso(LECTURA_APOYOS);
+      if (cm.compresion?.apoyo !== '3' || cm.compresion.valor !== 10000) return `CM compresión ${JSON.stringify(cm.compresion)}`;
+      if (cm.traccion) return 'CM no tracciona';
+      if (Math.abs(cm.sumaF3 - 10483.1932) > 1e-6) return `CM suma ${cm.sumaF3}`;
+      if (wxp.traccion?.apoyo !== '7' || wxp.traccion.valor !== 40.5) return `WXP tracción ${JSON.stringify(wxp.traccion)}`;
+      if (wxp.corte?.apoyo !== '3' || Math.abs(wxp.corte.valor - Math.hypot(100, 60)) > 1e-9) return `WXP corte ${JSON.stringify(wxp.corte)}`;
+      if (wxp.momento?.apoyo !== '7') return `WXP momento ${JSON.stringify(wxp.momento)}`;
+      // Un espectro: máximos sin signo, sin tracción; el apoyo sin datos no cuenta.
+      if (!rsy.espectral || rsy.traccion || rsy.compresion?.apoyo !== '3') return `RSY ${JSON.stringify(rsy)}`;
+      if (casosConTraccion(LECTURA_APOYOS).join() !== 'WXP') return `con tracción: ${casosConTraccion(LECTURA_APOYOS)}`;
+      // Con la basal: CM cuadra, WXP no, RSY (espectro) no se compara. De otro modelo, nada.
+      if (descuadresConBasal(LECTURA_APOYOS, LECTURA_BASAL).join() !== 'WXP') return `descuadres ${descuadresConBasal(LECTURA_APOYOS, LECTURA_BASAL)}`;
+      if (descuadresConBasal(LECTURA_APOYOS, { ...LECTURA_BASAL, modelo: 'otro.sdb' }).length) return 'comparó con otro modelo';
+      // El saneo: ida y vuelta intacta; un apoyo sin nombre se va con su columna; una fila rota queda en null.
+      const o = { ...obra(calc('G', m('q := 1'))), modulos: ['sap', 'sap-apoyos'], sap: { ...SAP_BASAL, apoyos: LECTURA_APOYOS } };
+      const saneada = sanearObra(o);
+      if (JSON.stringify(saneada.sap.apoyos) !== JSON.stringify(LECTURA_APOYOS)) return 'el saneo cambió la lectura de apoyos';
+      if (JSON.stringify(sanearObra(archivoDeObra(saneada).obra)) !== JSON.stringify(saneada)) return 'cambió en la ida y vuelta';
+      const rota = sanearObra({ ...o, sap: { ...o.sap, apoyos: {
+        ...LECTURA_APOYOS,
+        apoyos: [{ nombre: '1' }, { xyz: [0, 0, 0] }, { nombre: '7', xyz: [8, 0] }],
+        casos: [{ caso: 'CM', valores: [[1, 2, 3, 4, 5, 6], [9, 9, 9, 9, 9, 9], [1, 2, 'x', 4, 5, 6]] }, { valores: [] }],
+      } } }).sap.apoyos;
+      const esperada = '{"apoyos":[{"nombre":"1"},{"nombre":"7"}],"casos":[{"caso":"CM","valores":[[1,2,3,4,5,6],null]}]}';
+      const vista = JSON.stringify({ apoyos: rota.apoyos, casos: rota.casos });
+      return vista === esperada ? null : `apoyos rotos: ${vista}`;
     },
   },
   {

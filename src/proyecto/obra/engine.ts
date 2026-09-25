@@ -85,6 +85,7 @@ export { familiaDe, columnasDe, terminoDe, resumenCombinaciones } from './sap-co
 export { quitarModulo, agregarModulo } from './modelo';
 export { resumenModal, atrasoDe, MASA_MINIMA } from './sap-modal';
 export { cortesSismicos, gravitacionalesConHorizontal, fuerza } from './sap-basal';
+export { extremosDeCaso, extremosPorCaso, casosConTraccion, descuadresConBasal } from './sap-apoyos';
 
 // El motor y el armado de una genérica, en el mismo bundle.
 export { evaluateSheet, formatValor, parseMathRegion } from '../../lib/worksheet';
