@@ -140,6 +140,7 @@ export default function TablaCombinaciones({
           value={familia ?? ''}
           onChange={(e) => onFamilia(e.target.value || null)}
           aria-label="Familia"
+          title="La familia es el texto del nombre antes del primer «_»: B25_EX_EVP es de B25."
           className="rounded border border-border px-1.5 py-0.5"
         >
           <option value="">todas las familias</option>

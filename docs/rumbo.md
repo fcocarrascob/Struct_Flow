@@ -195,6 +195,14 @@ que devolverlo con sus datos.
   - los **casos que no entran en ninguna combinación**. Separa los que están cubiertos porque sus
     patrones entran por otro caso (`DEAD` por `CM`) de los que de verdad quedan fuera.
 
+  **La familia es una convención de nombres, no una inferencia**: es el texto antes del primer
+  «_» (`B25_EX_EVP` es de `B25`). Se decidió así y no con heurísticas —cortar en otros
+  separadores, agrupar por los casos que usa cada combinación— para que haya un estándar de
+  trabajo con Flow que se ve y se aplica al nombrar en SAP2000. El panel lo explica con un
+  ejemplo, y avisa cuando la mayoría de las familias tiene una sola combinación (`COMB1`,
+  `COMB2`…): ese modelo no sigue la convención. Si aparece un modelo real donde no alcance, la
+  alternativa es agrupar por estructura o elegir el criterio en la tabla.
+
   La matriz completa —una fila por combinación, una columna por caso o combinación anidada, el
   factor en la celda— se abre como una pestaña de la obra. Se filtra por familia, por tipo, por
   nombre y por columna («¿dónde entra RSX?»), y salta de una anidada a su fila. Todavía no se

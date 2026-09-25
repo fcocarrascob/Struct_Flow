@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { ConexionSap, LecturaCombinaciones } from './modelo';
-import { resumenCombinaciones } from './sap-combinaciones';
+import { resumenCombinaciones, type ResumenCombinaciones } from './sap-combinaciones';
 import { alPuente } from './puente';
 import { useEscape } from './useEscape';
 
@@ -8,6 +8,17 @@ import { useEscape } from './useEscape';
 function plural(palabra: string, n: number): string {
   if (n === 1 || palabra === 'srss') return palabra;
   return /[aeiou]$/.test(palabra) ? `${palabra}s` : `${palabra}es`;
+}
+
+/**
+ * Si los nombres no siguen la convención de familias: más de la mitad de las
+ * familias tiene una sola combinación (`COMB1`, `COMB2`… o `1.2D+1.6L`). Con
+ * pocas combinaciones no se dice nada, porque ahí una familia de una es normal.
+ */
+function sinConvencion(r: ResumenCombinaciones): boolean {
+  if (r.total < 6) return false;
+  const solas = r.familias.filter((f) => f.n === 1).length;
+  return solas > r.familias.length / 2;
 }
 
 /**
@@ -125,9 +136,23 @@ export default function PanelCombinaciones({
 
             <section>
               <h4 className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted">Familias</h4>
-              <p className="mb-1.5 leading-snug text-muted">
-                El prefijo del nombre, hasta el primer «_». Pulsa una para abrir la tabla con solo esa familia.
-              </p>
+              <div className="mb-2 rounded border border-border bg-slate-50 px-3 py-2 leading-snug text-muted">
+                <p>
+                  <span className="font-semibold text-ink">Convención de Flow:</span> la familia es el texto del nombre
+                  antes del primer «_». Para que las combinaciones se agrupen, nómbralas en SAP2000 con un prefijo común
+                  y un «_»:
+                </p>
+                <p className="mt-1 font-mono text-[10px] text-ink">
+                  B25_EX_EVP, B25_EY_EVN → B25 · SERV_WX, SERV_WY → SERV
+                </p>
+                <p className="mt-1">Un nombre sin «_» es su propia familia. Pulsa una familia para abrir la tabla con solo ella.</p>
+              </div>
+              {sinConvencion(r) && (
+                <p className="mb-2 leading-snug text-aviso">
+                  La mayoría de las familias tiene una sola combinación: los nombres de este modelo no siguen la
+                  convención, y la agrupación no dice mucho. La tabla se ve igual; solo los grupos no aportan.
+                </p>
+              )}
               <div className="flex flex-wrap gap-1.5">
                 {r.familias.map((f) => (
                   <button
