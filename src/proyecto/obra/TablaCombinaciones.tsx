@@ -20,6 +20,10 @@ import {
 
 const claveDe = (c: ColumnaCombinaciones) => `${c.clase}:${c.nombre}`;
 
+/** Anchos fijos: una columna mide lo mismo con 3 columnas visibles que con 30. */
+const ANCHO_TIPO = 'w-[6.5rem] min-w-[6.5rem]';
+const ANCHO_FACTOR = 'w-14 min-w-[3.5rem]';
+
 /** El color de un tipo que no es la suma lineal de siempre. */
 const TIPO_CLASE: Record<string, string> = {
   Lineal: 'text-muted',
@@ -115,8 +119,22 @@ export default function TablaCombinaciones({
       return s;
     });
 
+  // La geometría de la tabla sale de TODAS las combinaciones, no de las
+  // visibles: filtrar quita filas y columnas, pero lo que queda no cambia de
+  // tamaño. El ancho del nombre, del más largo; el alto de la cabecera, de la
+  // columna de nombre más largo (va vertical, a ~0,62 em por carácter).
+  const anchoNombre = useMemo(() => {
+    const n = Math.max(12, ...lectura.lista.map((c) => c.nombre.length));
+    return { width: `calc(${n}ch + 1.5rem)`, minWidth: `calc(${n}ch + 1.5rem)` };
+  }, [lectura]);
+  const altoCabecera = useMemo(() => {
+    const n = Math.max(6, ...todasLasColumnas.map((c) => c.nombre.length));
+    return `calc(${n * 0.62}em + 0.75rem)`;
+  }, [todasLasColumnas]);
+
   const hayFiltros = !!(busqueda || tipo || familia || columna);
-  const nCols = columnas.length + 2;
+  // Más una: la de relleno, que lleva las filas hasta el borde.
+  const nCols = columnas.length + 3;
 
   return (
     <div className="flex h-full flex-col bg-white">
@@ -200,13 +218,18 @@ export default function TablaCombinaciones({
         {filas.length === 0 ? (
           <p className="p-6 text-sm text-muted">Ninguna combinación cumple los filtros.</p>
         ) : (
-          <table className="border-separate border-spacing-0 text-[11px]">
+          <table className="w-full border-separate border-spacing-0 text-[11px]">
             <thead className="sticky top-0 z-20 bg-white">
-              <tr>
-                <th className="sticky left-0 z-30 border-b border-r border-border bg-white px-3 py-1 text-left align-bottom text-[10px] font-semibold uppercase tracking-wide text-muted">
+              <tr style={{ height: altoCabecera }}>
+                <th
+                  style={anchoNombre}
+                  className="sticky left-0 z-30 border-b border-r border-border bg-white px-3 py-1 text-left align-bottom text-[10px] font-semibold uppercase tracking-wide text-muted"
+                >
                   Combinación
                 </th>
-                <th className="border-b border-border bg-white px-2 py-1 text-left align-bottom text-[10px] font-semibold uppercase tracking-wide text-muted">
+                <th
+                  className={`${ANCHO_TIPO} border-b border-border bg-white px-2 py-1 text-left align-bottom text-[10px] font-semibold uppercase tracking-wide text-muted`}
+                >
                   Tipo
                 </th>
                 {columnas.map((col) => {
@@ -217,7 +240,7 @@ export default function TablaCombinaciones({
                       key={k}
                       onMouseEnter={() => setColSobre(k)}
                       onMouseLeave={() => setColSobre(null)}
-                      className={`border-b border-border px-0.5 pb-1 align-bottom ${
+                      className={`${ANCHO_FACTOR} border-b border-border px-0.5 pb-1 align-bottom ${
                         activa ? 'bg-accent/15' : colSobre === k ? 'bg-slate-100' : 'bg-white'
                       }`}
                     >
@@ -230,7 +253,7 @@ export default function TablaCombinaciones({
                         }
                         // La cabecera va vertical: con 30 columnas, los nombres
                         // horizontales hacen la tabla el triple de ancha.
-                        className={`mx-auto block max-h-32 whitespace-nowrap font-mono text-[10px] [writing-mode:vertical-rl] rotate-180 hover:text-accent ${
+                        className={`mx-auto block whitespace-nowrap font-mono text-[10px] [writing-mode:vertical-rl] rotate-180 hover:text-accent ${
                           col.clase === 'combinacion' ? 'italic text-accent' : 'text-ink'
                         } ${activa ? 'font-semibold' : ''}`}
                       >
@@ -239,6 +262,8 @@ export default function TablaCombinaciones({
                     </th>
                   );
                 })}
+                {/* El relleno se queda con todo el ancho que sobra. */}
+                <th className="w-full border-b border-border bg-white" />
               </tr>
             </thead>
             <tbody>
@@ -273,6 +298,7 @@ export default function TablaCombinaciones({
                             className="group"
                           >
                             <td
+                              style={anchoNombre}
                               className={`sticky left-0 z-10 whitespace-nowrap border-b border-r border-border/60 px-3 py-0.5 font-mono text-ink group-hover:bg-slate-100 ${fondo}`}
                             >
                               {c.nombre}
@@ -287,7 +313,7 @@ export default function TablaCombinaciones({
                               return (
                                 <td
                                   key={k}
-                                  className={`min-w-[2.75rem] border-b border-border/60 px-1.5 py-0.5 text-right font-mono tabular-nums group-hover:bg-slate-100 ${
+                                  className={`${ANCHO_FACTOR} border-b border-border/60 px-1.5 py-0.5 text-right font-mono tabular-nums group-hover:bg-slate-100 ${
                                     enColumna ? 'bg-accent/5' : fondo
                                   } ${sf !== undefined && sf < 0 ? 'text-violet-700' : 'text-ink'}`}
                                 >
@@ -308,6 +334,7 @@ export default function TablaCombinaciones({
                                 </td>
                               );
                             })}
+                            <td className={`border-b border-border/60 group-hover:bg-slate-100 ${fondo}`} />
                           </tr>
                         );
                       })}
@@ -317,7 +344,10 @@ export default function TablaCombinaciones({
             </tbody>
             <tfoot className="sticky bottom-0 z-20 bg-white">
               <tr>
-                <td className="sticky left-0 z-30 border-r border-t border-border bg-white px-3 py-1 text-[10px] text-muted">
+                <td
+                  style={anchoNombre}
+                  className="sticky left-0 z-30 border-r border-t border-border bg-white px-3 py-1 text-[10px] text-muted"
+                >
                   entra en
                 </td>
                 <td className="border-t border-border bg-white" />
@@ -330,6 +360,7 @@ export default function TablaCombinaciones({
                     {usoDe.get(claveDe(col))}
                   </td>
                 ))}
+                <td className="border-t border-border bg-white" />
               </tr>
             </tfoot>
           </table>
