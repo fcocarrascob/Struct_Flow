@@ -2961,7 +2961,7 @@ const SILLA_QUE_CIERRA = { disp_nerv: 2, luz_nerv: 150, NER_T: 16, ALA_EXT: 1150
 
 const CASOS_VISTA = [
   {
-    nombre: 'vista base-columna: con los datos del Pachón, la silla supuesta no cierra y cuentan 20 barras',
+    nombre: 'vista base-columna: con los datos del Pachón, la silla supuesta no cierra y cuentan 21 barras',
     ok: () => {
       const m = VISTA_BASE.construir(DATOS_BASE);
       if (JSON.stringify(m) !== JSON.stringify(VISTA_BASE.construir(DATOS_BASE))) return 'dos corridas dan modelos distintos';
@@ -2971,7 +2971,7 @@ const CASOS_VISTA = [
       const f = fallanEn(m);
       if (f !== SILLA_DEL_PACHON) return `fallan «${f}»`;
       const n = m.derivados.find((d) => d.nombre === 'n_cont')?.valor;
-      return n === 20 ? null : `n_cont = ${n}`;
+      return n === 21 ? null : `n_cont = ${n}`;
     },
   },
   {
@@ -3001,6 +3001,25 @@ const CASOS_VISTA = [
           return `barra ${i + 1}: pedestal (${x}, ${y}), vista (${nuestras[i][0]}, ${nuestras[i][1]})`;
       }
       return null;
+    },
+  },
+  {
+    nombre: 'vista base-columna: el reparto pone una barra en cada esquina y reparte los vanos por cara',
+    ok: () => {
+      // COL_PPALES: 36 barras en un núcleo de 1332×1782 mm. Con el paso uniforme por el
+      // perímetro (173 mm) las esquinas quedaban sin barra; con esquinas son 8 y 10 vanos.
+      const b = barrasPerimetro(36, 666, 891);
+      if (b.length !== 36) return `${b.length} barras`;
+      for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]])
+        if (!b.some(([x, y]) => x === sx * 666 && y === sy * 891)) return `sin barra en la esquina (${sx * 666}, ${sy * 891})`;
+      const abajo = b.filter(([, y]) => y === -891).map(([x]) => x).sort((p, q) => p - q);
+      const derecha = b.filter(([x]) => x === 666).map(([, y]) => y).sort((p, q) => p - q);
+      if (abajo.length !== 9 || derecha.length !== 11) return `barras por cara: ${abajo.length} abajo, ${derecha.length} a la derecha`;
+      if (Math.abs(abajo[1] - abajo[0] - 166.5) > 0.1 || Math.abs(derecha[1] - derecha[0] - 178.2) > 0.1)
+        return `pasos ${abajo[1] - abajo[0]} y ${derecha[1] - derecha[0]}`;
+      // Con n impar la cara izquierda se lleva el vano de más, y las esquinas siguen con barra.
+      const imp = barrasPerimetro(37, 711, 897);
+      return imp.length === 37 && imp.some(([x, y]) => x === -711 && y === 897) ? null : 'n impar: falta la esquina (−ax, ay)';
     },
   },
   {
@@ -3087,7 +3106,7 @@ const CASOS_VISTA = [
     ['v_gol_gol', { b_ap: 180, y_t: 700 }],
     ['v_gol_barra', { y_t: 800 }],
     ['v_hef_ped', { h_ef: 2000 }],
-    ['v_sep_barras', { n_barras: 60 }],
+    ['v_sep_barras', { n_barras: 80 }],
     ['v_ramas', { n_ramas: 14 }],
     ['v_perno_nervio', { a_tuerca: 160 }],
     ['v_luz_nervio', { disp_nerv: 1, NER_T: 16, x_ext: 480, ALA_EXT: 1500, CH_B: 1500, B_bp: 1500, luz_nerv: 150 }],
@@ -3274,7 +3293,7 @@ function CASOS_ENSAMBLE() {
         const ev = evaluarObra(o, genericasBase);
         const e = errores(ev);
         if (e.length) return `${e.length} región(es) con error: ${e[0]}`;
-        if (ev.scope.n_cont_ped_CP !== 20) return `n_cont_ped_CP = ${ev.scope.n_cont_ped_CP}`;
+        if (ev.scope.n_cont_ped_CP !== 21) return `n_cont_ped_CP = ${ev.scope.n_cont_ped_CP}`;
         for (const v of ['v_geo_base_CP', 'v_t_llave_CP', 'v_dom_m_CP', 'v_dom_e_CP', 'v_d26c_CP'])
           if (ev.scope[v] !== true) return `${v} = ${ev.scope[v]}`;
         if (ev.scope.L_pb !== undefined) return 'quedó un nombre sin sufijo';

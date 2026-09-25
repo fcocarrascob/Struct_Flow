@@ -587,7 +587,7 @@
       "clase": "generica",
       "disciplina": "hormigon",
       "ruta": "/biblioteca/hormigon/pedestal-generico.json",
-      "regiones": 329,
+      "regiones": 331,
       "normas": [
         "US/ACI318-25-SI",
         "CL/NCh2369-2025"
@@ -595,7 +595,7 @@
       "entradas": 56,
       "salidas": 39,
       "promovible": true,
-      "sha256": "bf352e9f0e9a01ff77e8c474006f58e6d09d03c4764084074241bb23725495b5",
+      "sha256": "bcb67fd16e74fa05cd6d6820515d08d3473fbebba01e05ffb820cffd6d318109",
       "resumen": "Pedestal rectangular bajo placa base: cuantías del §10.6.1.1 y del §18.7.4.1, el diagrama de interacción P-M calculado por compatibilidad de deformaciones en los dos ejes y en los dos sentidos, seis combinaciones (P, M_X, M_Y) leídas sobre él, flexión biaxial por contorno lineal, corte con V_c y V_s en las dos direcciones, estribos, la armadura de anclaje que puede contarse y el detallado sísmico por NCh2369:2025 §9.5 y por ACI 318-25 §18.7. Recibe T_grupo de placa-base-generica y As_req de anclaje-hormigon-generica."
     },
     {

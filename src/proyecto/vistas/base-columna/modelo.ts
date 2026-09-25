@@ -2,8 +2,9 @@
 // (ala extendida, nervios y chapa superior), pernos con su placa de apoyo
 // embebida, llave en cruz y pedestal con barras y estribos.
 //
-// Las barras se reparten con la MISMA regla que pedestal-generico —recorrido del
-// perímetro del núcleo a paso constante desde la esquina (−ax, −ay)—, y la zona
+// Las barras se reparten con la MISMA regla que pedestal-generico —una en cada
+// esquina del núcleo y el resto por cara, con los vanos en proporción al largo,
+// recorriendo desde la esquina (−ax, −ay) en sentido antihorario—, y la zona
 // confinada es la suya: min(max(lado menor, llave + 45°), altura). Si el modelo
 // repartiera distinto, las barras que dibuja y cuenta no serían las del P-M.
 
@@ -11,21 +12,31 @@ import type { Caja, Chequeo, Cilindro, Config, Derivado, Lazo, ModeloGeometrico,
 
 const r1 = (v: number) => Math.round(v * 10) / 10;
 
-/** Posiciones de las barras sobre el perímetro del núcleo, como pedestal-generico. */
+/**
+ * Vanos por cara del reparto con esquinas: `nx` en cada cara paralela a X (abajo y
+ * arriba), `ny` en la derecha y `nyIzq` en la izquierda, que se lleva el vano de
+ * más cuando n es impar. Con n < 4 no hay reparto con esquinas.
+ */
+export function vanosPorCara(n: number, ax: number, ay: number): { nx: number; ny: number; nyIzq: number } {
+  const mitad = Math.floor(n / 2);
+  const nx = Math.min(Math.max(Math.round((n / 2) * (ax / (ax + ay))), 1), Math.max(mitad - 1, 1));
+  const ny = Math.max(Math.floor((n - 2 * nx) / 2), 1);
+  return { nx, ny, nyIzq: n - 2 * nx - ny };
+}
+
+/**
+ * Posiciones de las barras sobre el perímetro del núcleo, como pedestal-generico:
+ * una en cada esquina (ACI 318-25 §25.7.2.3(a); ICH, Manual de Detallamiento,
+ * pp. 29-40) y el resto a paso constante en cada cara.
+ */
 export function barrasPerimetro(n: number, ax: number, ay: number): [number, number][] {
-  const paso = (4 * (ax + ay)) / n;
+  const { nx, ny, nyIzq } = vanosPorCara(n, ax, ay);
   const q: [number, number][] = [];
-  for (let i = 0; i < n; i++) {
-    const s = i * paso;
-    let x: number;
-    let y: number;
-    if (s < 2 * ax) [x, y] = [-ax + s, -ay];
-    else if (s < 2 * ax + 2 * ay) [x, y] = [ax, -ay + (s - 2 * ax)];
-    else if (s < 4 * ax + 2 * ay) [x, y] = [ax - (s - 2 * ax - 2 * ay), ay];
-    else [x, y] = [-ax, ay - (s - 4 * ax - 2 * ay)];
-    q.push([r1(x), r1(y)]);
-  }
-  return q;
+  for (let i = 0; i < nx; i++) q.push([-ax + (2 * ax * i) / nx, -ay]);
+  for (let i = 0; i < ny; i++) q.push([ax, -ay + (2 * ay * i) / ny]);
+  for (let i = 0; i < nx; i++) q.push([ax - (2 * ax * i) / nx, ay]);
+  for (let i = 0; i < nyIzq; i++) q.push([-ax, ay - (2 * ay * i) / nyIzq]);
+  return q.slice(0, Math.max(n, 0)).map(([x, y]) => [r1(x), r1(y)]);
 }
 
 /** Abscisas de los pernos de una fila. */

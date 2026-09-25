@@ -40,7 +40,7 @@
   <text x="{{px(PED_X/2) + 12:svg}}" y="{{py(-PED_Y/2) + 32:svg}}" font-size="10" fill="{{col_est}}">estribo ø{{db_est:mm}} · {{n_ramas}} ramas por cara</text>
   <text x="{{px(PED_X/2) + 12:svg}}" y="{{py(-PED_Y/2) + 50:svg}}" font-size="10" fill="#555">recubrimiento al eje {{recub_ped:mm}} mm</text>
   <text x="{{px(PED_X/2) + 12:svg}}" y="{{py(-PED_Y/2) + 68:svg}}" font-size="10" fill="#555">núcleo A_ch = {{b_c_X:mm}} × {{b_c_Y:mm}} mm</text>
-  <text x="{{px(PED_X/2) + 12:svg}}" y="{{py(-PED_Y/2) + 86:svg}}" font-size="10" fill="#555">paso perimetral h_x = {{paso_barras:mm}} mm</text>
+  <text x="{{px(PED_X/2) + 12:svg}}" y="{{py(-PED_Y/2) + 86:svg}}" font-size="10" fill="#555">pasos por cara {{paso_x:mm}} · {{paso_y:mm}} mm</text>
 
   <!-- El radio de conteo de la armadura de anclaje, a escala -->
   <line x1="{{px(PED_X/2) + 16:svg}}" x2="{{px(PED_X/2) + 16 + radio_cono/(1 mm)*esc:svg}}"
