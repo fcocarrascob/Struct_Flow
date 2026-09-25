@@ -36,7 +36,14 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
    `espectro-nch2369-generica` dibuja el espectro con 26 regiones `imprimir: false` de mapeo a
    píxeles, y `losa-unidireccional` arma sus curvas igual (`pts_fl`). Un `plot` las reemplaza,
    pero mueve la paginación publicada: cada una con su medición en `/calibrar`.
-5. **La leyenda «debajo del gráfico».** Las etiquetas ya se esquivan y la leyenda busca la
+5. **La base de columna como configuración de apoyo** (`rumbo.md`, «La base de columna como
+   modelo geométrico, y sus componentes»). En orden: partir la vista `base-columna` en
+   componentes con la configuración en su frontera (la del Pachón da las mismas piezas y los
+   mismos 14 chequeos); `armarBase` y `reconfigurar`, puras, con casos en `verify:obra` que den
+   los mismos u_* que el grupo actual; y las dos puertas (tipo en el panel de apoyos y paleta).
+   Por decidir: si la base actual del Pachón se regenera con sufijo `_CP`, y si el ensamble
+   admite dos conjuntos (LRFD y sobrerresistencia) como hoy hace la hoja de datos a mano.
+6. **La leyenda «debajo del gráfico».** Las etiquetas ya se esquivan y la leyenda busca la
    esquina libre (o la que fije el autor); falta la opción de sacarla del área de trazado, que
    obliga a achicarla dentro del mismo alto para no mover la paginación. Y una etiqueta es
    texto: `T_1` sale literal (en el Pachón se escribió con subíndices Unicode, T₁).

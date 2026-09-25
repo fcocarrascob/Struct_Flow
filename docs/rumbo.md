@@ -341,7 +341,7 @@ posiciones y marcas ⚑: un supuesto por confirmar lo sigue estando en la copia.
 copian** la lectura de SAP2000 ni las justificaciones, porque hablan del modelo de la
 estructura de origen; el nodo SAP2000 se conserva vacío, con las unidades de la obra.
 
-## La base de columna como modelo geométrico, y las familias
+## La base de columna como modelo geométrico, y sus componentes
 
 **2026-09-25.** La base de COL_PPALES del Pachón cierra como cálculo —placa, silla, anclaje
 dúctil, llave y pedestal, con la capacidad del §D2.6 de AISC 341—, pero su **geometría está
@@ -368,12 +368,31 @@ coherencia, y valores derivados— del que salen las vistas.
 - Por qué no una genérica con esquema: el número de piezas es variable, el 3D no sale de un SVG
   con tokens, y un JSON que no es genérica no cabe en `public/biblioteca/`.
 
-**Las familias.** Un grupo verificado se publica como **familia** (`public/familias/`): sus
-nodos, las genéricas por slug y sello, las ataduras con marcadores (`{tipo}`, `{conjunto}`) y
-las **externas** que el grupo usa y no define (las fuerzas de capacidad de la diagonal, las
-gobernantes de los apoyos). Agregar una familia a una obra es la misma operación que «De otra
-obra…» (`traerNodos`), desde un origen sintético: una copia única, sin vínculo vivo más allá
-del sello de cada genérica. La base de columna es la primera, generada desde el Pachón.
+**La base es una configuración de apoyo hecha de componentes** (2026-09-25; reemplaza a la
+familia JSON del mismo día). Se pesaron tres formas de agregar una base a una obra: una familia
+importable —un JSON generado desde el Pachón que entra por `traerNodos`—, un bloque que nace del
+nodo «Reacciones en apoyos», y esta. La familia es una foto: cada variante (sin silla, sin
+llave, columna HSS…) sería otra familia o nodos borrados a mano, y la vista no se enteraría de
+que falta una pieza. El bloque desde apoyos es el gesto natural, pero por debajo necesita la
+misma plantilla y ata la base al SAP2000.
+
+- **La unidad es el componente**, no el grupo copiado: columna, placa, pernos, silla, llave y
+  pedestal —después, columna HSS o cuadrada, llave simple— se declaran **una vez en código**,
+  cada uno con su sección de datos, la genérica que lo justifica y sus ataduras, y las piezas y
+  choques que aporta a la vista. Un choque entre dos componentes solo existe si los dos están.
+- **El nodo vista es el ensamble**: su frontera guarda la configuración (qué componentes y de qué
+  clase), el tipo de apoyo y el conjunto, si los tiene, y el sufijo de sus nombres. Arma el
+  dibujo desde los componentes presentes y dice qué nodos de cálculo existen.
+- **Una sola función pura arma el grupo** (`armarBase`): hoja de datos por secciones, un nodo
+  por componente con su genérica, el resumen y la vista, entrando por `traerNodos` desde un
+  origen sintético. Cambiar la configuración después agrega o quita el nodo del componente, con
+  el aviso de siempre sobre las hojas que se quedan sin algo.
+- **Dos puertas a la misma función**: desde un tipo del panel de apoyos, con tipo, conjunto y
+  sufijo (el alias, `L_pb_CP`) ya puestos y las solicitaciones atadas a las gobernantes; y desde
+  la paleta, sin tipo, con las solicitaciones para escribir a mano (una obra sin SAP2000). Qué
+  base tiene cada tipo **se deriva** de los nodos vista, no se guarda en el nodo de apoyos.
+
+Las familias JSON quedan, si hacen falta, para grupos sin variantes (el arriostramiento).
 
 ## La hoja va hacia el flujo lineal
 
