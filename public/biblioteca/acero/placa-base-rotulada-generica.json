@@ -1,0 +1,1370 @@
+{
+  "version": 1,
+  "meta": {
+    "titulo": "Placa base de columna rotulada o con momento bajo — aplastamiento, arranque concéntrico, espesor y fricción",
+    "entradas": [
+      {
+        "nombre": "P_comp",
+        "etiqueta": "Axial de la combinación que más comprime",
+        "unidad": "kN",
+        "grupo": "Solicitaciones mayoradas"
+      },
+      {
+        "nombre": "M_comp",
+        "etiqueta": "Momento concurrente con la compresión máxima",
+        "unidad": "kN*m",
+        "grupo": "Solicitaciones mayoradas",
+        "ayuda": "Cero en una base rotulada"
+      },
+      {
+        "nombre": "P_trac",
+        "etiqueta": "Axial de la combinación que más tracciona",
+        "unidad": "kN",
+        "grupo": "Solicitaciones mayoradas",
+        "ayuda": "Negativo es arranque; cero o positivo, no hay tracción en los pernos"
+      },
+      {
+        "nombre": "M_trac",
+        "etiqueta": "Momento concurrente con el arranque",
+        "unidad": "kN*m",
+        "grupo": "Solicitaciones mayoradas",
+        "ayuda": "Distinto de cero queda fuera de dominio"
+      },
+      {
+        "nombre": "V_u",
+        "etiqueta": "Corte de diseño",
+        "unidad": "kN",
+        "grupo": "Solicitaciones mayoradas"
+      },
+      {
+        "nombre": "P_V",
+        "etiqueta": "Compresión concurrente con el corte",
+        "unidad": "kN",
+        "grupo": "Solicitaciones mayoradas",
+        "ayuda": "La más desfavorable consistente con ese corte (DG1 §4.3.5)"
+      },
+      {
+        "nombre": "L_bp",
+        "etiqueta": "Lado de la placa en la dirección del canto (N)",
+        "unidad": "m",
+        "grupo": "Geometría de la placa y la columna",
+        "min": 0.2,
+        "max": 2,
+        "paso": 0.05
+      },
+      {
+        "nombre": "B_bp",
+        "etiqueta": "Lado de la placa perpendicular (B)",
+        "unidad": "m",
+        "grupo": "Geometría de la placa y la columna",
+        "min": 0.2,
+        "max": 2,
+        "paso": 0.05
+      },
+      {
+        "nombre": "t_bp",
+        "etiqueta": "Espesor de la placa",
+        "unidad": "mm",
+        "grupo": "Geometría de la placa y la columna"
+      },
+      {
+        "nombre": "d_col",
+        "etiqueta": "Canto de la columna",
+        "unidad": "mm",
+        "grupo": "Geometría de la placa y la columna"
+      },
+      {
+        "nombre": "bf_col",
+        "etiqueta": "Ancho del ala",
+        "unidad": "mm",
+        "grupo": "Geometría de la placa y la columna"
+      },
+      {
+        "nombre": "tf_col",
+        "etiqueta": "Espesor del ala",
+        "unidad": "mm",
+        "grupo": "Geometría de la placa y la columna"
+      },
+      {
+        "nombre": "tw_col",
+        "etiqueta": "Espesor del alma",
+        "unidad": "mm",
+        "grupo": "Geometría de la placa y la columna"
+      },
+      {
+        "nombre": "PED_L",
+        "etiqueta": "Lado del pedestal en la dirección de L_bp",
+        "unidad": "m",
+        "grupo": "Geometría de la placa y la columna"
+      },
+      {
+        "nombre": "PED_B",
+        "etiqueta": "Lado del pedestal en la dirección de B_bp",
+        "unidad": "m",
+        "grupo": "Geometría de la placa y la columna"
+      },
+      {
+        "nombre": "exposicion",
+        "etiqueta": "Exposición del hormigón: 1 contra el terreno, 2 a la intemperie, 3 protegido",
+        "grupo": "Geometría de la placa y la columna"
+      },
+      {
+        "nombre": "n_col",
+        "etiqueta": "Pernos de cada fila",
+        "grupo": "Grupo de pernos"
+      },
+      {
+        "nombre": "y_t",
+        "etiqueta": "Distancia de cada fila al centro de la placa, en la dirección del canto",
+        "unidad": "mm",
+        "grupo": "Grupo de pernos"
+      },
+      {
+        "nombre": "x_ext",
+        "etiqueta": "Distancia del perno extremo al alma, en la dirección de B_bp",
+        "unidad": "mm",
+        "grupo": "Grupo de pernos"
+      },
+      {
+        "nombre": "d_perno",
+        "etiqueta": "Diámetro del perno",
+        "unidad": "mm",
+        "grupo": "Grupo de pernos"
+      },
+      {
+        "nombre": "Ase_perno",
+        "etiqueta": "Área resistente a tracción de la rosca",
+        "unidad": "mm^2",
+        "grupo": "Grupo de pernos"
+      },
+      {
+        "nombre": "holgura",
+        "etiqueta": "Holgura del agujero sobre el diámetro",
+        "unidad": "mm",
+        "grupo": "Grupo de pernos"
+      },
+      {
+        "nombre": "torque",
+        "etiqueta": "Pernos torqueados: 1 sí, 0 no",
+        "grupo": "Grupo de pernos"
+      },
+      {
+        "nombre": "Fy_ac",
+        "etiqueta": "Fluencia de la chapa",
+        "unidad": "MPa",
+        "grupo": "Materiales y factores"
+      },
+      {
+        "nombre": "fpc",
+        "etiqueta": "f'c del hormigón del pedestal",
+        "unidad": "MPa",
+        "grupo": "Materiales y factores"
+      },
+      {
+        "nombre": "futa",
+        "etiqueta": "Resistencia a tracción del perno",
+        "unidad": "MPa",
+        "grupo": "Materiales y factores"
+      },
+      {
+        "nombre": "phi_b",
+        "etiqueta": "φ de flexión de la chapa",
+        "grupo": "Materiales y factores"
+      },
+      {
+        "nombre": "phi_brg",
+        "etiqueta": "φ de aplastamiento del hormigón",
+        "grupo": "Materiales y factores"
+      },
+      {
+        "nombre": "phi_sa",
+        "etiqueta": "φ de tracción del perno",
+        "grupo": "Materiales y factores"
+      },
+      {
+        "nombre": "usa_friccion",
+        "etiqueta": "El corte se toma por fricción: 1 sí, 0 no",
+        "grupo": "Materiales y factores"
+      },
+      {
+        "nombre": "mu_fr",
+        "etiqueta": "Coeficiente de fricción acero-hormigón",
+        "grupo": "Materiales y factores"
+      },
+      {
+        "nombre": "phi_fr",
+        "etiqueta": "φ de la fricción",
+        "grupo": "Materiales y factores"
+      }
+    ],
+    "slug": "placa-base-rotulada-generica",
+    "clase": "generica",
+    "disciplina": "acero",
+    "resumen": "Placa lisa bajo columna en I rotulada o con e ≤ e_crit: aplastamiento, espesor por compresión (m, n, λn') y por momento bajo, pernos en tracción y flexión de la placa por el arranque, con los pernos dentro o fuera del perfil. Entrega T_grupo y n_trac al anclaje.",
+    "normas": [
+      {
+        "clave": "US/AISC-DG1-3ed",
+        "rol": "procedimiento",
+        "articulos": [
+          "§4.3.1",
+          "§4.3.2",
+          "§4.3.5",
+          "§4.3.7",
+          "Ej. 4.7-3"
+        ]
+      },
+      {
+        "clave": "US/AISC360-22",
+        "rol": "resistencia",
+        "articulos": [
+          "§J8",
+          "Tabla J3.4M",
+          "Tabla J3.5M"
+        ]
+      },
+      {
+        "clave": "US/ACI318-25-SI",
+        "rol": "anclaje",
+        "articulos": [
+          "§17.6.1.2",
+          "§17.5.3",
+          "Tabla 21.2.1",
+          "Tabla 17.9.2(a)",
+          "Tabla 20.5.1.3.1",
+          "§22.9"
+        ]
+      }
+    ],
+    "salidas": [
+      {
+        "nombre": "u_max",
+        "etiqueta": "Uso máximo",
+        "tipo": "uso"
+      },
+      {
+        "nombre": "gobierna",
+        "etiqueta": "Estado límite que gobierna",
+        "tipo": "texto"
+      },
+      {
+        "nombre": "u_aplast",
+        "etiqueta": "Aplastamiento del hormigón",
+        "tipo": "uso"
+      },
+      {
+        "nombre": "u_espesor",
+        "etiqueta": "Espesor de la chapa",
+        "tipo": "uso"
+      },
+      {
+        "nombre": "u_pernos",
+        "etiqueta": "Pernos en tracción",
+        "tipo": "uso"
+      },
+      {
+        "nombre": "u_friccion",
+        "etiqueta": "Corte por fricción",
+        "tipo": "uso"
+      },
+      {
+        "nombre": "T_grupo",
+        "etiqueta": "Tracción del grupo (entrega)",
+        "unidad": "kN",
+        "tipo": "valor"
+      },
+      {
+        "nombre": "n_trac",
+        "etiqueta": "Pernos que traccionan (entrega)",
+        "tipo": "valor"
+      },
+      {
+        "nombre": "t_req",
+        "etiqueta": "Espesor requerido de la chapa",
+        "unidad": "mm",
+        "tipo": "valor"
+      },
+      {
+        "nombre": "e_crit",
+        "etiqueta": "Excentricidad crítica",
+        "unidad": "mm",
+        "tipo": "valor"
+      },
+      {
+        "nombre": "f_p",
+        "etiqueta": "Presión de aplastamiento admisible",
+        "unidad": "kPa",
+        "tipo": "valor"
+      },
+      {
+        "nombre": "v_global",
+        "etiqueta": "u_max ≤ 1, dentro de dominio y geometría mínima",
+        "tipo": "veredicto"
+      },
+      {
+        "nombre": "v_dominio_comp",
+        "etiqueta": "e ≤ e_crit: momento bajo (DG1 Ec. 4-40)",
+        "tipo": "veredicto"
+      },
+      {
+        "nombre": "v_dominio_trac",
+        "etiqueta": "Arranque concéntrico (DG1 §4.3.2)",
+        "tipo": "veredicto"
+      },
+      {
+        "nombre": "v_posicion",
+        "etiqueta": "Las filas quedan dentro o fuera del perfil, no bajo el ala",
+        "tipo": "veredicto"
+      },
+      {
+        "nombre": "v_paso",
+        "etiqueta": "Paso entre pernos ≥ mínimo (ACI Tabla 17.9.2(a))",
+        "tipo": "veredicto"
+      },
+      {
+        "nombre": "v_ancho",
+        "etiqueta": "B_bp ≥ ancho que piden el grupo y el borde de chapa",
+        "tipo": "veredicto"
+      },
+      {
+        "nombre": "v_largo",
+        "etiqueta": "L_bp ≥ largo que piden las filas y el borde de chapa",
+        "tipo": "veredicto"
+      },
+      {
+        "nombre": "v_borde_horm",
+        "etiqueta": "Borde de hormigón ≥ mínimo (ACI Tabla 17.9.2(a))",
+        "tipo": "veredicto"
+      },
+      {
+        "nombre": "v_conf_no_topa",
+        "etiqueta": "Confinamiento √(A2/A1) < 2",
+        "tipo": "veredicto",
+        "aviso": true,
+        "avisoTexto": "El confinamiento llega al tope 2,0 del §J8: manda el tope y no la geometría del pedestal"
+      }
+    ],
+    "fronteras": [
+      "El momento grande (e > e_crit) y el arranque con momento: placa-base-generica. Aquí votan como fuera de dominio",
+      "La soldadura columna-placa, por compresión, arranque y corte (DG1 §4.3.2 paso 2 y §4.3.5)",
+      "El anclaje en el hormigón: anclaje-hormigon-generica, con T_grupo y n_trac",
+      "La llave de corte: llave-corte-generica. Con llave, el espesor también lo fija ella",
+      "El corte en los pernos (DG1 §4.3.3): no se calcula; el corte es de la fricción, si se declara, o de la llave",
+      "El efecto palanca en los pernos: se desprecia, como la DG1 §4.3.2 cuando la placa se diseña en voladizo"
+    ],
+    "hipotesis": [
+      "Placa rectangular lisa sobre pedestal de hormigón; columna en I con el canto en la dirección de L_bp",
+      "Dos filas de n_col pernos a ±y_t, equiespaciados entre −x_ext y +x_ext",
+      "Presión uniforme bajo la placa (DG1 §4.3.1 y §4.3.7)",
+      "El arranque se reparte por igual entre los 2·n_col pernos (concéntrico, DG1 §4.3.2)",
+      "Con los pernos dentro del perfil, dos por fila, uno a cada lado del alma, como en el Ejemplo 4.7-3",
+      "⁉️ Lectura de la hoja: el ancho a 45° de los pernos de un mismo lado se suma sin pasar de la altura libre del alma (dentro) o del ancho del ala (fuera)",
+      "⁉️ Lectura de la hoja: en la fricción, Ac es el área de la placa",
+      "Compresión positiva en el axial de la columna"
+    ],
+    "entrega": {
+      "T_grupo": [
+        "anclaje-hormigon-generica",
+        "pedestal-generico"
+      ],
+      "n_trac": [
+        "anclaje-hormigon-generica"
+      ]
+    },
+    "casos": [
+      {
+        "nombre": "ejemplo de referencia: base de hastial rotulada, pernos dentro del perfil",
+        "entradas": {},
+        "cumple": true
+      },
+      {
+        "nombre": "momento bajo: e dentro de e_crit",
+        "entradas": {
+          "M_comp": 50
+        },
+        "cumple": true
+      },
+      {
+        "nombre": "momento grande: fuera de dominio, es de placa-base-generica",
+        "entradas": {
+          "M_comp": 400
+        },
+        "cumple": false,
+        "esperadoFalso": [
+          "v_dominio_comp",
+          "v_global"
+        ]
+      },
+      {
+        "nombre": "arranque con momento: fuera de dominio",
+        "entradas": {
+          "M_trac": 20
+        },
+        "cumple": false,
+        "esperadoFalso": [
+          "v_dominio_trac",
+          "v_global"
+        ]
+      },
+      {
+        "nombre": "sin arranque: los pernos no traccionan",
+        "entradas": {
+          "P_trac": 120
+        },
+        "cumple": true
+      },
+      {
+        "nombre": "pernos fuera de las alas: la placa flecta desde el ala",
+        "entradas": {
+          "y_t": 400,
+          "L_bp": 0.95,
+          "PED_L": 1.2
+        },
+        "cumple": true
+      },
+      {
+        "nombre": "fila bajo el ala: no es dentro ni fuera",
+        "entradas": {
+          "y_t": 290,
+          "L_bp": 0.8
+        },
+        "cumple": false,
+        "esperadoFalso": [
+          "v_global",
+          "v_posicion"
+        ]
+      },
+      {
+        "nombre": "corte por fricción: la compresión concurrente no alcanza",
+        "entradas": {
+          "usa_friccion": 1
+        },
+        "cumple": false,
+        "esperadoFalso": [
+          "v_global"
+        ]
+      },
+      {
+        "nombre": "chapa de 16 mm: gobierna el espesor por el arranque",
+        "entradas": {
+          "t_bp": 16
+        },
+        "cumple": false,
+        "esperadoFalso": [
+          "v_global"
+        ]
+      }
+    ]
+  },
+  "regions": [
+    {
+      "id": "t001",
+      "kind": "text",
+      "x": 40,
+      "y": 40,
+      "src": "Placa base de columna en I rotulada o con momento bajo: aplastamiento del hormigón, espesor de la chapa por el aplastamiento y por el arranque, pernos en tracción y, si se usa, corte por fricción. Es la hermana de placa-base-generica, que resuelve el momento grande."
+    },
+    {
+      "id": "t002",
+      "kind": "text",
+      "x": 40,
+      "y": 86,
+      "src": "FRONTERA: la hoja no resuelve el momento grande (e > e_crit) ni el arranque con momento: los dos son de placa-base-generica, y aquí votan como fuera de dominio. Tampoco dimensiona la soldadura columna-placa, el anclaje en el hormigón (anclaje-hormigon-generica) ni la llave de corte (llave-corte-generica)."
+    },
+    {
+      "id": "t003",
+      "kind": "text",
+      "x": 40,
+      "y": 132,
+      "src": "CONVENCIÓN DE SIGNO: compresión positiva en el axial de la columna. L_bp es el lado en la dirección del canto de la columna (N en la DG1) y B_bp el perpendicular (B)."
+    },
+    {
+      "id": "t004",
+      "kind": "text",
+      "x": 40,
+      "y": 178,
+      "src": "━━ DATOS · SOLICITACIONES MAYORADAS ━━"
+    },
+    {
+      "id": "t005",
+      "kind": "text",
+      "x": 40,
+      "y": 224,
+      "src": "Tres casos: el que más comprime, con su momento; el que más tracciona, con el suyo; y el corte con la compresión que lo acompaña, que es la que da la fricción. En una base rotulada los momentos son cero."
+    },
+    {
+      "id": "in_P_comp",
+      "kind": "math",
+      "x": 40,
+      "y": 270,
+      "src": "P_comp := 819.4 kN"
+    },
+    {
+      "id": "in_M_comp",
+      "kind": "math",
+      "x": 40,
+      "y": 316,
+      "src": "M_comp := 0 kN*m"
+    },
+    {
+      "id": "in_P_trac",
+      "kind": "math",
+      "x": 40,
+      "y": 362,
+      "src": "P_trac := -182.2 kN"
+    },
+    {
+      "id": "in_M_trac",
+      "kind": "math",
+      "x": 40,
+      "y": 408,
+      "src": "M_trac := 0 kN*m"
+    },
+    {
+      "id": "in_V_u",
+      "kind": "math",
+      "x": 40,
+      "y": 454,
+      "src": "V_u := 94.2 kN"
+    },
+    {
+      "id": "in_P_V",
+      "kind": "math",
+      "x": 40,
+      "y": 500,
+      "src": "P_V := 359.1 kN"
+    },
+    {
+      "id": "t006",
+      "kind": "text",
+      "x": 40,
+      "y": 546,
+      "src": "━━ DATOS · GEOMETRÍA DE LA PLACA, LA COLUMNA Y EL PEDESTAL ━━"
+    },
+    {
+      "id": "t007",
+      "kind": "text",
+      "x": 40,
+      "y": 592,
+      "src": "La columna es un perfil en I: d_col es su canto, en la dirección de L_bp, y bf_col el ancho del ala, en la de B_bp. Los lados del pedestal van en el mismo orden que los de la placa."
+    },
+    {
+      "id": "in_L_bp",
+      "kind": "math",
+      "x": 40,
+      "y": 638,
+      "src": "L_bp := 0.7 m"
+    },
+    {
+      "id": "in_B_bp",
+      "kind": "math",
+      "x": 40,
+      "y": 684,
+      "src": "B_bp := 0.5 m"
+    },
+    {
+      "id": "in_t_bp",
+      "kind": "math",
+      "x": 40,
+      "y": 730,
+      "src": "t_bp := 25 mm"
+    },
+    {
+      "id": "in_d_col",
+      "kind": "math",
+      "x": 40,
+      "y": 776,
+      "src": "d_col := 611 mm"
+    },
+    {
+      "id": "in_bf_col",
+      "kind": "math",
+      "x": 40,
+      "y": 822,
+      "src": "bf_col := 324 mm"
+    },
+    {
+      "id": "in_tf_col",
+      "kind": "math",
+      "x": 40,
+      "y": 868,
+      "src": "tf_col := 19.1 mm"
+    },
+    {
+      "id": "in_tw_col",
+      "kind": "math",
+      "x": 40,
+      "y": 914,
+      "src": "tw_col := 12.7 mm"
+    },
+    {
+      "id": "in_PED_L",
+      "kind": "math",
+      "x": 40,
+      "y": 960,
+      "src": "PED_L := 1 m"
+    },
+    {
+      "id": "in_PED_B",
+      "kind": "math",
+      "x": 40,
+      "y": 1006,
+      "src": "PED_B := 0.8 m"
+    },
+    {
+      "id": "in_exposicion",
+      "kind": "math",
+      "x": 40,
+      "y": 1052,
+      "src": "exposicion := 2"
+    },
+    {
+      "id": "t008",
+      "kind": "text",
+      "x": 40,
+      "y": 1098,
+      "src": "━━ DATOS · GRUPO DE PERNOS ━━"
+    },
+    {
+      "id": "t009",
+      "kind": "text",
+      "x": 40,
+      "y": 1144,
+      "src": "Dos filas paralelas a las alas, a ±y_t del centro de la placa, con n_col pernos cada una entre −x_ext y +x_ext. La hoja deduce de la geometría si las filas quedan dentro del perfil, entre las alas y a cada lado del alma, o fuera de él, más allá de las alas."
+    },
+    {
+      "id": "in_n_col",
+      "kind": "math",
+      "x": 40,
+      "y": 1190,
+      "src": "n_col := 2"
+    },
+    {
+      "id": "in_y_t",
+      "kind": "math",
+      "x": 40,
+      "y": 1236,
+      "src": "y_t := 100 mm"
+    },
+    {
+      "id": "in_x_ext",
+      "kind": "math",
+      "x": 40,
+      "y": 1282,
+      "src": "x_ext := 75 mm"
+    },
+    {
+      "id": "in_d_perno",
+      "kind": "math",
+      "x": 40,
+      "y": 1328,
+      "src": "d_perno := 24 mm"
+    },
+    {
+      "id": "in_Ase_perno",
+      "kind": "math",
+      "x": 40,
+      "y": 1374,
+      "src": "Ase_perno := 353 mm^2"
+    },
+    {
+      "id": "in_holgura",
+      "kind": "math",
+      "x": 40,
+      "y": 1420,
+      "src": "holgura := 12 mm"
+    },
+    {
+      "id": "in_torque",
+      "kind": "math",
+      "x": 40,
+      "y": 1466,
+      "src": "torque := 0"
+    },
+    {
+      "id": "t010",
+      "kind": "text",
+      "x": 40,
+      "y": 1512,
+      "src": "━━ DATOS · MATERIALES Y FACTORES ━━"
+    },
+    {
+      "id": "t011",
+      "kind": "text",
+      "x": 40,
+      "y": 1558,
+      "src": "φ_brg: aplastamiento del hormigón (AISC 360-22 §J8). φ_b: flexión de la chapa. φ_sa: tracción del perno de acero dúctil (ACI 318-25 Tabla 21.2.1, por el §17.5.3). usa_friccion := 1 si el corte se toma por fricción, con μ y φ de la DG1 Ec. 4-30; en cero, el corte es de la llave o de los pernos, fuera de esta hoja."
+    },
+    {
+      "id": "in_Fy_ac",
+      "kind": "math",
+      "x": 40,
+      "y": 1604,
+      "src": "Fy_ac := 345 MPa"
+    },
+    {
+      "id": "in_fpc",
+      "kind": "math",
+      "x": 40,
+      "y": 1650,
+      "src": "fpc := 30 MPa"
+    },
+    {
+      "id": "in_futa",
+      "kind": "math",
+      "x": 40,
+      "y": 1696,
+      "src": "futa := 400 MPa"
+    },
+    {
+      "id": "in_phi_b",
+      "kind": "math",
+      "x": 40,
+      "y": 1742,
+      "src": "phi_b := 0.9"
+    },
+    {
+      "id": "in_phi_brg",
+      "kind": "math",
+      "x": 40,
+      "y": 1788,
+      "src": "phi_brg := 0.65"
+    },
+    {
+      "id": "in_phi_sa",
+      "kind": "math",
+      "x": 40,
+      "y": 1834,
+      "src": "phi_sa := 0.75"
+    },
+    {
+      "id": "in_usa_friccion",
+      "kind": "math",
+      "x": 40,
+      "y": 1880,
+      "src": "usa_friccion := 0"
+    },
+    {
+      "id": "in_mu_fr",
+      "kind": "math",
+      "x": 40,
+      "y": 1926,
+      "src": "mu_fr := 0.4"
+    },
+    {
+      "id": "in_phi_fr",
+      "kind": "math",
+      "x": 40,
+      "y": 1972,
+      "src": "phi_fr := 0.65"
+    },
+    {
+      "id": "t012",
+      "kind": "text",
+      "x": 40,
+      "y": 2018,
+      "src": "━━ 1 — APLASTAMIENTO DEL HORMIGÓN · AISC 360-22 §J8 y DG1 Ec. 4-2 y 4-3a ━━"
+    },
+    {
+      "id": "t013",
+      "kind": "text",
+      "x": 40,
+      "y": 2064,
+      "src": "El confinamiento es √(A2/A1) con A2 el área semejante a la placa que cabe en el pedestal, y no pasa de 2."
+    },
+    {
+      "id": "v_datos_opciones",
+      "kind": "math",
+      "x": 40,
+      "y": 2110,
+      "src": "v_datos_opciones := (torque == 0 or torque == 1) and (usa_friccion == 0 or usa_friccion == 1) and exposicion >= 1 and exposicion <= 3 and exposicion == round(exposicion) and n_col >= 1 and n_col == round(n_col) ="
+    },
+    {
+      "id": "r_conf",
+      "kind": "math",
+      "x": 40,
+      "y": 2156,
+      "src": "conf := min(PED_L/L_bp, PED_B/B_bp, 2.0) ="
+    },
+    {
+      "id": "v_conf_no_topa",
+      "kind": "math",
+      "x": 40,
+      "y": 2202,
+      "src": "v_conf_no_topa := conf < 2.0 ="
+    },
+    {
+      "id": "r_fp",
+      "kind": "math",
+      "x": 40,
+      "y": 2248,
+      "src": "f_p := phi_brg*0.85*fpc*conf = kPa"
+    },
+    {
+      "id": "r_A1",
+      "kind": "math",
+      "x": 40,
+      "y": 2294,
+      "src": "A_1 := L_bp*B_bp = m^2"
+    },
+    {
+      "id": "r_phiPp",
+      "kind": "math",
+      "x": 40,
+      "y": 2340,
+      "src": "phiPp := f_p*A_1 = kN"
+    },
+    {
+      "id": "r_u_aplast",
+      "kind": "math",
+      "x": 40,
+      "y": 2386,
+      "src": "u_aplast := P_comp/phiPp ="
+    },
+    {
+      "id": "t014",
+      "kind": "text",
+      "x": 40,
+      "y": 2432,
+      "src": "━━ 2 — DOMINIO DE LA HOJA · DG1 §4.3.7, Ec. 4-37, 4-39 y 4-40 ━━"
+    },
+    {
+      "id": "t015",
+      "kind": "text",
+      "x": 40,
+      "y": 2478,
+      "src": "Con e ≤ e_crit la compresión se equilibra solo por aplastamiento y no hay tracción en los pernos: es el momento bajo. Con e > e_crit hace falta el grupo en tracción y la hoja deja de valer. El arranque se trata concéntrico (DG1 §4.3.2): con momento, también queda fuera. Las dos condiciones votan."
+    },
+    {
+      "id": "r_qmax",
+      "kind": "math",
+      "x": 40,
+      "y": 2524,
+      "src": "q_max := f_p*B_bp = kN/m"
+    },
+    {
+      "id": "r_ecomp",
+      "kind": "math",
+      "x": 40,
+      "y": 2570,
+      "src": "e_comp := abs(M_comp)/P_comp = mm"
+    },
+    {
+      "id": "r_ecrit",
+      "kind": "math",
+      "x": 40,
+      "y": 2616,
+      "src": "e_crit := L_bp/2 - P_comp/(2*q_max) = mm"
+    },
+    {
+      "id": "v_dominio_comp",
+      "kind": "math",
+      "x": 40,
+      "y": 2662,
+      "src": "v_dominio_comp := e_comp <= e_crit ="
+    },
+    {
+      "id": "v_dominio_trac",
+      "kind": "math",
+      "x": 40,
+      "y": 2708,
+      "src": "v_dominio_trac := P_trac >= 0 kN or abs(M_trac) < 1e-6 kN*m ="
+    },
+    {
+      "id": "t016",
+      "kind": "text",
+      "x": 40,
+      "y": 2754,
+      "src": "━━ 3 — ESPESOR POR EL APLASTAMIENTO · DG1 §4.3.1 (Ec. 4-10 a 4-15a) y §4.3.7 (Ec. 4-42 a 4-50a) ━━"
+    },
+    {
+      "id": "t017",
+      "kind": "text",
+      "x": 40,
+      "y": 2800,
+      "src": "Compresión concéntrica: el voladizo crítico es el mayor de m, n y λn', este último por la flexión de la placa entre las alas (Thornton). X se acota en 1 porque con la placa sobrecargada la raíz no existe; ese caso ya lo marca u_aplast."
+    },
+    {
+      "id": "r_m",
+      "kind": "math",
+      "x": 40,
+      "y": 2846,
+      "src": "m_vol := (L_bp - 0.95*d_col)/2 = mm"
+    },
+    {
+      "id": "r_n",
+      "kind": "math",
+      "x": 40,
+      "y": 2892,
+      "src": "n_vol := (B_bp - 0.8*bf_col)/2 = mm"
+    },
+    {
+      "id": "r_X",
+      "kind": "math",
+      "x": 40,
+      "y": 2938,
+      "src": "X_th := min(4*d_col*bf_col/(d_col + bf_col)^2*P_comp/phiPp, 1) ="
+    },
+    {
+      "id": "r_lam",
+      "kind": "math",
+      "x": 40,
+      "y": 2984,
+      "src": "lam := min(2*sqrt(X_th)/(1 + sqrt(1 - X_th)), 1) ="
+    },
+    {
+      "id": "r_lnp",
+      "kind": "math",
+      "x": 40,
+      "y": 3030,
+      "src": "lnp := lam*sqrt(d_col*bf_col)/4 = mm"
+    },
+    {
+      "id": "r_l",
+      "kind": "math",
+      "x": 40,
+      "y": 3076,
+      "src": "l_crit := max(m_vol, n_vol, lnp) = mm"
+    },
+    {
+      "id": "r_t_axial",
+      "kind": "math",
+      "x": 40,
+      "y": 3122,
+      "src": "t_axial := l_crit*sqrt(2*P_comp/(phi_b*Fy_ac*B_bp*L_bp)) = mm"
+    },
+    {
+      "id": "t018",
+      "kind": "text",
+      "x": 40,
+      "y": 3168,
+      "src": "Con momento bajo, la presión es uniforme sobre Y = L_bp − 2e, y el voladizo de cálculo es el mayor de m y n. Dentro del dominio Y no baja de P/q_max; la cota solo evita que la hoja se rompa fuera de él, donde ya vota en contra."
+    },
+    {
+      "id": "r_Y",
+      "kind": "math",
+      "x": 40,
+      "y": 3214,
+      "src": "Y_b := max(L_bp - 2*e_comp, P_comp/q_max) = mm"
+    },
+    {
+      "id": "r_fpb",
+      "kind": "math",
+      "x": 40,
+      "y": 3260,
+      "src": "f_pb := P_comp/(B_bp*Y_b) = kPa"
+    },
+    {
+      "id": "r_lmn",
+      "kind": "math",
+      "x": 40,
+      "y": 3306,
+      "src": "l_mn := max(m_vol, n_vol) = mm"
+    },
+    {
+      "id": "r_Mpl",
+      "kind": "math",
+      "x": 40,
+      "y": 3352,
+      "src": "Mpl_mom := Y_b >= l_mn ? f_pb*l_mn^2/2 : f_pb*Y_b*(l_mn - Y_b/2) = kN*m/m"
+    },
+    {
+      "id": "r_t_mom",
+      "kind": "math",
+      "x": 40,
+      "y": 3398,
+      "src": "t_mom := sqrt(4*Mpl_mom/(phi_b*Fy_ac)) = mm"
+    },
+    {
+      "id": "r_t_aplast",
+      "kind": "math",
+      "x": 40,
+      "y": 3444,
+      "src": "t_aplast := max(t_axial, t_mom) = mm"
+    },
+    {
+      "id": "t019",
+      "kind": "text",
+      "x": 40,
+      "y": 3490,
+      "src": "━━ 4 — PERNOS EN TRACCIÓN · DG1 §4.3.2 y Ec. 4-23 (ACI 318-25 §17.6.1.2) ━━"
+    },
+    {
+      "id": "t020",
+      "kind": "text",
+      "x": 40,
+      "y": 3536,
+      "src": "El arranque concéntrico se reparte por igual entre todos los pernos. El anclaje en el hormigón es de anclaje-hormigon-generica, con T_grupo y los 2·n_col pernos que traccionan."
+    },
+    {
+      "id": "r_Tu",
+      "kind": "math",
+      "x": 40,
+      "y": 3582,
+      "src": "T_grupo := max(-P_trac, 0 kN) = kN"
+    },
+    {
+      "id": "r_npernos",
+      "kind": "math",
+      "x": 40,
+      "y": 3628,
+      "src": "n_trac := 2*n_col ="
+    },
+    {
+      "id": "r_ru",
+      "kind": "math",
+      "x": 40,
+      "y": 3674,
+      "src": "r_u := T_grupo/n_trac = kN"
+    },
+    {
+      "id": "r_phiRn",
+      "kind": "math",
+      "x": 40,
+      "y": 3720,
+      "src": "phiRn := phi_sa*futa*Ase_perno = kN"
+    },
+    {
+      "id": "r_u_pernos",
+      "kind": "math",
+      "x": 40,
+      "y": 3766,
+      "src": "u_pernos := r_u/phiRn ="
+    },
+    {
+      "id": "t021",
+      "kind": "text",
+      "x": 40,
+      "y": 3812,
+      "src": "━━ 5 — FLEXIÓN DE LA PLACA POR EL ARRANQUE · DG1 §4.3.2 paso 4 y Ejemplo 4.7-3 ━━"
+    },
+    {
+      "id": "t022",
+      "kind": "text",
+      "x": 40,
+      "y": 3858,
+      "src": "El perno tira de la placa, que trabaja en voladizo desde la cara del elemento que la sostiene: el alma, si las filas quedan entre las alas, o el ala, si quedan fuera del perfil. El ancho eficaz sale de repartir a 45° desde el eje del perno hasta esa cara, b = 2a por perno. Una fila bajo el ala no es ninguna de las dos y no vale."
+    },
+    {
+      "id": "r_dh",
+      "kind": "math",
+      "x": 40,
+      "y": 3904,
+      "src": "d_hueco := d_perno + holgura = mm"
+    },
+    {
+      "id": "r_dentro",
+      "kind": "math",
+      "x": 40,
+      "y": 3950,
+      "src": "dentro := y_t + d_hueco/2 <= d_col/2 - tf_col ? 1 : 0 ="
+    },
+    {
+      "id": "r_fuera",
+      "kind": "math",
+      "x": 40,
+      "y": 3996,
+      "src": "fuera := y_t - d_hueco/2 >= d_col/2 ? 1 : 0 ="
+    },
+    {
+      "id": "v_posicion",
+      "kind": "math",
+      "x": 40,
+      "y": 4042,
+      "src": "v_posicion := dentro + fuera == 1 ="
+    },
+    {
+      "id": "t023",
+      "kind": "text",
+      "x": 40,
+      "y": 4088,
+      "src": "Dentro del perfil caben dos pernos por fila, uno a cada lado del alma, con el agujero libre de ella."
+    },
+    {
+      "id": "v_dentro_dos",
+      "kind": "math",
+      "x": 40,
+      "y": 4134,
+      "src": "v_dentro_dos := dentro == 0 or n_col == 2 ="
+    },
+    {
+      "id": "v_libre_alma",
+      "kind": "math",
+      "x": 40,
+      "y": 4180,
+      "src": "v_libre_alma := dentro == 0 or x_ext - d_hueco/2 >= tw_col/2 ="
+    },
+    {
+      "id": "r_a",
+      "kind": "math",
+      "x": 40,
+      "y": 4226,
+      "src": "a_pal := dentro == 1 ? x_ext - tw_col/2 : y_t - d_col/2 = mm"
+    },
+    {
+      "id": "t024",
+      "kind": "text",
+      "x": 40,
+      "y": 4272,
+      "src": "Dentro, cada lado del alma recibe dos pernos, a ±y_t: sus anchos a 45° se suman o se solapan, sin pasar de la altura libre del alma. Fuera, cada fila recibe n_col pernos, sin pasar del ancho del ala."
+    },
+    {
+      "id": "r_Tlado",
+      "kind": "math",
+      "x": 40,
+      "y": 4318,
+      "src": "T_lado := dentro == 1 ? 2*r_u : n_col*r_u = kN"
+    },
+    {
+      "id": "r_beff",
+      "kind": "math",
+      "x": 40,
+      "y": 4364,
+      "src": "b_eff := dentro == 1 ? min(2*y_t + 2*a_pal, 4*a_pal, d_col - 2*tf_col) : min(2*x_ext + 2*a_pal, 2*n_col*a_pal, bf_col) = mm"
+    },
+    {
+      "id": "r_Marr",
+      "kind": "math",
+      "x": 40,
+      "y": 4410,
+      "src": "M_arr := T_lado*a_pal = kN*m"
+    },
+    {
+      "id": "r_t_arr",
+      "kind": "math",
+      "x": 40,
+      "y": 4456,
+      "src": "t_arr := T_grupo > 0 kN and a_pal > 0 mm ? sqrt(4*M_arr/(b_eff*phi_b*Fy_ac)) : 0 mm = mm"
+    },
+    {
+      "id": "t025",
+      "kind": "text",
+      "x": 40,
+      "y": 4502,
+      "src": "━━ 6 — ESPESOR DE LA CHAPA ━━"
+    },
+    {
+      "id": "r_t_req",
+      "kind": "math",
+      "x": 40,
+      "y": 4548,
+      "src": "t_req := max(t_aplast, t_arr) = mm"
+    },
+    {
+      "id": "r_u_esp",
+      "kind": "math",
+      "x": 40,
+      "y": 4594,
+      "src": "u_espesor := t_req/t_bp ="
+    },
+    {
+      "id": "t026",
+      "kind": "text",
+      "x": 40,
+      "y": 4640,
+      "src": "━━ 7 — GEOMETRÍA MÍNIMA DEL GRUPO ━━"
+    },
+    {
+      "id": "t027",
+      "kind": "text",
+      "x": 40,
+      "y": 4686,
+      "src": "Las mismas tres distancias de placa-base-generica: paso entre pernos (ACI 318-25 Tabla 17.9.2(a), 4·d_a sin torque y 6·d_a con torque), borde de chapa (AISC 360-22 Tabla J3.4M más C2 de la Tabla J3.5M, o la holgura de la arandela de la DG1) y borde de hormigón (recubrimiento de la Tabla 20.5.1.3.1 más medio diámetro). El paso se mide en la fila y entre filas."
+    },
+    {
+      "id": "r_paso",
+      "kind": "math",
+      "x": 40,
+      "y": 4732,
+      "src": "paso_real := n_col > 1 ? min(2*x_ext/(n_col - 1), 2*y_t) : 2*y_t = mm"
+    },
+    {
+      "id": "r_paso_min",
+      "kind": "math",
+      "x": 40,
+      "y": 4778,
+      "src": "paso_min := (torque == 1 ? 6 : 4)*d_perno = mm"
+    },
+    {
+      "id": "v_paso",
+      "kind": "math",
+      "x": 40,
+      "y": 4824,
+      "src": "v_paso := paso_real >= paso_min*(1 - 1e-9) ="
+    },
+    {
+      "id": "r_bordeJ34",
+      "kind": "program",
+      "x": 40,
+      "y": 4870,
+      "src": "borde_J34 :=\n    dm := d_perno/(1 mm)\n    if dm > 36\n        return 1.25*d_perno\n    tabla := [12, 18; 16, 22; 20, 26; 22, 28; 24, 30; 27, 34; 30, 38; 36, 46]\n    for k in 1:8\n        if dm <= tabla[k, 1]\n            return tabla[k, 2]*(1 mm)"
+    },
+    {
+      "id": "r_C2",
+      "kind": "math",
+      "x": 40,
+      "y": 5074,
+      "src": "C2 := (d_perno <= 22 mm ? 2 : 3)*(1 mm) = mm"
+    },
+    {
+      "id": "r_bordeDG1",
+      "kind": "math",
+      "x": 40,
+      "y": 5120,
+      "src": "borde_DG1 := d_hueco/2 + 2 inch = mm"
+    },
+    {
+      "id": "r_borde_placa",
+      "kind": "math",
+      "x": 40,
+      "y": 5166,
+      "src": "borde_placa_min := max(borde_J34 + C2, borde_DG1) = mm"
+    },
+    {
+      "id": "r_ancho_req",
+      "kind": "math",
+      "x": 40,
+      "y": 5212,
+      "src": "ancho_req := 2*(x_ext + borde_placa_min) = mm"
+    },
+    {
+      "id": "v_ancho",
+      "kind": "math",
+      "x": 40,
+      "y": 5258,
+      "src": "v_ancho := B_bp >= ancho_req ="
+    },
+    {
+      "id": "r_largo_req",
+      "kind": "math",
+      "x": 40,
+      "y": 5304,
+      "src": "largo_req := 2*(y_t + borde_placa_min) = mm"
+    },
+    {
+      "id": "v_largo",
+      "kind": "math",
+      "x": 40,
+      "y": 5350,
+      "src": "v_largo := L_bp >= largo_req ="
+    },
+    {
+      "id": "r_recub",
+      "kind": "math",
+      "x": 40,
+      "y": 5396,
+      "src": "recub := exposicion == 1 ? 75 mm : (exposicion == 3 ? 40 mm : (d_perno > 16 mm ? 50 mm : 40 mm)) = mm"
+    },
+    {
+      "id": "r_borde_horm",
+      "kind": "math",
+      "x": 40,
+      "y": 5442,
+      "src": "borde_horm_min := torque == 1 ? 6*d_perno : recub + d_perno/2 = mm"
+    },
+    {
+      "id": "r_bhB",
+      "kind": "math",
+      "x": 40,
+      "y": 5488,
+      "src": "borde_horm_B := PED_B/2 - x_ext = mm"
+    },
+    {
+      "id": "r_bhL",
+      "kind": "math",
+      "x": 40,
+      "y": 5534,
+      "src": "borde_horm_L := PED_L/2 - y_t = mm"
+    },
+    {
+      "id": "r_chorm",
+      "kind": "math",
+      "x": 40,
+      "y": 5580,
+      "src": "c_horm := min(borde_horm_B, borde_horm_L) = mm"
+    },
+    {
+      "id": "v_borde_horm",
+      "kind": "math",
+      "x": 40,
+      "y": 5626,
+      "src": "v_borde_horm := c_horm >= borde_horm_min ="
+    },
+    {
+      "id": "t028",
+      "kind": "text",
+      "x": 40,
+      "y": 5672,
+      "src": "━━ 8 — CORTE POR FRICCIÓN · DG1 Ec. 4-30 (ACI 318-25 §22.9 y ACI 349-13 D.6.1.4) ━━"
+    },
+    {
+      "id": "t029",
+      "kind": "text",
+      "x": 40,
+      "y": 5718,
+      "src": "Solo si usa_friccion = 1. La resistencia es φ·μ·P con la compresión concurrente, sin pasar de 0,2·f'c·Ac ni de 800 psi·Ac, con φ = 0,75 en esos topes. Supuesto de la hoja: Ac es el área de la placa. En algunas aplicaciones sísmicas ASCE 7 (caps. 13 y 15) no permite la fricción, y la decisión es de quien diseña."
+    },
+    {
+      "id": "r_Vfr",
+      "kind": "math",
+      "x": 40,
+      "y": 5764,
+      "src": "phiVn_fr := phi_fr*mu_fr*max(P_V, 0 kN) = kN"
+    },
+    {
+      "id": "r_Vtope",
+      "kind": "math",
+      "x": 40,
+      "y": 5810,
+      "src": "phiVn_tope := 0.75*min(0.2*fpc*A_1, 800 psi*A_1) = kN"
+    },
+    {
+      "id": "r_phiVn",
+      "kind": "math",
+      "x": 40,
+      "y": 5856,
+      "src": "phiVn := min(phiVn_fr, phiVn_tope) = kN"
+    },
+    {
+      "id": "r_u_fr",
+      "kind": "math",
+      "x": 40,
+      "y": 5902,
+      "src": "u_friccion := usa_friccion == 1 ? (phiVn > 0 kN ? V_u/phiVn : 99) : 0 ="
+    },
+    {
+      "id": "t030",
+      "kind": "text",
+      "x": 40,
+      "y": 5948,
+      "src": "━━ RESUMEN ━━"
+    },
+    {
+      "id": "r_umax",
+      "kind": "math",
+      "x": 40,
+      "y": 5994,
+      "src": "u_max := max(u_aplast, u_espesor, u_pernos, u_friccion) ="
+    },
+    {
+      "id": "r_gob",
+      "kind": "program",
+      "x": 40,
+      "y": 6040,
+      "src": "gobierna :=\n    if u_max == u_aplast\n        return \"aplastamiento del hormigon\"\n    else if u_max == u_pernos\n        return \"area de los pernos en traccion\"\n    else if u_max == u_friccion\n        return \"corte por friccion\"\n    else if t_arr > t_aplast\n        return \"espesor de la chapa por el arranque\"\n    else\n        return \"espesor de la chapa por el aplastamiento\""
+    },
+    {
+      "id": "v_global",
+      "kind": "math",
+      "x": 40,
+      "y": 6310,
+      "src": "v_global := u_max <= 1 and v_dominio_comp and v_dominio_trac and v_posicion and v_dentro_dos and v_libre_alma and v_paso and v_ancho and v_largo and v_borde_horm and v_datos_opciones ="
+    },
+    {
+      "id": "t031",
+      "kind": "text",
+      "x": 40,
+      "y": 6356,
+      "src": "RECORDATORIO DE FRONTERA: con llave de corte, el espesor de la placa se compara además con el de la llave (t_bp ≥ t_sl, recomendación de la DG1) y con la flexión local que la llave le induce: eso es de llave-corte-generica."
+    }
+  ]
+}

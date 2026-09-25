@@ -39,10 +39,14 @@ export function hojaDeVista(
     'Modelo geométrico de la base armado con los mismos datos que usan sus cálculos. Comprueba que las ' +
       'piezas no choquen y que lo que las hojas de cálculo declaran de la geometría sea lo que la geometría da.',
   );
-  // Solo se dice lo que falta: la base completa no lleva la línea, y su hoja es
-  // la misma que antes de que existieran las opciones.
+  // Solo se dice lo que se aparta de la base por defecto: la completa no lleva la
+  // línea, y su hoja es la misma que antes de que existieran las opciones.
+  const otras = def.opciones
+    .filter((o) => config[o.clave] !== 'no' && config[o.clave] !== o.porDefecto)
+    .map((o) => `${o.titulo.toLowerCase()} ${o.variantes.find((v) => v.id === config[o.clave])?.titulo.toLowerCase() ?? ''}`.trim());
   const faltan = def.opciones.filter((o) => config[o.clave] === 'no').map((o) => o.titulo.toLowerCase());
-  if (faltan.length) t(`Configuración: sin ${faltan.join(' ni ')}.`);
+  const partes = [...otras, ...(faltan.length ? [`sin ${faltan.join(' ni ')}`] : [])];
+  if (partes.length) t(`Configuración: ${partes.join('; ')}.`);
 
   t('## Datos');
   for (const c of campos) {

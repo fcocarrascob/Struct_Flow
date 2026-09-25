@@ -1,5 +1,6 @@
 import type { Instanciada } from './evaluacion';
 import { problemaDeAlias, type Frontera } from './modelo';
+import { opcionApagada } from '../vistas/registro';
 
 /** Un número del modelo con coma decimal, como lo escribe el resto de la aplicación. */
 const num = (v: number) => String(v).replace('.', ',');
@@ -102,6 +103,8 @@ export default function FichaVista({
                   value={config[o.clave]}
                   onChange={(e) => onConfig(o.clave, e.target.value)}
                   aria-label={o.titulo}
+                  disabled={opcionApagada(o, config)}
+                  title={opcionApagada(o, config) ? `No aplica: ${o.soloSiTexto ?? o.soloSi}` : undefined}
                   className="min-w-0 flex-1 rounded border border-border bg-white px-1 py-0.5 text-[11px] text-ink outline-none focus:border-accent"
                 >
                   {o.variantes.map((v) => (

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { Parametros } from './ensamble';
 import { ALIAS_RE, aliasPorDefecto } from './sap-apoyos';
 import { Dialogo } from './SeleccionNodos';
-import { configCompleta } from '../vistas/registro';
+import { configCompleta, opcionApagada } from '../vistas/registro';
 import type { Config, DefVista } from '../vistas/tipos';
 
 /**
@@ -131,7 +131,14 @@ export default function ArmarBase({
         {def.opciones.map((o) => (
           <label key={o.clave} className="block text-xs text-muted">
             {o.titulo}
-            <select value={config[o.clave]} onChange={(e) => setConfig({ ...config, [o.clave]: e.target.value })} className={campo}>
+            {opcionApagada(o, config) && <span className="ml-1 text-[10px]">— no aplica: {o.soloSiTexto ?? o.soloSi}</span>}
+            <select
+              value={config[o.clave]}
+              disabled={opcionApagada(o, config)}
+              // Cada cambio pasa por la normalización: con la placa rotulada, la silla y la capacidad se apagan solas.
+              onChange={(e) => setConfig(configCompleta(def, { ...config, [o.clave]: e.target.value }))}
+              className={campo}
+            >
               {o.variantes.map((v) => (
                 <option key={v.id} value={v.id}>
                   {v.titulo}

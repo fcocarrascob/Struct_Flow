@@ -14,6 +14,15 @@ import type { Campo, Opcion } from '../tipos';
  */
 export const OPCIONES_BASE_COLUMNA: Opcion[] = [
   {
+    clave: 'placa',
+    titulo: 'Placa base',
+    variantes: [
+      { id: 'momento', titulo: 'Con momento (gran excentricidad)' },
+      { id: 'rotulada', titulo: 'Rotulada o con momento bajo' },
+    ],
+    porDefecto: 'momento',
+  },
+  {
     clave: 'silla',
     titulo: 'Silla de anclaje',
     variantes: [
@@ -21,6 +30,8 @@ export const OPCIONES_BASE_COLUMNA: Opcion[] = [
       { id: 'no', titulo: 'Sin silla: el perno aprieta sobre la placa' },
     ],
     porDefecto: 'nervios',
+    soloSi: 'placa=momento',
+    soloSiTexto: 'la silla cuelga del bloque comprimido de la placa con momento',
   },
   {
     clave: 'llave',
@@ -30,6 +41,19 @@ export const OPCIONES_BASE_COLUMNA: Opcion[] = [
       { id: 'no', titulo: 'Sin llave' },
     ],
     porDefecto: 'cruz',
+  },
+  {
+    // No es una pieza del dibujo: es de dónde salen las fuerzas de diseño. Vive
+    // aquí porque la configuración de la base es una sola, y el ensamble la lee.
+    clave: 'capacidad',
+    titulo: 'Fuerzas de capacidad',
+    variantes: [
+      { id: 'aisc341', titulo: 'AISC 341 §D2.6: pórtico arriostrado en X, de momento en Y' },
+      { id: 'no', titulo: 'Sin capacidad: solo las combinaciones del modelo' },
+    ],
+    porDefecto: 'aisc341',
+    soloSi: 'placa=momento',
+    soloSiTexto: 'una base rotulada no transmite el momento de la columna',
   },
 ];
 

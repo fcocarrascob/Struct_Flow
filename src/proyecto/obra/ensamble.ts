@@ -24,24 +24,24 @@
 
 import type { Region } from '../../lib/worksheet';
 import type { Config } from '../vistas/tipos';
+import { cumple, leerCondicion, type Condicion } from '../vistas/condicion';
+import { VISTAS, configCompleta } from '../vistas/registro';
 import { definicionesDe } from './hoja';
 import { borrarCalculo, type Frontera, type Obra, type NodoCalculo, type Revision } from './modelo';
 import { nombresDefinidos } from './copia';
 
 // ── La plantilla ─────────────────────────────────────────────────────────────
 
-/**
- * Cuándo existe una parte de la plantilla, según la configuración:
- *   - `clave`: el componente está (su variante no es `'no'`);
- *   - `!clave`: no está;
- *   - `clave=a|b`: su variante es una de esas;
- *   - `clave!=a|b`: su variante no es ninguna de esas.
- */
-export type Condicion = string;
+/** Cuándo existe una parte de la plantilla: la gramática está en `vistas/condicion.ts`. */
+export type { Condicion };
 
+/**
+ * Un bloque de hoja. Con `si`, existe solo bajo esa condición, sin salir de su
+ * sección: su id sigue siendo el mismo, y una hoja armada antes lo reconoce.
+ */
 export type BloquePlantilla =
-  | { kind: 'text' | 'math'; src: string }
-  | { kind: 'table'; src: string; tabla: NonNullable<Region['tabla']> };
+  | { kind: 'text' | 'math'; src: string; si?: Condicion }
+  | { kind: 'table'; src: string; tabla: NonNullable<Region['tabla']>; si?: Condicion };
 
 export interface SeccionPlantilla {
   clave: string;
@@ -108,54 +108,44 @@ export interface Ensamble extends Parametros {
 
 // ── Instanciar ───────────────────────────────────────────────────────────────
 
-const CONDICION_RE = /^(!?)([\p{L}_][\p{L}\p{N}_-]*)(?:(!?=)([\p{L}\p{N}_|-]+))?$/u;
-
-/** La condición desarmada, o `null` si no se entiende. */
-export function leerCondicion(si: Condicion): { clave: string; variantes?: string[]; niega: boolean } | null {
-  const r = CONDICION_RE.exec(si.trim());
-  if (!r || (r[1] && r[3])) return null;
-  const [, neg, clave, op, lista] = r;
-  if (!op) return { clave, niega: !!neg };
-  return { clave, variantes: lista.split('|'), niega: op === '!=' };
-}
-
-export function cumple(si: Condicion | undefined, config: Config): boolean {
-  if (!si) return true;
-  const c = leerCondicion(si);
-  // Una condición ilegible no se cumple nunca: mejor una pieza de menos, que se
-  // ve, que una de más calculando fuera de su sitio. `problemasDePlantilla` la señala.
-  if (!c) return false;
-  const v = config[c.clave];
-  const dentro = c.variantes ? c.variantes.includes(v) : v !== 'no';
-  return c.niega ? !dentro : dentro;
-}
-
 /**
  * Lo que está mal en una plantilla respecto de las opciones de su vista: una
  * condición ilegible o que nombra una opción o variante que no existe, y una
  * configuración en la que dos nodos con la misma clave existen a la vez (o
- * ninguno de los que la vista necesita). Se recorren todas las configuraciones:
- * con dos o tres opciones son un puñado.
+ * ninguno de los que la vista necesita). Se recorren todas las configuraciones
+ * —con tres o cuatro opciones son unas decenas—, pasadas por `normalizar` si se
+ * da: una combinación que la vista nunca admite (placa rotulada con silla) no
+ * tiene por qué armar.
  */
 export function problemasDePlantilla(
   p: Plantilla,
   opciones: readonly { clave: string; variantes: readonly { id: string }[] }[],
+  normalizar: (c: Config) => Config = (c) => c,
 ): string[] {
   const problemas: string[] = [];
   const condiciones = p.nodos.flatMap((n) => [
     ...(n.si ? [{ donde: n.clave, si: n.si }] : []),
-    ...(n.hoja ?? []).flatMap((s) => (s.si ? [{ donde: `${n.clave}/${s.clave}`, si: s.si }] : [])),
+    ...(n.hoja ?? []).flatMap((s) => [
+      ...(s.si ? [{ donde: `${n.clave}/${s.clave}`, si: s.si }] : []),
+      ...s.bloques.flatMap((b, i) => (b.si ? [{ donde: `${n.clave}/${s.clave}/${i + 1}`, si: b.si }] : [])),
+    ]),
     ...(n.frontera?.capas ?? []).map((c) => ({ donde: `${n.clave}/capa`, si: c.si })),
   ]);
   for (const { donde, si } of condiciones) {
-    const c = leerCondicion(si);
-    const op = c && opciones.find((o) => o.clave === c.clave);
-    if (!c) problemas.push(`${donde}: la condición «${si}» no se entiende.`);
-    else if (!op) problemas.push(`${donde}: «${si}» nombra la opción «${c.clave}», que la vista no tiene.`);
-    else for (const v of c.variantes ?? []) if (!op.variantes.some((x) => x.id === v)) problemas.push(`${donde}: «${si}» nombra la variante «${v}», que «${c.clave}» no tiene.`);
+    const partes = leerCondicion(si);
+    if (!partes) {
+      problemas.push(`${donde}: la condición «${si}» no se entiende.`);
+      continue;
+    }
+    for (const c of partes) {
+      const op = opciones.find((o) => o.clave === c.clave);
+      if (!op) problemas.push(`${donde}: «${si}» nombra la opción «${c.clave}», que la vista no tiene.`);
+      else for (const v of c.variantes ?? []) if (!op.variantes.some((x) => x.id === v)) problemas.push(`${donde}: «${si}» nombra la variante «${v}», que «${c.clave}» no tiene.`);
+    }
   }
-  let configs: Config[] = [{}];
-  for (const o of opciones) configs = configs.flatMap((c) => o.variantes.map((v) => ({ ...c, [o.clave]: v.id })));
+  let todas: Config[] = [{}];
+  for (const o of opciones) todas = todas.flatMap((c) => o.variantes.map((v) => ({ ...c, [o.clave]: v.id })));
+  const configs = [...new Map(todas.map((c) => normalizar(c)).map((c) => [JSON.stringify(c), c])).values()];
   for (const config of configs) {
     const presentes = p.nodos.filter((n) => cumple(n.si, config));
     const claves = presentes.map((n) => n.clave);
@@ -173,6 +163,9 @@ function bloquesDe(n: NodoPlantilla, config: Config | null): { clave: string; bl
   for (const s of n.hoja ?? []) {
     if (config && !cumple(s.si, config)) continue;
     s.bloques.forEach((b, i) => {
+      // El índice cuenta los bloques condicionados aunque no estén: el de los
+      // demás no cambia con la configuración.
+      if (config && !cumple(b.si, config)) return;
       // Una definición se identifica por su nombre: sobrevive a que la plantilla
       // agregue o mueva bloques de su sección.
       const def = b.kind === 'math' ? /^\s*([\p{L}_][\p{L}\p{N}_]*)\s*:=/u.exec(b.src)?.[1] : undefined;
@@ -333,6 +326,7 @@ export function armarEnsamble(
   /** Sin nodo de apoyos: agrega la hoja de las gobernantes, para escribirlas a mano. */
   aMano = false,
 ): ResultadoArmar | { error: string } {
+  config = normalizada(p, config);
   const propios = nombresPropios(p);
   const tr = (s: string) => traducir(s, propios, params);
   const ya = nombresDefinidos(obra);
@@ -358,6 +352,18 @@ export function armarEnsamble(
     },
     idVista,
   };
+}
+
+/**
+ * La configuración como la entiende la vista de la plantilla (`configCompleta`):
+ * lo que falta con su valor por defecto y lo que `soloSi` apaga, en `'no'`. Una
+ * vista guardada antes de que existiera una opción no la tiene, y sin esto sus
+ * condiciones (`placa=momento`) no se cumplirían.
+ */
+function normalizada(p: Plantilla, config: Config): Config {
+  const id = p.nodos.find((n) => n.frontera?.procedencia === 'vista')?.frontera?.id;
+  const def = id ? VISTAS[id] : undefined;
+  return def ? { ...config, ...configCompleta(def, config) } : config;
 }
 
 function vistaDe(p: Plantilla, ids: Readonly<Record<string, string>>): string {
@@ -396,7 +402,8 @@ export function reconfigurar(
   const vista = obra.calculos.find((k) => k.id === idVista);
   const ens = vista?.frontera?.ensamble;
   if (!vista?.frontera || !ens) return { error: 'La vista no tiene un ensamble que reconfigurar.' };
-  const configVieja = vista.frontera.config ?? {};
+  const configVieja = normalizada(p, vista.frontera.config ?? {});
+  configNueva = normalizada(p, configNueva);
   const ids: Record<string, string> = { ...ens.nodos };
   for (const n of p.nodos) ids[n.clave] ??= nuevoId('k');
   const viejos = new Map(instanciar(p, configVieja, ens, ids, sellos).map((k) => [k.id, k]));

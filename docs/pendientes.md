@@ -47,13 +47,22 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
    (2026-09-25) conservando ids, grupo y notas ⚑, con los mismos números.
    Las condiciones de la plantilla ya eligen entre variantes (`placa=articulada`), y dos nodos
    con la misma clave son variantes de una pieza: cambiar de una a otra conserva el id, el
-   grupo y la ⚑ (`problemasDePlantilla` exige que nunca coexistan). Falta la primera variante
-   real: una placa rotulada o de poca excentricidad, con su genérica y su verificación de
-   dominio. Un sondeo con esfuerzos simulados de COL_VIENTO (base rotulada, M = 0, N = 180 kN,
-   arranque LRFD de −60 kN, sin silla ni llave) muestra por qué: la plantilla de hoy no da
-   error, pero da `u_pb = 2,09`, gobernado por el caso de arranque de la hoja de capacidad
-   (le impone el corte 2·Ry·Fy·Z/H de AISC 341 a una columna de viento), y la tracción LRFD
-   no entra en la placa, que toma la tracción solo de los casos de sobrerresistencia.
+   grupo y la ⚑ (`problemasDePlantilla` exige que nunca coexistan). La primera variante real
+   ya está (2026-09-25): `placa-base-rotulada-generica` (DG1 §4.3.1, §4.3.2, §4.3.7; reproduce
+   los Ejemplos 4.7-1 y 4.7-3), elegida con `placa: rotulada`, que apaga la silla y la hoja de
+   capacidad (`Opcion.soloSi`). Con las gobernantes de las cuatro COL-HASTIAL de
+   `modelo_prueba.sdb` la base cierra: placa 0,69 (espesor por el arranque O0 de 182 kN),
+   anclaje 0,54, pedestal 0,67. Siguen, en orden: el dominio en `placa-base-generica` (toca una
+   genérica publicada) y la recomendación de variante en el diálogo «+ base».
+   Lo que salió en el camino:
+   - **`anclaje-hormigon-generica` y `pedestal-generico` dividen por cero** cuando no cuenta
+     ninguna barra (`n_arm = 0`, `n_contables = 0`): dan error en vez de un ✗ limpio.
+   - **La vista cuenta las barras solo contra la fila `y > 0`**; con la base rotulada
+     traccionan las dos filas.
+   - **La rotulada toma la tracción del criterio `t` del conjunto de sobrerresistencia**: si ese
+     conjunto no tracciona, el nombre no se publica y la hoja queda en rojo.
+   - **En `modelo_prueba.sdb`, las columnas de hastial de x = 88 (barras 839 y 840, nudos 592 y
+     593) no están en el grupo COL_VIENTO** y Flow las ve sin grupo. Se corrige en SAP2000.
    Límites de la plantilla: la hoja de capacidad es la del Pachón (AISC 341 §D2.6, pórtico
    arriostrado en X y de momento en Y) y usa las externas `H_int_dg`, `H_ext_dg` y
    `T_ext_dg` del arriostramiento, sin sufijo; una base sin diagonales, o sin

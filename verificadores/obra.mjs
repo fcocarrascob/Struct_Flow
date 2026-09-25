@@ -243,6 +243,9 @@ const genericasBase = Object.fromEntries(
   [PLACA, PEDESTAL, ANCLAJE, LLAVE, SILLA].map((g) => [g.id, { fase: 'lista', modulo: g }]),
 );
 const sellosBase = Object.fromEntries([PLACA, PEDESTAL, ANCLAJE, LLAVE, SILLA].map((g) => [g.id, g.biblioteca?.sha256 ?? '']));
+const ROTULADA = await generica('acero/placa-base-rotulada-generica.json');
+const genericasConRotulada = { ...genericasBase, [ROTULADA.id]: { fase: 'lista', modulo: ROTULADA } };
+const sellosConRotulada = { ...sellosBase, [ROTULADA.id]: ROTULADA.biblioteca?.sha256 ?? '' };
 
 /** Las regiones de una genérica, como quedan al desprenderla: instanciadas. */
 const hojaDe = (modulo) => modulo.construirHoja(modulo.porDefecto);
@@ -3229,7 +3232,7 @@ function CASOS_ENSAMBLE() {
     return (prefijo) => `${prefijo}ens${++i}`;
   };
   const base = (config = COMPLETA, params = PARAMS, o = obra(calc('EXT', ...EXTERNAS.map(m))), nuevoId = idsDe()) =>
-    armarEnsamble(o, PLANTILLA, config, params, sellosBase, { nombre: `Base de columna ${params.grupoSap}`, color: '#db2777' }, nuevoId);
+    armarEnsamble(o, PLANTILLA, config, params, sellosConRotulada, { nombre: `Base de columna ${params.grupoSap}`, color: '#db2777' }, nuevoId);
   const errores = (ev) => Object.entries(ev.results).filter(([, r]) => r.error).map(([id, r]) => `${id}: ${r.error}`);
   const u = (ev) =>
     Object.entries(REFERENCIA)
@@ -3322,6 +3325,7 @@ function CASOS_ENSAMBLE() {
           ['silla', true], ['!silla', false], ['llave', false], ['!llave', true],
           ['placa=articulada', true], ['placa=gran|articulada', true], ['placa=gran', false],
           ['placa!=gran', true], ['placa!=articulada|gran', false], ['!placa=gran', false], ['placa==x', false],
+          ['silla&placa=articulada', true], ['silla&llave', false], ['!llave&placa!=gran', true], ['silla&', false],
         ];
         const mal = casos.filter(([si, esperado]) => cumple(si, c) !== esperado).map(([si]) => si);
         return mal.length ? `se leyeron mal: ${mal.join(', ')}` : null;
@@ -3330,7 +3334,7 @@ function CASOS_ENSAMBLE() {
     {
       nombre: 'ensamble: la plantilla de la base es coherente con las opciones de su vista',
       ok: () => {
-        const p = problemasDePlantilla(PLANTILLA, VISTAS['base-columna'].opciones);
+        const p = problemasDePlantilla(PLANTILLA, VISTAS['base-columna'].opciones, (c) => configCompleta(VISTAS['base-columna'], c));
         return p.length ? p.join(' | ') : null;
       },
     },
@@ -3339,7 +3343,7 @@ function CASOS_ENSAMBLE() {
       ok: () => {
         // Una plantilla mínima con una pieza de dos variantes. Las genéricas son
         // sustitutas: aquí se prueba el mecanismo, no el diseño.
-        const OPCIONES = [{ clave: 'placa', variantes: [{ id: 'gran' }, { id: 'articulada' }] }];
+        const OPCIONES = [{ clave: 'placa', variantes: [{ id: 'momento' }, { id: 'rotulada' }] }];
         const hoja = (bloques) => bloques.map((src) => ({ kind: 'math', src }));
         const P = {
           nodos: [
@@ -3348,25 +3352,25 @@ function CASOS_ENSAMBLE() {
               nombre: 'Datos $G',
               hoja: [
                 { clave: 'comun', bloques: hoja(['a_pb := 1 m']) },
-                { clave: 'gran', si: 'placa=gran', bloques: hoja(['e_pb := 2 m']) },
-                { clave: 'art', si: 'placa=articulada', bloques: hoja(['r_pb := 3 m']) },
+                { clave: 'gran', si: 'placa=momento', bloques: hoja(['e_pb := 2 m']) },
+                { clave: 'art', si: 'placa=rotulada', bloques: hoja(['r_pb := 3 m']) },
               ],
             },
-            { clave: 'placa', nombre: 'Placa $G', si: 'placa=gran', frontera: { procedencia: 'biblioteca', id: PLACA.id, entradas: { hay_llave: 0 }, formulas: { L_bp: 'a_pb' }, publica: { u_max: 'u_pb' } } },
-            { clave: 'placa', nombre: 'Placa articulada $G', si: 'placa=articulada', frontera: { procedencia: 'biblioteca', id: PEDESTAL.id, entradas: {}, formulas: { PED_X: 'a_pb' }, publica: { u_max: 'u_pb' } } },
+            { clave: 'placa', nombre: 'Placa $G', si: 'placa=momento', frontera: { procedencia: 'biblioteca', id: PLACA.id, entradas: { hay_llave: 0 }, formulas: { L_bp: 'a_pb' }, publica: { u_max: 'u_pb' } } },
+            { clave: 'placa', nombre: 'Placa articulada $G', si: 'placa=rotulada', frontera: { procedencia: 'biblioteca', id: PEDESTAL.id, entradas: {}, formulas: { PED_X: 'a_pb' }, publica: { u_max: 'u_pb' } } },
             { clave: 'vista', nombre: 'Vista $G', frontera: { procedencia: 'vista', id: 'base-columna', entradas: {}, formulas: {}, publica: {} } },
           ],
         };
         const p = problemasDePlantilla(P, OPCIONES);
         if (p.length) return `la plantilla sintética: ${p.join(' | ')}`;
         const nuevoId = idsDe();
-        const r = armarEnsamble(obra(), P, { placa: 'gran' }, { ...PARAMS, tipo: 'CV', grupoSap: 'COL_VIENTO' }, sellosBase, { nombre: 'b', color: '#db2777' }, nuevoId);
+        const r = armarEnsamble(obra(), P, { placa: 'momento' }, { ...PARAMS, tipo: 'CV', grupoSap: 'COL_VIENTO' }, sellosBase, { nombre: 'b', color: '#db2777' }, nuevoId);
         if (r.error) return r.error;
         const placa0 = nodo(r.obra, 'Placa COL_VIENTO');
         if (placa0?.frontera?.slug !== PLACA.id) return `placa: ${placa0?.frontera?.slug}`;
         const marca = { nota: 'revisar la placa', por: 'usuario' };
         const o1 = { ...r.obra, calculos: r.obra.calculos.map((k) => (k.id === placa0.id ? { ...k, revisar: marca, frontera: { ...k.frontera, entradas: { hay_llave: 1 } } } : k)) };
-        const s = reconfigurar(o1, P, r.idVista, { placa: 'articulada' }, sellosBase, nuevoId);
+        const s = reconfigurar(o1, P, r.idVista, { placa: 'rotulada' }, sellosBase, nuevoId);
         if (s.error) return s.error;
         const placa1 = s.obra.calculos.find((k) => k.id === placa0.id);
         if (!placa1) return 'la placa cambió de id';
@@ -3378,11 +3382,74 @@ function CASOS_ENSAMBLE() {
         if (!src.includes('r_pb_CV := 3 m') || src.some((x) => x.startsWith('e_pb_CV'))) return `datos: ${src.join(' ; ')}`;
         if (s.obra.calculos.length !== r.obra.calculos.length) return 'cambió el número de nodos';
         // Una plantilla con dos variantes simultáneas de la misma pieza se denuncia.
-        const rota = { nodos: P.nodos.map((n) => (n.si === 'placa=articulada' ? { ...n, si: 'placa=articulada|gran' } : n)) };
+        const rota = { nodos: P.nodos.map((n) => (n.si === 'placa=rotulada' ? { ...n, si: 'placa=rotulada|momento' } : n)) };
         const q = problemasDePlantilla(rota, OPCIONES);
-        const malNombre = problemasDePlantilla({ nodos: [...P.nodos, { clave: 'x', nombre: 'x', si: 'placa=rotulada', hoja: [] }] }, OPCIONES);
+        const malNombre = problemasDePlantilla({ nodos: [...P.nodos, { clave: 'x', nombre: 'x', si: 'placa=empotrada', hoja: [] }] }, OPCIONES);
         if (!q.some((x) => /existe dos veces/.test(x))) return `no vio la pieza doble: ${q.join(' | ')}`;
-        return malNombre.some((x) => /rotulada/.test(x)) ? null : 'no vio la variante inexistente';
+        return malNombre.some((x) => /empotrada/.test(x)) ? null : 'no vio la variante inexistente';
+      },
+    },
+    {
+      nombre: 'ensamble: la placa rotulada apaga la silla y la capacidad, y la base de hastial del Pachón cierra sin error',
+      ok: () => {
+        // Las gobernantes de las cuatro columnas COL-HASTIAL de modelo_prueba.sdb
+        // (nudos 45, 47, 592 y 593), leídas del modelo el 2026-09-25: rotuladas, M = 0.
+        const HASTIAL = [
+          'N_c_CV_LRFD := 819.4 kN', 'V_c_CV_LRFD := 41.9 kN', 'M_c_CV_LRFD := 0 kN*m',
+          'N_v_CV_LRFD := 359.1 kN', 'V_v_CV_LRFD := 94.2 kN', 'M_v_CV_LRFD := 0 kN*m',
+          'N_c_CV_O0 := 755.3 kN', 'V_c_CV_O0 := 0.1 kN', 'M_c_CV_O0 := 0 kN*m',
+          'N_t_CV_O0 := -182.2 kN', 'V_t_CV_O0 := 0.1 kN', 'M_t_CV_O0 := 0 kN*m',
+          'N_v_CV_O0 := 360.8 kN', 'V_v_CV_O0 := 14.7 kN', 'M_v_CV_O0 := 0 kN*m',
+        ];
+        const params = { tipo: 'CV', grupoSap: 'COL_HASTIAL', diseno: 'LRFD', sobrerresistencia: 'O0' };
+        // La silla y la capacidad se piden, y la placa rotulada las apaga.
+        const r = base({ ...COMPLETA, placa: 'rotulada', llave: 'no' }, params, obra(calc('EXT', ...HASTIAL.map(m))));
+        if (r.error) return r.error;
+        const nombres = r.obra.calculos.filter((k) => k.id !== 'EXT').map((k) => k.nombre).sort();
+        const esperados = [
+          'Anclaje al hormigón COL_HASTIAL', 'Base de columna COL_HASTIAL — datos', 'Base de columna COL_HASTIAL — geometría',
+          'Base de columna COL_HASTIAL — resumen', 'Pedestal COL_HASTIAL', 'Placa base rotulada COL_HASTIAL',
+        ].sort();
+        if (JSON.stringify(nombres) !== JSON.stringify(esperados)) return `nodos: ${nombres.join(', ')}`;
+        const vista = r.obra.calculos.find((k) => k.id === r.idVista).frontera;
+        if (vista.config.silla !== 'no' || vista.config.capacidad !== 'no') return `config: ${JSON.stringify(vista.config)}`;
+        const ev = evaluarObra(sanearObra(r.obra), genericasConRotulada);
+        const e = errores(ev);
+        if (e.length) return `${e.length} región(es) con error: ${e[0]}`;
+        if (ev.scope.T_pb_CV?.toNumber('kN') !== 182.2) return `T_pb_CV = ${ev.scope.T_pb_CV}`;
+        if (ev.scope.n_trac_pb_CV !== 4) return `n_trac_pb_CV = ${ev.scope.n_trac_pb_CV}`;
+        if (!(ev.scope.u_pb_CV > 0 && ev.scope.u_pb_CV <= 1)) return `u_pb_CV = ${ev.scope.u_pb_CV}`;
+        for (const n of ['u_anc_CV', 'u_ped_CV']) if (!(ev.scope[n] > 0 && ev.scope[n] <= 1)) return `${n} = ${ev.scope[n]}`;
+        return ev.scope.v_geo_base_CV === true ? null : 'la vista de la base rotulada no cierra';
+      },
+    },
+    {
+      nombre: 'ensamble: el Pachón pasa a placa rotulada y vuelve, con la placa en el mismo nodo y los mismos números',
+      ok: () => {
+        const nuevoId = idsDe();
+        const r = base(COMPLETA, PARAMS, undefined, nuevoId);
+        if (r.error) return r.error;
+        const placa0 = nodo(r.obra, 'Placa base COL_PPALES');
+        const rot = reconfigurar(r.obra, PLANTILLA, r.idVista, { ...COMPLETA, placa: 'rotulada' }, sellosConRotulada, nuevoId);
+        if (rot.error) return rot.error;
+        const placa1 = rot.obra.calculos.find((k) => k.id === placa0.id);
+        if (placa1?.frontera?.slug !== 'placa-base-rotulada-generica') return `la placa rotulada: ${placa1?.frontera?.slug}`;
+        for (const n of ['Silla de anclaje COL_PPALES', 'Base de columna COL_PPALES — capacidad'])
+          if (nodo(rot.obra, n)) return `quedó «${n}»`;
+        const datos = nodo(rot.obra, 'Base de columna COL_PPALES — datos').hoja;
+        // La columna es del tipo, no de la variante: se queda la del pórtico.
+        if (!datos.some((x) => x.src === 'd_col_pb_CP := 1000 mm')) return 'cambió la columna';
+        if (!datos.some((x) => x.src === 'L_pb_CP := 700 mm')) return 'no llegó la placa de la variante rotulada';
+        const evRot = evaluarObra(rot.obra, genericasConRotulada);
+        const e = errores(evRot);
+        if (e.length) return `rotulada, ${e.length} región(es) con error: ${e[0]}`;
+        const vuelta = reconfigurar(rot.obra, PLANTILLA, r.idVista, COMPLETA, sellosConRotulada, nuevoId);
+        if (vuelta.error) return vuelta.error;
+        if (vuelta.obra.calculos.find((k) => k.id === placa0.id)?.frontera?.slug !== PLACA.id) return 'la placa no volvió';
+        const ev = evaluarObra(vuelta.obra, genericasConRotulada);
+        const e2 = errores(ev);
+        if (e2.length) return `de vuelta, ${e2.length} región(es) con error: ${e2[0]}`;
+        return u(ev);
       },
     },
     {

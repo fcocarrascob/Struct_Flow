@@ -49,6 +49,7 @@ rotura en corte del §J4.2 en la llave y la silla.
 | Plantilla | Qué verifica | Norma | Entradas |
 |---|---|---|---:|
 | `placa-base-generica` | Aplastamiento, equilibrio, grupo de pernos y espesor de chapa. Cubre placa **lisa** y **rigidizada** con la misma hoja (`hay_nervios`). Con llave de corte suma a la tracción el **par de la llave** (`hay_llave`) | AISC DG1 3.ª §4.3.7 · AISC 360 §J8, §J4.5 · ACI 318-25 §17.6.1, §17.5.3, §17.11.1.1.9 | 31 |
+| `placa-base-rotulada-generica` | La hermana de la anterior para la base **rotulada o con momento bajo** (e ≤ e_crit): aplastamiento, espesor por compresión con m, n y λn' y por momento bajo, pernos en tracción y **flexión de la placa por el arranque**, con los pernos dentro del perfil (alrededor del alma) o fuera (alrededor del ala), deducido de la geometría. El momento grande y el arranque con momento **votan como fuera de dominio**. Fricción opcional | AISC DG1 3.ª §4.3.1, §4.3.2, §4.3.5, §4.3.7, Ej. 4.7-3 · AISC 360 §J8 · ACI 318-25 §17.6.1.2 | 32 |
 | `llave-corte-generica` | Los **siete** estados límite de la llave. Una chapa por dirección o dos paralelas desplazadas. Con `usa_arm_sl` la **armadura de anclaje del §17.5.2.1.2 sustituye al breakout** en el veredicto, como hace el anclaje en tracción, y entrega su `As_req` al pedestal, que comprueba que la zona de protección lo contiene | AISC DG1 3.ª Ej. 4.7-5 · ACI 318-25 §17.11, §17.5.2.1.2, Tabla 21.2.1 · AISC 360 §J2, §J4.2, §J4.5 | 32 |
 | `silla-anclaje-generica` | El **camino de carga** completo: perno → chapa superior → nervios → ala (o ala extendida) → alma | AISC 360-22 §J10.8 (las tres condiciones geométricas del rigidizador, incluido t ≥ b/16) · §J2, §J4.1, §J4.2, §J4.4, §J4.5 | 32 |
 | `viga-carrilera-generica` | Flexión biaxial, corte, fuerzas concentradas del rodado —incluido el pandeo lateral del alma—, deflexiones y fatiga. Cubre la doble T **monosimétrica** de las dos formas en que se construye: con canal-tapa (`hay_canal`) y **armada con el ala superior más ancha** (`es_soldada`) | AISC 360-22 Tabla B4.1b, §F4, §G2, §H1, §J10, Ap. 3 · AIST TR-13 §5.8.2 a §5.8.4 | 44 |
@@ -148,7 +149,8 @@ llave-corte-generica  ───┘        (acero)               (hormigón)     
 
 | Entrega | Quién lo produce | Quién lo consume |
 |---|---|---|
-| `T_grupo` | `placa-base-generica` | `silla-anclaje-generica` · `anclaje-hormigon-generica` (como `Nua_g`) · `pedestal-generico` |
+| `T_grupo` | `placa-base-generica`, o `placa-base-rotulada-generica` (el arranque concéntrico entero) | `silla-anclaje-generica` · `anclaje-hormigon-generica` (como `Nua_g`) · `pedestal-generico` |
+| `n_trac` | `placa-base-rotulada-generica` (con arranque traccionan las dos filas) | `anclaje-hormigon-generica` · `llave-corte-generica` |
 | `As_req` | `anclaje-hormigon-generica` | `pedestal-generico` (como `As_req_anc`) |
 | `N_sa` y `n_trac` | `anclaje-hormigon-generica` | `llave-corte-generica` (ψ_brg,sl en tracción, §17.11.2.2.1a) |
 | `exc` | `llave-corte-generica` (mortero + mitad de la altura efectiva de la llave) | `placa-base-generica` (como `z_llave`, brazo del par del §17.11.1.1.9) |
@@ -199,6 +201,7 @@ aparte. Resumen:
 | Plantilla | No calcula | Asume |
 |---|---|---|
 | `placa-base-generica` | **β** (entra medido o de tabla; la hoja lo acota entre 0,0479 y 0,125) · la silla · la llave | placa rectangular · una fila de pernos por lado · bloque rectangular |
+| `placa-base-rotulada-generica` | el momento grande y el arranque con momento (fuera de dominio: `placa-base-generica`) · la soldadura columna-placa · el anclaje en el hormigón · la llave · el corte en los pernos · el efecto palanca | placa lisa · dos filas de `n_col` pernos · presión uniforme · arranque repartido por igual · ⁉️ el ancho a 45° de los pernos de un lado se suma sin pasar del alma libre o del ala · ⁉️ en la fricción, Ac es el área de la placa |
 | `llave-corte-generica` | el equilibrio de la placa · el **despiece** de la armadura de anclaje (la hoja comprueba el área, no dónde va cada rama ni su desarrollo) · la envolvente de dos chapas como bloque único | los estribos acreditados son cerrados, horizontales, caen dentro del cono y están desarrollados a ambos lados del plano de falla |
 | `silla-anclaje-generica` | el reparto de tracción entre pernos (uniforme) · el ancho eficaz de la chapa · el rigidizador **a resistencia**, que el §J10.8 manda al §J4.1 en tracción y al §J4.4 en compresión | extensión de ala con la lectura conservadora |
 | `viga-carrilera-generica` | las cargas de rueda (del fabricante) · la clasificación del **ala** —la del **alma** sí la calcula— · los límites de deflexión · el riel y su unión · de la lista del §5.8.2 de TR-13: fuerzas axiales, carga concentrada **en los apoyos** y rigidizadores de apoyo | dos ruedas iguales · canal continuo y colaborante · vano simple · el ala superior (más el canal) toma íntegramente la fuerza lateral |

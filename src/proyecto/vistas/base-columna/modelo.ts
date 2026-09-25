@@ -296,8 +296,19 @@ export function construirBaseColumna(d: Record<string, number>, config: Config =
     chequeos.push(
       chequeo('v_chapa_perno', 'Chapa superior cubre la arandela del perno', hc + d.CH_L, '>=', d.y_t + d.a_tuerca / 2, 'mm', ['chapa_sup_n', 'perno_n1']),
     );
+  } else if (d.y_t < hi) {
+    // Sin silla y con los pernos dentro del perfil, entre las alas: la arandela
+    // aprieta sobre la placa a un lado del alma, sin tocar el alma ni el ala.
+    const xMin = Math.min(...xs.map(Math.abs));
+    chequeos.push(
+      chequeo('v_arandela_alma', 'Holgura entre la arandela del perno y el alma', xMin - d.a_tuerca / 2 - d.tw_col / 2, '>=', 0, 'mm', ['perno_n1', 'columna']),
+    );
+    chequeos.push(
+      chequeo('v_arandela_ala_int', 'Holgura entre la arandela del perno y la cara interior del ala', hi - d.y_t - d.a_tuerca / 2, '>=', 0, 'mm', ['perno_n1', 'columna']),
+    );
   } else {
-    // Sin silla: la arandela aprieta sobre la placa, entre el ala y el borde.
+    // Sin silla y con los pernos fuera del perfil: la arandela aprieta sobre la
+    // placa, entre el ala y el borde.
     const pExt = `perno_n${xs.length}`;
     chequeos.push(
       chequeo('v_arandela_ala', 'Holgura entre la arandela del perno y la cara del ala', d.y_t - d.a_tuerca / 2 - hc, '>=', 0, 'mm', ['perno_n1', 'columna']),

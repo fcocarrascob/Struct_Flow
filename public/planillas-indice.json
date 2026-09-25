@@ -515,6 +515,24 @@
       "resumen": "Placa lisa o rigidizada (hay_nervios) bajo columna con momento: aplastamiento en bloque, equilibrio iterativo, grupo de pernos y espesor de chapa. Entrega T_grupo e Yb_comp al resto de la base de columna."
     },
     {
+      "slug": "placa-base-rotulada-generica",
+      "titulo": "Placa base de columna rotulada o con momento bajo — aplastamiento, arranque concéntrico, espesor y fricción",
+      "clase": "generica",
+      "disciplina": "acero",
+      "ruta": "/biblioteca/acero/placa-base-rotulada-generica.json",
+      "regiones": 130,
+      "normas": [
+        "US/AISC-DG1-3ed",
+        "US/AISC360-22",
+        "US/ACI318-25-SI"
+      ],
+      "entradas": 32,
+      "salidas": 20,
+      "promovible": true,
+      "sha256": "a4209183e7b6638cd2ba09bd943e9c852bbd5d0a00df8a32ff2a0bd9bdee1c4c",
+      "resumen": "Placa lisa bajo columna en I rotulada o con e ≤ e_crit: aplastamiento, espesor por compresión (m, n, λn') y por momento bajo, pernos en tracción y flexión de la placa por el arranque, con los pernos dentro o fuera del perfil. Entrega T_grupo y n_trac al anclaje."
+    },
+    {
       "slug": "silla-anclaje-generica",
       "titulo": "Silla de anclaje — el camino de carga completo: perno, chapa superior, nervios, ala extendida y rigidizador",
       "clase": "generica",

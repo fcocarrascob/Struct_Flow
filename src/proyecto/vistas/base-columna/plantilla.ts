@@ -18,8 +18,11 @@
 
 import type { BloquePlantilla, Plantilla, SeccionPlantilla } from '../../obra/ensamble';
 
-const t = (src: string): BloquePlantilla => ({ kind: 'text', src });
-const f = (src: string): BloquePlantilla => ({ kind: 'math', src });
+const t = (src: string, si?: string): BloquePlantilla => ({ kind: 'text', src, ...(si ? { si } : {}) });
+const f = (src: string, si?: string): BloquePlantilla => ({ kind: 'math', src, ...(si ? { si } : {}) });
+/** Lo que es solo de una variante de la placa. */
+const MOM = 'placa=momento';
+const ROT = 'placa=rotulada';
 const sec = (clave: string, bloques: BloquePlantilla[], si?: string): SeccionPlantilla => ({ clave, bloques, ...(si ? { si } : {}) });
 
 const TONF = { unidad: 'tonf', soloValor: true };
@@ -35,6 +38,21 @@ const DATOS = [
         'por tipo de apoyo, con las combinaciones de diseño ($D) y las de sobrerresistencia ($S).',
     ),
   ]),
+  sec('solicitaciones-rot', [
+    t('## Solicitaciones'),
+    t(
+      'Base rotulada: la columna no transmite momento. Entran la compresión máxima y el corte máximo del conjunto de ' +
+        'diseño ($D) y la tracción máxima del de sobrerresistencia ($S), con lo que las acompaña en cada combinación. ' +
+        'N positiva es compresión.',
+    ),
+  ], 'placa=rotulada'),
+  sec('solicitaciones-sincap', [
+    t('## Solicitaciones'),
+    t(
+      'La tracción de los pernos sale de las combinaciones de sobrerresistencia ($S): el caso de momento máximo y el de ' +
+        'mayor excentricidad M/N. La compresión y el corte, del conjunto de diseño ($D). N positiva es compresión.',
+    ),
+  ], 'placa=momento&!capacidad'),
   sec('solicitaciones', [
     t('## Solicitaciones'),
     t(
@@ -44,7 +62,7 @@ const DATOS = [
         'la hoja del anclaje). La tracción de los pernos sale entonces de las combinaciones con sobrerresistencia. Entran el caso ' +
         'de momento máximo y el de mayor excentricidad M/N; la placa se diseña con el que dé más tracción. N positiva es compresión.',
     ),
-  ]),
+  ], 'placa=momento&capacidad'),
   sec('solicitaciones-llave', [t('Supuesto: la llave toma en cada dirección el corte resultante máximo, sin el beneficio del axial de compresión que lo acompaña.')], 'llave'),
   sec('solicitaciones-tabla', [
     {
@@ -63,14 +81,38 @@ const DATOS = [
         columnas: [{}, TONF_M, TONF, TONF],
       },
     },
-  ]),
+  ], 'placa=momento'),
+  sec('solicitaciones-rot-tabla', [
+    {
+      kind: 'table',
+      src: 'Solicitaciones mayoradas de $G',
+      tabla: {
+        version: 1,
+        encabezado: 1,
+        celdas: [
+          ["'Caso", "'M", "'N", "'V"],
+          ["'Compresión máxima, $D", 'M_c := M_c_$T_$D =', 'P_c := N_c_$T_$D =', "'—"],
+          ["'Tracción máxima, $S", 'M_t := M_t_$T_$S =', 'P_t := N_t_$T_$S =', "'—"],
+          ["'Corte máximo, $D", "'—", 'P_v := N_v_$T_$D =', 'V_cv := V_v_$T_$D ='],
+        ],
+        columnas: [{}, TONF_M, TONF, TONF],
+      },
+    },
+  ], 'placa=rotulada'),
   sec('columna', [
     t('## Columna'),
     t('Supuesto: sección de la columna en I, con el canto en la dirección de la flexión.'),
-    f('d_col_pb := 1000 mm'),
-    f('bf_col := 550 mm'),
-    f('tf_col := 50 mm'),
-    f('tw_col := 16 mm'),
+    // Cada dato va dos veces con el mismo nombre, uno por variante de la placa: los
+    // valores de partida acompañan a la placa (una de pórtico, una de hastial), y
+    // como el id es el nombre, cambiar de variante conserva la columna escrita.
+    f('d_col_pb := 1000 mm', MOM),
+    f('bf_col := 550 mm', MOM),
+    f('tf_col := 50 mm', MOM),
+    f('tw_col := 16 mm', MOM),
+    f('d_col_pb := 611 mm', ROT),
+    f('bf_col := 324 mm', ROT),
+    f('tf_col := 19.1 mm', ROT),
+    f('tw_col := 12.7 mm', ROT),
   ]),
   sec('placa', [
     t('## Placa'),
@@ -81,7 +123,41 @@ const DATOS = [
     f('t_gr_pb := 40 mm'),
     t('Supuesto: coeficiente de placa beta, a confirmar con la geometría definitiva.'),
     f('beta_pb := 0.0831'),
-  ]),
+  ], 'placa=momento'),
+  sec('placa-rot', [
+    t('## Placa'),
+    t('Supuesto: dimensiones de la placa y espesor del mortero de nivelación.'),
+    f('L_pb := 700 mm'),
+    f('B_pb := 500 mm'),
+    f('t_pb := 25 mm'),
+    f('t_gr_pb := 40 mm'),
+  ], 'placa=rotulada'),
+  sec('pernos-rot', [
+    t('## Pernos de anclaje'),
+    t('Supuesto: dos filas de dos pernos M24 dentro del perfil, a cada lado del alma.'),
+    f('n_pno := 2'),
+    f('d_pno := 24 mm'),
+    t('Área resistente a tracción de la rosca (ISO 898-1).'),
+    f('Ase_pno := 353 mm^2'),
+    f('y_t_pno := 100 mm'),
+    f('x_ext_pno := 75 mm'),
+    t('Supuesto: holgura del hueco sobre el diámetro del perno.'),
+    f('holgura_pno := 12 mm'),
+    t(
+      'Supuesto: paso de la rosca, fluencia del perno y embebido eficaz. En el extremo embebido, cada perno lleva una placa de ' +
+        'apoyo cuadrada con agujero; su área neta es la que apoya contra el hormigón en la extracción y el descascaramiento lateral.',
+    ),
+    f('paso_rosca := 3 mm'),
+    f('fya_pno := 248 MPa'),
+    f('h_ef_pno := 700 mm'),
+    f('b_ap_pno := 70 mm'),
+    f('d_ap_pno := 28 mm'),
+    f('A_brg_pno := b_ap_pno^2 - pi*d_ap_pno^2/4 = mm^2'),
+    t('Supuesto: el perno estira libre en su tramo superior, dentro de una vaina que lo desliga del hormigón y lo protege del pandeo.'),
+    f('l_est_pno := 200 mm'),
+    t('Separación entre los pernos de una fila.'),
+    f('s_pno := 2*x_ext_pno/(n_pno - 1) = mm'),
+  ], 'placa=rotulada'),
   sec('pernos', [
     t('## Pernos de anclaje'),
     t('Supuesto: una fila de pernos a cada lado del eje de flexión.'),
@@ -107,7 +183,7 @@ const DATOS = [
     f('l_est_pno := 400 mm'),
     t('Separación entre pernos de la fila.'),
     f('s_pno := 2*x_ext_pno/(n_pno - 1) = mm'),
-  ]),
+  ], 'placa=momento'),
   sec(
     'silla',
     [
@@ -133,49 +209,78 @@ const DATOS = [
     ],
     'silla',
   ),
-  sec('pedestal', [
+  // Los datos de partida del pedestal de la variante rotulada, en su sección y
+  // antes de la común: los del pórtico se quedan en su sitio, marcados por bloque,
+  // para no correr los índices de una hoja ya armada.
+  sec('pedestal-rot', [
     t('## Pedestal'),
     t('Supuesto: dimensiones del pedestal.'),
-    f('PED_L_pb := 1950 mm'),
-    f('PED_B_pb := 1500 mm'),
-    f('H_ped_pb := 2100 mm'),
+    f('PED_L_pb := 900 mm'),
+    f('PED_B_pb := 700 mm'),
+    f('H_ped_pb := 1500 mm'),
+    t(
+      'Supuesto: armadura longitudinal repartida en el perímetro, con estribos cerrados. Es la armadura de anclaje de los ' +
+        'pernos: el pedestal es chico para que sus barras caigan dentro del cono de los pernos, que están dentro del perfil.',
+    ),
+    f('db_long_ped := 25 mm'),
+    f('n_barras_ped := 14'),
+    f('recub_ped := 60 mm'),
+    f('db_est_ped := 10 mm'),
+    f('n_ramas_ped := 2'),
+    f('sep_est_ped := 150 mm'),
+    f('sep_zp_ped := 100 mm'),
+    t('Supuesto: la columna rotulada no forma parte del sistema sismorresistente, así que el pedestal no lleva el detallado del §18.7 de ACI 318-25.'),
+  ], ROT),
+  sec('pedestal', [
+    t('## Pedestal', MOM),
+    t('Supuesto: dimensiones del pedestal.', MOM),
+    f('PED_L_pb := 1950 mm', MOM),
+    f('PED_B_pb := 1500 mm', MOM),
+    f('H_ped_pb := 2100 mm', MOM),
     t('Distancias de la fila traccionada a los bordes del pedestal.'),
     f('c_a1_pno := PED_B_pb/2 - x_ext_pno = mm'),
     f('c_a2_pno := PED_L_pb/2 - y_t_pno = mm'),
     t(
-      'Distancia de la fila traccionada al borde opuesto del pedestal. Si los bordes quedan a menos de 1,5·h_ef, el cono se ' +
-        'calcula con la mayor de esas distancias (ACI 318-25 §17.6.2.1.2).',
+      'Distancia de la fila traccionada al borde opuesto del pedestal. Con tres o más bordes a menos de 1,5·h_ef, el cono se ' +
+        'calcula con la mayor de las distancias que influyen, las que no pasan de 1,5·h_ef (ACI 318-25 §17.6.2.1.2).',
     ),
     f('c_a_op_pno := PED_L_pb/2 + y_t_pno = mm'),
     f('n_bordes_pno := 2*(c_a1_pno < 1.5*h_ef_pno) + (c_a2_pno < 1.5*h_ef_pno) + (c_a_op_pno < 1.5*h_ef_pno) ='),
-    f('c_a_max_pno := max(c_a1_pno, c_a2_pno, c_a_op_pno) = mm'),
+    f(
+      'c_a_max_pno := max(c_a1_pno < 1.5*h_ef_pno ? c_a1_pno : 0 mm, c_a2_pno < 1.5*h_ef_pno ? c_a2_pno : 0 mm, ' +
+        'c_a_op_pno < 1.5*h_ef_pno ? c_a_op_pno : 0 mm) = mm',
+    ),
     t(
       'Supuesto: armadura longitudinal repartida en el perímetro, con estribos cerrados. Las barras del pedestal son la ' +
         'armadura de anclaje de los pernos: cuentan las que quedan a menos de 0,5·h_ef de la fila traccionada, medido en ' +
         'planta, y las cuenta la vista geométrica (n_cont_ped).',
     ),
-    f('db_long_ped := 36 mm'),
-    f('n_barras_ped := 36'),
-    f('recub_ped := 84 mm'),
-    f('db_est_ped := 20 mm'),
-    f('n_ramas_ped := 6'),
-    f('sep_est_ped := 150 mm'),
-    f('sep_zp_ped := 75 mm'),
+    f('db_long_ped := 36 mm', MOM),
+    f('n_barras_ped := 36', MOM),
+    f('recub_ped := 84 mm', MOM),
+    f('db_est_ped := 20 mm', MOM),
+    f('n_ramas_ped := 6', MOM),
+    f('sep_est_ped := 150 mm', MOM),
+    f('sep_zp_ped := 75 mm', MOM),
     t(
       'Los casos de sobrerresistencia reemplazan a los de diseño de tracción porque los dominan: más momento con menos ' +
         'compresión, también con el corte por la altura del pedestal. El de momento máximo cubre además el de corte máximo. ' +
         'Si alguna de estas comprobaciones falla, los casos de diseño vuelven a hacer falta.',
+      MOM,
     ),
     f(
       'v_dom_m := abs(M_m_$T_$S) >= max(abs(M_m_$T_$D), abs(M_v_$T_$D)) and N_m_$T_$S <= min(N_m_$T_$D, N_v_$T_$D) and ' +
         'abs(M_m_$T_$S) + V_m_$T_$S*H_ped_pb >= max(abs(M_m_$T_$D) + V_m_$T_$D*H_ped_pb, abs(M_v_$T_$D) + V_v_$T_$D*H_ped_pb) =',
+      MOM,
     ),
     f(
       'v_dom_e := abs(M_e_$T_$S) >= abs(M_e_$T_$D) and N_e_$T_$S <= N_e_$T_$D and ' +
         'abs(M_e_$T_$S) + V_e_$T_$S*H_ped_pb >= abs(M_e_$T_$D) + V_e_$T_$D*H_ped_pb =',
+      MOM,
     ),
-    t('Solicitaciones en la base del pedestal: el momento de la cara superior más el corte por la altura del pedestal, sumados en valor absoluto.'),
+    t('Solicitaciones en la base del pedestal: el momento de la cara superior más el corte por la altura del pedestal, sumados en valor absoluto.', MOM),
     {
+      si: MOM,
       kind: 'table',
       src: 'Solicitaciones en la base del pedestal',
       tabla: {
@@ -191,16 +296,50 @@ const DATOS = [
         columnas: [{}, TONF, TONF_M],
       },
     },
+    t(
+      'Solicitaciones en la base del pedestal: con la base rotulada, el momento en la base del pedestal es solo el del corte ' +
+        'por su altura.',
+      ROT,
+    ),
+    {
+      si: ROT,
+      kind: 'table',
+      src: 'Solicitaciones en la base del pedestal',
+      tabla: {
+        version: 1,
+        encabezado: 1,
+        celdas: [
+          ["'Caso", "'P", "'M_X"],
+          ["'Compresión máxima, $D", 'P_p1 := N_c_$T_$D =', 'M_p1 := V_c_$T_$D*H_ped_pb ='],
+          ["'Tracción máxima, $S", 'P_p2 := N_t_$T_$S =', 'M_p2 := V_t_$T_$S*H_ped_pb ='],
+          ["'Corte máximo, $D", 'P_p3 := N_v_$T_$D =', 'M_p3 := V_v_$T_$D*H_ped_pb ='],
+          ["'Compresión máxima, $S", 'P_p4 := N_c_$T_$S =', 'M_p4 := V_c_$T_$S*H_ped_pb ='],
+        ],
+        columnas: [{}, TONF, TONF_M],
+      },
+    },
   ]),
   sec(
-    'llave',
+    'llave-rot',
     [
       t('## Llave de corte'),
       t('Supuesto: llave en cruz de dos chapas bajo el mortero de nivelación, soldadas a la placa con filetes.'),
-      f('t_sl_ll := 65 mm'),
+      f('t_sl_ll := 25 mm'),
       f('h_sl_ll := 100 mm'),
-      f('b_sl_ll := 1100 mm'),
-      f('w_sold_ll := 20 mm'),
+      f('b_sl_ll := 400 mm'),
+      f('w_sold_ll := 10 mm'),
+    ],
+    `llave&${ROT}`,
+  ),
+  sec(
+    'llave',
+    [
+      t('## Llave de corte', MOM),
+      t('Supuesto: llave en cruz de dos chapas bajo el mortero de nivelación, soldadas a la placa con filetes.', MOM),
+      f('t_sl_ll := 65 mm', MOM),
+      f('h_sl_ll := 100 mm', MOM),
+      f('b_sl_ll := 1100 mm', MOM),
+      f('w_sold_ll := 20 mm', MOM),
       t(
         'Brazo del par que forman el corte y la reacción sobre la llave: el espesor del mortero más la mitad de la altura ' +
           'eficaz de la chapa, que no pasa de dos veces su espesor.',
@@ -336,10 +475,28 @@ export const PLANTILLA_BASE_COLUMNA: Plantilla = {
       hoja: DATOS,
       revisar: 'Geometría, pernos y materiales son de partida (supuestos): confirmarlos para el tipo $G.',
     },
-    { clave: 'capacidad', nombre: 'Base de columna $G — capacidad', hoja: CAPACIDAD },
+    { clave: 'capacidad', nombre: 'Base de columna $G — capacidad', si: 'capacidad', hoja: CAPACIDAD },
+    {
+      clave: 'placa',
+      nombre: 'Placa base rotulada $G',
+      si: ROT,
+      frontera: {
+        procedencia: 'biblioteca',
+        id: 'placa-base-rotulada-generica',
+        entradas: { exposicion: 2, torque: 0, phi_b: 0.9, phi_brg: 0.65, phi_sa: 0.75, usa_friccion: 0, mu_fr: 0.4, phi_fr: 0.65 },
+        formulas: {
+          P_comp: 'P_c', M_comp: 'M_c', P_trac: 'P_t', M_trac: 'M_t', V_u: 'V_cv', P_V: 'P_v',
+          L_bp: 'L_pb', B_bp: 'B_pb', t_bp: 't_pb', d_col: 'd_col_pb', bf_col: 'bf_col', tf_col: 'tf_col', tw_col: 'tw_col',
+          PED_L: 'PED_L_pb', PED_B: 'PED_B_pb', n_col: 'n_pno', y_t: 'y_t_pno', x_ext: 'x_ext_pno', d_perno: 'd_pno',
+          Ase_perno: 'Ase_pno', holgura: 'holgura_pno', Fy_ac: 'Fy_pb', fpc: 'fc_ped', futa: 'futa_pno',
+        },
+        publica: { u_max: 'u_pb', T_grupo: 'T_pb', n_trac: 'n_trac_pb' },
+      },
+    },
     {
       clave: 'placa',
       nombre: 'Placa base $G',
+      si: MOM,
       frontera: {
         procedencia: 'biblioteca',
         id: 'placa-base-generica',
@@ -355,6 +512,12 @@ export const PLANTILLA_BASE_COLUMNA: Plantilla = {
         capas: [
           { si: '!silla', entradas: { hay_nervios: 0 }, formulas: { sep_nerv: null, x_nerv_ext: null } },
           { si: '!llave', entradas: { hay_llave: 0 }, formulas: { z_llave: null } },
+          // Sin la hoja de capacidad no hay tercer caso de tracción: el arranque de las diagonales.
+          {
+            si: '!capacidad',
+            entradas: { M_trac_3: 0, P_trac_3: 0, V_trac_3: 0 },
+            formulas: { M_trac_3: null, P_trac_3: null, V_trac_3: null },
+          },
         ],
       },
     },
@@ -374,6 +537,10 @@ export const PLANTILLA_BASE_COLUMNA: Plantilla = {
           n_bordes: 'n_bordes_pno', c_a_max: 'c_a_max_pno', n_arm: 'n_cont_ped', d_arm: 'db_long_ped', l_est: 'l_est_pno',
         },
         publica: { u_max: 'u_anc', N_sa: 'N_sa_pb', As_req: 'As_req_anc' },
+        // Con la placa rotulada traccionan las dos filas, no una. La armadura de
+        // anclaje sigue siendo la del pedestal: por eso su pedestal de partida es
+        // chico, para que las barras caigan en el cono de pernos dentro del perfil.
+        capas: [{ si: ROT, formulas: { n_trac: 'n_trac_pb' } }],
       },
     },
     {
@@ -391,6 +558,12 @@ export const PLANTILLA_BASE_COLUMNA: Plantilla = {
           N_sa: 'N_sa_pb', fpc: 'fc_ped', Fy_ac: 'Fy_pb', Fu_ac: 'Fu_pb', FEXX: 'FEXX_pb', n_est_sl: 'n_est_ll',
         },
         publica: { u_max: 'u_llave', tbp_req: 'tbp_llave', As_reqx: 'As_llx', As_reqy: 'As_lly' },
+        capas: [
+          // Sin capacidad, el corte es el del modelo.
+          { si: '!capacidad', formulas: { V_ux: 'V_cv', V_uy: 'V_cv' } },
+          // Rotulada: el aplastamiento cubre toda la placa y traccionan las dos filas.
+          { si: ROT, formulas: { Yb: 'L_pb', n_trac: 'n_trac_pb' } },
+        ],
       },
     },
     {
@@ -436,6 +609,15 @@ export const PLANTILLA_BASE_COLUMNA: Plantilla = {
             entradas: { h_llave: 0, b_llave: 0, As_req_llave_X: 0, As_req_llave_Y: 0 },
             formulas: { As_req_llave_X: null, As_req_llave_Y: null, h_llave: null, b_llave: null },
           },
+          // Sin capacidad: el corte del modelo, y sin los casos del arranque de las diagonales.
+          {
+            si: '!capacidad',
+            entradas: { Pu_5: 0, Muy_5: 0, Muy_6: 0 },
+            formulas: { Vu_X: 'V_cv', Vu_Y: 'V_cv', Pu_5: null, Muy_5: null, Muy_6: null },
+          },
+          { si: `${MOM}&!capacidad`, formulas: { N_trac_max: 'max(-N_t1, 0 kN)' } },
+          // Una columna rotulada no es del sistema sismorresistente: sin el detallado del §18.7 (supuesto en la hoja de datos).
+          { si: ROT, entradas: { sis_aci18: 0 }, formulas: { N_trac_max: 'T_pb', N_comp_max: 'P_c' } },
         ],
       },
     },

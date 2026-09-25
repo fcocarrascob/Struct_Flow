@@ -3,7 +3,8 @@
 // 3D no sale de un SVG con tokens (`docs/rumbo.md`, «La base de columna como
 // modelo geométrico, y sus componentes»).
 
-import type { Campo, Config, DefVista } from './tipos';
+import type { Campo, Config, DefVista, Opcion } from './tipos';
+import { cumple } from './condicion';
 import { CAMPOS_BASE_COLUMNA, OPCIONES_BASE_COLUMNA } from './base-columna/campos';
 import { construirBaseColumna } from './base-columna/modelo';
 import { PLANTILLA_BASE_COLUMNA } from './base-columna/plantilla';
@@ -26,12 +27,23 @@ export const VISTAS: Record<string, DefVista> = {
  * completa, que es la que había antes de que existieran las opciones.
  */
 export function configCompleta(def: DefVista, config?: Readonly<Record<string, string>>): Config {
-  return Object.fromEntries(
-    def.opciones.map((o) => {
-      const v = config?.[o.clave];
-      return [o.clave, v !== undefined && o.variantes.some((x) => x.id === v) ? v : o.porDefecto];
-    }),
-  );
+  const salida: Config = {};
+  for (const o of def.opciones) {
+    const v = config?.[o.clave];
+    // Las opciones se resuelven en orden: `soloSi` mira las de antes, ya resueltas.
+    salida[o.clave] =
+      o.soloSi && !cumple(o.soloSi, salida)
+        ? 'no'
+        : v !== undefined && o.variantes.some((x) => x.id === v)
+          ? v
+          : o.porDefecto;
+  }
+  return salida;
+}
+
+/** Si `soloSi` apaga la opción con esta configuración. */
+export function opcionApagada(o: Opcion, config: Config): boolean {
+  return !!o.soloSi && !cumple(o.soloSi, config);
 }
 
 /** Los campos de una configuración: fuera los de un componente que no está. */

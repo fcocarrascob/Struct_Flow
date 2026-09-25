@@ -122,6 +122,15 @@ export interface Opcion {
   titulo: string;
   variantes: { id: string; titulo: string }[];
   porDefecto: string;
+  /**
+   * La opción solo tiene sentido si se cumple esta condición sobre las opciones
+   * ANTERIORES; si no, vale `'no'` (y tiene que tener esa variante). La silla, por
+   * ejemplo, solo con la placa de momento: con la rotulada no hay bloque comprimido
+   * del que colgar sus nervios.
+   */
+  soloSi?: string;
+  /** Por qué `soloSi` la apaga, para decirlo donde se elige. */
+  soloSiTexto?: string;
 }
 
 /** La configuración de una vista: por cada opción, su variante. */
