@@ -458,6 +458,7 @@
    "Placa rectangular sobre pedestal de hormigón",
    "Una fila de pernos por lado, a un lado y otro del eje de flexión",
    "Gran excentricidad: hay tracción en el grupo. Con excentricidad pequeña el equilibrio devuelve T = 0 y el resto sigue valiendo",
+   "Con arranque neto (M/y_t ≤ −P) no hay bloque comprimido: traccionan las dos filas y T_grupo es la de la más cargada",
    "Aplastamiento uniforme en bloque rectangular",
    "Compresión positiva en el axial de la columna",
    "Los n_col pernos de cada fila, equiespaciados entre −x_ext y +x_ext",
@@ -517,6 +518,15 @@
      "M_trac_2": 5500,
      "P_trac_2": -600,
      "V_trac_2": 700
+    },
+    "cumple": true
+   },
+   {
+    "nombre": "arranque neto: las dos filas traccionan",
+    "entradas": {
+     "M_trac_3": 200,
+     "P_trac_3": -2500,
+     "V_trac_3": 0
     },
     "cumple": true
    }
@@ -934,7 +944,7 @@
    "kind": "text",
    "x": 40,
    "y": 3440,
-   "src": "El equilibrio es ITERATIVO: la longitud del bloque comprimido depende de la compresión, y la\ncompresión del equilibrio con la tracción. Va como programa y devuelve la tracción del grupo. La\ntracción se calcula para cada caso de tracción, en la tabla, y se toma la mayor —con el par de la llave sumado en valor absoluto,\nporque el corte y el momento pueden venir con cualquier signo— y el aplastamiento de la otra: son dos\nestados distintos de la misma placa. El bloque comprimido tiene que caber en el voladizo; si no cabe,\nla placa carga donde no tiene apoyo debajo y el modelo de bloque no vale."
+   "src": "El equilibrio es ITERATIVO: la longitud del bloque comprimido depende de la compresión, y la\ncompresión del equilibrio con la tracción. Va como programa y devuelve la tracción del grupo. La\ntracción se calcula para cada caso de tracción, en la tabla, y se toma la mayor —con el par de la llave sumado en valor absoluto,\nporque el corte y el momento pueden venir con cualquier signo— y el aplastamiento de la otra: son dos\nestados distintos de la misma placa. El bloque comprimido tiene que caber en el voladizo; si no cabe,\nla placa carga donde no tiene apoyo debajo y el modelo de bloque no vale.\nCon ARRANQUE NETO —el momento no alcanza a comprimir, M/y_t ≤ −P— no hay bloque: las dos filas\ntraccionan, T_1 + T_2 = −P y (T_1 − T_2)·y_t = M, y la tracción del grupo es la de la fila más\ncargada, (M/y_t − P)/2. En el límite las dos ramas dan lo mismo, T = −P."
   },
   {
    "id": "r060",
@@ -962,7 +972,7 @@
    "kind": "program",
    "x": 40,
    "y": 3752,
-   "src": "equilibrio(M_ap, P_ap) :=\n    Mn := abs(M_ap)/(1 kN*m)\n    Pn := P_ap/(1 kN)\n    Lm := L_bp/(1 m)\n    Bm := B_bp/(1 m)\n    ytm := y_t/(1 m)\n    fpm := f_p/(1 kPa)\n    Ah := A_hueco/(1 m^2)\n    Tv := max(0, Mn/ytm - Pn)\n    for k in 1:200\n        Cv := max(Pn + Tv, 1)\n        Yb := Cv/(fpm*Bm)\n        if Lm/2 - ytm <= Yb\n            Yb := (Cv/fpm + Ah)/Bm\n        yc := Lm/2 - Yb/2\n        Tn := (Mn - Pn*yc)/(ytm + yc)\n        if abs(Tn - Tv) < 0.0001\n            Tv := Tn\n            break\n        Tv := Tn\n    return Tv"
+   "src": "equilibrio(M_ap, P_ap) :=\n    Mn := abs(M_ap)/(1 kN*m)\n    Pn := P_ap/(1 kN)\n    Lm := L_bp/(1 m)\n    Bm := B_bp/(1 m)\n    ytm := y_t/(1 m)\n    fpm := f_p/(1 kPa)\n    Ah := A_hueco/(1 m^2)\n    if Pn < 0 and Mn/ytm <= -Pn\n        return (Mn/ytm - Pn)/2\n    Tv := max(0, Mn/ytm - Pn)\n    for k in 1:200\n        Cv := max(Pn + Tv, 1)\n        Yb := Cv/(fpm*Bm)\n        if Lm/2 - ytm <= Yb\n            Yb := (Cv/fpm + Ah)/Bm\n        yc := Lm/2 - Yb/2\n        Tn := (Mn - Pn*yc)/(ytm + yc)\n        if abs(Tn - Tv) < 0.0001\n            Tv := Tn\n            break\n        Tv := Tn\n    return Tv"
   },
   {
    "id": "r210",

@@ -82,7 +82,7 @@
       "entradas": 37,
       "salidas": 21,
       "promovible": true,
-      "sha256": "8e6360afb49d5bb1bc0fd7e6440ae3d21501ee7a730842cfc2b7c6b26d865bb1",
+      "sha256": "bea5833e21b99e42971334c85c23369580fde4fad18955805da50a883943e01d",
       "resumen": "Placa lisa o rigidizada (hay_nervios) bajo columna con momento: aplastamiento en bloque, equilibrio iterativo, grupo de pernos y espesor de chapa. Entrega T_grupo e Yb_comp al resto de la base de columna."
     },
     {
