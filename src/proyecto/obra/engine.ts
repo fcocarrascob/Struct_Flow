@@ -94,6 +94,8 @@ export {
   gobernantesDeConjunto,
   estadoConjunto,
   extremosDeConjunto,
+  tiposDeApoyo,
+  envolventeDeTipo,
 } from './sap-apoyos';
 export { nuevoConjunto, conConjunto, quitarConjunto } from './modelo';
 

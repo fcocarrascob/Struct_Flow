@@ -8,7 +8,7 @@ import type {
   SistemaUnidades,
 } from './modelo';
 import ConjuntosApoyos from './ConjuntosApoyos';
-import { descuadresConBasal, extremosPorCaso, type Extremo } from './sap-apoyos';
+import { descuadresConBasal, extremosPorCaso, tiposDeApoyo, type Extremo } from './sap-apoyos';
 import { fuerza } from './sap-basal';
 import { atrasoDe } from './sap-modal';
 import { alPuente } from './puente';
@@ -68,6 +68,7 @@ export default function PanelApoyos({
         modificado: d.modificado ?? '',
         apoyos: d.apoyos ?? [],
         casos: d.casos ?? [],
+        ...(d.grupos ? { grupos: d.grupos } : {}),
         sinAnalizar: d.sinAnalizar ?? [],
       });
     } catch (e) {
@@ -80,6 +81,7 @@ export default function PanelApoyos({
   const atraso = lectura ? atrasoDe(lectura, sap) : undefined;
   const extremos = lectura ? extremosPorCaso(lectura) : [];
   const descuadres = lectura ? descuadresConBasal(lectura, sap?.basal) : [];
+  const tipos = lectura?.grupos ? tiposDeApoyo(lectura) : undefined;
   const celda = (e: Extremo | undefined, momento = false) =>
     e ? (
       <>
@@ -194,9 +196,59 @@ export default function PanelApoyos({
               </p>
             )}
 
+            <section>
+              <h4 className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted">Tipos de apoyo</h4>
+              {!tipos ? (
+                <p className="leading-snug text-muted">
+                  Esta lectura es anterior a los tipos: vuelve a leer para agrupar los apoyos por grupo de SAP.
+                </p>
+              ) : (
+                <>
+                  <p className="mb-1.5 leading-snug text-muted">
+                    Un tipo por grupo de SAP: se diseña una placa por tipo. Un apoyo es del grupo al que está asignado;
+                    si no está en ninguno, del grupo cuyas barras llegan a él.
+                  </p>
+                  <ul className="space-y-1">
+                    {tipos.tipos.map((t) => (
+                      <li key={t.grupo ?? '—'} className="flex items-baseline gap-2">
+                        <span className={`font-mono font-semibold ${t.grupo ? 'text-ink' : 'text-aviso'}`}>
+                          {t.grupo ?? 'Sin grupo'}
+                        </span>
+                        <span className="whitespace-nowrap text-muted">
+                          {t.apoyos.length} apoyo{t.apoyos.length === 1 ? '' : 's'}
+                          {t.via === 'barra' ? ' · por sus barras' : ''}
+                        </span>
+                        <span className="ml-auto truncate font-mono text-[10px] text-muted" title={t.apoyos.join(', ')}>
+                          {t.apoyos.join(' ')}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  {tipos.cedidos.map((c) => (
+                    <p key={c.grupo} className="mt-1 text-[10px] leading-snug text-muted">
+                      <span className="font-mono">{c.grupo}</span> llega por sus barras a{' '}
+                      <span className="font-mono">{c.apoyos.join(', ')}</span>, que ya están asignados a otro grupo.
+                    </p>
+                  ))}
+                  {tipos.repetidos.length > 0 && (
+                    <p className="mt-1 leading-snug text-aviso">
+                      <span className="font-mono">{tipos.repetidos.join(', ')}</span> están en más de un tipo: dos grupos
+                      los tienen asignados. Revisa los grupos en SAP.
+                    </p>
+                  )}
+                  {tipos.tipos.some((t) => !t.grupo) && (
+                    <p className="mt-1 leading-snug text-aviso">
+                      Hay apoyos sin grupo: asígnalos a un grupo en SAP para que tengan su tipo.
+                    </p>
+                  )}
+                </>
+              )}
+            </section>
+
             {sap && (
               <ConjuntosApoyos
                 sap={sap}
+                tipos={tipos?.tipos}
                 conjuntos={conjuntos}
                 unidades={unidades}
                 onCombinaciones={onCombinaciones}

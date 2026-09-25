@@ -2,10 +2,12 @@ import { useState } from 'react';
 import type { ConexionSap, ConjuntoDiseno, LecturaCombinaciones, LecturaConjunto, SistemaUnidades } from './modelo';
 import {
   combosDeConjunto,
+  envolventeDeTipo,
   estadoConjunto,
   extremosDeConjunto,
   gobernantesDeConjunto,
   type RespuestaCombinacionesApoyos,
+  type TipoDeApoyo,
 } from './sap-apoyos';
 import { resumenCombinaciones } from './sap-combinaciones';
 import { fuerza } from './sap-basal';
@@ -21,6 +23,7 @@ import { alPuente } from './puente';
  */
 export default function ConjuntosApoyos({
   sap,
+  tipos,
   conjuntos,
   unidades,
   onCombinaciones,
@@ -30,6 +33,8 @@ export default function ConjuntosApoyos({
   onVer,
 }: {
   sap: ConexionSap;
+  /** Los tipos de apoyo; sin ellos, la envolvente es de todos los apoyos juntos. */
+  tipos: readonly TipoDeApoyo[] | undefined;
   conjuntos: readonly ConjuntoDiseno[];
   unidades: SistemaUnidades;
   onCombinaciones: (l: LecturaCombinaciones) => void;
@@ -161,8 +166,12 @@ export default function ConjuntosApoyos({
               {e.estado === 'desactualizado' && (
                 <p className="mt-1 text-[10px] text-aviso">Desactualizado: {e.motivo}. Vuelve a leer.</p>
               )}
+              {/* Con tipos, la envolvente va por tipo de apoyo; sin ellos (una
+                  lectura vieja), la de todos los apoyos juntos. */}
+              {ext && lectura && tipos && <EnvolventePorTipo lectura={lectura} tipos={tipos} unidades={unidades} />}
               {ext && lectura && (
                 <>
+                  {!tipos && (
                   <dl className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-1 text-[10px]">
                     {(
                       [
@@ -193,6 +202,7 @@ export default function ConjuntosApoyos({
                       );
                     })}
                   </dl>
+                  )}
                   {lectura.noConcurrentes.length > 0 && (
                     <p className="mt-1 text-[10px] leading-snug text-muted">
                       ≠ {lectura.noConcurrentes.length} de {lectura.combos.length} combinaciones llevan espectro o
@@ -206,6 +216,80 @@ export default function ConjuntosApoyos({
         })}
       </ul>
     </section>
+  );
+}
+
+/**
+ * La envolvente de un conjunto por tipo de apoyo: una fila por grupo de SAP, con
+ * lo que gobierna cada criterio entre sus apoyos. Es lo que se usa para diseñar
+ * la placa de cada tipo.
+ */
+function EnvolventePorTipo({
+  lectura,
+  tipos,
+  unidades,
+}: {
+  lectura: LecturaConjunto;
+  tipos: readonly TipoDeApoyo[];
+  unidades: SistemaUnidades;
+}) {
+  const criterios = [
+    ['compresion', 'N', false],
+    ['traccion', 'T', false],
+    ['corte', 'V', false],
+    ['momento', 'M', true],
+  ] as const;
+  return (
+    <table className="mt-1.5 w-full text-[10px]">
+      <thead>
+        <tr className="border-b border-border text-right text-[9px] uppercase tracking-wide text-muted">
+          <th className="py-0.5 text-left font-semibold">Tipo</th>
+          {criterios.map(([k, t]) => (
+            <th key={k} className="font-semibold">
+              {t} máx.
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {tipos.map((t) => {
+          const e = envolventeDeTipo(lectura, t.apoyos);
+          return (
+            <tr key={t.grupo ?? '—'} className="border-t border-border/60 text-right align-top">
+              <td className={`py-1 text-left font-mono ${t.grupo ? 'text-ink' : 'text-aviso'}`}>
+                {t.grupo ?? 'Sin grupo'}
+                <span className="block font-sans text-[9px] text-muted">{t.apoyos.length} apoyos</span>
+              </td>
+              {criterios.map(([k, , momento]) => {
+                const g = e[k];
+                return (
+                  <td key={k} className="py-1 font-mono">
+                    {g ? (
+                      <>
+                        <span className={k === 'traccion' ? 'text-violet-700' : 'text-ink'}>
+                          {fuerza(g.valor, unidades, momento)}
+                        </span>
+                        <span className="block text-[9px] text-muted">
+                          {g.apoyo} · {g.combo}
+                          {!g.concurrente && (
+                            <span className="text-amber-700" title="No concurrente: espectro o envolvente">
+                              {' '}
+                              ≠
+                            </span>
+                          )}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-muted">—</span>
+                    )}
+                  </td>
+                );
+              })}
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
   );
 }
 

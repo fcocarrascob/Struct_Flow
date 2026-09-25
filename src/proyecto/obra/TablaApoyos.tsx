@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { Fragment, useMemo, useState, type ReactNode } from 'react';
 import type {
   ConexionSap,
   ConjuntoDiseno,
@@ -9,7 +9,7 @@ import type {
   SistemaUnidades,
 } from './modelo';
 import { cantidad } from './sap-basal';
-import { estadoConjunto } from './sap-apoyos';
+import { envolventeDeTipo, estadoConjunto, tiposDeApoyo, type TipoDeApoyo } from './sap-apoyos';
 
 /**
  * La tabla de las reacciones en los apoyos de un caso: una fila por apoyo, con
@@ -32,6 +32,37 @@ const COLUMNAS: { clave: Columna; titulo: string; ayuda: string; momento?: boole
   { clave: 'M2', titulo: 'M2', ayuda: 'Momento alrededor del eje 2', momento: true },
   { clave: 'M3', titulo: 'M3', ayuda: 'Momento alrededor del eje 3 (torsión)', momento: true },
 ];
+
+/**
+ * Las filas repartidas por tipo de apoyo, en el orden de los tipos y, dentro de
+ * cada uno, en el orden en que llegaron (el de la columna elegida). Sin tipos,
+ * un solo bloque sin cabecera. Un apoyo repetido sale en cada tipo que lo tiene.
+ */
+function agrupar<F extends { apoyo: string }>(
+  filas: readonly F[],
+  tipos: readonly TipoDeApoyo[] | undefined,
+): { tipo: TipoDeApoyo | null; filas: F[] }[] {
+  if (!tipos) return [{ tipo: null, filas: [...filas] }];
+  return tipos.map((t) => {
+    const suyos = new Set(t.apoyos);
+    return { tipo: t, filas: filas.filter((f) => suyos.has(f.apoyo)) };
+  });
+}
+
+/** El rótulo de un tipo de apoyo en la tabla. */
+function CabeceraTipo({ tipo }: { tipo: TipoDeApoyo }) {
+  return (
+    <span className="flex items-baseline gap-2 whitespace-nowrap text-[11px]">
+      <span className={`font-mono font-semibold ${tipo.grupo ? 'text-ink' : 'text-aviso'}`}>
+        {tipo.grupo ?? 'Sin grupo'}
+      </span>
+      <span className="text-muted">
+        {tipo.apoyos.length} apoyo{tipo.apoyos.length === 1 ? '' : 's'}
+        {tipo.via === 'barra' ? ' · por sus barras' : ''}
+      </span>
+    </span>
+  );
+}
 
 /** El prefijo de la vista de un conjunto en el selector: `conjunto:<id>`. */
 const PREFIJO_CONJUNTO = 'conjunto:';
@@ -143,6 +174,7 @@ function VistaCaso({
   const [orden, setOrden] = useState<{ col: Columna; desc: boolean }>({ col: 'apoyo', desc: false });
   const actual = lectura.casos.find((c) => c.caso === caso) ?? lectura.casos[0];
   const espectral = actual?.paso === 'Max';
+  const tipos = useMemo(() => (lectura.grupos ? tiposDeApoyo(lectura).tipos : undefined), [lectura]);
 
   const filas = useMemo(() => {
     if (!actual) return [];
@@ -228,32 +260,43 @@ function VistaCaso({
             </tr>
           </thead>
           <tbody>
-            {filas.map((f, k) => (
-              <tr key={f.apoyo} className={`text-right ${k % 2 ? 'bg-slate-50/60' : ''} hover:bg-slate-100`}>
-                <td className="border-b border-border/60 px-3 py-0.5 text-left text-ink">{f.apoyo}</td>
-                {[0, 1, 2].map((d) => (
-                  <td key={d} className={`border-b border-border/60 px-2 text-muted ${d === 2 ? 'border-r' : ''}`}>
-                    {f.xyz ? f.xyz[d].toFixed(2).replace('.', ',') : '—'}
-                  </td>
-                ))}
-                {COLUMNAS.map((c) => {
-                  const x = f.v ? f.v[c.clave as Exclude<Columna, 'apoyo'>] : undefined;
-                  const esExtremo = extremo[c.clave] === f.apoyo;
-                  const traccion = c.clave === 'F3' && x !== undefined && x < -1e-3 && !espectral;
-                  return (
-                    <td
-                      key={c.clave}
-                      className={`min-w-[4.5rem] border-b border-border/60 px-2 ${
-                        esExtremo ? 'bg-accent/10 font-semibold' : ''
-                      } ${traccion ? 'text-violet-700' : c.momento ? 'text-muted' : 'text-ink'}`}
-                      title={traccion ? 'Tracción: la estructura tira de la fundación' : undefined}
-                    >
-                      {x === undefined ? '—' : cantidad(x, unidades)}
+            {agrupar(filas, tipos).map(({ tipo, filas: suyas }) => (
+              <Fragment key={tipo?.grupo ?? '—'}>
+                {tipo && (
+                  <tr>
+                    <td colSpan={COLUMNAS.length + 5} className="border-b border-border bg-slate-50 px-3 py-1 font-sans">
+                      <CabeceraTipo tipo={tipo} />
                     </td>
-                  );
-                })}
-                <td className="border-b border-border/60" />
-              </tr>
+                  </tr>
+                )}
+                {suyas.map((f, k) => (
+                  <tr key={f.apoyo} className={`text-right ${k % 2 ? 'bg-slate-50/60' : ''} hover:bg-slate-100`}>
+                    <td className="border-b border-border/60 px-3 py-0.5 text-left text-ink">{f.apoyo}</td>
+                    {[0, 1, 2].map((d) => (
+                      <td key={d} className={`border-b border-border/60 px-2 text-muted ${d === 2 ? 'border-r' : ''}`}>
+                        {f.xyz ? f.xyz[d].toFixed(2).replace('.', ',') : '—'}
+                      </td>
+                    ))}
+                    {COLUMNAS.map((c) => {
+                      const x = f.v ? f.v[c.clave as Exclude<Columna, 'apoyo'>] : undefined;
+                      const esExtremo = extremo[c.clave] === f.apoyo;
+                      const traccion = c.clave === 'F3' && x !== undefined && x < -1e-3 && !espectral;
+                      return (
+                        <td
+                          key={c.clave}
+                          className={`min-w-[4.5rem] border-b border-border/60 px-2 ${
+                            esExtremo ? 'bg-accent/10 font-semibold' : ''
+                          } ${traccion ? 'text-violet-700' : c.momento ? 'text-muted' : 'text-ink'}`}
+                          title={traccion ? 'Tracción: la estructura tira de la fundación' : undefined}
+                        >
+                          {x === undefined ? '—' : cantidad(x, unidades)}
+                        </td>
+                      );
+                    })}
+                    <td className="border-b border-border/60" />
+                  </tr>
+                ))}
+              </Fragment>
             ))}
           </tbody>
           <tfoot className="sticky bottom-0 bg-white">
@@ -357,31 +400,11 @@ function VistaConjunto({
     });
   }, [lectura, orden]);
 
-  const maximo = useMemo(() => {
-    const m: Partial<Record<Criterio, string>> = {};
-    for (const { clave } of CRITERIOS) {
-      let mejor = 0;
-      for (const f of filas) {
-        const x = f.g[clave]?.valor ?? 0;
-        if (x > mejor + 1e-9) {
-          mejor = x;
-          m[clave] = f.apoyo;
-        }
-      }
-    }
-    return m;
-  }, [filas]);
+  const tipos = useMemo(() => (apoyos.grupos ? tiposDeApoyo(apoyos).tipos : undefined), [apoyos]);
 
   const alternar = (col: Criterio | 'apoyo') =>
     setOrden((o) => (o.col === col ? { col, desc: !o.desc } : { col, desc: col !== 'apoyo' }));
   const flecha = (col: Criterio | 'apoyo') => (orden.col === col ? (orden.desc ? ' ↓' : ' ↑') : '');
-  const ne = (g: Gobernante) =>
-    g.concurrente ? null : (
-      <span className="text-amber-700" title="No concurrente: la combinación lleva espectro o envolvente">
-        {' '}
-        ≠
-      </span>
-    );
 
   return (
     <div className="flex h-full flex-col bg-white">
@@ -454,65 +477,140 @@ function VistaConjunto({
             </tr>
           </thead>
           <tbody>
-            {filas.map((f, k) => {
-              const p = xyz.get(f.apoyo);
+            {agrupar(filas, tipos).map(({ tipo, filas: suyas }) => {
+              // El que gobierna cada criterio DENTRO del tipo: el que diseña su placa.
+              const env = envolventeDeTipo(lectura, tipo ? tipo.apoyos : lectura.apoyos);
               return (
-                <tr key={f.apoyo} className={`text-right ${k % 2 ? 'bg-slate-50/60' : ''} hover:bg-slate-100`}>
-                  <td className="border-b border-border/60 px-3 py-0.5 text-left text-ink">{f.apoyo}</td>
-                  <td className="border-b border-border/60 px-2 text-muted">{p ? p[0].toFixed(2).replace('.', ',') : '—'}</td>
-                  <td className="border-b border-r border-border/60 px-2 text-muted">
-                    {p ? p[1].toFixed(2).replace('.', ',') : '—'}
-                  </td>
-                  {CRITERIOS.map((c) => {
-                    const g = f.g[c.clave];
-                    const esMax = maximo[c.clave] === f.apoyo;
-                    if (!g) {
-                      return (
-                        <td
-                          key={c.clave}
-                          colSpan={2 + c.acompanan.length}
-                          className="border-b border-r border-border/60 px-2 text-center text-muted"
-                        >
-                          —
-                        </td>
-                      );
-                    }
-                    return [
-                      <td
-                        key={`${c.clave}-v`}
-                        className={`border-b border-border/60 px-2 ${esMax ? 'bg-accent/10 font-semibold' : ''} ${
-                          c.clave === 'traccion' ? 'text-violet-700' : 'text-ink'
-                        }`}
-                      >
-                        {cantidad(g.valor, unidades)}
-                      </td>,
-                      <td
-                        key={`${c.clave}-c`}
-                        className="whitespace-nowrap border-b border-border/60 px-2 text-left text-[10px] text-muted"
-                      >
-                        {g.combo}
-                        {ne(g)}
-                      </td>,
-                      ...c.acompanan.map((a, i) => (
-                        <td
-                          key={`${c.clave}-${a.titulo}`}
-                          className={`border-b border-border/60 px-2 ${g.concurrente ? 'text-muted' : 'text-amber-700/80'} ${
-                            i === c.acompanan.length - 1 ? 'border-r' : ''
-                          }`}
-                          title={g.concurrente ? undefined : 'No concurrente: extremo de la componente, no del mismo instante'}
-                        >
-                          {cantidad(a.de(g.v), unidades)}
-                        </td>
-                      )),
-                    ];
-                  })}
-                  <td className="border-b border-border/60" />
-                </tr>
+                <Fragment key={tipo?.grupo ?? '—'}>
+                  {tipo && (
+                    <tr className="bg-slate-50 text-right">
+                      <td colSpan={3} className="border-b border-r border-border px-3 py-1 text-left font-sans">
+                        <CabeceraTipo tipo={tipo} />
+                      </td>
+                      {CRITERIOS.map((c) => {
+                        const g = env[c.clave];
+                        return (
+                          <td
+                            key={c.clave}
+                            colSpan={2 + c.acompanan.length}
+                            className="whitespace-nowrap border-b border-r border-border px-2 py-1 text-left text-[10px] text-muted"
+                          >
+                            {g ? (
+                              <>
+                                <span className={`font-semibold ${c.clave === 'traccion' ? 'text-violet-700' : 'text-ink'}`}>
+                                  {c.valor} = {cantidad(g.valor, unidades)}
+                                </span>{' '}
+                                · nudo {g.apoyo} · {g.combo}
+                                {noConcurrente(g)}
+                              </>
+                            ) : (
+                              '—'
+                            )}
+                          </td>
+                        );
+                      })}
+                      <td className="border-b border-border" />
+                    </tr>
+                  )}
+                  {suyas.map((f, k) => (
+                    <FilaConjunto
+                      key={f.apoyo}
+                      apoyo={f.apoyo}
+                      g={f.g}
+                      par={k % 2 === 1}
+                      xyz={xyz.get(f.apoyo)}
+                      env={env}
+                      unidades={unidades}
+                    />
+                  ))}
+                </Fragment>
               );
             })}
           </tbody>
         </table>
       </div>
     </div>
+  );
+}
+
+/** La marca de lo no concurrente: la combinación lleva espectro o envolvente. */
+function noConcurrente(g: Gobernante) {
+  return g.concurrente ? null : (
+    <span className="text-amber-700" title="No concurrente: la combinación lleva espectro o envolvente">
+      {' '}
+      ≠
+    </span>
+  );
+}
+
+/** Un apoyo en la vista de un conjunto: por criterio, su gobernante y lo que la acompaña. */
+function FilaConjunto({
+  apoyo,
+  g: gobernantes,
+  par,
+  xyz,
+  env,
+  unidades,
+}: {
+  apoyo: string;
+  g: GobernantesDeApoyo;
+  par: boolean;
+  xyz: [number, number, number] | undefined;
+  /** La envolvente de su tipo: el apoyo que la da va resaltado. */
+  env: ReturnType<typeof envolventeDeTipo>;
+  unidades: SistemaUnidades;
+}) {
+  return (
+    <tr className={`text-right ${par ? 'bg-slate-50/60' : ''} hover:bg-slate-100`}>
+      <td className="border-b border-border/60 px-3 py-0.5 text-left text-ink">{apoyo}</td>
+      <td className="border-b border-border/60 px-2 text-muted">{xyz ? xyz[0].toFixed(2).replace('.', ',') : '—'}</td>
+      <td className="border-b border-r border-border/60 px-2 text-muted">
+        {xyz ? xyz[1].toFixed(2).replace('.', ',') : '—'}
+      </td>
+      {CRITERIOS.map((c) => {
+        const g = gobernantes[c.clave];
+        if (!g) {
+          return (
+            <td
+              key={c.clave}
+              colSpan={2 + c.acompanan.length}
+              className="border-b border-r border-border/60 px-2 text-center text-muted"
+            >
+              —
+            </td>
+          );
+        }
+        const esMax = env[c.clave]?.apoyo === apoyo;
+        return [
+          <td
+            key={`${c.clave}-v`}
+            className={`border-b border-border/60 px-2 ${esMax ? 'bg-accent/10 font-semibold' : ''} ${
+              c.clave === 'traccion' ? 'text-violet-700' : 'text-ink'
+            }`}
+          >
+            {cantidad(g.valor, unidades)}
+          </td>,
+          <td
+            key={`${c.clave}-c`}
+            className="whitespace-nowrap border-b border-border/60 px-2 text-left text-[10px] text-muted"
+          >
+            {g.combo}
+            {noConcurrente(g)}
+          </td>,
+          ...c.acompanan.map((a, i) => (
+            <td
+              key={`${c.clave}-${a.titulo}`}
+              className={`border-b border-border/60 px-2 ${g.concurrente ? 'text-muted' : 'text-amber-700/80'} ${
+                i === c.acompanan.length - 1 ? 'border-r' : ''
+              }`}
+              title={g.concurrente ? undefined : 'No concurrente: extremo de la componente, no del mismo instante'}
+            >
+              {cantidad(a.de(g.v), unidades)}
+            </td>
+          )),
+        ];
+      })}
+      <td className="border-b border-border/60" />
+    </tr>
   );
 }

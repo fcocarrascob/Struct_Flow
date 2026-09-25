@@ -93,6 +93,8 @@ const {
   gobernantesDeConjunto,
   estadoConjunto,
   extremosDeConjunto,
+  tiposDeApoyo,
+  envolventeDeTipo,
   nuevoConjunto,
   conConjunto,
   quitarConjunto,
@@ -1493,6 +1495,47 @@ const CASOS_HOJA = [
       if (estadoConjunto(c, l, con(l.modificado)).estado !== 'al-dia') return 'al día (el orden de las familias no importa)';
       if (estadoConjunto({ ...c, familias: ['B21'] }, l, con(l.modificado)).motivo !== 'cambiaron sus familias desde que se leyó') return 'familias';
       return estadoConjunto(c, l, con('2026-09-26T00:00:00Z')).estado === 'desactualizado' ? null : 'atrasada';
+    },
+  },
+  {
+    nombre: 'los apoyos se agrupan por grupo de SAP: lo asignado gana a lo alcanzado por barras, y lo sin grupo queda a la vista',
+    ok: () => {
+      // La forma del Pachón: COL_PPALES tiene asignadas las bases; COL_VIENTO
+      // llega a las suyas por sus barras; DIAG_LAT llega por barras a bases que
+      // ya son de COL_PPALES; 592 no está en ningún grupo.
+      const apoyos = ['1', '7', '45', '47', '592'].map((nombre) => ({ nombre }));
+      const lectura = {
+        modelo: 'm.sdb', leido: '', modificado: '2026-09-25T12:29:49Z', apoyos, casos: [], sinAnalizar: [],
+        grupos: [
+          { nombre: 'COL_PPALES', directos: ['1', '7'], porBarra: [] },
+          { nombre: 'COL_VIENTO', directos: [], porBarra: ['45', '47'] },
+          { nombre: 'DIAG_LAT', directos: [], porBarra: ['7'] },
+        ],
+      };
+      const t = tiposDeApoyo(lectura);
+      const vista = t.tipos.map((x) => `${x.grupo ?? '—'}:${x.via}:${x.apoyos.join('+')}`).join(' ');
+      if (vista !== 'COL_PPALES:directo:1+7 COL_VIENTO:barra:45+47 —:ninguna:592') return `tipos ${vista}`;
+      if (JSON.stringify(t.cedidos) !== '[{"grupo":"DIAG_LAT","apoyos":["7"]}]') return `cedidos ${JSON.stringify(t.cedidos)}`;
+      if (t.repetidos.length) return `repetidos ${t.repetidos}`;
+      // Dos grupos que asignan el mismo nudo: queda en los dos y se avisa.
+      const doble = tiposDeApoyo({ ...lectura, grupos: [...lectura.grupos, { nombre: 'OTRO', directos: ['1'], porBarra: [] }] });
+      if (doble.repetidos.join() !== '1') return `doble ${doble.repetidos}`;
+      // La envolvente de un tipo: el apoyo que más exige, solo entre los suyos.
+      const conj = gobernantesDeConjunto({
+        modelo: 'm.sdb', modificado: '2026-09-25T12:29:49Z', apoyos: ['1', '7', '45'],
+        filas: [{ combo: 'B21', valores: [[1, 0, 100, 0, 0, 0], [2, 0, 300, 0, 0, 0], [50, 0, 900, 0, 0, 0]] }],
+      }, ['B21'], '');
+      const e = envolventeDeTipo(conj, ['1', '7']);
+      if (e.compresion?.apoyo !== '7' || e.compresion.valor !== 300) return `envolvente COL_PPALES ${JSON.stringify(e.compresion)}`;
+      if (envolventeDeTipo(conj, ['45']).corte?.valor !== 50) return 'envolvente COL_VIENTO';
+      // El saneo conserva los grupos, y quita de ellos un apoyo que no quedó.
+      const o = { ...obra(calc('G', m('q := 1'))), modulos: ['sap', 'sap-apoyos'], sap: { ...SAP_BASAL, apoyos: lectura } };
+      const saneada = sanearObra(o);
+      if (JSON.stringify(saneada.sap.apoyos.grupos) !== JSON.stringify(lectura.grupos)) return 'el saneo cambió los grupos';
+      const sinUno = sanearObra({ ...o, sap: { ...o.sap, apoyos: { ...lectura, apoyos: apoyos.filter((a) => a.nombre !== '7') } } });
+      if (sinUno.sap.apoyos.grupos[0].directos.join() !== '1') return 'un apoyo quitado siguió en su grupo';
+      // Una lectura anterior a los grupos no los inventa.
+      return 'grupos' in sanearObra({ ...o, sap: { ...o.sap, apoyos: LECTURA_APOYOS } }).sap.apoyos ? 'inventó grupos' : null;
     },
   },
   {

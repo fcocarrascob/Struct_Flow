@@ -808,6 +808,7 @@ def apoyos():
         for k in nudos:
             x, y, z, ret = modelo.PointObj.GetCoordCartesian(k)
             coords[k] = [_num(x), _num(y), _num(z)] if ret == 0 else None
+        grupos = _grupos_de_apoyos(modelo, set(nudos))
     casos = []
     for c in pedidos:
         for (caso, paso), valores in filas.items():
@@ -819,8 +820,47 @@ def apoyos():
         "modificado": _modificado(ruta),
         "apoyos": [{"nombre": k, "xyz": coords[k]} for k in nudos],
         "casos": casos,
+        "grupos": grupos,
         "sinAnalizar": sin_analizar,
     }
+
+
+OBJ_PUNTO = 1  # tipo de objeto de GroupDef.GetAssignments
+
+
+def _grupos_de_apoyos(modelo, apoyos):
+    """Qué apoyos toca cada grupo: los asignados al grupo, y los que alcanzan sus barras.
+
+    Las dos vías van separadas porque no pesan lo mismo: un grupo de columnas
+    suele tener asignados los nudos de su base, y un grupo de diagonales llega a
+    esa misma base por sus barras. Quién gana lo decide Flow (`tiposDeApoyo`),
+    no el puente. El grupo `ALL` no dice nada y no se lee.
+    """
+    salida = []
+    for g in _nombres(modelo.GroupDef, "la lista de grupos"):
+        if g.upper() == "ALL":
+            continue
+        _, tipos, nombres, ret = modelo.GroupDef.GetAssignments(g)
+        if ret != 0:
+            continue
+        directos, extremos = set(), set()
+        for t, n in zip(tipos or [], nombres or []):
+            if t == OBJ_PUNTO:
+                directos.add(str(n))
+            elif t == OBJ_BARRA:
+                r = modelo.FrameObj.GetPoints(str(n))
+                if r[-1] == 0:
+                    extremos |= {str(r[0]), str(r[1])}
+        d = sorted(apoyos & directos, key=_orden_nudo)
+        b = sorted((apoyos & extremos) - directos, key=_orden_nudo)
+        if d or b:
+            salida.append({"nombre": g, "directos": d, "porBarra": b})
+    return salida
+
+
+def _orden_nudo(k):
+    """Los nudos por número si lo son, y si no por nombre: 2 antes que 10."""
+    return (0, int(k), "") if k.isdigit() else (1, 0, k)
 
 
 def apoyos_combinaciones(cuerpo):

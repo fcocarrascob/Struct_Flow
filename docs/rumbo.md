@@ -266,10 +266,22 @@ que devolverlo con sus datos.
   - Las combinaciones se leen desde el mismo panel si no estaban leídas; es la misma lectura
     que usa el sub-nodo Combinaciones.
 
-  **Paso 3:** agrupar los apoyos por grupo de SAP (una placa por grupo) y publicar.
+  **Paso 3a, hecho: tipos de apoyo por grupo de SAP.** Nadie diseña 25 placas: se diseña una por
+  tipo, y el tipo lo dice cómo el ingeniero organizó el modelo. Un apoyo es del grupo al que
+  está **asignado**. Si no está asignado a ninguno, es del grupo cuyas **barras** llegan a él.
+  Así, un grupo de diagonales no se lleva la base de una columna. Los apoyos sin grupo quedan
+  a la vista, con aviso, y el grupo `ALL` no cuenta.
+  - El panel muestra los tipos y qué grupo cede qué apoyos.
+  - Cada conjunto muestra su envolvente por tipo.
+  - La tabla agrupa las filas por tipo, con la envolvente en la cabecera y el apoyo que gobierna
+    resaltado dentro de su tipo.
+
+  **Paso 3b:** publicar las gobernantes por tipo y conjunto como nombres de la obra, para que
+  la hoja de placa base las ate (ver «Lo que sigue»).
 
 Lo que sigue en esta línea, de a uno:
-- agrupar los apoyos por grupo de SAP (paso 3, arriba);
+- el mecanismo para que un nodo sin hoja publique nombres (`evaluacion.ts`), probado primero
+  con Tx y Ty del modal;
 - que el modal, la basal y los apoyos publiquen nombres (Tx, Ty, Vx, Vy, las gobernantes) para
   que las hojas los usen en vez de copiarlos;
 - los esfuerzos, con el mismo patrón;

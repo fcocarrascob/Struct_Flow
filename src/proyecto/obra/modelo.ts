@@ -372,7 +372,20 @@ export interface LecturaApoyos {
   modificado: string;
   apoyos: ApoyoLeido[];
   casos: ReaccionesDeCaso[];
+  /** Qué apoyos toca cada grupo de SAP, por las dos vías. Ausente en una lectura vieja. */
+  grupos?: GrupoDeApoyos[];
   sinAnalizar: string[];
+}
+
+/**
+ * Un grupo de SAP y los apoyos que toca: los asignados al grupo (`directos`) y
+ * los que alcanzan sus barras (`porBarra`). Quién gana cuando un apoyo está en
+ * dos lo decide `tiposDeApoyo`.
+ */
+export interface GrupoDeApoyos {
+  nombre: string;
+  directos: string[];
+  porBarra: string[];
 }
 
 /** La reacción en la base de un caso, en kN y kN·m, ejes globales. */

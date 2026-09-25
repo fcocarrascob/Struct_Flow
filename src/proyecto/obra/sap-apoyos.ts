@@ -96,6 +96,78 @@ export function descuadresConBasal(lectura: LecturaApoyos, basal: LecturaBasal |
   return salida;
 }
 
+// ── Tipos de apoyo: los grupos de SAP ────────────────────────────────────────
+
+/** Un tipo de apoyo: los apoyos de un grupo de SAP, o los que no tienen grupo. */
+export interface TipoDeApoyo {
+  /** El grupo de SAP; `null` para los apoyos sin grupo. */
+  grupo: string | null;
+  apoyos: string[];
+  /** Cómo llegaron: asignados al grupo, o alcanzados por sus barras. */
+  via: 'directo' | 'barra' | 'ninguna';
+}
+
+export interface TiposDeApoyo {
+  tipos: TipoDeApoyo[];
+  /** Los apoyos que quedaron en más de un tipo: dos grupos los reclaman por igual. */
+  repetidos: string[];
+  /** Los grupos que alcanzan apoyos por sus barras, pero esos apoyos ya son de otro. */
+  cedidos: { grupo: string; apoyos: string[] }[];
+}
+
+/**
+ * Los apoyos agrupados por grupo de SAP. Nadie diseña 25 placas: se diseña una
+ * por tipo de apoyo, y el tipo lo dice cómo el ingeniero organizó el modelo.
+ *
+ * La regla:
+ * 1. Un apoyo es del grupo al que está ASIGNADO (su nudo está en el grupo).
+ * 2. Si no está asignado a ninguno, es del grupo cuyas BARRAS llegan a él.
+ * 3. Los que no están en ninguno quedan como «sin grupo», a la vista.
+ *
+ * Así un grupo de diagonales que llega por sus barras a la base de una columna
+ * no se lleva ese apoyo: es de la columna, que lo tiene asignado. Si dos grupos
+ * lo reclaman por la misma vía, queda en los dos y se avisa.
+ */
+export function tiposDeApoyo(lectura: LecturaApoyos): TiposDeApoyo {
+  const grupos = lectura.grupos ?? [];
+  const conDirecto = new Set(grupos.flatMap((g) => g.directos));
+  const tipos: TipoDeApoyo[] = [];
+  const cedidos: TiposDeApoyo['cedidos'] = [];
+  for (const g of grupos) {
+    const porBarra = g.porBarra.filter((a) => !conDirecto.has(a));
+    const perdidos = g.porBarra.filter((a) => conDirecto.has(a));
+    if (perdidos.length) cedidos.push({ grupo: g.nombre, apoyos: perdidos });
+    const apoyos = [...g.directos, ...porBarra];
+    if (apoyos.length) tipos.push({ grupo: g.nombre, apoyos, via: g.directos.length ? 'directo' : 'barra' });
+  }
+  const cuenta = new Map<string, number>();
+  for (const t of tipos) for (const a of t.apoyos) cuenta.set(a, (cuenta.get(a) ?? 0) + 1);
+  const sinGrupo = lectura.apoyos.map((a) => a.nombre).filter((a) => !cuenta.has(a));
+  if (sinGrupo.length) tipos.push({ grupo: null, apoyos: sinGrupo, via: 'ninguna' });
+  return { tipos, repetidos: [...cuenta].filter(([, n]) => n > 1).map(([a]) => a), cedidos };
+}
+
+/**
+ * La envolvente de un tipo de apoyo en un conjunto: por criterio, la gobernante
+ * del apoyo que más exige. Es lo que se usa para diseñar la placa del tipo.
+ */
+export function envolventeDeTipo(
+  lectura: LecturaConjunto,
+  apoyos: readonly string[],
+): Partial<Record<keyof GobernantesDeApoyo, Gobernante & { apoyo: string }>> {
+  const quiero = new Set(apoyos);
+  const salida: Partial<Record<keyof GobernantesDeApoyo, Gobernante & { apoyo: string }>> = {};
+  lectura.porApoyo.forEach((g, j) => {
+    const apoyo = lectura.apoyos[j];
+    if (!quiero.has(apoyo)) return;
+    for (const k of ['compresion', 'traccion', 'corte', 'momento'] as const) {
+      const x = g[k];
+      if (x && (!salida[k] || x.valor > salida[k]!.valor)) salida[k] = { ...x, apoyo };
+    }
+  });
+  return salida;
+}
+
 // ── Conjuntos de diseño ──────────────────────────────────────────────────────
 
 /** Las combinaciones de un conjunto: las de sus familias, en el orden de SAP. */
@@ -197,16 +269,9 @@ export function estadoConjunto(
   return atraso ? { estado: 'desactualizado', motivo: atraso } : { estado: 'al-dia' };
 }
 
-/** Los extremos de un conjunto entre todos los apoyos: para el resumen del panel. */
+/** Los extremos de un conjunto entre todos los apoyos: la envolvente de todos. */
 export function extremosDeConjunto(lectura: LecturaConjunto): Partial<Record<keyof GobernantesDeApoyo, Gobernante & { apoyo: string }>> {
-  const salida: Partial<Record<keyof GobernantesDeApoyo, Gobernante & { apoyo: string }>> = {};
-  lectura.porApoyo.forEach((g, j) => {
-    for (const k of ['compresion', 'traccion', 'corte', 'momento'] as const) {
-      const x = g[k];
-      if (x && (!salida[k] || x.valor > salida[k]!.valor)) salida[k] = { ...x, apoyo: lectura.apoyos[j] };
-    }
-  });
-  return salida;
+  return envolventeDeTipo(lectura, lectura.apoyos);
 }
 
 /** Los casos que tienen tracción en algún apoyo: los que levantan la estructura. */

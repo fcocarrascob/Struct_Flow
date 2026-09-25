@@ -47,6 +47,7 @@ import {
   type LecturaApoyos,
   type ApoyoLeido,
   type ReaccionesDeCaso,
+  type GrupoDeApoyos,
   type ConjuntoDiseno,
   type Gobernante,
   type GobernantesDeApoyo,
@@ -425,7 +426,25 @@ function sanearApoyos(crudo: unknown): LecturaApoyos | undefined {
     casos.push({ caso: c.caso, ...(typeof c.paso === 'string' && c.paso ? { paso: c.paso } : {}), valores });
   }
   const sinAnalizar = Array.isArray(l.sinAnalizar) ? l.sinAnalizar.filter((c): c is string => typeof c === 'string') : [];
-  return { modelo: texto(l.modelo), leido: texto(l.leido), modificado: l.modificado, apoyos, casos, sinAnalizar };
+  // De los grupos, solo lo que nombra un apoyo que quedó: uno descartado arriba
+  // no puede seguir perteneciendo a nada.
+  const nombres = new Set(apoyos.map((a) => a.nombre));
+  const deApoyos = (v: unknown) => nombresDe(v).filter((n) => nombres.has(n));
+  const grupos = Array.isArray(l.grupos)
+    ? l.grupos
+        .map((x) => (x ?? {}) as Partial<GrupoDeApoyos>)
+        .filter((g) => typeof g.nombre === 'string' && g.nombre)
+        .map((g) => ({ nombre: g.nombre as string, directos: deApoyos(g.directos), porBarra: deApoyos(g.porBarra) }))
+    : undefined;
+  return {
+    modelo: texto(l.modelo),
+    leido: texto(l.leido),
+    modificado: l.modificado,
+    apoyos,
+    casos,
+    ...(grupos ? { grupos } : {}),
+    sinAnalizar,
+  };
 }
 
 /**
