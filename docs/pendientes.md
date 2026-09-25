@@ -45,6 +45,15 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
    u_* con los nombres sufijados. Las dos puertas están (tipo en el panel de apoyos, y la
    paleta con las solicitaciones a mano), y la base del Pachón se regeneró con `_CP`
    (2026-09-25) conservando ids, grupo y notas ⚑, con los mismos números.
+   Las condiciones de la plantilla ya eligen entre variantes (`placa=articulada`), y dos nodos
+   con la misma clave son variantes de una pieza: cambiar de una a otra conserva el id, el
+   grupo y la ⚑ (`problemasDePlantilla` exige que nunca coexistan). Falta la primera variante
+   real: una placa rotulada o de poca excentricidad, con su genérica y su verificación de
+   dominio. Un sondeo con esfuerzos simulados de COL_VIENTO (base rotulada, M = 0, N = 180 kN,
+   arranque LRFD de −60 kN, sin silla ni llave) muestra por qué: la plantilla de hoy no da
+   error, pero da `u_pb = 2,09`, gobernado por el caso de arranque de la hoja de capacidad
+   (le impone el corte 2·Ry·Fy·Z/H de AISC 341 a una columna de viento), y la tracción LRFD
+   no entra en la placa, que toma la tracción solo de los casos de sobrerresistencia.
    Límites de la plantilla: la hoja de capacidad es la del Pachón (AISC 341 §D2.6, pórtico
    arriostrado en X y de momento en Y) y usa las externas `H_int_dg`, `H_ext_dg` y
    `T_ext_dg` del arriostramiento, sin sufijo; una base sin diagonales, o sin

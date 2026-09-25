@@ -30,7 +30,13 @@ import { nombresDefinidos } from './copia';
 
 // ── La plantilla ─────────────────────────────────────────────────────────────
 
-/** `clave` si esa opción está presente; `!clave` si está en `'no'`. */
+/**
+ * Cuándo existe una parte de la plantilla, según la configuración:
+ *   - `clave`: el componente está (su variante no es `'no'`);
+ *   - `!clave`: no está;
+ *   - `clave=a|b`: su variante es una de esas;
+ *   - `clave!=a|b`: su variante no es ninguna de esas.
+ */
 export type Condicion = string;
 
 export type BloquePlantilla =
@@ -61,7 +67,12 @@ export interface FronteraPlantilla {
 }
 
 export interface NodoPlantilla {
-  /** Estable: es la clave del nodo en el ensamble y la base de sus ids de bloque. */
+  /**
+   * Estable: es la clave del nodo en el ensamble y la base de sus ids de bloque.
+   * Varios nodos pueden compartirla si sus condiciones se excluyen: son las
+   * variantes de una misma pieza (la placa de gran excentricidad o la articulada),
+   * y al cambiar de una a otra el nodo conserva su id, su sitio y su marca ⚑.
+   */
   clave: string;
   nombre: string;
   si?: Condicion;
@@ -97,9 +108,62 @@ export interface Ensamble extends Parametros {
 
 // ── Instanciar ───────────────────────────────────────────────────────────────
 
+const CONDICION_RE = /^(!?)([\p{L}_][\p{L}\p{N}_-]*)(?:(!?=)([\p{L}\p{N}_|-]+))?$/u;
+
+/** La condición desarmada, o `null` si no se entiende. */
+export function leerCondicion(si: Condicion): { clave: string; variantes?: string[]; niega: boolean } | null {
+  const r = CONDICION_RE.exec(si.trim());
+  if (!r || (r[1] && r[3])) return null;
+  const [, neg, clave, op, lista] = r;
+  if (!op) return { clave, niega: !!neg };
+  return { clave, variantes: lista.split('|'), niega: op === '!=' };
+}
+
 export function cumple(si: Condicion | undefined, config: Config): boolean {
   if (!si) return true;
-  return si.startsWith('!') ? config[si.slice(1)] === 'no' : config[si] !== 'no';
+  const c = leerCondicion(si);
+  // Una condición ilegible no se cumple nunca: mejor una pieza de menos, que se
+  // ve, que una de más calculando fuera de su sitio. `problemasDePlantilla` la señala.
+  if (!c) return false;
+  const v = config[c.clave];
+  const dentro = c.variantes ? c.variantes.includes(v) : v !== 'no';
+  return c.niega ? !dentro : dentro;
+}
+
+/**
+ * Lo que está mal en una plantilla respecto de las opciones de su vista: una
+ * condición ilegible o que nombra una opción o variante que no existe, y una
+ * configuración en la que dos nodos con la misma clave existen a la vez (o
+ * ninguno de los que la vista necesita). Se recorren todas las configuraciones:
+ * con dos o tres opciones son un puñado.
+ */
+export function problemasDePlantilla(
+  p: Plantilla,
+  opciones: readonly { clave: string; variantes: readonly { id: string }[] }[],
+): string[] {
+  const problemas: string[] = [];
+  const condiciones = p.nodos.flatMap((n) => [
+    ...(n.si ? [{ donde: n.clave, si: n.si }] : []),
+    ...(n.hoja ?? []).flatMap((s) => (s.si ? [{ donde: `${n.clave}/${s.clave}`, si: s.si }] : [])),
+    ...(n.frontera?.capas ?? []).map((c) => ({ donde: `${n.clave}/capa`, si: c.si })),
+  ]);
+  for (const { donde, si } of condiciones) {
+    const c = leerCondicion(si);
+    const op = c && opciones.find((o) => o.clave === c.clave);
+    if (!c) problemas.push(`${donde}: la condición «${si}» no se entiende.`);
+    else if (!op) problemas.push(`${donde}: «${si}» nombra la opción «${c.clave}», que la vista no tiene.`);
+    else for (const v of c.variantes ?? []) if (!op.variantes.some((x) => x.id === v)) problemas.push(`${donde}: «${si}» nombra la variante «${v}», que «${c.clave}» no tiene.`);
+  }
+  let configs: Config[] = [{}];
+  for (const o of opciones) configs = configs.flatMap((c) => o.variantes.map((v) => ({ ...c, [o.clave]: v.id })));
+  for (const config of configs) {
+    const presentes = p.nodos.filter((n) => cumple(n.si, config));
+    const claves = presentes.map((n) => n.clave);
+    const dobles = [...new Set(claves.filter((k, i) => claves.indexOf(k) !== i))];
+    if (dobles.length) problemas.push(`Con ${JSON.stringify(config)}, «${dobles.join('», «')}» existe dos veces.`);
+    if (!presentes.some((n) => n.frontera?.procedencia === 'vista')) problemas.push(`Con ${JSON.stringify(config)}, no hay vista.`);
+  }
+  return problemas;
 }
 
 const TOKEN = /[\p{L}_][\p{L}\p{N}_]*/gu;
@@ -281,7 +345,7 @@ export function armarEnsamble(
     const repetidas = definicionesDe(manual.hoja).filter((n) => ya.has(n));
     if (repetidas.length) return { error: `La obra ya define ${repetidas[0]}: las solicitaciones de ${params.tipo} ya existen, arma la base sin escribirlas a mano.` };
   }
-  const ids = Object.fromEntries(p.nodos.map((n) => [n.clave, nuevoId('k')]));
+  const ids = Object.fromEntries([...new Set(p.nodos.map((n) => n.clave))].map((clave) => [clave, nuevoId('k')]));
   const idGrupo = nuevoId('g');
   const nodos = [...(manual ? [manual] : []), ...instanciar(p, config, params, ids, sellos)].map((k) => ({ ...k, grupo: idGrupo }));
   const idVista = vistaDe(p, ids);
@@ -358,6 +422,19 @@ export function reconfigurar(
       resultado = { ...resultado, calculos: [...resultado.calculos, { ...nuevo, ...(grupo ? { grupo } : {}) }] };
       continue;
     }
+    if (identidad(viejo) !== identidad(nuevo)) {
+      // Otra variante de la misma pieza, respaldada por otra genérica: no hay
+      // ataduras que conservar, porque los campos son otros. Se queda el id, el
+      // grupo y la marca ⚑; el resto es el de la variante nueva.
+      resultado = {
+        ...resultado,
+        calculos: resultado.calculos.map((k) =>
+          k.id === nuevo.id ? { ...k, nombre: nuevo.nombre, hoja: nuevo.hoja, frontera: nuevo.frontera } : k,
+        ),
+      };
+      quitados.push(`${actual.nombre} (cambia a ${nuevo.nombre})`);
+      continue;
+    }
     resultado = {
       ...resultado,
       calculos: resultado.calculos.map((k) =>
@@ -370,6 +447,12 @@ export function reconfigurar(
     calculos: resultado.calculos.map((k) => (k.id === idVista ? conNodos(k, ens, ids, configNueva, p) : k)),
   };
   return { obra: resultado, quitados };
+}
+
+/** Qué respalda un nodo: una hoja libre, una genérica por su slug o una vista por su id. */
+function identidad(k: NodoCalculo): string {
+  const f = k.frontera;
+  return !f ? 'hoja' : `${f.procedencia}:${f.slug ?? f.vista ?? ''}`;
 }
 
 /**

@@ -101,7 +101,7 @@ export {
 } from './sap-apoyos';
 export { nuevoConjunto, conConjunto, quitarConjunto, conAliasTipo } from './modelo';
 export { VISTAS, camposActivos, configCompleta, datosPorDefecto } from '../vistas/registro';
-export { armarEnsamble, reconfigurar, nombresPropios } from './ensamble';
+export { armarEnsamble, reconfigurar, nombresPropios, cumple, problemasDePlantilla } from './ensamble';
 export { barrasPerimetro, abscisasPernos, abscisasNervios } from '../vistas/base-columna/modelo';
 export { svgVistas } from '../vistas/svg';
 
