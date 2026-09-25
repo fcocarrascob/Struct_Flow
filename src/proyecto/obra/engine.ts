@@ -100,7 +100,7 @@ export {
   publicaApoyos,
 } from './sap-apoyos';
 export { nuevoConjunto, conConjunto, quitarConjunto, conAliasTipo } from './modelo';
-export { VISTAS, datosPorDefecto } from '../vistas/registro';
+export { VISTAS, camposActivos, configCompleta, datosPorDefecto } from '../vistas/registro';
 export { barrasPerimetro, abscisasPernos, abscisasNervios } from '../vistas/base-columna/modelo';
 export { svgVistas } from '../vistas/svg';
 

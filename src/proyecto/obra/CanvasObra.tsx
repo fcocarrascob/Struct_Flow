@@ -2023,6 +2023,13 @@ function CanvasObra({
                 k.frontera ? { ...k, frontera: conFormula(k.frontera, campo, expr) } : k,
               )
             }
+            onConfig={(clave, variante) =>
+              cambiarUnCalculo(calculo.id, (k) =>
+                k.frontera
+                  ? { ...k, frontera: { ...k.frontera, config: { ...k.frontera.config, [clave]: variante } } }
+                  : k,
+              )
+            }
             onPublicar={(salida, alias) =>
               cambiarUnCalculo(calculo.id, (k) =>
                 k.frontera ? { ...k, frontera: conPublicacion(k.frontera, salida, alias) } : k,

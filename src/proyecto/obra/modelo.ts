@@ -88,6 +88,12 @@ export interface Frontera {
   vista?: string;
   version?: number;
   /**
+   * Solo `vista`: qué componentes lleva y de qué clase (`{ silla: 'no' }`). Lo que
+   * falta es la variante por defecto, así que una vista sin configuración es la
+   * completa (`configCompleta` de `vistas/registro.ts`).
+   */
+  config?: Record<string, string>;
+  /**
    * Solo `biblioteca` y `vista`: los valores del formulario. Una derivada no los tiene,
    * porque al desprenderse quedaron horneados en sus regiones `in_*`: una hoja
    * editable no puede seguir teniendo una lista de campos declarados, porque el

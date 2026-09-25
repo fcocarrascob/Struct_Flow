@@ -13,7 +13,7 @@
 
 import type { Region } from '../../lib/worksheet';
 import { svgVistas } from './svg';
-import type { DefVista, ModeloGeometrico } from './tipos';
+import type { Campo, Config, DefVista, ModeloGeometrico } from './tipos';
 
 /** Un número como literal de fórmula: punto decimal, sin exponente para lo usual. */
 const lit = (v: number) => (Number.isInteger(v) ? String(v) : String(Math.round(v * 10) / 10));
@@ -23,6 +23,8 @@ const medida = (id: string) => `m_${id.replace(/^v_/, '')}`;
 
 export function hojaDeVista(
   def: DefVista,
+  config: Config,
+  campos: Campo[],
   datos: Record<string, number>,
   atados: ReadonlySet<string>,
   m: ModeloGeometrico,
@@ -37,9 +39,13 @@ export function hojaDeVista(
     'Modelo geométrico de la base armado con los mismos datos que usan sus cálculos. Comprueba que las ' +
       'piezas no choquen y que lo que las hojas de cálculo declaran de la geometría sea lo que la geometría da.',
   );
+  // Solo se dice lo que falta: la base completa no lleva la línea, y su hoja es
+  // la misma que antes de que existieran las opciones.
+  const faltan = def.opciones.filter((o) => config[o.clave] === 'no').map((o) => o.titulo.toLowerCase());
+  if (faltan.length) t(`Configuración: sin ${faltan.join(' ni ')}.`);
 
   t('## Datos');
-  for (const c of def.campos) {
+  for (const c of campos) {
     if (!atados.has(c.nombre) && c.supuesto) t(`Supuesto: ${c.supuesto}.`);
     f(`${c.nombre} := ${conUnidad(datos[c.nombre], c.unidad)}`);
   }

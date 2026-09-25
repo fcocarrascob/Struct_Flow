@@ -604,6 +604,14 @@ function sanearFrontera(crudo: unknown): Frontera | undefined {
   // Una vista sin id no tiene qué construir: como una de biblioteca sin slug.
   if (procedencia === 'vista' && !vista) return undefined;
   const version = typeof i.version === 'number' && Number.isInteger(i.version) && i.version > 0 ? i.version : undefined;
+  // La configuración se sanea como texto; qué variantes existen lo decide la vista
+  // al evaluarla (`configCompleta`), que cae en la de por defecto ante una que no conoce.
+  const config: Record<string, string> = {};
+  if (typeof i.config === 'object' && i.config !== null) {
+    for (const [k, v] of Object.entries(i.config)) {
+      if (typeof v === 'string' && v) config[k] = v;
+    }
+  }
 
   const entradas: Record<string, number> = {};
   if (typeof i.entradas === 'object' && i.entradas !== null) {
@@ -649,7 +657,9 @@ function sanearFrontera(crudo: unknown): Frontera | undefined {
     // una derivada ya no es una instancia de nada y lo lleva en `origen`.
     ...(procedencia === 'biblioteca' && slug ? { slug, sha256: sello(i.sha256) ?? '' } : {}),
     ...(origen ? { origen } : {}),
-    ...(procedencia === 'vista' ? { vista, ...(version ? { version } : {}) } : {}),
+    ...(procedencia === 'vista'
+      ? { vista, ...(version ? { version } : {}), ...(Object.keys(config).length ? { config } : {}) }
+      : {}),
     ...(procedencia === 'biblioteca' || procedencia === 'vista' ? { entradas } : {}),
     ...(Object.keys(formulas).length ? { formulas } : {}),
     ...(Object.keys(publica).length ? { publica } : {}),

@@ -6,16 +6,23 @@
 // o el de la vista. Con esos números se arma el modelo, se sintetiza su hoja y la
 // hoja se evalúa sola, sin el scope de la obra: todo lo que usa está escrito en
 // ella.
+//
+// Solo cuentan los campos de los componentes presentes: un campo de la silla
+// atado en una base sin silla no se resuelve ni se imprime, y la atadura se
+// conserva por si la silla vuelve.
 
 import { evaluateSheet, type Region, type SheetResults } from '../../lib/worksheet';
 import { resolverExpresion } from '../obra/biblioteca';
 import type { Frontera } from '../obra/modelo';
 import { hojaDeVista } from './hoja';
-import { VISTAS } from './registro';
-import type { DefVista, ModeloGeometrico } from './tipos';
+import { VISTAS, camposActivos, configCompleta } from './registro';
+import type { Campo, Config, DefVista, ModeloGeometrico } from './tipos';
 
 export interface VistaEvaluada {
   def: DefVista;
+  config: Config;
+  /** Los campos de los componentes presentes. */
+  campos: Campo[];
   datos: Record<string, number>;
   modelo: ModeloGeometrico;
   hoja: Region[];
@@ -30,12 +37,14 @@ const CENTINELA = '__scope_vista';
 export function evaluarVista(f: Frontera, scope: Record<string, unknown>, idNodo: string): VistaEvaluada | null {
   const def = f.vista ? VISTAS[f.vista] : undefined;
   if (!def) return null;
+  const config = configCompleta(def, f.config);
+  const campos = camposActivos(def, config);
   const datos: Record<string, number> = {};
   const errores: VistaEvaluada['errores'] = [];
-  for (const c of def.campos) datos[c.nombre] = f.entradas?.[c.nombre] ?? c.porDefecto;
+  for (const c of campos) datos[c.nombre] = f.entradas?.[c.nombre] ?? c.porDefecto;
   const atados = new Set<string>();
   for (const [campo, expr] of Object.entries(f.formulas ?? {})) {
-    const c = def.campos.find((x) => x.nombre === campo);
+    const c = campos.find((x) => x.nombre === campo);
     if (!c || !expr.trim()) continue;
     const r = resolverExpresion(expr, c.unidad || undefined, scope);
     if (r.valor !== undefined) {
@@ -43,11 +52,11 @@ export function evaluarVista(f: Frontera, scope: Record<string, unknown>, idNodo
       atados.add(campo);
     } else errores.push({ campo, error: r.error ?? 'no resolvió' });
   }
-  const modelo = def.construir(datos);
-  const hoja = hojaDeVista(def, datos, atados, modelo, `vista:${idNodo}`);
+  const modelo = def.construir(datos, config);
+  const hoja = hojaDeVista(def, config, campos, datos, atados, modelo, `vista:${idNodo}`);
   const centinela: Region = { id: CENTINELA, kind: 'image', x: 0, y: 1e9, src: '' };
   const results = evaluateSheet([...hoja, centinela], {});
   const salidas = results[CENTINELA]?.scope ?? {};
   delete results[CENTINELA];
-  return { def, datos, modelo, hoja, results, salidas, errores };
+  return { def, config, campos, datos, modelo, hoja, results, salidas, errores };
 }

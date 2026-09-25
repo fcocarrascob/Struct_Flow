@@ -111,6 +111,7 @@ const {
   evaluateSheet,
   VISTAS,
   datosPorDefecto,
+  configCompleta,
   barrasPerimetro,
   svgVistas,
 } = motor;
@@ -3087,6 +3088,96 @@ const CASOS_VISTA = [
       return f === id ? null : `fallan «${f}»`;
     },
   })),
+
+  // ── La configuración: componentes que pueden faltar ──
+  {
+    nombre: 'vista base-columna: sin configuración es la completa, y una variante desconocida cae en la de por defecto',
+    ok: () => {
+      const completa = configCompleta(VISTA_BASE);
+      if (completa.silla !== 'nervios' || completa.llave !== 'cruz') return `completa: ${JSON.stringify(completa)}`;
+      if (JSON.stringify(VISTA_BASE.construir(DATOS_BASE)) !== JSON.stringify(VISTA_BASE.construir(DATOS_BASE, completa)))
+        return 'la completa no es la de sin configuración';
+      const rara = configCompleta(VISTA_BASE, { silla: 'soldada', llave: 'no' });
+      return rara.silla === 'nervios' && rara.llave === 'no' ? null : `con variantes raras: ${JSON.stringify(rara)}`;
+    },
+  },
+  {
+    nombre: 'vista base-columna sin silla: sin nervios ni chapas, la arandela sobre la placa, y el Pachón cierra',
+    ok: () => {
+      const cfg = { silla: 'no', llave: 'cruz' };
+      const m = VISTA_BASE.construir(DATOS_BASE, cfg);
+      const roles = new Set(m.piezas.map((p) => p.rol));
+      if (roles.has('nervio') || roles.has('chapa')) return 'quedaron piezas de la silla';
+      const ids = m.chequeos.map((c) => c.id);
+      const deSilla = ids.filter((id) => /nervio|chapa/.test(id));
+      if (deSilla.length) return `quedaron verificaciones de la silla: ${deSilla.join(', ')}`;
+      if (!ids.includes('v_arandela_ala') || !ids.includes('v_arandela_placa')) return `verificaciones: ${ids.join(', ')}`;
+      if (m.derivados.some((d) => d.nombre === 'luz_real' || d.nombre === 'x_nerv_real')) return 'quedaron derivados de la silla';
+      // El perno termina sobre la placa, no sobre la chapa superior.
+      const alto = (mm) => Math.max(...mm.piezas.filter((p) => p.rol === 'perno').map((p) => p.z1));
+      if (!(alto(m) < alto(VISTA_BASE.construir(DATOS_BASE)) - 400)) return `el perno sin silla llega a ${alto(m)} mm`;
+      const f = fallanEn(m);
+      return f === '' ? null : `fallan «${f}»`;
+    },
+  },
+  ...[
+    ['v_arandela_ala', { d_col: 1600 }],
+    ['v_arandela_placa', { B_bp: 1000 }],
+  ].map(([id, cambio]) => ({
+    nombre: `vista base-columna sin silla: «${id}» falla sola`,
+    ok: () => {
+      const f = fallanEn(VISTA_BASE.construir({ ...DATOS_BASE, ...cambio }, { silla: 'no', llave: 'cruz' }));
+      return f === id ? null : `fallan «${f}»`;
+    },
+  })),
+  {
+    nombre: 'vista base-columna sin llave: sin sus piezas ni sus choques, y la zona confinada es el lado menor',
+    ok: () => {
+      const cfg = { silla: 'nervios', llave: 'no' };
+      // Con los pernos a 600 mm la llave los toca; sin llave, nada choca.
+      const cambio = { ...SILLA_QUE_CIERRA, y_t: 600 };
+      if (fallanEn(VISTA_BASE.construir({ ...DATOS_BASE, ...cambio })) !== 'v_llave_perno') return 'con llave, el caso no es el que se creía';
+      const m = VISTA_BASE.construir({ ...DATOS_BASE, ...cambio }, cfg);
+      if (m.piezas.some((p) => p.rol === 'llave')) return 'quedaron piezas de la llave';
+      if (m.chequeos.some((c) => c.id.startsWith('v_llave'))) return 'quedaron verificaciones de la llave';
+      if (m.derivados.some((d) => d.nombre === 'zp_llave')) return 'quedó zp_llave';
+      const zp = m.derivados.find((d) => d.nombre === 'zp_ped')?.valor;
+      if (zp !== Math.min(DATOS_BASE.PED_X, DATOS_BASE.PED_Y)) return `zp_ped = ${zp}`;
+      const f = fallanEn(m);
+      return f === '' ? null : `fallan «${f}»`;
+    },
+  },
+  {
+    nombre: 'una vista sin silla en la obra: la atadura de un dato de la silla se guarda, pero no lee ni tira flecha',
+    ok: () => {
+      const fr = {
+        procedencia: 'vista',
+        vista: 'base-columna',
+        version: 1,
+        config: { silla: 'no', raro: 3 },
+        entradas: DATOS_BASE,
+        formulas: { NER_T: 'NER_d', PED_Y: 'PED_Y_d' },
+        publica: { v_global: 'v_geo' },
+      };
+      const o = sanearObra(obra(calc('S', m('NER_d := 20 mm')), calc('D', m('PED_Y_d := 1950 mm')), conPlanilla('V', fr)));
+      const f = o.calculos.find((k) => k.id === 'V')?.frontera;
+      if (JSON.stringify(f?.config) !== '{"silla":"no"}') return `config saneada: ${JSON.stringify(f?.config)}`;
+      if (f?.formulas?.NER_T !== 'NER_d') return 'se perdió la atadura del dato de la silla';
+      const vuelta = sanearObra(unirObra(partirObra(o)).crudo);
+      if (JSON.stringify(vuelta) !== JSON.stringify(o)) return 'la obra releída no coincide';
+      const ev = evaluarObra(o, genericas);
+      const proy = proyectar(o, ev, genericas);
+      const vista = ev.importadas.get(K('V'))?.vista;
+      if (!vista) return 'la vista no se evaluó';
+      if (vista.campos.some((c) => c.nombre === 'NER_T')) return 'NER_T sigue entre los campos';
+      const srcs = vista.hoja.map((r) => r.src);
+      if (!srcs.includes('Configuración: sin silla de anclaje.')) return 'la hoja no dice qué falta';
+      if (srcs.some((s) => s.startsWith('NER_T :='))) return 'la hoja imprime un dato de la silla';
+      const errores = Object.entries(ev.results).filter(([id, r]) => id.startsWith('vista:') && r.error);
+      if (errores.length) return `la hoja de la vista tiene ${errores.length} error(es): ${errores[0][1].error}`;
+      return sinArista('S', 'V')(ev, proy) ?? esperaArista('D', 'V')(ev, proy) ?? sinCiclo(ev);
+    },
+  },
 ];
 
 // ── Correr ───────────────────────────────────────────────────────────────────

@@ -5,7 +5,36 @@
 // tuerca, el árido, cómo se disponen los nervios— son datos propios de la
 // geometría y llevan su `supuesto`.
 
-import type { Campo } from '../tipos';
+import type { Campo, Opcion } from '../tipos';
+
+/**
+ * Los componentes que pueden faltar. La columna en I, la placa, los pernos y el
+ * pedestal están siempre; una columna HSS o una llave simple serán variantes
+ * nuevas de una opción, no una vista aparte.
+ */
+export const OPCIONES_BASE_COLUMNA: Opcion[] = [
+  {
+    clave: 'silla',
+    titulo: 'Silla de anclaje',
+    variantes: [
+      { id: 'nervios', titulo: 'Ala extendida, nervios y chapa superior' },
+      { id: 'no', titulo: 'Sin silla: el perno aprieta sobre la placa' },
+    ],
+    porDefecto: 'nervios',
+  },
+  {
+    clave: 'llave',
+    titulo: 'Llave de corte',
+    variantes: [
+      { id: 'cruz', titulo: 'En cruz, dos chapas' },
+      { id: 'no', titulo: 'Sin llave' },
+    ],
+    porDefecto: 'cruz',
+  },
+];
+
+const silla = (c: Campo): Campo => ({ ...c, componente: 'silla' });
+const llave = (c: Campo): Campo => ({ ...c, componente: 'llave' });
 
 export const CAMPOS_BASE_COLUMNA: Campo[] = [
   // Placa y mortero
@@ -37,7 +66,7 @@ export const CAMPOS_BASE_COLUMNA: Campo[] = [
   {
     nombre: 'a_tuerca',
     unidad: 'mm',
-    descripcion: 'Ancho de la tuerca o arandela sobre la chapa superior',
+    descripcion: 'Ancho de la tuerca o arandela sobre la chapa superior, o sobre la placa si no hay silla',
     porDefecto: 100,
     supuesto: 'arandela de 100 mm sobre la chapa superior de la silla',
   },
@@ -50,26 +79,26 @@ export const CAMPOS_BASE_COLUMNA: Campo[] = [
   },
 
   // Silla de anclaje
-  { nombre: 'ALA_EXT', unidad: 'mm', descripcion: 'Ancho del ala extendida, en X', porDefecto: 950 },
-  { nombre: 'NER_H', unidad: 'mm', descripcion: 'Altura del nervio', porDefecto: 400 },
-  { nombre: 'NER_L', unidad: 'mm', descripcion: 'Proyección del nervio desde la cara del ala', porDefecto: 350 },
-  { nombre: 'NER_T', unidad: 'mm', descripcion: 'Espesor del nervio', porDefecto: 20 },
-  { nombre: 'CH_B', unidad: 'mm', descripcion: 'Ancho de la chapa superior, en X', porDefecto: 950 },
-  { nombre: 'CH_L', unidad: 'mm', descripcion: 'Largo de la chapa superior, en Y', porDefecto: 350 },
-  { nombre: 'CH_T', unidad: 'mm', descripcion: 'Espesor de la chapa superior', porDefecto: 50 },
-  {
+  silla({ nombre: 'ALA_EXT', unidad: 'mm', descripcion: 'Ancho del ala extendida, en X', porDefecto: 950 }),
+  silla({ nombre: 'NER_H', unidad: 'mm', descripcion: 'Altura del nervio', porDefecto: 400 }),
+  silla({ nombre: 'NER_L', unidad: 'mm', descripcion: 'Proyección del nervio desde la cara del ala', porDefecto: 350 }),
+  silla({ nombre: 'NER_T', unidad: 'mm', descripcion: 'Espesor del nervio', porDefecto: 20 }),
+  silla({ nombre: 'CH_B', unidad: 'mm', descripcion: 'Ancho de la chapa superior, en X', porDefecto: 950 }),
+  silla({ nombre: 'CH_L', unidad: 'mm', descripcion: 'Largo de la chapa superior, en Y', porDefecto: 350 }),
+  silla({ nombre: 'CH_T', unidad: 'mm', descripcion: 'Espesor de la chapa superior', porDefecto: 50 }),
+  silla({
     nombre: 'disp_nerv',
     unidad: '',
     descripcion: 'Disposición de los nervios: 1, uno entre cada par de pernos y uno fuera de cada extremo; 2, dos por perno, a la luz declarada',
     porDefecto: 1,
     supuesto: 'un nervio compartido entre pernos contiguos, como lee la silla su frac_nervio',
-  },
-  { nombre: 'luz_nerv', unidad: 'mm', descripcion: 'Luz libre entre los nervios que flanquean un perno, la que usan la placa y la silla', porDefecto: 192 },
+  }),
+  silla({ nombre: 'luz_nerv', unidad: 'mm', descripcion: 'Luz libre entre los nervios que flanquean un perno, la que usan la placa y la silla', porDefecto: 192 }),
 
   // Llave de corte
-  { nombre: 't_sl', unidad: 'mm', descripcion: 'Espesor de cada chapa de la llave', porDefecto: 65 },
-  { nombre: 'h_sl', unidad: 'mm', descripcion: 'Altura de la llave bajo el mortero', porDefecto: 100 },
-  { nombre: 'b_sl', unidad: 'mm', descripcion: 'Largo de cada chapa de la llave en cruz', porDefecto: 1100 },
+  llave({ nombre: 't_sl', unidad: 'mm', descripcion: 'Espesor de cada chapa de la llave', porDefecto: 65 }),
+  llave({ nombre: 'h_sl', unidad: 'mm', descripcion: 'Altura de la llave bajo el mortero', porDefecto: 100 }),
+  llave({ nombre: 'b_sl', unidad: 'mm', descripcion: 'Largo de cada chapa de la llave en cruz', porDefecto: 1100 }),
 
   // Pedestal
   { nombre: 'PED_X', unidad: 'mm', descripcion: 'Lado del pedestal en X', porDefecto: 1500 },

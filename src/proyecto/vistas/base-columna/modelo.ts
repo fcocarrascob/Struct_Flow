@@ -7,7 +7,7 @@
 // confinada es la suya: min(max(lado menor, llave + 45°), altura). Si el modelo
 // repartiera distinto, las barras que dibuja y cuenta no serían las del P-M.
 
-import type { Caja, Chequeo, Cilindro, Derivado, Lazo, ModeloGeometrico, Pieza, Prisma } from '../tipos';
+import type { Caja, Chequeo, Cilindro, Config, Derivado, Lazo, ModeloGeometrico, Pieza, Prisma } from '../tipos';
 
 const r1 = (v: number) => Math.round(v * 10) / 10;
 
@@ -77,16 +77,28 @@ function chequeo(
   return { id, texto, valor: v, limite: l, sentido, unidad, cumple: sentido === '>=' ? v >= l : v <= l, piezas };
 }
 
-export function construirBaseColumna(d: Record<string, number>): ModeloGeometrico {
+/** La base completa, la del Pachón: con silla de nervios y llave en cruz. */
+const COMPLETA: Config = { silla: 'nervios', llave: 'cruz' };
+
+/**
+ * Cada componente que puede faltar aporta sus piezas, sus verificaciones y sus
+ * derivados solo si está; una verificación entre dos componentes (la golilla
+ * contra el nervio, la llave contra el perno) existe solo si están los dos. Sin
+ * silla, la tuerca del perno aprieta sobre la placa y lo que se comprueba es que
+ * su arandela quepa en la placa y no toque el ala.
+ */
+export function construirBaseColumna(d: Record<string, number>, config: Config = COMPLETA): ModeloGeometrico {
   const piezas: Pieza[] = [];
   const chequeos: Chequeo[] = [];
   const derivados: Derivado[] = [];
+  const conSilla = config.silla !== 'no';
+  const conLlave = config.llave !== 'no';
 
   // ── Niveles ──────────────────────────────────────────────────────────────
   const zPlaca0 = d.t_gr;
   const zPlaca1 = d.t_gr + d.t_bp;
-  const zNerv1 = zPlaca1 + d.NER_H;
-  const zChapa1 = zNerv1 + d.CH_T;
+  const zNerv1 = conSilla ? zPlaca1 + d.NER_H : zPlaca1;
+  const zChapa1 = conSilla ? zNerv1 + d.CH_T : zPlaca1;
 
   // ── Pedestal, mortero y placa ────────────────────────────────────────────
   piezas.push(caja('pedestal', 'pedestal', -d.PED_X / 2, d.PED_X / 2, -d.PED_Y / 2, d.PED_Y / 2, -d.H_PED, 0));
@@ -107,9 +119,9 @@ export function construirBaseColumna(d: Record<string, number>): ModeloGeometric
 
   // ── Silla: ala extendida, nervios y chapa superior, a los dos lados ──────
   const xs = abscisasPernos(d.n_col, d.x_ext);
-  const xn = abscisasNervios(xs, d.disp_nerv, d.luz_nerv, d.NER_T);
+  const xn = conSilla ? abscisasNervios(xs, d.disp_nerv, d.luz_nerv, d.NER_T) : [];
   const signos = [1, -1] as const;
-  for (const sg of signos) {
+  for (const sg of conSilla ? signos : []) {
     const lado = sg > 0 ? 'n' : 's';
     const yAla0 = sg * hi;
     const yAla1 = sg * hc;
@@ -144,9 +156,13 @@ export function construirBaseColumna(d: Record<string, number>): ModeloGeometric
   piezas.push(...pernos, ...golillas);
 
   // ── Llave en cruz ────────────────────────────────────────────────────────
-  const llaveY = caja('llave_y', 'llave', -d.t_sl / 2, d.t_sl / 2, -d.b_sl / 2, d.b_sl / 2, -d.h_sl, zPlaca0);
-  const llaveX = caja('llave_x', 'llave', -d.b_sl / 2, d.b_sl / 2, -d.t_sl / 2, d.t_sl / 2, -d.h_sl, zPlaca0);
-  piezas.push(llaveY, llaveX);
+  const llaves = conLlave
+    ? [
+        caja('llave_y', 'llave', -d.t_sl / 2, d.t_sl / 2, -d.b_sl / 2, d.b_sl / 2, -d.h_sl, zPlaca0),
+        caja('llave_x', 'llave', -d.b_sl / 2, d.b_sl / 2, -d.t_sl / 2, d.t_sl / 2, -d.h_sl, zPlaca0),
+      ]
+    : [];
+  piezas.push(...llaves);
 
   // ── Barras longitudinales ────────────────────────────────────────────────
   const ax = d.PED_X / 2 - d.recub;
@@ -164,7 +180,8 @@ export function construirBaseColumna(d: Record<string, number>): ModeloGeometric
   const ex = d.PED_X / 2 - cEst;
   const ey = d.PED_Y / 2 - cEst;
   const bMin = Math.min(d.PED_X, d.PED_Y);
-  const zpLlave = d.h_sl + (bMin - d.b_sl) / 2;
+  // Sin llave, la zona confinada es el lado menor, como el pedestal con h_llave = 0.
+  const zpLlave = conLlave ? d.h_sl + (bMin - d.b_sl) / 2 : 0;
   const zp = Math.min(Math.max(bMin, zpLlave), d.H_PED);
   const niveles: number[] = [];
   for (let z = 0; ; ) {
@@ -250,47 +267,61 @@ export function construirBaseColumna(d: Record<string, number>): ModeloGeometric
     chequeo('v_ramas', 'Barras disponibles para las ramas interiores de estribo, en la cara con menos', Math.min(enCaraY.length, enCaraX.length), '>=', nInt, '', ['estribo_1']),
   );
 
-  // Silla: el perno y su arandela entre nervios, los nervios sobre el ala extendida y bajo la chapa.
-  let minPN = Infinity;
-  let parPN: string[] = [];
-  xs.forEach((x, i) =>
-    xn.forEach((n, j) => {
-      const dd = Math.abs(x - n) - d.NER_T / 2 - d.a_tuerca / 2;
-      if (dd < minPN) [minPN, parPN] = [dd, [`perno_n${i + 1}`, `nervio_n${j + 1}`]];
-    }),
-  );
-  chequeos.push(chequeo('v_perno_nervio', 'Holgura entre la arandela del perno y el nervio más cercano', minPN, '>=', 0, 'mm', parPN));
-
-  // La luz libre real entre los nervios que flanquean cada perno no supera la declarada.
   let luzReal = 0;
-  xs.forEach((x) => {
-    const izq = Math.max(...xn.filter((n) => n < x));
-    const der = Math.min(...xn.filter((n) => n > x));
-    if (Number.isFinite(izq) && Number.isFinite(der)) luzReal = Math.max(luzReal, der - izq - d.NER_T);
-  });
-  chequeos.push(chequeo('v_luz_nervio', 'Luz libre real entre nervios que flanquean un perno, contra la declarada', luzReal, '<=', d.luz_nerv, 'mm', ['nervio_n1', 'nervio_n2']));
+  if (conSilla) {
+    // Silla: el perno y su arandela entre nervios, los nervios sobre el ala extendida y bajo la chapa.
+    let minPN = Infinity;
+    let parPN: string[] = [];
+    xs.forEach((x, i) =>
+      xn.forEach((n, j) => {
+        const dd = Math.abs(x - n) - d.NER_T / 2 - d.a_tuerca / 2;
+        if (dd < minPN) [minPN, parPN] = [dd, [`perno_n${i + 1}`, `nervio_n${j + 1}`]];
+      }),
+    );
+    chequeos.push(chequeo('v_perno_nervio', 'Holgura entre la arandela del perno y el nervio más cercano', minPN, '>=', 0, 'mm', parPN));
 
-  const xnMax = xn.length ? Math.max(...xn.map(Math.abs)) + d.NER_T / 2 : 0;
-  const nervioExt = xn.length ? `nervio_n${xn.length}` : '';
-  chequeos.push(chequeo('v_nervio_ala', 'Nervio extremo sobre el ala extendida', xnMax, '<=', Math.max(d.ALA_EXT, d.bf_col) / 2, 'mm', [nervioExt, 'ala_ext_n_e']));
-  chequeos.push(chequeo('v_nervio_placa', 'Nervio extremo dentro de la placa', xnMax, '<=', d.B_bp / 2, 'mm', [nervioExt, 'placa']));
-  chequeos.push(chequeo('v_chapa_nervio', 'Chapa superior cubre el nervio extremo', d.CH_B / 2, '>=', xnMax, 'mm', ['chapa_sup_n', nervioExt]));
-  chequeos.push(
-    chequeo('v_chapa_perno', 'Chapa superior cubre la arandela del perno', hc + d.CH_L, '>=', d.y_t + d.a_tuerca / 2, 'mm', ['chapa_sup_n', 'perno_n1']),
-  );
+    // La luz libre real entre los nervios que flanquean cada perno no supera la declarada.
+    xs.forEach((x) => {
+      const izq = Math.max(...xn.filter((n) => n < x));
+      const der = Math.min(...xn.filter((n) => n > x));
+      if (Number.isFinite(izq) && Number.isFinite(der)) luzReal = Math.max(luzReal, der - izq - d.NER_T);
+    });
+    chequeos.push(chequeo('v_luz_nervio', 'Luz libre real entre nervios que flanquean un perno, contra la declarada', luzReal, '<=', d.luz_nerv, 'mm', ['nervio_n1', 'nervio_n2']));
 
-  // Llave: lejos de los pernos, y dentro del estribo.
-  let minLP = Infinity;
-  let parLP: string[] = [];
-  for (const p of pernos)
-    for (const l of [llaveY, llaveX]) {
-      const dd = distPuntoRect(p.x, p.y, l.x0, l.x1, l.y0, l.y1) - p.r;
-      if (dd < minLP) [minLP, parLP] = [dd, [p.id, l.id]];
-    }
-  chequeos.push(chequeo('v_llave_perno', 'Hueco libre entre la llave y el perno más cercano', minLP, '>=', hueco, 'mm', parLP));
-  chequeos.push(
-    chequeo('v_llave_ped', 'Llave dentro de la cara interior del estribo', Math.min(ex, ey) - re - d.b_sl / 2, '>=', 0, 'mm', ['llave_x', 'estribo_1']),
-  );
+    const xnMax = xn.length ? Math.max(...xn.map(Math.abs)) + d.NER_T / 2 : 0;
+    const nervioExt = xn.length ? `nervio_n${xn.length}` : '';
+    chequeos.push(chequeo('v_nervio_ala', 'Nervio extremo sobre el ala extendida', xnMax, '<=', Math.max(d.ALA_EXT, d.bf_col) / 2, 'mm', [nervioExt, 'ala_ext_n_e']));
+    chequeos.push(chequeo('v_nervio_placa', 'Nervio extremo dentro de la placa', xnMax, '<=', d.B_bp / 2, 'mm', [nervioExt, 'placa']));
+    chequeos.push(chequeo('v_chapa_nervio', 'Chapa superior cubre el nervio extremo', d.CH_B / 2, '>=', xnMax, 'mm', ['chapa_sup_n', nervioExt]));
+    chequeos.push(
+      chequeo('v_chapa_perno', 'Chapa superior cubre la arandela del perno', hc + d.CH_L, '>=', d.y_t + d.a_tuerca / 2, 'mm', ['chapa_sup_n', 'perno_n1']),
+    );
+  } else {
+    // Sin silla: la arandela aprieta sobre la placa, entre el ala y el borde.
+    const pExt = `perno_n${xs.length}`;
+    chequeos.push(
+      chequeo('v_arandela_ala', 'Holgura entre la arandela del perno y la cara del ala', d.y_t - d.a_tuerca / 2 - hc, '>=', 0, 'mm', ['perno_n1', 'columna']),
+    );
+    chequeos.push(
+      chequeo('v_arandela_placa', 'Arandela del perno dentro de la placa, en la dirección más ajustada',
+        Math.min(d.L_bp / 2 - d.y_t, d.B_bp / 2 - Math.max(...xs.map(Math.abs))) - d.a_tuerca / 2, '>=', 0, 'mm', [pExt, 'placa']),
+    );
+  }
+
+  if (conLlave) {
+    // Llave: lejos de los pernos, y dentro del estribo.
+    let minLP = Infinity;
+    let parLP: string[] = [];
+    for (const p of pernos)
+      for (const l of llaves) {
+        const dd = distPuntoRect(p.x, p.y, l.x0, l.x1, l.y0, l.y1) - p.r;
+        if (dd < minLP) [minLP, parLP] = [dd, [p.id, l.id]];
+      }
+    chequeos.push(chequeo('v_llave_perno', 'Hueco libre entre la llave y el perno más cercano', minLP, '>=', hueco, 'mm', parLP));
+    chequeos.push(
+      chequeo('v_llave_ped', 'Llave dentro de la cara interior del estribo', Math.min(ex, ey) - re - d.b_sl / 2, '>=', 0, 'mm', ['llave_x', 'estribo_1']),
+    );
+  }
 
   // ── Derivados ────────────────────────────────────────────────────────────
   // Barras a menos de 0,5·h_ef de algún perno de la fila traccionada, en planta.
@@ -302,10 +333,19 @@ export function construirBaseColumna(d: Record<string, number>): ModeloGeometric
     unidad: '',
     criterio: 'barras longitudinales a menos de 0,5·h_ef de algún perno de la fila traccionada, medido en planta entre ejes',
   });
-  derivados.push({ nombre: 'luz_real', valor: r1(luzReal), unidad: 'mm', criterio: 'luz libre mayor entre los nervios que flanquean un perno' });
-  derivados.push({ nombre: 'x_nerv_real', valor: r1(xn.length ? Math.max(...xn.map(Math.abs)) : 0), unidad: 'mm', criterio: 'posición del eje del nervio extremo' });
-  derivados.push({ nombre: 'zp_ped', valor: r1(zp), unidad: 'mm', criterio: 'zona confinada: min(max(lado menor, llave + 45°), altura), como el pedestal' });
-  derivados.push({ nombre: 'zp_llave', valor: r1(zpLlave), unidad: 'mm', criterio: 'altura de la llave más la proyección a 45° desde su pie hasta la cara' });
+  if (conSilla) {
+    derivados.push({ nombre: 'luz_real', valor: r1(luzReal), unidad: 'mm', criterio: 'luz libre mayor entre los nervios que flanquean un perno' });
+    derivados.push({ nombre: 'x_nerv_real', valor: r1(xn.length ? Math.max(...xn.map(Math.abs)) : 0), unidad: 'mm', criterio: 'posición del eje del nervio extremo' });
+  }
+  derivados.push({
+    nombre: 'zp_ped',
+    valor: r1(zp),
+    unidad: 'mm',
+    criterio: conLlave ? 'zona confinada: min(max(lado menor, llave + 45°), altura), como el pedestal' : 'zona confinada sin llave: min(lado menor, altura), como el pedestal',
+  });
+  if (conLlave) {
+    derivados.push({ nombre: 'zp_llave', valor: r1(zpLlave), unidad: 'mm', criterio: 'altura de la llave más la proyección a 45° desde su pie hasta la cara' });
+  }
 
   return { piezas, chequeos, derivados };
 }

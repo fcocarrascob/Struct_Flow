@@ -42,6 +42,7 @@ export default function PanelCalculo({
   onImportar,
   onEntrada,
   onFormula,
+  onConfig,
   onPublicar,
   onResellar,
   onQuitarPlanilla,
@@ -81,6 +82,8 @@ export default function PanelCalculo({
   onImportar: (slug: string) => void;
   onEntrada: (nombre: string, valor: number) => void;
   onFormula: (campo: string, expr: string | undefined) => void;
+  /** Solo una vista geométrica: la variante de un componente. */
+  onConfig: (clave: string, variante: string) => void;
   onPublicar: (salida: string, alias: string | undefined) => void;
   onResellar: (sha256: string) => void;
   onQuitarPlanilla: () => void;
@@ -153,6 +156,7 @@ export default function PanelCalculo({
             otrosAlias={otrosAlias}
             onEntrada={onEntrada}
             onFormula={onFormula}
+            onConfig={onConfig}
             onPublicar={onPublicar}
             onAbrirHoja={onAbrirHoja}
             onAbrir3D={onAbrir3D ?? onAbrirHoja}

@@ -82,6 +82,7 @@ import { ID_NODO_APOYOS, ID_NODO_MODAL, idNodoDeCalculo } from './ids';
 import { publicaApoyos } from './sap-apoyos';
 import { publicaModal, type Publicado } from './sap-modal';
 import { evaluarVista, type VistaEvaluada } from '../vistas/evaluar';
+import { VISTAS, camposActivos, configCompleta } from '../vistas/registro';
 
 const CENTINELA = '__scope_final';
 
@@ -237,7 +238,15 @@ export function fuentesDeUso(nodo: NodoObra): string[] {
   if (nodo.resultados) return [];
   // De un cálculo con frontera, las expresiones de sus campos atados: son la
   // única vía por la que la obra entra en él.
-  if (nodo.frontera) return Object.values(nodo.frontera.formulas ?? {});
+  // En una vista, solo las de los componentes presentes: la atadura de un campo de
+  // la silla se conserva en una base sin silla, pero no lee nada ni tira flecha.
+  const f = nodo.frontera;
+  if (f?.procedencia === 'vista') {
+    const def = f.vista ? VISTAS[f.vista] : undefined;
+    if (!def) return [];
+    return camposActivos(def, configCompleta(def, f.config)).flatMap((c) => f.formulas?.[c.nombre] ?? []);
+  }
+  if (f) return Object.values(f.formulas ?? {});
   // De una hoja libre, las fórmulas y los gráficos (`usosDeRegion`). Un bloque
   // de texto es prosa: escribir «el área de planta se midió en terreno» con
   // `area` definida en otro nodo dibujaba una flecha que no existe y, si la otra

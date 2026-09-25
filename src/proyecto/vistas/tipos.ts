@@ -104,12 +104,33 @@ export interface Campo {
   /** Valor por defecto, en `unidad`. Uno declarado como supuesto lo dice en `supuesto`. */
   porDefecto: number;
   supuesto?: string;
+  /**
+   * La opción de la configuración de la que depende el campo: si esa opción está en
+   * `'no'`, el componente no está y el campo tampoco. Sin ella, está siempre.
+   */
+  componente?: string;
 }
+
+/**
+ * Una opción de la configuración de una vista: qué componente es y en qué
+ * variantes viene. La variante `'no'` es la ausencia del componente.
+ */
+export interface Opcion {
+  clave: string;
+  titulo: string;
+  variantes: { id: string; titulo: string }[];
+  porDefecto: string;
+}
+
+/** La configuración de una vista: por cada opción, su variante. */
+export type Config = Record<string, string>;
 
 export interface DefVista {
   id: string;
   titulo: string;
   version: number;
+  opciones: Opcion[];
+  /** Todos los campos de todas las variantes; los de una configuración, con `camposActivos`. */
   campos: Campo[];
-  construir(datos: Record<string, number>): ModeloGeometrico;
+  construir(datos: Record<string, number>, config: Config): ModeloGeometrico;
 }

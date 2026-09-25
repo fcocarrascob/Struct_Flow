@@ -18,6 +18,7 @@ export default function FichaVista({
   otrosAlias,
   onEntrada,
   onFormula,
+  onConfig,
   onPublicar,
   onAbrirHoja,
   onAbrir3D,
@@ -31,6 +32,7 @@ export default function FichaVista({
   onAbrir3D: () => void;
   onEntrada: (nombre: string, valor: number) => void;
   onFormula: (campo: string, expr: string | undefined) => void;
+  onConfig: (clave: string, variante: string) => void;
   onPublicar: (salida: string, alias: string | undefined) => void;
 }) {
   const vista = instancia?.vista;
@@ -41,9 +43,11 @@ export default function FichaVista({
       </p>
     );
   }
-  const { def, modelo, datos, errores } = vista;
+  const { def, config, campos, modelo, datos, errores } = vista;
   const publica = frontera.publica ?? {};
   const formulas = frontera.formulas ?? {};
+  // Un campo de un componente ausente conserva su atadura, pero no cuenta ni se muestra.
+  const atadosActivos = campos.filter((c) => formulas[c.nombre]).length;
   const publicables = [...modelo.derivados.map((d) => d.nombre), 'v_global'];
   const enFalso = modelo.chequeos.filter((c) => !c.cumple).length;
   const errorDe = new Map(errores.map((e) => [e.campo, e.error]));
@@ -76,6 +80,32 @@ export default function FichaVista({
           <img src={dibujo.src} alt="Planta y elevaciones de la base" className="mt-2 w-full rounded border border-border" />
         )}
       </header>
+
+      {/* ── Configuración ────────────────────────────────────────────────── */}
+      {def.opciones.length > 0 && (
+        <section className="mt-2">
+          <h4 className="text-[10px] font-semibold uppercase tracking-wide text-muted">Configuración</h4>
+          <ul className="mt-1.5 space-y-1">
+            {def.opciones.map((o) => (
+              <li key={o.clave} className="flex items-center gap-1.5">
+                <span className="w-32 shrink-0 text-[11px] text-ink">{o.titulo}</span>
+                <select
+                  value={config[o.clave]}
+                  onChange={(e) => onConfig(o.clave, e.target.value)}
+                  aria-label={o.titulo}
+                  className="min-w-0 flex-1 rounded border border-border bg-white px-1 py-0.5 text-[11px] text-ink outline-none focus:border-accent"
+                >
+                  {o.variantes.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.titulo}
+                    </option>
+                  ))}
+                </select>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* ── Verificaciones ───────────────────────────────────────────────── */}
       <section className="mt-2">
@@ -141,14 +171,14 @@ export default function FichaVista({
       {/* ── Lo que entra ─────────────────────────────────────────────────── */}
       <section className="mt-4">
         <h4 className="text-[10px] font-semibold uppercase tracking-wide text-muted">
-          Datos · {Object.keys(formulas).length} atados de {def.campos.length}
+          Datos · {atadosActivos} atados de {campos.length}
         </h4>
         <p className="mt-1 text-[11px] leading-snug text-muted">
           Atado a una expresión, el dato es el mismo que usan los cálculos. Sin atar, vale el número de la
           derecha y la hoja lo declara como supuesto.
         </p>
         <ul className="mt-1.5 space-y-1">
-          {def.campos.map((c) => {
+          {campos.map((c) => {
             const expr = formulas[c.nombre];
             const error = errorDe.get(c.nombre);
             return (
