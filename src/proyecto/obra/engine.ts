@@ -83,6 +83,7 @@ export {
 
 export { familiaDe, columnasDe, terminoDe, resumenCombinaciones } from './sap-combinaciones';
 export { quitarModulo, agregarModulo } from './modelo';
+export { resumenModal, atrasoDe, MASA_MINIMA } from './sap-modal';
 
 // El motor y el armado de una genérica, en el mismo bundle.
 export { evaluateSheet, formatValor, parseMathRegion } from '../../lib/worksheet';

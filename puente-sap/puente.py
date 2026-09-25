@@ -31,6 +31,8 @@ Rutas:
                          analizados, combinaciones}
     GET  /combinaciones -> {modelo, ruta, combinaciones: [{nombre, tipo,
                          terminos: [{clase: caso|combinacion, nombre, sf}]}]}
+    GET  /modal?caso=MODAL -> {modelo, ruta, modificado, caso, modos: [{n, T, f, ux, uy,
+                         uz, rz, sux, suy, suz}]}   o 409 si el caso no está analizado
     POST /aplicaciones/leer {aplicaciones} -> la carga de cada patrón sobre su grupo
                      (POST solo porque la lista viaja en el cuerpo: no modifica nada)
 
@@ -602,6 +604,84 @@ def combinaciones():
     return {"modelo": nombre, "ruta": ruta, "combinaciones": lista}
 
 
+# ── Resultados: el modal ─────────────────────────────────────────────────────
+
+
+class _SalidaSolo:
+    """Deja seleccionado para salida solo un caso, y devuelve la selección que había.
+
+    Los resultados de la API salen de los casos y combinaciones SELECCIONADOS en
+    la pantalla de SAP. Cambiarle la selección al usuario sin devolvérsela le
+    cambiaría lo que ve en sus tablas, igual que las unidades (`_EnKnM`).
+    """
+
+    def __init__(self, modelo, caso):
+        self.modelo = modelo
+        self.caso = caso
+
+    def __enter__(self):
+        setup = self.modelo.Results.Setup
+        self.casos = {c: bool(setup.GetCaseSelectedForOutput(c)[0])
+                      for c in _nombres(self.modelo.LoadCases, "la lista de casos")}
+        self.combos = {c: bool(setup.GetComboSelectedForOutput(c)[0])
+                       for c in _nombres(self.modelo.RespCombo, "la lista de combinaciones")}
+        setup.DeselectAllCasesAndCombosForOutput()
+        if setup.SetCaseSelectedForOutput(self.caso) != 0:
+            raise ErrorPuente(502, f"SAP2000 no dejó seleccionar «{self.caso}» para leer sus resultados.")
+        return self.modelo
+
+    def __exit__(self, *_):
+        setup = self.modelo.Results.Setup
+        setup.DeselectAllCasesAndCombosForOutput()
+        for c, sel in self.casos.items():
+            if sel:
+                setup.SetCaseSelectedForOutput(c)
+        for c, sel in self.combos.items():
+            if sel:
+                setup.SetComboSelectedForOutput(c)
+
+
+def modal(caso):
+    """Periodos y masas participantes de un caso modal. Solo lee.
+
+    Exige el caso analizado: un modelo sin analizar devuelve ceros, no vacío, y
+    un cero parece un dato (`docs/rumbo.md`, etapa 2). La respuesta lleva la
+    fecha del `.sdb`, que es el sello de la lectura.
+    """
+    modelo, ruta, nombre = _modelo_guardado()
+    if not caso:
+        raise ErrorPuente(400, "Falta el caso modal (?caso=MODAL).")
+    estado = _estados(modelo).get(caso)
+    if estado is None:
+        raise ErrorPuente(404, f"No hay un caso «{caso}» en el modelo.")
+    if estado != "analizado":
+        raise ErrorPuente(409, f"El caso {caso} no está analizado. Analízalo en SAP2000 y vuelve a leer.")
+    with _SalidaSolo(modelo, caso):
+        r = modelo.Results.ModalPeriod()
+        if r[-1] != 0:
+            raise ErrorPuente(502, f"SAP2000 no entregó los periodos de {caso}.")
+        n, casos, _, pasos, periodos, frecuencias = r[:6]
+        m = modelo.Results.ModalParticipatingMassRatios()
+        if m[-1] != 0:
+            raise ErrorPuente(502, f"SAP2000 no entregó las masas participantes de {caso}.")
+        _, _, _, pasos_m, _, ux, uy, uz, sux, suy, suz, _, _, rz = m[:14]
+    masas = {int(pasos_m[i]): i for i in range(len(pasos_m or []))}
+    modos = []
+    for i in range(n or 0):
+        if str(casos[i]) != caso:
+            continue
+        k = int(pasos[i])
+        j = masas.get(k)
+        modos.append({
+            "n": k, "T": _num(periodos[i]), "f": _num(frecuencias[i]),
+            **({
+                "ux": _num(ux[j]), "uy": _num(uy[j]), "uz": _num(uz[j]), "rz": _num(rz[j]),
+                "sux": _num(sux[j]), "suy": _num(suy[j]), "suz": _num(suz[j]),
+            } if j is not None else {}),
+        })
+    return {"modelo": nombre, "ruta": ruta, "modificado": _modificado(ruta), "caso": caso, "modos": modos}
+
+
 class Manejador(BaseHTTPRequestHandler):
     def _responder(self, codigo, cuerpo):
         datos = json.dumps(cuerpo, ensure_ascii=False).encode("utf-8")
@@ -673,7 +753,14 @@ class Manejador(BaseHTTPRequestHandler):
             "/masa": masa,
             "/resumen": resumen,
             "/combinaciones": combinaciones,
+            "/modal": lambda: modal(self._query().get("caso", "")),
         })
+
+    def _query(self):
+        """Los parámetros de la URL, uno por nombre: `?caso=MODAL` → {caso: MODAL}."""
+        from urllib.parse import parse_qs
+
+        return {k: v[0] for k, v in parse_qs(urlsplit(self.path).query).items()}
 
     def _cuerpo(self):
         largo = int(self.headers.get("Content-Length") or 0)

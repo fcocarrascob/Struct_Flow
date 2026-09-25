@@ -121,6 +121,18 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
     muestra las combinaciones que la toman a través de `ENVCL_H`.
   - **Un sub-nodo quitado deja su lectura en `obra.sap`**, a propósito, para que Ctrl+Z lo
     devuelva entero. Si no se vuelve a agregar, es un dato que la obra lleva sin mostrar.
+- **El modal no publica nada todavía.** Para que T₁ o los dominantes lleguen a las hojas hay que
+  tocar `evaluacion.ts`:
+  - un nodo sin hoja que publica, con una marca propia en `nodosDeLaObra`;
+  - sus nombres en `defineDe`;
+  - una rama en el bucle de tramos que escriba en el scope y emita la región fantasma `pub:`.
+
+  Antes hay que decidir qué nombres sirven.
+- **El sello es la fecha del `.sdb`, no un hash.** Guardar el modelo sin cambiarlo también
+  atrasa la lectura. Además, la atrasada solo se detecta al conectar o al leer: si el modelo
+  se guarda mientras la obra está abierta, nada avisa hasta la próxima conexión.
+- **Un modelo sin analizar no se probó contra el panel**: el 409 del puente sale de `_estados`,
+  que sí se probó, pero con el modelo de prueba ya analizado.
   - **El campo no autocompleta** los nombres de la obra, al revés que una fórmula de la hoja.
   - **Una carga de dos valores** (distribuida trapezoidal) solo justifica el primero.
   - **Una justificación huérfana** (su carga cambió de valor y hay más de una candidata, o se

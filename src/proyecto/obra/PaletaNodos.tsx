@@ -38,6 +38,13 @@ const ENTRADAS: Entrada[] = [
     requiere: 'sap',
   },
   {
+    clave: 'sap-modal',
+    titulo: 'SAP2000 · Modal',
+    detalle: 'periodos y masas participantes (exige el modelo analizado)',
+    unico: true,
+    requiere: 'sap',
+  },
+  {
     clave: 'calculo',
     titulo: 'Cálculo',
     detalle: 'una planilla genérica de la biblioteca, instanciada',
@@ -51,7 +58,7 @@ const ENTRADAS: Entrada[] = [
   },
 ];
 
-const POR_VENIR = ['resultados de SAP2000 (modal, reacciones, esfuerzos)', 'Documento'];
+const POR_VENIR = ['más resultados de SAP2000 (reacciones, esfuerzos)', 'Documento'];
 
 export default function PaletaNodos({
   puestos,

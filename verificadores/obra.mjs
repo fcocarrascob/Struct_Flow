@@ -81,6 +81,8 @@ const {
   terminoDe,
   resumenCombinaciones,
   quitarModulo,
+  resumenModal,
+  atrasoDe,
   obraDesde,
   traerNodos,
   dependenciasDe,
@@ -257,6 +259,18 @@ function importada(modulo, extra = {}) {
 
 const CARGA_CUB = { patron: 'SDL_CUB', clase: 'area-a-barras', csys: 'GLOBAL', dir: 10, dist: 1, valor: 0.0980665, n: 33 };
 const CARGA_VIA = { patron: 'CM_VIA', clase: 'barra-distribuida', csys: 'GLOBAL', dir: 10, momento: false, valor: 0.769, n: 22 };
+
+// Cinco modos armados a mano, con la forma que entrega el puente: Y domina en el
+// 1, X en el 3, y la acumulada pasa el 90 % en Y en el modo 1 y en X en el 4.
+const modo = (n, T, ux, uy, sux, suy) => ({ n, T, f: 1 / T, ux, uy, uz: 0, rz: 0, sux, suy, suz: 0 });
+const MODOS = [
+  modo(1, 0.715, 0, 0.94, 0, 0.94),
+  modo(2, 0.477, 0.01, 0, 0.01, 0.94),
+  modo(3, 0.459, 0.7, 0.01, 0.71, 0.95),
+  modo(4, 0.404, 0.2, 0, 0.91, 0.95),
+  modo(5, 0.378, 0.02, 0.01, 0.93, 0.96),
+];
+const LECTURA_MODAL = { modelo: 'm.sdb', leido: '2026-09-25T12:30:00Z', modificado: '2026-09-25T12:29:49Z', caso: 'MODAL', modos: MODOS };
 
 // Cuatro combinaciones del Pachón, tal como las lee el puente: una envolvente
 // que entra anidada en dos sísmicas, y una de viento.
@@ -894,6 +908,40 @@ const CASOS = [
     },
   },
   {
+    nombre: 'el sub-nodo Modal dice T₁ y la masa juntada, y avisa si la lectura quedó atrasada',
+    obra: {
+      ...obra(calc('G', m('q := 1'))),
+      modulos: ['sap', 'sap-modal'],
+      // El .sdb se guardó después de leer el modal: la lectura está atrasada.
+      sap: { modelo: 'm.sdb', ruta: '', version: '', leido: '', modificado: '2026-09-25T13:00:00Z', modal: LECTURA_MODAL },
+    },
+    ok: (_ev, proy) => {
+      const n = proy.nodos.find((x) => x.id === 'sap:modal');
+      if (!n) return 'no está el nodo Modal';
+      if (n.clase !== 'resultado') return `clase ${n.clase}`;
+      if (n.subtitulo !== 'T₁ = 0,715 s · ΣX 93,0 % · ΣY 96,0 %') return `subtítulo «${n.subtitulo}»`;
+      if (n.severidad !== 'aviso' || !n.motivos[0]?.startsWith('Lectura atrasada')) return `severidad ${n.severidad}: ${n.motivos}`;
+      if (!proy.aristas.some((x) => x.desde === 'sap' && x.hasta === 'sap:modal' && x.tipo === 'deriva')) return 'falta la arista sap → modal';
+      return null;
+    },
+  },
+  {
+    nombre: 'el sub-nodo Modal al día y con la masa juntada no avisa; con menos del 90 % en X, sí',
+    obra: {
+      ...obra(calc('G', m('q := 1'))),
+      modulos: ['sap', 'sap-modal'],
+      sap: {
+        modelo: 'm.sdb', ruta: '', version: '', leido: '', modificado: LECTURA_MODAL.modificado,
+        modal: { ...LECTURA_MODAL, modos: MODOS.slice(0, 3) },
+      },
+    },
+    ok: (_ev, proy) => {
+      const n = proy.nodos.find((x) => x.id === 'sap:modal');
+      if (n.motivos.length !== 1 || !n.motivos[0].includes('en X es 71,0 %')) return `motivos: ${n.motivos}`;
+      return n.severidad === 'aviso' ? null : `severidad ${n.severidad}`;
+    },
+  },
+  {
     nombre: 'reordenar pone cada grupo en su franja, en el orden de la lista, y los sin grupo al final',
     // Los grupos van al revés de la cadena a propósito: «Viento» usa lo que
     // publica «Geometría», pero va primero en la lista. La franja la decide la
@@ -1201,6 +1249,36 @@ const CASOS_HOJA = [
       // devolver el nodo con sus datos.
       if (sin.sap !== saneada.sap) return 'quitar el sub-nodo tocó la lectura del modelo';
       return quitarModulo(saneada, 'sap') === saneada ? null : 'quitarModulo quitó el SAP2000';
+    },
+  },
+  {
+    nombre: 'el resumen modal da T₁, el modo dominante y con cuál se junta el 90 %, y el sello dice si está atrasada',
+    ok: () => {
+      const r = resumenModal(LECTURA_MODAL);
+      if (r.T1 !== 0.715 || r.modos !== 5 || !r.conMasas) return `T1 ${r.T1}, ${r.modos} modos`;
+      const { X, Y, Z } = r.porDireccion;
+      if (X.dominante?.n !== 3 || Y.dominante?.n !== 1) return `dominantes X ${X.dominante?.n}, Y ${Y.dominante?.n}`;
+      if (X.alNoventa !== 4 || Y.alNoventa !== 1 || Z.alNoventa !== undefined) return `al 90 %: ${X.alNoventa} ${Y.alNoventa} ${Z.alNoventa}`;
+      if (X.acumulada !== 0.93 || Z.acumulada !== 0) return `acumuladas ${X.acumulada} ${Z.acumulada}`;
+      // El orden de llegada no importa: se ordena por número de modo.
+      if (resumenModal({ ...LECTURA_MODAL, modos: [...MODOS].reverse() }).T1 !== 0.715) return 'T1 dependió del orden';
+      // Solo periodos: no hay masas que resumir.
+      const sinMasas = resumenModal({ ...LECTURA_MODAL, modos: MODOS.map(({ n, T, f }) => ({ n, T, f })) });
+      if (sinMasas.conMasas || sinMasas.porDireccion.X.dominante) return 'inventó masas';
+      const con = (modificado, modelo = 'm.sdb') => ({ modelo, ruta: '', version: '', leido: '', modificado });
+      if (atrasoDe(LECTURA_MODAL, con(LECTURA_MODAL.modificado)) !== undefined) return 'al día se dio por atrasada';
+      if (atrasoDe(LECTURA_MODAL, con('2026-09-25T12:29:49.500Z')) !== undefined) return 'medio segundo se dio por atrasada';
+      if (!atrasoDe(LECTURA_MODAL, con('2026-09-25T14:00:00Z'))) return 'un .sdb más nuevo no la atrasó';
+      if (!atrasoDe(LECTURA_MODAL, con(LECTURA_MODAL.modificado, 'otro.sdb'))?.includes('otro.sdb')) return 'otro modelo no la atrasó';
+      if (atrasoDe(LECTURA_MODAL, undefined) !== undefined) return 'sin conexión se dio por atrasada';
+      // El saneo: ida y vuelta intacta; sin sello o sin caso, fuera; un modo sin periodo, fuera.
+      const o = { ...obra(calc('G', m('q := 1'))), modulos: ['sap', 'sap-modal'], sap: { ...con(LECTURA_MODAL.modificado), modal: LECTURA_MODAL } };
+      const saneada = sanearObra(o);
+      if (JSON.stringify(saneada.sap.modal) !== JSON.stringify(LECTURA_MODAL)) return 'el saneo cambió la lectura modal';
+      if (JSON.stringify(sanearObra(archivoDeObra(saneada).obra)) !== JSON.stringify(saneada)) return 'cambió en la ida y vuelta';
+      if (sanearObra({ ...o, sap: { ...o.sap, modal: { ...LECTURA_MODAL, modificado: '' } } }).sap.modal) return 'aceptó una lectura sin sello';
+      const rota = sanearObra({ ...o, sap: { ...o.sap, modal: { ...LECTURA_MODAL, modos: [{ n: 1 }, { n: 2, T: 0.5, ux: 'mucho' }] } } }).sap.modal.modos;
+      return JSON.stringify(rota) === '[{"n":2,"T":0.5,"f":0}]' ? null : `modos rotos: ${JSON.stringify(rota)}`;
     },
   },
   {

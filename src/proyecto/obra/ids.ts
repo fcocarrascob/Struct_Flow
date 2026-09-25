@@ -11,11 +11,13 @@ export const ID_NODO_SAP = 'sap';
 
 /** Los sub-nodos del SAP2000 llevan su prefijo: cuelgan de él. */
 export const ID_NODO_COMBINACIONES = 'sap:combinaciones';
+export const ID_NODO_MODAL = 'sap:modal';
 
 /** El id del nodo de cada módulo de la obra. */
 export const ID_DE_MODULO = {
   sap: ID_NODO_SAP,
   'sap-combinaciones': ID_NODO_COMBINACIONES,
+  'sap-modal': ID_NODO_MODAL,
 } as const;
 
 const PREFIJO_CALCULO = 'calculo:';

@@ -41,6 +41,8 @@ import {
   type ClaseCarga,
   type Combinacion,
   type LecturaCombinaciones,
+  type LecturaModal,
+  type ModoLeido,
   type TerminoCombinacion,
   type FuenteMasa,
   type FuncionEspectro,
@@ -292,6 +294,7 @@ function sanearSap(crudo: unknown): { sap?: ConexionSap } {
   const masa = sanearMasa(s.masa);
   const resumen = sanearResumen(s.resumen);
   const combinaciones = sanearCombinaciones(s.combinaciones);
+  const modal = sanearModal(s.modal);
   return {
     sap: {
       modelo: s.modelo,
@@ -306,8 +309,30 @@ function sanearSap(crudo: unknown): { sap?: ConexionSap } {
       ...(masa ? { masa } : {}),
       ...(resumen ? { resumen } : {}),
       ...(combinaciones ? { combinaciones } : {}),
+      ...(modal ? { modal } : {}),
     },
   };
+}
+
+/**
+ * Una lectura modal. Sin caso o sin sello no dice de dónde salió y se descarta
+ * entera; un modo sin número o sin periodo, solo. De las masas se conserva lo
+ * que sea un número.
+ */
+function sanearModal(crudo: unknown): LecturaModal | undefined {
+  if (typeof crudo !== 'object' || crudo === null) return undefined;
+  const l = crudo as Partial<LecturaModal>;
+  if (!Array.isArray(l.modos) || typeof l.caso !== 'string' || !l.caso) return undefined;
+  if (typeof l.modificado !== 'string' || !l.modificado) return undefined;
+  const modos: ModoLeido[] = [];
+  for (const x of l.modos) {
+    const m = (x ?? {}) as Partial<ModoLeido>;
+    if (!esNumero(m.n) || !esNumero(m.T)) continue;
+    const modo: ModoLeido = { n: m.n, T: m.T, f: esNumero(m.f) ? m.f : 0 };
+    for (const k of ['ux', 'uy', 'uz', 'rz', 'sux', 'suy', 'suz'] as const) if (esNumero(m[k])) modo[k] = m[k];
+    modos.push(modo);
+  }
+  return { modelo: texto(l.modelo), leido: texto(l.leido), modificado: l.modificado, caso: l.caso, modos };
 }
 
 /**

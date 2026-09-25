@@ -201,9 +201,26 @@ que devolverlo con sus datos.
   justifica nada: el nodo queda listo para recibir la flecha de la hoja que las genere desde la
   norma (etapa 6).
 
-Lo que sigue en esta línea: el primer nodo de **resultados** (el modal, con el sello del `.sdb`
-y la lectura marcada como atrasada si el modelo cambió), y la **justificación de las
-combinaciones** (etapa 6).
+- **Modal** (`sap:modal`), el primer nodo de **resultados**. Lee periodos y masas participantes
+  de un caso modal **analizado**; si no lo está, el puente responde 409, porque un modelo sin
+  analizar da ceros y un cero parece un dato.
+  - Muestra el periodo fundamental y el modo dominante en X y en Y.
+  - Muestra la masa acumulada por dirección y con qué modo llega al 90 %. Menos del 90 % en X o
+    en Y es un aviso, no una verificación con cláusula.
+  - Lleva la tabla de modos.
+  - El puente deja la selección de salida de SAP como estaba (`_SalidaSolo`), igual que las
+    unidades.
+  - **Una lectura de resultados lleva sello**: la fecha del `.sdb` al leerla. Si la última
+    conexión —o la última lectura— ve un `.sdb` más nuevo, u otro modelo, la lectura está
+    **atrasada** y el nodo pasa a aviso. Así queda cerrado el paso «marcar la lectura
+    atrasada» para lo que tiene sello.
+  - Todavía **no publica** nombres al scope.
+
+Lo que sigue en esta línea, de a uno:
+- que el modal publique nombres (T₁, los dominantes) para que las hojas los usen en vez de
+  copiarlos;
+- las reacciones y los esfuerzos, con el mismo patrón;
+- la **justificación de las combinaciones** (etapa 6).
 
 ## Una obra parte de otra
 
@@ -298,8 +315,11 @@ antes de dar el siguiente:
    patrones con su factor, y la masa, sus fuentes.
 2. Leer lo medido (reacciones por caso, periodos, cortes basales) con su sello, y publicarlo
    como nombres que las hojas usan en vez de copiarlos a mano. **Exige un modelo analizado**:
-   las tablas de uno sin analizar devuelven ceros, no vacío, y un cero parece un dato.
-3. Marcar la lectura atrasada cuando el `.sdb` cambió después de leerla.
+   las tablas de uno sin analizar devuelven ceros, no vacío, y un cero parece un dato. **El
+   modal ya se lee con su sello** (2026-09-25, sub-nodo Modal); falta publicarlo, y las
+   reacciones y los cortes basales.
+3. Marcar la lectura atrasada cuando el `.sdb` cambió después de leerla — **hecho para lo que
+   tiene sello** (el modal): la fecha del `.sdb` se compara con la de la última conexión.
 
 ### 3. La hoja en flujo lineal
 

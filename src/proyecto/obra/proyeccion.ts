@@ -26,7 +26,8 @@ import { peor, type AristaGrafo, type NodoGrafo, type Severidad } from '../grafo
 import { quedoAtras, type Genericas } from './biblioteca';
 import { mensajeDeMotor } from '../../components/canvas/mensajes-motor';
 import { problemaDeGrafo, type EvaluacionObra } from './evaluacion';
-import { ID_NODO_COMBINACIONES, ID_NODO_SAP, idNodoDeCalculo } from './ids';
+import { ID_NODO_COMBINACIONES, ID_NODO_MODAL, ID_NODO_SAP, idNodoDeCalculo } from './ids';
+import { atrasoDe, MASA_MINIMA, porcentaje, resumenModal, segundos } from './sap-modal';
 import { grupoPorId, type Grupo, type NodoCalculo, type Obra, type Revision } from './modelo';
 import { resumirJustificaciones } from './sap-cargas';
 import { resumenCombinaciones } from './sap-combinaciones';
@@ -40,7 +41,7 @@ export * from './ids';
  * es la hoja libre que solo cita lo que publican los demás (no define nada y usa
  * algo). Declararlo sería un campo más que puede contradecir a la hoja.
  */
-export type ClaseNodo = 'calculo' | 'biblioteca' | 'resumen' | 'modelo' | 'combinaciones';
+export type ClaseNodo = 'calculo' | 'biblioteca' | 'resumen' | 'modelo' | 'combinaciones' | 'resultado';
 
 /**
  * El nodo de una obra: el de `grafo.ts`, que es el que coloca `layout.ts`, más
@@ -282,6 +283,36 @@ function nodoCombinaciones(obra: Obra): NodoDeObra {
   });
 }
 
+/**
+ * El sub-nodo Modal, el primero de resultados: el periodo fundamental y la masa
+ * juntada en X e Y. En aviso si la lectura quedó atrasada o si alguna dirección
+ * horizontal no llega al 90 %.
+ */
+function nodoModal(obra: Obra): NodoDeObra {
+  const lectura = obra.sap?.modal;
+  const base = { id: ID_NODO_MODAL, tipo: 'modelo', clase: 'resultado' as const, etiqueta: 'Modal' };
+  if (!lectura) return nodo({ ...base, subtitulo: 'sin leer' });
+  const r = resumenModal(lectura);
+  const motivos: string[] = [];
+  const atraso = atrasoDe(lectura, obra.sap);
+  if (atraso) motivos.push(`Lectura atrasada: ${atraso}. Vuelve a leer.`);
+  if (r.conMasas) {
+    for (const d of ['X', 'Y'] as const) {
+      const a = r.porDireccion[d].acumulada;
+      if (a < MASA_MINIMA) motivos.push(`La masa acumulada en ${d} es ${porcentaje(a)}, menos del 90 %.`);
+    }
+  }
+  const masas = r.conMasas
+    ? ` · ΣX ${porcentaje(r.porDireccion.X.acumulada)} · ΣY ${porcentaje(r.porDireccion.Y.acumulada)}`
+    : '';
+  return nodo({
+    ...base,
+    subtitulo: r.T1 !== undefined ? `T₁ = ${segundos(r.T1)}${masas}` : `${lectura.caso} sin modos`,
+    severidad: motivos.length ? 'aviso' : 'ok',
+    motivos,
+  });
+}
+
 export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas = {}): Proyeccion {
   const nodos: NodoDeObra[] = [];
   const aristas: AristaGrafo[] = [];
@@ -327,6 +358,10 @@ export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas =
     if (obra.modulos.includes('sap-combinaciones')) {
       nodos.push(nodoCombinaciones(obra));
       aristas.push({ desde: ID_NODO_SAP, hasta: ID_NODO_COMBINACIONES, tipo: 'deriva', etiqueta: '', severidad: 'ok' });
+    }
+    if (obra.modulos.includes('sap-modal')) {
+      nodos.push(nodoModal(obra));
+      aristas.push({ desde: ID_NODO_SAP, hasta: ID_NODO_MODAL, tipo: 'deriva', etiqueta: '', severidad: 'ok' });
     }
   }
 

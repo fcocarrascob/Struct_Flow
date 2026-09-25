@@ -229,14 +229,14 @@ export const COLOR_RE = /^#[0-9a-f]{6}$/i;
  * Los nodos únicos que el usuario agregó desde la paleta. Un cálculo no vive
  * aquí sino en su propia lista: puede haber tantos como la obra necesite.
  */
-export type Modulo = 'sap' | 'sap-combinaciones';
+export type Modulo = 'sap' | 'sap-combinaciones' | 'sap-modal';
 
 /**
  * Los sub-nodos del SAP2000: cuelgan de él en el grafo y leen del mismo modelo.
  * Uno por tema —las combinaciones, y después los resultados—, cada uno con su
  * panel y su lectura dentro de `obra.sap`. Sin el SAP2000 no tienen sentido.
  */
-export const SUBMODULOS_SAP: readonly Modulo[] = ['sap-combinaciones'];
+export const SUBMODULOS_SAP: readonly Modulo[] = ['sap-combinaciones', 'sap-modal'];
 
 /**
  * Lo último que el nodo SAP2000 leyó del modelo abierto, por el puente de Flow
@@ -274,6 +274,42 @@ export interface ConexionSap {
   resumen?: LecturaResumen;
   /** La última lectura de las combinaciones (la del sub-nodo Combinaciones). */
   combinaciones?: LecturaCombinaciones;
+  /** La última lectura de resultados modales (la del sub-nodo Modal). */
+  modal?: LecturaModal;
+}
+
+/**
+ * Un modo: periodo, frecuencia y masa participante, como fracción (0,94 es el
+ * 94 %). `sux`… son las acumuladas hasta este modo. Sin masas, solo el periodo.
+ */
+export interface ModoLeido {
+  n: number;
+  /** s. */
+  T: number;
+  /** Hz. */
+  f: number;
+  ux?: number;
+  uy?: number;
+  uz?: number;
+  rz?: number;
+  sux?: number;
+  suy?: number;
+  suz?: number;
+}
+
+/**
+ * Una lectura de RESULTADOS: lleva el sello del modelo. `modificado` es la fecha
+ * del `.sdb` cuando se leyó; si la última conexión ve una posterior, el modelo
+ * cambió después y la lectura está atrasada.
+ */
+export interface LecturaModal {
+  modelo: string;
+  /** ISO: cuándo se leyó. */
+  leido: string;
+  /** ISO: la fecha del `.sdb` al leer. */
+  modificado: string;
+  caso: string;
+  modos: ModoLeido[];
 }
 
 /** Un término de una combinación: un caso, o una combinación anidada, con su factor. */

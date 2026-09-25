@@ -65,6 +65,7 @@ import NodoObra from './NodoObra';
 import MarcaRevision from './MarcaRevision';
 import PanelSap, { LECTURAS_DEL_NODO_SAP, type PestanaSap } from './PanelSap';
 import PanelCombinaciones from './PanelCombinaciones';
+import PanelModal from './PanelModal';
 import TablaCombinaciones from './TablaCombinaciones';
 import { firmaDe } from './sap-cargas';
 import IconoClase from './IconoClase';
@@ -77,6 +78,7 @@ import {
   calculoDeNodo,
   ID_DE_MODULO,
   ID_NODO_COMBINACIONES,
+  ID_NODO_MODAL,
   ID_NODO_SAP,
   idNodoDeCalculo,
   proyectar,
@@ -1733,6 +1735,27 @@ function CanvasObra({
               },
             }}
             onQuitarJustificacion={(id) => setObra((o) => (o ? quitarJustificacion(o, id) : o))}
+            onCerrar={() => setSeleccion(null)}
+          />
+        )}
+
+        {!activa && seleccion === ID_NODO_MODAL && obra.modulos.includes('sap-modal') && (
+          <PanelModal
+            sap={obra.sap}
+            // La fecha del .sdb que trae la lectura es también lo último que se
+            // sabe del modelo: pasa a ser la de la conexión.
+            onLeido={(modal) =>
+              setObra((o) =>
+                o?.sap
+                  ? { ...o, sap: { ...o.sap, modal, ...(modal.modificado ? { modificado: modal.modificado } : {}) } }
+                  : o,
+              )
+            }
+            onQuitar={() => {
+              const o = obraRef.current;
+              if (o) setObra(quitarModulo(o, 'sap-modal'));
+              setSeleccion(null);
+            }}
             onCerrar={() => setSeleccion(null)}
           />
         )}

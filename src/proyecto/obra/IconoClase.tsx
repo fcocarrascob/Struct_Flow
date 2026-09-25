@@ -12,6 +12,7 @@ export const ROTULO_CLASE: Record<ClaseNodo, string> = {
   resumen: 'resumen',
   modelo: 'modelo',
   combinaciones: 'combinaciones',
+  resultado: 'resultado',
 };
 
 export default function IconoClase({
@@ -60,6 +61,14 @@ export default function IconoClase({
         <svg {...comun}>
           <rect x="2" y="2.5" width="12" height="11" rx="1" />
           <path d="M2 6.2h12M2 9.8h12M6 2.5v11M10 2.5v11" />
+        </svg>
+      );
+    // Una onda: un resultado del análisis (el primero, los modos).
+    case 'resultado':
+      return (
+        <svg {...comun}>
+          <path d="M1.5 8c1.6-4.5 3.2-4.5 4.8 0s3.2 4.5 4.8 0 2.4-3.4 3.4-2" />
+          <path d="M1.5 14h13" />
         </svg>
       );
     // Tres nodos enlazados: el grafo.
