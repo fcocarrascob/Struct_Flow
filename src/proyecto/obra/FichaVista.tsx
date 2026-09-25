@@ -19,10 +19,13 @@ export default function FichaVista({
   onEntrada,
   onFormula,
   onPublicar,
+  onAbrirHoja,
 }: {
   frontera: Frontera;
   instancia: Instanciada | undefined;
   otrosAlias: ReadonlySet<string>;
+  /** Abre la hoja sintetizada, con el dibujo al pie, en una pestaña. */
+  onAbrirHoja: () => void;
   onEntrada: (nombre: string, valor: number) => void;
   onFormula: (campo: string, expr: string | undefined) => void;
   onPublicar: (salida: string, alias: string | undefined) => void;
@@ -41,6 +44,7 @@ export default function FichaVista({
   const publicables = [...modelo.derivados.map((d) => d.nombre), 'v_global'];
   const enFalso = modelo.chequeos.filter((c) => !c.cumple).length;
   const errorDe = new Map(errores.map((e) => [e.campo, e.error]));
+  const dibujo = vista.hoja.find((r) => r.kind === 'image');
 
   return (
     <div>
@@ -48,6 +52,18 @@ export default function FichaVista({
         <p className="font-mono text-[10px] text-muted">
           vista geométrica «{def.id}» · versión {def.version}
         </p>
+        <button
+          type="button"
+          onClick={onAbrirHoja}
+          title="La hoja que vota y se imprime, con el dibujo al pie, en una pestaña"
+          className="mt-2 rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent"
+        >
+          abrir la hoja y el dibujo ↗
+        </button>
+        {dibujo && (
+          // El mismo dibujo que la hoja imprime, en chico: planta y elevaciones.
+          <img src={dibujo.src} alt="Planta y elevaciones de la base" className="mt-2 w-full rounded border border-border" />
+        )}
       </header>
 
       {/* ── Verificaciones ───────────────────────────────────────────────── */}

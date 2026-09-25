@@ -151,6 +151,7 @@ export default function PanelCalculo({
             onEntrada={onEntrada}
             onFormula={onFormula}
             onPublicar={onPublicar}
+            onAbrirHoja={onAbrirHoja}
           />
         ) : calculo.frontera && calculo.frontera.procedencia !== 'biblioteca' ? (
           // Una hoja que vive en el documento no tiene módulo que leer, así que

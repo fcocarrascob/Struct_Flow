@@ -12,6 +12,7 @@
 // mismas claves.
 
 import type { Region } from '../../lib/worksheet';
+import { svgVistas } from './svg';
 import type { DefVista, ModeloGeometrico } from './tipos';
 
 /** Un número como literal de fórmula: punto decimal, sin exponente para lo usual. */
@@ -59,5 +60,22 @@ export function hojaDeVista(
   t('## Resumen');
   f(`v_global := ${m.chequeos.map((c) => c.id).join(' and ') || 'true'} =`);
 
-  return bloques.map((b, i) => ({ id: `${idBase}:${i + 1}`, kind: b.kind, x: 40, y: 40 + i * 48, src: b.src }));
+  const regiones: Region[] = bloques.map((b, i) => ({ id: `${idBase}:${i + 1}`, kind: b.kind, x: 40, y: 40 + i * 48, src: b.src }));
+
+  // El dibujo, al pie: un SVG autocontenido en línea, que el papel y la pestaña
+  // pintan como cualquier imagen. No es un esquema de `/esquemas/`: no tiene
+  // tokens que resolver, porque sale del mismo modelo que las verificaciones.
+  const dibujo = svgVistas(m);
+  if (dibujo.svg) {
+    regiones.push({
+      id: `${idBase}:dibujo`,
+      kind: 'image',
+      x: 40,
+      y: 40 + bloques.length * 48,
+      src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(dibujo.svg)}`,
+      w: dibujo.ancho,
+      h: dibujo.alto,
+    });
+  }
+  return regiones;
 }

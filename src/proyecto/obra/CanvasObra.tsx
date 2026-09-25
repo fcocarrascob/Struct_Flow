@@ -1225,6 +1225,10 @@ function CanvasObra({
     activa && nodoDelDocumento(obra, activa)?.frontera?.procedencia === 'biblioteca'
       ? evaluacion.importadas.get(activa)?.ev
       : undefined;
+  // Una vista geométrica también se lee: su hoja la sintetiza el modelo en cada
+  // evaluación y no está en el documento.
+  const esVista = !!activa && nodoDelDocumento(obra, activa)?.frontera?.procedencia === 'vista';
+  const deUnaVista = esVista ? evaluacion.importadas.get(activa)?.vista : undefined;
 
   const aliasAjenos = (idNodo: string): ReadonlySet<string> => {
     const fuera = new Set<string>();
@@ -1620,7 +1624,19 @@ function CanvasObra({
         </div>
       )}
 
-      {activa && !deLaBiblioteca && origenPestana && (
+      {activa && deUnaVista && (
+        <div className="min-h-0 flex-1">
+          <VistaHoja
+            key={activa}
+            hoja={deUnaVista.hoja}
+            results={evaluacion.results}
+            titulo={hojaDeNodo(activa)?.etiqueta ?? ''}
+            procedencia="vista geométrica"
+          />
+        </div>
+      )}
+
+      {activa && !deLaBiblioteca && !esVista && origenPestana && (
         // `key` por nodo: cambiar de pestaña tiene que REMONTAR el canvas. Sin
         // ella React reconciliaría la misma instancia, y el hook de persistencia
         // —que lee su origen una sola vez, al montar— seguiría escribiendo en el

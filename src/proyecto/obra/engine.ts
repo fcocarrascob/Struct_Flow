@@ -102,6 +102,7 @@ export {
 export { nuevoConjunto, conConjunto, quitarConjunto, conAliasTipo } from './modelo';
 export { VISTAS, datosPorDefecto } from '../vistas/registro';
 export { barrasPerimetro, abscisasPernos, abscisasNervios } from '../vistas/base-columna/modelo';
+export { svgVistas } from '../vistas/svg';
 
 // El motor y el armado de una genérica, en el mismo bundle.
 export { evaluateSheet, formatValor, parseMathRegion } from '../../lib/worksheet';

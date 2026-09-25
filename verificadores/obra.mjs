@@ -112,6 +112,7 @@ const {
   VISTAS,
   datosPorDefecto,
   barrasPerimetro,
+  svgVistas,
 } = motor;
 
 // ── Armar una obra ───────────────────────────────────────────────────────────
@@ -3043,6 +3044,25 @@ const CASOS_VISTA = [
       if (f?.procedencia !== 'vista' || f.vista !== 'base-columna' || f.version !== 1) return `frontera ${JSON.stringify(f)}`;
       const sinId = sanearObra(obra(conPlanilla('V', { procedencia: 'vista', entradas: {} })));
       return sinId.calculos[0].frontera === undefined ? null : 'una vista sin id conservó su frontera';
+    },
+  },
+  {
+    nombre: 'el dibujo de la vista es determinista, marca en rojo solo lo que falla y cierra la hoja',
+    ok: () => {
+      const pachon = VISTA_BASE.construir(DATOS_BASE);
+      const a = svgVistas(pachon);
+      if (a.svg !== svgVistas(VISTA_BASE.construir(DATOS_BASE)).svg) return 'dos corridas dan SVG distintos';
+      if (!a.svg.startsWith('<svg') || a.ancho !== 680 || !(a.alto > 400)) return `SVG ${a.ancho}×${a.alto}`;
+      if (/NaN|undefined|Infinity/.test(a.svg)) return 'el SVG tiene un número que no es número';
+      const marcas = (a.svg.match(/<circle [^>]*r="6" fill="#dc2626"/g) ?? []).length;
+      if (marcas !== 4) return `${marcas} marcas de verificación, se esperaban 4`;
+      const bueno = svgVistas(VISTA_BASE.construir({ ...DATOS_BASE, ...SILLA_QUE_CIERRA })).svg;
+      if (bueno.includes('#dc2626')) return 'con todo cumpliendo, el dibujo tiene rojo';
+      const o = obra(conPlanilla('V', { procedencia: 'vista', vista: 'base-columna', version: 1, entradas: DATOS_BASE }));
+      const hoja = evaluarObra(o, genericas).importadas.get(K('V'))?.vista?.hoja ?? [];
+      const ultima = hoja[hoja.length - 1];
+      if (ultima?.kind !== 'image' || !ultima.src.startsWith('data:image/svg+xml')) return 'la hoja no termina en el dibujo';
+      return decodeURIComponent(ultima.src.slice(ultima.src.indexOf(',') + 1)) === a.svg ? null : 'la hoja lleva otro dibujo';
     },
   },
   // Cada verificación, rota sola a partir de una base que cierra.

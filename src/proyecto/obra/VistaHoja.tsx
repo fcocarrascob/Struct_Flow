@@ -28,12 +28,16 @@ export default function VistaHoja({
   results,
   titulo,
   onDesprender,
+  procedencia = 'de la biblioteca',
 }: {
   hoja: readonly Region[];
   results: SheetResults;
   titulo: string;
-  /** Desprende la copia y la abre para editarla. */
-  onDesprender: () => void;
+  /** Desprende la copia y la abre para editarla. Una vista geométrica no tiene
+   *  copia que desprender: su hoja se sintetiza del modelo en cada evaluación. */
+  onDesprender?: () => void;
+  /** De dónde viene la hoja, en el rótulo. */
+  procedencia?: string;
 }) {
   const bloques = useMemo(() => ordenDeLectura(hoja).filter(seImprime), [hoja]);
 
@@ -41,17 +45,17 @@ export default function VistaHoja({
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-border bg-white px-4 py-2">
         <span className="text-xs font-semibold text-ink">{titulo}</span>
-        <span className="text-[10px] text-muted">
-          de la biblioteca · se lee, no se escribe
-        </span>
-        <button
-          type="button"
-          onClick={onDesprender}
-          title="Copia esta hoja al nodo para poder editarla. Deja de ser una instancia de la genérica y pasa a llevar su procedencia."
-          className="ml-auto rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent"
-        >
-          desprender para editarla…
-        </button>
+        <span className="text-[10px] text-muted">{procedencia} · se lee, no se escribe</span>
+        {onDesprender && (
+          <button
+            type="button"
+            onClick={onDesprender}
+            title="Copia esta hoja al nodo para poder editarla. Deja de ser una instancia de la genérica y pasa a llevar su procedencia."
+            className="ml-auto rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent"
+          >
+            desprender para editarla…
+          </button>
+        )}
       </div>
 
       <div className="min-h-0 flex-1 overflow-auto bg-surface px-4 py-6">
