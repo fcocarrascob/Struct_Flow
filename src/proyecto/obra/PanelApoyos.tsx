@@ -399,7 +399,8 @@ function CampoAlias({
 }
 
 const LETRA = Object.fromEntries(CRITERIOS.map((c) => [c.k, c.letra])) as Record<(typeof CRITERIOS)[number]['k'], string>;
-const MAGNITUD = { compresion: 'N', traccion: 'N', corte: 'V', momento: 'M' } as const;
+const MAGNITUD = { compresion: 'N', traccion: 'N', corte: 'V', momento: 'M', excentricidad: 'M' } as const;
+const TITULO = { compresion: 'Compr.', traccion: 'Tracc.', corte: 'Corte', momento: 'Momento', excentricidad: 'e = M/N' } as const;
 
 /** Lo que el nodo publica a la obra: una fila por tipo y conjunto. */
 function Publicados({ publicacion, usan }: { publicacion: PublicacionApoyos; usan: readonly string[] }) {
@@ -418,9 +419,11 @@ function Publicados({ publicacion, usan }: { publicacion: PublicacionApoyos; usa
             <span className="font-mono text-ink">N_c_CP_LRFD</span> es la N de la combinación que gobierna la
             compresión del tipo CP en el conjunto LRFD. El criterio: <span className="font-mono">c</span> compresión,{' '}
             <span className="font-mono">t</span> tracción, <span className="font-mono">v</span> corte,{' '}
-            <span className="font-mono">m</span> momento. De cada uno salen N, V y M de esa misma combinación (N
-            positiva comprime, negativa tracciona), en kN y kN·m, y <span className="font-mono">nc_…</span> vale 1 si
-            no es concurrente (≠).
+            <span className="font-mono">m</span> momento, <span className="font-mono">e</span> excentricidad (la
+            mayor M/N con compresión, la que tracciona los pernos: la hoja saca{' '}
+            <span className="font-mono">e := M_e / N_e</span>). De cada uno salen N, V y M de esa misma combinación
+            (N positiva comprime, negativa tracciona), en kN y kN·m, y <span className="font-mono">nc_…</span> vale 1
+            si no es concurrente (≠).
           </p>
           <table className="w-full text-[10px]">
             <thead>
@@ -428,7 +431,7 @@ function Publicados({ publicacion, usan }: { publicacion: PublicacionApoyos; usa
                 <th className="py-0.5 font-semibold">Conjunto · tipo</th>
                 {CRITERIOS.map(({ k }) => (
                   <th key={k} className="font-semibold">
-                    {k === 'compresion' ? 'Compr.' : k === 'traccion' ? 'Tracc.' : k === 'corte' ? 'Corte' : 'Momento'}
+                    {TITULO[k]}
                   </th>
                 ))}
               </tr>
@@ -467,7 +470,8 @@ function Publicados({ publicacion, usan }: { publicacion: PublicacionApoyos; usa
             </tbody>
           </table>
           <p className="mt-1 leading-snug text-muted">
-            — es un criterio sin gobernante (nada tracciona): no se publica, no se inventa un cero.{' '}
+            — es un criterio sin gobernante (nada tracciona, o nada comprime con momento): no se publica, no se
+            inventa un cero.{' '}
             {usan.length
               ? `Los usa${usan.length > 1 ? 'n' : ''} ${usan.map((u) => `«${u}»`).join(', ')}.`
               : 'Ninguna hoja los usa todavía.'}

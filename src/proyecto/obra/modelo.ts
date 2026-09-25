@@ -326,7 +326,18 @@ export interface GobernantesDeApoyo {
   corte?: Gobernante;
   /** El mayor √(M1² + M2²). */
   momento?: Gobernante;
+  /**
+   * La mayor excentricidad e = M / N con compresión, en m: es la que tracciona
+   * los pernos de una placa aunque ninguna combinación la arranque. No es la del
+   * momento máximo: una N chica con un M menor puede dar más. En una combinación
+   * no concurrente se toma la compresión MENOR de su Max y su Min con el M de
+   * los extremos, que es lo que agranda e.
+   */
+  excentricidad?: Gobernante;
 }
+
+/** Los criterios de un apoyo, en el orden en que se muestran y se publican. */
+export const CLAVES_GOBERNANTE = ['compresion', 'traccion', 'corte', 'momento', 'excentricidad'] as const;
 
 /**
  * Las gobernantes de un conjunto de diseño, leídas del modelo. Se guarda el

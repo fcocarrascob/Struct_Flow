@@ -12,18 +12,19 @@
 // fundación. Una F3 negativa es tracción (arrancamiento). Aquí se dice con
 // palabras, para que nadie tenga que acordarse.
 
-import type {
-  ConexionSap,
-  ConjuntoDiseno,
-  Gobernante,
-  GobernantesDeApoyo,
-  LecturaApoyos,
-  LecturaBasal,
-  LecturaCombinaciones,
-  LecturaConjunto,
-  Obra,
-  ReaccionesDeCaso,
-  Vector6,
+import {
+  CLAVES_GOBERNANTE,
+  type ConexionSap,
+  type ConjuntoDiseno,
+  type Gobernante,
+  type GobernantesDeApoyo,
+  type LecturaApoyos,
+  type LecturaBasal,
+  type LecturaCombinaciones,
+  type LecturaConjunto,
+  type Obra,
+  type ReaccionesDeCaso,
+  type Vector6,
 } from './modelo';
 import { familiaDe } from './sap-combinaciones';
 import { atrasoDe, type Publicado } from './sap-modal';
@@ -163,7 +164,7 @@ export function envolventeDeTipo(
   lectura.porApoyo.forEach((g, j) => {
     const apoyo = lectura.apoyos[j];
     if (!quiero.has(apoyo)) return;
-    for (const k of ['compresion', 'traccion', 'corte', 'momento'] as const) {
+    for (const k of CLAVES_GOBERNANTE) {
       const x = g[k];
       if (x && (!salida[k] || x.valor > salida[k]!.valor)) salida[k] = { ...x, apoyo };
     }
@@ -192,8 +193,8 @@ const extremo = (a: number, b: number) => (Math.abs(a) >= Math.abs(b) ? a : b);
 
 /**
  * Las gobernantes de cada apoyo en un conjunto: la combinación que da la mayor
- * compresión, la mayor tracción, el mayor corte y el mayor momento, con su
- * vector.
+ * compresión, la mayor tracción, el mayor corte, el mayor momento y la mayor
+ * excentricidad M/N, con su vector.
  *
  * Una combinación de un solo paso da un vector CONCURRENTE. Una con `Max` y
  * `Min` —lleva un espectro o una envolvente— da extremos por componente: la
@@ -229,6 +230,8 @@ export function gobernantesDeConjunto(
         proponer('traccion', { combo, valor: -v[2], v, concurrente: true });
         proponer('corte', { combo, valor: Math.hypot(v[0], v[1]), v, concurrente: true });
         proponer('momento', { combo, valor: Math.hypot(v[3], v[4]), v, concurrente: true });
+        // Sin compresión no hay excentricidad que medir: eso es tracción.
+        if (v[2] > CERO) proponer('excentricidad', { combo, valor: Math.hypot(v[3], v[4]) / v[2], v, concurrente: true });
         continue;
       }
       const max = e.max?.[j];
@@ -239,6 +242,15 @@ export function gobernantesDeConjunto(
       proponer('traccion', { combo, valor: -min[2], v: min, concurrente: false });
       proponer('corte', { combo, valor: Math.hypot(v[0], v[1]), v, concurrente: false });
       proponer('momento', { combo, valor: Math.hypot(v[3], v[4]), v, concurrente: false });
+      // La excentricidad con la compresión MENOR: el M de los extremos sobre la
+      // N más chica es la que más tracciona los pernos. Si alguno de los dos
+      // pasos no comprime, la combinación puede traccionar y eso ya lo cubre
+      // la tracción.
+      const nMin = Math.min(max[2], min[2]);
+      if (nMin > CERO) {
+        const conNMin = [v[0], v[1], nMin, v[3], v[4], v[5]] as Vector6;
+        proponer('excentricidad', { combo, valor: Math.hypot(v[3], v[4]) / nMin, v: conNMin, concurrente: false });
+      }
     }
     return g;
   });
@@ -258,6 +270,20 @@ export function gobernantesDeConjunto(
  * Por qué la lectura de un conjunto ya no lo describe, o `undefined` si lo
  * describe: nunca se leyó, cambiaron sus familias, o el modelo cambió.
  */
+/**
+ * Si la lectura es anterior al criterio de excentricidad. No es una conjetura:
+ * una compresión gobernante CONCURRENTE con momento tiene M/N > 0, así que su
+ * apoyo TIENE que tener excentricidad. Si no la tiene, se leyó sin ella, y un
+ * «—» en su columna diría «nada comprime con momento», que es falso. (Una no
+ * concurrente no prueba nada: su Min puede no comprimir.)
+ */
+function sinExcentricidad(lectura: LecturaConjunto): boolean {
+  return lectura.porApoyo.some((g) => {
+    const c = g.compresion;
+    return c?.concurrente && Math.hypot(c.v[3], c.v[4]) > CERO && !g.excentricidad;
+  });
+}
+
 /** Si la lectura se hizo con las familias que el conjunto tiene ahora. */
 function deSusFamilias(c: ConjuntoDiseno, lectura: LecturaConjunto): boolean {
   return [...lectura.familias].sort().join() === [...c.familias].sort().join();
@@ -269,6 +295,9 @@ export function estadoConjunto(
   sap: ConexionSap | undefined,
 ): { estado: 'sin-leer' | 'al-dia' | 'desactualizado'; motivo?: string } {
   if (!lectura) return { estado: 'sin-leer' };
+  if (sinExcentricidad(lectura)) {
+    return { estado: 'desactualizado', motivo: 'se leyó antes de que existiera el criterio de excentricidad' };
+  }
   if (!deSusFamilias(c, lectura)) {
     return { estado: 'desactualizado', motivo: 'cambiaron sus familias desde que se leyó' };
   }
@@ -307,6 +336,7 @@ export const CRITERIOS = [
   { k: 'traccion', letra: 't' },
   { k: 'corte', letra: 'v' },
   { k: 'momento', letra: 'm' },
+  { k: 'excentricidad', letra: 'e' },
 ] as const satisfies readonly { k: keyof GobernantesDeApoyo; letra: string }[];
 
 /** Una fila de lo publicado: un tipo en un conjunto, y qué criterios tienen gobernante. */
@@ -333,8 +363,10 @@ export interface PublicacionApoyos {
  * - La magnitud: `N` es F3 (positiva compresión, negativa tracción), `V` el
  *   corte √(F1² + F2²) y `M` el momento √(M1² + M2²), en kN y kN·m.
  * - El criterio dice qué combinación gobierna: `c` compresión, `t` tracción,
- *   `v` corte, `m` momento. De cada una salen las tres magnitudes, las de la
- *   misma combinación (`V_c` es el corte que acompaña a la compresión máxima).
+ *   `v` corte, `m` momento y `e` excentricidad (el mayor M/N con compresión, el
+ *   que tracciona los pernos). De cada una salen las tres magnitudes, las de la
+ *   misma combinación (`V_c` es el corte que acompaña a la compresión máxima);
+ *   la hoja saca `e := M_e / N_e`.
  * - `nc_<criterio>_…` vale 1 si esa combinación NO es concurrente (espectro o
  *   envolvente): sus acompañantes son extremos por componente, no de un mismo
  *   instante. Los nombres no cambian por eso, porque renombrar en una relectura
@@ -397,13 +429,15 @@ export function publicaApoyos(obra: Obra): PublicacionApoyos {
         const N = g.v[2];
         const V = Math.hypot(g.v[0], g.v[1]);
         const M = Math.hypot(g.v[3], g.v[4]);
-        // La magnitud que gobierna va primero: `V_v`, `N_v`, `M_v`.
+        // La magnitud que gobierna va primero: `V_v`, `N_v`, `M_v`. La
+        // excentricidad no se publica: es `M_e / N_e`, y lo que se puede derivar
+        // no se declara.
         const magnitudes: [string, number, string][] = [
           ['N', N, 'kN'],
           ['V', V, 'kN'],
           ['M', M, 'kN*m'],
         ];
-        const primera = { compresion: 0, traccion: 0, corte: 1, momento: 2 }[k];
+        const primera = { compresion: 0, traccion: 0, corte: 1, momento: 2, excentricidad: 2 }[k];
         magnitudes.unshift(...magnitudes.splice(primera, 1));
         for (const [mag, x, u] of magnitudes) {
           publicados.push({ nombre: `${mag}_${letra}${sufijo}`, expr: `${String(x)} ${u}` });

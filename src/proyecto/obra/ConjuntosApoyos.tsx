@@ -250,6 +250,7 @@ function EnvolventePorTipo({
     ['traccion', 'T', false],
     ['corte', 'V', false],
     ['momento', 'M', true],
+    ['excentricidad', 'e', false],
   ] as const;
   return (
     <table className="mt-1.5 w-full text-[10px]">
@@ -279,7 +280,7 @@ function EnvolventePorTipo({
                     {g ? (
                       <>
                         <span className={k === 'traccion' ? 'text-violet-700' : 'text-ink'}>
-                          {fuerza(g.valor, unidades, momento)}
+                          {k === 'excentricidad' ? metros(g.valor) : fuerza(g.valor, unidades, momento)}
                         </span>
                         <span className="block text-[9px] text-muted">
                           {g.apoyo} · {g.combo}
@@ -303,6 +304,11 @@ function EnvolventePorTipo({
       </tbody>
     </table>
   );
+}
+
+/** Una excentricidad: `0,333 m`. */
+export function metros(e: number): string {
+  return `${e.toFixed(3).replace('.', ',')} m`;
 }
 
 /** El formulario de un conjunto: su nombre y qué familias toma. */

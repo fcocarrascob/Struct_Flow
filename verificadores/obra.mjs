@@ -1531,9 +1531,24 @@ const CASOS_HOJA = [
       if (b.traccion?.combo !== 'B25_EX_EVP' || b.traccion.valor !== 80) return `7 tracción ${JSON.stringify(b.traccion)}`;
       // Nudo 7: el corte de B21 (10) no le gana al de B25 (√(30²+5²)).
       if (b.corte?.combo !== 'B25_EX_EVP') return `7 corte ${JSON.stringify(b.corte)}`;
+      // Nudo 212, excentricidad: B21 da 710,1/975,4 = 0,728 m; B25, con la
+      // compresión MENOR de su Max y su Min (1961,6) y el M extremo (1494), da
+      // 0,762 m y gobierna. Su vector lleva esa N.
+      const e = a.excentricidad;
+      if (e?.combo !== 'B25_EX_EVP' || e.concurrente || Math.abs(e.valor - 1494 / 1961.6) > 1e-12 || e.v[2] !== 1961.6) return `212 excentricidad ${JSON.stringify(e)}`;
+      // Nudo 7: B21 tracciona y B25 tracciona en su Min: sin compresión no hay excentricidad.
+      if (b.excentricidad) return `7 excentricidad ${JSON.stringify(b.excentricidad)}`;
+      // La excentricidad no es la del momento máximo: una N chica con un M menor da más.
+      const chica = gobernantesDeConjunto({
+        modelo: 'm.sdb', modificado: '', apoyos: ['1'],
+        filas: [{ combo: 'A', valores: [[0, 0, 1000, 200, 0, 0]] }, { combo: 'B', valores: [[0, 0, 100, 50, 0, 0]] }],
+      }, ['A', 'B'], '').porApoyo[0];
+      if (chica.momento?.combo !== 'A' || chica.excentricidad?.combo !== 'B' || chica.excentricidad.valor !== 0.5) return `excentricidad ${JSON.stringify(chica)}`;
       // Con solo B21 todo es concurrente, y la tracción del 7 es 50.
       const solo = gobernantesDeConjunto({ ...respuesta, filas: respuesta.filas.slice(0, 1) }, ['B21'], '');
       if (!solo.porApoyo[1].traccion?.concurrente || solo.porApoyo[1].traccion.valor !== 50) return `solo B21: ${JSON.stringify(solo.porApoyo[1])}`;
+      const eSolo = solo.porApoyo[0].excentricidad;
+      if (!eSolo?.concurrente || Math.abs(eSolo.valor - 710.1 / 975.4) > 1e-12) return `solo B21: excentricidad ${JSON.stringify(eSolo)}`;
       const ext = extremosDeConjunto(l);
       if (ext.compresion?.apoyo !== '212' || ext.traccion?.apoyo !== '7') return `extremos ${JSON.stringify(ext)}`;
       // Las combinaciones de un conjunto salen de sus familias.
@@ -1543,6 +1558,9 @@ const CASOS_HOJA = [
       const con = (modificado) => ({ modelo: 'm.sdb', ruta: '', version: '', leido: '', modificado });
       if (estadoConjunto(c, undefined, con(l.modificado)).estado !== 'sin-leer') return 'sin leer';
       if (estadoConjunto(c, l, con(l.modificado)).estado !== 'al-dia') return 'al día (el orden de las familias no importa)';
+      // Una lectura anterior a la excentricidad se pide releer: su «—» mentiría.
+      const vieja = { ...solo, porApoyo: solo.porApoyo.map(({ excentricidad: _, ...g }) => g) };
+      if (!estadoConjunto({ ...c, familias: ['B21'] }, vieja, con(l.modificado)).motivo?.includes('excentricidad')) return 'no marcó la lectura sin excentricidad';
       if (estadoConjunto({ ...c, familias: ['B21'] }, l, con(l.modificado)).motivo !== 'cambiaron sus familias desde que se leyó') return 'familias';
       return estadoConjunto(c, l, con('2026-09-26T00:00:00Z')).estado === 'desactualizado' ? null : 'atrasada';
     },
@@ -1667,6 +1685,10 @@ const CASOS_HOJA = [
       // El corte y el momento, de B21 en el 7: concurrentes, con la N de esa combinación.
       if (kN('V_v_CP_LRFD') !== 50 || kN('N_v_CP_LRFD') !== 300 || kNm('M_v_CP_LRFD') !== 100) return 'corte CP';
       if (kNm('M_m_CP_LRFD') !== 100 || kN('N_m_CP_LRFD') !== 300 || ev.scope.nc_m_CP_LRFD !== 0) return 'momento CP';
+      // La excentricidad: 100/300 en el 7 con B21, la mayor; la hoja saca e = M_e / N_e.
+      if (kNm('M_e_CP_LRFD') !== 100 || kN('N_e_CP_LRFD') !== 300 || kN('V_e_CP_LRFD') !== 50 || ev.scope.nc_e_CP_LRFD !== 0) return 'excentricidad CP';
+      // COL_VIENTO no comprime en ninguna combinación con momento: sin excentricidad.
+      if (ev.duenio.has('M_e_CV_LRFD')) return 'publicó una excentricidad sin compresión';
       // Nada tracciona en COL_PPALES: no se publica, no se inventa un cero.
       if (ev.duenio.has('N_t_CP_LRFD')) return 'publicó una tracción que no hay';
       // COL_VIENTO: la tracción es del Min de B25, N negativa.

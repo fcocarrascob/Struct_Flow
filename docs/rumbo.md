@@ -300,6 +300,15 @@ que devolverlo con sus datos.
     dice.
   - Un criterio sin gobernante (nada tracciona) no publica: no se inventa un cero. Tampoco los
     apoyos sin grupo, ni un conjunto leído con otras familias.
+  - **El criterio `e`, excentricidad** (2026-09-25): la combinación de mayor M/N con compresión.
+    Es la que tracciona los pernos aunque nada arranque la placa, y no es la del momento
+    máximo: una N chica con un M menor da más. En una combinación no concurrente se toma la
+    compresión **menor** de su Max y su Min con el M de los extremos, que es lo que agranda e;
+    si alguno de los dos no comprime, eso lo cubre la tracción. Publica `N_e`, `V_e`, `M_e` y
+    `nc_e`, no la e: la hoja la saca con `e := M_e / N_e`. En el modelo de prueba, COL_PPALES
+    da e = 3,50 m con B22_Lr (N = 10,3 tonf), no con la combinación del momento máximo. Una
+    lectura anterior al criterio se marca desactualizada: su «—» diría que nada comprime con
+    momento.
 
 Lo que sigue en esta línea, de a uno:
 - ~~el mecanismo para que un nodo sin hoja publique nombres~~ — hecho, con `T_x` y `T_y` del

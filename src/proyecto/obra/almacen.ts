@@ -49,6 +49,7 @@ import {
   type ReaccionesDeCaso,
   type GrupoDeApoyos,
   type ConjuntoDiseno,
+  CLAVES_GOBERNANTE,
   type Gobernante,
   type GobernantesDeApoyo,
   type LecturaConjunto,
@@ -356,7 +357,7 @@ function sanearLecturasConjunto(crudo: unknown): Record<string, LecturaConjunto>
     const porApoyo = l.porApoyo.map((p) => {
       const q = (p ?? {}) as Record<string, unknown>;
       const g: GobernantesDeApoyo = {};
-      for (const k of ['compresion', 'traccion', 'corte', 'momento'] as const) {
+      for (const k of CLAVES_GOBERNANTE) {
         const s = q[k] === undefined ? undefined : sanearGobernante(q[k]);
         if (s) g[k] = s;
       }

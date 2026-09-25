@@ -333,6 +333,8 @@ const CRITERIOS: {
   titulo: string;
   valor: string;
   momento?: boolean;
+  /** Si el valor no es una fuerza: la excentricidad va en metros. */
+  formato?: (x: number) => string;
   acompanan: { titulo: string; de: (v: Gobernante['v']) => number; momento?: boolean }[];
 }[] = [
   {
@@ -362,6 +364,17 @@ const CRITERIOS: {
     valor: 'M',
     momento: true,
     acompanan: [{ titulo: 'N', de: (v) => v[2] }],
+  },
+  {
+    // La que tracciona los pernos aunque nada arranque la placa.
+    clave: 'excentricidad',
+    titulo: 'Excentricidad máx.',
+    valor: 'e [m]',
+    formato: (x) => x.toFixed(3).replace('.', ','),
+    acompanan: [
+      { titulo: 'N', de: (v) => v[2] },
+      { titulo: 'M', de: (v) => Math.hypot(v[3], v[4]), momento: true },
+    ],
   },
 ];
 
@@ -498,7 +511,7 @@ function VistaConjunto({
                             {g ? (
                               <>
                                 <span className={`font-semibold ${c.clave === 'traccion' ? 'text-violet-700' : 'text-ink'}`}>
-                                  {c.valor} = {cantidad(g.valor, unidades)}
+                                  {c.valor} = {c.formato ? c.formato(g.valor) : cantidad(g.valor, unidades)}
                                 </span>{' '}
                                 · nudo {g.apoyo} · {g.combo}
                                 {noConcurrente(g)}
@@ -588,7 +601,7 @@ function FilaConjunto({
               c.clave === 'traccion' ? 'text-violet-700' : 'text-ink'
             }`}
           >
-            {cantidad(g.valor, unidades)}
+            {c.formato ? c.formato(g.valor) : cantidad(g.valor, unidades)}
           </td>,
           <td
             key={`${c.clave}-c`}
