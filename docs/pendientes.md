@@ -222,6 +222,14 @@ Por gravedad:
   CUMPLE), y φ_v = 1,0 es de laminados cuando el módulo arma uno soldado (0,90).
 - **`verify:modulos` no mira signo ni finitud de los usos**, y un módulo con `casos: []` pasa
   sin evaluar nada.
+- **Placa base con tracción neta** (`placa-base-generica`, programa `equilibrio`): supone
+  siempre un bloque comprimido en el borde opuesto. Con arranque neto (P de tracción mayor que
+  lo que el momento comprime) C = P + T sale negativa, se acota en 1 y el brazo es el del bloque
+  y no el de la otra fila, que también tracciona. En el Pachón, el arranque por capacidad de
+  3106 kN da 1816 kN en la fila, frente a 1704 kN con el reparto entre dos filas: del lado
+  seguro para los pernos, pero el grupo entero no llega al anclaje. Hoy la obra le pasa al
+  anclaje el arranque completo aparte (`T_anc_cl`). Falta la rama de las dos filas en tracción y
+  que publique la tracción del grupo.
 - Las entradas de un módulo no se guardan: F5 las devuelve a los valores por defecto.
 - **Ctrl+P fuera del canvas imprime en blanco**: la regla de impresión oculta todo lo que no
   sea `.worksheet-print`.
