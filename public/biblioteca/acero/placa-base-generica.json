@@ -443,6 +443,11 @@
     "tipo": "veredicto",
     "aviso": true,
     "avisoTexto": "El confinamiento llega al tope 2,0 del §J8: manda el tope y no la geometría del pedestal"
+   },
+   {
+    "nombre": "v_dominio_mom",
+    "etiqueta": "Momento grande o tracción en el grupo (DG1 §4.3.7)",
+    "tipo": "veredicto"
    }
   ],
   "fronteras": [
@@ -457,7 +462,7 @@
   "hipotesis": [
    "Placa rectangular sobre pedestal de hormigón",
    "Una fila de pernos por lado, a un lado y otro del eje de flexión",
-   "Gran excentricidad: hay tracción en el grupo. Con excentricidad pequeña el equilibrio devuelve T = 0 y el resto sigue valiendo",
+   "Gran excentricidad: el caso de compresión con e > e_crit, o tracción en el grupo. Con momento bajo y sin tracción la hoja vota fuera de dominio (v_dominio_mom): esa placa es de placa-base-rotulada-generica",
    "Con arranque neto (M/y_t ≤ −P) no hay bloque comprimido: traccionan las dos filas y T_grupo es la de la más cargada",
    "Aplastamiento uniforme en bloque rectangular",
    "Compresión positiva en el axial de la columna",
@@ -529,6 +534,20 @@
      "V_trac_3": 0
     },
     "cumple": true
+   },
+   {
+    "nombre": "momento bajo y sin tracción: fuera de dominio, es de la rotulada",
+    "entradas": {
+     "M_trac": 50,
+     "P_trac": 500,
+     "V_trac": 10,
+     "M_comp": 50
+    },
+    "cumple": false,
+    "esperadoFalso": [
+     "v_dominio_mom",
+     "v_global"
+    ]
    }
   ]
  },
@@ -972,7 +991,7 @@
    "kind": "program",
    "x": 40,
    "y": 3752,
-   "src": "equilibrio(M_ap, P_ap) :=\n    Mn := abs(M_ap)/(1 kN*m)\n    Pn := P_ap/(1 kN)\n    Lm := L_bp/(1 m)\n    Bm := B_bp/(1 m)\n    ytm := y_t/(1 m)\n    fpm := f_p/(1 kPa)\n    Ah := A_hueco/(1 m^2)\n    if Pn < 0 and Mn/ytm <= -Pn\n        return (Mn/ytm - Pn)/2\n    Tv := max(0, Mn/ytm - Pn)\n    for k in 1:200\n        Cv := max(Pn + Tv, 1)\n        Yb := Cv/(fpm*Bm)\n        if Lm/2 - ytm <= Yb\n            Yb := (Cv/fpm + Ah)/Bm\n        yc := Lm/2 - Yb/2\n        Tn := (Mn - Pn*yc)/(ytm + yc)\n        if abs(Tn - Tv) < 0.0001\n            Tv := Tn\n            break\n        Tv := Tn\n    return Tv"
+   "src": "equilibrio(M_ap, P_ap) :=\n    Mn := abs(M_ap)/(1 kN*m)\n    Pn := P_ap/(1 kN)\n    Lm := L_bp/(1 m)\n    Bm := B_bp/(1 m)\n    ytm := y_t/(1 m)\n    fpm := f_p/(1 kPa)\n    Ah := A_hueco/(1 m^2)\n    if Pn < 0 and Mn/ytm <= -Pn\n        return (Mn/ytm - Pn)/2\n    Tv := max(0, Mn/ytm - Pn)\n    for k in 1:200\n        Cv := max(Pn + Tv, 1)\n        Yb := Cv/(fpm*Bm)\n        if Lm/2 - ytm <= Yb\n            Yb := (Cv/fpm + Ah)/Bm\n        yc := Lm/2 - Yb/2\n        Tn := (Mn - Pn*yc)/(ytm + yc)\n        if abs(Tn - Tv) < 0.0001\n            Tv := Tn\n            break\n        Tv := Tn\n    return max(Tv, 0)"
   },
   {
    "id": "r210",
@@ -1085,59 +1104,94 @@
    "src": "v_bloque := Yb_comp <= volad ="
   },
   {
-   "id": "r017",
+   "id": "t_dominio",
    "kind": "text",
    "x": 40,
    "y": 4232,
+   "src": "Dominio de la hoja (DG1 §4.3.7, Ec. 4-37 y 4-40). Con e ≤ e_crit en el caso de compresión la carga se equilibra solo\npor aplastamiento: es el momento bajo, y si además ningún caso tracciona el grupo, la placa es de\nplaca-base-rotulada-generica. Aquí vota en contra, como la rotulada vota en contra con e > e_crit."
+  },
+  {
+   "id": "r_qmax",
+   "kind": "math",
+   "x": 40,
+   "y": 4328,
+   "src": "q_max := f_p*B_bp = kN/m"
+  },
+  {
+   "id": "r_ecomp",
+   "kind": "math",
+   "x": 40,
+   "y": 4376,
+   "src": "e_comp := abs(M_comp)/P_comp = mm"
+  },
+  {
+   "id": "r_ecrit",
+   "kind": "math",
+   "x": 40,
+   "y": 4424,
+   "src": "e_crit := L_bp/2 - P_comp/(2*q_max) = mm"
+  },
+  {
+   "id": "v_dominio_mom",
+   "kind": "math",
+   "x": 40,
+   "y": 4472,
+   "src": "v_dominio_mom := e_comp > e_crit or T_grupo > 0 kN ="
+  },
+  {
+   "id": "r017",
+   "kind": "text",
+   "x": 40,
+   "y": 4520,
    "src": "━━ 3 — GRUPO DE PERNOS EN TRACCIÓN · ACI 318-25 §17.6.1 ━━"
   },
   {
    "id": "r018",
    "kind": "text",
    "x": 40,
-   "y": 4280,
+   "y": 4568,
    "src": "[17.6.1.2] N_sa = A_se·f_uta. El φ de la Tabla 21.2.1 (o), a la que remite el §17.5.3, supone anclaje\nDÚCTIL: si el perno no lo es, el factor baja a la fila (p) y hay que cambiarlo en DATOS. Los modos de\nfalla del hormigón —cono, extracción, descascaramiento— van en anclaje-hormigon-generica, que recibe\nesta T_grupo como Nua_g."
   },
   {
    "id": "r076",
    "kind": "math",
    "x": 40,
-   "y": 4400,
+   "y": 4688,
    "src": "Ase_req := T_grupo/(phi_sa*futa) = mm^2"
   },
   {
    "id": "r077",
    "kind": "math",
    "x": 40,
-   "y": 4448,
+   "y": 4736,
    "src": "Ase_prov := n_col*Ase_perno = mm^2"
   },
   {
    "id": "r078",
    "kind": "math",
    "x": 40,
-   "y": 4496,
+   "y": 4784,
    "src": "u_pernos := Ase_req/Ase_prov ="
   },
   {
    "id": "r079",
    "kind": "math",
    "x": 40,
-   "y": 4544,
+   "y": 4832,
    "src": "P_perno := T_grupo/n_col = kN"
   },
   {
    "id": "r019",
    "kind": "text",
    "x": 40,
-   "y": 4592,
+   "y": 4880,
    "src": "━━ 4 — GEOMETRÍA MÍNIMA DEL GRUPO ━━"
   },
   {
    "id": "r020",
    "kind": "text",
    "x": 40,
-   "y": 4640,
+   "y": 4928,
    "src": "Son tres distancias DISTINTAS y ninguna reemplaza a otra. (1) PASO entre pernos: [ACI 318-25\nTabla 17.9.2(a)] anclajes colados, 4·d_a sin torque y 6·d_a con torque. (2) BORDE DE LA CHAPA:\n[AISC 360-22 §J3.5 y Tabla J3.4M] del centro del agujero al canto, el valor de tabla hasta 36 mm y\n1,25·d por encima, más el incremento C2 de la Tabla J3.5M —que es normativa— por la holgura del hueco; y la\nrecomendación del DG1 §4.5.3 de dejar 2 in de chapa libre entre el agujero y el canto. (3) BORDE DEL\nHORMIGÓN: [Tabla 17.9.2(a)] sin torque, el recubrimiento especificado del §20.5.1.3; con torque,\n6·d_a. La hoja mide c_a al CENTRO del perno y el recubrimiento a su superficie, así que suma d_a/2:\nes una lectura declarada, no una cita textual. Y la fila tiene que caer fuera de la huella del fuste,\nque es geometría y no norma."
   },
   {
@@ -1145,265 +1199,265 @@
    "kind": "math",
    "x": 40,
    "src": "paso_real := 2*x_ext/(n_col - 1) = mm",
-   "y": 4880
+   "y": 5168
   },
   {
    "id": "r084",
    "kind": "math",
    "x": 40,
    "src": "paso_min := (torque == 1 ? 6 : 4)*d_perno = mm",
-   "y": 4928
+   "y": 5216
   },
   {
    "id": "v_paso",
    "kind": "math",
    "x": 40,
    "src": "v_paso := paso_real >= paso_min*(1 - 1e-9) =",
-   "y": 4976
+   "y": 5264
   },
   {
    "id": "r121",
    "kind": "program",
    "x": 40,
    "src": "borde_J34 :=\n    dm := d_perno/(1 mm)\n    if dm > 36\n        return 1.25*d_perno\n    tabla := [12, 18; 16, 22; 20, 26; 22, 28; 24, 30; 27, 34; 30, 38; 36, 46]\n    for k in 1:8\n        if dm <= tabla[k, 1]\n            return tabla[k, 2]*(1 mm)",
-   "y": 5024
+   "y": 5312
   },
   {
    "id": "r122",
    "kind": "math",
    "x": 40,
    "src": "C2 := (d_perno <= 22 mm ? 2 : 3)*(1 mm) = mm",
-   "y": 5240
+   "y": 5528
   },
   {
    "id": "r124",
    "kind": "math",
    "x": 40,
    "src": "borde_DG1 := d_hueco/2 + 2 inch = mm",
-   "y": 5288
+   "y": 5576
   },
   {
    "id": "r125",
    "kind": "math",
    "x": 40,
    "src": "borde_placa_min := max(borde_J34 + C2, borde_DG1) = mm",
-   "y": 5336
+   "y": 5624
   },
   {
    "id": "r126",
    "kind": "math",
    "x": 40,
    "src": "borde_placa_B := B_bp/2 - x_ext = mm",
-   "y": 5384
+   "y": 5672
   },
   {
    "id": "r127",
    "kind": "math",
    "x": 40,
    "src": "ancho_req := 2*(x_ext + borde_placa_min) = mm",
-   "y": 5432
+   "y": 5720
   },
   {
    "id": "v_ancho",
    "kind": "math",
    "x": 40,
    "src": "v_ancho := B_bp >= ancho_req =",
-   "y": 5480
+   "y": 5768
   },
   {
    "id": "r128",
    "kind": "math",
    "x": 40,
    "src": "borde_placa_L := L_bp/2 - y_t = mm",
-   "y": 5528
+   "y": 5816
   },
   {
    "id": "r129",
    "kind": "math",
    "x": 40,
    "src": "largo_req := 2*(y_t + borde_placa_min) = mm",
-   "y": 5576
+   "y": 5864
   },
   {
    "id": "v_largo",
    "kind": "math",
    "x": 40,
    "src": "v_largo := L_bp >= largo_req =",
-   "y": 5624
+   "y": 5912
   },
   {
    "id": "r131",
    "kind": "math",
    "x": 40,
    "src": "recub := exposicion == 1 ? 75 mm : (exposicion == 3 ? 40 mm : (d_perno > 16 mm ? 50 mm : 40 mm)) = mm",
-   "y": 5672
+   "y": 5960
   },
   {
    "id": "r133",
    "kind": "math",
    "x": 40,
    "src": "borde_horm_min := torque == 1 ? 6*d_perno : recub + d_perno/2 = mm",
-   "y": 5720
+   "y": 6008
   },
   {
    "id": "r134",
    "kind": "math",
    "x": 40,
    "src": "borde_horm_B := PED_B/2 - x_ext = mm",
-   "y": 5768
+   "y": 6056
   },
   {
    "id": "r135",
    "kind": "math",
    "x": 40,
    "src": "borde_horm_L := PED_L/2 - y_t = mm",
-   "y": 5816
+   "y": 6104
   },
   {
    "id": "r136",
    "kind": "math",
    "x": 40,
    "src": "c_horm := min(borde_horm_B, borde_horm_L) = mm",
-   "y": 5864
+   "y": 6152
   },
   {
    "id": "v_borde_horm",
    "kind": "math",
    "x": 40,
    "src": "v_borde_horm := c_horm >= borde_horm_min =",
-   "y": 5912
+   "y": 6200
   },
   {
    "id": "r138",
    "kind": "math",
    "x": 40,
    "src": "libre_col := y_t - d_hueco/2 - d_col/2 = mm",
-   "y": 5960
+   "y": 6248
   },
   {
    "id": "v_fila_libre",
    "kind": "math",
    "x": 40,
    "src": "v_fila_libre := libre_col >= 0 mm =",
-   "y": 6008
+   "y": 6296
   },
   {
    "id": "r021",
    "kind": "text",
    "x": 40,
-   "y": 6056,
+   "y": 6344,
    "src": "━━ 5 — ESPESOR DE LA CHAPA · AISC 360-22 §J4.5 ━━"
   },
   {
    "id": "r022",
    "kind": "text",
    "x": 40,
-   "y": 6104,
+   "y": 6392,
    "src": "Módulo plástico de una franja de ancho unitario Z = t²/4, de donde t = √(4·M/(φ·F_y)). Se evalúan las\ntres formas de trabajar de la chapa: (a) VOLADIZO LIBRE, que es la que gobierna la placa lisa;\n(b) PANEL ENTRE NERVIOS, con M = β·f_p·a² y a el lado corto del panel; (c) ESQUINA EN VOLADIZO desde\nla cara externa del nervio de borde, que desaparece si el nervio llega al canto. Con nervios manda el\nmayor entre panel y esquina; sin nervios, el voladizo libre. La chapa no sabe de tipologías: sabe de\ncuál es su luz."
   },
   {
    "id": "r089",
    "kind": "math",
    "x": 40,
-   "y": 6272,
+   "y": 6560,
    "src": "m_libre := f_p*volad^2/2 = kN*m/m"
   },
   {
    "id": "r090",
    "kind": "math",
    "x": 40,
-   "y": 6320,
+   "y": 6608,
    "src": "t_libre := sqrt(4*m_libre/(phi_b*Fy_ac)) = mm"
   },
   {
    "id": "r092",
    "kind": "math",
    "x": 40,
-   "y": 6368,
+   "y": 6656,
    "src": "a_corto := min(volad, sep_nerv) = mm"
   },
   {
    "id": "r093",
    "kind": "math",
    "x": 40,
-   "y": 6416,
+   "y": 6704,
    "src": "m_panel := beta*f_p*a_corto^2 = kN*m/m"
   },
   {
    "id": "r094",
    "kind": "math",
    "x": 40,
-   "y": 6464,
+   "y": 6752,
    "src": "t_panel := sqrt(4*m_panel/(phi_b*Fy_ac)) = mm"
   },
   {
    "id": "r096",
    "kind": "math",
    "x": 40,
-   "y": 6512,
+   "y": 6800,
    "src": "vol_esq := max(B_bp/2 - x_nerv_ext, 0 mm) = mm"
   },
   {
    "id": "r097",
    "kind": "math",
    "x": 40,
-   "y": 6560,
+   "y": 6848,
    "src": "m_esq := f_p*vol_esq^2/2 = kN*m/m"
   },
   {
    "id": "r098",
    "kind": "math",
    "x": 40,
-   "y": 6608,
+   "y": 6896,
    "src": "t_esq := sqrt(4*m_esq/(phi_b*Fy_ac)) = mm"
   },
   {
    "id": "r100",
    "kind": "program",
    "x": 40,
-   "y": 6656,
+   "y": 6944,
    "src": "t_req :=\n    if hay_nervios == 1\n        return max(t_panel, t_esq)\n    else\n        return t_libre"
   },
   {
    "id": "r102",
    "kind": "math",
    "x": 40,
-   "y": 6800,
+   "y": 7088,
    "src": "u_espesor := t_req/t_bp ="
   },
   {
    "id": "r023",
    "kind": "text",
    "x": 40,
-   "y": 6848,
+   "y": 7136,
    "src": "━━ RESUMEN ━━"
   },
   {
    "id": "r106",
    "kind": "math",
    "x": 40,
-   "y": 6896,
+   "y": 7184,
    "src": "u_max := max(u_pernos, u_espesor) ="
   },
   {
    "id": "r107",
    "kind": "program",
    "x": 40,
-   "y": 6944,
+   "y": 7232,
    "src": "gobierna :=\n    if u_max == u_pernos\n        return \"area de los pernos en traccion\"\n    else\n        return \"espesor de la chapa por flexion de aplastamiento\""
   },
   {
    "id": "v_global",
    "kind": "math",
    "x": 40,
-   "y": 7088,
-   "src": "v_global := u_max <= 1 and v_paso and v_ancho and v_largo and v_borde_horm and v_fila_libre ="
+   "y": 7376,
+   "src": "v_global := u_max <= 1 and v_dominio_mom and v_paso and v_ancho and v_largo and v_borde_horm and v_fila_libre ="
   },
   {
    "id": "r024",
    "kind": "text",
    "x": 40,
-   "y": 7136,
+   "y": 7424,
    "src": "RECORDATORIO DE FRONTERA: con llave de corte, el espesor de la placa se comprueba además contra la\nregla t_bp ≥ t_sl de la DG1 §4.3.3 y contra la flexión local que la llave induce, las dos en\nllave-corte-generica; el par de esa llave sí está aquí, sumado a la tracción del grupo."
   },
   {
@@ -1411,7 +1465,7 @@
    "kind": "text",
    "x": 40,
    "src": "━━ ESQUEMA · MAPEO A PÍXELES ━━",
-   "y": 7232,
+   "y": 7520,
    "imprimir": false
   },
   {
@@ -1419,7 +1473,7 @@
    "kind": "text",
    "x": 40,
    "src": "El dibujo sale de las mismas variables que las verificaciones: una cota roja y un v_* en falso son el\nmismo número. Elevación y planta comparten escala y eje horizontal, así que la fila traccionada y el\nbloque comprimido caen en la misma vertical en las dos vistas. hx lleva una distancia medida desde el\ncentro de la placa, en la dirección de L_bp, a píxeles; vp hace lo mismo en planta, en la dirección de\nB_bp. Este bloque no se imprime.",
-   "y": 7280,
+   "y": 7568,
    "imprimir": false
   },
   {
@@ -1427,7 +1481,7 @@
    "kind": "math",
    "x": 40,
    "src": "esc := min(440/(max(PED_L, L_bp)/(1 m)), 250/(max(PED_B, B_bp)/(1 m))) =",
-   "y": 7424,
+   "y": 7712,
    "imprimir": false
   },
   {
@@ -1435,7 +1489,7 @@
    "kind": "program",
    "x": 40,
    "src": "hx(u) := 290 + u/(1 m)*esc",
-   "y": 7472,
+   "y": 7760,
    "imprimir": false
   },
   {
@@ -1443,7 +1497,7 @@
    "kind": "program",
    "x": 40,
    "src": "vp(v) := 400 + v/(1 m)*esc",
-   "y": 7520,
+   "y": 7808,
    "imprimir": false
   },
   {
@@ -1451,7 +1505,7 @@
    "kind": "math",
    "x": 40,
    "src": "tp_px := max(3, t_bp/(1 m)*esc) =",
-   "y": 7568,
+   "y": 7856,
    "imprimir": false
   },
   {
@@ -1459,7 +1513,7 @@
    "kind": "math",
    "x": 40,
    "src": "r_hueco_px := d_hueco/(1 m)*esc/2 =",
-   "y": 7616,
+   "y": 7904,
    "imprimir": false
   },
   {
@@ -1467,7 +1521,7 @@
    "kind": "program",
    "x": 40,
    "src": "pernos_px :=\n    Q := zeros(2*n_col, 2)\n    for i in 1:n_col\n        xb := -x_ext + (i - 1)*paso_real\n        Q[i, 1] = hx(-y_t)\n        Q[i, 2] = vp(xb)\n        Q[n_col + i, 1] = hx(y_t)\n        Q[n_col + i, 2] = vp(xb)\n    Q",
-   "y": 7664,
+   "y": 7952,
    "imprimir": false
   },
   {
@@ -1475,13 +1529,13 @@
    "kind": "math",
    "x": 40,
    "src": "v_pernos_dibujados := size(pernos_px)[1] == 2*n_col =",
-   "y": 7904
+   "y": 8192
   },
   {
    "id": "r_cu",
    "kind": "program",
    "x": 40,
-   "y": 7952,
+   "y": 8240,
    "src": "cu(u) := u <= 1 ? \"#1c7c3c\" : \"#c0392b\"",
    "imprimir": false
   },
@@ -1490,7 +1544,7 @@
    "kind": "math",
    "x": 40,
    "src": "col_paso := v_paso ? \"#1c7c3c\" : \"#c0392b\"",
-   "y": 8000,
+   "y": 8288,
    "imprimir": false
   },
   {
@@ -1498,7 +1552,7 @@
    "kind": "math",
    "x": 40,
    "src": "col_ancho := v_ancho ? \"#1c7c3c\" : \"#c0392b\"",
-   "y": 8048,
+   "y": 8336,
    "imprimir": false
   },
   {
@@ -1506,7 +1560,7 @@
    "kind": "math",
    "x": 40,
    "src": "col_largo := v_largo ? \"#1c7c3c\" : \"#c0392b\"",
-   "y": 8096,
+   "y": 8384,
    "imprimir": false
   },
   {
@@ -1514,7 +1568,7 @@
    "kind": "math",
    "x": 40,
    "src": "col_horm_B := borde_horm_B >= borde_horm_min ? \"#1c7c3c\" : \"#c0392b\"",
-   "y": 8144,
+   "y": 8432,
    "imprimir": false
   },
   {
@@ -1522,7 +1576,7 @@
    "kind": "math",
    "x": 40,
    "src": "col_horm_L := borde_horm_L >= borde_horm_min ? \"#1c7c3c\" : \"#c0392b\"",
-   "y": 8192,
+   "y": 8480,
    "imprimir": false
   },
   {
@@ -1530,7 +1584,7 @@
    "kind": "math",
    "x": 40,
    "src": "col_fila := v_fila_libre ? \"#1c7c3c\" : \"#c0392b\"",
-   "y": 8240,
+   "y": 8528,
    "imprimir": false
   },
   {
@@ -1538,7 +1592,7 @@
    "kind": "math",
    "x": 40,
    "src": "col_bloque := v_bloque ? \"#1a63a8\" : \"#c0392b\"",
-   "y": 8288,
+   "y": 8576,
    "imprimir": false
   },
   {
@@ -1548,7 +1602,7 @@
    "src": "/esquemas/placa-base-generica.svg",
    "w": 720,
    "h": 514,
-   "y": 8336
+   "y": 8624
   }
  ]
 }
