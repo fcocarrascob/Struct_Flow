@@ -42,8 +42,9 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
    ficha; la completa da byte a byte lo mismo que antes. Hecho también: la plantilla del grupo
    (`vistas/base-columna/plantilla.ts`) y `armarEnsamble`/`reconfigurar` (`obra/ensamble.ts`),
    con dos conjuntos (diseño y sobrerresistencia); con las externas del Pachón da sus mismos
-   u_* con los nombres sufijados. Falta: las dos puertas (tipo en el panel de apoyos y
-   paleta) y regenerar la base del Pachón con sufijo `_CP` (decidido).
+   u_* con los nombres sufijados. Las dos puertas están (tipo en el panel de apoyos, y la
+   paleta con las solicitaciones a mano), y la base del Pachón se regeneró con `_CP`
+   (2026-09-25) conservando ids, grupo y notas ⚑, con los mismos números.
    Límites de la plantilla: la hoja de capacidad es la del Pachón (AISC 341 §D2.6, pórtico
    arriostrado en X y de momento en Y) y usa las externas `H_int_dg`, `H_ext_dg` y
    `T_ext_dg` del arriostramiento, sin sufijo; una base sin diagonales, o sin
