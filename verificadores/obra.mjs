@@ -3097,6 +3097,7 @@ const CASOS_VISTA = [
     ['v_chapa_nervio', { CH_B: 950 }],
     ['v_llave_perno', { y_t: 600 }],
     ['v_llave_ped', { b_sl: 1380 }],
+    ['v_llave_ramas', { n_niv_sin_ramas: 0 }],
   ].map(([id, cambio]) => ({
     nombre: `vista base-columna: «${id}» falla sola`,
     ok: () => {
@@ -3220,9 +3221,12 @@ function CASOS_ENSAMBLE() {
   const REFERENCIA = {
     u_pb_CP: 0.8521078818700685,
     u_anc_CP: 0.8591692804950317,
-    u_llave_CP: 0.939636646309025,
+    // La llave y el pedestal, después de resolver el choque de la llave con las ramas
+    // de estribo (2026-09-25): nivel 1 sin ramas interiores y estribos φ25. Antes,
+    // 0,9396 y 0,9396.
+    u_llave_CP: 0.9180084007925408,
     u_silla_CP: 0.9857142857142857,
-    u_ped_CP: 0.939636646308542,
+    u_ped_CP: 0.6013674536374668,
   };
   const PARAMS = { tipo: 'CP', grupoSap: 'COL_PPALES', diseno: 'LRFD', sobrerresistencia: 'O0' };
   const PLANTILLA = VISTAS['base-columna'].plantilla;

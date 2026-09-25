@@ -258,7 +258,7 @@ const DATOS = [
     f('db_long_ped := 36 mm', MOM),
     f('n_barras_ped := 36', MOM),
     f('recub_ped := 84 mm', MOM),
-    f('db_est_ped := 20 mm', MOM),
+    f('db_est_ped := 25 mm', MOM),
     f('n_ramas_ped := 6', MOM),
     f('sep_est_ped := 150 mm', MOM),
     f('sep_zp_ped := 75 mm', MOM),
@@ -351,7 +351,13 @@ const DATOS = [
           'plano a 45° desde su pie hasta la cara del pedestal, con la mitad de las ramas de estribo por dirección en cada nivel.',
       ),
       f('zp_ll := h_sl_ll + (min(PED_B_pb, PED_L_pb) - b_sl_ll)/2 = mm'),
-      f('n_est_ll := n_ramas_ped/2*(floor(zp_ll/sep_zp_ped) + 1) ='),
+      t(
+        'Supuesto: los primeros niveles de estribo, los que caen en la altura de la llave, van sin ramas interiores —solo el ' +
+          'perimetral— para que la llave no las cruce; cada uno aporta un estribo cerrado en vez de n_ramas/2. La vista ' +
+          'geométrica comprueba que las ramas que siguen pasan bajo el fondo de la llave.',
+      ),
+      f('n_niv_sin_ramas_ll := 1'),
+      f('n_est_ll := n_ramas_ped/2*(floor(zp_ll/sep_zp_ped) + 1) - (n_ramas_ped/2 - 1)*n_niv_sin_ramas_ll ='),
     ],
     'llave',
   ),
@@ -636,6 +642,7 @@ export const PLANTILLA_BASE_COLUMNA: Plantilla = {
           PED_Y: 'PED_L_pb', H_PED: 'H_ped_pb', n_barras: 'n_barras_ped', db_long: 'db_long_ped', recub: 'recub_ped',
           db_est: 'db_est_ped', n_ramas: 'n_ramas_ped', sep_est: 'sep_est_ped', sep_zp: 'sep_zp_ped', ALA_EXT: 'ALA_EXT_sl',
           NER_H: 'NER_H_sl', NER_L: 'NER_L_sl', NER_T: 'NER_T_sl', CH_B: 'CH_B_sl', CH_L: 'CH_L_sl', CH_T: 'CH_T_sl',
+          n_niv_sin_ramas: 'n_niv_sin_ramas_ll',
         },
         publica: { n_cont: 'n_cont_ped', v_global: 'v_geo_base' },
       },

@@ -207,12 +207,18 @@ export function construirBaseColumna(d: Record<string, number>, config: Config =
   const ramasX = elegir(enCaraY, ax); // ramas paralelas a Y, en estas abscisas
   const ramasY = elegir(enCaraX, ay); // ramas paralelas a X, en estas ordenadas
   const re = d.db_est / 2;
+  // Con llave, los primeros niveles pueden ir sin ramas interiores —solo el
+  // perimetral—, para que la llave no las cruce.
+  const sinRamas = conLlave ? Math.max(0, Math.round(d.n_niv_sin_ramas ?? 0)) : 0;
+  const ramas: Caja[] = [];
   niveles.forEach((z, k) => {
     const lazo: Lazo = { tipo: 'lazo', id: `estribo_${k + 1}`, rol: 'estribo', puntos: [[-ex, -ey], [ex, -ey], [ex, ey], [-ex, ey]].map(([a, b]) => [r1(a), r1(b)] as [number, number]), z, r: r1(re) };
     piezas.push(lazo);
-    ramasX.forEach((x, j) => piezas.push(caja(`rama_x_${k + 1}_${j + 1}`, 'estribo', x - re, x + re, -ey, ey, z - re, z + re)));
-    ramasY.forEach((y, j) => piezas.push(caja(`rama_y_${k + 1}_${j + 1}`, 'estribo', -ex, ex, y - re, y + re, z - re, z + re)));
+    if (k < sinRamas) return;
+    ramasX.forEach((x, j) => ramas.push(caja(`rama_x_${k + 1}_${j + 1}`, 'estribo', x - re, x + re, -ey, ey, z - re, z + re)));
+    ramasY.forEach((y, j) => ramas.push(caja(`rama_y_${k + 1}_${j + 1}`, 'estribo', -ex, ex, y - re, y + re, z - re, z + re)));
   });
+  piezas.push(...ramas);
 
   // ── Verificaciones ───────────────────────────────────────────────────────
   // Hueco para que pase el hormigón: se lee como el §25.2.1 de ACI 318-25 para
@@ -332,6 +338,20 @@ export function construirBaseColumna(d: Record<string, number>, config: Config =
     chequeos.push(
       chequeo('v_llave_ped', 'Llave dentro de la cara interior del estribo', Math.min(ex, ey) - re - d.b_sl / 2, '>=', 0, 'mm', ['llave_x', 'estribo_1']),
     );
+    // Las ramas interiores que cruzan la llave en planta: tienen que pasar por debajo
+    // de su fondo, con el hueco para el hormigón.
+    let minLR = Infinity;
+    let parLR: string[] = [];
+    for (const r of ramas)
+      for (const l of llaves) {
+        const cruzaEnPlanta = r.x0 < l.x1 && l.x0 < r.x1 && r.y0 < l.y1 && l.y0 < r.y1;
+        if (!cruzaEnPlanta) continue;
+        const dd = l.z0 - r.z1;
+        if (dd < minLR) [minLR, parLR] = [dd, [r.id, l.id]];
+      }
+    if (Number.isFinite(minLR)) {
+      chequeos.push(chequeo('v_llave_ramas', 'Hueco libre entre el fondo de la llave y la rama interior de estribo que la cruza en planta', minLR, '>=', hueco, 'mm', parLR));
+    }
   }
 
   // ── Derivados ────────────────────────────────────────────────────────────

@@ -123,6 +123,13 @@ export const CAMPOS_BASE_COLUMNA: Campo[] = [
   llave({ nombre: 't_sl', unidad: 'mm', descripcion: 'Espesor de cada chapa de la llave', porDefecto: 65 }),
   llave({ nombre: 'h_sl', unidad: 'mm', descripcion: 'Altura de la llave bajo el mortero', porDefecto: 100 }),
   llave({ nombre: 'b_sl', unidad: 'mm', descripcion: 'Largo de cada chapa de la llave en cruz', porDefecto: 1100 }),
+  llave({
+    nombre: 'n_niv_sin_ramas',
+    unidad: '',
+    descripcion: 'Niveles de estribo de la cabeza que van sin ramas interiores, para que la llave no las cruce: solo el perimetral',
+    porDefecto: 1,
+    supuesto: 'el primer nivel de estribos, que cae en la altura de la llave, va sin ramas interiores',
+  }),
 
   // Pedestal
   { nombre: 'PED_X', unidad: 'mm', descripcion: 'Lado del pedestal en X', porDefecto: 1500 },

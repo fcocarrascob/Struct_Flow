@@ -73,8 +73,13 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
       sin las ramas interiores del nivel 1, u = 1,08; con estribos φ25 en la zona, 0,92 (manda el
       aplastamiento); bajando el nivel 1 a −145 con perimetral en la cabeza, 1,41 con φ20 y 0,92
       con φ25; dos chapas paralelas por dirección no ayudan (2×540: aplastamiento 1,44, flexión
-      de la chapa 2,03). Falta: en la vista, la profundidad desde la que van las ramas interiores
-      y la verificación llave–ramas; y que la cuenta de estribos de la llave (`n_est_ll`) la
+      de la chapa 2,03). **Aplicado en el Pachón el mismo día**: nivel 1 sin ramas interiores
+      (`n_niv_sin_ramas_ll_CP := 1`, atado a la vista, que ya no las dibuja y verifica
+      `v_llave_ramas`: 37,5 ≥ 33,3 mm) y estribos φ25; llave 0,918 (manda el aplastamiento),
+      pedestal 0,601. Queda: `pedestal-generico` cuenta en su sección 13 todos los niveles de la
+      zona con `n_ramas` completas (As_prov 14.726 mm² en vez de 12.763; el uso real es 0,694,
+      no 0,601), le falta la entrada de niveles sin ramas; la base del hastial (`_CV`) se armó
+      antes del cambio y su `n_est_ll` todavía cuenta el nivel 1 completo; y que `n_est_ll` lo
       derive la vista en vez de la fórmula de la hoja de datos.
    5. La hoja de capacidad como variante por norma (NCh2369 para Chile) y las fuerzas de las
       diagonales como externa opcional.
