@@ -61,8 +61,6 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
      traccionan las dos filas.
    - **La rotulada toma la tracción del criterio `t` del conjunto de sobrerresistencia**: si ese
      conjunto no tracciona, el nombre no se publica y la hoja queda en rojo.
-   - **En `modelo_prueba.sdb`, las columnas de hastial de x = 88 (barras 839 y 840, nudos 592 y
-     593) no están en el grupo COL_VIENTO** y Flow las ve sin grupo. Se corrige en SAP2000.
    Límites de la plantilla: la hoja de capacidad es la del Pachón (AISC 341 §D2.6, pórtico
    arriostrado en X y de momento en Y) y usa las externas `H_int_dg`, `H_ext_dg` y
    `T_ext_dg` del arriostramiento, sin sufijo; una base sin diagonales, o sin
