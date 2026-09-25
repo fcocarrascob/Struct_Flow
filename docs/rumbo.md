@@ -284,14 +284,28 @@ que devolverlo con sus datos.
   - La tabla agrupa las filas por tipo, con la envolvente en la cabecera y el apoyo que gobierna
     resaltado dentro de su tipo.
 
-  **Paso 3b:** publicar las gobernantes por tipo y conjunto como nombres de la obra, para que
-  la hoja de placa base las ate (ver «Lo que sigue»).
+  **Paso 3b, hecho: las gobernantes se publican** (2026-09-25) por tipo y conjunto, como
+  nombres de la obra que la hoja de placa base usa: `<magnitud>_<criterio>_<tipo>_<conjunto>`.
+  - `N_c_CP_LRFD` es la N de la combinación que gobierna la **c**ompresión del tipo CP en el
+    conjunto LRFD. Los criterios son `c`, `t` (tracción), `v` (corte) y `m` (momento), y de
+    cada uno salen N (positiva compresión, negativa tracción), V y M de esa misma combinación:
+    12 nombres por tipo y conjunto, en kN y kN·m.
+  - `nc_<criterio>_…` vale 1 si esa combinación **no es concurrente**. Los nombres no cambian
+    por eso —renombrar en una relectura rompería las hojas—: la hoja que necesita concurrencia
+    lo verifica, y la marca queda en la memoria.
+  - El **alias del tipo** lo elige el ingeniero por grupo de SAP (`obra.aliasTipos`, con
+    historial); por defecto, las iniciales (`COL_PPALES` → `CP`). El del **conjunto** va
+    siempre, aunque haya uno solo, para que agregar otro no renombre nada; por defecto sale del
+    nombre. Letras y números, sin «_». Un alias repetido o inválido no publica, y el panel lo
+    dice.
+  - Un criterio sin gobernante (nada tracciona) no publica: no se inventa un cero. Tampoco los
+    apoyos sin grupo, ni un conjunto leído con otras familias.
 
 Lo que sigue en esta línea, de a uno:
 - ~~el mecanismo para que un nodo sin hoja publique nombres~~ — hecho, con `T_x` y `T_y` del
   modal;
-- que los apoyos publiquen las gobernantes por tipo y conjunto, hacia la placa base del Pachón,
-  y después la basal (Vx, Vy);
+- ~~que los apoyos publiquen las gobernantes por tipo y conjunto~~ — hecho; sigue la hoja de
+  placa base del Pachón que las usa, y después la basal (Vx, Vy);
 - los esfuerzos, con el mismo patrón;
 - la **justificación de las combinaciones** (etapa 6).
 

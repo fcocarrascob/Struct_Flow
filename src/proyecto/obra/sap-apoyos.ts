@@ -3,7 +3,9 @@
 // corte y el mayor momento.
 //
 // Puro, sin React: lo pintan el panel, la tabla y la tarjeta del sub-nodo
-// Apoyos, y `verify:obra` lo comprueba. Los valores llegan en kN y kN·m.
+// Apoyos, y `verify:obra` lo comprueba. Los valores llegan en kN y kN·m. Lo que
+// publica a la obra —las gobernantes por tipo y conjunto— sale de
+// `publicaApoyos`, y lo escribe `evaluacion.ts`.
 //
 // EL SIGNO DE F3. En SAP, una reacción positiva apunta hacia arriba: el apoyo
 // empuja la estructura hacia arriba, es decir, la estructura COMPRIME la
@@ -19,11 +21,12 @@ import type {
   LecturaBasal,
   LecturaCombinaciones,
   LecturaConjunto,
+  Obra,
   ReaccionesDeCaso,
   Vector6,
 } from './modelo';
 import { familiaDe } from './sap-combinaciones';
-import { atrasoDe } from './sap-modal';
+import { atrasoDe, type Publicado } from './sap-modal';
 
 /** Un extremo: en qué apoyo se da y cuánto vale (kN o kN·m). */
 export interface Extremo {
@@ -255,14 +258,18 @@ export function gobernantesDeConjunto(
  * Por qué la lectura de un conjunto ya no lo describe, o `undefined` si lo
  * describe: nunca se leyó, cambiaron sus familias, o el modelo cambió.
  */
+/** Si la lectura se hizo con las familias que el conjunto tiene ahora. */
+function deSusFamilias(c: ConjuntoDiseno, lectura: LecturaConjunto): boolean {
+  return [...lectura.familias].sort().join() === [...c.familias].sort().join();
+}
+
 export function estadoConjunto(
   c: ConjuntoDiseno,
   lectura: LecturaConjunto | undefined,
   sap: ConexionSap | undefined,
 ): { estado: 'sin-leer' | 'al-dia' | 'desactualizado'; motivo?: string } {
   if (!lectura) return { estado: 'sin-leer' };
-  const antes = [...lectura.familias].sort().join();
-  if (antes !== [...c.familias].sort().join()) {
+  if (!deSusFamilias(c, lectura)) {
     return { estado: 'desactualizado', motivo: 'cambiaron sus familias desde que se leyó' };
   }
   const atraso = atrasoDe(lectura, sap);
@@ -272,6 +279,141 @@ export function estadoConjunto(
 /** Los extremos de un conjunto entre todos los apoyos: la envolvente de todos. */
 export function extremosDeConjunto(lectura: LecturaConjunto): Partial<Record<keyof GobernantesDeApoyo, Gobernante & { apoyo: string }>> {
   return envolventeDeTipo(lectura, lectura.apoyos);
+}
+
+// ── Lo que publican a la obra ────────────────────────────────────────────────
+
+/**
+ * Un alias es un tramo de nombre: letras y números, empezando por letra, y sin
+ * «_», que partiría el subíndice (`N_c_CP_LRFD` se lee N_{c,CP,LRFD}).
+ */
+export const ALIAS_RE = /^[A-Za-z][A-Za-z0-9]*$/;
+
+/**
+ * El alias que toma un grupo o un conjunto si nadie elige otro: la palabra, si
+ * es una sola (`LRFD`), o las iniciales de cada tramo (`COL_PPALES` → `CP`,
+ * `Hormigón (LRFD)` → `HL`). Si empieza por cifra, lleva una `T` delante.
+ */
+export function aliasPorDefecto(texto: string): string {
+  const tramos = texto.normalize('NFD').replace(/[̀-ͯ]/g, '').split(/[^A-Za-z0-9]+/).filter(Boolean);
+  const a = tramos.length === 1 ? tramos[0] : tramos.map((t) => t[0]).join('').toUpperCase();
+  if (!a) return 'X';
+  return /^[0-9]/.test(a) ? `T${a}` : a;
+}
+
+/** Los cuatro criterios, con la letra con que entran en el nombre. */
+export const CRITERIOS = [
+  { k: 'compresion', letra: 'c' },
+  { k: 'traccion', letra: 't' },
+  { k: 'corte', letra: 'v' },
+  { k: 'momento', letra: 'm' },
+] as const satisfies readonly { k: keyof GobernantesDeApoyo; letra: string }[];
+
+/** Una fila de lo publicado: un tipo en un conjunto, y qué criterios tienen gobernante. */
+export interface FilaPublicada {
+  conjunto: string;
+  grupo: string;
+  /** `_CP_LRFD`: lo que va detrás de `N_c`. */
+  sufijo: string;
+  /** Por criterio presente, si su gobernante es concurrente. */
+  criterios: Partial<Record<keyof GobernantesDeApoyo, boolean>>;
+}
+
+export interface PublicacionApoyos {
+  publicados: Publicado[];
+  filas: FilaPublicada[];
+  /** Alias inválidos o repetidos: lo que no publica, y por qué. */
+  problemas: string[];
+}
+
+/**
+ * Las gobernantes de cada tipo de apoyo en cada conjunto, como nombres de la
+ * obra: `<magnitud>_<criterio>_<tipo>_<conjunto>`.
+ *
+ * - La magnitud: `N` es F3 (positiva compresión, negativa tracción), `V` el
+ *   corte √(F1² + F2²) y `M` el momento √(M1² + M2²), en kN y kN·m.
+ * - El criterio dice qué combinación gobierna: `c` compresión, `t` tracción,
+ *   `v` corte, `m` momento. De cada una salen las tres magnitudes, las de la
+ *   misma combinación (`V_c` es el corte que acompaña a la compresión máxima).
+ * - `nc_<criterio>_…` vale 1 si esa combinación NO es concurrente (espectro o
+ *   envolvente): sus acompañantes son extremos por componente, no de un mismo
+ *   instante. Los nombres no cambian por eso, porque renombrar en una relectura
+ *   rompería las hojas; la hoja que necesite concurrencia lo verifica.
+ *
+ * Un criterio sin gobernante (nada tracciona) no publica: no se inventa un cero.
+ * Tampoco los apoyos sin grupo, ni un conjunto cuya lectura es de otras
+ * familias. Una lectura atrasada sí publica, como la del modal: el nodo avisa.
+ */
+export function publicaApoyos(obra: Obra): PublicacionApoyos {
+  const vacia: PublicacionApoyos = { publicados: [], filas: [], problemas: [] };
+  const sap = obra.sap;
+  if (!obra.modulos.includes('sap-apoyos') || !sap?.apoyos?.grupos) return vacia;
+  const problemas: string[] = [];
+
+  /** Los que tienen alias válido y único; el resto, a `problemas`. */
+  const conAlias = <T>(items: readonly T[], alias: (x: T) => string, nombre: (x: T) => string) => {
+    const usados = new Map<string, string>();
+    const salida: { item: T; alias: string }[] = [];
+    for (const item of items) {
+      const a = alias(item);
+      if (!ALIAS_RE.test(a)) {
+        problemas.push(`El alias «${a}» de ${nombre(item)} no sirve de nombre: letras y números, empezando por letra, sin «_».`);
+      } else if (usados.has(a)) {
+        problemas.push(`${nombre(item)} tiene el mismo alias «${a}» que ${usados.get(a)}: no publica hasta que le des otro.`);
+      } else {
+        usados.set(a, nombre(item));
+        salida.push({ item, alias: a });
+      }
+    }
+    return salida;
+  };
+
+  const tipos = conAlias(
+    tiposDeApoyo(sap.apoyos).tipos.filter((t): t is TipoDeApoyo & { grupo: string } => t.grupo !== null),
+    (t) => obra.aliasTipos?.[t.grupo] ?? aliasPorDefecto(t.grupo),
+    (t) => t.grupo,
+  );
+  const conjuntos = conAlias(
+    (obra.conjuntosDiseno ?? []).filter((c) => {
+      const l = sap.conjuntos?.[c.id];
+      return l !== undefined && deSusFamilias(c, l);
+    }),
+    (c) => c.alias ?? aliasPorDefecto(c.nombre),
+    (c) => `el conjunto «${c.nombre}»`,
+  );
+
+  const publicados: Publicado[] = [];
+  const filas: FilaPublicada[] = [];
+  for (const { item: c, alias: ac } of conjuntos) {
+    const lectura = sap.conjuntos![c.id];
+    for (const { item: t, alias: at } of tipos) {
+      const sufijo = `_${at}_${ac}`;
+      const env = envolventeDeTipo(lectura, t.apoyos);
+      const criterios: FilaPublicada['criterios'] = {};
+      for (const { k, letra } of CRITERIOS) {
+        const g = env[k];
+        if (!g) continue;
+        criterios[k] = g.concurrente;
+        const N = g.v[2];
+        const V = Math.hypot(g.v[0], g.v[1]);
+        const M = Math.hypot(g.v[3], g.v[4]);
+        // La magnitud que gobierna va primero: `V_v`, `N_v`, `M_v`.
+        const magnitudes: [string, number, string][] = [
+          ['N', N, 'kN'],
+          ['V', V, 'kN'],
+          ['M', M, 'kN*m'],
+        ];
+        const primera = { compresion: 0, traccion: 0, corte: 1, momento: 2 }[k];
+        magnitudes.unshift(...magnitudes.splice(primera, 1));
+        for (const [mag, x, u] of magnitudes) {
+          publicados.push({ nombre: `${mag}_${letra}${sufijo}`, expr: `${String(x)} ${u}` });
+        }
+        publicados.push({ nombre: `nc_${letra}${sufijo}`, expr: g.concurrente ? '0' : '1' });
+      }
+      filas.push({ conjunto: c.nombre, grupo: t.grupo, sufijo, criterios });
+    }
+  }
+  return { publicados, filas, problemas };
 }
 
 /** Los casos que tienen tracción en algún apoyo: los que levantan la estructura. */

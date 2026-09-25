@@ -78,7 +78,8 @@ import type { Frontera, Obra } from './modelo';
 // miraba las regiones `math`, y el panel y el grafo discrepaban sobre qué
 // define una hoja en cuanto aparecía un programa.
 import { definicionesDe, ordenDeLectura, usosDeRegion } from './hoja';
-import { ID_NODO_MODAL, idNodoDeCalculo } from './ids';
+import { ID_NODO_APOYOS, ID_NODO_MODAL, idNodoDeCalculo } from './ids';
+import { publicaApoyos } from './sap-apoyos';
 import { publicaModal, type Publicado } from './sap-modal';
 
 const CENTINELA = '__scope_final';
@@ -196,6 +197,10 @@ export function nodosDeLaObra(obra: Obra): NodoObra[] {
   if (obra.modulos.includes('sap-modal') && obra.sap?.modal) {
     const resultados = publicaModal(obra.sap.modal);
     if (resultados.length) nodos.push({ idNodo: ID_NODO_MODAL, etiqueta: 'Modal', hoja: [], resultados });
+  }
+  const apoyos = publicaApoyos(obra).publicados;
+  if (apoyos.length) {
+    nodos.push({ idNodo: ID_NODO_APOYOS, etiqueta: 'Reacciones en apoyos', hoja: [], resultados: apoyos });
   }
   for (const k of obra.calculos) {
     nodos.push({
@@ -684,6 +689,13 @@ export function problemaDeGrafo(idNodo: string, ev: EvaluacionObra): string {
     );
   }
   return '';
+}
+
+/** Las etiquetas de los nodos que usan algo de lo que define `idNodo`. */
+export function consumidoresDe(idNodo: string, ev: EvaluacionObra): string[] {
+  return [...ev.usos]
+    .filter(([, nombres]) => [...nombres].some((n) => ev.duenio.get(n) === idNodo))
+    .map(([id]) => ev.etiquetas.get(id) ?? id);
 }
 
 /**

@@ -96,8 +96,10 @@ export {
   extremosDeConjunto,
   tiposDeApoyo,
   envolventeDeTipo,
+  aliasPorDefecto,
+  publicaApoyos,
 } from './sap-apoyos';
-export { nuevoConjunto, conConjunto, quitarConjunto } from './modelo';
+export { nuevoConjunto, conConjunto, quitarConjunto, conAliasTipo } from './modelo';
 
 // El motor y el armado de una genérica, en el mismo bundle.
 export { evaluateSheet, formatValor, parseMathRegion } from '../../lib/worksheet';

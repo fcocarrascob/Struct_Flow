@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type { ConexionSap, ConjuntoDiseno, LecturaCombinaciones, LecturaConjunto, SistemaUnidades } from './modelo';
 import {
+  ALIAS_RE,
+  aliasPorDefecto,
   combosDeConjunto,
   envolventeDeTipo,
   estadoConjunto,
@@ -12,6 +14,13 @@ import {
 import { resumenCombinaciones } from './sap-combinaciones';
 import { fuerza } from './sap-basal';
 import { alPuente } from './puente';
+
+/** Un conjunto que todavía no tiene id: el canvas lo sortea al guardarlo. */
+export interface NuevoConjunto {
+  nombre: string;
+  familias: string[];
+  alias?: string;
+}
 
 /**
  * Los conjuntos de diseño de los apoyos: familias de combinaciones que el
@@ -38,7 +47,7 @@ export default function ConjuntosApoyos({
   conjuntos: readonly ConjuntoDiseno[];
   unidades: SistemaUnidades;
   onCombinaciones: (l: LecturaCombinaciones) => void;
-  onGuardar: (c: ConjuntoDiseno | { nombre: string; familias: string[] }) => void;
+  onGuardar: (c: ConjuntoDiseno | NuevoConjunto) => void;
   onQuitar: (id: string) => void;
   onLeido: (id: string, l: LecturaConjunto) => void;
   onVer: (id: string) => void;
@@ -138,6 +147,9 @@ export default function ConjuntosApoyos({
             <li key={c.id} className="rounded border border-border px-3 py-2">
               <div className="flex flex-wrap items-baseline gap-x-2">
                 <span className="font-semibold text-ink">{c.nombre}</span>
+                <span className="font-mono text-[10px] text-muted" title="Alias con que entra en los nombres publicados">
+                  _{c.alias ?? aliasPorDefecto(c.nombre)}
+                </span>
                 <span className="font-mono text-[10px] text-muted">{c.familias.join(' · ')}</span>
                 <span className="text-[10px] text-muted">{nCombos} combinaciones</span>
                 <span className="ml-auto flex gap-2 text-[10px]">
@@ -302,10 +314,12 @@ function EditorConjunto({
 }: {
   inicial: ConjuntoDiseno | undefined;
   familias: { familia: string; n: number }[];
-  onGuardar: (c: ConjuntoDiseno | { nombre: string; familias: string[] }) => void;
+  onGuardar: (c: ConjuntoDiseno | NuevoConjunto) => void;
   onCancelar: () => void;
 }) {
   const [nombre, setNombre] = useState(inicial?.nombre ?? '');
+  const [alias, setAlias] = useState(inicial?.alias ?? '');
+  const aliasValido = !alias.trim() || ALIAS_RE.test(alias.trim());
   const [elegidas, setElegidas] = useState<ReadonlySet<string>>(new Set(inicial?.familias ?? []));
   const alternar = (f: string) =>
     setElegidas((s) => {
@@ -330,6 +344,20 @@ function EditorConjunto({
         autoFocus
         className="w-full rounded border border-border px-2 py-1 text-xs outline-none focus:border-accent"
       />
+      <label className="flex items-baseline gap-2 text-[10px] text-muted">
+        Alias en los nombres publicados
+        <input
+          type="text"
+          value={alias}
+          onChange={(e) => setAlias(e.target.value)}
+          placeholder={aliasPorDefecto(nombre.trim() || 'LRFD')}
+          aria-label="Alias del conjunto"
+          className={`w-20 rounded border px-1 py-0 font-mono outline-none focus:border-accent ${
+            aliasValido ? 'border-border text-ink' : 'border-error text-error'
+          }`}
+        />
+        {!aliasValido && <span className="text-error">letras y números, empezando por letra, sin «_»</span>}
+      </label>
       <div className="flex flex-wrap gap-1.5">
         {familias.map((f) => {
           const si = elegidas.has(f.familia);
@@ -356,10 +384,13 @@ function EditorConjunto({
       <div className="flex items-center gap-2">
         <button
           type="button"
-          disabled={!lista.length}
-          onClick={() =>
-            onGuardar({ ...(inicial ?? {}), nombre: nombre.trim() || lista.join(', '), familias: lista })
-          }
+          disabled={!lista.length || !aliasValido}
+          onClick={() => {
+            // Sin alias escrito, el conjunto no guarda ninguno: sigue al nombre.
+            const { alias: _, ...base } = inicial ?? { alias: undefined };
+            const a = alias.trim();
+            onGuardar({ ...base, nombre: nombre.trim() || lista.join(', '), familias: lista, ...(a ? { alias: a } : {}) });
+          }}
           className="rounded border border-accent bg-accent px-2 py-0.5 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
         >
           Guardar

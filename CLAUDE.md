@@ -147,7 +147,8 @@ entrada de otro. Las piezas, y por qué están separadas:
   planilla se evalúa con el scope de **su** posición y deja en él lo que publica, como el
   objeto `Unit` que es. Por eso `evaluateSheet` acepta un scope inicial. Un **nodo de
   resultados** (un sub-nodo del SAP2000, marca `resultados` en `NodoObra`) publica lo leído
-  del modelo sin tener hoja —hoy `T_x` y `T_y` del Modal— y va primero en el orden de
+  del modelo sin tener hoja —hoy `T_x` y `T_y` del Modal, y las gobernantes de los apoyos por
+  tipo y conjunto (`N_c_CP_LRFD`, `publicaApoyos`)— y va primero en el orden de
   creación, para que toda hoja lo vea en el autocompletado.
 - `obra/proyeccion.ts` — de la obra al grafo. **Los nodos y las flechas no se guardan: se
   derivan.** Una flecha de A a B es «B nombra esto que publica A», así que borrar la línea

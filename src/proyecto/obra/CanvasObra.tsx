@@ -29,7 +29,8 @@ import { archivoDeObra, nombreDeArchivo } from './almacen';
 import { abrirObra, olvidarBorrador, type Apertura } from './almacen-disco';
 import { descargarHoja } from '../../lib/canvas-handoff';
 import { cargarGenerica, desprender, type Genericas } from './biblioteca';
-import { evaluarObra, problemaDeGrafo, rupturaPorQuitar } from './evaluacion';
+import { consumidoresDe, evaluarObra, problemaDeGrafo, rupturaPorQuitar } from './evaluacion';
+import { publicaApoyos } from './sap-apoyos';
 // `idsDeLaObra`: todos los ids ya repartidos. Traer las regiones de una genérica
 // a un nodo pasa por ahí: dos nodos que desprendan la misma se quedarían con las
 // mismas, y son las claves de `results` en la hoja global.
@@ -54,6 +55,7 @@ import {
   conPublicacion,
   nuevoCalculo,
   quitarModulo,
+  conAliasTipo,
   conConjunto,
   nuevoConjunto,
   quitarConjunto,
@@ -926,6 +928,25 @@ function CanvasObra({
       setSeleccion(null);
     },
     [cerrarPestanasDe, anunciarBorrado],
+  );
+
+  /**
+   * Quita un sub-nodo del SAP2000 que publica nombres (Modal, Apoyos). Las hojas
+   * que los usan se quedan sin ellos, y hay que decirlo ahora, que todavía se
+   * sabe quién: es el mismo aviso que al borrar un cálculo.
+   */
+  const quitarPublicador = useCallback(
+    (modulo: Modulo, idNodo: string, etiqueta: string) => {
+      const actual = obraRef.current;
+      if (actual) {
+        const frase = fraseDeRuptura(etiqueta, rupturaPorQuitar([idNodo], evaluacionRef.current));
+        const siguiente = quitarModulo(actual, modulo);
+        setObra(siguiente);
+        anunciarBorrado(siguiente, frase);
+      }
+      setSeleccion(null);
+    },
+    [anunciarBorrado],
   );
 
   // ── Los grupos ─────────────────────────────────────────────────────────────
@@ -1810,8 +1831,18 @@ function CanvasObra({
             onGuardarConjunto={(c) => {
               const o = obraRef.current;
               if (!o) return;
-              setObra(conConjunto(o, 'id' in c ? c : nuevoConjunto(c.nombre, c.familias)));
+              setObra(
+                conConjunto(
+                  o,
+                  'id' in c ? c : { ...nuevoConjunto(c.nombre, c.familias), ...(c.alias ? { alias: c.alias } : {}) },
+                ),
+              );
             }}
+            // Lo que publica y quién lo usa lo dice la evaluación, no el panel.
+            publicacion={publicaApoyos(obra)}
+            usan={consumidoresDe(ID_NODO_APOYOS, evaluacion)}
+            aliasTipos={obra.aliasTipos ?? {}}
+            onAliasTipo={(grupo, alias) => setObra((o) => (o ? conAliasTipo(o, grupo, alias) : o))}
             onQuitarConjunto={(id) => {
               const o = obraRef.current;
               if (o) setObra(quitarConjunto(o, id));
@@ -1831,10 +1862,8 @@ function CanvasObra({
               )
             }
             onQuitar={() => {
-              const o = obraRef.current;
-              if (o) setObra(quitarModulo(o, 'sap-apoyos'));
+              quitarPublicador('sap-apoyos', ID_NODO_APOYOS, 'Reacciones en apoyos');
               cerrarPestana(ID_NODO_APOYOS);
-              setSeleccion(null);
             }}
             onCerrar={() => setSeleccion(null)}
           />
@@ -1872,9 +1901,7 @@ function CanvasObra({
           <PanelModal
             sap={obra.sap}
             publica={evaluacion.define.get(ID_NODO_MODAL) ?? []}
-            usan={[...evaluacion.usos]
-              .filter(([, nombres]) => [...nombres].some((n) => evaluacion.duenio.get(n) === ID_NODO_MODAL))
-              .map(([id]) => evaluacion.etiquetas.get(id) ?? id)}
+            usan={consumidoresDe(ID_NODO_MODAL, evaluacion)}
             // La fecha del .sdb que trae la lectura es también lo último que se
             // sabe del modelo: pasa a ser la de la conexión.
             onLeido={(modal) =>
@@ -1884,18 +1911,7 @@ function CanvasObra({
                   : o,
               )
             }
-            onQuitar={() => {
-              const o = obraRef.current;
-              if (o) {
-                // Publica T_x y T_y: quitarlo deja sin ellos a las hojas que los
-                // usan, y hay que decirlo ahora, que todavía se sabe quién.
-                const frase = fraseDeRuptura('Modal', rupturaPorQuitar([ID_NODO_MODAL], evaluacionRef.current));
-                const siguiente = quitarModulo(o, 'sap-modal');
-                setObra(siguiente);
-                anunciarBorrado(siguiente, frase);
-              }
-              setSeleccion(null);
-            }}
+            onQuitar={() => quitarPublicador('sap-modal', ID_NODO_MODAL, 'Modal')}
             onCerrar={() => setSeleccion(null)}
           />
         )}

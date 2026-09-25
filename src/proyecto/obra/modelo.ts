@@ -294,6 +294,11 @@ export interface ConjuntoDiseno {
   nombre: string;
   /** Familias según la convención de Flow: el texto antes del primer «_». */
   familias: string[];
+  /**
+   * El tramo con que el conjunto entra en los nombres que publican los apoyos
+   * (`N_c_CP_LRFD`). Ausente, se deriva del nombre (`aliasPorDefecto`).
+   */
+  alias?: string;
 }
 
 /** Seis componentes de reacción: F1, F2, F3 (kN), M1, M2, M3 (kN·m). */
@@ -669,6 +674,21 @@ export interface Obra {
   unidadesSap?: SistemaUnidades;
   /** Los conjuntos de diseño de los apoyos. Ausente mientras no haya ninguno. */
   conjuntosDiseno?: ConjuntoDiseno[];
+  /**
+   * El alias de cada tipo de apoyo, por grupo de SAP: el tramo con que entra en
+   * los nombres publicados (`COL_PPALES` → `CP`). Solo los elegidos a mano; el
+   * resto sale de `aliasPorDefecto`. Es decisión del ingeniero: con historial.
+   */
+  aliasTipos?: Record<string, string>;
+}
+
+/** Fija el alias de un tipo de apoyo. Vacío, vuelve al de por defecto. */
+export function conAliasTipo(obra: Obra, grupo: string, alias: string): Obra {
+  const { [grupo]: _, ...resto } = obra.aliasTipos ?? {};
+  const a = alias.trim();
+  const lista = a ? { ...resto, [grupo]: a } : resto;
+  const { aliasTipos: __, ...sin } = obra;
+  return Object.keys(lista).length ? { ...sin, aliasTipos: lista } : sin;
 }
 
 export function nuevoConjunto(nombre: string, familias: string[]): ConjuntoDiseno {

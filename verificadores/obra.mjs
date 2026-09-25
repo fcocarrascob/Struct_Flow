@@ -98,6 +98,9 @@ const {
   nuevoConjunto,
   conConjunto,
   quitarConjunto,
+  conAliasTipo,
+  aliasPorDefecto,
+  publicaApoyos,
   obraDesde,
   traerNodos,
   dependenciasDe,
@@ -1616,6 +1619,88 @@ const CASOS_HOJA = [
       const copia = obraDesde(saneada, 'copia');
       if (JSON.stringify(copia.conjuntosDiseno) !== JSON.stringify([conjunto])) return 'la copia no llevó los conjuntos';
       return copia.sap?.conjuntos ? 'la copia llevó la lectura' : null;
+    },
+  },
+  {
+    nombre: 'los apoyos publican sus gobernantes por tipo y conjunto, con la marca de no concurrente, y una hoja las usa',
+    ok: () => {
+      // COL_PPALES tiene el 1 y el 7; COL_VIENTO, el 45; el 592 no tiene grupo.
+      // B21 es lineal; B25 lleva envolvente (Max/Min): no concurrente.
+      const apoyos = ['1', '7', '45', '592'];
+      const lecturaApoyos = {
+        modelo: 'm.sdb', leido: '', modificado: '2026-09-25T12:29:49Z',
+        apoyos: apoyos.map((nombre) => ({ nombre })), casos: [], sinAnalizar: [],
+        grupos: [
+          { nombre: 'COL_PPALES', directos: ['1', '7'], porBarra: [] },
+          { nombre: 'COL_VIENTO', directos: [], porBarra: ['45'] },
+        ],
+      };
+      const conjunto = { id: 'cd1', nombre: 'LRFD', familias: ['B21', 'B25'] };
+      const gobernantes = gobernantesDeConjunto({
+        modelo: 'm.sdb', modificado: '2026-09-25T12:29:49Z', apoyos,
+        filas: [
+          { combo: 'B21', valores: [[10, 0, 500, 0, 20, 0], [30, 40, 300, 60, 80, 0], [5, 0, -40, 0, 0, 0], [0, 0, 100, 0, 0, 0]] },
+          { combo: 'B25_EX_EVP', paso: 'Max', valores: [[12, 0, 800, 0, 10, 0], [1, 1, 200, 1, 1, 0], [3, 0, 10, 0, 0, 0], [0, 0, 100, 0, 0, 0]] },
+          { combo: 'B25_EX_EVP', paso: 'Min', valores: [[-2, 0, 600, 0, -5, 0], [0, 0, 150, 0, 0, 0], [-8, 0, -90, 0, 0, 0], [0, 0, 90, 0, 0, 0]] },
+        ],
+      }, conjunto.familias, '2026-09-25T13:00:00Z');
+      const armar = (cambios = {}, ...calculos) => ({
+        ...obra(...calculos),
+        modulos: ['sap', 'sap-apoyos'],
+        conjuntosDiseno: [conjunto],
+        sap: { modelo: 'm.sdb', ruta: '', version: '', leido: '', modificado: '2026-09-25T12:29:49Z', apoyos: lecturaApoyos, conjuntos: { cd1: gobernantes } },
+        ...cambios,
+      });
+      // Los alias por defecto: las iniciales de cada tramo, o la palabra si es una.
+      const defectos = ['COL_PPALES', 'COL_VIENTO', 'LRFD', 'Hormigón (LRFD)', '1PISO'].map(aliasPorDefecto).join();
+      if (defectos !== 'CP,CV,LRFD,HL,T1PISO') return `alias por defecto ${defectos}`;
+
+      const o = armar({}, calc('PB', m('T_u := -N_t_CV_LRFD'), m('M_u := M_m_CP_LRFD')));
+      const ev = evaluarObra(o, {});
+      const errores = Object.entries(ev.results).filter(([, r]) => r.error).map(([id, r]) => `${id}: ${r.error}`);
+      if (errores.length) return `errores: ${errores.join(' · ')}`;
+      const kN = (n) => en(ev.scope, n, 'kN');
+      const kNm = (n) => en(ev.scope, n, 'kN*m');
+      // COL_PPALES: la compresión es del Max de B25 en el 1 (no concurrente), con su V y su M.
+      if (kN('N_c_CP_LRFD') !== 800 || kN('V_c_CP_LRFD') !== 12 || kNm('M_c_CP_LRFD') !== 10) return `compresión CP ${kN('N_c_CP_LRFD')} ${kN('V_c_CP_LRFD')} ${kNm('M_c_CP_LRFD')}`;
+      if (ev.scope.nc_c_CP_LRFD !== 1) return `nc_c_CP_LRFD = ${ev.scope.nc_c_CP_LRFD}`;
+      // El corte y el momento, de B21 en el 7: concurrentes, con la N de esa combinación.
+      if (kN('V_v_CP_LRFD') !== 50 || kN('N_v_CP_LRFD') !== 300 || kNm('M_v_CP_LRFD') !== 100) return 'corte CP';
+      if (kNm('M_m_CP_LRFD') !== 100 || kN('N_m_CP_LRFD') !== 300 || ev.scope.nc_m_CP_LRFD !== 0) return 'momento CP';
+      // Nada tracciona en COL_PPALES: no se publica, no se inventa un cero.
+      if (ev.duenio.has('N_t_CP_LRFD')) return 'publicó una tracción que no hay';
+      // COL_VIENTO: la tracción es del Min de B25, N negativa.
+      if (kN('N_t_CV_LRFD') !== -90 || kN('V_t_CV_LRFD') !== 8 || ev.scope.nc_t_CV_LRFD !== 1) return `tracción CV ${kN('N_t_CV_LRFD')}`;
+      if (kN('T_u') !== 90) return `T_u = ${kN('T_u')}`;
+      // Sin grupo, no publica.
+      if ([...ev.duenio.keys()].some((n) => n.endsWith('_LRFD') && !/_(CP|CV)_LRFD$/.test(n))) return 'publicó un tipo sin grupo';
+      if (ev.duenio.get('N_c_CP_LRFD') !== 'sap:apoyos') return `dueño ${ev.duenio.get('N_c_CP_LRFD')}`;
+      const flecha = proyectar(o, ev, {}).aristas.find((a) => a.desde === 'sap:apoyos' && a.hasta === K('PB') && a.tipo === 'dato');
+      if (flecha?.etiqueta !== 'M_m_CP_LRFD, N_t_CV_LRFD') return `flecha: ${flecha?.etiqueta ?? 'no hay'}`;
+
+      // Los alias los elige el ingeniero: el de tipo en la obra, el de conjunto en el conjunto.
+      const conAlias = conAliasTipo(armar({ conjuntosDiseno: [{ ...conjunto, alias: 'H' }] }), 'COL_PPALES', 'PB1');
+      const nombres = publicaApoyos(conAlias).publicados.map((p) => p.nombre);
+      if (!nombres.includes('N_c_PB1_H') || nombres.some((n) => n.endsWith('_LRFD'))) return `con alias: ${nombres.join()}`;
+      if (conAliasTipo(conAlias, 'COL_PPALES', '').aliasTipos !== undefined) return 'un alias vacío no volvió al de por defecto';
+      // Dos tipos con el mismo alias: el segundo no publica, y se dice.
+      const choque = publicaApoyos(conAliasTipo(armar(), 'COL_VIENTO', 'CP'));
+      if (choque.publicados.some((p) => p.nombre === 'N_t_CP_LRFD')) return 'el alias repetido publicó';
+      if (!choque.problemas.some((p) => p.includes('CP'))) return `problemas: ${choque.problemas}`;
+      // Un alias que no es un nombre del motor, tampoco.
+      if (!publicaApoyos(conAliasTipo(armar(), 'COL_VIENTO', 'C V')).problemas.length) return 'aceptó un alias con espacio';
+      // Si cambiaron las familias, la lectura ya no es del conjunto: no publica.
+      if (publicaApoyos(armar({ conjuntosDiseno: [{ ...conjunto, familias: ['B21'] }] })).publicados.length) return 'publicó una lectura de otras familias';
+      // Sin el sub-nodo, nada.
+      if (evaluarObra(armar({ modulos: ['sap'] }), {}).duenio.has('N_c_CP_LRFD')) return 'publicó sin el sub-nodo';
+
+      // Saneo e ida y vuelta de los alias; una copia los lleva.
+      const saneada = sanearObra(conAlias);
+      if (JSON.stringify(saneada.aliasTipos) !== '{"COL_PPALES":"PB1"}' || saneada.conjuntosDiseno[0].alias !== 'H') return `saneo ${JSON.stringify(saneada.aliasTipos)} ${saneada.conjuntosDiseno[0].alias}`;
+      if (JSON.stringify(sanearObra(archivoDeObra(saneada).obra)) !== JSON.stringify(saneada)) return 'cambió en la ida y vuelta';
+      if (sanearObra({ ...conAlias, aliasTipos: { A: 3, B: ' ', C: 'X1' } }).aliasTipos?.C !== 'X1') return 'saneo de alias rotos';
+      const copia = obraDesde(saneada, 'copia');
+      return copia.aliasTipos?.COL_PPALES === 'PB1' && copia.conjuntosDiseno[0].alias === 'H' ? null : 'la copia no llevó los alias';
     },
   },
   {

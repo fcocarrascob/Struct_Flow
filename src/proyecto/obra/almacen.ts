@@ -389,9 +389,24 @@ function sanearConjuntosDiseno(crudo: unknown): { conjuntosDiseno?: ConjuntoDise
     vistos.add(c.id);
     const familias = [...new Set(nombresDe(c.familias))];
     const nombre = typeof c.nombre === 'string' && c.nombre.trim() ? c.nombre.trim() : familias.join(', ') || 'Conjunto';
-    lista.push({ id: c.id, nombre, familias });
+    const alias = typeof c.alias === 'string' ? c.alias.trim() : '';
+    lista.push({ id: c.id, nombre, familias, ...(alias ? { alias } : {}) });
   }
   return lista.length ? { conjuntosDiseno: lista } : {};
+}
+
+/**
+ * Los alias de los tipos de apoyo. Se conserva todo texto no vacío, aunque no
+ * sea un nombre válido: lo dice el panel y no publica, pero no se borra lo que
+ * el ingeniero escribió.
+ */
+function sanearAliasTipos(crudo: unknown): { aliasTipos?: Record<string, string> } {
+  if (!crudo || typeof crudo !== 'object' || Array.isArray(crudo)) return {};
+  const salida: Record<string, string> = {};
+  for (const [grupo, alias] of Object.entries(crudo)) {
+    if (typeof alias === 'string' && alias.trim()) salida[grupo] = alias.trim();
+  }
+  return Object.keys(salida).length ? { aliasTipos: salida } : {};
 }
 
 /**
@@ -806,6 +821,7 @@ export function sanearObra(crudo: unknown): Obra | null {
     // `kN` es lo que se asume sin nada escrito: guardarlo sería un campo que no dice nada.
     ...(o.unidadesSap === 'tonf' ? { unidadesSap: 'tonf' as const } : {}),
     ...sanearConjuntosDiseno(o.conjuntosDiseno),
+    ...sanearAliasTipos(o.aliasTipos),
   };
 }
 
