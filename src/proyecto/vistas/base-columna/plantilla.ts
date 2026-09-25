@@ -607,13 +607,14 @@ export const PLANTILLA_BASE_COLUMNA: Plantilla = {
           Mux_4: 'M_p4', h_ef: 'h_ef_pno', n_contables: 'n_cont_ped', T_grupo: 'T_pb', As_req_anc: 'As_req_anc',
           As_req_llave_X: 'As_llx', As_req_llave_Y: 'As_lly', h_llave: 'h_sl_ll', b_llave: 'b_sl_ll', N_trac_max: 'T_ext_dg',
           Pu_5: 'N_t3_cl', Muy_5: 'Muy_ext_cl', Muy_6: 'Muy_int_cl', sep_est_zp: 'sep_zp_ped', n_ramas: 'n_ramas_ped',
+          n_niv_sin_ramas: 'n_niv_sin_ramas_ll',
         },
         publica: { u_max: 'u_ped' },
         capas: [
           {
             si: '!llave',
-            entradas: { h_llave: 0, b_llave: 0, As_req_llave_X: 0, As_req_llave_Y: 0 },
-            formulas: { As_req_llave_X: null, As_req_llave_Y: null, h_llave: null, b_llave: null },
+            entradas: { h_llave: 0, b_llave: 0, As_req_llave_X: 0, As_req_llave_Y: 0, n_niv_sin_ramas: 0 },
+            formulas: { As_req_llave_X: null, As_req_llave_Y: null, h_llave: null, b_llave: null, n_niv_sin_ramas: null },
           },
           // Sin capacidad: el corte del modelo, y sin los casos del arranque de las diagonales.
           {

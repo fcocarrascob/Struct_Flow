@@ -3222,11 +3222,11 @@ function CASOS_ENSAMBLE() {
     u_pb_CP: 0.8521078818700685,
     u_anc_CP: 0.8591692804950317,
     // La llave y el pedestal, después de resolver el choque de la llave con las ramas
-    // de estribo (2026-09-25): nivel 1 sin ramas interiores y estribos φ25. Antes,
-    // 0,9396 y 0,9396.
+    // de estribo (2026-09-25): nivel 1 sin ramas interiores y estribos φ25, y el
+    // pedestal contando ese nivel con solo el perimetral. Antes, 0,9396 y 0,9396.
     u_llave_CP: 0.9180084007925408,
     u_silla_CP: 0.9857142857142857,
-    u_ped_CP: 0.6013674536374668,
+    u_ped_CP: 0.6938855234278464,
   };
   const PARAMS = { tipo: 'CP', grupoSap: 'COL_PPALES', diseno: 'LRFD', sobrerresistencia: 'O0' };
   const PLANTILLA = VISTAS['base-columna'].plantilla;

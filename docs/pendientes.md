@@ -76,10 +76,12 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
       de la chapa 2,03). **Aplicado en el Pachón el mismo día**: nivel 1 sin ramas interiores
       (`n_niv_sin_ramas_ll_CP := 1`, atado a la vista, que ya no las dibuja y verifica
       `v_llave_ramas`: 37,5 ≥ 33,3 mm) y estribos φ25; llave 0,918 (manda el aplastamiento),
-      pedestal 0,601. Queda: `pedestal-generico` cuenta en su sección 13 todos los niveles de la
-      zona con `n_ramas` completas (As_prov 14.726 mm² en vez de 12.763; el uso real es 0,694,
-      no 0,601), le falta la entrada de niveles sin ramas; y que `n_est_ll` lo derive la vista
-      en vez de la fórmula de la hoja de datos. La base del hastial (`_CV`) tiene el mismo dato y
+      pedestal 0,694. `pedestal-generico` tiene desde el mismo día la entrada `n_niv_sin_ramas`
+      (cada nivel sin ramas aporta 2 por dirección en su sección 13) y el aviso
+      `v_sin_ramas_hx`, que salta en el Pachón: con el §18.7 en juego, en ese nivel las barras
+      de la cara quedan sin el apoyo lateral del §18.7.5.2 (⁉️ lectura, por confirmar contra la
+      fuente, y decisión de quien diseña). Queda: que `n_est_ll` lo derive la vista en vez de la
+      fórmula de la hoja de datos. La base del hastial (`_CV`) tiene el mismo dato y
       la misma cuenta desde el mismo día; con 2 ramas por dirección no tiene ramas interiores
       y sus números no cambiaron.
    5. La hoja de capacidad como variante por norma (NCh2369 para Chile) y las fuerzas de las
