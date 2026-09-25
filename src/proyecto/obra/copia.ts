@@ -170,6 +170,9 @@ export function obraDesde(
     calculos,
     ...(grupos.length ? { grupos } : {}),
     ...(origen.unidadesSap ? { unidadesSap: origen.unidadesSap } : {}),
+    // Los conjuntos de diseño sí viajan: nombran familias, que son una
+    // convención de nombres y no el modelo de origen. Su lectura, no.
+    ...(origen.conjuntosDiseno?.length ? { conjuntosDiseno: origen.conjuntosDiseno } : {}),
   };
   return sanearObra(obra) ?? obra;
 }

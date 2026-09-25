@@ -250,18 +250,26 @@ que devolverlo con sus datos.
   - Si la basal está leída, la suma de F3 de cada caso estático tiene que ser su FZ. Si no lo
     es, falta un apoyo en la lectura, y el nodo avisa.
 
-  **Paso 2: conjuntos de diseño.** El ingeniero arma conjuntos con nombre a partir de las
-  **familias** de combinaciones («Hormigón (LRFD)» = B21…B27, «Estabilidad» = SERV…). Para cada
-  apoyo, Flow da las combinaciones que gobiernan (compresión, tracción, corte, momento) con
-  sus valores **concurrentes**. Una combinación con espectro o envolvente no tiene
-  concurrentes: SAP da máximo y mínimo por componente, y la tabla tiene que decirlo, no
-  inventar la concurrencia. Los conjuntos son decisión del ingeniero y van en la obra, con
-  historial; la lectura se guarda resumida.
+  **Paso 2, hecho: conjuntos de diseño.** El ingeniero arma conjuntos con nombre a partir de
+  las **familias** de combinaciones («Hormigón (LRFD)» = B21…B27, «Estabilidad» = SERV…).
+  - Para cada apoyo, Flow da la combinación que gobierna la compresión, la tracción, el corte y
+    el momento, con los valores que la acompañan en esa misma combinación (V y M con la N, N
+    con el V…).
+  - **Lo no concurrente se marca con ≠, no se esconde.** Una combinación con espectro o
+    envolvente da `Max` y `Min` por componente. La compresión sale del `Max` de F3 y la
+    tracción del `Min`. El corte y el momento salen de los extremos de cada componente, y su
+    vector no es de un mismo instante.
+  - Los conjuntos (`obra.conjuntosDiseno`) son decisión del ingeniero: van en la obra, con
+    historial, y viajan en una copia, porque nombran familias y no el modelo.
+  - Su lectura (`sap.conjuntos`) se guarda resumida, sin las filas crudas, y se marca
+    desactualizada si cambian las familias o el modelo.
+  - Las combinaciones se leen desde el mismo panel si no estaban leídas; es la misma lectura
+    que usa el sub-nodo Combinaciones.
 
   **Paso 3:** agrupar los apoyos por grupo de SAP (una placa por grupo) y publicar.
 
 Lo que sigue en esta línea, de a uno:
-- los conjuntos de diseño de los apoyos (paso 2, arriba);
+- agrupar los apoyos por grupo de SAP (paso 3, arriba);
 - que el modal, la basal y los apoyos publiquen nombres (Tx, Ty, Vx, Vy, las gobernantes) para
   que las hojas los usen en vez de copiarlos;
 - los esfuerzos, con el mismo patrón;

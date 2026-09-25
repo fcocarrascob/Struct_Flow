@@ -54,6 +54,9 @@ import {
   conPublicacion,
   nuevoCalculo,
   quitarModulo,
+  conConjunto,
+  nuevoConjunto,
+  quitarConjunto,
   slugsImportados,
   type Frontera,
   type Modulo,
@@ -232,8 +235,13 @@ function piezasDeLaObra(obra: Obra | null): number {
   // Los grupos cuentan: quitar uno se lleva su nombre, su color y la asignación
   // de todos sus miembros, y su aviso ofrece deshacer.
   // Una justificación también: quitarla se lleva una expresión escrita a mano.
+  // Y un conjunto de diseño, que es una elección de familias.
   let n =
-    obra.modulos.length + obra.calculos.length + (obra.grupos?.length ?? 0) + (obra.justificaciones?.length ?? 0);
+    obra.modulos.length +
+    obra.calculos.length +
+    (obra.grupos?.length ?? 0) +
+    (obra.justificaciones?.length ?? 0) +
+    (obra.conjuntosDiseno?.length ?? 0);
   for (const k of obra.calculos) n += k.hoja.length + piezasDeFrontera(k.frontera);
   return n;
 }
@@ -1608,6 +1616,8 @@ function CanvasObra({
             unidades={obra.unidadesSap ?? 'kN'}
             caso={casoApoyos}
             onCaso={setCasoApoyos}
+            conjuntos={obra.conjuntosDiseno ?? []}
+            sap={obra.sap}
           />
         </div>
       )}
@@ -1784,6 +1794,36 @@ function CanvasObra({
               if (caso) setCasoApoyos(caso);
               abrirPestana(ID_NODO_APOYOS);
             }}
+            conjuntos={obra.conjuntosDiseno ?? []}
+            // Las combinaciones son una lectura: la misma que la del sub-nodo Combinaciones.
+            onCombinaciones={(combinaciones) =>
+              setObra((o) => (o?.sap ? { ...o, sap: { ...o.sap, combinaciones } } : o))
+            }
+            // El conjunto es una decisión: por `setObra` con historial, y un id
+            // nuevo se sortea fuera del actualizador.
+            onGuardarConjunto={(c) => {
+              const o = obraRef.current;
+              if (!o) return;
+              setObra(conConjunto(o, 'id' in c ? c : nuevoConjunto(c.nombre, c.familias)));
+            }}
+            onQuitarConjunto={(id) => {
+              const o = obraRef.current;
+              if (o) setObra(quitarConjunto(o, id));
+            }}
+            onLeidoConjunto={(id, lectura) =>
+              setObra((o) =>
+                o?.sap
+                  ? {
+                      ...o,
+                      sap: {
+                        ...o.sap,
+                        conjuntos: { ...o.sap.conjuntos, [id]: lectura },
+                        ...(lectura.modificado ? { modificado: lectura.modificado } : {}),
+                      },
+                    }
+                  : o,
+              )
+            }
             onQuitar={() => {
               const o = obraRef.current;
               if (o) setObra(quitarModulo(o, 'sap-apoyos'));

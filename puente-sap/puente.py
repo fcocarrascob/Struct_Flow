@@ -37,6 +37,8 @@ Rutas:
                          my, mz}], sinAnalizar}   (kN, kN·m; sin el caso modal)
     GET  /apoyos     -> {modelo, ruta, modificado, apoyos: [{nombre, xyz}], casos: [{caso,
                          paso?, valores: [[F1..M3] por apoyo]}], sinAnalizar}
+    POST /apoyos/combinaciones {combinaciones} -> {modelo, ruta, modificado, apoyos,
+                         filas: [{combo, paso?, valores}]}   (paso Max/Min: no concurrentes)
     POST /aplicaciones/leer {aplicaciones} -> la carga de cada patrón sobre su grupo
                      (POST solo porque la lista viaja en el cuerpo: no modifica nada)
 
@@ -619,9 +621,10 @@ class _SalidaSolo:
     cambiaría lo que ve en sus tablas, igual que las unidades (`_EnKnM`).
     """
 
-    def __init__(self, modelo, casos):
+    def __init__(self, modelo, casos, combos=()):
         self.modelo = modelo
         self.pedidos = [casos] if isinstance(casos, str) else list(casos)
+        self.combos_pedidos = list(combos)
 
     def __enter__(self):
         setup = self.modelo.Results.Setup
@@ -634,6 +637,10 @@ class _SalidaSolo:
             if setup.SetCaseSelectedForOutput(caso) != 0:
                 self.__exit__()
                 raise ErrorPuente(502, f"SAP2000 no dejó seleccionar «{caso}» para leer sus resultados.")
+        for combo in self.combos_pedidos:
+            if setup.SetComboSelectedForOutput(combo) != 0:
+                self.__exit__()
+                raise ErrorPuente(502, f"SAP2000 no dejó seleccionar la combinación «{combo}».")
         return self.modelo
 
     def __exit__(self, *_):
@@ -756,6 +763,35 @@ def _es_apoyo(modelo, nudo):
     return r[-1] == 0 and any(abs(k) > 0 for k in (r[0] or []))
 
 
+def _reacciones_en_apoyos(modelo, casos=(), combos=()):
+    """JointReact de esos casos y combinaciones, solo en los apoyos.
+
+    Devuelve (nudos, filas): los apoyos en orden, y por cada fila de SAP
+    (nombre, paso, {nudo: [F1..M3]}). Un paso vacío es un vector concurrente;
+    `Max`/`Min` son extremos por componente, no concurrentes.
+    """
+    with _SalidaSolo(modelo, casos, combos):
+        r = modelo.Results.JointReact("ALL", 2)  # eItemTypeElm.GroupElm
+        if r[-1] != 0:
+            raise ErrorPuente(502, "SAP2000 no entregó las reacciones en los nudos.")
+    n, objs, _, nombres, pasos = r[:5]
+    comps = r[6:12]
+    por_nudo = {}
+    for i in range(n or 0):
+        por_nudo.setdefault(str(objs[i]), []).append(i)
+    nudos = [k for k, idx in por_nudo.items()
+             if any(abs(c[i]) > 1e-9 for i in idx for c in comps) or _es_apoyo(modelo, k)]
+    orden = {k: j for j, k in enumerate(nudos)}
+    filas = {}
+    for i in range(n or 0):
+        k = str(objs[i])
+        if k not in orden:
+            continue
+        clave = (str(nombres[i]), str(pasos[i] or ""))
+        filas.setdefault(clave, [None] * len(nudos))[orden[k]] = [_num(c[i]) for c in comps]
+    return nudos, filas
+
+
 def apoyos():
     """Las reacciones en los apoyos, por caso, en kN y kN·m. Solo lee.
 
@@ -767,41 +803,53 @@ def apoyos():
     modelo, ruta, nombre = _modelo_guardado()
     pedidos, sin_analizar = _casos_de_resultados(modelo)
     with _EnKnM(modelo):
-        with _SalidaSolo(modelo, pedidos):
-            r = modelo.Results.JointReact("ALL", 2)  # eItemTypeElm.GroupElm
-            if r[-1] != 0:
-                raise ErrorPuente(502, "SAP2000 no entregó las reacciones en los nudos.")
-        n, objs, _, casos, pasos = r[:5]
-        comps = r[6:12]
-        por_nudo = {}
-        for i in range(n or 0):
-            por_nudo.setdefault(str(objs[i]), []).append(i)
-        nudos = [k for k, filas in por_nudo.items()
-                 if any(abs(c[i]) > 1e-9 for i in filas for c in comps) or _es_apoyo(modelo, k)]
+        nudos, filas = _reacciones_en_apoyos(modelo, casos=pedidos)
         coords = {}
         for k in nudos:
             x, y, z, ret = modelo.PointObj.GetCoordCartesian(k)
             coords[k] = [_num(x), _num(y), _num(z)] if ret == 0 else None
-    # Por caso, una fila de 6 valores por apoyo, en el orden de `apoyos`.
-    orden = {k: j for j, k in enumerate(nudos)}
-    lecturas = {}
-    for i in range(n or 0):
-        k = str(objs[i])
-        if k not in orden:
-            continue
-        caso = str(casos[i])
-        entrada = lecturas.setdefault(caso, {"caso": caso, "valores": [None] * len(nudos)})
-        if pasos[i]:
-            entrada["paso"] = str(pasos[i])
-        entrada["valores"][orden[k]] = [_num(c[i]) for c in comps]
+    casos = []
+    for c in pedidos:
+        for (caso, paso), valores in filas.items():
+            if caso == c:
+                casos.append({"caso": caso, **({"paso": paso} if paso else {}), "valores": valores})
     return {
         "modelo": nombre,
         "ruta": ruta,
         "modificado": _modificado(ruta),
         "apoyos": [{"nombre": k, "xyz": coords[k]} for k in nudos],
-        "casos": [lecturas[c] for c in pedidos if c in lecturas],
+        "casos": casos,
         "sinAnalizar": sin_analizar,
     }
+
+
+def apoyos_combinaciones(cuerpo):
+    """Las reacciones en los apoyos de una lista de combinaciones. Solo lee.
+
+    `combinaciones`: los nombres, que arma Flow a partir de las familias de un
+    conjunto de diseño. Una combinación lineal de casos lineales da un vector
+    concurrente; una con espectro o envolvente da dos filas, `Max` y `Min`, que
+    son extremos por componente y NO son concurrentes.
+    """
+    pedidas = cuerpo.get("combinaciones")
+    if not isinstance(pedidas, list) or not pedidas or not all(isinstance(c, str) for c in pedidas):
+        raise ErrorPuente(400, "Faltan las combinaciones.")
+    modelo, ruta, nombre = _modelo_guardado()
+    existentes = set(_nombres(modelo.RespCombo, "la lista de combinaciones"))
+    faltan = [c for c in pedidas if c not in existentes]
+    if faltan:
+        raise ErrorPuente(404, f"El modelo no tiene {', '.join(faltan[:5])}{'…' if len(faltan) > 5 else ''}.")
+    _, sin_analizar = _casos_de_resultados(modelo)
+    if sin_analizar:
+        # Una combinación con un caso sin analizar da ceros en su parte: se dice.
+        raise ErrorPuente(409, f"Hay casos sin analizar ({', '.join(sin_analizar[:5])}). Analiza el modelo y vuelve a leer.")
+    with _EnKnM(modelo):
+        nudos, filas = _reacciones_en_apoyos(modelo, combos=pedidas)
+    combos = [
+        {"combo": combo, **({"paso": paso} if paso else {}), "valores": valores}
+        for (combo, paso), valores in filas.items()
+    ]
+    return {"modelo": nombre, "ruta": ruta, "modificado": _modificado(ruta), "apoyos": nudos, "filas": combos}
 
 
 class Manejador(BaseHTTPRequestHandler):
@@ -900,6 +948,7 @@ class Manejador(BaseHTTPRequestHandler):
         self._atender({
             "/conectar": conectar,
             "/aplicaciones/leer": lambda: leer_aplicaciones(self._cuerpo()),
+            "/apoyos/combinaciones": lambda: apoyos_combinaciones(self._cuerpo()),
         })
 
     def log_message(self, formato, *args):

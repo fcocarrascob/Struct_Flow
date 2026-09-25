@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import type { ConexionSap, LecturaApoyos, SistemaUnidades } from './modelo';
+import type {
+  ConexionSap,
+  ConjuntoDiseno,
+  LecturaApoyos,
+  LecturaCombinaciones,
+  LecturaConjunto,
+  SistemaUnidades,
+} from './modelo';
+import ConjuntosApoyos from './ConjuntosApoyos';
 import { descuadresConBasal, extremosPorCaso, type Extremo } from './sap-apoyos';
 import { fuerza } from './sap-basal';
 import { atrasoDe } from './sap-modal';
@@ -22,6 +30,11 @@ export default function PanelApoyos({
   onUnidades,
   onLeido,
   onAbrirTabla,
+  conjuntos,
+  onCombinaciones,
+  onGuardarConjunto,
+  onQuitarConjunto,
+  onLeidoConjunto,
   onQuitar,
   onCerrar,
 }: {
@@ -29,8 +42,13 @@ export default function PanelApoyos({
   unidades: SistemaUnidades;
   onUnidades: (u: SistemaUnidades) => void;
   onLeido: (lectura: LecturaApoyos) => void;
-  /** Abre la tabla en ese caso, o en el que tenía. */
-  onAbrirTabla: (caso: string | null) => void;
+  /** Abre la tabla en ese caso (o `conjunto:<id>`), o en lo que tenía. */
+  onAbrirTabla: (vista: string | null) => void;
+  conjuntos: readonly ConjuntoDiseno[];
+  onCombinaciones: (l: LecturaCombinaciones) => void;
+  onGuardarConjunto: (c: ConjuntoDiseno | { nombre: string; familias: string[] }) => void;
+  onQuitarConjunto: (id: string) => void;
+  onLeidoConjunto: (id: string, l: LecturaConjunto) => void;
   onQuitar: () => void;
   onCerrar: () => void;
 }) {
@@ -174,6 +192,19 @@ export default function PanelApoyos({
               <p className="leading-snug text-aviso">
                 Sin analizar, no se leyeron: <span className="font-mono">{lectura.sinAnalizar.join(', ')}</span>.
               </p>
+            )}
+
+            {sap && (
+              <ConjuntosApoyos
+                sap={sap}
+                conjuntos={conjuntos}
+                unidades={unidades}
+                onCombinaciones={onCombinaciones}
+                onGuardar={onGuardarConjunto}
+                onQuitar={onQuitarConjunto}
+                onLeido={onLeidoConjunto}
+                onVer={(id) => onAbrirTabla(`conjunto:${id}`)}
+              />
             )}
 
             <section>

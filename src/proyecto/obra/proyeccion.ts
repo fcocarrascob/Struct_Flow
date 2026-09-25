@@ -27,7 +27,7 @@ import { quedoAtras, type Genericas } from './biblioteca';
 import { mensajeDeMotor } from '../../components/canvas/mensajes-motor';
 import { problemaDeGrafo, type EvaluacionObra } from './evaluacion';
 import { ID_NODO_APOYOS, ID_NODO_BASAL, ID_NODO_COMBINACIONES, ID_NODO_MODAL, ID_NODO_SAP, idNodoDeCalculo } from './ids';
-import { casosConTraccion, descuadresConBasal } from './sap-apoyos';
+import { casosConTraccion, descuadresConBasal, estadoConjunto } from './sap-apoyos';
 import { cortesSismicos, fuerza, gravitacionalesConHorizontal } from './sap-basal';
 import { atrasoDe, MASA_MINIMA, porcentaje, resumenModal, segundos } from './sap-modal';
 import { grupoPorId, type Grupo, type NodoCalculo, type Obra, type Revision } from './modelo';
@@ -373,11 +373,18 @@ function nodoApoyos(obra: Obra): NodoDeObra {
   if (noCuadran.length) {
     motivos.push(`${noCuadran.join(', ')}: la suma de F3 en los apoyos no es la FZ de la reacción basal.`);
   }
+  const conjuntos = obra.conjuntosDiseno ?? [];
+  const viejos = conjuntos.filter((c) => estadoConjunto(c, obra.sap?.conjuntos?.[c.id], obra.sap).estado === 'desactualizado');
+  if (viejos.length) {
+    motivos.push(`Conjuntos desactualizados: ${viejos.map((c) => c.nombre).join(', ')}. Vuelve a leerlos.`);
+  }
   const traccionan = casosConTraccion(lectura).length;
   return nodo({
     ...base,
     subtitulo:
-      `${lectura.apoyos.length} apoyos · ${lectura.casos.length} casos\n` +
+      `${lectura.apoyos.length} apoyos · ${lectura.casos.length} casos` +
+      (conjuntos.length ? ` · ${conjuntos.length} conjunto${conjuntos.length === 1 ? '' : 's'}` : '') +
+      '\n' +
       (traccionan ? `tracción en ${traccionan} caso${traccionan === 1 ? '' : 's'}` : 'sin tracción en ningún caso'),
     severidad: motivos.length ? 'aviso' : 'ok',
     motivos,

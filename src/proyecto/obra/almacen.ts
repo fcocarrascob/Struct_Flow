@@ -47,6 +47,11 @@ import {
   type LecturaApoyos,
   type ApoyoLeido,
   type ReaccionesDeCaso,
+  type ConjuntoDiseno,
+  type Gobernante,
+  type GobernantesDeApoyo,
+  type LecturaConjunto,
+  type Vector6,
   type ModoLeido,
   type TerminoCombinacion,
   type FuenteMasa,
@@ -302,6 +307,7 @@ function sanearSap(crudo: unknown): { sap?: ConexionSap } {
   const modal = sanearModal(s.modal);
   const basal = sanearBasal(s.basal);
   const apoyos = sanearApoyos(s.apoyos);
+  const conjuntos = sanearLecturasConjunto(s.conjuntos);
   return {
     sap: {
       modelo: s.modelo,
@@ -319,8 +325,72 @@ function sanearSap(crudo: unknown): { sap?: ConexionSap } {
       ...(modal ? { modal } : {}),
       ...(basal ? { basal } : {}),
       ...(apoyos ? { apoyos } : {}),
+      ...(conjuntos ? { conjuntos } : {}),
     },
   };
+}
+
+const nombresDe = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string' && !!x) : []);
+
+const esVector6 = (v: unknown): v is Vector6 => Array.isArray(v) && v.length === 6 && v.every(esNumero);
+
+function sanearGobernante(crudo: unknown): Gobernante | undefined {
+  const g = (crudo ?? {}) as Partial<Gobernante>;
+  if (typeof g.combo !== 'string' || !g.combo || !esNumero(g.valor) || !esVector6(g.v)) return undefined;
+  return { combo: g.combo, valor: g.valor, v: g.v, concurrente: g.concurrente !== false };
+}
+
+/**
+ * Las lecturas de los conjuntos de diseño, por id. Una sin sello no dice de qué
+ * modelo es y se descarta; un criterio ilegible, solo.
+ */
+function sanearLecturasConjunto(crudo: unknown): Record<string, LecturaConjunto> | undefined {
+  if (typeof crudo !== 'object' || crudo === null || Array.isArray(crudo)) return undefined;
+  const salida: Record<string, LecturaConjunto> = {};
+  for (const [id, x] of Object.entries(crudo)) {
+    const l = (x ?? {}) as Partial<LecturaConjunto>;
+    if (typeof l.modificado !== 'string' || !l.modificado || !Array.isArray(l.apoyos) || !Array.isArray(l.porApoyo)) continue;
+    const apoyos = nombresDe(l.apoyos);
+    if (apoyos.length !== l.apoyos.length || l.porApoyo.length !== apoyos.length) continue;
+    const porApoyo = l.porApoyo.map((p) => {
+      const q = (p ?? {}) as Record<string, unknown>;
+      const g: GobernantesDeApoyo = {};
+      for (const k of ['compresion', 'traccion', 'corte', 'momento'] as const) {
+        const s = q[k] === undefined ? undefined : sanearGobernante(q[k]);
+        if (s) g[k] = s;
+      }
+      return g;
+    });
+    salida[id] = {
+      modelo: texto(l.modelo),
+      leido: texto(l.leido),
+      modificado: l.modificado,
+      familias: nombresDe(l.familias),
+      combos: nombresDe(l.combos),
+      noConcurrentes: nombresDe(l.noConcurrentes),
+      apoyos,
+      porApoyo,
+    };
+  }
+  return Object.keys(salida).length ? salida : undefined;
+}
+
+/**
+ * Los conjuntos de diseño. Uno sin id o repetido no se puede editar y se
+ * descarta; sin nombre, se llama como sus familias.
+ */
+function sanearConjuntosDiseno(crudo: unknown): { conjuntosDiseno?: ConjuntoDiseno[] } {
+  const vistos = new Set<string>();
+  const lista: ConjuntoDiseno[] = [];
+  for (const x of Array.isArray(crudo) ? crudo : []) {
+    const c = (x ?? {}) as Partial<ConjuntoDiseno>;
+    if (typeof c.id !== 'string' || !c.id || vistos.has(c.id)) continue;
+    vistos.add(c.id);
+    const familias = [...new Set(nombresDe(c.familias))];
+    const nombre = typeof c.nombre === 'string' && c.nombre.trim() ? c.nombre.trim() : familias.join(', ') || 'Conjunto';
+    lista.push({ id: c.id, nombre, familias });
+  }
+  return lista.length ? { conjuntosDiseno: lista } : {};
 }
 
 /**
@@ -716,6 +786,7 @@ export function sanearObra(crudo: unknown): Obra | null {
     ...sanearJustificaciones(o.justificaciones),
     // `kN` es lo que se asume sin nada escrito: guardarlo sería un campo que no dice nada.
     ...(o.unidadesSap === 'tonf' ? { unidadesSap: 'tonf' as const } : {}),
+    ...sanearConjuntosDiseno(o.conjuntosDiseno),
   };
 }
 

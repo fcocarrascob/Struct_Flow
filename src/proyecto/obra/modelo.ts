@@ -280,6 +280,69 @@ export interface ConexionSap {
   basal?: LecturaBasal;
   /** La última lectura de las reacciones en los apoyos (la del sub-nodo Apoyos). */
   apoyos?: LecturaApoyos;
+  /** Las gobernantes de cada conjunto de diseño, por id del conjunto. */
+  conjuntos?: Record<string, LecturaConjunto>;
+}
+
+/**
+ * Un conjunto de diseño: las familias de combinaciones con que se diseña algo
+ * —«Hormigón (LRFD)» = B21…B27, «Estabilidad» = SERV…—. Es una decisión del
+ * ingeniero: vive en la obra y entra en el historial, no en la lectura.
+ */
+export interface ConjuntoDiseno {
+  id: string;
+  nombre: string;
+  /** Familias según la convención de Flow: el texto antes del primer «_». */
+  familias: string[];
+}
+
+/** Seis componentes de reacción: F1, F2, F3 (kN), M1, M2, M3 (kN·m). */
+export type Vector6 = [number, number, number, number, number, number];
+
+/**
+ * La combinación que gobierna un criterio en un apoyo, con su valor y el vector
+ * de esa combinación. `concurrente` es falso cuando la combinación lleva un
+ * espectro o una envolvente: SAP da máximos y mínimos por componente, y el
+ * vector no es de un mismo instante.
+ */
+export interface Gobernante {
+  combo: string;
+  valor: number;
+  v: Vector6;
+  concurrente: boolean;
+}
+
+export interface GobernantesDeApoyo {
+  /** La mayor F3 positiva: compresión sobre la fundación. */
+  compresion?: Gobernante;
+  /** La F3 más negativa, en valor absoluto: tracción. */
+  traccion?: Gobernante;
+  /** El mayor √(F1² + F2²). */
+  corte?: Gobernante;
+  /** El mayor √(M1² + M2²). */
+  momento?: Gobernante;
+}
+
+/**
+ * Las gobernantes de un conjunto de diseño, leídas del modelo. Se guarda el
+ * resumen y no las filas crudas: 25 apoyos por 80 filas no aportan nada a la
+ * obra que no esté en SAP.
+ */
+export interface LecturaConjunto {
+  modelo: string;
+  /** ISO. */
+  leido: string;
+  /** ISO: la fecha del `.sdb` al leer. */
+  modificado: string;
+  /** Las familias del conjunto cuando se leyó: si cambiaron, la lectura ya no es de él. */
+  familias: string[];
+  /** Las combinaciones que se leyeron. */
+  combos: string[];
+  /** Las que no dan valores concurrentes (espectro o envolvente). */
+  noConcurrentes: string[];
+  apoyos: string[];
+  /** En el orden de `apoyos`. */
+  porApoyo: GobernantesDeApoyo[];
 }
 
 /** Un apoyo: el nudo y dónde está, en m. */
@@ -591,6 +654,27 @@ export interface Obra {
    * que no entra en el historial, y esto sí se deshace.
    */
   unidadesSap?: SistemaUnidades;
+  /** Los conjuntos de diseño de los apoyos. Ausente mientras no haya ninguno. */
+  conjuntosDiseno?: ConjuntoDiseno[];
+}
+
+export function nuevoConjunto(nombre: string, familias: string[]): ConjuntoDiseno {
+  return { id: nuevoId('cd'), nombre, familias };
+}
+
+/** Pone un conjunto, reemplazando el del mismo id si ya estaba. */
+export function conConjunto(obra: Obra, c: ConjuntoDiseno): Obra {
+  const lista = obra.conjuntosDiseno ?? [];
+  const i = lista.findIndex((x) => x.id === c.id);
+  return { ...obra, conjuntosDiseno: i < 0 ? [...lista, c] : lista.map((x) => (x.id === c.id ? c : x)) };
+}
+
+/** Quita un conjunto. Sin ninguno, la lista desaparece. Su lectura queda en
+ *  `sap`, como la de un sub-nodo quitado: Ctrl+Z lo devuelve con sus datos. */
+export function quitarConjunto(obra: Obra, id: string): Obra {
+  const lista = (obra.conjuntosDiseno ?? []).filter((x) => x.id !== id);
+  const { conjuntosDiseno: _, ...resto } = obra;
+  return lista.length ? { ...resto, conjuntosDiseno: lista } : resto;
 }
 
 /** Cómo se muestran las fuerzas del modelo. */

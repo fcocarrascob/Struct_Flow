@@ -89,6 +89,13 @@ const {
   extremosPorCaso,
   casosConTraccion,
   descuadresConBasal,
+  combosDeConjunto,
+  gobernantesDeConjunto,
+  estadoConjunto,
+  extremosDeConjunto,
+  nuevoConjunto,
+  conConjunto,
+  quitarConjunto,
   obraDesde,
   traerNodos,
   dependenciasDe,
@@ -1012,13 +1019,15 @@ const CASOS = [
     obra: {
       ...obra(calc('G', m('q := 1'))),
       modulos: ['sap', 'sap-apoyos', 'sap-basal'],
-      // WXP suma 129,5 en los apoyos y la basal dice -603,4: no cuadra.
+      // WXP suma 129,5 en los apoyos y la basal dice -603,4: no cuadra. Y el
+      // conjunto, sin leer, no avisa: no leído no es desactualizado.
+      conjuntosDiseno: [{ id: 'cd1', nombre: 'Hormigón', familias: ['B21'] }],
       sap: { ...SAP_BASAL, basal: LECTURA_BASAL, apoyos: LECTURA_APOYOS },
     },
     ok: (_ev, proy) => {
       const n = proy.nodos.find((x) => x.id === 'sap:apoyos');
       if (!n) return 'no está el nodo Apoyos';
-      if (n.subtitulo !== '3 apoyos · 3 casos\ntracción en 1 caso') return `subtítulo «${n.subtitulo}»`;
+      if (n.subtitulo !== '3 apoyos · 3 casos · 1 conjunto\ntracción en 1 caso') return `subtítulo «${n.subtitulo}»`;
       if (n.severidad !== 'aviso' || n.motivos.length !== 1 || !n.motivos[0].startsWith('WXP:')) return `motivos: ${n.motivos}`;
       return proy.aristas.some((x) => x.desde === 'sap' && x.hasta === 'sap:apoyos' && x.tipo === 'deriva') ? null : 'falta la arista';
     },
@@ -1442,6 +1451,81 @@ const CASOS_HOJA = [
       const esperada = '{"apoyos":[{"nombre":"1"},{"nombre":"7"}],"casos":[{"caso":"CM","valores":[[1,2,3,4,5,6],null]}]}';
       const vista = JSON.stringify({ apoyos: rota.apoyos, casos: rota.casos });
       return vista === esperada ? null : `apoyos rotos: ${vista}`;
+    },
+  },
+  {
+    nombre: 'un conjunto de diseño da la combinación que gobierna cada criterio, y marca lo no concurrente',
+    ok: () => {
+      // Dos apoyos. B21 es lineal (concurrente); B25 lleva envolvente (Max/Min).
+      const respuesta = {
+        modelo: 'm.sdb', modificado: '2026-09-25T12:29:49Z', apoyos: ['212', '7'],
+        filas: [
+          { combo: 'B21', valores: [[33.7, 125.7, 975.4, -710.1, 0, -1.3], [10, 0, -50, 0, 0, 0]] },
+          { combo: 'B25_EX_EVP', paso: 'Max', valores: [[204.4, 269, 2158.2, -1407.6, 0, -0.4], [5, 5, 20, 1, 0, 0]] },
+          { combo: 'B25_EX_EVP', paso: 'Min', valores: [[178.8, 248, 1961.6, -1494, 0, -3.9], [-30, 2, -80, -2, 0, 0]] },
+        ],
+      };
+      const l = gobernantesDeConjunto(respuesta, ['B21', 'B25'], '2026-09-25T13:00:00Z');
+      if (l.combos.join() !== 'B21,B25_EX_EVP' || l.noConcurrentes.join() !== 'B25_EX_EVP') return `combos ${l.combos} / ${l.noConcurrentes}`;
+      const [a, b] = l.porApoyo;
+      // Nudo 212: la compresión la da el Max de B25 (no concurrente).
+      if (a.compresion?.combo !== 'B25_EX_EVP' || a.compresion.valor !== 2158.2 || a.compresion.concurrente) return `212 compresión ${JSON.stringify(a.compresion)}`;
+      if (a.traccion) return '212 no tracciona';
+      // El corte usa los extremos de cada componente: F1 204,4 y F2 269.
+      if (Math.abs(a.corte.valor - Math.hypot(204.4, 269)) > 1e-9) return `212 corte ${a.corte.valor}`;
+      // El momento: M1 extremo −1494 (del Min).
+      if (a.momento?.combo !== 'B25_EX_EVP' || Math.abs(a.momento.valor - 1494) > 1e-9) return `212 momento ${JSON.stringify(a.momento)}`;
+      // Nudo 7: la tracción la da el Min de B25 (80 > 50 de B21).
+      if (b.traccion?.combo !== 'B25_EX_EVP' || b.traccion.valor !== 80) return `7 tracción ${JSON.stringify(b.traccion)}`;
+      // Nudo 7: el corte de B21 (10) no le gana al de B25 (√(30²+5²)).
+      if (b.corte?.combo !== 'B25_EX_EVP') return `7 corte ${JSON.stringify(b.corte)}`;
+      // Con solo B21 todo es concurrente, y la tracción del 7 es 50.
+      const solo = gobernantesDeConjunto({ ...respuesta, filas: respuesta.filas.slice(0, 1) }, ['B21'], '');
+      if (!solo.porApoyo[1].traccion?.concurrente || solo.porApoyo[1].traccion.valor !== 50) return `solo B21: ${JSON.stringify(solo.porApoyo[1])}`;
+      const ext = extremosDeConjunto(l);
+      if (ext.compresion?.apoyo !== '212' || ext.traccion?.apoyo !== '7') return `extremos ${JSON.stringify(ext)}`;
+      // Las combinaciones de un conjunto salen de sus familias.
+      if (combosDeConjunto(['B25', 'ENVCL'], { modelo: 'm.sdb', leido: '', lista: COMBOS_PACHON }).join() !== 'ENVCL_H,B25_EX_EVP,B25_EX_EVN') return 'combosDeConjunto';
+      // Estado: sin leer, al día, cambió de familias, modelo guardado después.
+      const c = { id: 'cd1', nombre: 'Hormigón', familias: ['B25', 'B21'] };
+      const con = (modificado) => ({ modelo: 'm.sdb', ruta: '', version: '', leido: '', modificado });
+      if (estadoConjunto(c, undefined, con(l.modificado)).estado !== 'sin-leer') return 'sin leer';
+      if (estadoConjunto(c, l, con(l.modificado)).estado !== 'al-dia') return 'al día (el orden de las familias no importa)';
+      if (estadoConjunto({ ...c, familias: ['B21'] }, l, con(l.modificado)).motivo !== 'cambiaron sus familias desde que se leyó') return 'familias';
+      return estadoConjunto(c, l, con('2026-09-26T00:00:00Z')).estado === 'desactualizado' ? null : 'atrasada';
+    },
+  },
+  {
+    nombre: 'los conjuntos se guardan en la obra con historial, su lectura en sap, y una copia los lleva sin la lectura',
+    ok: () => {
+      const conjunto = nuevoConjunto('Hormigón (LRFD)', ['B21', 'B25']);
+      if (!conjunto.id.startsWith('cd')) return `id ${conjunto.id}`;
+      const lectura = gobernantesDeConjunto({
+        modelo: 'm.sdb', modificado: '2026-09-25T12:29:49Z', apoyos: ['1'],
+        filas: [{ combo: 'B21', valores: [[1, 2, 30, 4, 5, 6]] }],
+      }, conjunto.familias, '2026-09-25T13:00:00Z');
+      let o = conConjunto({ ...obra(calc('G', m('q := 1'))), modulos: ['sap', 'sap-apoyos'] }, conjunto);
+      o = { ...o, sap: { modelo: 'm.sdb', ruta: '', version: '', leido: '', conjuntos: { [conjunto.id]: lectura } } };
+      const saneada = sanearObra(o);
+      if (JSON.stringify(saneada.conjuntosDiseno) !== JSON.stringify([conjunto])) return `conjuntos ${JSON.stringify(saneada.conjuntosDiseno)}`;
+      if (JSON.stringify(saneada.sap.conjuntos[conjunto.id]) !== JSON.stringify(lectura)) return 'el saneo cambió la lectura del conjunto';
+      if (JSON.stringify(sanearObra(archivoDeObra(saneada).obra)) !== JSON.stringify(saneada)) return 'cambió en la ida y vuelta';
+      // Editar reemplaza; quitar deja la lista vacía fuera.
+      const editada = conConjunto(saneada, { ...conjunto, nombre: 'H' });
+      if (editada.conjuntosDiseno.length !== 1 || editada.conjuntosDiseno[0].nombre !== 'H') return 'editar';
+      if ('conjuntosDiseno' in quitarConjunto(editada, conjunto.id)) return 'quitar dejó la lista';
+      // Saneo: un id repetido fuera, un nombre vacío toma sus familias, familias repetidas una vez.
+      const rota = sanearObra({ ...o, conjuntosDiseno: [
+        { id: 'a', nombre: ' ', familias: ['B21', 'B21', 3] }, { id: 'a', nombre: 'dup', familias: [] }, { nombre: 'sin id' },
+      ] }).conjuntosDiseno;
+      if (JSON.stringify(rota) !== '[{"id":"a","nombre":"B21","familias":["B21"]}]') return `rota ${JSON.stringify(rota)}`;
+      // Una lectura cuyo porApoyo no calza con sus apoyos se descarta.
+      const mal = sanearObra({ ...o, sap: { ...o.sap, conjuntos: { x: { ...lectura, porApoyo: [] } } } }).sap.conjuntos;
+      if (mal !== undefined) return 'aceptó una lectura descalzada';
+      // La copia lleva los conjuntos, no su lectura.
+      const copia = obraDesde(saneada, 'copia');
+      if (JSON.stringify(copia.conjuntosDiseno) !== JSON.stringify([conjunto])) return 'la copia no llevó los conjuntos';
+      return copia.sap?.conjuntos ? 'la copia llevó la lectura' : null;
     },
   },
   {
