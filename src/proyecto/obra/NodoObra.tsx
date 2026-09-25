@@ -67,7 +67,8 @@ export default function NodoObra({ data, selected }: NodeProps) {
 
       <div className="flex flex-1 flex-col justify-center px-3 pb-2 pt-0.5">
         {n.subtitulo && (
-          <p className="line-clamp-2 text-[11px] leading-snug text-muted">{n.subtitulo}</p>
+          // `pre-line`: un subtítulo puede venir en líneas (el del modal, una por dirección).
+          <p className="line-clamp-2 whitespace-pre-line text-[11px] leading-snug text-muted">{n.subtitulo}</p>
         )}
 
         {n.motivos.length > 0 && (

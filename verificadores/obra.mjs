@@ -919,7 +919,7 @@ const CASOS = [
       const n = proy.nodos.find((x) => x.id === 'sap:modal');
       if (!n) return 'no está el nodo Modal';
       if (n.clase !== 'resultado') return `clase ${n.clase}`;
-      if (n.subtitulo !== 'Tx = 0,459 s · Ty = 0,715 s · ΣX 93,0 % · ΣY 96,0 %') return `subtítulo «${n.subtitulo}»`;
+      if (n.subtitulo !== 'Tx = 0,459 s · modo 3 · 70,0 %\nTy = 0,715 s · modo 1 · 94,0 %') return `subtítulo «${n.subtitulo}»`;
       if (n.severidad !== 'aviso' || !n.motivos[0]?.startsWith('Lectura atrasada')) return `severidad ${n.severidad}: ${n.motivos}`;
       if (!proy.aristas.some((x) => x.desde === 'sap' && x.hasta === 'sap:modal' && x.tipo === 'deriva')) return 'falta la arista sap → modal';
       return null;

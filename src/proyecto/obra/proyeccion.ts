@@ -304,13 +304,15 @@ function nodoModal(obra: Obra): NodoDeObra {
   }
   // Lo que se revisa es el periodo de cada dirección —el del modo que más masa
   // mueve en ella—, no el fundamental: Tx y Ty son los que entran al espectro.
-  // Sin masas no se sabe cuál domina, y queda T₁.
+  // Una línea por dirección. Sin masas no se sabe cuál domina, y queda T₁.
   const { X, Y } = r.porDireccion;
+  const linea = (d: 'x' | 'y', dom: { n: number; T: number; masa: number }) =>
+    `T${d} = ${segundos(dom.T)} · modo ${dom.n} · ${porcentaje(dom.masa)}`;
   const subtitulo =
     r.T1 === undefined
       ? `${lectura.caso} sin modos`
       : X.dominante && Y.dominante
-        ? `Tx = ${segundos(X.dominante.T)} · Ty = ${segundos(Y.dominante.T)} · ΣX ${porcentaje(X.acumulada)} · ΣY ${porcentaje(Y.acumulada)}`
+        ? `${linea('x', X.dominante)}\n${linea('y', Y.dominante)}`
         : `T₁ = ${segundos(r.T1)}`;
   return nodo({
     ...base,
