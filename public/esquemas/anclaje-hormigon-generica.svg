@@ -9,7 +9,7 @@
   <text x="40" y="52" font-size="12" fill="#555" font-weight="bold">PLANTA · área proyectada A_Nc</text>
 
   <!-- Área proyectada del grupo -->
-  <rect x="{{px(-lado_1/2):svg}}" y="{{py(-min(c_a2, 1.5*h_ef)):svg}}"
+  <rect x="{{px(-lado_1/2):svg}}" y="{{py(-min(c_a2, 1.5*h_efc)):svg}}"
         width="{{lado_1/(1 mm)*esc:svg}}" height="{{lado_2/(1 mm)*esc:svg}}"
         fill="{{col_cono}}" fill-opacity="0.10" stroke="{{col_cono}}" stroke-width="1.3" stroke-dasharray="5 3"/>
 
@@ -17,9 +17,9 @@
   <line x1="{{px(-media_fila - c_a1) - 20:svg}}" x2="{{px(media_fila + c_a1) + 20:svg}}"
         y1="{{py(-c_a2):svg}}" y2="{{py(-c_a2):svg}}" stroke="#333" stroke-width="1.6"/>
   <line x1="{{px(-media_fila - c_a1):svg}}" x2="{{px(-media_fila - c_a1):svg}}"
-        y1="{{py(-c_a2):svg}}" y2="{{py(1.5*h_ef):svg}}" stroke="#333" stroke-width="1.6"/>
+        y1="{{py(-c_a2):svg}}" y2="{{py(1.5*h_efc):svg}}" stroke="#333" stroke-width="1.6"/>
   <line x1="{{px(media_fila + c_a1):svg}}" x2="{{px(media_fila + c_a1):svg}}"
-        y1="{{py(-c_a2):svg}}" y2="{{py(1.5*h_ef):svg}}" stroke="#333" stroke-width="1.6"/>
+        y1="{{py(-c_a2):svg}}" y2="{{py(1.5*h_efc):svg}}" stroke="#333" stroke-width="1.6"/>
 
   <!-- Pernos de la fila traccionada -->
   <circle data-repetir="pernos_px" cx="{{fila[1]:svg}}" cy="{{fila[2]:svg}}" r="{{max(2.5, d_a/(1 mm)*esc/2):svg}}"
@@ -28,11 +28,11 @@
   <!-- Cotas de planta -->
   <text x="{{px(0 mm):svg}}" y="{{py(-c_a2) - 8:svg}}" font-size="10" text-anchor="middle" fill="#555"
         stroke="#fff" stroke-width="3" paint-order="stroke">borde del hormigón · c_a2 = {{c_a2:mm}} mm</text>
-  <text x="{{px(lado_1/2) + 12:svg}}" y="{{py(1.5*h_ef) - 6:svg}}" font-size="10" fill="{{col_cono}}"
+  <text x="{{px(lado_1/2) + 12:svg}}" y="{{py(1.5*h_efc) - 6:svg}}" font-size="10" fill="{{col_cono}}"
         stroke="#fff" stroke-width="3" paint-order="stroke">A_Nc = {{A_Nc/(1000 mm^2)}} ·10³ mm² · A_Nco = {{A_Nco/(1000 mm^2)}} ·10³ mm²</text>
-  <text x="{{px(-media_fila - c_a1) - 6:svg}}" y="{{py(1.5*h_ef) + 16:svg}}" font-size="10" fill="#555">c_a1 = {{c_a1:mm}} mm</text>
+  <text x="{{px(-media_fila - c_a1) - 6:svg}}" y="{{py(1.5*h_efc) + 16:svg}}" font-size="10" fill="#555">c_a1 = {{c_a1:mm}} mm</text>
   <!-- La nota de la fila va FUERA del área proyectada: dentro se leía como parte de A_Nc -->
-  <text x="{{px(-media_fila - c_a1) - 6:svg}}" y="{{py(1.5*h_ef) + 32:svg}}" font-size="9.5" fill="{{col_sep}}">{{n_trac}} pernos ø{{d_a:mm}} @ s₁ = {{s_1:mm}} mm (mín. 4·d_a = {{4*d_a:mm}})</text>
+  <text x="{{px(-media_fila - c_a1) - 6:svg}}" y="{{py(1.5*h_efc) + 32:svg}}" font-size="9.5" fill="{{col_sep}}">{{n_trac}} pernos ø{{d_a:mm}} @ s₁ = {{s_1:mm}} mm (mín. 4·d_a = {{4*d_a:mm}})</text>
 
   <!-- =============== ELEVACIÓN =============== -->
   <text x="40" y="{{ey(0 mm) - 26:svg}}" font-size="12" fill="#555" font-weight="bold">ELEVACIÓN · cono de arrancamiento a 35°</text>
@@ -95,8 +95,8 @@
   <text x="620" y="296" font-size="11.5" fill="#222" font-weight="bold">Geometría y factores</text>
   <text x="620" y="318" font-size="10" fill="#555">separación ≥ 4·d_a</text>
   <text x="830" y="318" font-size="10" text-anchor="end" fill="#333">{{v_sep_min}}</text>
-  <text x="620" y="336" font-size="10" fill="#555">menos de tres bordes cercanos</text>
-  <text x="830" y="336" font-size="10" text-anchor="end" fill="#333">{{v_dos_bordes}}</text>
+  <text x="620" y="336" font-size="10" fill="#555">{{n_bordes}} bordes · h_ef del cono = {{h_efc:mm}} mm</text>
+  <text x="830" y="336" font-size="10" text-anchor="end" fill="#333">{{v_ca_max}}</text>
   <text x="620" y="354" font-size="10" fill="#555">f'c = {{fpc:MPa}} MPa · {{fisurado == 1 ? "fisurado" : "no fisurado"}}</text>
   <text x="620" y="372" font-size="10" fill="#555">φ_c = {{phi_c}} · ψ_a = {{psi_a}} · ψ_ed = {{psi_ed}}</text>
   <text x="620" y="390" font-size="10" fill="#555">{{sismo == 1 ? "sísmico: 0,75 sobre los modos del hormigón" : "sin reducción sísmica"}}</text>
