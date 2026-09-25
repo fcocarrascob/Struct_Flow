@@ -82,6 +82,7 @@ import SelectorGrupo from './SelectorGrupo';
 import { ladoDe, trazoDe, type Lado } from './trazo';
 import PaletaNodos, { type EntradaPaleta } from './PaletaNodos';
 import { VISTAS, datosPorDefecto } from '../vistas/registro';
+import PestanaVista from './PestanaVista';
 import PanelCalculo from './PanelCalculo';
 import {
   calculoDeNodo,
@@ -1626,12 +1627,11 @@ function CanvasObra({
 
       {activa && deUnaVista && (
         <div className="min-h-0 flex-1">
-          <VistaHoja
+          <PestanaVista
             key={activa}
-            hoja={deUnaVista.hoja}
+            vista={deUnaVista}
             results={evaluacion.results}
             titulo={hojaDeNodo(activa)?.etiqueta ?? ''}
-            procedencia="vista geométrica"
           />
         </div>
       )}
