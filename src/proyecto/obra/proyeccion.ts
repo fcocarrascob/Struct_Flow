@@ -267,15 +267,15 @@ export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas =
 
   for (const k of obra.calculos) nodos.push(nodoDeCalculo(k, genericas, ev, obra));
 
-  // El modelo de SAP2000: con qué modelo se conectó y cuántas de sus cargas
-  // respalda la obra. No publica nada; RECIBE las flechas de los nodos que
+  // El modelo de SAP2000: con qué modelo se conectó y cuánto de lo que tiene
+  // —cargas, factores, espectro— respalda la obra. No publica nada; RECIBE las flechas de los nodos que
   // definen lo que nombran sus justificaciones, como cualquier nodo que usa.
   if (obra.modulos.includes('sap')) {
     const r = resumirJustificaciones(obra, ev.scope);
     const motivos: string[] = [];
     let severidad: Severidad = 'ok';
     if (r.difieren) {
-      motivos.push(`${r.difieren} carga(s) del modelo no coinciden con lo que calcula la obra.`);
+      motivos.push(`${r.difieren} dato(s) del modelo no coinciden con lo que calcula la obra.`);
       severidad = 'error';
     }
     if (r.errores) {
@@ -283,7 +283,7 @@ export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas =
       severidad = 'error';
     }
     if (r.huerfanas.length) {
-      motivos.push(`${r.huerfanas.length} justificación(es) sin su carga en el modelo leído.`);
+      motivos.push(`${r.huerfanas.length} justificación(es) sin su dato en el modelo leído.`);
       severidad = peor(severidad, 'aviso');
     }
     const modelo = obra.sap ? obra.sap.modelo : 'sin conectar';
@@ -293,7 +293,7 @@ export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas =
         tipo: 'modelo',
         clase: 'modelo',
         etiqueta: 'SAP2000',
-        subtitulo: r.cargas ? `${modelo} · ${r.justificadas} de ${r.cargas} cargas justificadas` : modelo,
+        subtitulo: r.total ? `${modelo} · ${r.justificadas} de ${r.total} justificados` : modelo,
         campos: obra.sap ? { modelo: obra.sap.modelo, version: obra.sap.version } : {},
         severidad,
         motivos,

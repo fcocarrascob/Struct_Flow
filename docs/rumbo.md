@@ -136,8 +136,10 @@ la obra; Flow dice si coincide.
 - **Qué se lee** (`puente-sap/puente.py`, solo lectura, siempre en kN-m-°C): los Load
   Patterns (nombre, tipo, SWF), las cargas asignadas de cada patrón agrupadas por valor
   (distribuidas y puntuales en barras, uniformes en áreas, áreas a barras, fuerzas en nudos,
-  temperatura) y el espectro de respuesta (cada caso con su dirección, función, factor de
-  escala, amortiguamiento y combinación modal, y los puntos de sus funciones).
+  temperatura), el espectro de respuesta (cada caso con su dirección, función, factor de
+  escala, amortiguamiento y combinación modal, y los puntos de sus funciones), todos los Load
+  Cases (`/casos`: tipo, estado del análisis, los patrones y factores de un estático, los modos
+  de un modal), las fuentes de masa (`/masa`) y un resumen del modelo (`/resumen`).
 - **La justificación es de la obra** (`obra.justificaciones`), no de la lectura: entra en el
   historial y viaja con la carpeta. Encuentra su carga por patrón y firma —todo menos el valor—,
   así que un valor cambiado en SAP no la suelta: la deja en rojo diciendo en cuánto se aparta.
@@ -152,10 +154,29 @@ la obra; Flow dice si coincide.
 - **Las unidades en que se muestra el modelo** (kN o tonf) son una elección de la obra
   (`unidadesSap`) y solo de presentación: se lee, se guarda y se compara siempre en kN.
 
-Lo que sigue en esta línea, en orden: los **Load Cases** en una pestaña propia del nodo
-SAP2000 (el espectro se mueve ahí, porque es un caso, con su amortiguamiento y su combinación
-modal justificables), la **masa sísmica** y las **combinaciones de carga**, que son lo más
-importante que falta (etapa 6).
+**2026-09-25: el nodo va en pestañas.** Con todo en una columna el panel ya no se podía leer.
+La conexión queda arriba, siempre a la vista, con un solo «Leer del modelo» que lo lee todo;
+debajo van cuatro pestañas de lectura, cada una con su cuenta de justificados y un punto si
+algo no coincide:
+
+- **Resumen**: nudos, barras, áreas y links; los grupos con sus barras y áreas; materiales y
+  secciones; patrones, casos y combinaciones; si el modelo está analizado; y cómo va cada
+  pestaña. Sirve para ver de un vistazo que el modelo leído es el que se cree.
+- **Load Patterns**: lo de antes, las cargas asignadas.
+- **Load Cases**: todos los casos, con tipo y estado del análisis. El espectro vive aquí porque
+  **es** un caso.
+- **Masa sísmica**: cada fuente de masa, qué toma (elementos, masas, cargas) y con qué factor.
+
+**Qué se justifica y qué solo se muestra.** Se justifica lo que es un número de norma: el
+factor de escala, la función y el **amortiguamiento** de un espectro, y los factores **distintos
+de 1** de un caso estático (`EV` = 0,185 × cada patrón de peso) y de la masa (S × 0,5). Un 1 es
+el patrón tal cual y no pide nada. La combinación modal y el caso modal solo se muestran:
+son una elección, no un número que la obra calcule. La regla vive en `esJustificable` y
+`resumirPorParte` de `sap-cargas.ts`; la usan el panel y la tarjeta, así que no pueden
+discrepar.
+
+Lo que sigue en esta línea son las **combinaciones de carga**, que son lo más importante que
+falta (etapa 6).
 
 ## Una obra parte de otra
 
@@ -244,11 +265,10 @@ antes de dar el siguiente:
    grupo del modelo—, que se retiró con las cargas.
 1. **El espectro de respuesta** — **hecho** (2026-09-23): el factor de escala de cada dirección
    y la función, comparada en todos sus puntos.
-1. **Los Load Cases, en una pestaña propia del nodo SAP2000** — **siguiente**. El espectro se
-   mueve ahí, porque es un caso; se agregan el amortiguamiento y la combinación modal como
-   cosas justificables, y los demás casos (estáticos, modal) con sus patrones y factores.
-1. **La masa sísmica**: la fuente de masa del modelo (qué patrones y con qué factor; en el
-   Pachón, S con 0,5) contra la obra.
+1. **Los Load Cases y la masa sísmica, en pestañas del nodo SAP2000** — **hecho**
+   (2026-09-25): ver «El nodo va en pestañas», en «El modelo se justifica desde la obra». El
+   espectro pasó a Load Cases con su amortiguamiento justificable; los estáticos traen sus
+   patrones con su factor, y la masa, sus fuentes.
 2. Leer lo medido (reacciones por caso, periodos, cortes basales) con su sello, y publicarlo
    como nombres que las hojas usan en vez de copiarlos a mano. **Exige un modelo analizado**:
    las tablas de uno sin analizar devuelven ceros, no vacío, y un cero parece un dato.
@@ -312,8 +332,8 @@ shas y sellos y nunca cambia sola.
   escribe en la obra una familia de combinaciones —165 filas no se justifican una por una—:
   probablemente una hoja que genera la lista desde las reglas de la norma, y el nodo SAP2000
   la compara entera.
-- **Casos**: la pestaña de Load Cases de la etapa 2 (espectro, modal, estáticos) y la masa
-  sísmica, con lo que el espectro ya tiene: todo lo leído se justifica con la obra.
+- **Casos**: la pestaña de Load Cases y la de masa sísmica ya existen (etapa 2). Falta lo que
+  no se detalla: los casos no lineales y de tiempo-historia.
 - **El puente**: un servicio local en Python (comtypes) al que la aplicación habla por
   `localhost`. **Trae, no empuja** («Flow no escribe en el modelo»): patrones, cargas
   asignadas y espectro ya; casos, masa y combinaciones después, y más tarde reacciones y
@@ -359,7 +379,7 @@ el scope de la obra; con frontera tiene scope propio y procedencia (`biblioteca`
 | Cálculo (hoja libre o genérica instanciada) | sí | sus salidas | existe |
 | Datos (grilla con fuente) | sí | cada fila | etapa 4 |
 | Nota o documento (texto, criterio, PDF adjunto) | no | se cita en un informe | por decidir |
-| Modelo SAP | no; justifica lo que lee | por ahora nada; después lo medido | existe (patrones, cargas, espectro); etapas 2 y 6 |
+| Modelo SAP | no; justifica lo que lee | por ahora nada; después lo medido | existe (patrones, cargas, casos, espectro, masa, resumen); etapas 2 y 6 |
 | Informe | no | nada: consume y congela | etapa 5 |
 
 Ya no hay nodo de cargas: una carga es un cálculo, o un grupo de ellos («El grupo es la única

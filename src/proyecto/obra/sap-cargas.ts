@@ -6,7 +6,7 @@
 // mostrar: cada texto recibe el sistema de unidades y convierte al final.
 
 import { resolverExpresion } from './biblioteca';
-import type { CargaAsignada, Justificacion, LecturaEspectro, Obra, SistemaUnidades } from './modelo';
+import type { CargaAsignada, ConexionSap, Justificacion, LecturaEspectro, Obra, SistemaUnidades } from './modelo';
 
 /** kN por tonf: la tonelada fuerza es 1000 kgf. */
 const KN_POR_TONF = 9.80665;
@@ -221,8 +221,31 @@ export function verificar(
 
 // ── El espectro ──────────────────────────────────────────────────────────────
 
-/** Una justificación del espectro, no de una carga asignada. */
-export const esDeEspectro = (j: Justificacion): boolean => j.clase !== undefined;
+/** Una justificación de un dato del modelo (espectro, caso, masa), no de una carga asignada. */
+export const esDelModelo = (j: Justificacion): boolean => j.clase !== undefined;
+
+/**
+ * Si un factor de un caso o de una fuente de masa pide justificación: los que no
+ * son 1. Un 1 es «el patrón tal cual» y no es un número de norma; un 0,185 o un
+ * 0,5 sí lo son. Lo usan el panel y el resumen, para que no discrepen.
+ */
+export const esJustificable = (sf: number): boolean => Math.abs(sf - 1) > 1e-9;
+
+/** Un número sin unidades —un factor, un amortiguamiento— contra una expresión de la obra. */
+export function verificarEscalar(expr: string, valor: number, scope: Record<string, unknown>): Verificacion {
+  const r = resolverExpresion(expr, undefined, scope);
+  if (r.error || r.valor === undefined) return { estado: 'error', detalle: r.error ?? 'Sin valor.' };
+  const escala = Math.max(Math.abs(valor), 1e-12);
+  if (Math.abs(r.valor - valor) <= TOLERANCIA * escala) {
+    return { estado: 'coincide', obra: r.valor, detalle: `la obra da ${cifra(r.valor)}` };
+  }
+  const pct = ((r.valor - valor) / escala) * 100;
+  return {
+    estado: 'difiere',
+    obra: r.valor,
+    detalle: `la obra da ${cifra(r.valor)} y el modelo ${cifra(valor)} (${pct > 0 ? '+' : ''}${cifra(pct)} %)`,
+  };
+}
 
 /** El factor de escala de un caso contra una expresión de la obra, en m/s². */
 export function verificarFactor(expr: string, sf: number, scope: Record<string, unknown>): Verificacion {
@@ -289,59 +312,139 @@ export function verificarFuncion(
 }
 
 /** Lo que una justificación del espectro verifica, o `undefined` si ya no está en la lectura. */
-export function verificarEspectro(
+function verificarEspectro(
   j: Justificacion,
   esp: LecturaEspectro | undefined,
   scope: Record<string, unknown>,
 ): Verificacion | undefined {
   if (!esp) return undefined;
+  const caso = esp.casos.find((c) => c.nombre === j.patron);
   if (j.clase === 'factor-espectro') {
-    const carga = esp.casos.find((c) => c.nombre === j.patron)?.cargas.find((k) => k.dir === j.firma);
+    const carga = caso?.cargas.find((k) => k.dir === j.firma);
     return carga ? verificarFactor(j.expr, carga.sf, scope) : undefined;
   }
+  if (j.clase === 'amortiguamiento') return caso ? verificarEscalar(j.expr, caso.amortiguamiento, scope) : undefined;
   const f = esp.funciones.find((x) => x.nombre === j.patron);
   return f ? verificarFuncion(j.expr, f.puntos, scope) : undefined;
 }
 
+/**
+ * Lo que verifica una justificación de un dato del modelo —espectro, factor de
+ * un caso, factor de la masa—, o `undefined` si ya no está en la lectura: es
+ * huérfana. Una de carga asignada no pasa por aquí (`cargaDe` y `verificar`).
+ */
+export function verificarDelModelo(
+  j: Justificacion,
+  sap: ConexionSap | undefined,
+  scope: Record<string, unknown>,
+): Verificacion | undefined {
+  switch (j.clase) {
+    case 'factor-espectro':
+    case 'funcion-espectro':
+    case 'amortiguamiento':
+      return verificarEspectro(j, sap?.espectro, scope);
+    case 'factor-caso': {
+      const f = sap?.casos?.lista.find((c) => c.nombre === j.patron)?.cargas?.find((k) => k.nombre === j.firma);
+      return f ? verificarEscalar(j.expr, f.sf, scope) : undefined;
+    }
+    case 'factor-masa': {
+      const f = sap?.masa?.fuentes.find((m) => m.nombre === j.patron)?.cargas.find((k) => k.patron === j.firma);
+      return f ? verificarEscalar(j.expr, f.sf, scope) : undefined;
+    }
+    default:
+      return undefined;
+  }
+}
+
+/** La justificación de un dato del modelo, si la tiene. */
+export function justificacionDelModelo(
+  justificaciones: readonly Justificacion[],
+  clase: Justificacion['clase'],
+  patron: string,
+  firma: string,
+): Justificacion | undefined {
+  return justificaciones.find((j) => j.clase === clase && j.patron === patron && j.firma === firma);
+}
+
+/**
+ * En qué parte del nodo SAP2000 vive lo que se justifica: las cargas asignadas
+ * (Load Patterns), los casos —espectro incluido— o la masa sísmica.
+ */
+export type ParteSap = 'cargas' | 'casos' | 'masa';
+
+export function parteDe(j: Justificacion): ParteSap {
+  if (!esDelModelo(j)) return 'cargas';
+  return j.clase === 'factor-masa' ? 'masa' : 'casos';
+}
+
+/** Cuántos datos de cada parte admiten justificación. */
+function justificables(sap: ConexionSap | undefined): Record<ParteSap, number> {
+  const esp = sap?.espectro;
+  // Por caso de espectro: su amortiguamiento y un factor por dirección.
+  let casos = esp ? esp.casos.reduce((s, c) => s + c.cargas.length + 1, 0) + esp.funciones.length : 0;
+  for (const c of sap?.casos?.lista ?? []) casos += (c.cargas ?? []).filter((k) => esJustificable(k.sf)).length;
+  let masa = 0;
+  for (const m of sap?.masa?.fuentes ?? []) masa += m.cargas.filter((k) => esJustificable(k.sf)).length;
+  return { cargas: sap?.cargas?.lista.length ?? 0, casos, masa };
+}
+
 export interface ResumenJustificaciones {
-  /** Cargas leídas del modelo. */
-  cargas: number;
+  /** Cuánto se puede justificar: cargas asignadas y datos del modelo. */
+  total: number;
   justificadas: number;
   difieren: number;
   errores: number;
-  /** Justificaciones cuya carga ya no está en el modelo. */
+  /** Justificaciones cuyo dato ya no está en el modelo. */
   huerfanas: Justificacion[];
+}
+
+const vacio = (total: number): ResumenJustificaciones => ({
+  total,
+  justificadas: 0,
+  difieren: 0,
+  errores: 0,
+  huerfanas: [],
+});
+
+/**
+ * Cómo va la obra respaldando el modelo, parte por parte: lo que muestra cada
+ * pestaña del nodo, y lo que suma la tarjeta.
+ */
+export function resumirPorParte(
+  obra: { sap?: ConexionSap; justificaciones?: readonly Justificacion[] },
+  scope: Record<string, unknown>,
+): Record<ParteSap, ResumenJustificaciones> {
+  const n = justificables(obra.sap);
+  const r: Record<ParteSap, ResumenJustificaciones> = { cargas: vacio(n.cargas), casos: vacio(n.casos), masa: vacio(n.masa) };
+  const cargas = obra.sap?.cargas?.lista ?? [];
+  for (const j of obra.justificaciones ?? []) {
+    const parte = r[parteDe(j)];
+    const c = esDelModelo(j) ? undefined : cargaDe(j, cargas);
+    const v = esDelModelo(j) ? verificarDelModelo(j, obra.sap, scope) : c ? verificar(j.expr, c, scope) : undefined;
+    if (!v) parte.huerfanas.push(j);
+    else if (v.estado === 'coincide') parte.justificadas++;
+    else if (v.estado === 'difiere') parte.difieren++;
+    else parte.errores++;
+  }
+  return r;
 }
 
 /**
  * Cómo va la obra respaldando el modelo, para la tarjeta del nodo SAP2000.
  *
- * Cuenta las cargas asignadas y, del espectro, cada factor de escala y cada
- * función que usa algún caso: todo lo que se puede justificar.
+ * Cuenta las cargas asignadas; del espectro, cada factor de escala, cada
+ * amortiguamiento y cada función que usa algún caso; y los factores distintos
+ * de 1 de los casos estáticos y de la masa: todo lo que se puede justificar.
  */
 export function resumirJustificaciones(obra: Obra, scope: Record<string, unknown>): ResumenJustificaciones {
-  const cargas = obra.sap?.cargas?.lista ?? [];
-  const esp = obra.sap?.espectro;
-  const delEspectro = esp ? esp.casos.reduce((n, c) => n + c.cargas.length, 0) + esp.funciones.length : 0;
-  const r: ResumenJustificaciones = {
-    cargas: cargas.length + delEspectro,
-    justificadas: 0,
-    difieren: 0,
-    errores: 0,
-    huerfanas: [],
+  const partes = Object.values(resumirPorParte(obra, scope));
+  return {
+    total: partes.reduce((s, p) => s + p.total, 0),
+    justificadas: partes.reduce((s, p) => s + p.justificadas, 0),
+    difieren: partes.reduce((s, p) => s + p.difieren, 0),
+    errores: partes.reduce((s, p) => s + p.errores, 0),
+    huerfanas: partes.flatMap((p) => p.huerfanas),
   };
-  for (const j of obra.justificaciones ?? []) {
-    const c = esDeEspectro(j) ? undefined : cargaDe(j, cargas);
-    const v = esDeEspectro(j) ? verificarEspectro(j, esp, scope) : c ? verificar(j.expr, c, scope) : undefined;
-    if (!v) {
-      r.huerfanas.push(j);
-      continue;
-    }
-    if (v.estado === 'coincide') r.justificadas++;
-    else if (v.estado === 'difiere') r.difieren++;
-    else r.errores++;
-  }
-  return r;
 }
 
 /** Las cargas de cada patrón, en el orden en que llegaron. */

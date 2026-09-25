@@ -23,6 +23,12 @@ Rutas:
                      (las cargas asignadas, agrupadas por patrón y valor)
     GET  /espectro   -> {modelo, ruta, casos: [{nombre, cargas: [{dir, funcion, sf}], ...}],
                          funciones: [{nombre, puntos: [[T, Sa], ...]}]}
+    GET  /casos      -> {modelo, ruta, casos: [{nombre, tipo, estado, cargas?, modal?, modos?}]}
+    GET  /masa       -> {modelo, ruta, fuentes: [{nombre, porDefecto, deElementos, deMasas,
+                         deCargas, cargas: [{patron, sf}]}]}
+    GET  /resumen    -> {modelo, ruta, unidades, nudos, barras, areas, links, grupos,
+                         materiales, seccionesBarra, seccionesArea, patrones, casos,
+                         analizados, combinaciones}
     POST /aplicaciones/leer {aplicaciones} -> la carga de cada patrón sobre su grupo
                      (POST solo porque la lista viaja en el cuerpo: no modifica nada)
 
@@ -114,17 +120,21 @@ def conectar():
     return {"modelo": nombre, "ruta": ruta, "version": version}
 
 
-def _tipos_de_patron():
-    """Código de `eLoadPatternType` -> su nombre en la API (`Dead`, `Wind`…).
+def _enum(prefijo):
+    """Código de un enum de la API -> su nombre (`Dead`, `LinearStatic`…).
 
     Sale del enum que comtypes generó de la biblioteca de tipos de SAP2000, no
-    de una tabla escrita a mano: una versión de SAP que agregue tipos los trae
+    de una tabla escrita a mano: una versión de SAP que agregue valores los trae
     sola.
     """
     import comtypes.gen.SAP2000v1 as api
 
-    prefijo = "eLoadPatternType_"
     return {getattr(api, k): k[len(prefijo):] for k in dir(api) if k.startswith(prefijo)}
+
+
+def _tipos_de_patron():
+    """Código de `eLoadPatternType` -> su nombre en la API (`Dead`, `Wind`…)."""
+    return _enum("eLoadPatternType_")
 
 
 def patrones():
@@ -431,6 +441,118 @@ def espectro():
     return {"modelo": nombre, "ruta": ruta, "casos": casos, "funciones": funciones}
 
 
+# ── Load Cases, masa sísmica y resumen ───────────────────────────────────────
+
+# eAnalysisCaseStatus: 1 sin analizar, 2 no pudo empezar, 3 no terminó, 4 terminado.
+ESTADOS = {1: "sin-analizar", 2: "no-empezo", 3: "incompleto", 4: "analizado"}
+
+
+def _estados(modelo):
+    """Nombre de caso -> su estado de análisis. Un fallo no es un dato: se dice."""
+    n, nombres, estados, ret = modelo.Analyze.GetCaseStatus()
+    if ret != 0:
+        raise ErrorPuente(502, "SAP2000 no entregó el estado del análisis.")
+    return {str(c): ESTADOS.get(int(e), f"código {e}") for c, e in zip(nombres or [], estados or [])}
+
+
+def casos():
+    """Los Load Cases: tipo, estado del análisis y lo que cada tipo detalla. Solo lee.
+
+    Un estático lineal trae sus patrones con su factor (EV = 0,185 × DEAD); un
+    modal, cuántos modos; un espectro, solo el tipo, porque su detalle lo trae
+    `/espectro`. Los demás tipos se listan sin detalle, y el panel lo dice.
+    """
+    modelo, ruta, nombre = _modelo_guardado()
+    tipos = _enum("eLoadCaseType_")
+    _, nombres, ret = modelo.LoadCases.GetNameList()
+    if ret != 0:
+        raise ErrorPuente(502, "SAP2000 no entregó la lista de casos de carga.")
+    estados = _estados(modelo)
+    lista = []
+    for c in nombres or []:
+        r = modelo.LoadCases.GetTypeOAPI_1(c)
+        if r[-1] != 0:
+            raise ErrorPuente(502, f"SAP2000 no entregó el tipo del caso «{c}».")
+        tipo, subtipo = tipos.get(r[0], f"código {r[0]}"), int(r[1])
+        caso = {"nombre": str(c), "tipo": tipo, "estado": estados.get(str(c), "sin-analizar")}
+        if tipo == "LinearStatic":
+            n, clases, pats, sfs, ret = modelo.LoadCases.StaticLinear.GetLoads(c)
+            if ret != 0:
+                raise ErrorPuente(502, f"SAP2000 no entregó las cargas del caso «{c}».")
+            caso["cargas"] = [
+                {"tipo": str(clases[i]), "nombre": str(pats[i]), "sf": _num(sfs[i])} for i in range(n)
+            ]
+        elif tipo == "Modal":
+            # eModalSubType: 1 eigenvectores, 2 Ritz.
+            api = modelo.LoadCases.ModalRitz if subtipo == 2 else modelo.LoadCases.ModalEigen
+            maximo, minimo, ret = api.GetNumberModes(c)
+            if ret == 0:
+                caso["modal"] = "Ritz" if subtipo == 2 else "Eigen"
+                caso["modos"] = {"max": int(maximo), "min": int(minimo)}
+        lista.append(caso)
+    return {"modelo": nombre, "ruta": ruta, "casos": lista}
+
+
+def masa():
+    """Las fuentes de masa: de dónde toma la masa el modelo y con qué factores. Solo lee."""
+    modelo, ruta, nombre = _modelo_guardado()
+    sm = modelo.SourceMass
+    _, nombres, ret = sm.GetNameList()
+    if ret != 0:
+        raise ErrorPuente(502, "SAP2000 no entregó las fuentes de masa.")
+    por_defecto, _ = sm.GetDefault()
+    fuentes = []
+    for f in nombres or []:
+        elem, masas, cargas_, _, n, pats, sfs, ret = sm.GetMassSource(f)
+        if ret != 0:
+            raise ErrorPuente(502, f"SAP2000 no entregó la fuente de masa «{f}».")
+        fuentes.append({
+            "nombre": str(f),
+            "porDefecto": str(f) == str(por_defecto),
+            "deElementos": bool(elem),
+            "deMasas": bool(masas),
+            "deCargas": bool(cargas_),
+            "cargas": [{"patron": str(pats[i]), "sf": _num(sfs[i])} for i in range(n or 0)],
+        })
+    return {"modelo": nombre, "ruta": ruta, "fuentes": fuentes}
+
+
+def _nombres(api, que):
+    _, nombres, ret = api.GetNameList()
+    if ret != 0:
+        raise ErrorPuente(502, f"SAP2000 no entregó {que}.")
+    return [str(n) for n in nombres or []]
+
+
+def resumen():
+    """Lo que hay en el modelo, en números: objetos, grupos, materiales, secciones. Solo lee."""
+    modelo, ruta, nombre = _modelo_guardado()
+    unidades = _enum("eUnits_").get(modelo.GetPresentUnits(), "")
+    tipos_mat = _enum("eMatType_")
+    materiales = []
+    for m in _nombres(modelo.PropMaterial, "la lista de materiales"):
+        r = modelo.PropMaterial.GetTypeOAPI(m)
+        materiales.append({"nombre": m, "tipo": tipos_mat.get(r[0], "") if r[-1] == 0 else ""})
+    estados = _estados(modelo)
+    return {
+        "modelo": nombre,
+        "ruta": ruta,
+        "unidades": unidades,
+        "nudos": int(modelo.PointObj.Count()),
+        "barras": int(modelo.FrameObj.Count()),
+        "areas": int(modelo.AreaObj.Count()),
+        "links": int(modelo.LinkObj.Count()),
+        "grupos": grupos()["grupos"],
+        "materiales": materiales,
+        "seccionesBarra": _nombres(modelo.PropFrame, "las secciones de barra"),
+        "seccionesArea": _nombres(modelo.PropArea, "las secciones de área"),
+        "patrones": len(_nombres(modelo.LoadPatterns, "la lista de Load Patterns")),
+        "casos": len(estados),
+        "analizados": sum(1 for e in estados.values() if e == "analizado"),
+        "combinaciones": len(_nombres(modelo.RespCombo, "la lista de combinaciones")),
+    }
+
+
 class Manejador(BaseHTTPRequestHandler):
     def _responder(self, codigo, cuerpo):
         datos = json.dumps(cuerpo, ensure_ascii=False).encode("utf-8")
@@ -492,7 +614,16 @@ class Manejador(BaseHTTPRequestHandler):
             return self._responder(500, {"motivo": f"El puente falló: {e}"})
 
     def do_GET(self):  # noqa: N802
-        self._atender({"/salud": lambda: {"ok": True}, "/patrones": patrones, "/grupos": grupos, "/cargas": cargas, "/espectro": espectro})
+        self._atender({
+            "/salud": lambda: {"ok": True},
+            "/patrones": patrones,
+            "/grupos": grupos,
+            "/cargas": cargas,
+            "/espectro": espectro,
+            "/casos": casos,
+            "/masa": masa,
+            "/resumen": resumen,
+        })
 
     def _cuerpo(self):
         largo = int(self.headers.get("Content-Length") or 0)

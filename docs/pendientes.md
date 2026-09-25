@@ -19,15 +19,11 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
    la norma que la obra cita (CIRSOC 301 B.2). Por decidir: cómo se escribe una familia de
    combinaciones en la obra —165 no se atan una por una—; probablemente una hoja que las genera
    desde las reglas y el nodo SAP2000 compara la lista entera (`rumbo.md`, etapa 6).
-2. **Segunda pestaña del nodo SAP2000: los Load Cases.** El espectro de respuesta se mueve ahí,
-   porque es un caso. Agregar el **amortiguamiento** y la **combinación modal** como cosas
-   justificables (hoy solo se muestran), y los demás casos (modal, estáticos) con sus patrones
-   y factores. El puente ya lee amortiguamiento y combinación en `/espectro`.
-3. **Masa sísmica.** Leer la fuente de masa del modelo (`SourceMass.GetMassSource`: qué patrones
-   y con qué factor) y justificarla. En el Pachón el modelo lleva S con 0,5, que es el `f2` que
-   la obra perdió al retirar «Casos de carga y fuente de masa»; tiene que volver a estar
-   escrito en algún nodo (el del espectro es el candidato).
-4. **Migrar las tablas de norma escritas como `program` a regiones `table` + `interp`.** En la
+2. **El `f2` de la masa sísmica tiene que volver a estar escrito en la obra.** El nodo SAP2000
+   ya lee la masa y deja justificar sus factores (S con 0,5 en el Pachón), pero la obra perdió
+   el `f2` al retirar «Casos de carga y fuente de masa». El nodo del espectro es el candidato
+   para escribirlo. Lo mismo vale para el 0,185 de `EV`.
+3. **Migrar las tablas de norma escritas como `program` a regiones `table` + `interp`.** En la
    obra de trabajo del Pachón ya están hechos (2026-09-24) el nodo de viento SPRFV —`Cp_sot` y
    `Cp_cub` leen dos tablas de la Figura 3, con un gráfico de los Cp de cubierta— y el de
    presión de viento —`K_h` interpola la Tabla 5, con un gráfico de K_z—; el espectro tiene
@@ -35,11 +31,11 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
    + `interp_lin` de `viento-caras-nch432-generica`, que es una tabla θ × h/L: para esa hace
    falta `interp2`, o interpolar por columnas a mano. La genérica mueve la paginación publicada
    y su sello: con su medición en `/calibrar` y un `verify:biblioteca`.
-5. **Migrar las figuras hechas a mano a regiones `plot`.** La genérica
+4. **Migrar las figuras hechas a mano a regiones `plot`.** La genérica
    `espectro-nch2369-generica` dibuja el espectro con 26 regiones `imprimir: false` de mapeo a
    píxeles, y `losa-unidireccional` arma sus curvas igual (`pts_fl`). Un `plot` las reemplaza,
    pero mueve la paginación publicada: cada una con su medición en `/calibrar`.
-6. **La leyenda «debajo del gráfico».** Las etiquetas ya se esquivan y la leyenda busca la
+5. **La leyenda «debajo del gráfico».** Las etiquetas ya se esquivan y la leyenda busca la
    esquina libre (o la que fije el autor); falta la opción de sacarla del área de trazado, que
    obliga a achicarla dentro del mismo alto para no mover la paginación. Y una etiqueta es
    texto: `T_1` sale literal (en el Pachón se escribió con subíndices Unicode, T₁).
@@ -110,9 +106,15 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
 - **Una carga se justifica con una expresión de la obra** (`obra.justificaciones`, verificada
   en `sap-cargas.ts` con la conversión de los campos atados y una tolerancia de 0,5 %). Queda
   abierto:
-  - **El espectro se lee y se justifica** (el factor de escala de cada dirección y la función,
-    comparada en todos sus puntos con una función que publique la obra). El resto del caso y la
-    masa sísmica están en «Para retomar primero».
+  - **Los Load Cases y la masa sísmica se leen y se justifican** en sus pestañas del nodo. Queda
+    abierto: la **combinación modal** (CQC) y el **caso modal** solo se muestran, porque son una
+    elección y el campo de justificación compara números; de un caso **no lineal, de
+    tiempo-historia** u otro que no sea estático lineal, modal o espectro solo se ven el tipo y
+    el estado; y el amortiguamiento se escribe **como fracción** (0.05), no en %.
+  - **Una lectura vieja del espectro** (antes de `/casos`) muestra en Load Cases solo los casos de
+    espectro, hasta que se vuelve a leer el modelo.
+  - **Los desplegados de una pestaña se cierran al cambiar de pestaña**: su estado es del
+    componente, que se desmonta.
   - **El campo no autocompleta** los nombres de la obra, al revés que una fórmula de la hoja.
   - **Una carga de dos valores** (distribuida trapezoidal) solo justifica el primero.
   - **Una justificación huérfana** (su carga cambió de valor y hay más de una candidata, o se

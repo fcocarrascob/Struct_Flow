@@ -73,7 +73,11 @@ export {
   verificar,
   verificarFactor,
   verificarFuncion,
-  verificarEspectro,
+  verificarEscalar,
+  verificarDelModelo,
+  resumirPorParte,
+  parteDe,
+  esJustificable,
   resumirJustificaciones,
 } from './sap-cargas';
 

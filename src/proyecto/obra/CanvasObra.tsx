@@ -62,7 +62,7 @@ import {
 } from './modelo';
 import NodoObra from './NodoObra';
 import MarcaRevision from './MarcaRevision';
-import PanelSap from './PanelSap';
+import PanelSap, { type PestanaSap } from './PanelSap';
 import { firmaDe } from './sap-cargas';
 import IconoClase from './IconoClase';
 import LeyendaGrupos from './LeyendaGrupos';
@@ -283,6 +283,9 @@ function CanvasObra({
   const [problemasLectura, setProblemasLectura] = useState(apertura.problemas);
   const [nodos, setNodos] = useState<Node[]>([]);
   const [seleccion, setSeleccion] = useState<string | null>(null);
+  // Aquí y no en el panel: el panel se desmonta al deseleccionar el nodo, y
+  // volver a él tiene que dejarte en la pestaña donde estabas.
+  const [pestanaSap, setPestanaSap] = useState<PestanaSap>('resumen');
   /** El nodo bajo el puntero: da la misma vista del trazo que seleccionar, sin
    *  abrir el panel. Solo cuenta mientras no hay nada seleccionado. */
   const [bajoPuntero, setBajoPuntero] = useState<string | null>(null);
@@ -1633,30 +1636,22 @@ function CanvasObra({
             onConectado={(sap) =>
               setObra((o) => {
                 if (!o) return o;
-                const { patrones, cargas, espectro } = o.sap ?? {};
-                return {
-                  ...o,
-                  sap: {
-                    ...sap,
-                    ...(patrones ? { patrones } : {}),
-                    ...(cargas ? { cargas } : {}),
-                    ...(espectro ? { espectro } : {}),
-                  },
-                };
+                const { modelo: _m, ruta: _r, version: _v, leido: _l, ...lecturas } = o.sap ?? {};
+                return { ...o, sap: { ...sap, ...lecturas } };
               })
             }
-            // Una lectura sin cargas —las del puente fallaron— no deja las
-            // anteriores: serían de otro momento y no lo dirían.
-            onLeido={({ patrones, cargas, espectro }) =>
+            // Una lectura reemplaza TODAS las anteriores: si una parte falló —las
+            // cargas, la masa—, no queda la vieja, que sería de otro momento y no
+            // lo diría.
+            onLeido={(lectura) =>
               setObra((o) => {
                 if (!o?.sap) return o;
-                const { cargas: _vieja, espectro: _viejo, ...resto } = o.sap;
-                return {
-                  ...o,
-                  sap: { ...resto, patrones, ...(cargas ? { cargas } : {}), ...(espectro ? { espectro } : {}) },
-                };
+                const { modelo, ruta, version, leido } = o.sap;
+                return { ...o, sap: { modelo, ruta, version, leido, ...lectura } };
               })
             }
+            pestana={pestanaSap}
+            onPestana={setPestanaSap}
             // El scope final de la obra: una carga del modelo se justifica con lo
             // que la obra entera ya calculó, igual que un campo atado.
             justificar={{
@@ -1686,7 +1681,7 @@ function CanvasObra({
                   : nuevaJustificacion({ patron: carga.patron, firma: firmaDe(carga), valor: carga.valor, expr });
                 setObra(conJustificacion(o, j));
               },
-              onJustificarEspectro: (que, expr, actual) => {
+              onJustificarModelo: (que, expr, actual) => {
                 const o = obraRef.current;
                 if (!o) return;
                 if (!expr) {

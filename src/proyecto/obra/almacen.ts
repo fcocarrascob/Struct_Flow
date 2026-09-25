@@ -23,6 +23,7 @@ import type { MetaPlanilla } from '../../lib/biblioteca/contrato';
 import { metaDe } from '../../lib/hoja-json';
 import { migrarBloques, sanearHoja } from './hoja';
 import {
+  CLASES_JUSTIFICACION,
   COLOR_RE,
   COLORES_GRUPO,
   LARGO_NOTA_REVISION,
@@ -33,9 +34,15 @@ import {
   type Frontera,
   type CargaAsignada,
   type CargaEspectro,
+  type CargaDeCaso,
   type CasoEspectro,
+  type CasoLeido,
   type ClaseCarga,
+  type FuenteMasa,
   type FuncionEspectro,
+  type LecturaCasos,
+  type LecturaMasa,
+  type LecturaResumen,
   type LecturaEspectro,
   type Grupo,
   type Justificacion,
@@ -129,7 +136,7 @@ function sanearJustificaciones(crudo: unknown): { justificaciones?: Justificacio
     if (typeof j.patron !== 'string' || typeof j.firma !== 'string' || !esNumero(j.valor)) continue;
     if (typeof j.expr !== 'string' || !j.expr.trim()) continue;
     vistos.add(j.id);
-    const clase = j.clase === 'factor-espectro' || j.clase === 'funcion-espectro' ? { clase: j.clase } : {};
+    const clase = j.clase && CLASES_JUSTIFICACION.includes(j.clase) ? { clase: j.clase } : {};
     lista.push({ id: j.id, ...clase, patron: j.patron, firma: j.firma, valor: j.valor, expr: j.expr.trim() });
   }
   return lista.length ? { justificaciones: lista } : {};
@@ -174,10 +181,92 @@ function sanearEspectro(crudo: unknown): LecturaEspectro | undefined {
   return { modelo: texto(l.modelo), leido: texto(l.leido), casos, funciones };
 }
 
+/** Los factores de un caso o de una fuente de masa: sin nombre o sin número, fuera. */
+function sanearFactores(crudo: unknown, clave: 'nombre' | 'patron'): { tipo: string; nombre: string; sf: number }[] {
+  const lista: { tipo: string; nombre: string; sf: number }[] = [];
+  for (const x of Array.isArray(crudo) ? crudo : []) {
+    const f = (x ?? {}) as Record<string, unknown>;
+    const nombre = f[clave];
+    if (typeof nombre !== 'string' || !nombre || !esNumero(f.sf)) continue;
+    lista.push({ tipo: texto(f.tipo), nombre, sf: f.sf });
+  }
+  return lista;
+}
+
+/** Una lectura de Load Cases. Un caso sin nombre no se puede citar y se descarta. */
+function sanearCasos(crudo: unknown): LecturaCasos | undefined {
+  if (typeof crudo !== 'object' || crudo === null) return undefined;
+  const l = crudo as Partial<LecturaCasos>;
+  if (!Array.isArray(l.lista)) return undefined;
+  const lista: CasoLeido[] = [];
+  for (const x of l.lista) {
+    const c = (x ?? {}) as Partial<CasoLeido>;
+    if (typeof c.nombre !== 'string' || !c.nombre) continue;
+    const caso: CasoLeido = { nombre: c.nombre, tipo: texto(c.tipo), estado: texto(c.estado) };
+    if (Array.isArray(c.cargas)) caso.cargas = sanearFactores(c.cargas, 'nombre') satisfies CargaDeCaso[];
+    if (typeof c.modal === 'string') caso.modal = c.modal;
+    const m = c.modos;
+    if (m && esNumero(m.max) && esNumero(m.min)) caso.modos = { max: m.max, min: m.min };
+    lista.push(caso);
+  }
+  return { modelo: texto(l.modelo), leido: texto(l.leido), lista };
+}
+
+/** Una lectura de las fuentes de masa. */
+function sanearMasa(crudo: unknown): LecturaMasa | undefined {
+  if (typeof crudo !== 'object' || crudo === null) return undefined;
+  const l = crudo as Partial<LecturaMasa>;
+  if (!Array.isArray(l.fuentes)) return undefined;
+  const fuentes: FuenteMasa[] = [];
+  for (const x of l.fuentes) {
+    const f = (x ?? {}) as Partial<FuenteMasa>;
+    if (typeof f.nombre !== 'string' || !f.nombre) continue;
+    fuentes.push({
+      nombre: f.nombre,
+      porDefecto: f.porDefecto === true,
+      deElementos: f.deElementos === true,
+      deMasas: f.deMasas === true,
+      deCargas: f.deCargas === true,
+      cargas: sanearFactores(f.cargas, 'patron').map(({ nombre, sf }) => ({ patron: nombre, sf })),
+    });
+  }
+  return { modelo: texto(l.modelo), leido: texto(l.leido), fuentes };
+}
+
+/** Un resumen del modelo. Un conteo ilegible queda en 0; una lista, vacía. */
+function sanearResumen(crudo: unknown): LecturaResumen | undefined {
+  if (typeof crudo !== 'object' || crudo === null) return undefined;
+  const r = crudo as Partial<Record<keyof LecturaResumen, unknown>>;
+  const n = (v: unknown) => (esNumero(v) ? v : 0);
+  const nombres = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string' && !!x) : []);
+  const objetos = (v: unknown) => (Array.isArray(v) ? v.map((x) => (x ?? {}) as Record<string, unknown>) : []);
+  return {
+    modelo: texto(r.modelo),
+    leido: texto(r.leido),
+    unidades: texto(r.unidades),
+    nudos: n(r.nudos),
+    barras: n(r.barras),
+    areas: n(r.areas),
+    links: n(r.links),
+    grupos: objetos(r.grupos)
+      .filter((g) => typeof g.nombre === 'string' && g.nombre)
+      .map((g) => ({ nombre: g.nombre as string, barras: n(g.barras), areas: n(g.areas) })),
+    materiales: objetos(r.materiales)
+      .filter((m) => typeof m.nombre === 'string' && m.nombre)
+      .map((m) => ({ nombre: m.nombre as string, tipo: texto(m.tipo) })),
+    seccionesBarra: nombres(r.seccionesBarra),
+    seccionesArea: nombres(r.seccionesArea),
+    patrones: n(r.patrones),
+    casos: n(r.casos),
+    analizados: n(r.analizados),
+    combinaciones: n(r.combinaciones),
+  };
+}
+
 /**
  * La última conexión a SAP2000. Una sin modelo no dice nada y se descarta. Los
- * grupos leídos que traiga una obra anterior se descartan: eran para aplicar
- * cargas, que ya no existen.
+ * grupos sueltos que traiga una obra anterior se descartan: eran para aplicar
+ * cargas, que ya no existen. Los de ahora van dentro de `resumen`.
  */
 function sanearSap(crudo: unknown): { sap?: ConexionSap } {
   if (typeof crudo !== 'object' || crudo === null) return {};
@@ -186,6 +275,9 @@ function sanearSap(crudo: unknown): { sap?: ConexionSap } {
   const patrones = sanearLectura(s.patrones);
   const cargas = sanearCargas(s.cargas);
   const espectro = sanearEspectro(s.espectro);
+  const casos = sanearCasos(s.casos);
+  const masa = sanearMasa(s.masa);
+  const resumen = sanearResumen(s.resumen);
   return {
     sap: {
       modelo: s.modelo,
@@ -195,6 +287,9 @@ function sanearSap(crudo: unknown): { sap?: ConexionSap } {
       ...(patrones ? { patrones } : {}),
       ...(cargas ? { cargas } : {}),
       ...(espectro ? { espectro } : {}),
+      ...(casos ? { casos } : {}),
+      ...(masa ? { masa } : {}),
+      ...(resumen ? { resumen } : {}),
     },
   };
 }

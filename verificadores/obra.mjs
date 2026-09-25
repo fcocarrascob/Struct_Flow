@@ -72,7 +72,10 @@ const {
   verificar,
   verificarFactor,
   verificarFuncion,
+  verificarEscalar,
+  verificarDelModelo,
   resumirJustificaciones,
+  resumirPorParte,
   obraDesde,
   traerNodos,
   dependenciasDe,
@@ -846,7 +849,7 @@ const CASOS = [
     ok: (ev, proy) => {
       const sap = proy.nodos.find((x) => x.id === 'sap');
       if (!sap) return 'no está el nodo SAP2000';
-      if (sap.subtitulo !== 'm.sdb · 1 de 3 cargas justificadas') return `subtítulo: «${sap.subtitulo}»`;
+      if (sap.subtitulo !== 'm.sdb · 1 de 3 justificados') return `subtítulo: «${sap.subtitulo}»`;
       if (sap.severidad !== 'error' || !sap.motivos[0]?.includes('no coinciden')) return `severidad ${sap.severidad}: ${sap.motivos}`;
       const a = proy.aristas.find((x) => x.desde === K('G') && x.hasta === 'sap');
       if (!a) return 'falta la flecha de G al nodo SAP2000';
@@ -1005,8 +1008,101 @@ const CASOS_HOJA = [
       if (JSON.stringify(sanearObra(archivoDeObra(saneada).obra)) !== JSON.stringify(saneada)) return 'la lectura del espectro cambió en la ida y vuelta';
       if (saneada.justificaciones[0].clase !== 'factor-espectro') return 'el saneo perdió la clase';
       const r = resumirJustificaciones(saneada, evaluarObra(saneada, {}).scope);
-      if (r.cargas !== 2 || r.justificadas !== 2) return `resumen: ${JSON.stringify(r)}`;
+      // El factor de U1, la función y el amortiguamiento de RSX.
+      if (r.total !== 3 || r.justificadas !== 2) return `resumen: ${JSON.stringify(r)}`;
       return r.huerfanas.length === 1 && r.huerfanas[0].patron === 'RSZ' ? null : `huérfanas: ${JSON.stringify(r.huerfanas)}`;
+    },
+  },
+  {
+    nombre: 'un factor sin unidades se justifica: coincide, difiere con su porcentaje y una unidad es error',
+    ok: () => {
+      const scope = evaluarObra(obra(calc('A', m('k_v := 0.185'), m('xi := 0.05'), m('h := 3 m'))), {}).scope;
+      const bien = verificarEscalar('k_v', 0.185, scope);
+      if (bien.estado !== 'coincide' || bien.detalle !== 'la obra da 0,185') return `k_v: ${JSON.stringify(bien)}`;
+      const mal = verificarEscalar('k_v', 0.2, scope);
+      if (mal.estado !== 'difiere' || mal.detalle !== 'la obra da 0,185 y el modelo 0,2 (-7,5 %)') return `k_v contra 0,2: ${mal.detalle}`;
+      if (verificarEscalar('xi', 0.05, scope).estado !== 'coincide') return 'el amortiguamiento como fracción no coincidió';
+      return verificarEscalar('h', 3, scope).estado === 'error' ? null : 'una longitud pasó por un factor';
+    },
+  },
+  {
+    nombre: 'los factores de un caso y de la masa se justifican; solo cuentan los distintos de 1',
+    ok: () => {
+      const o = {
+        ...obra(calc('A', m('k_v := 0.185'), m('f_2 := 0.5'), m('xi := 0.05'))),
+        sap: {
+          modelo: 'm.sdb', ruta: '', version: '', leido: '',
+          espectro: {
+            modelo: 'm.sdb', leido: '',
+            casos: [{ nombre: 'RSX', modal: 'MODAL', combinacion: 'CQC', amortiguamiento: 0.05, cargas: [] }],
+            funciones: [],
+          },
+          casos: {
+            modelo: 'm.sdb', leido: '',
+            lista: [
+              { nombre: 'CM', tipo: 'LinearStatic', estado: 'sin-analizar', cargas: [{ tipo: 'Load', nombre: 'DEAD', sf: 1 }] },
+              {
+                nombre: 'EV', tipo: 'LinearStatic', estado: 'analizado',
+                cargas: [{ tipo: 'Load', nombre: 'DEAD', sf: 0.185 }, { tipo: 'Load', nombre: 'CM_VIA', sf: 0.185 }],
+              },
+              { nombre: 'MODAL', tipo: 'Modal', estado: 'analizado', modal: 'Eigen', modos: { max: 150, min: 1 } },
+              { nombre: 'RSX', tipo: 'ResponseSpectrum', estado: 'analizado' },
+            ],
+          },
+          masa: {
+            modelo: 'm.sdb', leido: '',
+            fuentes: [{
+              nombre: 'MSSSRC1', porDefecto: true, deElementos: true, deMasas: true, deCargas: true,
+              cargas: [{ patron: 'DEAD', sf: 1 }, { patron: 'S', sf: 0.5 }],
+            }],
+          },
+          resumen: {
+            modelo: 'm.sdb', leido: '', unidades: 'Ton_m_C', nudos: 322, barras: 591, areas: 61, links: 24,
+            grupos: [{ nombre: 'COL_PPALES', barras: 68, areas: 0 }], materiales: [{ nombre: 'A36', tipo: 'Steel' }],
+            seccionesBarra: ['W16x67'], seccionesArea: ['ASEC1'], patrones: 27, casos: 32, analizados: 0, combinaciones: 165,
+          },
+        },
+        justificaciones: [
+          { id: 'a', clase: 'factor-caso', patron: 'EV', firma: 'DEAD', valor: 0.185, expr: 'k_v' },
+          { id: 'b', clase: 'factor-caso', patron: 'EV', firma: 'CM_VIA', valor: 0.185, expr: '0.2' },
+          { id: 'c', clase: 'factor-masa', patron: 'MSSSRC1', firma: 'S', valor: 0.5, expr: 'f_2' },
+          { id: 'd', clase: 'amortiguamiento', patron: 'RSX', firma: 'amortiguamiento', valor: 0.05, expr: 'xi' },
+          { id: 'e', clase: 'factor-caso', patron: 'EH', firma: 'DEAD', valor: 0.3, expr: 'k_v' },
+          { id: 'f', clase: 'factor-masa', patron: 'MSSSRC1', firma: 'L', valor: 0.25, expr: 'f_2' },
+        ],
+      };
+      const saneada = sanearObra(o);
+      if (JSON.stringify(sanearObra(archivoDeObra(saneada).obra)) !== JSON.stringify(saneada)) return 'la lectura cambió en la ida y vuelta';
+      for (const k of ['casos', 'masa', 'resumen']) {
+        if (JSON.stringify(saneada.sap[k]) !== JSON.stringify(o.sap[k])) return `el saneo cambió sap.${k}`;
+      }
+      if (saneada.justificaciones.map((j) => j.clase).join() !== o.justificaciones.map((j) => j.clase).join()) return 'el saneo perdió clases';
+      const scope = evaluarObra(saneada, {}).scope;
+      if (verificarDelModelo(saneada.justificaciones[0], saneada.sap, scope)?.estado !== 'coincide') return 'EV × DEAD no coincidió';
+      if (verificarDelModelo(saneada.justificaciones[1], saneada.sap, scope)?.estado !== 'difiere') return 'EV × CM_VIA con 0,2 coincidió';
+      const p = resumirPorParte(saneada, scope);
+      // Casos: los dos 0,185 de EV y el amortiguamiento de RSX; el 1 de CM no. Masa: solo S.
+      if (p.casos.total !== 3 || p.casos.justificadas !== 2 || p.casos.difieren !== 1) return `casos: ${JSON.stringify(p.casos)}`;
+      if (p.masa.total !== 1 || p.masa.justificadas !== 1) return `masa: ${JSON.stringify(p.masa)}`;
+      if (p.casos.huerfanas.map((j) => j.id).join() !== 'e') return `huérfanas de casos: ${p.casos.huerfanas.map((j) => j.id)}`;
+      if (p.masa.huerfanas.map((j) => j.id).join() !== 'f') return `huérfanas de masa: ${p.masa.huerfanas.map((j) => j.id)}`;
+      const r = resumirJustificaciones(saneada, scope);
+      if (r.total !== 4 || r.justificadas !== 3 || r.huerfanas.length !== 2) return `resumen: ${JSON.stringify(r)}`;
+      // Una lectura mal formada no tumba la obra: lo ilegible se cae y lo demás queda.
+      const rota = sanearObra({
+        ...o,
+        sap: {
+          ...o.sap,
+          casos: { lista: [{ tipo: 'Modal' }, { nombre: 'EV', cargas: [{ nombre: 'DEAD' }, { nombre: 'S', sf: 0.5 }] }] },
+          masa: { fuentes: 'no' },
+          resumen: { barras: 'muchas', grupos: [{ barras: 3 }] },
+        },
+      }).sap;
+      if (JSON.stringify(rota.casos.lista) !== '[{"nombre":"EV","tipo":"","estado":"","cargas":[{"tipo":"","nombre":"S","sf":0.5}]}]') {
+        return `casos rotos: ${JSON.stringify(rota.casos.lista)}`;
+      }
+      if (rota.masa !== undefined) return 'una masa sin fuentes se guardó';
+      return rota.resumen.barras === 0 && rota.resumen.grupos.length === 0 ? null : `resumen roto: ${JSON.stringify(rota.resumen)}`;
     },
   },
   {

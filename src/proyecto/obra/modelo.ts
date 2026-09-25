@@ -254,6 +254,87 @@ export interface ConexionSap {
   cargas?: LecturaCargas;
   /** La última lectura de los casos de espectro y las funciones que usan. */
   espectro?: LecturaEspectro;
+  /** La última lectura de todos los Load Cases: tipo, estado y detalle. */
+  casos?: LecturaCasos;
+  /** La última lectura de las fuentes de masa. */
+  masa?: LecturaMasa;
+  /** La última lectura de lo que hay en el modelo, en números. */
+  resumen?: LecturaResumen;
+}
+
+/** Un patrón (o una aceleración) que carga un caso estático, con su factor. */
+export interface CargaDeCaso {
+  /** `Load` o `Accel`. */
+  tipo: string;
+  nombre: string;
+  sf: number;
+}
+
+/**
+ * Un Load Case tal como está en el modelo.
+ *
+ * El detalle depende del tipo: un estático lineal trae sus patrones con su
+ * factor, un modal cuántos modos. Un espectro no trae nada aquí: su detalle está
+ * en `LecturaEspectro`, que es donde lo buscan sus justificaciones.
+ */
+export interface CasoLeido {
+  nombre: string;
+  /** El nombre de `eLoadCaseType` en la API: `LinearStatic`, `Modal`, `ResponseSpectrum`… */
+  tipo: string;
+  /** `sin-analizar`, `no-empezo`, `incompleto` o `analizado`. */
+  estado: string;
+  cargas?: CargaDeCaso[];
+  /** Modal: `Eigen` o `Ritz`. */
+  modal?: string;
+  modos?: { max: number; min: number };
+}
+
+export interface LecturaCasos {
+  modelo: string;
+  /** ISO. */
+  leido: string;
+  lista: CasoLeido[];
+}
+
+/** Una fuente de masa: de dónde toma la masa el modelo y con qué factores. */
+export interface FuenteMasa {
+  nombre: string;
+  porDefecto: boolean;
+  /** Del peso propio de los elementos. */
+  deElementos: boolean;
+  /** De las masas asignadas. */
+  deMasas: boolean;
+  /** De los patrones de `cargas`. */
+  deCargas: boolean;
+  cargas: { patron: string; sf: number }[];
+}
+
+export interface LecturaMasa {
+  modelo: string;
+  /** ISO. */
+  leido: string;
+  fuentes: FuenteMasa[];
+}
+
+/** Lo que hay en el modelo, en números: para ver de un vistazo qué se leyó. */
+export interface LecturaResumen {
+  modelo: string;
+  /** ISO. */
+  leido: string;
+  /** Las unidades en que el usuario tiene el modelo: `kN_m_C`, `Ton_m_C`… */
+  unidades: string;
+  nudos: number;
+  barras: number;
+  areas: number;
+  links: number;
+  grupos: { nombre: string; barras: number; areas: number }[];
+  materiales: { nombre: string; tipo: string }[];
+  seccionesBarra: string[];
+  seccionesArea: string[];
+  patrones: number;
+  casos: number;
+  analizados: number;
+  combinaciones: number;
 }
 
 /** Una dirección de un caso de espectro de respuesta. */
@@ -406,14 +487,35 @@ export interface Justificacion {
    * - `funcion-espectro`: una función de espectro, comparada en todos sus puntos;
    *   `patron` es la función. La expresión nombra una función de la obra de un
    *   periodo: `Sa_esp`.
+   * - `amortiguamiento`: el amortiguamiento de un caso de espectro, como
+   *   fracción; `patron` es el caso y `firma`, `amortiguamiento`.
+   * - `factor-caso`: el factor con que un caso estático toma un patrón;
+   *   `patron` es el caso y `firma` el patrón (EV y DEAD).
+   * - `factor-masa`: el factor con que una fuente de masa toma un patrón;
+   *   `patron` es la fuente y `firma` el patrón (MSSSRC1 y S).
    */
-  clase?: 'factor-espectro' | 'funcion-espectro';
+  clase?: ClaseJustificacion;
   patron: string;
   firma: string;
   valor: number;
   /** Se evalúa en el scope de la obra: `q_cub`, `CM_via * 1.0`… */
   expr: string;
 }
+
+export type ClaseJustificacion =
+  | 'factor-espectro'
+  | 'funcion-espectro'
+  | 'amortiguamiento'
+  | 'factor-caso'
+  | 'factor-masa';
+
+export const CLASES_JUSTIFICACION: readonly ClaseJustificacion[] = [
+  'factor-espectro',
+  'funcion-espectro',
+  'amortiguamiento',
+  'factor-caso',
+  'factor-masa',
+];
 
 export function nuevaJustificacion(campos: Omit<Justificacion, 'id'>): Justificacion {
   return { id: nuevoId('j'), ...campos };
