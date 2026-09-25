@@ -3313,6 +3313,23 @@ function CASOS_ENSAMBLE() {
       },
     },
     {
+      nombre: 'ensamble de la base a mano: sin nodo de apoyos, la hoja de solicitaciones define todo lo que la base nombra',
+      ok: () => {
+        const r = armarEnsamble(obra(), PLANTILLA, COMPLETA, PARAMS, sellosBase, { nombre: 'Base', color: '#db2777' }, idsDe(), true);
+        if (r.error) return r.error;
+        const ev = evaluarObra(r.obra, genericasBase);
+        const sinDefinir = errores(ev).filter((e) => /Undefined symbol|sin definir|no está definid/i.test(e));
+        if (sinDefinir.length) return `${sinDefinir.length} nombre(s) sin definir: ${sinDefinir[0]}`;
+        const hoja = nodo(r.obra, 'Solicitaciones COL_PPALES');
+        if (!hoja?.revisar) return 'la hoja a mano no está marcada para revisar';
+        // Con las externas ya definidas en la obra, no las repite.
+        const conDiag = armarEnsamble(obra(calc('D', m('H_int_dg := 1 kN'), m('H_ext_dg := 1 kN'), m('T_ext_dg := 1 kN'))), PLANTILLA, COMPLETA, PARAMS, sellosBase, { nombre: 'Base', color: '#db2777' }, idsDe(), true);
+        if (conDiag.error) return conDiag.error;
+        const ev2 = evaluarObra(conDiag.obra, genericasBase);
+        return ev2.repetidos.size ? `repetidos: ${[...ev2.repetidos.keys()].join(', ')}` : null;
+      },
+    },
+    {
       nombre: 'ensamble de la base: sin silla, se va su nodo y la placa trabaja sin nervios',
       ok: () => {
         const nuevoId = idsDe();

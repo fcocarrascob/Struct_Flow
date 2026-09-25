@@ -330,6 +330,11 @@ export function aliasPorDefecto(texto: string): string {
   return /^[0-9]/.test(a) ? `T${a}` : a;
 }
 
+/** El alias con que cada conjunto de diseño entra en los nombres, en el orden de la obra. */
+export function aliasDeConjuntos(obra: Obra): string[] {
+  return (obra.conjuntosDiseno ?? []).map((c) => c.alias ?? aliasPorDefecto(c.nombre));
+}
+
 /** Los cuatro criterios, con la letra con que entran en el nombre. */
 export const CRITERIOS = [
   { k: 'compresion', letra: 'c' },

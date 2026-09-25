@@ -73,6 +73,11 @@ export interface NodoPlantilla {
 
 export interface Plantilla {
   nodos: NodoPlantilla[];
+  /**
+   * Lo que el grupo usa, no define y no son gobernantes del nodo de apoyos: sin
+   * ese nodo, la hoja escrita a mano las pone (las que la obra no tenga ya).
+   */
+  externas?: { nombre: string; unidad: string; texto: string }[];
 }
 
 /** Con qué se instancia: el tipo de apoyo y los conjuntos de sus gobernantes. */
@@ -194,6 +199,54 @@ export function instanciar(
 
 // ── Armar y reconfigurar ─────────────────────────────────────────────────────
 
+/**
+ * Las gobernantes escritas a mano, para una obra sin nodo de apoyos (sin
+ * SAP2000, o con otro programa): los mismos nombres que publicaría ese nodo
+ * —magnitud, criterio, tipo y conjunto—, en cero y marcados para revisar. Se
+ * definen todos los que una plantilla puede pedir; los que no nombre, sobran.
+ */
+export function hojaDeGobernantes(
+  p: Parametros,
+  id: string,
+  externas: Plantilla['externas'] = [],
+  yaDefinidos: ReadonlySet<string> = new Set(),
+): NodoCalculo {
+  const bloques: Region[] = [];
+  const poner = (kind: 'text' | 'math', src: string) =>
+    bloques.push({ id: `${id}:${bloques.length + 1}`, kind, x: 40, y: 40 + bloques.length * 48, src });
+  poner('text', `# Solicitaciones de ${p.grupoSap}`);
+  poner(
+    'text',
+    'Las gobernantes del tipo, escritas a mano: N positiva es compresión. Criterios: c compresión, t tracción, v corte, ' +
+      'm momento y e excentricidad; V y M son los que acompañan a la combinación que gobierna.',
+  );
+  for (const [conjunto, titulo] of [
+    [p.diseno, 'diseño'],
+    [p.sobrerresistencia, 'sobrerresistencia'],
+  ]) {
+    poner('text', `## Conjunto de ${titulo} (${conjunto})`);
+    for (const c of ['c', 't', 'v', 'm', 'e']) {
+      poner('math', `N_${c}_${p.tipo}_${conjunto} := 0 kN`);
+      poner('math', `V_${c}_${p.tipo}_${conjunto} := 0 kN`);
+      poner('math', `M_${c}_${p.tipo}_${conjunto} := 0 kN*m`);
+    }
+  }
+  const faltan = externas.filter((e) => !yaDefinidos.has(e.nombre));
+  if (faltan.length) {
+    poner('text', '## Otras solicitaciones que la base usa');
+    for (const e of faltan) {
+      poner('text', `${e.texto}.`);
+      poner('math', `${e.nombre} := 0 ${e.unidad}`);
+    }
+  }
+  return {
+    id,
+    nombre: `Solicitaciones ${p.grupoSap}`,
+    hoja: bloques,
+    revisar: { nota: `Escribir las solicitaciones gobernantes de ${p.grupoSap}: están en cero.`, por: 'asistente' },
+  };
+}
+
 export interface ResultadoArmar {
   obra: Obra;
   /** El id del nodo de la vista, que lleva el ensamble. */
@@ -213,6 +266,8 @@ export function armarEnsamble(
   sellos: Readonly<Record<string, string>>,
   grupo: { nombre: string; color: string },
   nuevoId: (prefijo: string) => string,
+  /** Sin nodo de apoyos: agrega la hoja de las gobernantes, para escribirlas a mano. */
+  aMano = false,
 ): ResultadoArmar | { error: string } {
   const propios = nombresPropios(p);
   const tr = (s: string) => traducir(s, propios, params);
@@ -221,9 +276,14 @@ export function armarEnsamble(
   if (choques.length) {
     return { error: `La obra ya define ${choques.slice(0, 4).join(', ')}${choques.length > 4 ? '…' : ''}: ¿hay otra base del tipo ${params.tipo}?` };
   }
+  const manual = aMano ? hojaDeGobernantes(params, nuevoId('k'), p.externas, ya) : undefined;
+  if (manual) {
+    const repetidas = definicionesDe(manual.hoja).filter((n) => ya.has(n));
+    if (repetidas.length) return { error: `La obra ya define ${repetidas[0]}: las solicitaciones de ${params.tipo} ya existen, arma la base sin escribirlas a mano.` };
+  }
   const ids = Object.fromEntries(p.nodos.map((n) => [n.clave, nuevoId('k')]));
   const idGrupo = nuevoId('g');
-  const nodos = instanciar(p, config, params, ids, sellos).map((k) => ({ ...k, grupo: idGrupo }));
+  const nodos = [...(manual ? [manual] : []), ...instanciar(p, config, params, ids, sellos)].map((k) => ({ ...k, grupo: idGrupo }));
   const idVista = vistaDe(p, ids);
   const conEnsamble = nodos.map((k) => (k.id === idVista ? conNodos(k, params, ids, config, p) : k));
   return {

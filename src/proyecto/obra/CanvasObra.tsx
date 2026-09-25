@@ -30,7 +30,7 @@ import { abrirObra, olvidarBorrador, type Apertura } from './almacen-disco';
 import { descargarHoja } from '../../lib/canvas-handoff';
 import { cargarGenerica, desprender, type Genericas } from './biblioteca';
 import { consumidoresDe, evaluarObra, problemaDeGrafo, rupturaPorQuitar } from './evaluacion';
-import { publicaApoyos } from './sap-apoyos';
+import { aliasDeConjuntos, publicaApoyos } from './sap-apoyos';
 // `idsDeLaObra`: todos los ids ya repartidos. Traer las regiones de una genérica
 // a un nodo pasa por ahí: dos nodos que desprendan la misma se quedarían con las
 // mismas, y son las claves de `results` en la hoja global.
@@ -54,6 +54,7 @@ import {
   porRevisar,
   conPublicacion,
   nuevoCalculo,
+  nuevoId,
   quitarModulo,
   conAliasTipo,
   conConjunto,
@@ -81,7 +82,10 @@ import LeyendaGrupos from './LeyendaGrupos';
 import SelectorGrupo from './SelectorGrupo';
 import { ladoDe, trazoDe, type Lado } from './trazo';
 import PaletaNodos, { type EntradaPaleta } from './PaletaNodos';
-import { VISTAS, datosPorDefecto } from '../vistas/registro';
+import { VISTAS, configCompleta, datosPorDefecto } from '../vistas/registro';
+import type { Config } from '../vistas/tipos';
+import { armarEnsamble, reconfigurar, type Parametros } from './ensamble';
+import ArmarBase from './ArmarBase';
 import PestanaVista from './PestanaVista';
 import PanelCalculo from './PanelCalculo';
 import {
@@ -721,6 +725,11 @@ function CanvasObra({
       setTrayendo(true);
       return;
     }
+    if (clave === 'base-columna') {
+      setErrorBase('');
+      setArmandoBase({});
+      return;
+    }
     if (clave === 'vista-base-columna') {
       const def = VISTAS['base-columna'];
       const k: NodoCalculo = {
@@ -941,6 +950,87 @@ function CanvasObra({
       setSeleccion(null);
     },
     [cerrarPestanasDe, anunciarBorrado],
+  );
+
+  // ── La base de columna como ensamble (`./ensamble.ts`) ─────────────────────
+  /** El diálogo de armar una base: `tipo` si viene del panel de apoyos. */
+  const [armandoBase, setArmandoBase] = useState<{ tipo?: { grupoSap: string; alias: string } } | null>(null);
+  const [errorBase, setErrorBase] = useState('');
+
+  /**
+   * Los sellos de las genéricas de la plantilla, del módulo ya cargado como al
+   * importar una sola: sellar con el índice haría que la instancia se declarara
+   * desfasada si el índice fuera de otra compilación.
+   */
+  const sellosDePlantilla = useCallback(async (idVista: string): Promise<Record<string, string> | string> => {
+    const plantilla = VISTAS[idVista]?.plantilla;
+    if (!plantilla) return 'Esta vista no tiene un grupo que armar.';
+    const slugs = [...new Set(plantilla.nodos.flatMap((n) => (n.frontera?.procedencia === 'biblioteca' ? [n.frontera.id] : [])))];
+    const sellos: Record<string, string> = {};
+    for (const slug of slugs) {
+      pedidas.current.add(slug);
+      const estado = await cargarGenerica(slug);
+      setGenericas((prev) => ({ ...prev, [slug]: estado }));
+      if (estado.fase !== 'lista') return `No se pudo cargar la genérica «${slug}».`;
+      sellos[slug] = estado.modulo.biblioteca?.sha256 ?? '';
+    }
+    return sellos;
+  }, []);
+
+  const armarBase = useCallback(
+    async (params: Parametros, config: Config, aMano: boolean) => {
+      setErrorBase('');
+      const def = VISTAS['base-columna'];
+      const sellos = await sellosDePlantilla(def.id);
+      if (typeof sellos === 'string') return setErrorBase(sellos);
+      const actual = obraRef.current;
+      if (!actual || !def.plantilla) return;
+      const r = armarEnsamble(
+        actual,
+        def.plantilla,
+        config,
+        params,
+        sellos,
+        { nombre: `Base de columna ${params.grupoSap}`, color: '#db2777' },
+        nuevoId,
+        aMano,
+      );
+      if ('error' in r) return setErrorBase(r.error);
+      setObra(r.obra);
+      setArmandoBase(null);
+      setSeleccion(idNodoDeCalculo(r.idVista));
+    },
+    [sellosDePlantilla],
+  );
+
+  /**
+   * Cambia un componente de una base armada: agrega o quita su nodo, sus bloques
+   * y sus ataduras. Si algo de fuera del grupo usaba lo que se va, se dice como
+   * en un borrado; lo de dentro lo reata la plantilla.
+   */
+  const reconfigurarBase = useCallback(
+    async (idVista: string, config: Config) => {
+      const actual = obraRef.current;
+      const vista = actual?.calculos.find((k) => k.id === idVista);
+      const def = vista?.frontera?.vista ? VISTAS[vista.frontera.vista] : undefined;
+      if (!actual || !vista?.frontera?.ensamble || !def?.plantilla) return;
+      const sellos = await sellosDePlantilla(def.id);
+      if (typeof sellos === 'string') return;
+      const despues = obraRef.current ?? actual;
+      const r = reconfigurar(despues, def.plantilla, idVista, config, sellos, nuevoId);
+      if ('error' in r) return;
+      const idsAntes = new Set(despues.calculos.map((k) => k.id));
+      const idsDespues = new Set(r.obra.calculos.map((k) => k.id));
+      const quitados = [...idsAntes].filter((id) => !idsDespues.has(id)).map(idNodoDeCalculo);
+      setObra(r.obra);
+      if (quitados.length) {
+        const delGrupo = new Set(Object.values(vista.frontera.ensamble.nodos).map((id) => despues.calculos.find((k) => k.id === id)?.nombre));
+        const rota = rupturaPorQuitar(quitados, evaluacionRef.current).filter((x) => !delGrupo.has(x.nodo));
+        cerrarPestanasDe(quitados);
+        anunciarBorrado(r.obra, fraseDeRuptura(r.quitados.join(' y '), rota));
+      }
+    },
+    [sellosDePlantilla, cerrarPestanasDe, anunciarBorrado],
   );
 
   /**
@@ -1329,6 +1419,16 @@ function CanvasObra({
               modo={estadoSesion.modo}
               onTraer={traerDe}
               onCerrar={cerrarTraer}
+            />
+          )}
+          {armandoBase && (
+            <ArmarBase
+              def={VISTAS['base-columna']}
+              tipo={armandoBase.tipo}
+              conjuntos={armandoBase.tipo ? aliasDeConjuntos(obra) : []}
+              error={errorBase}
+              onArmar={(params, config, aMano) => void armarBase(params, config, aMano)}
+              onCerrar={() => setArmandoBase(null)}
             />
           )}
           {/* Deshacer y rehacer. Con botones y no solo con el atajo: una obra se
@@ -1874,6 +1974,16 @@ function CanvasObra({
             usan={consumidoresDe(ID_NODO_APOYOS, evaluacion)}
             aliasTipos={obra.aliasTipos ?? {}}
             onAliasTipo={(grupo, alias) => setObra((o) => (o ? conAliasTipo(o, grupo, alias) : o))}
+            bases={Object.fromEntries(
+              obra.calculos.flatMap((k) =>
+                k.frontera?.ensamble ? [[k.frontera.ensamble.tipo, { idVista: k.id, nombre: k.nombre }]] : [],
+              ),
+            )}
+            onArmarBase={(grupo, alias) => {
+              setErrorBase('');
+              setArmandoBase({ tipo: { grupoSap: grupo, alias } });
+            }}
+            onVerBase={(idVista) => setSeleccion(idNodoDeCalculo(idVista))}
             onQuitarConjunto={(id) => {
               const o = obraRef.current;
               if (o) setObra(quitarConjunto(o, id));
@@ -2023,13 +2133,20 @@ function CanvasObra({
                 k.frontera ? { ...k, frontera: conFormula(k.frontera, campo, expr) } : k,
               )
             }
-            onConfig={(clave, variante) =>
+            onConfig={(clave, variante) => {
+              // Con su grupo armado, cambiar un componente es cambiar el grupo.
+              const f = calculo.frontera;
+              if (f?.ensamble && f.vista) {
+                const actual = configCompleta(VISTAS[f.vista], f.config);
+                void reconfigurarBase(calculo.id, { ...actual, [clave]: variante });
+                return;
+              }
               cambiarUnCalculo(calculo.id, (k) =>
                 k.frontera
                   ? { ...k, frontera: { ...k.frontera, config: { ...k.frontera.config, [clave]: variante } } }
                   : k,
-              )
-            }
+              );
+            }}
             onPublicar={(salida, alias) =>
               cambiarUnCalculo(calculo.id, (k) =>
                 k.frontera ? { ...k, frontera: conPublicacion(k.frontera, salida, alias) } : k,

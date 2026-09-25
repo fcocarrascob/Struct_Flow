@@ -48,9 +48,16 @@ export default function PanelApoyos({
   usan,
   aliasTipos,
   onAliasTipo,
+  bases,
+  onArmarBase,
+  onVerBase,
   onQuitar,
   onCerrar,
 }: {
+  /** Las bases ya armadas, por alias de tipo: se derivan de las vistas con ensamble. */
+  bases: Readonly<Record<string, { idVista: string; nombre: string }>>;
+  onArmarBase: (grupo: string, alias: string) => void;
+  onVerBase: (idVista: string) => void;
   sap: ConexionSap | undefined;
   unidades: SistemaUnidades;
   onUnidades: (u: SistemaUnidades) => void;
@@ -250,6 +257,30 @@ export default function PanelApoyos({
                         <span className="ml-auto truncate font-mono text-[10px] text-muted" title={t.apoyos.join(', ')}>
                           {t.apoyos.join(' ')}
                         </span>
+                        {t.grupo &&
+                          (() => {
+                            const alias = aliasTipos[t.grupo] ?? aliasPorDefecto(t.grupo);
+                            const base = bases[alias];
+                            return base ? (
+                              <button
+                                type="button"
+                                onClick={() => onVerBase(base.idVista)}
+                                title={`La base de ${t.grupo}: ${base.nombre}`}
+                                className="shrink-0 rounded border border-border px-1.5 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent"
+                              >
+                                ver base
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => onArmarBase(t.grupo!, alias)}
+                                title="Armar el grupo de la base de columna de este tipo, atado a sus gobernantes"
+                                className="shrink-0 rounded border border-accent px-1.5 py-0.5 text-[10px] text-accent hover:bg-accent hover:text-white"
+                              >
+                                + base
+                              </button>
+                            );
+                          })()}
                       </li>
                     ))}
                   </ul>

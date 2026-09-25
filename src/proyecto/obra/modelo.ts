@@ -831,7 +831,7 @@ let secuencia = 0;
 
 /** Lleva la marca del reloj, un contador y azar: dos pestañas abriendo obras al
  *  mismo tiempo no pueden coincidir. */
-function nuevoId(prefijo: string): string {
+export function nuevoId(prefijo: string): string {
   return `${prefijo}${Date.now().toString(36)}${(secuencia++).toString(36)}${Math.random()
     .toString(36)
     .slice(2, 6)}`;

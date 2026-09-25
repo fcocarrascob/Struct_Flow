@@ -324,6 +324,11 @@ const RESUMEN = [
 // ── La plantilla ─────────────────────────────────────────────────────────────
 
 export const PLANTILLA_BASE_COLUMNA: Plantilla = {
+  externas: [
+    { nombre: 'H_int_dg', unidad: 'kN', texto: 'Componente horizontal de la fuerza de capacidad de las diagonales en la base interior (AISC 341-22 §D2.6b(a))' },
+    { nombre: 'H_ext_dg', unidad: 'kN', texto: 'Componente horizontal de la fuerza de capacidad de la diagonal traccionada en la base extrema' },
+    { nombre: 'T_ext_dg', unidad: 'kN', texto: 'Arranque vertical de la diagonal traccionada en la base extrema (AISC 341-22 §D2.6a)' },
+  ],
   nodos: [
     {
       clave: 'datos',

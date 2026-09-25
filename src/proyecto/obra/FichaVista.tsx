@@ -85,6 +85,15 @@ export default function FichaVista({
       {def.opciones.length > 0 && (
         <section className="mt-2">
           <h4 className="text-[10px] font-semibold uppercase tracking-wide text-muted">Configuración</h4>
+          {frontera.ensamble && (
+            <p className="mt-1 text-[11px] leading-snug text-muted">
+              Armada con su grupo para <span className="font-mono text-ink">{frontera.ensamble.grupoSap}</span> (sufijo{' '}
+              <span className="font-mono">_{frontera.ensamble.tipo}</span>, conjuntos{' '}
+              <span className="font-mono">{frontera.ensamble.diseno}</span> y{' '}
+              <span className="font-mono">{frontera.ensamble.sobrerresistencia}</span>). Cambiar un componente agrega o
+              quita su cálculo, sus datos y sus ataduras.
+            </p>
+          )}
           <ul className="mt-1.5 space-y-1">
             {def.opciones.map((o) => (
               <li key={o.clave} className="flex items-center gap-1.5">

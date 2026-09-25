@@ -16,7 +16,7 @@ import type { Modulo } from './modelo';
 /** `calculo` no es un `Modulo` de la obra: de esos puede haber muchos, así que
  *  viven en su propia lista y no en `obra.modulos`. `otra-obra` no agrega un
  *  nodo sino que abre el diálogo para traerlos de otra obra. */
-export type EntradaPaleta = Modulo | 'calculo' | 'vista-base-columna' | 'otra-obra';
+export type EntradaPaleta = Modulo | 'calculo' | 'base-columna' | 'vista-base-columna' | 'otra-obra';
 
 interface Entrada {
   clave: EntradaPaleta;
@@ -65,9 +65,15 @@ const ENTRADAS: Entrada[] = [
     unico: false,
   },
   {
+    clave: 'base-columna',
+    titulo: 'Base de columna…',
+    detalle: 'el grupo entero de un tipo de apoyo, con las solicitaciones a mano (con SAP2000, desde el panel de apoyos)',
+    unico: false,
+  },
+  {
     clave: 'vista-base-columna',
     titulo: 'Vista geométrica · Base de columna',
-    detalle: 'placa, silla, pernos, llave y pedestal armados con los datos de la obra, y sus choques',
+    detalle: 'solo la vista: placa, silla, pernos, llave y pedestal, y sus choques',
     unico: false,
   },
   {
