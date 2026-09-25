@@ -51,11 +51,13 @@ export function idsDeLaObra(obra: Obra): Set<string> {
 /** Lo que cada cálculo define y lo que usa, por id de DOCUMENTO. */
 function nombresPorCalculo(obra: Obra): Map<string, { define: string[]; usa: Set<string> }> {
   const salida = new Map<string, { define: string[]; usa: Set<string> }>();
-  // Los nodos que lee la evaluación, en el orden de los cálculos: con ellos,
-  // `defineDe` y `fuentesDeUso` dicen lo mismo aquí que allá.
-  const nodos = nodosDeLaObra(obra);
-  obra.calculos.forEach((k, i) => {
-    const nodo = nodos[i];
+  // Los nodos que lee la evaluación: con ellos, `defineDe` y `fuentesDeUso`
+  // dicen lo mismo aquí que allá. Se emparejan por id y no por posición, porque
+  // los nodos de resultados (el Modal) van delante de los cálculos. Lo que ellos
+  // publican no se copia: es una lectura del modelo de origen.
+  const nodos = new Map(nodosDeLaObra(obra).map((h) => [h.idNodo, h]));
+  obra.calculos.forEach((k) => {
+    const nodo = nodos.get(idNodoDeCalculo(k.id))!;
     const define = defineDe(nodo);
     const mios = new Set(define);
     const usa = new Set<string>();

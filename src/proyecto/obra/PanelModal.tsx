@@ -9,8 +9,8 @@ import { useEscape } from './useEscape';
  *
  * Lee periodos y masas participantes de un caso modal ya analizado —Flow no
  * analiza—, con el sello del modelo: la fecha del `.sdb`. Si el modelo se guarda
- * después, la lectura se marca atrasada. Todavía no publica nada al scope de la
- * obra; eso es el paso siguiente.
+ * después, la lectura se marca atrasada. Publica `T_x` y `T_y` al scope de la
+ * obra; qué publica y quién lo usa lo dice la evaluación, no este panel.
  */
 
 /** Una masa en la tabla: con un decimal, y vacía si no llega a una décima. */
@@ -18,11 +18,17 @@ const celda = (x: number | undefined) => (x === undefined ? '' : x < 0.0005 ? ''
 
 export default function PanelModal({
   sap,
+  publica,
+  usan,
   onLeido,
   onQuitar,
   onCerrar,
 }: {
   sap: ConexionSap | undefined;
+  /** Los nombres que publica a la obra (`ev.define` de este nodo). */
+  publica: readonly string[];
+  /** Las etiquetas de los nodos que usan alguno. */
+  usan: readonly string[];
   onLeido: (lectura: LecturaModal) => void;
   onQuitar: () => void;
   onCerrar: () => void;
@@ -147,6 +153,26 @@ export default function PanelModal({
               })}
               <Ficha titulo="Periodo fundamental" valor={r.T1 !== undefined ? segundos(r.T1) : '—'} detalle={`modo 1 de ${r.modos}`} />
             </section>
+
+            <p className="leading-snug text-muted">
+              {publica.length ? (
+                <>
+                  Publica a la obra{' '}
+                  {publica.map((n, i) => (
+                    <span key={n}>
+                      {i > 0 && ' y '}
+                      <span className="font-mono text-ink">{n}</span>
+                    </span>
+                  ))}
+                  , en segundos: una hoja los nombra en vez de copiar el número.{' '}
+                  {usan.length
+                    ? `Los usa${usan.length > 1 ? 'n' : ''} ${usan.map((u) => `«${u}»`).join(', ')}.`
+                    : 'Ninguna hoja los usa todavía.'}
+                </>
+              ) : (
+                'Sin masas participantes no hay modo dominante, y no se publica nada a la obra.'
+              )}
+            </p>
 
             {r.conMasas && (
               <section>

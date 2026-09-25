@@ -1391,6 +1391,53 @@ const CASOS_HOJA = [
     },
   },
   {
+    nombre: 'el sub-nodo Modal publica T_x y T_y: las hojas los usan, con flecha, y chocan como cualquier nombre',
+    ok: () => {
+      const conModal = (modal, ...calculos) => ({
+        ...obra(...calculos),
+        modulos: ['sap', 'sap-modal'],
+        sap: { modelo: 'm.sdb', ruta: '', version: '', leido: '', modificado: LECTURA_MODAL.modificado, ...(modal ? { modal } : {}) },
+      });
+      const o = conModal(LECTURA_MODAL, calc('E', m('k := T_y / (1 s)'), m('r := T_x / T_y')));
+      const ev = evaluarObra(o, {});
+      const errores = Object.entries(ev.results).filter(([, r]) => r.error).map(([id, r]) => `${id}: ${r.error}`);
+      if (errores.length) return `errores: ${errores.join(' · ')}`;
+      // El modo dominante: T_y es el modo 1 y T_x el 3.
+      if (Math.abs(ev.scope.k - 0.715) > 1e-12) return `k = ${ev.scope.k}`;
+      if (en(ev.scope, 'T_x', 's') !== 0.459) return `T_x = ${en(ev.scope, 'T_x', 's')}`;
+      if (ev.duenio.get('T_y') !== 'sap:modal') return `dueño de T_y: ${ev.duenio.get('T_y')}`;
+      if ([...(ev.usos.get(K('E')) ?? [])].sort().join() !== 'T_x,T_y') return `usos ${[...(ev.usos.get(K('E')) ?? [])]}`;
+      // La región fantasma va antes de la hoja que la usa: es lo que ofrece el autocompletado.
+      const iPub = ev.regions.findIndex((r) => r.id === 'pub:sap:modal:T_y');
+      const iHoja = ev.regions.findIndex((r) => r.src === 'k := T_y / (1 s)');
+      if (iPub < 0 || iPub > iHoja) return `fantasma en ${iPub}, hoja en ${iHoja}`;
+      const pub = ev.regions[iPub];
+      if (pub.y >= ev.regions[iHoja].y) return 'la fantasma no queda por encima de la hoja';
+      // La flecha Modal → hoja sale de `duenio` y `usos`, como las demás.
+      const flecha = proyectar(o, ev, {}).aristas.find((a) => a.desde === 'sap:modal' && a.hasta === K('E') && a.tipo === 'dato');
+      if (flecha?.etiqueta !== 'T_x, T_y') return `flecha: ${flecha?.etiqueta ?? 'no hay'}`;
+      // Aunque la hoja se haya creado antes del Modal, lo ve: sin usarlo todavía,
+      // una hoja sin dependencias va después de él en el orden de lectura.
+      const suelta = evaluarObra(conModal(LECTURA_MODAL, calc('A', m('q := 1'))), {});
+      const iA = suelta.regions.findIndex((r) => r.src === 'q := 1');
+      const iT = suelta.regions.findIndex((r) => r.id === 'pub:sap:modal:T_x');
+      if (iT < 0 || iT > iA) return `sin usarlo, la fantasma quedó en ${iT} y la hoja en ${iA}`;
+      // Una hoja que también define T_x: choque, como entre dos nodos cualesquiera.
+      const choque = evaluarObra(conModal(LECTURA_MODAL, calc('C', m('T_x := 1 s'))), {});
+      const rep = esperaRepetido('T_x', 2)(choque) ?? esperaProblema('C', /T_x.*2 nodos/)(choque);
+      if (rep) return rep;
+      // Sin el sub-nodo, sin lectura o sin masas: no se publica nada.
+      const sinModulo = evaluarObra({ ...o, modulos: ['sap'] }, {});
+      if (sinModulo.scope.T_y !== undefined || !sinModulo.results[o.calculos[0].hoja[0].id]?.error) return 'sin el sub-nodo T_y siguió definida';
+      if (evaluarObra(conModal(undefined, calc('A', m('q := 1'))), {}).duenio.has('T_x')) return 'sin lectura publicó';
+      const sinMasas = { ...LECTURA_MODAL, modos: MODOS.map(({ n, T, f }) => ({ n, T, f })) };
+      if (evaluarObra(conModal(sinMasas, calc('A', m('q := 1'))), {}).duenio.has('T_x')) return 'sin masas publicó';
+      // Copiar sigue emparejando cada cálculo con su nodo, con el Modal delante.
+      const dep = dependenciasDe(conModal(LECTURA_MODAL, calc('A', m('a := 1')), calc('B', m('b := a + 1'))), ['B']);
+      return [...dep.keys()].join() === 'A' ? null : `dependencias ${[...dep.keys()]}`;
+    },
+  },
+  {
     nombre: 'el corte basal sale en la dirección de su espectro, y el viento puede tener vertical sin avisar',
     ok: () => {
       const c = cortesSismicos(LECTURA_BASAL, SAP_BASAL).map((x) => `${x.caso}:${x.dir}:${Math.round(x.V)}`).join();

@@ -37,6 +37,12 @@
 //     `defineDe`, `fuentesDeUso`, el orden topológico, las flechas derivadas, el
 //     alias repetido y la detección de ciclos valen para las tres sin una sola
 //     rama.
+//   - Un **nodo de resultados** —un sub-nodo del SAP2000, sin hoja— publica
+//     lo que leyó del modelo (`resultados`: `T_x` y `T_y` del Modal) y no usa
+//     nada. Es la misma frontera vista desde el otro lado: solo cruzan los
+//     valores, como `Unit`, con su región fantasma para el autocompletado. Va
+//     delante de los cálculos en el orden de creación, así que toda hoja lo ve
+//     sin haberlo nombrado todavía.
 //
 // POR ESO LA EVALUACIÓN VA POR TRAMOS. No se puede armar una sola hoja y
 // evaluarla de una vez, porque en medio del orden hay planillas que producen
@@ -72,7 +78,8 @@ import type { Frontera, Obra } from './modelo';
 // miraba las regiones `math`, y el panel y el grafo discrepaban sobre qué
 // define una hoja en cuanto aparecía un programa.
 import { definicionesDe, ordenDeLectura, usosDeRegion } from './hoja';
-import { idNodoDeCalculo } from './ids';
+import { ID_NODO_MODAL, idNodoDeCalculo } from './ids';
+import { publicaModal, type Publicado } from './sap-modal';
 
 const CENTINELA = '__scope_final';
 
@@ -101,6 +108,8 @@ export interface NodoObra {
   /** Su hoja. Vacía si la frontera es de procedencia `biblioteca`. */
   hoja: Region[];
   frontera?: Frontera;
+  /** Solo un nodo de resultados: lo que publica, leído del modelo. */
+  resultados?: Publicado[];
 }
 
 /** Lo que un cálculo con frontera produjo, en su sitio del orden de lectura. */
@@ -173,9 +182,21 @@ export interface EvaluacionObra {
   importadas: Map<string, Instanciada>;
 }
 
-/** Todos los nodos de cálculo de la obra, con hoja libre o con frontera. */
+/**
+ * Todos los nodos de la obra que entran en la cadena de cálculo: los de
+ * resultados primero, después los cálculos con hoja libre o con frontera.
+ *
+ * Primero porque el orden de creación es el que desempata el topológico, y de
+ * él sale el autocompletado (ver `ordenar`): detrás de los cálculos, una hoja
+ * sin dependencias quedaría por encima de `T_x` y no lo ofrecería hasta que
+ * alguien lo escribiera de memoria.
+ */
 export function nodosDeLaObra(obra: Obra): NodoObra[] {
   const nodos: NodoObra[] = [];
+  if (obra.modulos.includes('sap-modal') && obra.sap?.modal) {
+    const resultados = publicaModal(obra.sap.modal);
+    if (resultados.length) nodos.push({ idNodo: ID_NODO_MODAL, etiqueta: 'Modal', hoja: [], resultados });
+  }
   for (const k of obra.calculos) {
     nodos.push({
       idNodo: idNodoDeCalculo(k.id),
@@ -195,6 +216,7 @@ export function nodosDeLaObra(obra: Obra): NodoObra[] {
  * grafo no se reordena solo un segundo después de abrir la obra.
  */
 export function defineDe(nodo: NodoObra): string[] {
+  if (nodo.resultados) return nodo.resultados.map((r) => r.nombre);
   if (!nodo.frontera) return definicionesDe(nodo.hoja);
   const alias = Object.values(nodo.frontera.publica ?? {}).map((a) => a.trim());
   return [...new Set(alias.filter(Boolean))];
@@ -202,6 +224,8 @@ export function defineDe(nodo: NodoObra): string[] {
 
 /** El texto del que salen los nombres que un nodo toma de los demás. */
 export function fuentesDeUso(nodo: NodoObra): string[] {
+  // Un nodo de resultados no lee nada de la obra: lo suyo viene del modelo.
+  if (nodo.resultados) return [];
   // De un cálculo con frontera, las expresiones de sus campos atados: son la
   // única vía por la que la obra entra en él.
   if (nodo.frontera) return Object.values(nodo.frontera.formulas ?? {});
@@ -358,6 +382,26 @@ function valoresAtados(
   return inicial;
 }
 
+/**
+ * Los valores de un nodo de resultados, como el objeto `Unit` que son.
+ *
+ * Llegan como texto (`0.714927123 s`) y se evalúan en UNA hoja mínima, igual que
+ * los campos atados: así los arma la misma instancia de math.js que evalúa la
+ * obra, y no un `Unit` de otra que el scope no sabría operar. Sin scope de la
+ * obra: un nodo de resultados no lee nada de ella.
+ */
+function valoresPublicados(resultados: readonly Publicado[]): Record<string, unknown> {
+  const hoja: Region[] = resultados.map((r, i) => ({
+    id: `__pub:${r.nombre}`,
+    kind: 'math',
+    x: 0,
+    y: i,
+    src: `${r.nombre} := ${r.expr}`,
+  }));
+  const centinela: Region = { id: CENTINELA, kind: 'image', x: 0, y: 1e6, src: '' };
+  return evaluateSheet([...hoja, centinela], {})[CENTINELA]?.scope ?? {};
+}
+
 export function evaluarObra(obra: Obra, genericas: Genericas = {}): EvaluacionObra {
   const nodos = nodosDeLaObra(obra);
 
@@ -437,8 +481,35 @@ export function evaluarObra(obra: Obra, genericas: Genericas = {}): EvaluacionOb
   /** El tramo sin los centinelas: no son de ninguna hoja y nadie los pinta. */
   const sinCentinelas = (tramo: Region[]) => tramo.filter((r) => !r.id.startsWith(POSICION));
 
+  /**
+   * Un nombre que cruza una frontera: entra en el scope y deja una región
+   * fantasma, para que el autocompletado de los nodos de aguas abajo lo ofrezca.
+   * Sin esto, la única forma de encontrar lo que publica un nodo sería saberlo de
+   * memoria: `variablesVisibles` lee lo que cada región DEFINE, y las de una
+   * planilla no están en esta hoja —las de un nodo de resultados, ni existen—.
+   */
+  const publicar = (nodo: NodoObra, nombre: string, v: unknown) => {
+    scope = { ...scope, [nombre]: v };
+    y += PASO;
+    const id = `pub:${nodo.idNodo}:${nombre}`;
+    regions.push({ id, kind: 'text', x: 0, y, src: `${nombre} · ${nodo.etiqueta}` });
+    results[id] = { define: { nombre, valor: formatValor(v) } };
+  };
+
   let tramo: Region[] = [];
   for (const nodo of orden) {
+    if (nodo.resultados) {
+      // Corta el tramo como una planilla: lo que publica tiene que estar en el
+      // scope antes de que lo lea el nodo siguiente.
+      cerrarTramo(tramo);
+      regions.push(...sinCentinelas(tramo));
+      tramo = [];
+      const valores = valoresPublicados(nodo.resultados);
+      for (const { nombre } of nodo.resultados) {
+        if (valores[nombre] !== undefined) publicar(nodo, nombre, valores[nombre]);
+      }
+      continue;
+    }
     if (!nodo.frontera) {
       // RE-ESTAMPADO. Las regiones traen sus propias coordenadas, y todos los
       // nodos empiezan en `y = 40`: concatenarlas tal cual interleaveríaa las
@@ -478,15 +549,7 @@ export function evaluarObra(obra: Obra, genericas: Genericas = {}): EvaluacionOb
     for (const [salida, alias] of Object.entries(nodo.frontera.publica ?? {})) {
       const v = instancia.salidas[salida];
       if (v === undefined) continue;
-      scope = { ...scope, [alias.trim()]: v };
-      // Una región fantasma por alias, para que el autocompletado de los nodos
-      // de aguas abajo lo ofrezca. Sin esto, la única forma de encontrar lo que
-      // publica una planilla sería saberlo de memoria: `variablesVisibles` lee
-      // lo que cada región DEFINE, y las de una planilla no están en esta hoja.
-      y += PASO;
-      const id = `pub:${nodo.idNodo}:${alias}`;
-      regions.push({ id, kind: 'text', x: 0, y, src: `${alias} · ${nodo.etiqueta}` });
-      results[id] = { define: { nombre: alias.trim(), valor: formatValor(v) } };
+      publicar(nodo, alias.trim(), v);
     }
   }
   cerrarTramo(tramo);

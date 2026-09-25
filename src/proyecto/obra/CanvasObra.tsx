@@ -1013,6 +1013,12 @@ function CanvasObra({
     (nombre: string) => {
       const idNodo = evaluacionRef.current.duenio.get(nombre);
       if (!idNodo) return;
+      // Un nombre que publica un sub-nodo del SAP2000 (`T_x`) no tiene hoja que
+      // abrir: se selecciona el nodo, y su panel dice de dónde sale.
+      if (!calculoDeNodo(idNodo)) {
+        setSeleccion(idNodo);
+        return;
+      }
       const nodo = nodoDelDocumento(obraRef.current, idNodo);
       const salida = nodo?.frontera
         ? Object.entries(nodo.frontera.publica ?? {}).find(([, alias]) => alias === nombre)?.[0]
@@ -1865,6 +1871,10 @@ function CanvasObra({
         {!activa && seleccion === ID_NODO_MODAL && obra.modulos.includes('sap-modal') && (
           <PanelModal
             sap={obra.sap}
+            publica={evaluacion.define.get(ID_NODO_MODAL) ?? []}
+            usan={[...evaluacion.usos]
+              .filter(([, nombres]) => [...nombres].some((n) => evaluacion.duenio.get(n) === ID_NODO_MODAL))
+              .map(([id]) => evaluacion.etiquetas.get(id) ?? id)}
             // La fecha del .sdb que trae la lectura es también lo último que se
             // sabe del modelo: pasa a ser la de la conexión.
             onLeido={(modal) =>
@@ -1876,7 +1886,14 @@ function CanvasObra({
             }
             onQuitar={() => {
               const o = obraRef.current;
-              if (o) setObra(quitarModulo(o, 'sap-modal'));
+              if (o) {
+                // Publica T_x y T_y: quitarlo deja sin ellos a las hojas que los
+                // usan, y hay que decirlo ahora, que todavía se sabe quién.
+                const frase = fraseDeRuptura('Modal', rupturaPorQuitar([ID_NODO_MODAL], evaluacionRef.current));
+                const siguiente = quitarModulo(o, 'sap-modal');
+                setObra(siguiente);
+                anunciarBorrado(siguiente, frase);
+              }
               setSeleccion(null);
             }}
             onCerrar={() => setSeleccion(null)}

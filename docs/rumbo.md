@@ -222,7 +222,15 @@ que devolverlo con sus datos.
     conexión —o la última lectura— ve un `.sdb` más nuevo, u otro modelo, la lectura está
     **atrasada** y el nodo pasa a aviso. Así queda cerrado el paso «marcar la lectura
     atrasada» para lo que tiene sello.
-  - Todavía **no publica** nombres al scope.
+  - **Publica `T_x` y `T_y`** (2026-09-25): el periodo del modo dominante en cada dirección,
+    en segundos, como nombres de la obra. Una hoja escribe `T_y` en vez de copiar 0,715 s, y
+    la flecha Modal → hoja sale sola. Es el primer **nodo de resultados** de `evaluacion.ts`:
+    un nodo sin hoja que define nombres (entran en los choques como cualquier otro), no usa
+    ninguno, y en la cadena escribe sus valores como `Unit` con su región fantasma para el
+    autocompletado, igual que una planilla con frontera. Va **primero** en el orden de
+    creación, para que toda hoja lo vea sin haberlo nombrado. Sin masas no publica nada; una
+    lectura atrasada sigue publicando, porque el nodo ya está en aviso y retirar el valor
+    pondría en rojo todo lo de aguas abajo. Quitar el nodo avisa qué hojas se quedan sin qué.
 
 - **Reacción basal** (`sap:basal`): la resultante en la base de cada caso analizado (sin el
   modal; las combinaciones, más adelante), con el mismo sello. Lo que se revisa:
@@ -280,10 +288,10 @@ que devolverlo con sus datos.
   la hoja de placa base las ate (ver «Lo que sigue»).
 
 Lo que sigue en esta línea, de a uno:
-- el mecanismo para que un nodo sin hoja publique nombres (`evaluacion.ts`), probado primero
-  con Tx y Ty del modal;
-- que el modal, la basal y los apoyos publiquen nombres (Tx, Ty, Vx, Vy, las gobernantes) para
-  que las hojas los usen en vez de copiarlos;
+- ~~el mecanismo para que un nodo sin hoja publique nombres~~ — hecho, con `T_x` y `T_y` del
+  modal;
+- que los apoyos publiquen las gobernantes por tipo y conjunto, hacia la placa base del Pachón,
+  y después la basal (Vx, Vy);
 - los esfuerzos, con el mismo patrón;
 - la **justificación de las combinaciones** (etapa 6).
 
@@ -381,8 +389,8 @@ antes de dar el siguiente:
 2. Leer lo medido (reacciones por caso, periodos, cortes basales) con su sello, y publicarlo
    como nombres que las hojas usan en vez de copiarlos a mano. **Exige un modelo analizado**:
    las tablas de uno sin analizar devuelven ceros, no vacío, y un cero parece un dato. **El
-   modal ya se lee con su sello** (2026-09-25, sub-nodo Modal); falta publicarlo, y las
-   reacciones y los cortes basales.
+   modal ya se lee con su sello y publica `T_x` y `T_y`** (2026-09-25, sub-nodo Modal); faltan
+   las reacciones y los cortes basales.
 3. Marcar la lectura atrasada cuando el `.sdb` cambió después de leerla — **hecho para lo que
    tiene sello** (el modal): la fecha del `.sdb` se compara con la de la última conexión.
 

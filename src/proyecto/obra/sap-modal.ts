@@ -3,8 +3,8 @@
 // para juntar la masa.
 //
 // Puro, sin React: lo pintan el panel y la tarjeta del sub-nodo Modal, y
-// `verify:obra` lo comprueba. Todavía no publica nada al scope de la obra: eso
-// es el paso siguiente (`docs/rumbo.md`).
+// `verify:obra` lo comprueba. Lo que publica al scope de la obra (`T_x`, `T_y`)
+// sale de `publicaModal`, y lo escribe `evaluacion.ts`.
 
 import type { ConexionSap, LecturaModal, ModoLeido } from './modelo';
 
@@ -61,6 +61,33 @@ export function resumenModal(lectura: LecturaModal): ResumenModal {
     };
   }
   return { modos: modos.length, ...(modos.length ? { T1: modos[0].T } : {}), conMasas, porDireccion };
+}
+
+/** Un nombre que un nodo de resultados publica: `expr` es el valor con su
+ *  unidad, en texto que el motor lee (`0.714927123 s`). */
+export interface Publicado {
+  nombre: string;
+  expr: string;
+}
+
+/**
+ * Lo que el sub-nodo Modal publica: el periodo del modo dominante en cada
+ * dirección horizontal, `T_x` y `T_y`, en segundos. Sin masas participantes no
+ * hay modo dominante, y no se publica nada.
+ *
+ * Una lectura atrasada sigue publicando: el nodo ya lo dice en aviso, y retirar
+ * el valor pondría en rojo todas las hojas de aguas abajo por un guardado del
+ * `.sdb`.
+ */
+export function publicaModal(lectura: LecturaModal): Publicado[] {
+  const { porDireccion } = resumenModal(lectura);
+  const salida: Publicado[] = [];
+  for (const [nombre, d] of [['T_x', 'X'], ['T_y', 'Y']] as const) {
+    const T = porDireccion[d].dominante?.T;
+    // `String` y no `toFixed`: el número entra entero, con todas sus cifras.
+    if (T !== undefined && Number.isFinite(T)) salida.push({ nombre, expr: `${String(T)} s` });
+  }
+  return salida;
 }
 
 /**
