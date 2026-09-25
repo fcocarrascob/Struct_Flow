@@ -229,7 +229,14 @@ export const COLOR_RE = /^#[0-9a-f]{6}$/i;
  * Los nodos únicos que el usuario agregó desde la paleta. Un cálculo no vive
  * aquí sino en su propia lista: puede haber tantos como la obra necesite.
  */
-export type Modulo = 'sap';
+export type Modulo = 'sap' | 'sap-combinaciones';
+
+/**
+ * Los sub-nodos del SAP2000: cuelgan de él en el grafo y leen del mismo modelo.
+ * Uno por tema —las combinaciones, y después los resultados—, cada uno con su
+ * panel y su lectura dentro de `obra.sap`. Sin el SAP2000 no tienen sentido.
+ */
+export const SUBMODULOS_SAP: readonly Modulo[] = ['sap-combinaciones'];
 
 /**
  * Lo último que el nodo SAP2000 leyó del modelo abierto, por el puente de Flow
@@ -248,6 +255,11 @@ export interface ConexionSap {
   version: string;
   /** ISO: cuándo se leyó. */
   leido: string;
+  /**
+   * ISO: cuándo se guardó el `.sdb`, según la última conexión. Es el sello contra
+   * el que una lectura de resultados sabe si quedó atrasada.
+   */
+  modificado?: string;
   /** La última lectura de los Load Patterns. */
   patrones?: LecturaPatrones;
   /** La última lectura de las cargas asignadas, por patrón. */
@@ -260,6 +272,30 @@ export interface ConexionSap {
   masa?: LecturaMasa;
   /** La última lectura de lo que hay en el modelo, en números. */
   resumen?: LecturaResumen;
+  /** La última lectura de las combinaciones (la del sub-nodo Combinaciones). */
+  combinaciones?: LecturaCombinaciones;
+}
+
+/** Un término de una combinación: un caso, o una combinación anidada, con su factor. */
+export interface TerminoCombinacion {
+  clase: 'caso' | 'combinacion';
+  nombre: string;
+  sf: number;
+}
+
+export interface Combinacion {
+  nombre: string;
+  /** `Lineal`, `Envolvente`, `Absoluta`, `SRSS` o `Rango`. */
+  tipo: string;
+  terminos: TerminoCombinacion[];
+}
+
+export interface LecturaCombinaciones {
+  modelo: string;
+  /** ISO. */
+  leido: string;
+  /** En el orden en que SAP las lista. */
+  lista: Combinacion[];
 }
 
 /** Un patrón (o una aceleración) que carga un caso estático, con su factor. */
@@ -623,6 +659,20 @@ export function nuevaRegion(kind: 'math' | 'text', src = ''): Region {
 export function agregarModulo(obra: Obra, modulo: Modulo): Obra {
   if (obra.modulos.includes(modulo)) return obra;
   return { ...obra, modulos: [...obra.modulos, modulo] };
+}
+
+/**
+ * Quita un sub-nodo del SAP2000. El SAP2000 mismo no se quita por aquí: se lleva
+ * las justificaciones, y eso es otra decisión.
+ *
+ * Su lectura se QUEDA en `obra.sap`. Una lectura es una foto del modelo, no una
+ * edición, y el historial nunca la restaura (`alRestaurarEstado` de
+ * `CanvasObra`): si quitar el nodo la borrara, Ctrl+Z lo devolvería vacío. Al
+ * volver a agregarlo, la lectura dice de qué modelo y de cuándo es.
+ */
+export function quitarModulo(obra: Obra, modulo: Modulo): Obra {
+  if (!obra.modulos.includes(modulo) || modulo === 'sap') return obra;
+  return { ...obra, modulos: obra.modulos.filter((m) => m !== modulo) };
 }
 
 export function agregarCalculo(obra: Obra, calculo: NodoCalculo): Obra {

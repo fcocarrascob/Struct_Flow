@@ -175,8 +175,35 @@ son una elección, no un número que la obra calcule. La regla vive en `esJustif
 `resumirPorParte` de `sap-cargas.ts`; la usan el panel y la tarjeta, así que no pueden
 discrepar.
 
-Lo que sigue en esta línea son las **combinaciones de carga**, que son lo más importante que
-falta (etapa 6).
+**2026-09-25: lo demás cuelga del SAP2000 como sub-nodos.** El nodo SAP2000 queda como la vista
+**pre-análisis** del modelo y no crece más. Cada tema nuevo es un sub-nodo en el grafo, unido a él
+por una arista punteada (`deriva`, sin datos), y se construye de a uno: se usa en el Pachón y se
+afina antes de pasar al siguiente. La receta es siempre la misma:
+- un `Modulo` (`sap-combinaciones`…), que se sanea y sin el SAP2000 se descarta;
+- un id `sap:<tema>`;
+- su lectura dentro de `obra.sap`, fuera del historial como las demás;
+- una ruta del puente;
+- un panel lateral con su propio «Leer».
+
+Quitar un sub-nodo **no borra su lectura**: el historial nunca restaura lecturas, y Ctrl+Z tiene
+que devolverlo con sus datos.
+
+- **Combinaciones** (`sap:combinaciones`), el primero. El panel resume:
+  - cuántas hay por tipo;
+  - las familias (el prefijo hasta el primer «_»);
+  - las anidadas;
+  - los **casos que no entran en ninguna combinación**. Separa los que están cubiertos porque sus
+    patrones entran por otro caso (`DEAD` por `CM`) de los que de verdad quedan fuera.
+
+  La matriz completa —una fila por combinación, una columna por caso o combinación anidada, el
+  factor en la celda— se abre como una pestaña de la obra. Se filtra por familia, por tipo, por
+  nombre y por columna («¿dónde entra RSX?»), y salta de una anidada a su fila. Todavía no se
+  justifica nada: el nodo queda listo para recibir la flecha de la hoja que las genere desde la
+  norma (etapa 6).
+
+Lo que sigue en esta línea: el primer nodo de **resultados** (el modal, con el sello del `.sdb`
+y la lectura marcada como atrasada si el modelo cambió), y la **justificación de las
+combinaciones** (etapa 6).
 
 ## Una obra parte de otra
 

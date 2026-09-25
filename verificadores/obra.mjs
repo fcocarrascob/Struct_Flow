@@ -76,6 +76,11 @@ const {
   verificarDelModelo,
   resumirJustificaciones,
   resumirPorParte,
+  familiaDe,
+  columnasDe,
+  terminoDe,
+  resumenCombinaciones,
+  quitarModulo,
   obraDesde,
   traerNodos,
   dependenciasDe,
@@ -252,6 +257,16 @@ function importada(modulo, extra = {}) {
 
 const CARGA_CUB = { patron: 'SDL_CUB', clase: 'area-a-barras', csys: 'GLOBAL', dir: 10, dist: 1, valor: 0.0980665, n: 33 };
 const CARGA_VIA = { patron: 'CM_VIA', clase: 'barra-distribuida', csys: 'GLOBAL', dir: 10, momento: false, valor: 0.769, n: 22 };
+
+// Cuatro combinaciones del Pachón, tal como las lee el puente: una envolvente
+// que entra anidada en dos sísmicas, y una de viento.
+const caso = (nombre, sf) => ({ clase: 'caso', nombre, sf });
+const COMBOS_PACHON = [
+  { nombre: 'ENVCL_H', tipo: 'Envolvente', terminos: [caso('CLH_P1', 1), caso('CLH_P2', 1), caso('CLH_P3', 1)] },
+  { nombre: 'B25_EX_EVP', tipo: 'Lineal', terminos: [caso('CM', 1.2), { clase: 'combinacion', nombre: 'ENVCL_H', sf: 1 }, caso('EV', 1), caso('RSX', 1), caso('S', 0.5)] },
+  { nombre: 'B25_EX_EVN', tipo: 'Lineal', terminos: [caso('CM', 1.2), { clase: 'combinacion', nombre: 'ENVCL_H', sf: 1 }, caso('EV', -1), caso('RSX', 1), caso('S', 0.5)] },
+  { nombre: 'B23_WXP', tipo: 'Lineal', terminos: [caso('CM', 1.2), caso('WXP', 0.8), caso('LR', 1.6)] },
+];
 
 // ── Los casos ────────────────────────────────────────────────────────────────
 
@@ -859,6 +874,26 @@ const CASOS = [
     },
   },
   {
+    nombre: 'el sub-nodo Combinaciones cuelga del SAP2000 y avisa de un término que no está',
+    obra: {
+      ...obra(calc('G', m('q := 1'))),
+      modulos: ['sap', 'sap-combinaciones'],
+      sap: {
+        modelo: 'm.sdb', ruta: '', version: '', leido: '',
+        combinaciones: { modelo: 'm.sdb', leido: '', lista: [...COMBOS_PACHON, { nombre: 'ROTA', tipo: 'Lineal', terminos: [{ clase: 'combinacion', nombre: 'NO_ESTA', sf: 1 }] }] },
+      },
+    },
+    ok: (_ev, proy) => {
+      const n = proy.nodos.find((x) => x.id === 'sap:combinaciones');
+      if (!n) return 'no está el nodo Combinaciones';
+      if (n.clase !== 'combinaciones') return `clase ${n.clase}`;
+      if (n.subtitulo !== '5 combinaciones · 1 envolvente') return `subtítulo «${n.subtitulo}»`;
+      if (n.severidad !== 'aviso' || !n.motivos[0]?.includes('1 término')) return `severidad ${n.severidad}: ${n.motivos}`;
+      const a = proy.aristas.find((x) => x.desde === 'sap' && x.hasta === 'sap:combinaciones');
+      return a?.tipo === 'deriva' ? null : `la arista sap → combinaciones: ${JSON.stringify(a)}`;
+    },
+  },
+  {
     nombre: 'reordenar pone cada grupo en su franja, en el orden de la lista, y los sin grupo al final',
     // Los grupos van al revés de la cadena a propósito: «Viento» usa lo que
     // publica «Geometría», pero va primero en la lista. La franja la decide la
@@ -1103,6 +1138,69 @@ const CASOS_HOJA = [
       }
       if (rota.masa !== undefined) return 'una masa sin fuentes se guardó';
       return rota.resumen.barras === 0 && rota.resumen.grupos.length === 0 ? null : `resumen roto: ${JSON.stringify(rota.resumen)}`;
+    },
+  },
+  {
+    nombre: 'las combinaciones se agrupan por familia, sus columnas siguen el orden de los casos y se ve qué caso no entra',
+    ok: () => {
+      if (familiaDe('B25_EX_EVP') !== 'B25' || familiaDe('SERVDS') !== 'SERVDS' || familiaDe('_X') !== '_X') return 'familiaDe';
+      const casos = ['CM', 'MODAL', 'LR', 'S', 'RSX', 'EV', 'WXP', 'TEMP', 'CLH_P1', 'CLH_P2', 'CLH_P3', 'DEAD'].map((nombre) => ({
+        nombre, tipo: nombre === 'MODAL' ? 'Modal' : 'LinearStatic', estado: '',
+        // DEAD no se combina, pero su patrón entra por CM: está cubierto.
+        ...(nombre === 'CM' || nombre === 'DEAD' ? { cargas: [{ tipo: 'Load', nombre: 'DEAD', sf: 1 }] } : {}),
+      }));
+      const cols = columnasDe(COMBOS_PACHON, casos).map((c) => (c.clase === 'combinacion' ? `(${c.nombre})` : c.nombre)).join(' ');
+      if (cols !== 'CM LR S RSX EV WXP CLH_P1 CLH_P2 CLH_P3 (ENVCL_H)') return `columnas: ${cols}`;
+      if (terminoDe(COMBOS_PACHON[2], { clase: 'caso', nombre: 'EV' }) !== -1) return 'el factor negativo de EV';
+      if (terminoDe(COMBOS_PACHON[3], { clase: 'caso', nombre: 'EV' }) !== undefined) return 'un término ausente dio un número';
+      const lectura = { modelo: 'm.sdb', leido: '', lista: COMBOS_PACHON };
+      const r = resumenCombinaciones(lectura, casos);
+      if (JSON.stringify(r.porTipo) !== '[{"tipo":"Envolvente","n":1},{"tipo":"Lineal","n":3}]') return `porTipo ${JSON.stringify(r.porTipo)}`;
+      if (r.familias.map((f) => `${f.familia}:${f.n}`).join() !== 'ENVCL:1,B25:2,B23:1') return `familias ${JSON.stringify(r.familias)}`;
+      // TEMP no entra en ninguna; MODAL tampoco, pero un modal no se combina.
+      if (r.sinUsar.join() !== 'TEMP') return `sin usar: ${r.sinUsar}`;
+      if (JSON.stringify(r.cubiertos) !== '[{"caso":"DEAD","por":["CM"]}]') return `cubiertos: ${JSON.stringify(r.cubiertos)}`;
+      if (r.anidadas.join() !== 'ENVCL_H' || r.profundidad !== 1) return `anidadas ${r.anidadas} a ${r.profundidad}`;
+      if (r.inexistentes.length) return `inexistentes ${JSON.stringify(r.inexistentes)}`;
+      // Sin los casos leídos no se sabe qué falta ni qué sobra.
+      const sinCasos = resumenCombinaciones({ ...lectura, lista: [...COMBOS_PACHON, { nombre: 'X', tipo: 'Lineal', terminos: [caso('NADA', 1)] }] });
+      if (sinCasos.sinUsar.length || sinCasos.inexistentes.length) return 'sin casos leídos inventó faltantes';
+      // Un ciclo en una lectura editada a mano no cuelga el resumen.
+      const ciclo = resumenCombinaciones({ ...lectura, lista: [
+        { nombre: 'A', tipo: 'Lineal', terminos: [{ clase: 'combinacion', nombre: 'B', sf: 1 }] },
+        { nombre: 'B', tipo: 'Lineal', terminos: [{ clase: 'combinacion', nombre: 'A', sf: 1 }] },
+      ] });
+      return ciclo.profundidad >= 1 ? null : `ciclo: ${ciclo.profundidad}`;
+    },
+  },
+  {
+    nombre: 'un sub-nodo del SAP2000 se guarda con su lectura, al quitarlo la lectura queda y no vive sin el SAP2000',
+    ok: () => {
+      const o = {
+        ...obra(calc('G', m('q := 1'))),
+        modulos: ['sap', 'sap-combinaciones', 'sap-combinaciones', 'otro'],
+        sap: {
+          modelo: 'm.sdb', ruta: '', version: '', leido: '', modificado: '2026-09-23T12:39:57+00:00',
+          combinaciones: { modelo: 'm.sdb', leido: '', lista: COMBOS_PACHON },
+        },
+      };
+      const saneada = sanearObra(o);
+      if (saneada.modulos.join() !== 'sap,sap-combinaciones') return `módulos ${saneada.modulos}`;
+      if (saneada.sap.modificado !== o.sap.modificado) return 'se perdió el modificado';
+      if (JSON.stringify(saneada.sap.combinaciones.lista) !== JSON.stringify(COMBOS_PACHON)) return 'el saneo cambió las combinaciones';
+      if (JSON.stringify(sanearObra(archivoDeObra(saneada).obra)) !== JSON.stringify(saneada)) return 'cambió en la ida y vuelta';
+      if (sanearObra({ ...o, modulos: ['sap-combinaciones'] }).modulos.length) return 'un sub-nodo sobrevivió sin el SAP2000';
+      const rota = sanearObra({ ...o, sap: { ...o.sap, combinaciones: { lista: [
+        { tipo: 'Lineal' },
+        { nombre: 'C', terminos: [{ nombre: 'CM' }, { clase: 'raro', nombre: 'S', sf: 0.5 }, 'basura'] },
+      ] } } }).sap.combinaciones.lista;
+      if (JSON.stringify(rota) !== '[{"nombre":"C","tipo":"","terminos":[{"clase":"caso","nombre":"S","sf":0.5}]}]') return `rota: ${JSON.stringify(rota)}`;
+      const sin = quitarModulo(saneada, 'sap-combinaciones');
+      if (sin.modulos.join() !== 'sap') return `al quitar: ${sin.modulos}`;
+      // La lectura queda: el historial no restaura lecturas, y Ctrl+Z tiene que
+      // devolver el nodo con sus datos.
+      if (sin.sap !== saneada.sap) return 'quitar el sub-nodo tocó la lectura del modelo';
+      return quitarModulo(saneada, 'sap') === saneada ? null : 'quitarModulo quitó el SAP2000';
     },
   },
   {

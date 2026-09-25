@@ -24,6 +24,7 @@ import { metaDe } from '../../lib/hoja-json';
 import { migrarBloques, sanearHoja } from './hoja';
 import {
   CLASES_JUSTIFICACION,
+  SUBMODULOS_SAP,
   COLOR_RE,
   COLORES_GRUPO,
   LARGO_NOTA_REVISION,
@@ -38,6 +39,9 @@ import {
   type CasoEspectro,
   type CasoLeido,
   type ClaseCarga,
+  type Combinacion,
+  type LecturaCombinaciones,
+  type TerminoCombinacion,
   type FuenteMasa,
   type FuncionEspectro,
   type LecturaCasos,
@@ -62,7 +66,16 @@ export type Resultado = { ok: true } | { ok: false; motivo: string };
 
 // `cargas` ya no es un módulo: una obra que lo traiga lo pierde en silencio,
 // porque su contenido se migra a cálculos (`migrarCargas`).
-const MODULOS: ReadonlySet<string> = new Set<Modulo>(['sap']);
+const MODULOS: ReadonlySet<string> = new Set<Modulo>(['sap', ...SUBMODULOS_SAP]);
+
+/**
+ * Los módulos conocidos, sin repetir. Un sub-nodo del SAP2000 sin el SAP2000 no
+ * tiene de dónde leer y se descarta.
+ */
+function sanearModulos(crudo: unknown): Modulo[] {
+  const lista = [...new Set(Array.isArray(crudo) ? crudo : [])].filter((m): m is Modulo => MODULOS.has(m as string));
+  return lista.includes('sap') ? lista : lista.filter((m) => !SUBMODULOS_SAP.includes(m));
+}
 
 const texto = (v: unknown) => (typeof v === 'string' ? v : '');
 
@@ -278,20 +291,46 @@ function sanearSap(crudo: unknown): { sap?: ConexionSap } {
   const casos = sanearCasos(s.casos);
   const masa = sanearMasa(s.masa);
   const resumen = sanearResumen(s.resumen);
+  const combinaciones = sanearCombinaciones(s.combinaciones);
   return {
     sap: {
       modelo: s.modelo,
       ruta: texto(s.ruta),
       version: texto(s.version),
       leido: texto(s.leido),
+      ...(typeof s.modificado === 'string' && s.modificado ? { modificado: s.modificado } : {}),
       ...(patrones ? { patrones } : {}),
       ...(cargas ? { cargas } : {}),
       ...(espectro ? { espectro } : {}),
       ...(casos ? { casos } : {}),
       ...(masa ? { masa } : {}),
       ...(resumen ? { resumen } : {}),
+      ...(combinaciones ? { combinaciones } : {}),
     },
   };
+}
+
+/**
+ * Una lectura de combinaciones. Una combinación sin nombre no se puede citar, y
+ * un término sin nombre o sin factor no dice nada: se descartan.
+ */
+function sanearCombinaciones(crudo: unknown): LecturaCombinaciones | undefined {
+  if (typeof crudo !== 'object' || crudo === null) return undefined;
+  const l = crudo as Partial<LecturaCombinaciones>;
+  if (!Array.isArray(l.lista)) return undefined;
+  const lista: Combinacion[] = [];
+  for (const x of l.lista) {
+    const c = (x ?? {}) as Partial<Combinacion>;
+    if (typeof c.nombre !== 'string' || !c.nombre) continue;
+    const terminos: TerminoCombinacion[] = [];
+    for (const y of Array.isArray(c.terminos) ? c.terminos : []) {
+      const t = (y ?? {}) as Partial<TerminoCombinacion>;
+      if (typeof t.nombre !== 'string' || !t.nombre || !esNumero(t.sf)) continue;
+      terminos.push({ clase: t.clase === 'combinacion' ? 'combinacion' : 'caso', nombre: t.nombre, sf: t.sf });
+    }
+    lista.push({ nombre: c.nombre, tipo: texto(c.tipo), terminos });
+  }
+  return { modelo: texto(l.modelo), leido: texto(l.leido), lista };
 }
 
 /**
@@ -575,9 +614,7 @@ export function sanearObra(crudo: unknown): Obra | null {
     id,
     nombre: typeof o.nombre === 'string' ? o.nombre : id,
     creada: typeof o.creada === 'string' ? o.creada : new Date(0).toISOString(),
-    modulos: (Array.isArray(o.modulos) ? o.modulos : []).filter((m): m is Modulo =>
-      MODULOS.has(m as string),
-    ),
+    modulos: sanearModulos(o.modulos),
     calculos: [...(Array.isArray(o.calculos) ? o.calculos : []), ...migradas.calculos]
       .map((k) => sanearCalculo(k, vistos, idsGrupo))
       .filter((k): k is NodoCalculo => k !== null),

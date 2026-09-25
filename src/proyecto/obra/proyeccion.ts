@@ -26,9 +26,10 @@ import { peor, type AristaGrafo, type NodoGrafo, type Severidad } from '../grafo
 import { quedoAtras, type Genericas } from './biblioteca';
 import { mensajeDeMotor } from '../../components/canvas/mensajes-motor';
 import { problemaDeGrafo, type EvaluacionObra } from './evaluacion';
-import { ID_NODO_SAP, idNodoDeCalculo } from './ids';
+import { ID_NODO_COMBINACIONES, ID_NODO_SAP, idNodoDeCalculo } from './ids';
 import { grupoPorId, type Grupo, type NodoCalculo, type Obra, type Revision } from './modelo';
 import { resumirJustificaciones } from './sap-cargas';
+import { resumenCombinaciones } from './sap-combinaciones';
 
 export * from './ids';
 
@@ -39,7 +40,7 @@ export * from './ids';
  * es la hoja libre que solo cita lo que publican los demás (no define nada y usa
  * algo). Declararlo sería un campo más que puede contradecir a la hoja.
  */
-export type ClaseNodo = 'calculo' | 'biblioteca' | 'resumen' | 'modelo';
+export type ClaseNodo = 'calculo' | 'biblioteca' | 'resumen' | 'modelo' | 'combinaciones';
 
 /**
  * El nodo de una obra: el de `grafo.ts`, que es el que coloca `layout.ts`, más
@@ -261,6 +262,26 @@ function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra,
   });
 }
 
+/** El sub-nodo Combinaciones: cuántas hay, y si alguna nombra algo que no está. */
+function nodoCombinaciones(obra: Obra): NodoDeObra {
+  const lectura = obra.sap?.combinaciones;
+  const base = { id: ID_NODO_COMBINACIONES, tipo: 'modelo', clase: 'combinaciones' as const, etiqueta: 'Combinaciones' };
+  if (!lectura) return nodo({ ...base, subtitulo: 'sin leer' });
+  const r = resumenCombinaciones(lectura, obra.sap?.casos?.lista);
+  const envolventes = r.porTipo.find((t) => t.tipo === 'Envolvente')?.n ?? 0;
+  const motivos: string[] = [];
+  if (r.inexistentes.length) {
+    motivos.push(`${r.inexistentes.length} término(s) nombran un caso o una combinación que no está en el modelo leído.`);
+  }
+  return nodo({
+    ...base,
+    subtitulo:
+      `${r.total} combinaciones` + (envolventes ? ` · ${envolventes} envolvente${envolventes === 1 ? '' : 's'}` : ''),
+    severidad: motivos.length ? 'aviso' : 'ok',
+    motivos,
+  });
+}
+
 export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas = {}): Proyeccion {
   const nodos: NodoDeObra[] = [];
   const aristas: AristaGrafo[] = [];
@@ -300,6 +321,13 @@ export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas =
       }),
     );
     aristas.push(...aristasDeJustificaciones(obra, ev));
+
+    // Los sub-nodos cuelgan del SAP2000 con una arista estructural: leen del
+    // mismo modelo, y así el layout los pone a su derecha.
+    if (obra.modulos.includes('sap-combinaciones')) {
+      nodos.push(nodoCombinaciones(obra));
+      aristas.push({ desde: ID_NODO_SAP, hasta: ID_NODO_COMBINACIONES, tipo: 'deriva', etiqueta: '', severidad: 'ok' });
+    }
   }
 
   // Las flechas de datos van al final y solo entre nodos que existen: un uso

@@ -24,10 +24,19 @@ interface Entrada {
   detalle: string;
   /** Uno solo por obra, como el modelo de SAP2000. */
   unico: boolean;
+  /** Un sub-nodo: cuelga de otro, que tiene que estar antes. */
+  requiere?: Modulo;
 }
 
 const ENTRADAS: Entrada[] = [
   { clave: 'sap', titulo: 'SAP2000', detalle: 'el modelo abierto en SAP2000', unico: true },
+  {
+    clave: 'sap-combinaciones',
+    titulo: 'SAP2000 · Combinaciones',
+    detalle: 'las combinaciones del modelo, en una matriz',
+    unico: true,
+    requiere: 'sap',
+  },
   {
     clave: 'calculo',
     titulo: 'Cálculo',
@@ -42,7 +51,7 @@ const ENTRADAS: Entrada[] = [
   },
 ];
 
-const POR_VENIR = ['Combinaciones', 'Documento'];
+const POR_VENIR = ['resultados de SAP2000 (modal, reacciones, esfuerzos)', 'Documento'];
 
 export default function PaletaNodos({
   puestos,
@@ -66,17 +75,20 @@ export default function PaletaNodos({
       <div className="absolute left-0 top-full z-40 mt-1 w-72 rounded border border-border bg-white py-1 shadow-lg">
         {ENTRADAS.map((e) => {
           const yaEstá = e.unico && puestos.includes(e.clave as Modulo);
+          const falta = e.requiere && !puestos.includes(e.requiere);
           return (
             <button
               key={e.clave}
               type="button"
-              disabled={yaEstá}
+              disabled={yaEstá || !!falta}
               onClick={() => onAgregar(e.clave)}
-              className="block w-full px-3 py-1.5 text-left hover:bg-accent/10 disabled:cursor-default disabled:opacity-45 disabled:hover:bg-transparent"
+              className={`block w-full py-1.5 pr-3 text-left hover:bg-accent/10 disabled:cursor-default disabled:opacity-45 disabled:hover:bg-transparent ${
+                e.requiere ? 'pl-6' : 'pl-3'
+              }`}
             >
               <span className="block text-xs font-medium text-ink">{e.titulo}</span>
               <span className="block text-[10px] text-muted">
-                {yaEstá ? 'ya está en el canvas' : e.detalle}
+                {yaEstá ? 'ya está en el canvas' : falta ? 'primero agrega el SAP2000' : e.detalle}
               </span>
             </button>
           );

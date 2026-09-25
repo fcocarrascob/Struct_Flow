@@ -14,11 +14,12 @@ Lo importante que quedó abierto al cerrar la sesión del 2026-09-24 (la rama
 `grupos-sin-cargas` ya está en `master`). La obra de trabajo es `obras/pachon-soldadura`,
 atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más abajo.
 
-1. **Combinaciones de carga — importantísimo.** El Pachón tiene 165 y no tienen dónde vivir.
-   Leerlas del modelo (cada una con sus casos y factores) y justificarlas desde la obra contra
-   la norma que la obra cita (CIRSOC 301 B.2). Por decidir: cómo se escribe una familia de
-   combinaciones en la obra —165 no se atan una por una—; probablemente una hoja que las genera
-   desde las reglas y el nodo SAP2000 compara la lista entera (`rumbo.md`, etapa 6).
+1. **Justificar las combinaciones — importantísimo.** Ya se leen y se ven: el sub-nodo
+   Combinaciones muestra las 165 del Pachón en una matriz. Falta justificarlas desde la obra
+   contra la norma que la obra cita (CIRSOC 301 B.2). Por decidir: cómo se escribe una familia de
+   combinaciones en la obra —165 no se atan una por una—. Probablemente una hoja que las genera
+   desde las reglas y le manda una flecha al nodo, que compara la lista entera (`rumbo.md`,
+   etapa 6).
 2. **El `f2` de la masa sísmica tiene que volver a estar escrito en la obra.** El nodo SAP2000
    ya lee la masa y deja justificar sus factores (S con 0,5 en el Pachón), pero la obra perdió
    el `f2` al retirar «Casos de carga y fuente de masa». El nodo del espectro es el candidato
@@ -115,6 +116,11 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
     espectro, hasta que se vuelve a leer el modelo.
   - **Los desplegados de una pestaña se cierran al cambiar de pestaña**: su estado es del
     componente, que se desmonta.
+  - **Los filtros de la tabla de combinaciones no sobreviven a cerrar la pestaña**, salvo la
+    familia. Y el filtro por columna mira solo los términos directos: «donde entra CLH_P1» no
+    muestra las combinaciones que la toman a través de `ENVCL_H`.
+  - **Un sub-nodo quitado deja su lectura en `obra.sap`**, a propósito, para que Ctrl+Z lo
+    devuelva entero. Si no se vuelve a agregar, es un dato que la obra lleva sin mostrar.
   - **El campo no autocompleta** los nombres de la obra, al revés que una fórmula de la hoja.
   - **Una carga de dos valores** (distribuida trapezoidal) solo justifica el primero.
   - **Una justificación huérfana** (su carga cambió de valor y hay más de una candidata, o se

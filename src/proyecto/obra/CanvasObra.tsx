@@ -53,6 +53,7 @@ import {
   porRevisar,
   conPublicacion,
   nuevoCalculo,
+  quitarModulo,
   slugsImportados,
   type Frontera,
   type Modulo,
@@ -62,7 +63,9 @@ import {
 } from './modelo';
 import NodoObra from './NodoObra';
 import MarcaRevision from './MarcaRevision';
-import PanelSap, { type PestanaSap } from './PanelSap';
+import PanelSap, { LECTURAS_DEL_NODO_SAP, type PestanaSap } from './PanelSap';
+import PanelCombinaciones from './PanelCombinaciones';
+import TablaCombinaciones from './TablaCombinaciones';
 import { firmaDe } from './sap-cargas';
 import IconoClase from './IconoClase';
 import LeyendaGrupos from './LeyendaGrupos';
@@ -72,6 +75,8 @@ import PaletaNodos, { type EntradaPaleta } from './PaletaNodos';
 import PanelCalculo from './PanelCalculo';
 import {
   calculoDeNodo,
+  ID_DE_MODULO,
+  ID_NODO_COMBINACIONES,
   ID_NODO_SAP,
   idNodoDeCalculo,
   proyectar,
@@ -174,10 +179,17 @@ function sinChocarConLaObra(hoja: Region[], obra: Obra, idNodo: string): Region[
   return hoja.map((r) => (ajenos.has(r.id) ? { ...r, id: `${idNodo}·${r.id}` } : r));
 }
 
+/** El módulo de la obra que pinta cada id de nodo especial. */
+const MODULO_DE_ID = new Map(Object.entries(ID_DE_MODULO).map(([m, id]) => [id as string, m as Modulo]));
+
+/** El título de la pestaña de un nodo que no es una hoja. */
+const TITULO_PESTANA: Record<string, string> = { [ID_NODO_COMBINACIONES]: 'Combinaciones' };
+
 /** ¿Ese nodo del grafo sigue existiendo en el documento? */
 function existeNodo(obra: Obra | null, idNodo: string): boolean {
   if (!obra) return false;
-  if (idNodo === ID_NODO_SAP) return obra.modulos.includes('sap');
+  const modulo = MODULO_DE_ID.get(idNodo);
+  if (modulo) return obra.modulos.includes(modulo);
   return nodoDelDocumento(obra, idNodo) !== undefined;
 }
 
@@ -286,6 +298,9 @@ function CanvasObra({
   // Aquí y no en el panel: el panel se desmonta al deseleccionar el nodo, y
   // volver a él tiene que dejarte en la pestaña donde estabas.
   const [pestanaSap, setPestanaSap] = useState<PestanaSap>('resumen');
+  // El filtro de familia de la tabla de combinaciones: lo fija también el panel,
+  // al pulsar una familia, y la tabla se abre ya filtrada.
+  const [familiaCombinaciones, setFamiliaCombinaciones] = useState<string | null>(null);
   /** El nodo bajo el puntero: da la misma vista del trazo que seleccionar, sin
    *  abrir el panel. Solo cuenta mientras no hay nada seleccionado. */
   const [bajoPuntero, setBajoPuntero] = useState<string | null>(null);
@@ -572,7 +587,13 @@ function CanvasObra({
         return {
           ...base,
           label: etiquetasLegibles ? a.etiqueta || undefined : undefined,
-          style: { stroke: colorSev, strokeWidth: a.severidad === 'ok' ? 1 : 1.6 },
+          // Una arista «deriva» no lleva datos: dice que un sub-nodo lee del
+          // mismo modelo que el SAP2000. Punteada, para no confundirla.
+          style: {
+            stroke: colorSev,
+            strokeWidth: a.severidad === 'ok' ? 1 : 1.6,
+            ...(a.tipo === 'deriva' ? { strokeDasharray: '4 3' } : {}),
+          },
           labelStyle: { fontSize: 9, fill: '#6b7280' },
         };
       }
@@ -676,8 +697,8 @@ function CanvasObra({
       setTrayendo(true);
       return;
     }
-    setObra(agregarModulo(actual, clave as Modulo));
-    setSeleccion(ID_NODO_SAP);
+    setObra(agregarModulo(actual, clave));
+    setSeleccion(ID_DE_MODULO[clave]);
   }, []);
 
   /**
@@ -1093,9 +1114,11 @@ function CanvasObra({
   // El origen se rehace al cambiar de pestaña y no al cambiar el documento: sus
   // dos métodos leen y escriben por función, así que no cierra sobre ninguna
   // copia de la obra que pueda quedarse vieja.
+  // Solo un cálculo tiene hoja: la pestaña de un nodo especial —la tabla de
+  // combinaciones— es una vista propia y no monta un canvas.
   const origenPestana = useMemo(
     () =>
-      activa
+      activa && calculoDeNodo(activa)
         ? origenDeNodo({
             leer: () => hojaDeNodo(activa),
             escribir: (hoja, meta) => escribirHojaDeNodo(activa, hoja, meta),
@@ -1315,7 +1338,7 @@ function CanvasObra({
             {pestanas.map((id) => {
               const n = hojaDeNodo(id);
               const clase = proyeccion.nodos.find((x) => x.id === id)?.clase ?? 'calculo';
-              const etiqueta = n?.etiqueta ?? '(sin nombre)';
+              const etiqueta = n?.etiqueta ?? TITULO_PESTANA[id] ?? '(sin nombre)';
               const esActiva = activa === id;
               return (
                 <span
@@ -1554,6 +1577,22 @@ function CanvasObra({
         </div>
       )}
 
+      {activa === ID_NODO_COMBINACIONES && obra.sap?.combinaciones && (
+        // Una vista ancha que no es una hoja: la matriz de combinaciones no
+        // cabe en el panel lateral.
+        <div className="min-h-0 flex-1">
+          <TablaCombinaciones
+            lectura={obra.sap.combinaciones}
+            casos={obra.sap.casos?.lista}
+            familia={familiaCombinaciones}
+            onFamilia={setFamiliaCombinaciones}
+          />
+        </div>
+      )}
+      {activa === ID_NODO_COMBINACIONES && !obra.sap?.combinaciones && (
+        <p className="p-6 text-sm text-muted">Las combinaciones todavía no se leyeron. Léelas desde el nodo.</p>
+      )}
+
       <div className={`min-h-0 flex-1 ${activa ? 'hidden' : 'flex'}`}>
         <div className="relative min-w-0 flex-1">
           {proyeccion.nodos.length === 0 && (
@@ -1636,18 +1675,19 @@ function CanvasObra({
             onConectado={(sap) =>
               setObra((o) => {
                 if (!o) return o;
-                const { modelo: _m, ruta: _r, version: _v, leido: _l, ...lecturas } = o.sap ?? {};
+                const { modelo: _m, ruta: _r, version: _v, leido: _l, modificado: _mo, ...lecturas } = o.sap ?? {};
                 return { ...o, sap: { ...sap, ...lecturas } };
               })
             }
-            // Una lectura reemplaza TODAS las anteriores: si una parte falló —las
+            // Una lectura reemplaza TODAS las del nodo: si una parte falló —las
             // cargas, la masa—, no queda la vieja, que sería de otro momento y no
-            // lo diría.
+            // lo diría. Las de los sub-nodos son de ellos y no se tocan.
             onLeido={(lectura) =>
               setObra((o) => {
                 if (!o?.sap) return o;
-                const { modelo, ruta, version, leido } = o.sap;
-                return { ...o, sap: { modelo, ruta, version, leido, ...lectura } };
+                const resto = { ...o.sap };
+                for (const k of LECTURAS_DEL_NODO_SAP) delete resto[k];
+                return { ...o, sap: { ...resto, ...lectura } };
               })
             }
             pestana={pestanaSap}
@@ -1693,6 +1733,26 @@ function CanvasObra({
               },
             }}
             onQuitarJustificacion={(id) => setObra((o) => (o ? quitarJustificacion(o, id) : o))}
+            onCerrar={() => setSeleccion(null)}
+          />
+        )}
+
+        {!activa && seleccion === ID_NODO_COMBINACIONES && obra.modulos.includes('sap-combinaciones') && (
+          <PanelCombinaciones
+            sap={obra.sap}
+            onLeido={(combinaciones) =>
+              setObra((o) => (o?.sap ? { ...o, sap: { ...o.sap, combinaciones } } : o))
+            }
+            onAbrirTabla={(familia) => {
+              setFamiliaCombinaciones(familia);
+              abrirPestana(ID_NODO_COMBINACIONES);
+            }}
+            onQuitar={() => {
+              const o = obraRef.current;
+              if (o) setObra(quitarModulo(o, 'sap-combinaciones'));
+              cerrarPestana(ID_NODO_COMBINACIONES);
+              setSeleccion(null);
+            }}
             onCerrar={() => setSeleccion(null)}
           />
         )}

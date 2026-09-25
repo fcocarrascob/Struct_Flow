@@ -16,7 +16,7 @@ unidades de pantalla, para leer en kN-m, y las devuelve al terminar.
 
 Rutas:
     GET  /salud      -> {ok}
-    POST /conectar   -> {modelo, ruta, version}   o 409 con {motivo}
+    POST /conectar   -> {modelo, ruta, version, modificado}   o 409 con {motivo}
     GET  /patrones   -> {modelo, ruta, patrones: [{nombre, tipo, pesoPropio}]}
     GET  /grupos     -> {modelo, ruta, grupos: [{nombre, barras, areas}]}
     GET  /cargas     -> {modelo, ruta, cargas: [{patron, clase, valor, dir, ..., n}]}
@@ -29,6 +29,8 @@ Rutas:
     GET  /resumen    -> {modelo, ruta, unidades, nudos, barras, areas, links, grupos,
                          materiales, seccionesBarra, seccionesArea, patrones, casos,
                          analizados, combinaciones}
+    GET  /combinaciones -> {modelo, ruta, combinaciones: [{nombre, tipo,
+                         terminos: [{clase: caso|combinacion, nombre, sf}]}]}
     POST /aplicaciones/leer {aplicaciones} -> la carga de cada patrón sobre su grupo
                      (POST solo porque la lista viaja en el cuerpo: no modifica nada)
 
@@ -108,6 +110,20 @@ def _modelo_guardado():
     return modelo, ruta, nombre
 
 
+def _modificado(ruta):
+    """Cuándo se guardó el `.sdb` por última vez, en ISO: el sello de lo que se lee.
+
+    Una lectura de resultados que tiene un `modificado` anterior al del modelo
+    abierto está atrasada: el modelo cambió después de leerla.
+    """
+    from datetime import datetime, timezone
+
+    try:
+        return datetime.fromtimestamp(Path(ruta).stat().st_mtime, timezone.utc).isoformat()
+    except OSError:
+        return ""
+
+
 def conectar():
     """Se engancha al SAP2000 abierto y devuelve lo que se sabe del modelo."""
     modelo, ruta, nombre = _modelo_guardado()
@@ -117,7 +133,7 @@ def conectar():
         version = str(modelo.GetVersion()[0])
     except Exception:  # noqa: BLE001 — la versión es un dato de cortesía
         pass
-    return {"modelo": nombre, "ruta": ruta, "version": version}
+    return {"modelo": nombre, "ruta": ruta, "version": version, "modificado": _modificado(ruta)}
 
 
 def _enum(prefijo):
@@ -553,6 +569,39 @@ def resumen():
     }
 
 
+# ── Combinaciones ────────────────────────────────────────────────────────────
+
+# RespCombo.GetTypeOAPI: 0 suma lineal, 1 envolvente, 2 suma absoluta, 3 SRSS, 4 rango.
+TIPOS_COMBINACION = {0: "Lineal", 1: "Envolvente", 2: "Absoluta", 3: "SRSS", 4: "Rango"}
+
+
+def combinaciones():
+    """Las combinaciones del modelo: tipo y términos con su factor. Solo lee.
+
+    Un término es un caso o una combinación (`eCNameType`: 0 caso, 1 combinación):
+    en un modelo real se anidan —una envolvente de las posiciones del puente grúa
+    entra entera en cada combinación sísmica—. Los factores no tienen unidades.
+    """
+    modelo, ruta, nombre = _modelo_guardado()
+    lista = []
+    for c in _nombres(modelo.RespCombo, "la lista de combinaciones"):
+        tipo, ret = modelo.RespCombo.GetTypeOAPI(c)
+        if ret != 0:
+            raise ErrorPuente(502, f"SAP2000 no entregó el tipo de la combinación «{c}».")
+        n, clases, nombres, _, sfs, ret = modelo.RespCombo.GetCaseList_1(c)
+        if ret != 0:
+            raise ErrorPuente(502, f"SAP2000 no entregó los términos de la combinación «{c}».")
+        lista.append({
+            "nombre": c,
+            "tipo": TIPOS_COMBINACION.get(int(tipo), f"código {tipo}"),
+            "terminos": [
+                {"clase": "combinacion" if int(clases[i]) == 1 else "caso", "nombre": str(nombres[i]), "sf": _num(sfs[i])}
+                for i in range(n or 0)
+            ],
+        })
+    return {"modelo": nombre, "ruta": ruta, "combinaciones": lista}
+
+
 class Manejador(BaseHTTPRequestHandler):
     def _responder(self, codigo, cuerpo):
         datos = json.dumps(cuerpo, ensure_ascii=False).encode("utf-8")
@@ -623,6 +672,7 @@ class Manejador(BaseHTTPRequestHandler):
             "/casos": casos,
             "/masa": masa,
             "/resumen": resumen,
+            "/combinaciones": combinaciones,
         })
 
     def _cuerpo(self):

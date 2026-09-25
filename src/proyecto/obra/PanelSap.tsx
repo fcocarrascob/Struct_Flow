@@ -10,6 +10,7 @@ import type {
 } from './modelo';
 import { resumirPorParte, type ParteSap } from './sap-cargas';
 import { useEscape } from './useEscape';
+import { alPuente } from './puente';
 import type { Justificar } from './CampoJustificacion';
 import PestanaResumen from './PestanaResumen';
 import PestanaPatrones from './PestanaPatrones';
@@ -32,38 +33,6 @@ export type { Justificar } from './CampoJustificacion';
  * (`sap-cargas.ts`).
  */
 
-/**
- * Cuánto se espera al puente. Atiende de a una petición y cada una es una
- * llamada COM: si SAP tiene un diálogo modal abierto, la llamada no vuelve nunca,
- * y sin tope el botón se quedaba en «Conectando…» para siempre.
- */
-const TOPE_MS = 30_000;
-
-/** Una llamada al puente, con los mismos mensajes para todas. */
-async function alPuente<T>(ruta: string, cuerpo?: unknown): Promise<T> {
-  let r: Response;
-  try {
-    r = await fetch(`/sap-api${ruta}`, {
-      method: cuerpo === undefined ? 'GET' : 'POST',
-      // El puente solo acepta POST con JSON: así no atiende a otras páginas
-      // abiertas en el navegador.
-      headers: cuerpo === undefined ? undefined : { 'Content-Type': 'application/json' },
-      body: cuerpo === undefined ? undefined : JSON.stringify(cuerpo),
-      signal: AbortSignal.timeout(TOPE_MS),
-    });
-  } catch (e) {
-    if ((e as Error).name === 'TimeoutError') {
-      throw new Error(`SAP2000 no respondió en ${TOPE_MS / 1000} s. ¿Tiene un diálogo abierto? Ciérralo y vuelve a intentar.`);
-    }
-    throw new Error('El puente de SAP no responde.');
-  }
-  const datos = await r.json().catch(() => null);
-  // Sin puente, el proxy de Vite responde 502 sin cuerpo JSON.
-  if (!datos) throw new Error('El puente de SAP no está corriendo. Arráncalo con `npm run puente-sap`.');
-  if (!r.ok) throw new Error(datos.motivo ?? `El puente respondió ${r.status}.`);
-  return datos as T;
-}
-
 /** Lo último leído del modelo: los patrones y, si se pudo leer, lo demás. */
 export interface LecturaSap {
   patrones: LecturaPatrones;
@@ -74,7 +43,10 @@ export interface LecturaSap {
   resumen?: LecturaResumen;
 }
 
-export type PestanaSap = 'resumen' | 'patrones' | 'casos' | 'masa';
+/** Las lecturas que son de este nodo: «Leer del modelo» las reemplaza todas. */
+export const LECTURAS_DEL_NODO_SAP = ['patrones', 'cargas', 'espectro', 'casos', 'masa', 'resumen'] as const satisfies readonly (keyof LecturaSap)[];
+
+export type PestanaSap ='resumen' | 'patrones' | 'casos' | 'masa';
 
 const PESTANAS: { clave: PestanaSap; titulo: string; parte?: ParteSap }[] = [
   { clave: 'resumen', titulo: 'Resumen' },
@@ -172,7 +144,13 @@ export default function PanelSap({
           setError('SAP2000 está abierto, pero el modelo no está guardado todavía.');
           return;
         }
-        onConectado({ modelo: d.modelo, ruta: d.ruta, version: d.version, leido: new Date().toISOString() });
+        onConectado({
+          modelo: d.modelo,
+          ruta: d.ruta,
+          version: d.version,
+          leido: new Date().toISOString(),
+          ...(d.modificado ? { modificado: d.modificado } : {}),
+        });
         // Conectar es querer ver el modelo: la lectura viene con él. Va
         // después de la conexión porque el puente atiende de a una petición.
         void leer();

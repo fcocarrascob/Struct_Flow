@@ -81,6 +81,9 @@ export {
   resumirJustificaciones,
 } from './sap-cargas';
 
+export { familiaDe, columnasDe, terminoDe, resumenCombinaciones } from './sap-combinaciones';
+export { quitarModulo, agregarModulo } from './modelo';
+
 // El motor y el armado de una genérica, en el mismo bundle.
 export { evaluateSheet, formatValor, parseMathRegion } from '../../lib/worksheet';
 export { moduloDeBiblioteca } from '../../lib/diseno/declarativo';

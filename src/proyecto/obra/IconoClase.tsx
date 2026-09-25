@@ -11,6 +11,7 @@ export const ROTULO_CLASE: Record<ClaseNodo, string> = {
   biblioteca: 'biblioteca',
   resumen: 'resumen',
   modelo: 'modelo',
+  combinaciones: 'combinaciones',
 };
 
 export default function IconoClase({
@@ -51,6 +52,14 @@ export default function IconoClase({
       return (
         <svg {...comun}>
           <path d="M2.5 14V4.5h11V14M2.5 9h11M8 4.5V14M1.5 14h13" />
+        </svg>
+      );
+    // Una grilla: la matriz de combinaciones × casos.
+    case 'combinaciones':
+      return (
+        <svg {...comun}>
+          <rect x="2" y="2.5" width="12" height="11" rx="1" />
+          <path d="M2 6.2h12M2 9.8h12M6 2.5v11M10 2.5v11" />
         </svg>
       );
     // Tres nodos enlazados: el grafo.
