@@ -14,12 +14,15 @@ export default function PestanaVista({
   vista,
   results,
   titulo,
+  inicial = 'hoja',
 }: {
   vista: VistaEvaluada;
   results: SheetResults;
   titulo: string;
+  /** Con qué se abre: la hoja o el 3D. */
+  inicial?: 'hoja' | '3d';
 }) {
-  const [modo, setModo] = useState<'hoja' | '3d'>('hoja');
+  const [modo, setModo] = useState<'hoja' | '3d'>(inicial);
   const boton = (m: 'hoja' | '3d', texto: string) => (
     <button
       type="button"

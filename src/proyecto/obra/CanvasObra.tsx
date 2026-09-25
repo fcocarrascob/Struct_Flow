@@ -1029,6 +1029,8 @@ function CanvasObra({
   // El precio es que cambiar de pestaña remonta el canvas: se pierden el scroll,
   // la selección y el punto de inserción, no los datos —el hook vacía al
   // desmontar—. Es el precio correcto.
+  // Con qué se abre la pestaña de una vista geométrica: su hoja o el 3D.
+  const [modoVista, setModoVista] = useState<'hoja' | '3d'>('hoja');
   const abrirPestana = useCallback((idNodo: string) => {
     setPestanas((p) => (p.includes(idNodo) ? p : [...p, idNodo]));
     setActiva(idNodo);
@@ -1628,7 +1630,8 @@ function CanvasObra({
       {activa && deUnaVista && (
         <div className="min-h-0 flex-1">
           <PestanaVista
-            key={activa}
+            key={`${activa}:${modoVista}`}
+            inicial={modoVista}
             vista={deUnaVista}
             results={evaluacion.results}
             titulo={hojaDeNodo(activa)?.etiqueta ?? ''}
@@ -1979,7 +1982,14 @@ function CanvasObra({
             onHoja={(hoja: Region[]) =>
               cambiarUnCalculo(calculo.id, (k) => ({ ...k, hoja }))
             }
-            onAbrirHoja={() => abrirPestana(idNodoDeCalculo(calculo.id))}
+            onAbrirHoja={() => {
+              setModoVista('hoja');
+              abrirPestana(idNodoDeCalculo(calculo.id));
+            }}
+            onAbrir3D={() => {
+              setModoVista('3d');
+              abrirPestana(idNodoDeCalculo(calculo.id));
+            }}
             onCrearPlanilla={() => crearPlanilla(idNodoDeCalculo(calculo.id))}
             onDesprender={() => desprenderNodo(idNodoDeCalculo(calculo.id))}
             atados={evaluacion.scopeEnNodo.get(idNodoDeCalculo(calculo.id)) ?? {}}

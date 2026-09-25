@@ -20,12 +20,15 @@ export default function FichaVista({
   onFormula,
   onPublicar,
   onAbrirHoja,
+  onAbrir3D,
 }: {
   frontera: Frontera;
   instancia: Instanciada | undefined;
   otrosAlias: ReadonlySet<string>;
   /** Abre la hoja sintetizada, con el dibujo al pie, en una pestaña. */
   onAbrirHoja: () => void;
+  /** Abre la misma pestaña, directo en el 3D. */
+  onAbrir3D: () => void;
   onEntrada: (nombre: string, valor: number) => void;
   onFormula: (campo: string, expr: string | undefined) => void;
   onPublicar: (salida: string, alias: string | undefined) => void;
@@ -59,6 +62,14 @@ export default function FichaVista({
           className="mt-2 rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent"
         >
           abrir la hoja y el dibujo ↗
+        </button>
+        <button
+          type="button"
+          onClick={onAbrir3D}
+          title="El modelo en 3D, en una pestaña: se gira, se acerca y se ocultan piezas por tipo"
+          className="ml-1.5 mt-2 rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent"
+        >
+          ver en 3D ↗
         </button>
         {dibujo && (
           // El mismo dibujo que la hoja imprime, en chico: planta y elevaciones.

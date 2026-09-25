@@ -36,6 +36,7 @@ export default function PanelCalculo({
   onNombre,
   onHoja,
   onAbrirHoja,
+  onAbrir3D,
   onCrearPlanilla,
   onDesprender,
   onImportar,
@@ -69,6 +70,8 @@ export default function PanelCalculo({
   onHoja: (hoja: Region[]) => void;
   /** Abre esta hoja como pestaña, con el canvas matemático entero. */
   onAbrirHoja: () => void;
+  /** Solo una vista geométrica: abre su pestaña directo en el 3D. */
+  onAbrir3D?: () => void;
   /** Le da frontera a la hoja: scope propio, y se abre para escribirla. */
   onCrearPlanilla: () => void;
   /** Copia la genérica al nodo para poder editarla, y la abre. */
@@ -152,6 +155,7 @@ export default function PanelCalculo({
             onFormula={onFormula}
             onPublicar={onPublicar}
             onAbrirHoja={onAbrirHoja}
+            onAbrir3D={onAbrir3D ?? onAbrirHoja}
           />
         ) : calculo.frontera && calculo.frontera.procedencia !== 'biblioteca' ? (
           // Una hoja que vive en el documento no tiene módulo que leer, así que
