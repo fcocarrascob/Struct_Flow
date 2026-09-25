@@ -9,6 +9,7 @@ import type { ClaseNodo } from './proyeccion';
 export const ROTULO_CLASE: Record<ClaseNodo, string> = {
   calculo: 'cálculo',
   biblioteca: 'biblioteca',
+  vista: 'vista',
   resumen: 'resumen',
   modelo: 'modelo',
   combinaciones: 'combinaciones',
@@ -39,6 +40,14 @@ export default function IconoClase({
         <svg {...comun}>
           <path d="M3 2.5h7.5a2 2 0 0 1 2 2v9H5a2 2 0 0 1-2-2z" />
           <path d="M3 11.5a2 2 0 0 1 2-2h7.5" />
+        </svg>
+      );
+    // Un cubo en perspectiva: la vista geométrica.
+    case 'vista':
+      return (
+        <svg {...comun}>
+          <path d="M8 1.8 13.5 4.9v6.2L8 14.2 2.5 11.1V4.9z" />
+          <path d="M2.5 4.9 8 8l5.5-3.1M8 8v6.2" />
         </svg>
       );
     // Un sumatorio: la hoja que reúne lo que publican las demás.

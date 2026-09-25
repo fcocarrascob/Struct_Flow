@@ -37,7 +37,7 @@ import { ORIGEN_X, ORIGEN_Y } from './hoja';
  * - `derivada`: una copia de una genérica que ya se editó. El sello deja de
  *   decir «soy esta genérica» y pasa a decir «salí de ella».
  */
-export type Procedencia = 'biblioteca' | 'propia' | 'derivada';
+export type Procedencia = 'biblioteca' | 'propia' | 'derivada' | 'vista';
 
 /**
  * Un cálculo con frontera: se alimenta por `formulas` y entrega por `publica`.
@@ -81,7 +81,14 @@ export interface Frontera {
    */
   origen?: { slug: string; sha256: string; desvios?: string[] };
   /**
-   * Solo `biblioteca`: los valores del formulario. Una derivada no los tiene,
+   * Solo `vista`: qué vista geométrica del registro (`src/proyecto/vistas/`) y
+   * en qué versión se agregó. La vista es código, así que no hay sello: la
+   * versión es lo que permite avisar de que cambió desde que se agregó.
+   */
+  vista?: string;
+  version?: number;
+  /**
+   * Solo `biblioteca` y `vista`: los valores del formulario. Una derivada no los tiene,
    * porque al desprenderse quedaron horneados en sus regiones `in_*`: una hoja
    * editable no puede seguir teniendo una lista de campos declarados, porque el
    * primer cambio la haría mentir.

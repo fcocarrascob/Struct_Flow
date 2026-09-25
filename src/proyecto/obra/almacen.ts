@@ -575,6 +575,7 @@ const PROCEDENCIAS: ReadonlySet<string> = new Set<Procedencia>([
   'biblioteca',
   'propia',
   'derivada',
+  'vista',
 ]);
 
 /** 64 hex, o nada. Un sello ilegible se trata como «sin sello»: no se avisa de
@@ -599,6 +600,10 @@ function sanearFrontera(crudo: unknown): Frontera | undefined {
       : 'biblioteca';
   const slug = typeof i.slug === 'string' && i.slug ? i.slug : undefined;
   if (procedencia === 'biblioteca' && !slug) return undefined;
+  const vista = typeof i.vista === 'string' && i.vista ? i.vista : undefined;
+  // Una vista sin id no tiene qué construir: como una de biblioteca sin slug.
+  if (procedencia === 'vista' && !vista) return undefined;
+  const version = typeof i.version === 'number' && Number.isInteger(i.version) && i.version > 0 ? i.version : undefined;
 
   const entradas: Record<string, number> = {};
   if (typeof i.entradas === 'object' && i.entradas !== null) {
@@ -644,7 +649,8 @@ function sanearFrontera(crudo: unknown): Frontera | undefined {
     // una derivada ya no es una instancia de nada y lo lleva en `origen`.
     ...(procedencia === 'biblioteca' && slug ? { slug, sha256: sello(i.sha256) ?? '' } : {}),
     ...(origen ? { origen } : {}),
-    ...(procedencia === 'biblioteca' ? { entradas } : {}),
+    ...(procedencia === 'vista' ? { vista, ...(version ? { version } : {}) } : {}),
+    ...(procedencia === 'biblioteca' || procedencia === 'vista' ? { entradas } : {}),
     ...(Object.keys(formulas).length ? { formulas } : {}),
     ...(Object.keys(publica).length ? { publica } : {}),
   };

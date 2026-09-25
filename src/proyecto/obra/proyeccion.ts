@@ -43,7 +43,7 @@ export * from './ids';
  * es la hoja libre que solo cita lo que publican los demás (no define nada y usa
  * algo). Declararlo sería un campo más que puede contradecir a la hoja.
  */
-export type ClaseNodo = 'calculo' | 'biblioteca' | 'resumen' | 'modelo' | 'combinaciones' | 'resultado';
+export type ClaseNodo = 'calculo' | 'biblioteca' | 'vista' | 'resumen' | 'modelo' | 'combinaciones' | 'resultado';
 
 /**
  * El nodo de una obra: el de `grafo.ts`, que es el que coloca `layout.ts`, más
@@ -151,7 +151,13 @@ function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra,
   const define = ev.define.get(id) ?? [];
   const usa = [...(ev.usos.get(id) ?? [])];
   const clase: ClaseNodo =
-    f?.procedencia === 'biblioteca' ? 'biblioteca' : !f && define.length === 0 && usa.length > 0 ? 'resumen' : 'calculo';
+    f?.procedencia === 'biblioteca'
+      ? 'biblioteca'
+      : f?.procedencia === 'vista'
+        ? 'vista'
+        : !f && define.length === 0 && usa.length > 0
+          ? 'resumen'
+          : 'calculo';
   const base = {
     id,
     tipo: 'calculo',
@@ -205,6 +211,9 @@ function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra,
   // del orden de lectura, con los campos atados ya resueltos contra el scope que
   // había ahí. Reevaluar aquí sería una segunda autoridad sobre el mismo número.
   const instancia = ev.importadas.get(id);
+  if (!instancia && f.procedencia === 'vista') {
+    return nodo({ ...base, subtitulo: `vista «${f.vista}»`, severidad: 'error', motivos: [`Esta versión de Flow no conoce la vista «${f.vista}».`] });
+  }
   if (!instancia) return nodo({ ...base, subtitulo: `${f.slug ?? k.nombre} · cargando…` });
   const motivos: string[] = [];
   let severidad: Severidad = 'ok';
@@ -221,9 +230,19 @@ function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra,
     motivos.push('La genérica cambió en la biblioteca desde que la importaste: revisa el resultado.');
     severidad = peor(severidad, 'aviso');
   }
+  const vista = instancia.vista;
+  if (vista && f.version !== undefined && f.version !== vista.def.version) {
+    motivos.push('La vista cambió en Flow desde que la agregaste: revisa el resultado.');
+    severidad = peor(severidad, 'aviso');
+  }
   const errores = modulo
     ? (instancia.ev?.errores ?? [])
-    : k.hoja.flatMap((r) => erroresDeResultado(ev.results[r.id]).map((error) => ({ error })));
+    : vista
+      ? [
+          ...vista.errores.map((e) => ({ error: `${e.campo}: ${e.error}` })),
+          ...vista.hoja.flatMap((r) => erroresDeResultado(ev.results[r.id]).map((error) => ({ error }))),
+        ]
+      : k.hoja.flatMap((r) => erroresDeResultado(ev.results[r.id]).map((error) => ({ error })));
   if (errores.length) {
     // El mensaje crudo del motor, SOLO si no hay uno del grafo que ya lo
     // explique. Con los dos, el nodo repetía en inglés —«Undefined symbol
@@ -247,7 +266,12 @@ function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra,
   const publica = ev.define.get(id) ?? [];
   const procedencia = modulo
     ? modulo.norma || modulo.disciplina
-    : f.procedencia === 'derivada'
+    : vista
+      ? (() => {
+          const n = vista.modelo.chequeos.filter((c) => !c.cumple).length;
+          return `vista geométrica · ${n ? `${n} de ${vista.modelo.chequeos.length} verificaciones en falso` : 'sin choques'}`;
+        })()
+      : f.procedencia === 'derivada'
       ? `derivada de ${f.origen?.slug ?? '?'}`
       : 'hoja propia';
   const veredictoTexto = veredicto ? `${procedencia} · ${veredicto}` : procedencia;
@@ -256,8 +280,8 @@ function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra,
     ...base,
     subtitulo: publica.length ? `${veredictoTexto} · publica ${publica.join(', ')}` : veredictoTexto,
     campos: {
-      planilla: f.slug ?? f.origen?.slug ?? '',
-      entradas: modulo ? Object.keys(f.entradas ?? {}).length : k.hoja.length,
+      planilla: f.slug ?? f.origen?.slug ?? f.vista ?? '',
+      entradas: modulo || vista ? Object.keys(f.entradas ?? {}).length : k.hoja.length,
       publica: publica.join(', '),
     },
     severidad,

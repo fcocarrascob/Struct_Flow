@@ -2985,6 +2985,66 @@ const CASOS_VISTA = [
       return null;
     },
   },
+  {
+    nombre: 'una vista en la obra: los datos atados llegan en mm, publica lo derivado y dibuja sus flechas',
+    ok: () => {
+      const o = obra(
+        calc('D', m('PED_Y_d := 2.5 m'), m('n_d := 36')),
+        conPlanilla('V', {
+          procedencia: 'vista',
+          vista: 'base-columna',
+          version: 1,
+          entradas: DATOS_BASE,
+          formulas: { PED_Y: 'PED_Y_d', n_barras: 'n_d' },
+          publica: { n_cont: 'n_cont_geo', v_global: 'v_geo' },
+        }),
+        calc('C', m('k_c := n_cont_geo + 1')),
+      );
+      const ev = evaluarObra(o, genericas);
+      const proy = proyectar(o, ev, genericas);
+      const vista = ev.importadas.get(K('V'))?.vista;
+      if (!vista) return 'la vista no se evaluó';
+      if (vista.datos.PED_Y !== 2500) return `PED_Y = ${vista.datos.PED_Y}, se esperaba 2500 mm`;
+      if (typeof ev.scope.n_cont_geo !== 'number') return `n_cont_geo = ${valor(ev, 'n_cont_geo')}`;
+      if (ev.scope.k_c !== ev.scope.n_cont_geo + 1) return 'el consumidor no calculó con lo publicado';
+      const errores = Object.entries(ev.results).filter(([id, r]) => id.startsWith('vista:') && r.error);
+      if (errores.length) return `la hoja de la vista tiene ${errores.length} error(es): ${errores[0][1].error}`;
+      const tarjeta = proy.nodos.find((n) => n.id === K('V'));
+      if (tarjeta?.clase !== 'vista') return `clase «${tarjeta?.clase}»`;
+      // Con la silla del Pachón la vista no cumple: la tarjeta sale en rojo.
+      if (ev.scope.v_geo !== false || tarjeta.severidad !== 'error') return `v_geo = ${ev.scope.v_geo}, severidad ${tarjeta.severidad}`;
+      return esperaArista('D', 'V')(ev, proy) ?? esperaArista('V', 'C', 'n_cont_geo')(ev, proy) ?? sinCiclo(ev);
+    },
+  },
+  {
+    nombre: 'una vista con un campo atado a algo sin longitud lo dice y conserva el dato',
+    ok: () => {
+      const o = obra(
+        calc('D', m('n_d := 36')),
+        conPlanilla('V', { procedencia: 'vista', vista: 'base-columna', version: 1, entradas: DATOS_BASE, formulas: { PED_Y: 'n_d' } }),
+      );
+      const ev = evaluarObra(o, genericas);
+      const vista = ev.importadas.get(K('V'))?.vista;
+      if (!vista) return 'la vista no se evaluó';
+      if (!vista.errores.some((e) => e.campo === 'PED_Y')) return 'no avisó del campo que no resolvió';
+      if (vista.datos.PED_Y !== DATOS_BASE.PED_Y) return `PED_Y = ${vista.datos.PED_Y}`;
+      const tarjeta = proyectar(o, ev, genericas).nodos.find((n) => n.id === K('V'));
+      return tarjeta?.motivos.some((mo) => /PED_Y/.test(mo)) ? null : `motivos: ${tarjeta?.motivos.join(' | ')}`;
+    },
+  },
+  {
+    nombre: 'una vista pasa por la carpeta sin cambiar, y una sin id se descarta al sanear',
+    ok: () => {
+      const fr = { procedencia: 'vista', vista: 'base-columna', version: 1, entradas: DATOS_BASE, formulas: { PED_Y: 'PED_Y_d' }, publica: { n_cont: 'n_cont_geo' } };
+      const o = sanearObra(obra(calc('D', m('PED_Y_d := 2.5 m')), conPlanilla('V', fr)));
+      const vuelta = sanearObra(unirObra(partirObra(o)).crudo);
+      if (JSON.stringify(vuelta) !== JSON.stringify(o)) return 'la obra releída no coincide';
+      const f = o.calculos.find((k) => k.id === 'V')?.frontera;
+      if (f?.procedencia !== 'vista' || f.vista !== 'base-columna' || f.version !== 1) return `frontera ${JSON.stringify(f)}`;
+      const sinId = sanearObra(obra(conPlanilla('V', { procedencia: 'vista', entradas: {} })));
+      return sinId.calculos[0].frontera === undefined ? null : 'una vista sin id conservó su frontera';
+    },
+  },
   // Cada verificación, rota sola a partir de una base que cierra.
   ...[
     ['v_gol_gol', { b_ap: 180, y_t: 700 }],

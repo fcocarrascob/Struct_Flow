@@ -168,6 +168,12 @@ entrada de otro. Las piezas, y por qué están separadas:
   (`traerNodos`), con el cierre de dependencias (`dependenciasDe`) que se lee con
   `defineDe`/`fuentesDeUso` de `evaluacion.ts`, no con un detector propio. No copia la lectura
   de SAP ni las justificaciones (`docs/rumbo.md`, «Una obra parte de otra»).
+- `vistas/` — las **vistas geométricas** (frontera de procedencia `'vista'`): un modelo puro
+  en mm, armado con datos atados como los de una genérica, del que salen piezas,
+  verificaciones de choque y valores derivados. Lo que vota y se imprime es una **hoja
+  sintetizada** (`vistas/hoja.ts`), que no se guarda. Una vista lee solo datos, nunca
+  salidas de cálculo: el orden queda datos → vista → cálculos. La de base de columna
+  reparte las barras con la misma regla que `pedestal-generico`, y `verify:obra` lo exige.
 - `servidor/obras.mjs` — el servidor de obras, **tonto a propósito**: mapas ruta → texto, un
   candado de escritor con latido y un 409 si la carpeta cambió desde que se leyó. Va montado en
   Vite en `/obras-api` y vive fuera de `scripts/` por el sello.

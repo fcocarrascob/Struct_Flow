@@ -81,6 +81,7 @@ import { definicionesDe, ordenDeLectura, usosDeRegion } from './hoja';
 import { ID_NODO_APOYOS, ID_NODO_MODAL, idNodoDeCalculo } from './ids';
 import { publicaApoyos } from './sap-apoyos';
 import { publicaModal, type Publicado } from './sap-modal';
+import { evaluarVista, type VistaEvaluada } from '../vistas/evaluar';
 
 const CENTINELA = '__scope_final';
 
@@ -135,6 +136,9 @@ export interface Instanciada {
   /** Solo la procedencia `biblioteca`: la evaluación del módulo, con su figura,
    *  sus errores y sus salidas declaradas, que es lo que pinta la ficha. */
   ev?: EvaluacionModulo;
+  /** Solo la procedencia `vista`: el modelo geométrico, su hoja sintetizada —que
+   *  no se guarda en el documento— y los campos atados que no resolvieron. */
+  vista?: VistaEvaluada;
 }
 
 export interface EvaluacionObra {
@@ -573,6 +577,9 @@ export function evaluarObra(obra: Obra, genericas: Genericas = {}): EvaluacionOb
     for (const { error } of importadas.get(h.idNodo)?.ev?.errores ?? []) {
       for (const n of simbolosIndefinidos(error)) rotos.add(n);
     }
+    for (const { error } of importadas.get(h.idNodo)?.vista?.errores ?? []) {
+      for (const n of simbolosIndefinidos(error)) rotos.add(n);
+    }
     // Lo que el propio nodo define NO está roto, aunque el motor se queje de
     // ello: una definición que falla se retira del scope, así que las líneas de
     // más abajo que la nombran fallan en cascada. El nombre a señalar es el
@@ -625,6 +632,14 @@ function evaluarConFrontera(
     // Una de la biblioteca se instancia desde su formulario: sus regiones `in_*`
     // se reescriben con los valores, así que su hoja no necesita scope inicial.
     return { salidas: ev.scope, scope, inicial: {}, ev };
+  }
+  if (f.procedencia === 'vista') {
+    // Una vista que el registro no conoce (de una versión más nueva de Flow, o
+    // retirada) no evalúa: la tarjeta lo dice y la obra sigue.
+    const vista = evaluarVista(f, scope, nodo.idNodo);
+    if (!vista) return null;
+    Object.assign(results, vista.results);
+    return { salidas: vista.salidas, scope, inicial: {}, vista };
   }
   const { results: propios, scope: suyo, inicial } = evaluarHojaConFrontera(nodo.hoja, f, scope);
   Object.assign(results, propios);
@@ -741,7 +756,7 @@ export function rupturaPorQuitar(
  */
 function campoAtadoTapado(nodo: NodoObra): string | undefined {
   const f = nodo.frontera;
-  if (!f || f.procedencia === 'biblioteca') return undefined;
+  if (!f || f.procedencia === 'biblioteca' || f.procedencia === 'vista') return undefined;
   const atados = Object.keys(f.formulas ?? {});
   if (!atados.length) return undefined;
   const definidos = new Set(definicionesDe(nodo.hoja));

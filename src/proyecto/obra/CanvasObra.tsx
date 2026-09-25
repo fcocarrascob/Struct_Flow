@@ -81,6 +81,7 @@ import LeyendaGrupos from './LeyendaGrupos';
 import SelectorGrupo from './SelectorGrupo';
 import { ladoDe, trazoDe, type Lado } from './trazo';
 import PaletaNodos, { type EntradaPaleta } from './PaletaNodos';
+import { VISTAS, datosPorDefecto } from '../vistas/registro';
 import PanelCalculo from './PanelCalculo';
 import {
   calculoDeNodo,
@@ -717,6 +718,17 @@ function CanvasObra({
     }
     if (clave === 'otra-obra') {
       setTrayendo(true);
+      return;
+    }
+    if (clave === 'vista-base-columna') {
+      const def = VISTAS['base-columna'];
+      const k: NodoCalculo = {
+        ...nuevoCalculo(),
+        nombre: `${def.titulo} — geometría`,
+        frontera: { procedencia: 'vista', vista: def.id, version: def.version, entradas: datosPorDefecto(def.campos) },
+      };
+      setObra(agregarCalculo(actual, k));
+      setSeleccion(idNodoDeCalculo(k.id));
       return;
     }
     setObra(agregarModulo(actual, clave));

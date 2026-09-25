@@ -5,6 +5,7 @@ import type { Instanciada } from './evaluacion';
 import { useEscape } from './useEscape';
 import FichaGenerica from './FichaGenerica';
 import FichaPropia from './FichaPropia';
+import FichaVista from './FichaVista';
 import MiniHoja from './MiniHoja';
 import SelectorGenerica from './SelectorGenerica';
 import { definicionesDe, nombresSueltos } from './hoja';
@@ -110,6 +111,8 @@ export default function PanelCalculo({
                 </>
               ) : calculo.frontera?.procedencia === 'biblioteca' ? (
                 'Respaldado por una planilla. Marca en «Salidas» lo que tengan que ver los demás nodos.'
+              ) : calculo.frontera?.procedencia === 'vista' ? (
+                'Una vista geométrica. Marca en «Publica» lo que la geometría le entrega a los cálculos.'
               ) : calculo.frontera ? (
                 // Un cálculo con frontera tiene scope propio: lo que su hoja
                 // define no lo ve nadie hasta que se marque en «Publica».
@@ -140,7 +143,16 @@ export default function PanelCalculo({
           encogía por debajo de su contenido y el pie —«quitar este nodo»— se
           montaba encima de la lista de lo publicable. */}
       <section className="flex flex-1 flex-col px-4 py-3">
-        {calculo.frontera && calculo.frontera.procedencia !== 'biblioteca' ? (
+        {calculo.frontera?.procedencia === 'vista' ? (
+          <FichaVista
+            frontera={calculo.frontera}
+            instancia={instancia}
+            otrosAlias={otrosAlias}
+            onEntrada={onEntrada}
+            onFormula={onFormula}
+            onPublicar={onPublicar}
+          />
+        ) : calculo.frontera && calculo.frontera.procedencia !== 'biblioteca' ? (
           // Una hoja que vive en el documento no tiene módulo que leer, así que
           // su panel es otro: sus entradas son lo que usa y no define, y lo
           // publicable es lo que define.
