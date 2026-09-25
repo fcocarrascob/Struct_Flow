@@ -73,6 +73,7 @@ import {
   type Procedencia,
   type Revision,
 } from './modelo';
+import type { Ensamble } from './ensamble';
 
 export const CLAVE_OBRAS = 'structflow.obras.v1';
 
@@ -658,7 +659,12 @@ function sanearFrontera(crudo: unknown): Frontera | undefined {
     ...(procedencia === 'biblioteca' && slug ? { slug, sha256: sello(i.sha256) ?? '' } : {}),
     ...(origen ? { origen } : {}),
     ...(procedencia === 'vista'
-      ? { vista, ...(version ? { version } : {}), ...(Object.keys(config).length ? { config } : {}) }
+      ? {
+          vista,
+          ...(version ? { version } : {}),
+          ...(Object.keys(config).length ? { config } : {}),
+          ...sanearEnsamble(i.ensamble),
+        }
       : {}),
     ...(procedencia === 'biblioteca' || procedencia === 'vista' ? { entradas } : {}),
     ...(Object.keys(formulas).length ? { formulas } : {}),
@@ -684,6 +690,27 @@ function sanearMeta(crudo: unknown): MetaPlanilla | undefined {
  * es el usuario: marcar de asistente algo que no lo dice sería inventar un
  * origen.
  */
+/**
+ * El ensamble de una vista. Sin tipo o sin sus dos conjuntos no se puede
+ * reconfigurar, y se descarta entero: la vista sigue funcionando sola, como una
+ * agregada desde la paleta. Un nodo que ya no está en la obra se tolera aquí;
+ * `reconfigurar` lo trata como ausente.
+ */
+function sanearEnsamble(crudo: unknown): { ensamble?: Ensamble } {
+  if (typeof crudo !== 'object' || crudo === null) return {};
+  const e = crudo as Partial<Ensamble>;
+  const texto = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : undefined);
+  const tipo = texto(e.tipo);
+  const diseno = texto(e.diseno);
+  const sobrerresistencia = texto(e.sobrerresistencia);
+  if (!tipo || !diseno || !sobrerresistencia) return {};
+  const nodos: Record<string, string> = {};
+  if (typeof e.nodos === 'object' && e.nodos !== null) {
+    for (const [k, v] of Object.entries(e.nodos)) if (typeof v === 'string' && v) nodos[k] = v;
+  }
+  return { ensamble: { tipo, grupoSap: texto(e.grupoSap) ?? tipo, diseno, sobrerresistencia, nodos } };
+}
+
 function sanearRevision(crudo: unknown): { revisar?: Revision } {
   if (typeof crudo !== 'object' || crudo === null) return {};
   const r = crudo as Partial<Revision>;

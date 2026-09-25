@@ -112,6 +112,8 @@ const {
   VISTAS,
   datosPorDefecto,
   configCompleta,
+  armarEnsamble,
+  reconfigurar,
   barrasPerimetro,
   svgVistas,
 } = motor;
@@ -230,6 +232,15 @@ const genericas = {
   [ZAPATA.id]: { fase: 'lista', modulo: ZAPATA },
   [PEDESTAL.id]: { fase: 'lista', modulo: PEDESTAL },
 };
+
+/** Las cinco genéricas de la base de columna, para los casos del ensamble. */
+const ANCLAJE = await generica('hormigon/anclaje-hormigon-generica.json');
+const LLAVE = await generica('acero/llave-corte-generica.json');
+const SILLA = await generica('acero/silla-anclaje-generica.json');
+const genericasBase = Object.fromEntries(
+  [PLACA, PEDESTAL, ANCLAJE, LLAVE, SILLA].map((g) => [g.id, { fase: 'lista', modulo: g }]),
+);
+const sellosBase = Object.fromEntries([PLACA, PEDESTAL, ANCLAJE, LLAVE, SILLA].map((g) => [g.id, g.biblioteca?.sha256 ?? '']));
 
 /** Las regiones de una genérica, como quedan al desprenderla: instanciadas. */
 const hojaDe = (modulo) => modulo.construirHoja(modulo.porDefecto);
@@ -3178,7 +3189,150 @@ const CASOS_VISTA = [
       return sinArista('S', 'V')(ev, proy) ?? esperaArista('D', 'V')(ev, proy) ?? sinCiclo(ev);
     },
   },
+  ...CASOS_ENSAMBLE(),
 ];
+
+// ── El ensamble de la base: la plantilla contra el Pachón ────────────────────
+//
+// Las externas son las del Pachón al 2026-09-25 (las gobernantes de COL_PPALES en
+// los conjuntos LRFD y O0, y las fuerzas de capacidad de sus diagonales), y los
+// u_* son los que su grupo «Base de columna», armado a mano, daba con ellas. La
+// plantilla tiene que dar lo mismo con los nombres sufijados.
+
+function CASOS_ENSAMBLE() {
+  const EXTERNAS = [
+    'N_c_CP_LRFD := 2737.72117 kN', 'N_c_CP_O0 := 2454.32424 kN', 'N_t_CP_O0 := -630.999742 kN',
+    'N_v_CP_LRFD := 2528.88488 kN', 'N_v_CP_O0 := 1414.6287400000003 kN', 'N_m_CP_LRFD := 2626.1197700000002 kN',
+    'N_m_CP_O0 := 1414.6287400000003 kN', 'N_e_CP_LRFD := 268.273932 kN', 'N_e_CP_O0 := 6.41596828 kN',
+    'V_c_CP_LRFD := 557.5577813241114 kN', 'V_c_CP_O0 := 392.09991987439724 kN', 'V_t_CP_O0 := 239.63184458179012 kN',
+    'V_v_CP_LRFD := 591.5269167711615 kN', 'V_v_CP_O0 := 635.0572965873657 kN', 'V_m_CP_LRFD := 586.7484708305817 kN',
+    'V_m_CP_O0 := 635.0572965873657 kN', 'V_e_CP_LRFD := 104.74148860957922 kN', 'V_e_CP_O0 := 369.31559565216855 kN',
+    'M_c_CP_LRFD := 3042.25129 kN*m', 'M_c_CP_O0 := 1301.19476 kN*m', 'M_t_CP_O0 := 190.243376 kN*m',
+    'M_v_CP_LRFD := 3336.00099 kN*m', 'M_v_CP_O0 := 4070.99519 kN*m', 'M_m_CP_LRFD := 3387.17645 kN*m',
+    'M_m_CP_O0 := 4070.99519 kN*m', 'M_e_CP_LRFD := 765.140329 kN*m', 'M_e_CP_O0 := 2755.63732 kN*m',
+    'H_int_dg := 2715.424092503251 kN', 'H_ext_dg := 1940.2244054017028 kN', 'T_ext_dg := 3105.7663058005933 kN',
+  ];
+  const REFERENCIA = {
+    u_pb_CP: 0.8521078818700685,
+    u_anc_CP: 0.8591692804950317,
+    u_llave_CP: 0.939636646309025,
+    u_silla_CP: 0.9857142857142857,
+    u_ped_CP: 0.939636646308542,
+  };
+  const PARAMS = { tipo: 'CP', grupoSap: 'COL_PPALES', diseno: 'LRFD', sobrerresistencia: 'O0' };
+  const PLANTILLA = VISTAS['base-columna'].plantilla;
+  const COMPLETA = configCompleta(VISTAS['base-columna']);
+  const idsDe = () => {
+    let i = 0;
+    return (prefijo) => `${prefijo}ens${++i}`;
+  };
+  const base = (config = COMPLETA, params = PARAMS, o = obra(calc('EXT', ...EXTERNAS.map(m))), nuevoId = idsDe()) =>
+    armarEnsamble(o, PLANTILLA, config, params, sellosBase, { nombre: `Base de columna ${params.grupoSap}`, color: '#db2777' }, nuevoId);
+  const errores = (ev) => Object.entries(ev.results).filter(([, r]) => r.error).map(([id, r]) => `${id}: ${r.error}`);
+  const u = (ev) =>
+    Object.entries(REFERENCIA)
+      .filter(([n]) => ev.scope[n] !== undefined || n !== 'u_llave_CP')
+      .map(([n, ref]) => (Math.abs(ev.scope[n] - ref) <= 1e-9 * ref ? null : `${n} = ${ev.scope[n]}, se esperaba ${ref}`))
+      .find(Boolean) ?? null;
+  const nodo = (o, nombre) => o.calculos.find((k) => k.nombre === nombre);
+
+  return [
+    {
+      nombre: 'ensamble de la base: la plantilla con las externas del Pachón da sus mismos usos, con los nombres sufijados',
+      ok: () => {
+        const r = base();
+        if (r.error) return r.error;
+        const o = sanearObra(r.obra);
+        if (JSON.stringify(sanearObra(unirObra(partirObra(o)).crudo)) !== JSON.stringify(o)) return 'la obra releída no coincide';
+        const vista = o.calculos.find((k) => k.id === r.idVista)?.frontera;
+        if (vista?.ensamble?.tipo !== 'CP' || Object.keys(vista.ensamble.nodos).length !== 9) return `ensamble: ${JSON.stringify(vista?.ensamble)}`;
+        const ev = evaluarObra(o, genericasBase);
+        const e = errores(ev);
+        if (e.length) return `${e.length} región(es) con error: ${e[0]}`;
+        if (ev.scope.n_cont_ped_CP !== 20) return `n_cont_ped_CP = ${ev.scope.n_cont_ped_CP}`;
+        for (const v of ['v_geo_base_CP', 'v_t_llave_CP', 'v_dom_m_CP', 'v_dom_e_CP', 'v_d26c_CP'])
+          if (ev.scope[v] !== true) return `${v} = ${ev.scope[v]}`;
+        if (ev.scope.L_pb !== undefined) return 'quedó un nombre sin sufijo';
+        return u(ev) ?? sinCiclo(ev);
+      },
+    },
+    {
+      nombre: 'ensamble de la base: dos tipos conviven sin choques, y otro del mismo tipo se rechaza',
+      ok: () => {
+        const nuevoId = idsDe();
+        const a = base(COMPLETA, PARAMS, undefined, nuevoId);
+        if (a.error) return a.error;
+        const b = base(COMPLETA, { ...PARAMS, tipo: 'CE', grupoSap: 'COL_EXT' }, a.obra, nuevoId);
+        if (b.error) return b.error;
+        const ev = evaluarObra(b.obra, genericasBase);
+        if (ev.repetidos.size) return `repetidos: ${[...ev.repetidos.keys()].join(', ')}`;
+        if (!nodo(b.obra, 'Placa base COL_EXT')) return 'no se creó la segunda placa';
+        const c = base(COMPLETA, PARAMS, b.obra, nuevoId);
+        return c.error && /CP/.test(c.error) ? null : 'aceptó otra base del tipo CP';
+      },
+    },
+    {
+      nombre: 'ensamble de la base: quitar la llave y volver a ponerla respeta lo editado y vuelve a los mismos números',
+      ok: () => {
+        const nuevoId = idsDe();
+        const r = base(COMPLETA, PARAMS, undefined, nuevoId);
+        if (r.error) return r.error;
+        // Lo que el ingeniero escribió en la hoja de datos tiene que sobrevivir.
+        const datos = nodo(r.obra, 'Base de columna COL_PPALES — datos');
+        const editado = { ...datos, hoja: datos.hoja.map((x) => (x.src.startsWith('Supuesto: dimensiones de la placa') ? { ...x, src: 'Supuesto: placa confirmada.' } : x)) };
+        const o0 = { ...r.obra, calculos: r.obra.calculos.map((k) => (k.id === datos.id ? editado : k)) };
+
+        const sin = reconfigurar(o0, PLANTILLA, r.idVista, { ...COMPLETA, llave: 'no' }, sellosBase, nuevoId);
+        if (sin.error) return sin.error;
+        if (nodo(sin.obra, 'Llave de corte COL_PPALES')) return 'quedó el nodo de la llave';
+        if (!sin.quitados.includes('Llave de corte COL_PPALES')) return `quitados: ${sin.quitados.join(', ')}`;
+        const hojaSin = nodo(sin.obra, 'Base de columna COL_PPALES — datos').hoja;
+        if (hojaSin.some((x) => x.id.includes(':llave:') || x.id.includes(':solicitaciones-llave:'))) return 'quedaron bloques de la llave';
+        if (!hojaSin.some((x) => x.src === 'Supuesto: placa confirmada.')) return 'se perdió lo editado (sin llave)';
+        const placa = nodo(sin.obra, 'Placa base COL_PPALES').frontera;
+        if (placa.entradas.hay_llave !== 0 || 'z_llave' in placa.formulas) return `placa: ${JSON.stringify(placa.entradas.hay_llave)} ${placa.formulas.z_llave}`;
+        const ped = nodo(sin.obra, 'Pedestal COL_PPALES').frontera;
+        if (ped.entradas.h_llave !== 0 || 'h_llave' in ped.formulas) return 'el pedestal sigue viendo la llave';
+        if (nodo(sin.obra, 'Base de columna COL_PPALES — resumen').hoja.some((x) => /u_llave/.test(x.src))) return 'el resumen sigue con la llave';
+        const evSin = evaluarObra(sin.obra, genericasBase);
+        const e = errores(evSin);
+        if (e.length) return `sin llave, ${e.length} región(es) con error: ${e[0]}`;
+        if (!Number.isFinite(evSin.scope.u_pb_CP)) return `sin llave, u_pb_CP = ${evSin.scope.u_pb_CP}`;
+
+        const con = reconfigurar(sin.obra, PLANTILLA, r.idVista, COMPLETA, sellosBase, nuevoId);
+        if (con.error) return con.error;
+        const hoja = nodo(con.obra, 'Base de columna COL_PPALES — datos').hoja;
+        const pos = (fin) => hoja.findIndex((x) => x.id.endsWith(fin));
+        const llave = pos(':llave:1');
+        if (!(llave > pos(':pedestal:v_dom_e') && llave < pos(':materiales:1'))) return 'la sección de la llave volvió fuera de su sitio';
+        if (!hoja.some((x) => x.src === 'Supuesto: placa confirmada.')) return 'se perdió lo editado (con llave)';
+        const ev = evaluarObra(con.obra, genericasBase);
+        const e2 = errores(ev);
+        if (e2.length) return `de vuelta, ${e2.length} región(es) con error: ${e2[0]}`;
+        return u(ev);
+      },
+    },
+    {
+      nombre: 'ensamble de la base: sin silla, se va su nodo y la placa trabaja sin nervios',
+      ok: () => {
+        const nuevoId = idsDe();
+        const r = base(COMPLETA, PARAMS, undefined, nuevoId);
+        if (r.error) return r.error;
+        const sin = reconfigurar(r.obra, PLANTILLA, r.idVista, { ...COMPLETA, silla: 'no' }, sellosBase, nuevoId);
+        if (sin.error) return sin.error;
+        if (nodo(sin.obra, 'Silla de anclaje COL_PPALES')) return 'quedó el nodo de la silla';
+        const placa = nodo(sin.obra, 'Placa base COL_PPALES').frontera;
+        if (placa.entradas.hay_nervios !== 0 || 'sep_nerv' in placa.formulas) return 'la placa sigue con nervios';
+        const vista = sin.obra.calculos.find((k) => k.id === r.idVista).frontera;
+        if (vista.config.silla !== 'no' || 'silla' in vista.ensamble.nodos) return `vista: ${JSON.stringify(vista.config)}`;
+        const ev = evaluarObra(sin.obra, genericasBase);
+        const e = errores(ev);
+        if (e.length) return `${e.length} región(es) con error: ${e[0]}`;
+        return ev.scope.u_silla_CP === undefined ? null : 'sigue publicándose u_silla_CP';
+      },
+    },
+  ];
+}
 
 // ── Correr ───────────────────────────────────────────────────────────────────
 

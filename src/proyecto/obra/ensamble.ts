@@ -1,0 +1,354 @@
+// El ensamble de una vista: el grupo de cálculos que la acompaña, armado desde una
+// plantilla en código (`docs/rumbo.md`, «La base de columna como modelo
+// geométrico, y sus componentes»).
+//
+// Una plantilla es la lista de nodos del grupo —hojas libres por secciones y
+// genéricas con sus ataduras—, escrita con los nombres sin sufijo. Cada sección,
+// nodo o capa de ataduras puede depender de una opción de la configuración de la
+// vista (`si: 'silla'` está si hay silla; `si: '!silla'`, si no la hay). Al
+// instanciarla:
+//
+//   - todo nombre que el grupo DEFINE lleva el sufijo del tipo de apoyo
+//     (`L_pb` → `L_pb_CP`), en fórmulas, tablas, ataduras, publicaciones y prosa,
+//     para que dos bases no choquen;
+//   - los marcadores `$T` (tipo), `$D` (conjunto de diseño), `$S` (conjunto de
+//     sobrerresistencia) y `$G` (grupo de SAP) se reemplazan, así que
+//     `N_c_$T_$D` es la gobernante que publica el nodo de apoyos;
+//   - lo demás —las externas que el grupo usa y no define— queda como está.
+//
+// `reconfigurar` es la diferencia entre la plantilla con la configuración vieja
+// y con la nueva, aplicada sobre lo que hay: los bloques llevan ids estables
+// (`<nodo>:<sección>:<nombre definido o índice>`), así que se quitan y se ponen
+// solo los del componente que cambió, y lo que el ingeniero editó en otro sitio
+// se queda. Todo es puro.
+
+import type { Region } from '../../lib/worksheet';
+import type { Config } from '../vistas/tipos';
+import { definicionesDe } from './hoja';
+import { borrarCalculo, type Frontera, type Obra, type NodoCalculo, type Revision } from './modelo';
+import { nombresDefinidos } from './copia';
+
+// ── La plantilla ─────────────────────────────────────────────────────────────
+
+/** `clave` si esa opción está presente; `!clave` si está en `'no'`. */
+export type Condicion = string;
+
+export type BloquePlantilla =
+  | { kind: 'text' | 'math'; src: string }
+  | { kind: 'table'; src: string; tabla: NonNullable<Region['tabla']> };
+
+export interface SeccionPlantilla {
+  clave: string;
+  si?: Condicion;
+  bloques: BloquePlantilla[];
+}
+
+/** Ataduras y valores que se suman, o se quitan con `null`, bajo una condición. */
+export interface CapaPlantilla {
+  si: Condicion;
+  entradas?: Record<string, number | null>;
+  formulas?: Record<string, string | null>;
+}
+
+export interface FronteraPlantilla {
+  procedencia: 'biblioteca' | 'vista';
+  /** El slug de la genérica, o el id de la vista. */
+  id: string;
+  entradas: Record<string, number>;
+  formulas: Record<string, string>;
+  publica: Record<string, string>;
+  capas?: CapaPlantilla[];
+}
+
+export interface NodoPlantilla {
+  /** Estable: es la clave del nodo en el ensamble y la base de sus ids de bloque. */
+  clave: string;
+  nombre: string;
+  si?: Condicion;
+  /** Una hoja libre, por secciones. */
+  hoja?: SeccionPlantilla[];
+  frontera?: FronteraPlantilla;
+  revisar?: string;
+}
+
+export interface Plantilla {
+  nodos: NodoPlantilla[];
+}
+
+/** Con qué se instancia: el tipo de apoyo y los conjuntos de sus gobernantes. */
+export interface Parametros {
+  /** El alias del tipo (`CP`): sufijo de los nombres y parte de las gobernantes. */
+  tipo: string;
+  /** El grupo de SAP (`COL_PPALES`), para los títulos. */
+  grupoSap: string;
+  diseno: string;
+  sobrerresistencia: string;
+}
+
+/** Lo que la vista guarda de su ensamble: con qué se armó y qué nodo es cada clave. */
+export interface Ensamble extends Parametros {
+  nodos: Record<string, string>;
+}
+
+// ── Instanciar ───────────────────────────────────────────────────────────────
+
+export function cumple(si: Condicion | undefined, config: Config): boolean {
+  if (!si) return true;
+  return si.startsWith('!') ? config[si.slice(1)] === 'no' : config[si] !== 'no';
+}
+
+const TOKEN = /[\p{L}_][\p{L}\p{N}_]*/gu;
+
+function bloquesDe(n: NodoPlantilla, config: Config | null): { clave: string; bloque: BloquePlantilla }[] {
+  const salida: { clave: string; bloque: BloquePlantilla }[] = [];
+  for (const s of n.hoja ?? []) {
+    if (config && !cumple(s.si, config)) continue;
+    s.bloques.forEach((b, i) => {
+      // Una definición se identifica por su nombre: sobrevive a que la plantilla
+      // agregue o mueva bloques de su sección.
+      const def = b.kind === 'math' ? /^\s*([\p{L}_][\p{L}\p{N}_]*)\s*:=/u.exec(b.src)?.[1] : undefined;
+      salida.push({ clave: `${s.clave}:${def ?? i + 1}`, bloque: b });
+    });
+  }
+  return salida;
+}
+
+const aRegion = (id: string, b: BloquePlantilla, i: number): Region =>
+  b.kind === 'table'
+    ? { id, kind: 'table', x: 40, y: 40 + i * 48, src: b.src, tabla: structuredClone(b.tabla) }
+    : { id, kind: b.kind, x: 40, y: 40 + i * 48, src: b.src };
+
+/**
+ * Los nombres que el grupo define, en TODAS sus variantes: el sufijo no puede
+ * depender de la configuración, o quitar la silla renombraría la placa.
+ */
+export function nombresPropios(p: Plantilla): Set<string> {
+  const propios = new Set<string>();
+  for (const n of p.nodos) {
+    const hoja = bloquesDe(n, null).map((x, i) => aRegion(`r${i}`, x.bloque, i));
+    for (const v of definicionesDe(hoja)) propios.add(v);
+    for (const alias of Object.values(n.frontera?.publica ?? {})) propios.add(alias);
+  }
+  return propios;
+}
+
+/** Un texto de la plantilla, con el sufijo puesto y los marcadores resueltos. */
+export function traducir(texto: string, propios: ReadonlySet<string>, p: Parametros): string {
+  return texto
+    .replace(TOKEN, (t) => (propios.has(t) ? `${t}_${p.tipo}` : t))
+    .replace(/\$T/g, p.tipo)
+    .replace(/\$D/g, p.diseno)
+    .replace(/\$S/g, p.sobrerresistencia)
+    .replace(/\$G/g, p.grupoSap);
+}
+
+function traducirBloque(b: BloquePlantilla, tr: (s: string) => string): BloquePlantilla {
+  if (b.kind !== 'table') return { kind: b.kind, src: tr(b.src) };
+  return { kind: 'table', src: tr(b.src), tabla: { ...b.tabla, celdas: b.tabla.celdas.map((f) => f.map(tr)) } };
+}
+
+/** La frontera de un nodo con las capas de su configuración aplicadas y traducida. */
+function fronteraDe(f: FronteraPlantilla, config: Config, tr: (s: string) => string, sello: string): Frontera {
+  const entradas: Record<string, number> = { ...f.entradas };
+  const formulas: Record<string, string> = { ...f.formulas };
+  for (const c of f.capas ?? []) {
+    if (!cumple(c.si, config)) continue;
+    for (const [k, v] of Object.entries(c.entradas ?? {})) v === null ? delete entradas[k] : (entradas[k] = v);
+    for (const [k, v] of Object.entries(c.formulas ?? {})) v === null ? delete formulas[k] : (formulas[k] = v);
+  }
+  const publica = Object.fromEntries(Object.entries(f.publica).map(([k, v]) => [k, tr(v)]));
+  const traducidas = Object.fromEntries(Object.entries(formulas).map(([k, v]) => [k, tr(v)]));
+  return f.procedencia === 'biblioteca'
+    ? { procedencia: 'biblioteca', slug: f.id, sha256: sello, entradas, formulas: traducidas, publica }
+    : { procedencia: 'vista', vista: f.id, version: 1, config: { ...config }, entradas, formulas: traducidas, publica };
+}
+
+/**
+ * Los nodos de la plantilla que existen con esta configuración, instanciados.
+ * `ids` da el id de cada clave; la de la vista no lleva todavía su ensamble.
+ */
+export function instanciar(
+  p: Plantilla,
+  config: Config,
+  params: Parametros,
+  ids: Readonly<Record<string, string>>,
+  sellos: Readonly<Record<string, string>>,
+): NodoCalculo[] {
+  const propios = nombresPropios(p);
+  const tr = (s: string) => traducir(s, propios, params);
+  return p.nodos
+    .filter((n) => cumple(n.si, config))
+    .map((n) => {
+      const id = ids[n.clave];
+      const hoja = bloquesDe(n, config).map((x, i) => aRegion(`${id}:${x.clave}`, traducirBloque(x.bloque, tr), i));
+      const revisar: Revision | undefined = n.revisar ? { nota: tr(n.revisar), por: 'asistente' } : undefined;
+      return {
+        id,
+        nombre: tr(n.nombre),
+        hoja,
+        ...(n.frontera ? { frontera: fronteraDe(n.frontera, config, tr, sellos[n.frontera.id] ?? '') } : {}),
+        ...(revisar ? { revisar } : {}),
+      };
+    });
+}
+
+// ── Armar y reconfigurar ─────────────────────────────────────────────────────
+
+export interface ResultadoArmar {
+  obra: Obra;
+  /** El id del nodo de la vista, que lleva el ensamble. */
+  idVista: string;
+}
+
+/**
+ * Agrega a la obra el grupo entero de una plantilla, en un grupo nuevo. Falla
+ * —con el motivo, sin tocar la obra— si alguno de sus nombres ya está definido:
+ * suele ser otra base del mismo tipo.
+ */
+export function armarEnsamble(
+  obra: Obra,
+  p: Plantilla,
+  config: Config,
+  params: Parametros,
+  sellos: Readonly<Record<string, string>>,
+  grupo: { nombre: string; color: string },
+  nuevoId: (prefijo: string) => string,
+): ResultadoArmar | { error: string } {
+  const propios = nombresPropios(p);
+  const tr = (s: string) => traducir(s, propios, params);
+  const ya = nombresDefinidos(obra);
+  const choques = [...propios].map(tr).filter((n) => ya.has(n));
+  if (choques.length) {
+    return { error: `La obra ya define ${choques.slice(0, 4).join(', ')}${choques.length > 4 ? '…' : ''}: ¿hay otra base del tipo ${params.tipo}?` };
+  }
+  const ids = Object.fromEntries(p.nodos.map((n) => [n.clave, nuevoId('k')]));
+  const idGrupo = nuevoId('g');
+  const nodos = instanciar(p, config, params, ids, sellos).map((k) => ({ ...k, grupo: idGrupo }));
+  const idVista = vistaDe(p, ids);
+  const conEnsamble = nodos.map((k) => (k.id === idVista ? conNodos(k, params, ids, config, p) : k));
+  return {
+    obra: {
+      ...obra,
+      grupos: [...(obra.grupos ?? []), { id: idGrupo, nombre: grupo.nombre, color: grupo.color }],
+      calculos: [...obra.calculos, ...conEnsamble],
+    },
+    idVista,
+  };
+}
+
+function vistaDe(p: Plantilla, ids: Readonly<Record<string, string>>): string {
+  const n = p.nodos.find((x) => x.frontera?.procedencia === 'vista');
+  if (!n) throw new Error('La plantilla no tiene vista.');
+  return ids[n.clave];
+}
+
+/** Guarda en la vista con qué se armó y los ids de los nodos que existen. */
+function conNodos(k: NodoCalculo, params: Parametros, ids: Readonly<Record<string, string>>, config: Config, p: Plantilla): NodoCalculo {
+  const presentes = Object.fromEntries(p.nodos.filter((n) => cumple(n.si, config)).map((n) => [n.clave, ids[n.clave]]));
+  return { ...k, frontera: { ...k.frontera!, ensamble: { ...params, nodos: presentes } } };
+}
+
+export interface ResultadoReconfigurar {
+  obra: Obra;
+  /** Los nodos que se quitaron, por nombre, para avisar. */
+  quitados: string[];
+}
+
+/**
+ * Cambia la configuración de un ensamble ya armado. Se calcula la plantilla con
+ * la configuración vieja y con la nueva, y lo que cambia entre las dos se aplica
+ * sobre lo que hay: nodos que aparecen o desaparecen, bloques de las secciones
+ * que dependen de la opción, y ataduras y valores de las capas. Lo que el
+ * ingeniero editó fuera de eso se conserva.
+ */
+export function reconfigurar(
+  obra: Obra,
+  p: Plantilla,
+  idVista: string,
+  configNueva: Config,
+  sellos: Readonly<Record<string, string>>,
+  nuevoId: (prefijo: string) => string,
+): ResultadoReconfigurar | { error: string } {
+  const vista = obra.calculos.find((k) => k.id === idVista);
+  const ens = vista?.frontera?.ensamble;
+  if (!vista?.frontera || !ens) return { error: 'La vista no tiene un ensamble que reconfigurar.' };
+  const configVieja = vista.frontera.config ?? {};
+  const ids: Record<string, string> = { ...ens.nodos };
+  for (const n of p.nodos) ids[n.clave] ??= nuevoId('k');
+  const viejos = new Map(instanciar(p, configVieja, ens, ids, sellos).map((k) => [k.id, k]));
+  const nuevos = instanciar(p, configNueva, ens, ids, sellos);
+  const idsNuevos = new Set(nuevos.map((k) => k.id));
+
+  let resultado = obra;
+  const quitados: string[] = [];
+  for (const id of viejos.keys()) {
+    if (idsNuevos.has(id)) continue;
+    const actual = resultado.calculos.find((k) => k.id === id);
+    if (actual) {
+      quitados.push(actual.nombre);
+      resultado = borrarCalculo(resultado, id);
+    }
+  }
+  const grupo = vista.grupo;
+  for (const nuevo of nuevos) {
+    const viejo = viejos.get(nuevo.id);
+    const actual = resultado.calculos.find((k) => k.id === nuevo.id);
+    if (!viejo || !actual) {
+      // Aparece: entra entero, en el grupo de la vista.
+      resultado = { ...resultado, calculos: [...resultado.calculos, { ...nuevo, ...(grupo ? { grupo } : {}) }] };
+      continue;
+    }
+    resultado = {
+      ...resultado,
+      calculos: resultado.calculos.map((k) =>
+        k.id === nuevo.id ? { ...k, hoja: aplicarHoja(k.hoja, viejo.hoja, nuevo.hoja), ...fronteraAplicada(k, viejo, nuevo) } : k,
+      ),
+    };
+  }
+  resultado = {
+    ...resultado,
+    calculos: resultado.calculos.map((k) => (k.id === idVista ? conNodos(k, ens, ids, configNueva, p) : k)),
+  };
+  return { obra: resultado, quitados };
+}
+
+/**
+ * Los bloques que la plantilla vieja tenía y la nueva no, fuera; los que la nueva
+ * tiene y la vieja no, dentro, detrás del bloque que los precede en la nueva.
+ */
+function aplicarHoja(actual: Region[], vieja: Region[], nueva: Region[]): Region[] {
+  const enNueva = new Set(nueva.map((r) => r.id));
+  const enVieja = new Set(vieja.map((r) => r.id));
+  let hoja = actual.filter((r) => !(enVieja.has(r.id) && !enNueva.has(r.id)));
+  nueva.forEach((r, i) => {
+    if (enVieja.has(r.id) || hoja.some((x) => x.id === r.id)) return;
+    let despues = -1;
+    for (let j = i - 1; j >= 0 && despues < 0; j--) despues = hoja.findIndex((x) => x.id === nueva[j].id);
+    hoja = [...hoja.slice(0, despues + 1), r, ...hoja.slice(despues + 1)];
+  });
+  // Las posiciones siguen el orden: la hoja todavía lee (y, x).
+  return hoja.map((r, i) => ({ ...r, x: 40, y: 40 + i * 48 }));
+}
+
+/** Las entradas, fórmulas y configuración que cambian entre la plantilla vieja y la nueva. */
+function fronteraAplicada(actual: NodoCalculo, viejo: NodoCalculo, nuevo: NodoCalculo): Partial<NodoCalculo> {
+  const f = actual.frontera;
+  if (!f || !viejo.frontera || !nuevo.frontera) return {};
+  const delta = <T,>(act: Record<string, T> = {}, v: Record<string, T> = {}, n: Record<string, T> = {}) => {
+    const out = { ...act };
+    for (const k of new Set([...Object.keys(v), ...Object.keys(n)])) {
+      if (v[k] === n[k]) continue;
+      if (k in n) out[k] = n[k];
+      else delete out[k];
+    }
+    return out;
+  };
+  return {
+    frontera: {
+      ...f,
+      entradas: delta(f.entradas, viejo.frontera.entradas, nuevo.frontera.entradas),
+      formulas: delta(f.formulas, viejo.frontera.formulas, nuevo.frontera.formulas),
+      ...(nuevo.frontera.config ? { config: nuevo.frontera.config } : {}),
+    },
+  };
+}

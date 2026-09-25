@@ -39,11 +39,16 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
 5. **La base de columna como configuración de apoyo** (`rumbo.md`, «La base de columna como
    modelo geométrico, y sus componentes»). Hecho: la vista lleva `config` en su frontera
    (silla y llave pueden faltar, con sus verificaciones propias sin silla) y se elige en su
-   ficha; la completa da byte a byte lo mismo que antes. Falta: `armarBase` y `reconfigurar`,
-   puras, con casos en `verify:obra` que den los mismos u_* que el grupo actual; y las dos
-   puertas (tipo en el panel de apoyos y paleta).
-   Por decidir: si la base actual del Pachón se regenera con sufijo `_CP`, y si el ensamble
-   admite dos conjuntos (LRFD y sobrerresistencia) como hoy hace la hoja de datos a mano.
+   ficha; la completa da byte a byte lo mismo que antes. Hecho también: la plantilla del grupo
+   (`vistas/base-columna/plantilla.ts`) y `armarEnsamble`/`reconfigurar` (`obra/ensamble.ts`),
+   con dos conjuntos (diseño y sobrerresistencia); con las externas del Pachón da sus mismos
+   u_* con los nombres sufijados. Falta: las dos puertas (tipo en el panel de apoyos y
+   paleta) y regenerar la base del Pachón con sufijo `_CP` (decidido).
+   Límites de la plantilla: la hoja de capacidad es la del Pachón (AISC 341 §D2.6, pórtico
+   arriostrado en X y de momento en Y) y usa las externas `H_int_dg`, `H_ext_dg` y
+   `T_ext_dg` del arriostramiento, sin sufijo; una base sin diagonales, o sin
+   sobrerresistencia, necesita otra variante. Una copia con «De otra obra…» que renombre ids
+   deja el `ensamble` de la vista apuntando a los ids viejos.
 6. **La leyenda «debajo del gráfico».** Las etiquetas ya se esquivan y la leyenda busca la
    esquina libre (o la que fije el autor); falta la opción de sacarla del área de trazado, que
    obliga a achicarla dentro del mismo alto para no mover la paginación. Y una etiqueta es

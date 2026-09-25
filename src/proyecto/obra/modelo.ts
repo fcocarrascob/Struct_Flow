@@ -26,6 +26,7 @@ import { idNodoDeCalculo } from './ids';
 import type { MetaPlanilla } from '../../lib/biblioteca/contrato';
 import type { Region } from '../../lib/worksheet';
 import { ORIGEN_X, ORIGEN_Y } from './hoja';
+import type { Ensamble } from './ensamble';
 
 /**
  * De dónde salieron las regiones de un cálculo con frontera.
@@ -93,6 +94,12 @@ export interface Frontera {
    * completa (`configCompleta` de `vistas/registro.ts`).
    */
   config?: Record<string, string>;
+  /**
+   * Solo `vista`, y solo si se armó con su grupo (`ensamble.ts`): el tipo de apoyo
+   * y los conjuntos con que se armó, y qué nodo de la obra es cada pieza. Es lo que
+   * permite cambiar la configuración después sin rehacer el grupo.
+   */
+  ensamble?: Ensamble;
   /**
    * Solo `biblioteca` y `vista`: los valores del formulario. Una derivada no los tiene,
    * porque al desprenderse quedaron horneados en sus regiones `in_*`: una hoja

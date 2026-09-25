@@ -9,6 +9,8 @@
 // Ejes: el origen está en el eje de la columna, z = 0 es la cara superior del
 // pedestal y z crece hacia arriba. X e Y son los del modelo estructural.
 
+import type { Plantilla } from '../obra/ensamble';
+
 /** Qué es una pieza: decide su color y en qué vista se dibuja oculta. */
 export type Rol =
   | 'pedestal'
@@ -133,4 +135,6 @@ export interface DefVista {
   /** Todos los campos de todas las variantes; los de una configuración, con `camposActivos`. */
   campos: Campo[];
   construir(datos: Record<string, number>, config: Config): ModeloGeometrico;
+  /** El grupo de cálculos que la acompaña, si se puede armar con ella (`obra/ensamble.ts`). */
+  plantilla?: Plantilla;
 }
