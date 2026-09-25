@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Parametros } from './ensamble';
+import type { Recomendacion } from './recomendar-placa';
 import { ALIAS_RE, aliasPorDefecto } from './sap-apoyos';
 import { Dialogo } from './SeleccionNodos';
 import { configCompleta, opcionApagada } from '../vistas/registro';
@@ -19,6 +20,7 @@ export default function ArmarBase({
   def,
   tipo,
   conjuntos,
+  recomendacion,
   error,
   onArmar,
   onCerrar,
@@ -28,6 +30,8 @@ export default function ArmarBase({
   tipo?: { grupoSap: string; alias: string };
   /** Los alias de los conjuntos que publica el nodo de apoyos; vacío desde la paleta. */
   conjuntos: readonly string[];
+  /** La placa que sugieren las gobernantes del tipo; parte seleccionada, y decide el ingeniero. */
+  recomendacion?: Recomendacion | null;
   error: string;
   onArmar: (params: Parametros, config: Config, aMano: boolean) => void;
   onCerrar: () => void;
@@ -37,7 +41,9 @@ export default function ArmarBase({
   const [alias, setAlias] = useState(tipo?.alias ?? '');
   const [diseno, setDiseno] = useState(conjuntos[0] ?? 'LRFD');
   const [sobre, setSobre] = useState(conjuntos[1] ?? conjuntos[0] ?? 'O0');
-  const [config, setConfig] = useState<Config>(() => configCompleta(def));
+  const [config, setConfig] = useState<Config>(() =>
+    configCompleta(def, recomendacion ? { placa: recomendacion.variante } : undefined),
+  );
 
   const aliasEfectivo = alias.trim() || aliasPorDefecto(grupoSap.trim() || 'X');
   const problema = !grupoSap.trim()
@@ -142,9 +148,16 @@ export default function ArmarBase({
               {o.variantes.map((v) => (
                 <option key={v.id} value={v.id}>
                   {v.titulo}
+                  {o.clave === 'placa' && recomendacion?.variante === v.id ? ' — sugerida' : ''}
                 </option>
               ))}
             </select>
+            {o.clave === 'placa' && recomendacion && (
+              <span className="mt-1 block text-[10px] leading-snug">
+                Sugerida: {o.variantes.find((v) => v.id === recomendacion.variante)?.titulo.toLowerCase()}, porque{' '}
+                {recomendacion.motivo}.
+              </span>
+            )}
           </label>
         ))}
       </div>

@@ -86,6 +86,7 @@ import { VISTAS, configCompleta, datosPorDefecto } from '../vistas/registro';
 import type { Config } from '../vistas/tipos';
 import { armarEnsamble, reconfigurar, type Parametros } from './ensamble';
 import ArmarBase from './ArmarBase';
+import { recomendarPlaca, solicitacionesDeTipo } from './recomendar-placa';
 import PestanaVista from './PestanaVista';
 import PanelCalculo from './PanelCalculo';
 import {
@@ -1426,6 +1427,7 @@ function CanvasObra({
               def={VISTAS['base-columna']}
               tipo={armandoBase.tipo}
               conjuntos={armandoBase.tipo ? aliasDeConjuntos(obra) : []}
+              recomendacion={armandoBase.tipo ? recomendarPlaca(solicitacionesDeTipo(obra, armandoBase.tipo.grupoSap)) : null}
               error={errorBase}
               onArmar={(params, config, aMano) => void armarBase(params, config, aMano)}
               onCerrar={() => setArmandoBase(null)}

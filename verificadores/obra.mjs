@@ -3246,6 +3246,33 @@ const CASOS_VISTA = [
       return sinArista('S', 'V')(ev, proy) ?? esperaArista('D', 'V')(ev, proy) ?? sinCiclo(ev);
     },
   },
+  {
+    nombre: '«+ base» sugiere la rotulada con momento nulo o bajo, y la de momento con tracción y momento o con e > e_crit',
+    ok: () => {
+      const { recomendarPlaca, PLACA_ROTULADA_DE_PARTIDA: P } = motor;
+      // La placa de partida es la de la plantilla: si alguien la cambia allí, la sugerencia miente.
+      const texto = JSON.stringify(VISTAS['base-columna'].plantilla);
+      for (const f of [`L_pb := ${P.L_mm} mm`, `B_pb := ${P.B_mm} mm`, `fc_ped := ${P.fc_MPa} MPa`])
+        if (!texto.includes(f)) return `la plantilla ya no tiene «${f}»`;
+      const s = (N, M, criterio = 'compresion') => ({ conjunto: 'LRFD', criterio, N, M });
+      const casos = [
+        [[], null],
+        [[s(800, 0), s(-150, 0, 'traccion')], 'rotulada'],
+        // 700×500 con f'c 30: q_max = 5801 N/mm; con N = 800 kN, e_crit = 350 − 69 = 281 mm.
+        [[s(800, 150)], 'rotulada'],
+        [[s(800, 250)], 'momento'],
+        [[s(800, 0), s(-150, 20, 'traccion')], 'momento'],
+        // COL_PPALES: N_c = 2738 kN con M_c = 3042 kN·m.
+        [[s(2737.7, 3042.3)], 'momento'],
+      ];
+      for (const [sol, esperada] of casos) {
+        const r = recomendarPlaca(sol);
+        if ((r?.variante ?? null) !== esperada) return `${JSON.stringify(sol)}: ${JSON.stringify(r)}, se esperaba ${esperada}`;
+        if (r && !r.motivo) return 'sin motivo';
+      }
+      return null;
+    },
+  },
   ...CASOS_ENSAMBLE(),
 ];
 
