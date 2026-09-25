@@ -65,8 +65,17 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
       ingeniero.
    3. **Que las genéricas de anclaje y pedestal fallen limpio** con cero barras contables (ver
       abajo), y que la vista cuente barras contra las dos filas cuando traccionan las dos.
-   4. **El choque de la llave con los estribos de la cabeza del pedestal** (se revisa en la
-      sesión del 2026-09-25; ver la entrada de la vista geométrica más abajo).
+   4. **El choque de la llave con los estribos de la cabeza del pedestal** (revisado el
+      2026-09-25). En COL_PPALES la llave (cruz 1100×65, fondo a z = −100) cruza las **8 ramas
+      interiores del primer nivel** (z = −75 ± 10); el estribo perimetral no choca y del segundo
+      nivel para abajo tampoco. La vista no lo ve (solo compara la llave con el perimetral) y la
+      llave y el pedestal cuentan ese nivel completo (15 estribos; u_arm = 0,94). Con la genérica:
+      sin las ramas interiores del nivel 1, u = 1,08; con estribos φ25 en la zona, 0,92 (manda el
+      aplastamiento); bajando el nivel 1 a −145 con perimetral en la cabeza, 1,41 con φ20 y 0,92
+      con φ25; dos chapas paralelas por dirección no ayudan (2×540: aplastamiento 1,44, flexión
+      de la chapa 2,03). Falta: en la vista, la profundidad desde la que van las ramas interiores
+      y la verificación llave–ramas; y que la cuenta de estribos de la llave (`n_est_ll`) la
+      derive la vista en vez de la fórmula de la hoja de datos.
    5. La hoja de capacidad como variante por norma (NCh2369 para Chile) y las fuerzas de las
       diagonales como externa opcional.
    Lo que salió en el camino:
