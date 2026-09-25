@@ -341,6 +341,40 @@ posiciones y marcas ⚑: un supuesto por confirmar lo sigue estando en la copia.
 copian** la lectura de SAP2000 ni las justificaciones, porque hablan del modelo de la
 estructura de origen; el nodo SAP2000 se conserva vacío, con las unidades de la obra.
 
+## La base de columna como modelo geométrico, y las familias
+
+**2026-09-25.** La base de COL_PPALES del Pachón cierra como cálculo —placa, silla, anclaje
+dúctil, llave y pedestal, con la capacidad del §D2.6 de AISC 341—, pero su **geometría está
+declarada y no derivada**: las barras del pedestal que cuentan como armadura de anclaje se
+escribieron a mano, la silla y el β de la placa están «a confirmar», y nadie comprueba que una
+golilla no choque con otra, con un nervio, con la llave o con una barra. Cada genérica ve solo
+su parte; un choque entre dos de ellas no lo ve ninguna.
+
+**Un nodo vista.** Una procedencia nueva de frontera, `'vista'`, con un registro de vistas en
+código (`src/proyecto/vistas/`, fuera de `src/lib` para no resellar el motor). Una vista lee
+sus datos por campos atados, como una genérica, y construye un **modelo geométrico** puro en
+milímetros —piezas (cajas, cilindros, prismas, lazos) con su rol, verificaciones de choque y
+coherencia, y valores derivados— del que salen las vistas.
+
+- **Lo que imprime y lo que vota es una hoja sintetizada**, no el dibujo: fórmulas auditables
+  sobre los campos, los valores combinatorios con su criterio escrito y cada verificación como
+  un `v_*`. El dibujo va al final, como la región de un esquema.
+- **La vista lee solo datos, nunca salidas de cálculo**, y lo que deriva (las barras que
+  cuentan, la zona de protección de la llave, las medidas de la silla) vuelve a las genéricas
+  por nombre. Así el orden topológico queda datos → vista → cálculos, sin ciclos.
+- **2D primero, 3D después.** Planta y dos elevaciones en SVG propio, puro y determinista, que
+  se imprime en la memoria como cualquier esquema. El 3D es solo de pantalla, sobre las mismas
+  piezas, y se carga bajo demanda para no engordar el bundle.
+- Por qué no una genérica con esquema: el número de piezas es variable, el 3D no sale de un SVG
+  con tokens, y un JSON que no es genérica no cabe en `public/biblioteca/`.
+
+**Las familias.** Un grupo verificado se publica como **familia** (`public/familias/`): sus
+nodos, las genéricas por slug y sello, las ataduras con marcadores (`{tipo}`, `{conjunto}`) y
+las **externas** que el grupo usa y no define (las fuerzas de capacidad de la diagonal, las
+gobernantes de los apoyos). Agregar una familia a una obra es la misma operación que «De otra
+obra…» (`traerNodos`), desde un origen sintético: una copia única, sin vínculo vivo más allá
+del sello de cada genérica. La base de columna es la primera, generada desde el Pachón.
+
 ## La hoja va hacia el flujo lineal
 
 **2026-09-09.** Se descartó el modelo de SMath —posición libre en un plano, bloque impreso en
@@ -492,7 +526,7 @@ shas y sellos y nunca cambia sola.
 | `/proyectos` | el índice de obras |
 | `/obra/<id>` | la aplicación |
 | `/canvas` | «abrir la hoja de un nodo», que ya hace la pestaña |
-| `/planillas`, `/diseno/<id>` | el panel «agregar a la obra», con búsqueda por disciplina y norma |
+| `/planillas`, `/diseno/<id>` | el panel «agregar a la obra», con búsqueda por disciplina y norma: una genérica suelta o una familia |
 | `/proyecto/<slug>` | retirada: es una obra |
 | catálogo del blog | ejemplos de solo lectura |
 | `/calibrar` | sigue, solo en desarrollo |
@@ -521,6 +555,7 @@ el scope de la obra; con frontera tiene scope propio y procedencia (`biblioteca`
 |---|---|---|---|
 | Cálculo (hoja libre o genérica instanciada) | sí | sus salidas | existe |
 | Datos (grilla con fuente) | sí | cada fila | etapa 4 |
+| Vista geométrica (frontera `'vista'`) | sí: una hoja sintetizada con sus verificaciones | lo que deriva de la geometría | en curso: la base de columna |
 | Nota o documento (texto, criterio, PDF adjunto) | no | se cita en un informe | por decidir |
 | Modelo SAP | no; justifica lo que lee | por ahora nada; después lo medido | existe (patrones, cargas, casos, espectro, masa, resumen); etapas 2 y 6 |
 | Informe | no | nada: consume y congela | etapa 5 |
