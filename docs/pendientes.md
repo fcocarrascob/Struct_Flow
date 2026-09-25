@@ -92,12 +92,12 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
 - **La caché de genéricas es FIFO, no LRU** (`biblioteca.ts`). Con veinte cálculos no se nota.
 - **`sanearConInforme` no tiene caso de regresión**: no encaja en `verify:motor` ni en
   `verify:obra`. Se comprobó a mano; le falta su sitio.
-- **La geometría de la base de COL_PPALES del Pachón está declarada, no derivada**
-  (`rumbo.md`, «La base de columna como modelo geométrico»): `n_cont_ped := 21`, las barras a
-  menos de 0,5·h_ef de la fila traccionada, está escrito a mano; la silla y el β de la placa
-  siguen «a confirmar»; y ningún nodo comprueba choques entre golillas, nervios, llave, barras y
-  estribos. Lo cierra la vista geométrica. Tampoco se verifican el espesor de la placa de apoyo
-  embebida ni la vaina del tramo de estiramiento del perno.
+- **Lo que la vista geométrica de la base de COL_PPALES del Pachón todavía no cierra**
+  (`rumbo.md`, «La base de columna como modelo geométrico»). Ya derivados: las barras que
+  cuentan como armadura de anclaje (`n_cont_ped`, 20 y no los 21 escritos a mano) y la silla
+  (pernos a 440 mm, luz entre nervios y nervio de borde calculados). Siguen declarados: el β de
+  la placa «a confirmar», el espesor de la placa de apoyo embebida y la vaina del tramo de
+  estiramiento del perno, que ninguna hoja verifica.
 
 ## SAP2000
 
