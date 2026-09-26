@@ -71,11 +71,12 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
    `v_s1_barras` vota), el rombo por el cos² de las dos ramas que corta el plano de falla, las
    gobernantes no concurrentes de `m` y `v` con la N menor, y la hoja libre con un `v_*` en falso
    en rojo. Queda:
-   - **El Pachón no cumple con los arreglos** (conjuntos releídos con la N menor): anclaje CP 1,11
-     (ductilidad por el descascaramiento hacia el borde de 208 mm), llave CP 1,51 (arranque) y
-     pedestal CP 1,04 (armadura de la llave); la placa CP sube a 0,893. La cabeza del pedestal ya
-     cumple: los tres primeros estribos siguen el §9.5.3 de NCh2369 como criterio (CP a 55 y 70 mm,
-     CV a 50 y 65 mm). El resto del armado es decisión de quien diseña. Ninguna hoja revisa `nc_*`.
+   - **El Pachón vuelve a cumplir con los arreglos** (conjuntos releídos con la N menor). CP:
+     llave 160 × 80 con placa de 80 mm y tres niveles sin ramas (llave 0,941, pedestal 0,898),
+     PED_L 2000 y placa de apoyo embebida de 150 mm (anclaje 0,961: el descascaramiento nominal
+     supera 1,2·n·N_sa y el perno fluye primero), placa 0,897, silla 0,986. La cabeza sigue el
+     §9.5.3 de NCh2369 como criterio (CP a 55 y 70 mm, CV a 50 y 65 mm). El pedestal más largo no
+     se contrastó con la zapata, que ningún nodo verifica. Ninguna hoja revisa `nc_*`.
    - **Nadie verifica el desarrollo** de la armadura de anclaje (§17.5.2.1.1(a)) ni de las ramas de
      la llave (§17.5.2.1.2(a)): CV φ25 rectas no se desarrollan arriba (≈ 450 contra ≈ 700 mm, piden
      gancho); CP depende de la penetración en la zapata, que no se modela.
