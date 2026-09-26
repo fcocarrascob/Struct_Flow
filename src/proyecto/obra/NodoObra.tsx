@@ -42,6 +42,11 @@ export default function NodoObra({ data, selected }: NodeProps) {
         selected ? 'ring-2 ring-accent ring-offset-1' : ''
       }`}
       title={n.motivos.join('\n') || undefined}
+      // Para leer el estado desde fuera (`verify:interfaz`) sin depender de las
+      // clases de color: los mismos datos que pinta la tarjeta.
+      data-severidad={sev}
+      data-veredicto={n.veredicto ?? ''}
+      data-motivos={n.motivos.join('\n')}
     >
       <Handle type="target" position={Position.Left} className="!h-2 !w-2 !bg-muted" />
 

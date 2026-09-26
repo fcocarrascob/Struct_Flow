@@ -55,6 +55,8 @@ export interface NodoDeObra extends NodoGrafo {
   grupo?: Grupo;
   /** La marca «Revisar» del cálculo. No toca la severidad. */
   revisar?: Revision;
+  /** El `v_global` de un cálculo con frontera, dicho como en el subtítulo. */
+  veredicto?: 'CUMPLE' | 'NO CUMPLE';
 }
 
 export interface Proyeccion {
@@ -307,6 +309,7 @@ function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra,
     },
     severidad,
     motivos,
+    ...(veredicto ? { veredicto } : {}),
   });
 }
 

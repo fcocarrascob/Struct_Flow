@@ -22,6 +22,7 @@ npm run huella:motor -- [--salida <base.json>] [--comparar <base.json>]  # qué 
 npm run verify:biblioteca          # el contrato de genérica y los casos de public/biblioteca/
 npm run verify:obra                # el grafo de cálculo de una obra, su carpeta y el servidor de obras
 npm run verify:obras [-- <id>]     # los invariantes de cadena sobre las obras que hay en disco (solo lee)
+npm run verify:interfaz            # la aplicación de verdad (Vite + Chromium) sobre copias de las obras
 npm run obra:comparar -- <id> (--con <carpeta|json> | --actualizar-plantilla) [--proponer --titulo "…"]  # en seco: qué cambia, en números
 npm run plantillas:congelar        # congela la plantilla de hoy de cada vista (verify:obra lo exige)
 npm run obras                      # el servidor de obras suelto (npm run dev ya lo monta)
@@ -36,6 +37,14 @@ npm run render:planilla -- <json> --pdf <salida>
 motor como el hash de árbol de `src/lib` + `scripts`, y un verificador de la capa de obra no
 tiene por qué disparar esa cascada. Vive en `verificadores/` por la misma razón por la que
 `src/proyecto/` no está dentro de `src/lib/`.
+
+`verify:interfaz` abre la aplicación sobre copias de las obras en una carpeta temporal (nunca
+toma el candado de las reales) y contrasta la pantalla con el modelo: la severidad y el
+veredicto de cada nodo (`data-severidad`, `data-veredicto` de `NodoObra.tsx`), que ninguna
+ficha muestre un mensaje crudo del motor, que el dibujo de cada vista sea el del modelo, y el
+flujo de una propuesta y de «actualizar a la plantilla de hoy». Necesita
+`npx playwright install chromium` una vez. Tras tocar la interfaz de la obra, córrelo; y mira
+igual la aplicación con el Playwright del plugin.
 
 `verify:motor` cubre lo que el corpus no ejercita: formas de escribir que ninguna planilla
 usa y que daban un número equivocado **sin error**. Cada caso es una hoja mínima y lo que

@@ -736,14 +736,14 @@ function aplicarCambio(
       ...resultado,
       calculos: resultado.calculos.map((k) => {
         if (k.id !== nuevo.id) return k;
-        const aplicada = fronteraAplicada(k, viejo, nuevo);
+        const aplicada = fronteraAplicada(k, viejo, nuevo, !!opciones.sellar);
         // Al cambiar de variante, un bloque con el mismo id conserva lo escrito (la
         // columna es del tipo, no de la variante); al cambiar de plantilla, el texto
         // nuevo de un bloque sin editar sí entra.
         const conservados = opciones.conservados ? (id: string) => opciones.conservados!.push(`${k.nombre}: ${id}`) : undefined;
         return {
           ...k,
-          hoja: aplicarHoja(k.hoja, viejo.hoja, nuevo.hoja, conservados),
+          hoja: aplicarHoja(k.hoja, viejo.hoja, nuevo.hoja, conservados, !!opciones.sellar),
           ...aplicada,
           ...(opciones.sellar && aplicada.frontera && nuevo.frontera?.sha256 ? { frontera: { ...aplicada.frontera, sha256: nuevo.frontera.sha256 } } : {}),
         };
@@ -768,7 +768,14 @@ function identidad(k: NodoCalculo): string {
  * `conservado`, un bloque que está en las dos con distinto contenido toma el nuevo
  * si nadie lo editó; si se editó, se queda y se avisa. Sin él, se queda siempre.
  */
-function aplicarHoja(actual: Region[], viejaCruda: Region[], nueva: Region[], conservado?: (id: string) => void): Region[] {
+function aplicarHoja(
+  actual: Region[],
+  viejaCruda: Region[],
+  nueva: Region[],
+  conservado?: (id: string) => void,
+  /** Al actualizar: entra también lo de la nueva que la base no tiene ni por id ni por contenido. */
+  reponer = false,
+): Region[] {
   [actual, viejaCruda] = reidentificar(actual, viejaCruda, nueva);
   const vieja = viejaCruda;
   const enNueva = new Map(nueva.map((r) => [r.id, r]));
@@ -796,8 +803,13 @@ function aplicarHoja(actual: Region[], viejaCruda: Region[], nueva: Region[], co
       const { id, x, y } = r;
       return { ...n, id, x, y };
     });
+  const contenidos = new Set(hoja.map(contenido));
   nueva.forEach((r, i) => {
-    if (enVieja.has(r.id) || hoja.some((x) => x.id === r.id)) return;
+    if (hoja.some((x) => x.id === r.id)) return;
+    // Lo que ya estaba en la vieja se respeta si la base no lo tiene (lo quitó el
+    // ingeniero)… salvo al actualizar, que es pedir la plantilla de hoy entera: la
+    // tabla de la propuesta lo muestra como nuevo, y rechazarla lo deja fuera.
+    if (enVieja.has(r.id) && (!reponer || contenidos.has(contenido(r)))) return;
     let despues = -1;
     for (let j = i - 1; j >= 0 && despues < 0; j--) despues = hoja.findIndex((x) => x.id === nueva[j].id);
     hoja = [...hoja.slice(0, despues + 1), r, ...hoja.slice(despues + 1)];
@@ -868,7 +880,7 @@ function reidentificar(actual: Region[], vieja: Region[], nueva: Region[]): [Reg
 }
 
 /** Las entradas, fórmulas, lo publicado y la configuración que cambian entre la plantilla vieja y la nueva. */
-function fronteraAplicada(actual: NodoCalculo, viejo: NodoCalculo, nuevo: NodoCalculo): Partial<NodoCalculo> {
+function fronteraAplicada(actual: NodoCalculo, viejo: NodoCalculo, nuevo: NodoCalculo, reponer = false): Partial<NodoCalculo> {
   const f = actual.frontera;
   if (!f || !viejo.frontera || !nuevo.frontera) return {};
   const delta = <T,>(act: Record<string, T> = {}, v: Record<string, T> = {}, n: Record<string, T> = {}) => {
@@ -880,12 +892,23 @@ function fronteraAplicada(actual: NodoCalculo, viejo: NodoCalculo, nuevo: NodoCa
     }
     return out;
   };
+  const entradas = delta(f.entradas, viejo.frontera.entradas, nuevo.frontera.entradas);
+  const formulas = delta(f.formulas, viejo.frontera.formulas, nuevo.frontera.formulas);
+  const publica = delta(f.publica, viejo.frontera.publica, nuevo.frontera.publica);
+  if (reponer) {
+    // Al actualizar, un campo que la plantilla de hoy tiene y la base no (ni fijado ni
+    // atado) entra como lo trae la plantilla; lo mismo lo que publica.
+    const tiene = (c: string) => c in entradas || c in formulas;
+    for (const [c, v] of Object.entries(nuevo.frontera.formulas ?? {})) if (!tiene(c)) formulas[c] = v;
+    for (const [c, v] of Object.entries(nuevo.frontera.entradas ?? {})) if (!tiene(c)) entradas[c] = v;
+    for (const [s, alias] of Object.entries(nuevo.frontera.publica ?? {})) if (!(s in publica)) publica[s] = alias;
+  }
   return {
     frontera: {
       ...f,
-      entradas: delta(f.entradas, viejo.frontera.entradas, nuevo.frontera.entradas),
-      formulas: delta(f.formulas, viejo.frontera.formulas, nuevo.frontera.formulas),
-      publica: delta(f.publica, viejo.frontera.publica, nuevo.frontera.publica),
+      entradas,
+      formulas,
+      publica,
       ...(nuevo.frontera.config ? { config: nuevo.frontera.config } : {}),
     },
   };

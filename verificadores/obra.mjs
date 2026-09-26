@@ -3734,7 +3734,14 @@ function CASOS_ENSAMBLE() {
         const inv = invariantesDeObra(atras, evaluarObra(atras, genericasBase), genericasBase);
         const tipos = inv.map((x) => `${x.tipo}@${x.nodo}`).sort().join(', ');
         if (!tipos.includes('plantilla-atras@Base de columna COL_PPALES — geometría') || !tipos.includes('campo-suelto@Anclaje al hormigón COL_PPALES')) return `invariantes: ${tipos}`;
-        return null;
+        // Actualizar a la de hoy repone lo que le falta, aunque la versión sea la misma.
+        if (!motor.estadoDePlantilla(atras, r.idVista).actualizable) return 'con desfase no se ofrece actualizar';
+        const a = motor.actualizarBase(atras, r.idVista, sellosBase, idsDe());
+        if (a.error) return a.error;
+        const queda = desfaseDePlantilla(a.obra, PLANTILLA, r.idVista);
+        if (queda.length) return `actualizada, queda desfase: ${queda.join(' | ')}`;
+        const e = errores(evaluarObra(a.obra, genericasBase));
+        return e.length ? `actualizada, ${e.length} región(es) con error: ${e[0]}` : null;
       },
     },
     {

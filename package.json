@@ -20,6 +20,7 @@
     "huella:motor": "node scripts/huella-motor.mjs",
     "verify:obra": "node verificadores/obra.mjs",
     "verify:obras": "node verificadores/obras.mjs",
+    "verify:interfaz": "node verificadores/interfaz.mjs",
     "plantillas:congelar": "node verificadores/congelar-plantillas.mjs",
     "obra:comparar": "node verificadores/comparar-obra.mjs",
     "obras": "node servidor/obras.mjs",
@@ -40,6 +41,7 @@
     "@types/three": "^0.186.0",
     "@vitejs/plugin-react": "^6.1.1",
     "esbuild": "^0.27.7",
+    "playwright": "^1.63.0",
     "tailwindcss": "^4.3.0",
     "typescript": "^7.0.2",
     "vite": "^8.2.2"
