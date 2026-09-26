@@ -63,7 +63,13 @@ const DATOS = [
         'de momento máximo y el de mayor excentricidad M/N; la placa se diseña con el que dé más tracción. N positiva es compresión.',
     ),
   ], 'placa=momento&capacidad'),
-  sec('solicitaciones-llave', [t('Supuesto: la llave toma en cada dirección el corte resultante máximo, sin el beneficio del axial de compresión que lo acompaña.')], 'llave'),
+  sec('solicitaciones-llave', [
+    t(
+      'Supuesto: la llave toma en cada dirección el corte máximo con la tracción que lo acompaña y sin el beneficio de la ' +
+        'compresión (ACI 318-25 §17.11.2.2.1). Con las fuerzas de capacidad, el aplastamiento en X se verifica además con el ' +
+        'arranque de la base extrema y su corte, y en Y con la mayor tracción de los casos del pórtico de momento.',
+    ),
+  ], 'llave'),
   sec('solicitaciones-tabla', [
     {
       kind: 'table',
@@ -76,7 +82,7 @@ const DATOS = [
           ["'Tracción 1: momento máximo, $S", 'M_t1 := M_m_$T_$S =', 'N_t1 := N_m_$T_$S =', 'V_t1 := V_m_$T_$S ='],
           ["'Tracción 2: excentricidad máxima, $S", 'M_t2 := M_e_$T_$S =', 'N_t2 := N_e_$T_$S =', 'V_t2 := V_e_$T_$S ='],
           ["'Compresión máxima, $D", 'M_cp := M_c_$T_$D =', 'N_cp := N_c_$T_$D =', "'—"],
-          ["'Corte máximo, $D", "'—", "'—", 'V_cv := V_v_$T_$D ='],
+          ["'Corte máximo, $D", "'—", 'N_cv := N_v_$T_$D =', 'V_cv := V_v_$T_$D ='],
         ],
         columnas: [{}, TONF_M, TONF, TONF],
       },
@@ -363,9 +369,9 @@ const DATOS = [
       t(
         'Los niveles sin ramas interiores pueden llevar además un amarre en rombo por las barras centrales de las caras ' +
           '(amarre_cab_ll = 1; 0 sin él). Es un amarre ADICIONAL a los obligatorios (ACI 318-25 Fig. R25.7.2.3a; ICH, ' +
-          'Manual de Detallamiento, §5.5): no los reemplaza. Cada rama del rombo aporta su proyección a cada dirección, y ' +
-          'los estribos que cortan el sólido de falla de la llave (n_est_ll) los cuenta la vista geométrica sobre los ' +
-          'niveles que dibuja.',
+          'Manual de Detallamiento, §5.5): no los reemplaza. El plano de falla corta dos ramas del rombo, y cada una aporta a ' +
+          'una dirección la fracción cos² de su ángulo con ella: a 45°, media rama a cada dirección. Los estribos que cortan ' +
+          'el sólido de falla de la llave (n_est_ll) los cuenta la vista geométrica sobre los niveles que dibuja.',
       ),
       f('amarre_cab_ll := 1'),
     ],
@@ -473,6 +479,8 @@ const RESUMEN = [
     [t('El espesor de la placa tiene que cubrir además el que pide la llave de corte.'), f('tbp_llave = mm'), f('v_t_llave := t_pb >= tbp_llave =')],
     'llave',
   ),
+  sec('dominio', [t('Los casos de sobrerresistencia dominan a los de diseño de tracción.'), f('v_dom_m ='), f('v_dom_e =')], MOM),
+  sec('capacidad', [t('Resistencia a flexión requerida de la base (AISC 341-22 §D2.6c).'), f('v_d26c =')], 'capacidad'),
   sec('geometria', [f('v_geo_base =')]),
 ];
 
@@ -545,7 +553,7 @@ export const PLANTILLA_BASE_COLUMNA: Plantilla = {
         id: 'anclaje-hormigon-generica',
         entradas: {
           e_N: 0, lambda_a: 1, fisurado: 1, usa_arm: 1, fy_arm: 420, omega: 1.2, phi_sa: 0.75, phi_c: 0.75, phi_arm: 0.9,
-          psi_a: 0.95, psi_cm: 1, k_c: 10, sismo: 1, ductil: 1,
+          psi_a: 0.95, psi_cm: 1, k_c: 10, sismo: 1, ductil: 1, n_filas: 1, s_f: 0,
         },
         formulas: {
           Nua_g: 'T_pb', n_trac: 'n_pno', h_ef: 'h_ef_pno', s_1: 's_pno', c_a1: 'c_a1_pno', c_a2: 'c_a2_pno', d_a: 'd_pno',
@@ -553,10 +561,11 @@ export const PLANTILLA_BASE_COLUMNA: Plantilla = {
           n_bordes: 'n_bordes_pno', c_a_max: 'c_a_max_pno', n_arm: 'n_cont_ped', d_arm: 'db_long_ped', l_est: 'l_est_pno',
         },
         publica: { u_max: 'u_anc', N_sa: 'N_sa_pb', As_req: 'As_req_anc' },
-        // Con la placa rotulada traccionan las dos filas, no una. La armadura de
-        // anclaje sigue siendo la del pedestal: por eso su pedestal de partida es
-        // chico, para que las barras caigan en el cono de pernos dentro del perfil.
-        capas: [{ si: ROT, formulas: { n_trac: 'n_trac_pb' } }],
+        // Con la placa de momento, T_pb es la tracción de la fila más cargada. Con la
+        // rotulada traccionan las dos filas, no una. La armadura de anclaje sigue
+        // siendo la del pedestal: por eso su pedestal de partida es chico, para que
+        // las barras caigan en el cono de pernos dentro del perfil.
+        capas: [{ si: ROT, entradas: { n_filas: 2, s_f: null }, formulas: { n_trac: 'n_trac_pb', s_f: '2*y_t_pno' } }],
       },
     },
     {
@@ -566,19 +575,28 @@ export const PLANTILLA_BASE_COLUMNA: Plantilla = {
       frontera: {
         procedencia: 'biblioteca',
         id: 'llave-corte-generica',
-        entradas: { P_ux: 0, P_uy: 0, n_chapas: 1, y_chapa: 0, fy_arm: 420, lambda_a: 1, usa_arm_sl: 1 },
+        // En X, el corte de la base interior sin axial y, para el aplastamiento, el
+        // arranque de la extrema con su corte; en Y, los casos de tracción del pórtico
+        // de momento. La compresión no se cuenta.
+        entradas: { P_ux: 0, n_chapas: 1, y_chapa: 0, fy_arm: 420, lambda_a: 1, usa_arm_sl: 1 },
         formulas: {
-          V_ux: 'Ve_X_cl', V_uy: 'Ve_Y_cl', t_sl: 't_sl_ll', h_sl: 'h_sl_ll', bY_sl: 'b_sl_ll', bX_sl: 'b_sl_ll', t_bp: 't_pb',
+          V_ux: 'Ve_X_cl', V_ux2: 'V_t3_cl', P_ux2: 'min(N_t3_cl, 0 kN)', V_uy: 'Ve_Y_cl', P_uy: 'min(N_t1, N_t2, 0 kN)', t_sl: 't_sl_ll', h_sl: 'h_sl_ll', bY_sl: 'b_sl_ll', bX_sl: 'b_sl_ll', t_bp: 't_pb',
           B_bp: 'B_pb', t_gr: 't_gr_pb', w_sold: 'w_sold_ll', db_est: 'db_est_ped', PED_X: 'PED_B_pb', PED_Y: 'PED_L_pb',
-          H_PED: 'H_ped_pb', h_ef: 'h_ef_pno', csl_X: 'x_ext_pno', csl_Y: 'y_t_pno', Yb: 'Yb_pb', n_trac: 'n_pno',
+          H_PED: 'H_ped_pb', h_ef: 'h_ef_pno', csl_X: 'x_ext_pno', csl_Y: 'y_t_pno', Yb: 'Yb_pb', n_trac: '2*n_pno',
           N_sa: 'N_sa_pb', fpc: 'fc_ped', Fy_ac: 'Fy_pb', Fu_ac: 'Fu_pb', FEXX: 'FEXX_pb', n_est_sl: 'n_est_ll',
         },
         publica: { u_max: 'u_llave', tbp_req: 'tbp_llave', As_reqx: 'As_llx', As_reqy: 'As_lly' },
         capas: [
-          // Sin capacidad, el corte es el del modelo.
-          { si: '!capacidad', formulas: { V_ux: 'V_cv', V_uy: 'V_cv' } },
+          // Sin capacidad, el corte y el axial son los del modelo, y con momento tracciona una fila.
+          {
+            si: '!capacidad',
+            entradas: { P_ux: null, V_ux2: 0, P_ux2: 0 },
+            formulas: {
+              V_ux: 'V_cv', V_uy: 'V_cv', P_ux: 'min(N_cv, 0 kN)', P_uy: 'min(N_cv, 0 kN)', n_trac: 'n_pno', V_ux2: null, P_ux2: null,
+            },
+          },
           // Rotulada: el aplastamiento cubre toda la placa y traccionan las dos filas.
-          { si: ROT, formulas: { Yb: 'L_pb', n_trac: 'n_trac_pb' } },
+          { si: ROT, formulas: { Yb: 'L_pb', n_trac: 'n_trac_pb', P_ux: 'min(P_v, 0 kN)', P_uy: 'min(P_v, 0 kN)' } },
         ],
       },
     },
@@ -649,7 +667,7 @@ export const PLANTILLA_BASE_COLUMNA: Plantilla = {
       frontera: {
         procedencia: 'vista',
         id: 'base-columna',
-        entradas: { disp_nerv: 1, t_ap: 25, a_tuerca: 100, h_tuerca: 38, d_agg: 25, recub_inf: 75 },
+        entradas: { disp_nerv: 1, t_ap: 25, a_tuerca: 100, h_tuerca: 38, d_agg: 25, recub_inf: 75, recub_sup: 40 },
         formulas: {
           L_bp: 'L_pb', B_bp: 'B_pb', t_bp: 't_pb', t_gr: 't_gr_pb', d_col: 'd_col_pb', bf_col: 'bf_col', tf_col: 'tf_col',
           tw_col: 'tw_col', n_col: 'n_pno', d_perno: 'd_pno', y_t: 'y_t_pno', x_ext: 'x_ext_pno', h_ef: 'h_ef_pno',

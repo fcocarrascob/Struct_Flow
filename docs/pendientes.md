@@ -64,38 +64,33 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
    (placa 0,685, anclaje 0,435, llave 0,316, pedestal 0,333), porque con 14 φ25 y solo el
    perimetral la barra central de la cara larga quedaba a 365 mm libres (§25.7.2.3(a)) y la
    cabeza tenía 1 estribo φ10 en los 125 mm (§10.7.6.1.5 pide 3).
-   **Revisión del flujo de cálculo de las bases (2026-09-25), por hacer en una sesión propia.**
-   Lecturas de norma en el acta del Harness (commit `cafa704`). Cambian veredictos del Pachón:
-   - **Descascaramiento lateral con el borde equivocado.** `anclaje-hormigon-generica` usa `c_a1`
-     (310 mm, el borde de la punta de la fila, `plantilla.ts` `c_a1_pno`) también para N_sb/N_sbg;
-     la fila de 5 pernos está a 208 mm del borde paralelo (§17.6.4.2, s a lo largo de ESE borde).
-     Con 208: u_blowout ≈ 1,05 y u_ductil ≈ 1,11 en CP. En CV el grupo de dos filas se trata como
-     una fila de 4 (s_outer).
-   - **La llave no recibe el corte con tracción concurrente**: `P_ux = P_uy = 0` fijos; el caso de
-     la base extrema (V_t3 = 2572 kN, N_t3 = −3106 kN) no llega. ψ_brg,sl (§17.11.2.2.1(a)) ≈ 0,47
-     con 10 pernos (u ≈ 1,5), y `n_trac ← n_pno` le pasa 5 (una fila).
-   - **El primer estribo (s1 = 50) queda por encima del extremo de las barras** (la vista las
-     corta a `recub_inf` = 75 mm de la cara): `n_est_cab` real es 1 (§10.7.6.1.5 pide 2) y
-     `n_est_ll` cuenta un nivel sin barra de borde. Separar el recubrimiento superior de las barras.
+   **Revisión del flujo de cálculo de las bases (2026-09-25).** Lecturas de norma en el acta del
+   Harness (commit `cafa704`). Corregido lo que cambiaba veredictos: el descascaramiento hacia los
+   dos bordes y con una o dos filas, la llave con la tracción concurrente (y un segundo caso en X
+   para el arranque de la base extrema), el recubrimiento superior de las barras (`recub_sup`, y
+   `v_s1_barras` vota), el rombo por el cos² de las dos ramas que corta el plano de falla, las
+   gobernantes no concurrentes de `m` y `v` con la N menor, y la hoja libre con un `v_*` en falso
+   en rojo. Queda:
+   - **El Pachón no cumple con los arreglos**: anclaje CP 1,11 (ductilidad por el descascaramiento
+     hacia el borde de 208 mm), llave CP 1,51 (arranque), pedestal CP 1,04 (armadura de la llave) y
+     la vista CP (el primer estribo φ25 a 50 mm asoma sobre las barras, que terminan a 40 mm). El
+     armado es decisión de quien diseña.
+   - **Las gobernantes del Pachón se leyeron con el criterio viejo**: `m` y `v` no concurrentes
+     llevan la N mayor hasta que se vuelvan a leer los conjuntos desde SAP2000. Ninguna hoja revisa
+     `nc_*`.
    - **Nadie verifica el desarrollo** de la armadura de anclaje (§17.5.2.1.1(a)) ni de las ramas de
      la llave (§17.5.2.1.2(a)): CV φ25 rectas no se desarrollan arriba (≈ 450 contra ≈ 700 mm, piden
      gancho); CP depende de la penetración en la zapata, que no se modela.
-   - **El rombo por proyección decide el pedestal CP** (sin él u_arm_llave = 1,13), contra la letra
-     de §17.5.2.1.2(b) (ramas paralelas al corte). Lo prudente: no contarlo para el corte.
-   - **Gobernantes no concurrentes** (`gobernantesDeConjunto`): `m` y `v` toman la N de mayor
-     valor absoluto (la compresión mayor); para los pernos manda la menor, como ya hace `e`. Ninguna
-     hoja revisa `nc_*`.
    - **Jerarquía del fusible** (AISC 341 §D2.6c(b)(2)): solo el anclaje usa la capacidad del perno;
      silla, soldaduras y P-M del pedestal usan la demanda O0.
    - **Ev en las combinaciones O0** (ASCE 7 §2.3.6), por confirmar en el modelo: tracción +8 % (CP)
      y +20 % (CV).
-   - **Una hoja libre con un `v_*` en falso no se pone en rojo** (`proyeccion.ts`, rama `!f`), y el
-     resumen no lleva `v_dom_*` ni `v_d26c`.
    - Sin verificar en ningún nodo: zapata, desarrollo en la zapata (§18.13.2), soldadura
      columna–placa, 100/30 ortogonal.
-   Menores: doble verificación llave/pedestal de la misma armadura (iguales en X, distintas en Y);
-   `fy` de las barras declarado tres veces; φ25/φ36 fuera del rango investigado (R17.5.2.1: No. 16 en
-   tracción, No. 19 en corte); h_ef = 1950 > máx 1200 de la genérica sin validar; par de la llave del
+   Menores: doble verificación llave/pedestal de la misma armadura (iguales en X, distintas en Y; el
+   pedestal cuenta sus niveles desde `s1_est` y no sabe de `recub_sup`); `fy` de las barras
+   declarado tres veces; φ25/φ36 fuera del rango investigado (R17.5.2.1: No. 16 en tracción, No. 19
+   en corte); h_ef = 1950 > máx 1200 de la genérica sin validar; el cono de dos filas no cuenta el borde del lado de la segunda; par de la llave del
    caso 3 al eje equivocado; el corte resultante siempre en X del pedestal (en CV debería ir sobre el
    lado de 700); `n_niv_sin_ramas`, la columna y β declarados a mano; corte de capacidad en Y muy
    conservador (2436 contra ≈ 775 kN).
@@ -116,9 +111,10 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
    Lo que salió en el camino:
    - **La rotulada toma la tracción del criterio `t` del conjunto de sobrerresistencia**: si ese
      conjunto no tracciona, el nombre no se publica y la hoja queda en rojo.
-   - **La plantilla no propaga sus cambios a una base ya armada**: `reconfigurar` aplica solo lo
-     que cambia entre dos configuraciones. El Pachón se actualizó a mano (respaldos en
-     `obras/_respaldos/`).
+   - **La plantilla no propaga sus cambios a una base ya armada desde la aplicación**:
+     `actualizarPlantilla` (`obra/ensamble.ts`) lleva una base de una versión de la plantilla a
+     otra conservando lo editado, pero necesita la plantilla vieja, que la aplicación no guarda; hoy
+     se corre desde un script con la de git.
    - **El dato de partida de la placa rotulada vive dos veces**: en la plantilla y en
      `PLACA_ROTULADA_DE_PARTIDA` de `obra/recomendar-placa.ts`; `verify:obra` exige que coincidan.
    Límites de la plantilla: la hoja de capacidad es la del Pachón (AISC 341 §D2.6, pórtico

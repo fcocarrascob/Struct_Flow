@@ -207,8 +207,15 @@ export const CAMPOS_BASE_COLUMNA: Campo[] = [
   {
     nombre: 'recub_inf',
     unidad: 'mm',
-    descripcion: 'Recubrimiento bajo la placa de apoyo embebida y en los extremos de las barras',
+    descripcion: 'Recubrimiento bajo la placa de apoyo embebida y en el extremo inferior de las barras',
     porDefecto: 75,
     supuesto: 'recubrimiento de 75 mm contra el terreno o la zapata',
+  },
+  {
+    nombre: 'recub_sup',
+    unidad: 'mm',
+    descripcion: 'De la cara superior del pedestal al extremo superior de las barras',
+    porDefecto: 40,
+    supuesto: 'extremo superior de las barras a 40 mm de la cara superior del pedestal',
   },
 ];

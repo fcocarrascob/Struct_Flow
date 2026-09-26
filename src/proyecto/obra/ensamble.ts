@@ -406,10 +406,74 @@ export function reconfigurar(
   configNueva = normalizada(p, configNueva);
   const ids: Record<string, string> = { ...ens.nodos };
   for (const n of p.nodos) ids[n.clave] ??= nuevoId('k');
-  const viejos = new Map(instanciar(p, configVieja, ens, ids, sellos).map((k) => [k.id, k]));
-  const nuevos = instanciar(p, configNueva, ens, ids, sellos);
-  const idsNuevos = new Set(nuevos.map((k) => k.id));
+  const { obra: resultado, quitados } = aplicarCambio(
+    obra,
+    instanciar(p, configVieja, ens, ids, sellos),
+    instanciar(p, configNueva, ens, ids, sellos),
+    vista.grupo,
+  );
+  return {
+    obra: { ...resultado, calculos: resultado.calculos.map((k) => (k.id === idVista ? conNodos(k, ens, ids, configNueva, p) : k)) },
+    quitados,
+  };
+}
 
+export interface ResultadoActualizar extends ResultadoReconfigurar {
+  /** Bloques que la plantilla cambió y el ingeniero también: se quedan como están. */
+  conservados: string[];
+}
+
+/**
+ * Lleva una base ya armada de una versión de la plantilla a otra, con la misma
+ * configuración: es `reconfigurar` con las dos plantillas en vez de las dos
+ * configuraciones. Un bloque que la plantilla cambió se reemplaza solo si el
+ * ingeniero no lo tocó; si lo tocó, se conserva y se dice. Las genéricas quedan
+ * selladas con `sellos`: actualizar es haber revisado el resultado.
+ */
+export function actualizarPlantilla(
+  obra: Obra,
+  antes: Plantilla,
+  despues: Plantilla,
+  idVista: string,
+  sellos: Readonly<Record<string, string>>,
+  nuevoId: (prefijo: string) => string,
+): ResultadoActualizar | { error: string } {
+  const vista = obra.calculos.find((k) => k.id === idVista);
+  const ens = vista?.frontera?.ensamble;
+  if (!vista?.frontera || !ens) return { error: 'La vista no tiene un ensamble que actualizar.' };
+  const config = vista.frontera.config ?? {};
+  const ids: Record<string, string> = { ...ens.nodos };
+  for (const n of despues.nodos) ids[n.clave] ??= nuevoId('k');
+  const conservados: string[] = [];
+  const { obra: resultado, quitados } = aplicarCambio(
+    obra,
+    instanciar(antes, normalizada(antes, config), ens, ids, sellos),
+    instanciar(despues, normalizada(despues, config), ens, ids, sellos),
+    vista.grupo,
+    { conservados, sellar: true },
+  );
+  const configNueva = normalizada(despues, config);
+  return {
+    obra: { ...resultado, calculos: resultado.calculos.map((k) => (k.id === idVista ? conNodos(k, ens, ids, configNueva, despues) : k)) },
+    quitados,
+    conservados,
+  };
+}
+
+/**
+ * Lo que cambia entre dos instancias de la plantilla, aplicado sobre la obra:
+ * nodos que aparecen o desaparecen, bloques y ataduras. Lo que el ingeniero editó
+ * fuera de eso se conserva.
+ */
+function aplicarCambio(
+  obra: Obra,
+  instViejos: NodoCalculo[],
+  nuevos: NodoCalculo[],
+  grupo: string | undefined,
+  opciones: { conservados?: string[]; sellar?: boolean } = {},
+): ResultadoReconfigurar {
+  const viejos = new Map(instViejos.map((k) => [k.id, k]));
+  const idsNuevos = new Set(nuevos.map((k) => k.id));
   let resultado = obra;
   const quitados: string[] = [];
   for (const id of viejos.keys()) {
@@ -420,7 +484,6 @@ export function reconfigurar(
       resultado = borrarCalculo(resultado, id);
     }
   }
-  const grupo = vista.grupo;
   for (const nuevo of nuevos) {
     const viejo = viejos.get(nuevo.id);
     const actual = resultado.calculos.find((k) => k.id === nuevo.id);
@@ -444,17 +507,27 @@ export function reconfigurar(
     }
     resultado = {
       ...resultado,
-      calculos: resultado.calculos.map((k) =>
-        k.id === nuevo.id ? { ...k, hoja: aplicarHoja(k.hoja, viejo.hoja, nuevo.hoja), ...fronteraAplicada(k, viejo, nuevo) } : k,
-      ),
+      calculos: resultado.calculos.map((k) => {
+        if (k.id !== nuevo.id) return k;
+        const aplicada = fronteraAplicada(k, viejo, nuevo);
+        // Al cambiar de variante, un bloque con el mismo id conserva lo escrito (la
+        // columna es del tipo, no de la variante); al cambiar de plantilla, el texto
+        // nuevo de un bloque sin editar sí entra.
+        const conservados = opciones.conservados ? (id: string) => opciones.conservados!.push(`${k.nombre}: ${id}`) : undefined;
+        return {
+          ...k,
+          hoja: aplicarHoja(k.hoja, viejo.hoja, nuevo.hoja, conservados),
+          ...aplicada,
+          ...(opciones.sellar && aplicada.frontera && nuevo.frontera?.sha256 ? { frontera: { ...aplicada.frontera, sha256: nuevo.frontera.sha256 } } : {}),
+        };
+      }),
     };
   }
-  resultado = {
-    ...resultado,
-    calculos: resultado.calculos.map((k) => (k.id === idVista ? conNodos(k, ens, ids, configNueva, p) : k)),
-  };
   return { obra: resultado, quitados };
 }
+
+/** El contenido de un bloque, sin su id ni su posición. */
+const contenido = (r: Region) => JSON.stringify({ kind: r.kind, src: r.src, tabla: r.tabla, imprimir: r.imprimir });
 
 /** Qué respalda un nodo: una hoja libre, una genérica por su slug o una vista por su id. */
 function identidad(k: NodoCalculo): string {
@@ -464,12 +537,26 @@ function identidad(k: NodoCalculo): string {
 
 /**
  * Los bloques que la plantilla vieja tenía y la nueva no, fuera; los que la nueva
- * tiene y la vieja no, dentro, detrás del bloque que los precede en la nueva.
+ * tiene y la vieja no, dentro, detrás del bloque que los precede en la nueva. Con
+ * `conservado`, un bloque que está en las dos con distinto contenido toma el nuevo
+ * si nadie lo editó; si se editó, se queda y se avisa. Sin él, se queda siempre.
  */
-function aplicarHoja(actual: Region[], vieja: Region[], nueva: Region[]): Region[] {
-  const enNueva = new Set(nueva.map((r) => r.id));
-  const enVieja = new Set(vieja.map((r) => r.id));
-  let hoja = actual.filter((r) => !(enVieja.has(r.id) && !enNueva.has(r.id)));
+function aplicarHoja(actual: Region[], vieja: Region[], nueva: Region[], conservado?: (id: string) => void): Region[] {
+  const enNueva = new Map(nueva.map((r) => [r.id, r]));
+  const enVieja = new Map(vieja.map((r) => [r.id, r]));
+  let hoja = actual
+    .filter((r) => !(enVieja.has(r.id) && !enNueva.has(r.id)))
+    .map((r) => {
+      const v = enVieja.get(r.id);
+      const n = enNueva.get(r.id);
+      if (!conservado || !v || !n || contenido(v) === contenido(n)) return r;
+      if (contenido(r) !== contenido(v)) {
+        conservado?.(r.id);
+        return r;
+      }
+      const { id, x, y } = r;
+      return { ...n, id, x, y };
+    });
   nueva.forEach((r, i) => {
     if (enVieja.has(r.id) || hoja.some((x) => x.id === r.id)) return;
     let despues = -1;

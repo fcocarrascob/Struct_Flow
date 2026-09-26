@@ -238,17 +238,19 @@ export function gobernantesDeConjunto(
       const min = e.min?.[j];
       if (!max || !min) continue;
       const v = max.map((x, i) => extremo(x, min[i])) as Vector6;
+      // El corte, el momento y la excentricidad van con la N MENOR: el M de los
+      // extremos con la compresión más chica, o con la tracción, es el que más
+      // tracciona los pernos, y el corte sin compresión es el que peor toma la
+      // llave. La compresión mayor ya la lleva su propio criterio.
+      const nMin = Math.min(max[2], min[2]);
+      const conNMin = [v[0], v[1], nMin, v[3], v[4], v[5]] as Vector6;
       proponer('compresion', { combo, valor: max[2], v: max, concurrente: false });
       proponer('traccion', { combo, valor: -min[2], v: min, concurrente: false });
-      proponer('corte', { combo, valor: Math.hypot(v[0], v[1]), v, concurrente: false });
-      proponer('momento', { combo, valor: Math.hypot(v[3], v[4]), v, concurrente: false });
-      // La excentricidad con la compresión MENOR: el M de los extremos sobre la
-      // N más chica es la que más tracciona los pernos. Si alguno de los dos
-      // pasos no comprime, la combinación puede traccionar y eso ya lo cubre
-      // la tracción.
-      const nMin = Math.min(max[2], min[2]);
+      proponer('corte', { combo, valor: Math.hypot(v[0], v[1]), v: conNMin, concurrente: false });
+      proponer('momento', { combo, valor: Math.hypot(v[3], v[4]), v: conNMin, concurrente: false });
+      // Si alguno de los dos pasos no comprime, la combinación puede traccionar y
+      // eso ya lo cubre la tracción.
       if (nMin > CERO) {
-        const conNMin = [v[0], v[1], nMin, v[3], v[4], v[5]] as Vector6;
         proponer('excentricidad', { combo, valor: Math.hypot(v[3], v[4]) / nMin, v: conNMin, concurrente: false });
       }
     }

@@ -101,7 +101,7 @@ export {
 } from './sap-apoyos';
 export { nuevoConjunto, conConjunto, quitarConjunto, conAliasTipo } from './modelo';
 export { VISTAS, camposActivos, configCompleta, datosPorDefecto } from '../vistas/registro';
-export { armarEnsamble, reconfigurar, nombresPropios, problemasDePlantilla } from './ensamble';
+export { armarEnsamble, reconfigurar, actualizarPlantilla, nombresPropios, problemasDePlantilla } from './ensamble';
 export { recomendarPlaca, solicitacionesDeTipo, PLACA_ROTULADA_DE_PARTIDA } from './recomendar-placa';
 export { cumple } from '../vistas/condicion';
 export { barrasPerimetro, abscisasPernos, abscisasNervios } from '../vistas/base-columna/modelo';

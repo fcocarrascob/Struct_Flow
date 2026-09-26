@@ -180,6 +180,13 @@ function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra,
       motivos.push(`${errores} bloque(s) con error.`);
       severidad = 'error';
     }
+    // Una verificación en falso vota como en una genérica: la que define la hoja
+    // y, en un resumen, también la que cita.
+    const falsos = [...define, ...(clase === 'resumen' ? usa : [])].filter((n) => n.startsWith('v_') && ev.scope[n] === false);
+    if (falsos.length) {
+      motivos.push(`No cumple: ${falsos.join(', ')}.`);
+      severidad = 'error';
+    }
     return nodo({
       ...base,
       subtitulo:

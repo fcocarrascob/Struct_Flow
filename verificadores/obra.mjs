@@ -900,6 +900,22 @@ const CASOS = [
     },
   },
   {
+    nombre: 'una hoja libre con una verificación en falso sale en rojo, y el resumen que la cita también',
+    obra: obra(
+      calc('A', m('a := 1'), m('v_a := a > 2 =')),
+      calc('B', m('v_b := a < 2 =')),
+      calc('R', m('v_a =')),
+      calc('S', m('v_b =')),
+    ),
+    ok: (ev, proy) => {
+      const n = (id) => proy.nodos.find((x) => x.id === K(id));
+      if (n('A').severidad !== 'error' || !n('A').motivos.some((x) => x.includes('v_a'))) return `A: ${n('A').severidad} ${n('A').motivos}`;
+      if (n('B').severidad !== 'ok') return `B: ${n('B').severidad} ${n('B').motivos}`;
+      if (n('R').clase !== 'resumen' || n('R').severidad !== 'error') return `R: ${n('R').clase} ${n('R').severidad}`;
+      return n('S').severidad === 'ok' ? null : `S: ${n('S').severidad}`;
+    },
+  },
+  {
     nombre: 'el trazo de un nodo es la cadena entera, y solo sus eslabones',
     // A → B → C, y además A → C directo, y D suelto que usa A. Con el foco en B:
     // arriba A, abajo C. La flecha A → C une un nodo de arriba con uno de abajo
@@ -1549,6 +1565,9 @@ const CASOS_HOJA = [
       if (Math.abs(a.corte.valor - Math.hypot(204.4, 269)) > 1e-9) return `212 corte ${a.corte.valor}`;
       // El momento: M1 extremo −1494 (del Min).
       if (a.momento?.combo !== 'B25_EX_EVP' || Math.abs(a.momento.valor - 1494) > 1e-9) return `212 momento ${JSON.stringify(a.momento)}`;
+      // El corte y el momento no concurrentes van con la N MENOR (1961,6), no con
+      // la de mayor valor absoluto: es la que más tracciona los pernos.
+      if (a.corte.v[2] !== 1961.6 || a.momento.v[2] !== 1961.6) return `212 N del corte ${a.corte.v[2]} y del momento ${a.momento.v[2]}`;
       // Nudo 7: la tracción la da el Min de B25 (80 > 50 de B21).
       if (b.traccion?.combo !== 'B25_EX_EVP' || b.traccion.valor !== 80) return `7 tracción ${JSON.stringify(b.traccion)}`;
       // Nudo 7: el corte de B21 (10) no le gana al de B25 (√(30²+5²)).
@@ -3107,6 +3126,7 @@ const CASOS_VISTA = [
     ['v_gol_gol', { b_ap: 180, y_t: 700 }],
     ['v_gol_barra', { y_t: 800 }],
     ['v_hef_ped', { h_ef: 2000 }],
+    ['v_s1_barras', { recub_sup: 60 }],
     ['v_sep_barras', { n_barras: 80 }],
     ['v_ramas', { n_ramas: 14 }],
     ['v_perno_nervio', { a_tuerca: 160 }],
@@ -3309,15 +3329,21 @@ function CASOS_ENSAMBLE() {
   ];
   const REFERENCIA = {
     u_pb_CP: 0.8521078818700685,
-    u_anc_CP: 0.8591692804950317,
+    // El descascaramiento hacia el borde paralelo a la fila, a 208 mm y no a 310
+    // (2026-09-25): gobierna la ductilidad del §17.10.5.3(a). Antes, 0,8592.
+    u_anc_CP: 1.1054964019384494,
     // La llave y el pedestal, después de resolver el choque de la llave con las ramas
     // de estribo (2026-09-25): nivel 1 sin ramas interiores y estribos φ25, y el
     // pedestal contando ese nivel con solo el perimetral. Antes, 0,9396 y 0,9396.
     // El pedestal, con los niveles contados desde el primer estribo (s1 = 50 mm): 4 en la
     // zona de la llave y no 5, los dos primeros sin ramas interiores y con el rombo. Antes, 0,6939.
-    u_llave_CP: 0.9180084007925408,
+    // Con el aplastamiento del arranque de la base extrema (V_t3, N_t3 = −3106 kN):
+    // psi_brg,sl ≈ 0,47 con los 10 pernos traccionados (2026-09-25). Antes, 0,9180.
+    u_llave_CP: 1.5056499075720282,
     u_silla_CP: 0.9857142857142857,
-    u_ped_CP: 0.8673569042848078,
+    // Con el rombo contado por el cos² del ángulo de las dos ramas que corta el plano
+    // de falla, no por la proyección de las cuatro (2026-09-25). Antes, 0,8674.
+    u_ped_CP: 1.0368404373059774,
   };
   const PARAMS = { tipo: 'CP', grupoSap: 'COL_PPALES', diseno: 'LRFD', sobrerresistencia: 'O0' };
   const PLANTILLA = VISTAS['base-columna'].plantilla;
@@ -3350,13 +3376,17 @@ function CASOS_ENSAMBLE() {
         const e = errores(ev);
         if (e.length) return `${e.length} región(es) con error: ${e[0]}`;
         if (ev.scope.n_cont_ped_CP !== 21) return `n_cont_ped_CP = ${ev.scope.n_cont_ped_CP}`;
-        for (const v of ['v_geo_base_CP', 'v_t_llave_CP', 'v_dom_m_CP', 'v_dom_e_CP', 'v_d26c_CP'])
+        for (const v of ['v_t_llave_CP', 'v_dom_m_CP', 'v_dom_e_CP', 'v_d26c_CP'])
           if (ev.scope[v] !== true) return `${v} = ${ev.scope[v]}`;
         if (ev.scope.L_pb !== undefined) return 'quedó un nombre sin sufijo';
-        // El aviso de los niveles de cabeza no vota (v_geo_base_CP es true), pero el
-        // nodo de la vista sale en ámbar y lo dice.
+        // El primer estribo φ25 a 50 mm asoma sobre las barras, que terminan a 40 mm de
+        // la cara: no las abraza, y es lo único que la geometría del Pachón no cumple.
+        // El aviso de los niveles de cabeza no vota, pero el nodo de la vista lo dice.
+        if (ev.scope.v_geo_base_CP !== false || ev.scope.n_est_cab_ped_CP !== 1) return `v_geo_base_CP = ${ev.scope.v_geo_base_CP}, n_est_cab = ${ev.scope.n_est_cab_ped_CP}`;
         const nv = proyectar(o, ev, genericasBase).nodos.find((n) => n.id === idNodoDeCalculo(r.idVista));
-        if (nv?.severidad !== 'aviso' || !nv.motivos?.some((t) => t.startsWith('Aviso:'))) return `nodo de la vista: ${nv?.severidad} ${JSON.stringify(nv?.motivos)}`;
+        if (nv?.severidad !== 'error' || !nv.motivos?.some((t) => t.startsWith('Aviso:'))) return `nodo de la vista: ${nv?.severidad} ${JSON.stringify(nv?.motivos)}`;
+        const falsos = ev.importadas.get(idNodoDeCalculo(r.idVista)).vista.modelo.chequeos.filter((c) => !c.cumple && !c.aviso).map((c) => c.id);
+        if (falsos.join() !== 'v_s1_barras') return `la vista falla en ${falsos.join(', ')}`;
         return u(ev) ?? sinCiclo(ev);
       },
     },
@@ -3432,6 +3462,42 @@ function CASOS_ENSAMBLE() {
         const e2 = errores(ev);
         if (e2.length) return `de vuelta, ${e2.length} región(es) con error: ${e2[0]}`;
         return u(ev);
+      },
+    },
+    {
+      nombre: 'ensamble: una base armada pasa a la plantilla nueva, conserva lo editado y dice qué no tocó',
+      ok: () => {
+        const hoja = (bloques) => bloques.map((src) => ({ kind: 'math', src }));
+        const antes = {
+          nodos: [
+            { clave: 'datos', nombre: 'Datos $G', hoja: [{ clave: 'a', bloques: hoja(['a_pb := 1 m', 'b_pb := 2 m', 'c_pb := 3 m']) }] },
+            { clave: 'placa', nombre: 'Placa $G', frontera: { procedencia: 'biblioteca', id: PLACA.id, entradas: { hay_llave: 0 }, formulas: { L_bp: 'a_pb' }, publica: { u_max: 'u_pb' } } },
+            { clave: 'vista', nombre: 'Vista $G', frontera: { procedencia: 'vista', id: 'base-columna', entradas: {}, formulas: {}, publica: {} } },
+          ],
+        };
+        // La nueva cambia dos datos, agrega una sección y cambia una atadura.
+        const despues = {
+          nodos: [
+            { ...antes.nodos[0], hoja: [{ clave: 'a', bloques: hoja(['a_pb := 1 m', 'b_pb := 20 m', 'c_pb := 30 m']) }, { clave: 'n', bloques: hoja(['d_pb := 4 m']) }] },
+            { ...antes.nodos[1], frontera: { ...antes.nodos[1].frontera, formulas: { L_bp: 'b_pb' } } },
+            antes.nodos[2],
+          ],
+        };
+        const nuevoId = idsDe();
+        const P = { ...PARAMS, tipo: 'CV', grupoSap: 'COL_VIENTO' };
+        const r = armarEnsamble(obra(), antes, {}, P, { [PLACA.id]: 'viejo' }, { nombre: 'b', color: '#db2777' }, nuevoId);
+        if (r.error) return r.error;
+        // El ingeniero editó c_pb; b_pb no.
+        const datos = nodo(r.obra, 'Datos COL_VIENTO');
+        const o = { ...r.obra, calculos: r.obra.calculos.map((k) => (k.id === datos.id ? { ...k, hoja: k.hoja.map((x) => (x.src.startsWith('c_pb') ? { ...x, src: 'c_pb_CV := 5 m' } : x)) } : k)) };
+        const a = motor.actualizarPlantilla(o, antes, despues, r.idVista, { [PLACA.id]: 'nuevo' }, nuevoId);
+        if (a.error) return a.error;
+        const src = nodo(a.obra, 'Datos COL_VIENTO').hoja.map((x) => x.src).join(' ; ');
+        if (src !== 'a_pb_CV := 1 m ; b_pb_CV := 20 m ; c_pb_CV := 5 m ; d_pb_CV := 4 m') return `datos: ${src}`;
+        if (a.conservados.length !== 1 || !a.conservados[0].includes(':a:')) return `conservados: ${a.conservados.join(', ')}`;
+        const placa = nodo(a.obra, 'Placa COL_VIENTO').frontera;
+        if (placa.formulas.L_bp !== 'b_pb_CV' || placa.sha256 !== 'nuevo') return `placa: ${placa.formulas.L_bp} ${placa.sha256}`;
+        return a.obra.calculos.length === r.obra.calculos.length ? null : 'cambió el número de nodos';
       },
     },
     {

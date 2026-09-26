@@ -182,7 +182,7 @@ export function construirBaseColumna(d: Record<string, number>, config: Config =
   const posBarras = barrasPerimetro(d.n_barras, ax, ay);
   const barras: Cilindro[] = posBarras.map(([x, y], i) => ({
     tipo: 'cilindro', id: `barra_${i + 1}`, rol: 'barra',
-    x, y, r: r1(d.db_long / 2), z0: r1(-d.H_PED + d.recub_inf), z1: r1(-d.recub_inf),
+    x, y, r: r1(d.db_long / 2), z0: r1(-d.H_PED + d.recub_inf), z1: r1(-d.recub_sup),
   }));
   piezas.push(...barras);
 
@@ -199,6 +199,9 @@ export function construirBaseColumna(d: Record<string, number>, config: Config =
   // confinada mientras no se sale de ella y al del fuste después.
   const niveles: number[] = [];
   for (let z = d.s1_est; z <= d.H_PED - d.recub_inf; z += z < zp ? d.sep_zp : d.sep_est) niveles.push(r1(-z));
+  // Un nivel abraza las barras solo si queda entero bajo su extremo superior: el que
+  // asoma por encima no rodea nada, y no cuenta para los pernos ni para la llave.
+  const abraza = (z: number) => -z - d.db_est / 2 >= d.recub_sup - 1e-6;
   // Ramas interiores: sobre las barras de las caras, lo más repartidas posible.
   const nInt = Math.max(d.n_ramas - 2, 0);
   const elegir = (cands: number[], lim: number) => {
@@ -287,6 +290,11 @@ export function construirBaseColumna(d: Record<string, number>, config: Config =
     if (dd < minGE) [minGE, gE] = [dd, g.id];
   }
   chequeos.push(chequeo('v_gol_estribo', 'Hueco libre entre placa de apoyo embebida y cara interior del estribo', minGE, '>=', hueco, 'mm', [gE, 'estribo_1']));
+
+  chequeos.push(
+    chequeo('v_s1_barras', 'Primer estribo entero bajo el extremo superior de las barras, que tiene que abrazar', d.s1_est - d.db_est / 2, '>=', d.recub_sup, 'mm',
+      ['estribo_1', 'barra_1']),
+  );
 
   chequeos.push(
     chequeo('v_hef_ped', 'Recubrimiento bajo la placa de apoyo embebida y su tuerca', d.H_PED - d.h_ef - d.t_ap - d.h_tuerca, '>=', d.recub_inf, 'mm',
@@ -487,28 +495,30 @@ export function construirBaseColumna(d: Record<string, number>, config: Config =
     criterio: conLlave ? 'zona confinada: min(max(lado menor, llave + 45°), altura), como el pedestal' : 'zona confinada sin llave: min(lado menor, altura), como el pedestal',
   });
   // Estribos a no más de 125 mm de la cara superior: son los que confinan los pernos
-  // (ACI 318-25 §10.7.6.1.5).
+  // (ACI 318-25 §10.7.6.1.5), y tienen que rodear las barras.
   derivados.push({
     nombre: 'n_est_cab',
-    valor: niveles.filter((z) => -z <= 125 + 1e-6).length,
+    valor: niveles.filter((z) => -z <= 125 + 1e-6 && abraza(z)).length,
     unidad: '',
-    criterio: 'niveles de estribo a no más de 125 mm de la cara superior, los que confinan los pernos (ACI 318-25 §10.7.6.1.5)',
+    criterio: 'niveles de estribo a no más de 125 mm de la cara superior que abrazan las barras, los que confinan los pernos (ACI 318-25 §10.7.6.1.5)',
   });
   if (conLlave) {
-    // Ramas por dirección de cada nivel. Cada rama del rombo cuenta por su proyección
-    // sobre la dirección del corte (⁉️ lectura: ACI 318-25 Fig. R17.5.2.1b(i) admite
-    // horquillas inclinadas sin dar factor); el perimetral, con sus dos ramas. Las
-    // ramas interiores paralelas a X resisten el corte en X.
+    // Ramas por dirección de cada nivel. El plano de falla corta dos de las cuatro
+    // ramas del rombo, y cada una aporta a una dirección la fracción cos² de su ángulo
+    // con ella: a 45°, media rama a cada dirección, y el rombo entero una rama más por
+    // dirección (⁉️ lectura: ACI 318-25 Fig. R17.5.2.1b(i) admite horquillas
+    // inclinadas sin dar factor). El perimetral, con sus dos ramas. Las ramas
+    // interiores paralelas a X resisten el corte en X.
     const proy = (eje: 0 | 1) =>
       conRombo
         ? 2 + vertices.reduce((s, v, i) => {
             const w = vertices[(i + 1) % 4];
-            return s + Math.abs(w[eje] - v[eje]) / Math.hypot(w[0] - v[0], w[1] - v[1]);
-          }, 0)
+            return s + ((w[eje] - v[eje]) / Math.hypot(w[0] - v[0], w[1] - v[1])) ** 2;
+          }, 0) / 2
         : 2;
     const cabX = Math.round(proy(0) * 100) / 100;
     const cabY = Math.round(proy(1) * 100) / 100;
-    const deCab = conRombo ? 'las 2 del perimetral más la proyección de las 4 del rombo' : 'las 2 del perimetral';
+    const deCab = conRombo ? 'las 2 del perimetral más las 2 del rombo que corta el plano de falla, cada una por el cos² de su ángulo' : 'las 2 del perimetral';
     derivados.push({ nombre: 'ramas_cab_x', valor: cabX, unidad: '', criterio: `ramas por dirección X de un nivel de cabeza: ${deCab}` });
     derivados.push({ nombre: 'ramas_cab_y', valor: cabY, unidad: '', criterio: `ramas por dirección Y de un nivel de cabeza: ${deCab}` });
     // Estribos cerrados equivalentes que cortan el sólido de falla de la llave: los
@@ -516,13 +526,13 @@ export function construirBaseColumna(d: Record<string, number>, config: Config =
     // ramas por estribo. Es lo que cuenta la llave (n_est_sl).
     const nEst = niveles
       .map((z, k) => ({ z, k }))
-      .filter(({ z }) => -z <= zpLlave + 1e-6)
+      .filter(({ z }) => -z <= zpLlave + 1e-6 && abraza(z))
       .reduce((s, { k }) => s + (k < sinRamas ? Math.min(cabX, cabY) : 2 + Math.min(ramasX.length, ramasY.length)) / 2, 0);
     derivados.push({
       nombre: 'n_est_ll',
       valor: Math.round(nEst * 100) / 100,
       unidad: '',
-      criterio: 'estribos cerrados equivalentes en la zona de la llave: los niveles hasta zp_llave, con las ramas de su dirección menor, a dos por estribo',
+      criterio: 'estribos cerrados equivalentes en la zona de la llave: los niveles hasta zp_llave que abrazan las barras, con las ramas de su dirección menor, a dos por estribo',
     });
   }
   if (conRombo) {
