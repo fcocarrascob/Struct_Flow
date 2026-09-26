@@ -77,9 +77,13 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
      supera 1,2·n·N_sa y el perno fluye primero), placa 0,897, silla 0,986. La cabeza sigue el
      §9.5.3 de NCh2369 como criterio (CP a 55 y 70 mm, CV a 50 y 65 mm). El pedestal más largo no
      se contrastó con la zapata, que ningún nodo verifica. Ninguna hoja revisa `nc_*`.
-   - **Nadie verifica el desarrollo** de la armadura de anclaje (§17.5.2.1.1(a)) ni de las ramas de
-     la llave (§17.5.2.1.2(a)): CV φ25 rectas no se desarrollan arriba (≈ 450 contra ≈ 700 mm, piden
-     gancho); CP depende de la penetración en la zapata, que no se modela.
+   - **El desarrollo de la armadura de anclaje de los pernos ya se verifica** (§17.5.2.1.1(a), en
+     `anclaje-hormigon-generica`, con los largos que mide la vista: las barras siguen dentro de la
+     zapata, `h_zap` y `recub_zap` son supuestos por base). Queda: el **l_dh de la edición SI** está
+     impreso con 21 en el denominador y da 3,6·d_b; se usa la constante de la 318-14 (1/4,2) hasta
+     confirmarlo con una fe de erratas (acta del Harness, p. 517). Las **ramas de la llave**
+     (§17.5.2.1.2(a)) siguen como hipótesis: estribo cerrado con gancho sísmico. En el Pachón, CV
+     lleva gancho arriba (l_dh 456 contra 466 mm disponibles) y las dos bases, abajo.
    - **Jerarquía del fusible** (AISC 341 §D2.6c(b)(2)): solo el anclaje usa la capacidad del perno;
      silla, soldaduras y P-M del pedestal usan la demanda O0.
    - **Ev en las combinaciones O0** (ASCE 7 §2.3.6), por confirmar en el modelo: tracción +8 % (CP)
