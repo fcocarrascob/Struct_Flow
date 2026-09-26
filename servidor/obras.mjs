@@ -24,6 +24,12 @@
 //     cambió la carpeta entremedio —otra pestaña que tomó el control, un
 //     `git checkout`, una edición a mano— la escritura es un 409 y no un pisado.
 //
+// Guarda además, fuera de la carpeta de cada obra, los respaldos que se hacen
+// antes de aceptar un cambio (`_respaldos/`) y las propuestas del asistente que
+// esperan a que el usuario las mire (`_propuestas/<id>/`). Tampoco las entiende:
+// una propuesta es la obra entera como quedaría, en los mismos archivos, y
+// compararla es cosa de `src/proyecto/obra/propuesta.ts`.
+//
 // Vive en `servidor/` y no en `scripts/` por el sello del harness, que es el hash
 // de `src/lib` + `scripts`: ver `verificadores/obra.mjs`.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -43,6 +49,9 @@ const MAX_CUERPO = 32 * 1024 * 1024;
 
 const ARCHIVO_OBRA = 'obra.json';
 const PAPELERA = '.papelera';
+/** Fuera de la carpeta de cada obra: no cuentan en su `version`, y `listar` los salta (no son ids). */
+const RESPALDOS = '_respaldos';
+const PROPUESTAS = '_propuestas';
 /** El alfabeto de `idDeObra` (`src/proyecto/obra/almacen.ts`), que es el de la URL. */
 const ID_RE = /^[a-z0-9][a-z0-9-]*$/;
 /** Las únicas rutas que una obra escribe: lo que emite `partirObra`. */
@@ -53,6 +62,18 @@ export class ErrorObras extends Error {
     super(motivo);
     this.codigo = codigo;
     this.datos = { motivo, ...datos };
+  }
+}
+
+/** Los archivos de una obra como los emite `partirObra`, o un 400 con el motivo. */
+function validarArchivos(archivos) {
+  if (typeof archivos !== 'object' || archivos === null || Array.isArray(archivos)) {
+    throw new ErrorObras(400, 'Faltan los archivos.');
+  }
+  if (typeof archivos[ARCHIVO_OBRA] !== 'string') throw new ErrorObras(400, `Falta ${ARCHIVO_OBRA}.`);
+  for (const [ruta, contenido] of Object.entries(archivos)) {
+    if (!RUTA_RE.test(ruta)) throw new ErrorObras(400, `Ruta no permitida: «${ruta}».`);
+    if (typeof contenido !== 'string') throw new ErrorObras(400, `${ruta} no es texto.`);
   }
 }
 
@@ -211,14 +232,7 @@ export function crearObras(raiz, { ahora = () => Date.now(), renombrar = rename,
      */
     async escribir(id, { token, base, archivos }) {
       const dir = carpeta(id);
-      if (typeof archivos !== 'object' || archivos === null || Array.isArray(archivos)) {
-        throw new ErrorObras(400, 'Faltan los archivos.');
-      }
-      if (typeof archivos[ARCHIVO_OBRA] !== 'string') throw new ErrorObras(400, `Falta ${ARCHIVO_OBRA}.`);
-      for (const [ruta, contenido] of Object.entries(archivos)) {
-        if (!RUTA_RE.test(ruta)) throw new ErrorObras(400, `Ruta no permitida: «${ruta}».`);
-        if (typeof contenido !== 'string') throw new ErrorObras(400, `${ruta} no es texto.`);
-      }
+      validarArchivos(archivos);
 
       const hay = await existe(path.join(dir, ARCHIVO_OBRA));
       /** Lo que hay en disco, para no reescribir lo que no cambió. */
@@ -263,6 +277,104 @@ export function crearObras(raiz, { ahora = () => Date.now(), renombrar = rename,
         if (!(`hojas/${nombre}` in archivos)) await rm(path.join(dir, 'hojas', nombre), { force: true });
       }
       return { version: versionDe(archivos) };
+    },
+
+    /**
+     * Copia la carpeta entera a `_respaldos/<id>-<motivo>-<fecha>/` antes de un
+     * cambio que el usuario acepta. Pide el candado: respalda quien va a escribir.
+     */
+    async respaldar(id, { token, motivo } = {}) {
+      const dir = carpeta(id);
+      if (!(await existe(path.join(dir, ARCHIVO_OBRA)))) throw new ErrorObras(404, `No hay una obra «${id}».`);
+      if (escritorVivo(id)?.token !== token) {
+        throw new ErrorObras(409, 'Para respaldar hay que tener el control de la obra.', { conflicto: 'escritor' });
+      }
+      const limpio = String(motivo ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
+      const sello = new Date(ahora()).toISOString().replace(/[:.]/g, '-');
+      const nombre = `${id}-${limpio ? `${limpio}-` : ''}${sello}`;
+      const destino = path.join(raiz, RESPALDOS, nombre);
+      await mkdir(path.join(raiz, RESPALDOS), { recursive: true });
+      await cp(dir, destino, { recursive: true, errorOnExist: true, force: false });
+      return { ok: true, respaldo: `${RESPALDOS}/${nombre}` };
+    },
+
+    /**
+     * Guarda una propuesta: la obra entera como quedaría (los archivos de
+     * `partirObra`) y la versión de la que parte. No pide el candado —proponer no
+     * escribe la obra— y se rechaza si la obra ya no está en esa versión: una
+     * propuesta sobre otra obra no se puede comparar con la que hay.
+     */
+    async proponer(id, { autor, titulo, nota, base, archivos } = {}) {
+      const dir = carpeta(id);
+      validarArchivos(archivos);
+      if (!(await existe(path.join(dir, ARCHIVO_OBRA)))) throw new ErrorObras(404, `No hay una obra «${id}».`);
+      const enDisco = versionDe(await leerArchivos(dir));
+      if (base !== enDisco) {
+        throw new ErrorObras(409, 'La obra cambió desde que se armó la propuesta: vuelve a leerla y propón de nuevo.', { conflicto: 'version', version: enDisco });
+      }
+      if (typeof titulo !== 'string' || !titulo.trim()) throw new ErrorObras(400, 'La propuesta necesita un título.');
+      const n = `${new Date(ahora()).toISOString().replace(/[:.]/g, '-')}-${randomBytes(3).toString('hex')}`;
+      const destino = path.join(raiz, PROPUESTAS, id);
+      await mkdir(destino, { recursive: true });
+      const propuesta = {
+        n,
+        autor: autor === 'usuario' ? 'usuario' : 'asistente',
+        titulo: titulo.trim(),
+        nota: typeof nota === 'string' ? nota.trim() : '',
+        base,
+        creada: new Date(ahora()).toISOString(),
+        archivos,
+      };
+      await writeFile(path.join(destino, `${n}.json`), JSON.stringify(propuesta), 'utf8');
+      return { ok: true, n };
+    },
+
+    /** Las propuestas pendientes de una obra, de la más vieja a la más nueva. */
+    async propuestas(id) {
+      carpeta(id);
+      const dir = path.join(raiz, PROPUESTAS, id);
+      let nombres = [];
+      try {
+        nombres = (await readdir(dir)).filter((x) => x.endsWith('.json')).sort();
+      } catch {
+        return [];
+      }
+      const salida = [];
+      for (const nombre of nombres) {
+        try {
+          salida.push(JSON.parse(await readFile(path.join(dir, nombre), 'utf8')));
+        } catch {
+          // Una a medio escribir no es una propuesta todavía.
+        }
+      }
+      return salida;
+    },
+
+    async contarPropuestas(id) {
+      carpeta(id);
+      try {
+        return (await readdir(path.join(raiz, PROPUESTAS, id))).filter((x) => x.endsWith('.json')).length;
+      } catch {
+        return 0;
+      }
+    },
+
+    /** Archiva una propuesta aceptada o rechazada en `resueltas/`. Pide el candado. */
+    async resolverPropuesta(id, n, { token, resolucion } = {}) {
+      carpeta(id);
+      if (typeof n !== 'string' || !/^[0-9A-Za-z-]+$/.test(n)) throw new ErrorObras(400, `«${n}» no es una propuesta.`);
+      if (!['aceptada', 'rechazada'].includes(resolucion)) throw new ErrorObras(400, 'La resolución es «aceptada» o «rechazada».');
+      if (escritorVivo(id)?.token !== token) {
+        throw new ErrorObras(409, 'Para resolver una propuesta hay que tener el control de la obra.', { conflicto: 'escritor' });
+      }
+      const dir = path.join(raiz, PROPUESTAS, id);
+      const origen = path.join(dir, `${n}.json`);
+      if (!(await existe(origen))) throw new ErrorObras(404, 'La propuesta ya no está.');
+      const datos = JSON.parse(await readFile(origen, 'utf8'));
+      await mkdir(path.join(dir, 'resueltas'), { recursive: true });
+      await writeFile(path.join(dir, 'resueltas', `${n}.json`), JSON.stringify({ ...datos, resolucion, resuelta: new Date(ahora()).toISOString() }), 'utf8');
+      await rm(origen, { force: true });
+      return { ok: true };
     },
 
     /** Borrar es mover a la papelera. Una obra es trabajo de alguien; nunca se
@@ -431,7 +543,20 @@ export function manejadorObras(obras) {
       }
       if (partes.length === 2 && accion === 'escritor' && metodo === 'POST') {
         const { token, forzar, soltar } = await leerCuerpo(req);
-        return responder(res, 200, soltar ? obras.soltar(id, token) : obras.escritor(id, token, { forzar }));
+        if (soltar) return responder(res, 200, obras.soltar(id, token));
+        // El latido dice además cuántas propuestas esperan: así la pestaña abierta
+        // se entera sin sondear otra ruta.
+        return responder(res, 200, { ...obras.escritor(id, token, { forzar }), propuestas: await obras.contarPropuestas(id) });
+      }
+      if (partes.length === 2 && accion === 'respaldo' && metodo === 'POST') {
+        return responder(res, 200, await obras.respaldar(id, await leerCuerpo(req)));
+      }
+      if (partes.length === 2 && accion === 'propuestas') {
+        if (metodo === 'GET') return responder(res, 200, { propuestas: await obras.propuestas(id) });
+        if (metodo === 'POST') return responder(res, 200, await obras.proponer(id, await leerCuerpo(req)));
+      }
+      if (partes.length === 3 && accion === 'propuestas' && metodo === 'POST') {
+        return responder(res, 200, await obras.resolverPropuesta(id, partes[2], await leerCuerpo(req)));
       }
       return responder(res, 405, { motivo: `${metodo} ${url.pathname} no existe.` });
     } catch (e) {

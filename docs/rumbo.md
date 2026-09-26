@@ -488,7 +488,39 @@ aplicación; el Harness, el asistente que la usa».
 ### 2. El contrato del asistente, y el nodo Modelo
 
 Primero, lo que deja entrar al asistente: el formato de la carpeta y `/obras-api` con versión
-y validador, la marca «Revisar» (hecha), y las propuestas que el usuario acepta.
+y validador, la marca «Revisar» (hecha), y las propuestas que el usuario acepta (hechas).
+
+**Las propuestas (2026-09-25).** Salieron de cómo se trabajó el Pachón: cada cambio de armado se
+corría en seco, se miraba una tabla de usos antes y después, se respaldaba la obra a mano y
+recién entonces se escribía con candado. Ahora es una función de la aplicación:
+
+- **Una propuesta es la obra entera como quedaría**, en los archivos de `partirObra`, más la
+  versión del disco de la que parte. `POST /obras-api/<id>/propuestas` la deja en
+  `_propuestas/<id>/`, fuera de la carpeta de la obra (no mueve su versión); no pide candado,
+  porque proponer no escribe, y se rechaza con 409 si la obra ya no está en esa versión.
+- **La tabla la hace `obra/propuesta.ts`** (`compararObras`), pura, y la comparten el diálogo,
+  la CLI y `verify:obra`: por nodo, si es nuevo, se quita, cambia o solo le llega otra cosa; la
+  severidad, el veredicto, cada `u_*`/`v_*` y chequeo de vista que cambia, los datos (fijados,
+  atados, publicados, opciones) y los bloques, con lo que empeora primero. Un bloque con el
+  mismo contenido bajo otro id se dice como tal y no como editado.
+- **La pestaña abierta se entera en el latido** (que devuelve cuántas esperan) y lo dice en una
+  banda. Aceptar respalda la carpeta en `_respaldos/` (`POST …/respaldo`, con candado; sin
+  respaldo no se aplica), aplica la obra —queda en el historial, Ctrl+Z la retira— y marca
+  «Revisar» cada nodo que la propuesta del asistente tocó. Rechazar la archiva en `resueltas/`.
+  Una propuesta que parte de otra versión, o con cambios sin guardar en la pestaña, no se acepta.
+- **El asistente la arma con `npm run obra:comparar`**: corre en seco contra una carpeta, un
+  JSON o `--actualizar-plantilla`, imprime la tabla y, con `--proponer`, la deja en espera.
+  Escribe por `crearObras` sobre la misma raíz, sin HTTP ni candado.
+
+**Las plantillas se congelan por versión.** Una base armada guarda la huella de la plantilla
+con que se armó (`ensamble.plantilla`); las versiones viven en `vistas/<vista>/versiones/`
+(`npm run plantillas:congelar`) y actualizar es la diferencia entre la suya y la de hoy, desde
+el botón de la ficha de la vista y a través de una propuesta. Una base anterior a las
+versiones se toma como armada con la primera. Los bloques que se agregan a una sección ya
+publicada llevan `id`, y el índice de los demás no los cuenta: así un texto nuevo no corre los
+siguientes. `corrimientos` lo comprueba contra la última congelada, y `actualizarPlantilla`
+alinea por contenido los ids de una base armada antes (el Pachón tenía tres textos corridos
+por `s1_est_ped`, agregado en medio de su sección).
 
 Después, el nodo Modelo. En la auditoría del Pachón hay **21 valores** de SAP copiados a mano
 de dos `.result.json`: reacciones, periodos, cortes basales. Sin sello, si el modelo cambia

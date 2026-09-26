@@ -12,30 +12,14 @@
 // Falla (código 1) si alguna obra tiene un invariante en error o una región con
 // error; los avisos se listan y no hacen fallar.
 
-import { readdir, readFile } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
-import path from 'node:path';
-import { compilarEntrada, ROOT } from '../scripts/lib/motor.mjs';
+import { compilarEntrada } from '../scripts/lib/motor.mjs';
 import { crearObras, raizPorDefecto } from '../servidor/obras.mjs';
+import { cargarGenericas } from './lib/genericas.mjs';
 
 const M = await compilarEntrada('src/proyecto/obra/engine.ts');
 
 // Las genéricas de la biblioteca, con el mismo sha256 de bytes que la aplicación.
-const genericas = {};
-async function recorrer(dir) {
-  for (const e of await readdir(dir, { withFileTypes: true })) {
-    const p = path.join(dir, e.name);
-    if (e.isDirectory()) await recorrer(p);
-    else if (e.name.endsWith('.json')) {
-      const crudo = await readFile(p);
-      const hoja = JSON.parse(crudo.toString('utf8'));
-      if (hoja?.meta?.clase !== 'generica') continue;
-      const modulo = M.moduloDeBiblioteca(hoja, { sha256: createHash('sha256').update(crudo).digest('hex') });
-      genericas[modulo.id] = { fase: 'lista', modulo };
-    }
-  }
-}
-await recorrer(path.join(ROOT, 'public', 'biblioteca'));
+const { genericas } = await cargarGenericas(M);
 
 const obras = crearObras(raizPorDefecto());
 const pedidas = process.argv.slice(2);

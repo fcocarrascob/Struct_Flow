@@ -2620,6 +2620,43 @@ async function espera409(promesa, conflicto) {
 
 const CASOS_SERVIDOR = [
   {
+    nombre: 'propuestas: se guardan sobre la versión de la que parten, se listan, se archivan con el candado y no cuentan como obra',
+    ok: async () => {
+      const s = servidor('propuestas');
+      const { version } = await s.escribir('pachon', { token: TOKEN_A, base: null, archivos: ARCHIVOS });
+      const vieja = await espera409(s.proponer('pachon', { titulo: 'x', base: 'otra-version', archivos: ARCHIVOS }), 'version');
+      if (vieja) return `propuesta sobre otra versión: ${vieja}`;
+      const { n } = await s.proponer('pachon', { autor: 'asistente', titulo: 'Llave 160×80', nota: 'por el aplastamiento', base: version, archivos: ARCHIVOS });
+      if ((await s.contarPropuestas('pachon')) !== 1) return 'no se cuenta';
+      const [p] = await s.propuestas('pachon');
+      if (p?.n !== n || p.titulo !== 'Llave 160×80' || p.base !== version || p.archivos['obra.json'] !== ARCHIVOS['obra.json']) return `leída: ${JSON.stringify(p).slice(0, 200)}`;
+      if ((await s.leer('pachon')).version !== version) return 'proponer cambió la versión de la obra';
+      if ((await s.listar()).length !== 1) return 'la carpeta de propuestas se lista como obra';
+      const sinCandado = await espera409(s.resolverPropuesta('pachon', n, { token: TOKEN_B, resolucion: 'rechazada' }), 'escritor');
+      if (sinCandado) return `resolver sin candado: ${sinCandado}`;
+      s.escritor('pachon', TOKEN_A);
+      await s.resolverPropuesta('pachon', n, { token: TOKEN_A, resolucion: 'aceptada' });
+      if ((await s.contarPropuestas('pachon')) !== 0) return 'quedó pendiente';
+      const archivada = JSON.parse(await readFile(path.join(TMP, 'propuestas', '_propuestas', 'pachon', 'resueltas', `${n}.json`), 'utf8'));
+      return archivada.resolucion === 'aceptada' ? null : `archivada: ${archivada.resolucion}`;
+    },
+  },
+  {
+    nombre: 'respaldar copia la carpeta entera a _respaldos, solo con el candado, y no aparece en la lista',
+    ok: async () => {
+      const s = servidor('respaldo');
+      await s.escribir('pachon', { token: TOKEN_A, base: null, archivos: ARCHIVOS });
+      const sin = await espera409(s.respaldar('pachon', { token: TOKEN_A, motivo: 'x' }), 'escritor');
+      if (sin) return `sin candado: ${sin}`;
+      s.escritor('pachon', TOKEN_A);
+      const { respaldo } = await s.respaldar('pachon', { token: TOKEN_A, motivo: 'antes de la llave 160×80' });
+      if (!/^_respaldos\/pachon-antes-de-la-llave-160-80-/.test(respaldo)) return `nombre: ${respaldo}`;
+      const copia = await readFile(path.join(TMP, 'respaldo', ...respaldo.split('/'), 'obra.json'), 'utf8');
+      if (copia !== ARCHIVOS['obra.json']) return 'la copia no es la obra';
+      return (await s.listar()).length === 1 ? null : 'el respaldo se lista como obra';
+    },
+  },
+  {
     nombre: 'crear, listar y leer devuelve los mismos archivos y la misma versión',
     ok: async () => {
       const s = servidor('crear');
@@ -3536,6 +3573,132 @@ function CASOS_ENSAMBLE() {
         // Lo que la plantilla nueva publica, también: si no, quien lo ata queda con el valor de ejemplo.
         if (placa.publica.T_grupo !== 'T_pb_CV') return `publica: ${JSON.stringify(placa.publica)}`;
         return a.obra.calculos.length === r.obra.calculos.length ? null : 'cambió el número de nodos';
+      },
+    },
+    {
+      nombre: 'ensamble: un texto agregado en medio de una sección entra, y el editado que venía después no se duplica',
+      ok: () => {
+        const texto = (src, id) => ({ kind: 'text', src, ...(id ? { id } : {}) });
+        const vista = { clave: 'vista', nombre: 'Vista $G', frontera: { procedencia: 'vista', id: 'base-columna', entradas: {}, formulas: {}, publica: {} } };
+        const con = (bloques) => ({ nodos: [{ clave: 'datos', nombre: 'Datos $G', hoja: [{ clave: 'a', bloques }] }, vista] });
+        const antes = con([texto('titulo'), texto('nota A'), texto('nota B')]);
+        // Como se escribía antes: sin id, corre los índices de lo que sigue.
+        const sinId = con([texto('titulo'), texto('nueva'), texto('nota A'), texto('nota B')]);
+        // Como se escribe ahora: con id, no corre nada.
+        const conId = con([texto('titulo'), texto('nueva', 'nueva'), texto('nota A'), texto('nota B')]);
+        const corridos = motor.corrimientos(antes, sinId);
+        if (corridos.length !== 2) return `corrimientos sin id: ${corridos.join(' | ')}`;
+        if (motor.corrimientos(antes, conId).length) return `corrimientos con id: ${motor.corrimientos(antes, conId).join(' | ')}`;
+        const P = { ...PARAMS, tipo: 'CV', grupoSap: 'COL_VIENTO' };
+        for (const [nombre, despues] of [['sin id', sinId], ['con id', conId]]) {
+          const nuevoId = idsDe();
+          const r = armarEnsamble(obra(), antes, {}, P, {}, { nombre: 'b', color: '#db2777' }, nuevoId);
+          if (r.error) return r.error;
+          const datos = nodo(r.obra, 'Datos COL_VIENTO');
+          const o = { ...r.obra, calculos: r.obra.calculos.map((k) => (k.id === datos.id ? { ...k, hoja: k.hoja.map((x) => (x.src === 'nota A' ? { ...x, src: 'nota A editada' } : x)) } : k)) };
+          const a = motor.actualizarPlantilla(o, antes, despues, r.idVista, {}, nuevoId);
+          if (a.error) return `${nombre}: ${a.error}`;
+          const hoja = nodo(a.obra, 'Datos COL_VIENTO').hoja;
+          const src = hoja.map((x) => x.src).join(' ; ');
+          if (src !== 'titulo ; nueva ; nota A editada ; nota B') return `${nombre}: ${src}`;
+          if (new Set(hoja.map((x) => x.id)).size !== hoja.length) return `${nombre}: ids repetidos`;
+          if (motor.desfaseDePlantilla(a.obra, despues, r.idVista).length) return `${nombre}: queda desfase: ${motor.desfaseDePlantilla(a.obra, despues, r.idVista).join(' | ')}`;
+        }
+        return null;
+      },
+    },
+    {
+      nombre: 'ensamble: una base con los textos corridos por una definición agregada (el Pachón) se alinea por contenido, sin tocar lo que dicen',
+      ok: () => {
+        const texto = (src) => ({ kind: 'text', src });
+        const vista = { clave: 'vista', nombre: 'Vista $G', frontera: { procedencia: 'vista', id: 'base-columna', entradas: {}, formulas: {}, publica: {} } };
+        const con = (bloques) => ({ nodos: [{ clave: 'datos', nombre: 'Datos $G', hoja: [{ clave: 'a', bloques }] }, vista] });
+        // Armada cuando la sección no tenía s1_pb: sus textos quedaron en :2 y :3.
+        const armada = con([texto('titulo'), texto('nota A'), texto('tabla')]);
+        // La plantilla de hoy agregó la definición delante: los textos son :3 y :4.
+        const hoy = con([texto('titulo'), { kind: 'math', src: 's1_pb := 50 mm' }, texto('nota A'), texto('tabla')]);
+        const nuevoId = idsDe();
+        const P = { ...PARAMS, tipo: 'CV', grupoSap: 'COL_VIENTO' };
+        const r = armarEnsamble(obra(), armada, {}, P, {}, { nombre: 'b', color: '#db2777' }, nuevoId);
+        if (r.error) return r.error;
+        // A la base se le agregó la definición a mano, como pasó en el Pachón.
+        const datos = nodo(r.obra, 'Datos COL_VIENTO');
+        const def = { id: `${datos.id}:a:s1_pb`, kind: 'math', x: 40, y: 0, src: 's1_pb_CV := 55 mm' };
+        const o = { ...r.obra, calculos: r.obra.calculos.map((k) => (k.id === datos.id ? { ...k, hoja: [k.hoja[0], def, ...k.hoja.slice(1)] } : k)) };
+        const a = motor.actualizarPlantilla(o, hoy, hoy, r.idVista, {}, nuevoId);
+        if (a.error) return a.error;
+        const hoja = nodo(a.obra, 'Datos COL_VIENTO').hoja.map((x) => `${x.id.slice(datos.id.length + 1)}=${x.src}`).join(' ; ');
+        if (hoja !== 'a:1=titulo ; a:s1_pb=s1_pb_CV := 55 mm ; a:3=nota A ; a:4=tabla') return `hoja: ${hoja}`;
+        const c = motor.compararObras(o, a.obra, genericasBase).nodos.find((f) => f.id === datos.id);
+        if (!c || c.bloques.renombrados.length !== 2 || c.bloques.editados.length || c.bloques.agregados.length) return `comparación: ${JSON.stringify(c?.bloques)}`;
+        return null;
+      },
+    },
+    {
+      nombre: 'plantillas versionadas: la de hoy está congelada, sin corrimientos, y una base armada guarda su huella',
+      ok: () => {
+        const versiones = VISTAS['base-columna'].versiones ?? [];
+        const hoy = motor.huellaDePlantilla(PLANTILLA);
+        if (!versiones.some((v) => v.version === hoy)) return `la plantilla de hoy (${hoy}) no está congelada: npm run plantillas:congelar`;
+        for (const v of versiones) if (motor.huellaDePlantilla(v.plantilla) !== v.version) return `la versión ${v.version} no da su huella`;
+        const i = versiones.findIndex((v) => v.version === hoy);
+        if (i > 0) {
+          const c = motor.corrimientos(versiones[i - 1].plantilla, PLANTILLA);
+          if (c.length) return c.join(' | ');
+        }
+        const r = base();
+        if (r.error) return r.error;
+        const o = sanearObra(r.obra);
+        if (o.calculos.find((k) => k.id === r.idVista).frontera.ensamble.plantilla !== hoy) return 'la base armada no guarda la huella, o el saneo la pierde';
+        const e = motor.estadoDePlantilla(o, r.idVista);
+        if (e.actualizable || e.desfase.length || e.armada !== hoy) return `recién armada: ${JSON.stringify(e)}`;
+        // Una base anterior a las versiones se toma como armada con la primera.
+        const sinHuella = {
+          ...o,
+          calculos: o.calculos.map((k) => {
+            if (k.id !== r.idVista) return k;
+            const { plantilla: _, ...ensamble } = k.frontera.ensamble;
+            return { ...k, frontera: { ...k.frontera, ensamble } };
+          }),
+        };
+        if (motor.versionDeBase(sinHuella, r.idVista)?.version !== versiones[0].version) return 'sin huella no toma la primera versión';
+        const a = motor.actualizarBase(sinHuella, r.idVista, sellosBase, idsDe());
+        if (a.error) return a.error;
+        return a.obra.calculos.find((k) => k.id === r.idVista).frontera.ensamble.plantilla === hoy ? null : 'actualizar no estampa la huella de hoy';
+      },
+    },
+    {
+      nombre: 'propuesta: la tabla antes/después dice qué nodo cambia, con qué dato, y qué usos suben primero',
+      ok: () => {
+        const r = base();
+        if (r.error) return r.error;
+        const o = sanearObra(r.obra);
+        const sinCambio = motor.compararObras(o, o, genericasBase);
+        if (!sinCambio.sinCambios) return `la misma obra da cambios: ${motor.comparacionEnTexto(sinCambio)}`;
+        // La placa más delgada: sube su uso, y la vista y lo de abajo quizá también.
+        const placa = nodo(o, 'Placa base COL_PPALES');
+        // El campo de la genérica atado al espesor de la hoja de datos.
+        const t = Object.entries(placa.frontera.formulas).find(([, expr]) => expr === 't_pb_CP')?.[0];
+        if (!t) return `la placa no ata t_pb_CP: ${JSON.stringify(placa.frontera.formulas)}`;
+        const despues = {
+          ...o,
+          calculos: o.calculos.map((k) =>
+            k.id === placa.id
+              ? { ...k, frontera: { ...k.frontera, formulas: Object.fromEntries(Object.entries(k.frontera.formulas).filter(([c]) => c !== t)), entradas: { ...k.frontera.entradas, [t]: 40 } } }
+              : k,
+          ),
+        };
+        const c = motor.compararObras(o, despues, genericasBase);
+        const fila = c.nodos.find((f) => f.id === placa.id);
+        if (!fila || fila.estado !== 'modificado') return `placa: ${JSON.stringify(fila?.estado)} · ${motor.comparacionEnTexto(c)}`;
+        if (!fila.datos.some((d) => d.nombre === `dato ${t}` && d.despues?.startsWith('40'))) return `datos: ${JSON.stringify(fila.datos)}`;
+        if (!fila.datos.some((d) => d.nombre === `atado ${t}` && d.antes === 't_pb_CP' && d.despues === undefined)) return `atadura: ${JSON.stringify(fila.datos)}`;
+        // El espesor no gobierna la placa: u_max no se mueve, u_espesor sí.
+        const u = fila.usos.find((x) => x.nombre === 'u_espesor');
+        if (!u || u.tendencia !== 'empeora') return `u_espesor: ${JSON.stringify(u)} · ${motor.comparacionEnTexto(c)}`;
+        if (fila.usos.some((x) => x.nombre === 'u_max')) return 'u_max no cambia y aparece';
+        if (c.nodos[0].tendencia !== 'empeora') return 'lo que empeora no va primero';
+        return c.nodos.some((f) => f.estado === 'nuevo' || f.estado === 'quitado') ? 'aparecieron nodos' : null;
       },
     },
     {

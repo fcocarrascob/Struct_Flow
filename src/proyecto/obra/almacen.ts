@@ -708,7 +708,8 @@ function sanearEnsamble(crudo: unknown): { ensamble?: Ensamble } {
   if (typeof e.nodos === 'object' && e.nodos !== null) {
     for (const [k, v] of Object.entries(e.nodos)) if (typeof v === 'string' && v) nodos[k] = v;
   }
-  return { ensamble: { tipo, grupoSap: texto(e.grupoSap) ?? tipo, diseno, sobrerresistencia, nodos } };
+  const plantilla = typeof e.plantilla === 'string' && /^[0-9a-f]{16}$/.test(e.plantilla) ? e.plantilla : undefined;
+  return { ensamble: { tipo, grupoSap: texto(e.grupoSap) ?? tipo, diseno, sobrerresistencia, nodos, ...(plantilla ? { plantilla } : {}) } };
 }
 
 function sanearRevision(crudo: unknown): { revisar?: Revision } {

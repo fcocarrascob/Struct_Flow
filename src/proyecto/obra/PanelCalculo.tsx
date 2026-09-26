@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import type { Region, SheetResults } from '../../lib/worksheet';
 import type { EstadoGenerica } from './biblioteca';
+import type { EstadoPlantilla } from './ensamble';
 import type { Instanciada } from './evaluacion';
 import { useEscape } from './useEscape';
 import FichaGenerica from './FichaGenerica';
@@ -37,6 +38,8 @@ export default function PanelCalculo({
   onHoja,
   onAbrirHoja,
   onAbrir3D,
+  estadoPlantilla,
+  onActualizarPlantilla,
   onCrearPlanilla,
   onDesprender,
   onImportar,
@@ -73,6 +76,10 @@ export default function PanelCalculo({
   onAbrirHoja: () => void;
   /** Solo una vista geométrica: abre su pestaña directo en el 3D. */
   onAbrir3D?: () => void;
+  /** Solo la vista de una base armada: dónde está respecto de su plantilla. */
+  estadoPlantilla?: EstadoPlantilla;
+  /** Abre la propuesta de llevarla a la plantilla de hoy. */
+  onActualizarPlantilla?: () => void;
   /** Le da frontera a la hoja: scope propio, y se abre para escribirla. */
   onCrearPlanilla: () => void;
   /** Copia la genérica al nodo para poder editarla, y la abre. */
@@ -160,6 +167,8 @@ export default function PanelCalculo({
             onPublicar={onPublicar}
             onAbrirHoja={onAbrirHoja}
             onAbrir3D={onAbrir3D ?? onAbrirHoja}
+            estadoPlantilla={estadoPlantilla}
+            onActualizarPlantilla={onActualizarPlantilla}
           />
         ) : calculo.frontera && calculo.frontera.procedencia !== 'biblioteca' ? (
           // Una hoja que vive en el documento no tiene módulo que leer, así que

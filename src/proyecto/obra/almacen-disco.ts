@@ -214,11 +214,41 @@ export interface EstadoSesion {
   error: string;
   /** Hay cambios que todavía no llegaron a su sitio. */
   pendiente: boolean;
+  /** Las propuestas que esperan en el servidor, según el último latido. */
+  propuestas: number;
+}
+
+/** Una propuesta del servidor, ya leída como obra (`servidor/obras.mjs`, `proponer`). */
+export interface PropuestaLeida {
+  n: string;
+  autor: 'asistente' | 'usuario';
+  titulo: string;
+  nota: string;
+  /** La versión del disco de la que parte. */
+  base: string;
+  creada: string;
+  obra: Obra | null;
+  /** Lo que `unirObra` no pudo leer, o por qué no hay obra. */
+  problemas: string[];
 }
 
 export interface SesionObra {
   estado(): EstadoSesion;
   suscribir(fn: (e: EstadoSesion) => void): () => void;
+  /**
+   * Si la obra abierta es exactamente la versión `version` del disco: nada por
+   * escribir ni en vuelo. Una propuesta que parte de otra versión no se acepta.
+   */
+  alDia(version: string): boolean;
+  /** Las propuestas pendientes. En el navegador, ninguna. */
+  propuestas(): Promise<PropuestaLeida[]>;
+  resolverPropuesta(n: string, resolucion: 'aceptada' | 'rechazada'): Promise<void>;
+  /**
+   * Copia la carpeta a `_respaldos/` antes de un cambio aceptado. Devuelve dónde,
+   * o `null` sin disco (en el navegador el respaldo es el Ctrl+Z). Lanza si falla:
+   * sin respaldo no se acepta.
+   */
+  respaldar(motivo: string): Promise<string | null>;
   /** Cada versión del documento. Se aplaza y se serializa por dentro. */
   guardar(obra: Obra): void;
   /** Síncrono: la pestaña se oculta. Lo que no llegó queda como borrador. */
@@ -268,6 +298,7 @@ function sesionNavegador(): SesionObra {
     conflicto: null,
     error: '',
     pendiente: false,
+    propuestas: 0,
   });
   const escribir = (o: Obra) => {
     const r = guardarObra(o);
@@ -276,6 +307,10 @@ function sesionNavegador(): SesionObra {
   return {
     estado: e.get,
     suscribir: e.suscribir,
+    alDia: () => true,
+    propuestas: async () => [],
+    resolverPropuesta: async () => {},
+    respaldar: async () => null,
     guardar: escribir,
     vaciar: escribir,
     salir: escribir,
@@ -298,6 +333,7 @@ function sesionDisco(
     conflicto: null,
     error: '',
     pendiente: false,
+    propuestas: 0,
   });
 
   /** El texto de lo último que llegó al disco: no se reescribe lo mismo. */
@@ -308,8 +344,9 @@ function sesionDisco(
   let cerrada = false;
 
   const escritor = (forzar = false) =>
-    pedir('POST', `${ruta}/escritor`, { token, forzar }).then(
-      () => {
+    pedir<{ propuestas?: number }>('POST', `${ruta}/escritor`, { token, forzar }).then(
+      (r) => {
+        if (typeof r.propuestas === 'number') e.set({ propuestas: r.propuestas });
         if (e.get().conflicto === 'escritor') e.set({ conflicto: null });
         // El servidor volvió a contestar: un error que no dejó nada por escribir
         // ya no dice nada. Si quedó algo, lo aclara el reintento de la cola.
@@ -381,6 +418,27 @@ function sesionDisco(
   return {
     estado: e.get,
     suscribir: e.suscribir,
+    alDia: (v) => v === base && pendiente === null && !enVuelo,
+    async propuestas() {
+      const { propuestas } = await pedir<{ propuestas: (Omit<PropuestaLeida, 'obra' | 'problemas'> & { archivos: Archivos })[] }>(
+        'GET',
+        `${ruta}/propuestas`,
+      );
+      e.set({ propuestas: propuestas.length });
+      return propuestas.map(({ archivos, ...p }) => {
+        const { crudo, problemas } = unirObra(archivos);
+        const obra = sanearObra(crudo);
+        return { ...p, obra: obra && obra.id === id ? obra : null, problemas: obra ? problemas : [...problemas, 'La propuesta no trae una obra legible.'] };
+      });
+    },
+    async resolverPropuesta(n, resolucion) {
+      await pedir('POST', `${ruta}/propuestas/${encodeURIComponent(n)}`, { token, resolucion });
+      e.set({ propuestas: Math.max(0, e.get().propuestas - 1) });
+    },
+    async respaldar(motivo) {
+      const r = await pedir<{ respaldo: string }>('POST', `${ruta}/respaldo`, { token, motivo });
+      return r.respaldo;
+    },
     guardar(obra) {
       if (cerrada) return;
       pendiente = obra;

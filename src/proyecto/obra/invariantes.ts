@@ -17,7 +17,7 @@ import { mensajeDeMotor } from '../../components/canvas/mensajes-motor';
 import type { Severidad } from '../grafo';
 import { camposActivos, configCompleta, VISTAS } from '../vistas/registro';
 import { camposResueltos, type Genericas } from './biblioteca';
-import { desfaseDePlantilla } from './ensamble';
+import { estadoDePlantilla } from './ensamble';
 import type { EvaluacionObra } from './evaluacion';
 import { idNodoDeCalculo } from './ids';
 import type { Obra } from './modelo';
@@ -71,10 +71,17 @@ export function invariantesDeObra(obra: Obra, ev: EvaluacionObra, genericas: Gen
       }
     }
 
-    // Una base armada con una plantilla anterior: le falta lo que la de hoy trae.
-    if (def?.plantilla && f.ensamble) {
-      const desfase = desfaseDePlantilla(obra, def.plantilla, k.id);
-      if (desfase.length) de('plantilla-atras', 'aviso', `La base quedó atrás de su plantilla: ${desfase.join('; ')}.`);
+    // Una base armada con una plantilla anterior: le falta lo que la de hoy trae, o
+    // guarda la huella de otra versión (que puede haber cambiado un texto o un valor,
+    // cosa que el desfase no mira).
+    const plantilla = def?.plantilla && f.ensamble ? estadoDePlantilla(obra, k.id) : undefined;
+    if (plantilla) {
+      const partes = [
+        ...(plantilla.armada && plantilla.armada !== plantilla.hoy ? [`se armó con la versión ${plantilla.armada} y la de hoy es ${plantilla.hoy}`] : []),
+        ...plantilla.desfase,
+      ];
+      const como = plantilla.actualizable ? ' Se actualiza desde la ficha de la vista.' : '';
+      if (partes.length) de('plantilla-atras', 'aviso', `La base quedó atrás de su plantilla: ${partes.join('; ')}.${como}`);
     }
   }
   return salida;

@@ -53,6 +53,7 @@ export {
   borrarGrupo,
   marcarRevision,
   porRevisar,
+  nuevoId,
 } from './modelo';
 export { trazoDe, ladoDe } from './trazo';
 export {
@@ -101,8 +102,21 @@ export {
 } from './sap-apoyos';
 export { nuevoConjunto, conConjunto, quitarConjunto, conAliasTipo } from './modelo';
 export { VISTAS, camposActivos, configCompleta, datosPorDefecto } from '../vistas/registro';
-export { armarEnsamble, reconfigurar, actualizarPlantilla, desfaseDePlantilla, nombresPropios, problemasDePlantilla } from './ensamble';
+export {
+  armarEnsamble,
+  reconfigurar,
+  actualizarPlantilla,
+  actualizarBase,
+  desfaseDePlantilla,
+  nombresPropios,
+  problemasDePlantilla,
+  huellaDePlantilla,
+  corrimientos,
+  versionDeBase,
+  estadoDePlantilla,
+} from './ensamble';
 export { invariantesDeObra } from './invariantes';
+export { compararObras, comparacionEnTexto } from './propuesta';
 export { recomendarPlaca, solicitacionesDeTipo, PLACA_ROTULADA_DE_PARTIDA } from './recomendar-placa';
 export { cumple } from '../vistas/condicion';
 export { barrasPerimetro, abscisasPernos, abscisasNervios } from '../vistas/base-columna/modelo';

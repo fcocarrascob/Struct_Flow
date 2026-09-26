@@ -101,10 +101,9 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
    - **Invariantes de cadena** (`obra/invariantes.ts`, `npm run verify:obras`): campo de una
      genérica o vista sin fijar ni atar (aviso), atadura que no resuelve (error) y base atrás de
      su plantilla (aviso). La obra `base-de-columna` los tiene: placa, anclaje y pedestal calculan
-     campos estrenados después de armarla con el valor de ejemplo. Queda por hacer: los ids de los
-     textos de plantilla son su posición en la sección, y un bloque nuevo en medio corre los
-     siguientes (el desfase los reconoce por contenido; `actualizarPlantilla` todavía no los
-     re-identifica).
+     campos estrenados después de armarla con el valor de ejemplo. Las dos bases del Pachón
+     tienen tres textos con el id corrido (por `s1_est_ped`, agregado en medio de su sección):
+     «actualizar a la plantilla de hoy» los alinea sin cambiar lo que dicen; falta aceptarlo.
    Menores: doble verificación llave/pedestal de la misma armadura (iguales en X, distintas en Y; el
    pedestal cuenta sus niveles desde `s1_est` y no sabe de `recub_sup`); `fy` de las barras
    declarado tres veces; φ25/φ36 fuera del rango investigado (R17.5.2.1: No. 16 en tracción, No. 19
@@ -129,10 +128,6 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
    Lo que salió en el camino:
    - **La rotulada toma la tracción del criterio `t` del conjunto de sobrerresistencia**: si ese
      conjunto no tracciona, el nombre no se publica y la hoja queda en rojo.
-   - **La plantilla no propaga sus cambios a una base ya armada desde la aplicación**:
-     `actualizarPlantilla` (`obra/ensamble.ts`) lleva una base de una versión de la plantilla a
-     otra conservando lo editado, pero necesita la plantilla vieja, que la aplicación no guarda; hoy
-     se corre desde un script con la de git.
    - **El dato de partida de la placa rotulada vive dos veces**: en la plantilla y en
      `PLACA_ROTULADA_DE_PARTIDA` de `obra/recomendar-placa.ts`; `verify:obra` exige que coincidan.
    Límites de la plantilla: la hoja de capacidad es la del Pachón (AISC 341 §D2.6, pórtico

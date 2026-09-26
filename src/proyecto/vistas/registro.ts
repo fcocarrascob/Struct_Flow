@@ -8,6 +8,7 @@ import { cumple } from './condicion';
 import { CAMPOS_BASE_COLUMNA, OPCIONES_BASE_COLUMNA } from './base-columna/campos';
 import { construirBaseColumna } from './base-columna/modelo';
 import { PLANTILLA_BASE_COLUMNA } from './base-columna/plantilla';
+import { VERSIONES_BASE_COLUMNA } from './base-columna/versiones/indice';
 
 export const VISTAS: Record<string, DefVista> = {
   'base-columna': {
@@ -18,6 +19,7 @@ export const VISTAS: Record<string, DefVista> = {
     campos: CAMPOS_BASE_COLUMNA,
     construir: construirBaseColumna,
     plantilla: PLANTILLA_BASE_COLUMNA,
+    versiones: VERSIONES_BASE_COLUMNA,
   },
 };
 

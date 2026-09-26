@@ -1,3 +1,4 @@
+import type { EstadoPlantilla } from './ensamble';
 import type { Instanciada } from './evaluacion';
 import { problemaDeAlias, type Frontera } from './modelo';
 import { opcionApagada } from '../vistas/registro';
@@ -23,7 +24,11 @@ export default function FichaVista({
   onPublicar,
   onAbrirHoja,
   onAbrir3D,
+  estadoPlantilla,
+  onActualizarPlantilla,
 }: {
+  estadoPlantilla?: EstadoPlantilla;
+  onActualizarPlantilla?: () => void;
   frontera: Frontera;
   instancia: Instanciada | undefined;
   otrosAlias: ReadonlySet<string>;
@@ -63,6 +68,7 @@ export default function FichaVista({
         <button
           type="button"
           onClick={onAbrirHoja}
+          aria-label="Abrir la hoja y el dibujo"
           title="La hoja que vota y se imprime, con el dibujo al pie, en una pestaña"
           className="mt-2 rounded border border-border px-2 py-0.5 text-[10px] text-muted hover:border-accent hover:text-accent"
         >
@@ -94,6 +100,30 @@ export default function FichaVista({
               <span className="font-mono">{frontera.ensamble.sobrerresistencia}</span>). Cambiar un componente agrega o
               quita su cálculo, sus datos y sus ataduras.
             </p>
+          )}
+          {estadoPlantilla && (
+            <div className="mt-1 text-[11px] leading-snug text-muted" data-plantilla={estadoPlantilla.actualizable ? 'atras' : 'al-dia'}>
+              <p>
+                Plantilla{' '}
+                {estadoPlantilla.armada ? (
+                  <span className="font-mono">{estadoPlantilla.armada}</span>
+                ) : (
+                  'anterior a las versiones'
+                )}
+                {estadoPlantilla.armada === estadoPlantilla.hoy && !estadoPlantilla.desfase.length ? ', la de hoy.' : `; la de hoy es ${estadoPlantilla.hoy}.`}
+              </p>
+              {estadoPlantilla.actualizable && onActualizarPlantilla && (
+                <button
+                  type="button"
+                  onClick={onActualizarPlantilla}
+                  data-plantilla="actualizar"
+                  title="Muestra qué cambia —nodos, datos y usos— antes de aplicarlo"
+                  className="mt-1 rounded border border-aviso px-2 py-0.5 text-[10px] text-aviso hover:bg-aviso hover:text-white"
+                >
+                  actualizar a la plantilla de hoy…
+                </button>
+              )}
+            </div>
           )}
           <ul className="mt-1.5 space-y-1">
             {def.opciones.map((o) => (

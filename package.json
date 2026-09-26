@@ -20,6 +20,8 @@
     "huella:motor": "node scripts/huella-motor.mjs",
     "verify:obra": "node verificadores/obra.mjs",
     "verify:obras": "node verificadores/obras.mjs",
+    "plantillas:congelar": "node verificadores/congelar-plantillas.mjs",
+    "obra:comparar": "node verificadores/comparar-obra.mjs",
     "obras": "node servidor/obras.mjs",
     "puente-sap": "python puente-sap/puente.py"
   },

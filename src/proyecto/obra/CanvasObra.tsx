@@ -51,6 +51,7 @@ import {
   nuevaJustificacion,
   quitarJustificacion,
   marcarRevision,
+  LARGO_NOTA_REVISION,
   porRevisar,
   conPublicacion,
   nuevoCalculo,
@@ -84,8 +85,9 @@ import { ladoDe, trazoDe, type Lado } from './trazo';
 import PaletaNodos, { type EntradaPaleta } from './PaletaNodos';
 import { VISTAS, configCompleta, datosPorDefecto } from '../vistas/registro';
 import type { Config } from '../vistas/tipos';
-import { armarEnsamble, reconfigurar, type Parametros } from './ensamble';
+import { actualizarBase, armarEnsamble, estadoDePlantilla, reconfigurar, type Parametros } from './ensamble';
 import ArmarBase from './ArmarBase';
+import DialogoPropuesta, { type AutorPropuesta } from './DialogoPropuesta';
 import { recomendarPlaca, solicitacionesDeTipo } from './recomendar-placa';
 import PestanaVista from './PestanaVista';
 import PanelCalculo from './PanelCalculo';
@@ -1038,6 +1040,103 @@ function CanvasObra({
     [sellosDePlantilla, cerrarPestanasDe, anunciarBorrado],
   );
 
+  // ── Propuestas (`./propuesta.ts`) ──────────────────────────────────────────
+  /**
+   * La propuesta abierta: la obra como quedaría, y de dónde viene. `n` y `base`
+   * solo si llegó por el servidor: se archiva al resolverla, y no se acepta si la
+   * obra ya no está en la versión de la que partió.
+   */
+  const [propuesta, setPropuesta] = useState<{
+    autor: AutorPropuesta;
+    titulo: string;
+    nota?: string;
+    despues: Obra;
+    avisos: string[];
+    bloqueo?: string;
+    n?: string;
+    base?: string;
+  } | null>(null);
+
+  /** «actualizar a la plantilla de hoy»: arma la propuesta, no la aplica. */
+  const proponerActualizacion = useCallback(
+    async (idVista: string) => {
+      const actual = obraRef.current;
+      const vista = actual?.calculos.find((k) => k.id === idVista);
+      const def = vista?.frontera?.vista ? VISTAS[vista.frontera.vista] : undefined;
+      if (!actual || !vista || !def) return;
+      const sellos = await sellosDePlantilla(def.id);
+      const r = typeof sellos === 'string' ? { error: sellos } : actualizarBase(obraRef.current ?? actual, idVista, sellos, nuevoId);
+      setPropuesta(
+        'error' in r
+          ? { autor: 'plantilla', titulo: vista.nombre, despues: actual, avisos: [], bloqueo: r.error }
+          : {
+              autor: 'plantilla',
+              titulo: vista.nombre,
+              despues: r.obra,
+              avisos: [
+                ...r.conservados.map((c) => `Se queda como está, porque lo editaste: ${c}.`),
+                ...r.quitados.map((q) => `Se quita: ${q}.`),
+              ],
+            },
+      );
+    },
+    [sellosDePlantilla],
+  );
+
+  /** Abre la primera propuesta que espera en el servidor. */
+  const revisarPropuestas = useCallback(async () => {
+    try {
+      const [p] = await sesion.propuestas();
+      const actual = obraRef.current;
+      if (!p || !actual) return;
+      setPropuesta({
+        autor: p.autor,
+        titulo: p.titulo,
+        nota: p.nota,
+        despues: p.obra ?? actual,
+        avisos: p.problemas,
+        n: p.n,
+        base: p.base,
+        bloqueo: !p.obra
+          ? 'La propuesta no trae una obra legible.'
+          : !sesion.alDia(p.base)
+            ? 'La obra cambió desde que se armó la propuesta (o tiene cambios sin guardar): la comparación ya no es contra lo que hay. Recházala y pide otra.'
+            : undefined,
+      });
+    } catch (e) {
+      setAvisoGuardado((e as Error).message);
+    }
+  }, [sesion]);
+
+  /**
+   * Aceptar: respaldo en disco primero —sin él no se aplica—, después la obra
+   * propuesta, que entra al historial. Lo que propone el asistente queda marcado
+   * «Revisar» en cada nodo que toca.
+   */
+  const aceptarPropuesta = useCallback(async () => {
+    const p = propuesta;
+    const actual = obraRef.current;
+    if (!p || !actual) return;
+    const respaldo = await sesion.respaldar(p.autor === 'plantilla' ? `antes de actualizar ${p.titulo}` : `antes de ${p.titulo}`);
+    let final = p.despues;
+    if (p.autor === 'asistente') {
+      const previos = new Map(actual.calculos.map((k) => [k.id, JSON.stringify(k)]));
+      for (const k of final.calculos) {
+        if (previos.get(k.id) === JSON.stringify(k)) continue;
+        final = marcarRevision(final, k.id, { nota: (p.nota || p.titulo).slice(0, LARGO_NOTA_REVISION), por: 'asistente' });
+      }
+    }
+    setObra(final);
+    if (p.n) await sesion.resolverPropuesta(p.n, 'aceptada');
+    setPropuesta(null);
+    anunciarBorrado(final, `Aplicado: ${p.titulo}.${respaldo ? ` Respaldo en ${respaldo}.` : ''}`);
+  }, [propuesta, sesion, anunciarBorrado]);
+
+  const rechazarPropuesta = useCallback(async () => {
+    if (propuesta?.n) await sesion.resolverPropuesta(propuesta.n, 'rechazada');
+    setPropuesta(null);
+  }, [propuesta, sesion]);
+
   /**
    * Quita un sub-nodo del SAP2000 que publica nombres (Modal, Apoyos). Las hojas
    * que los usan se quedan sin ellos, y hay que decirlo ahora, que todavía se
@@ -1438,6 +1537,22 @@ function CanvasObra({
               onCerrar={() => setArmandoBase(null)}
             />
           )}
+          {propuesta && (
+            <DialogoPropuesta
+              autor={propuesta.autor}
+              titulo={propuesta.titulo}
+              nota={propuesta.nota}
+              antes={obra}
+              despues={propuesta.despues}
+              genericas={genericas}
+              evAntes={obraEval === obra ? evaluacion : undefined}
+              avisos={propuesta.avisos}
+              bloqueo={soloLectura ? 'La obra está abierta en solo lectura: toma el control para aceptar.' : propuesta.bloqueo}
+              onAceptar={aceptarPropuesta}
+              onRechazar={propuesta.n ? rechazarPropuesta : undefined}
+              onCerrar={() => setPropuesta(null)}
+            />
+          )}
           {/* Deshacer y rehacer. Con botones y no solo con el atajo: una obra se
               maneja con el ratón, y un Ctrl+Z que nadie sabe que existe no
               protege de nada. Se apagan con una pestaña abierta, donde el atajo
@@ -1661,6 +1776,27 @@ function CanvasObra({
               className="rounded border border-border px-1.5 py-0.5 text-[10px] text-muted hover:border-error hover:text-error"
             >
               Descartarlos
+            </button>
+          </p>
+        )}
+        {estadoSesion.propuestas > 0 && !soloLectura && !propuesta && (
+          <p
+            role="status"
+            data-propuesta="banda"
+            className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 rounded border border-accent bg-white px-3 py-1.5 text-[11px] leading-snug text-ink"
+          >
+            <span>
+              {estadoSesion.propuestas === 1
+                ? 'Hay una propuesta esperando a que la mires.'
+                : `Hay ${estadoSesion.propuestas} propuestas esperando a que las mires.`}
+            </span>
+            <button
+              type="button"
+              data-propuesta="revisar"
+              onClick={() => void revisarPropuestas()}
+              className="rounded border border-accent px-1.5 py-0.5 text-[10px] text-accent hover:bg-accent hover:text-white"
+            >
+              Revisar
             </button>
           </p>
         )}
@@ -2108,6 +2244,8 @@ function CanvasObra({
               setModoVista('3d');
               abrirPestana(idNodoDeCalculo(calculo.id));
             }}
+            estadoPlantilla={calculo.frontera?.ensamble ? estadoDePlantilla(obra, calculo.id) : undefined}
+            onActualizarPlantilla={() => void proponerActualizacion(calculo.id)}
             onCrearPlanilla={() => crearPlanilla(idNodoDeCalculo(calculo.id))}
             onDesprender={() => desprenderNodo(idNodoDeCalculo(calculo.id))}
             atados={evaluacion.scopeEnNodo.get(idNodoDeCalculo(calculo.id)) ?? {}}

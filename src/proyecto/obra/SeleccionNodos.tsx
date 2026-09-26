@@ -162,11 +162,14 @@ export function Dialogo({
   onCerrar,
   children,
   pie,
+  ancho = 'max-w-lg',
 }: {
   titulo: string;
   onCerrar: () => void;
   children: ReactNode;
   pie: ReactNode;
+  /** La clase de ancho máximo: una tabla antes/después no cabe en `max-w-lg`. */
+  ancho?: string;
 }) {
   useEscape(onCerrar);
   return (
@@ -176,7 +179,7 @@ export function Dialogo({
         aria-modal="true"
         aria-label={titulo}
         onClick={(e) => e.stopPropagation()}
-        className="flex max-h-full w-full max-w-lg flex-col rounded-lg border border-border bg-white shadow-xl"
+        className={`flex max-h-full w-full ${ancho} flex-col rounded-lg border border-border bg-white shadow-xl`}
       >
         <header className="flex items-baseline justify-between gap-2 border-b border-border px-4 py-3">
           <h2 className="text-sm font-semibold text-ink">{titulo}</h2>

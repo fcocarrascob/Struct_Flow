@@ -22,6 +22,8 @@ npm run huella:motor -- [--salida <base.json>] [--comparar <base.json>]  # qué 
 npm run verify:biblioteca          # el contrato de genérica y los casos de public/biblioteca/
 npm run verify:obra                # el grafo de cálculo de una obra, su carpeta y el servidor de obras
 npm run verify:obras [-- <id>]     # los invariantes de cadena sobre las obras que hay en disco (solo lee)
+npm run obra:comparar -- <id> (--con <carpeta|json> | --actualizar-plantilla) [--proponer --titulo "…"]  # en seco: qué cambia, en números
+npm run plantillas:congelar        # congela la plantilla de hoy de cada vista (verify:obra lo exige)
 npm run obras                      # el servidor de obras suelto (npm run dev ya lo monta)
 npm run puente-sap                 # el puente con SAP2000 (Python + comtypes, 127.0.0.1:8789, /sap-api)
 npm run indice:planillas           # regenera los dos índices (lo corren dev y build)
@@ -176,8 +178,18 @@ entrada de otro. Las piezas, y por qué están separadas:
   salidas de cálculo: el orden queda datos → vista → cálculos. La de base de columna
   reparte las barras con la misma regla que `pedestal-generico`, y `verify:obra` lo exige.
 - `servidor/obras.mjs` — el servidor de obras, **tonto a propósito**: mapas ruta → texto, un
-  candado de escritor con latido y un 409 si la carpeta cambió desde que se leyó. Va montado en
-  Vite en `/obras-api` y vive fuera de `scripts/` por el sello.
+  candado de escritor con latido y un 409 si la carpeta cambió desde que se leyó. Guarda además,
+  fuera de cada carpeta, los respaldos (`_respaldos/`) y las propuestas en espera
+  (`_propuestas/<id>/`). Va montado en Vite en `/obras-api` y vive fuera de `scripts/` por el sello.
+- `obra/propuesta.ts` — **la tabla antes/después** (`compararObras`): qué nodos cambian, con
+  qué datos y qué usos, lo que empeora primero. La comparten `DialogoPropuesta.tsx`, la CLI
+  `obra:comparar` y `verify:obra`. Un cambio que propone el asistente, o actualizar una base a
+  su plantilla, pasa por ella: se mira, se respalda y recién entonces se aplica.
+- `obra/ensamble.ts` — el grupo de una vista armado desde su **plantilla**. Una base guarda la
+  huella de la versión con que se armó; las versiones están congeladas en
+  `vistas/<vista>/versiones/`, y **un bloque que se agrega a una sección publicada lleva `id`**
+  (el índice de los demás no lo cuenta): sin él, corre los ids de los que siguen y
+  `plantillas:congelar` se niega.
 - `obra/almacen-disco.ts` — la **sesión** que recibe `CanvasObra`: guarda en disco o en el
   navegador sin que el canvas lo sepa, serializa las escrituras, lleva el candado, detecta
   conflictos y, al cerrar la página, deja un borrador en `localStorage` con lo que no llegó.

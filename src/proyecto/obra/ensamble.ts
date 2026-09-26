@@ -40,8 +40,18 @@ export type { Condicion };
  * sección: su id sigue siendo el mismo, y una hoja armada antes lo reconoce.
  */
 export type BloquePlantilla =
-  | { kind: 'text' | 'math'; src: string; si?: Condicion }
-  | { kind: 'table'; src: string; tabla: NonNullable<Region['tabla']>; si?: Condicion };
+  | { kind: 'text' | 'math'; src: string; si?: Condicion; id?: string }
+  | { kind: 'table'; src: string; tabla: NonNullable<Region['tabla']>; si?: Condicion; id?: string };
+
+/**
+ * Un bloque que se agrega a una sección ya publicada lleva `id` (en minúsculas,
+ * con guiones: `nota-desarrollo`). Los que no lo llevan se identifican por su
+ * índice, y ese índice NO cuenta los que llevan `id`: así un texto nuevo en medio
+ * de la sección no corre el de los siguientes, que es lo que dejaba a una base
+ * armada antes con el texto equivocado bajo cada id. `corrimientos` lo comprueba
+ * contra la última versión congelada.
+ */
+const ID_BLOQUE = /^[a-z][a-z0-9-]*$/;
 
 export interface SeccionPlantilla {
   clave: string;
@@ -104,6 +114,19 @@ export interface Parametros {
 /** Lo que la vista guarda de su ensamble: con qué se armó y qué nodo es cada clave. */
 export interface Ensamble extends Parametros {
   nodos: Record<string, string>;
+  /**
+   * La huella de la plantilla con que se armó o se actualizó por última vez
+   * (`huellaDePlantilla`). Sin ella, la base es anterior a las versiones y se toma
+   * la primera congelada.
+   */
+  plantilla?: string;
+}
+
+/** Una plantilla congelada: `vistas/<vista>/versiones/`, escrita por `npm run plantillas:congelar`. */
+export interface VersionPlantilla {
+  version: string;
+  fecha: string;
+  plantilla: Plantilla;
 }
 
 // ── Instanciar ───────────────────────────────────────────────────────────────
@@ -122,7 +145,7 @@ export function problemasDePlantilla(
   opciones: readonly { clave: string; variantes: readonly { id: string }[] }[],
   normalizar: (c: Config) => Config = (c) => c,
 ): string[] {
-  const problemas: string[] = [];
+  const problemas: string[] = problemasDeIds(p);
   const condiciones = p.nodos.flatMap((n) => [
     ...(n.si ? [{ donde: n.clave, si: n.si }] : []),
     ...(n.hoja ?? []).flatMap((s) => [
@@ -158,19 +181,98 @@ export function problemasDePlantilla(
 
 const TOKEN = /[\p{L}_][\p{L}\p{N}_]*/gu;
 
+const definicionDe = (b: BloquePlantilla) => (b.kind === 'math' ? /^\s*([\p{L}_][\p{L}\p{N}_]*)\s*:=/u.exec(b.src)?.[1] : undefined);
+
 function bloquesDe(n: NodoPlantilla, config: Config | null): { clave: string; bloque: BloquePlantilla }[] {
   const salida: { clave: string; bloque: BloquePlantilla }[] = [];
   for (const s of n.hoja ?? []) {
     if (config && !cumple(s.si, config)) continue;
-    s.bloques.forEach((b, i) => {
-      // El índice cuenta los bloques condicionados aunque no estén: el de los
-      // demás no cambia con la configuración.
-      if (config && !cumple(b.si, config)) return;
+    let indice = 0;
+    for (const b of s.bloques) {
+      // El índice cuenta los bloques condicionados aunque no estén —el de los demás
+      // no cambia con la configuración—, pero no los que llevan `id`.
+      if (!b.id) indice++;
+      if (config && !cumple(b.si, config)) continue;
       // Una definición se identifica por su nombre: sobrevive a que la plantilla
       // agregue o mueva bloques de su sección.
-      const def = b.kind === 'math' ? /^\s*([\p{L}_][\p{L}\p{N}_]*)\s*:=/u.exec(b.src)?.[1] : undefined;
-      salida.push({ clave: `${s.clave}:${def ?? i + 1}`, bloque: b });
-    });
+      salida.push({ clave: `${s.clave}:${b.id ?? definicionDe(b) ?? indice}`, bloque: b });
+    }
+  }
+  return salida;
+}
+
+/**
+ * La huella de una plantilla: 16 hex de su JSON. Es la versión que guarda una base
+ * armada, y el nombre de su archivo congelado. No es un sello criptográfico —nadie
+ * la falsifica—, y ser síncrona deja calcularla al armar.
+ */
+export function huellaDePlantilla(p: Plantilla): string {
+  const texto = JSON.stringify(p);
+  let h1 = 0xdeadbeef;
+  let h2 = 0x41c6ce57;
+  for (let i = 0; i < texto.length; i++) {
+    const c = texto.charCodeAt(i);
+    h1 = Math.imul(h1 ^ c, 2654435761);
+    h2 = Math.imul(h2 ^ c, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  const hex = (x: number) => (x >>> 0).toString(16).padStart(8, '0');
+  return hex(h2) + hex(h1);
+}
+
+/** Los `id` de bloque mal escritos o repetidos dentro de su sección. */
+function problemasDeIds(p: Plantilla): string[] {
+  const problemas: string[] = [];
+  for (const n of p.nodos) {
+    for (const s of n.hoja ?? []) {
+      const vistos = new Set<string>();
+      for (const b of s.bloques) {
+        const def = definicionDe(b);
+        if (def && vistos.has(def) && !b.si) problemas.push(`${n.clave}/${s.clave}: «${def}» se define dos veces sin condición.`);
+        if (def) vistos.add(def);
+        if (!b.id) continue;
+        if (!ID_BLOQUE.test(b.id)) problemas.push(`${n.clave}/${s.clave}: el id «${b.id}» tiene que ir en minúsculas y con guiones.`);
+        else if (vistos.has(b.id) && !def) problemas.push(`${n.clave}/${s.clave}: el id «${b.id}» está repetido.`);
+        vistos.add(b.id);
+      }
+    }
+  }
+  return problemas;
+}
+
+const contenidoPlantilla = (b: BloquePlantilla) => JSON.stringify({ kind: b.kind, src: b.src, tabla: b.kind === 'table' ? b.tabla : undefined });
+
+/**
+ * Los bloques que cambiaron de id entre dos versiones de la plantilla: el mismo
+ * contenido bajo otra clave de su sección, con su clave vieja ocupada por otra
+ * cosa. Es el síntoma de un bloque agregado sin `id` delante de otros, y se
+ * arregla dándole uno. Vacío si no hay ninguno.
+ */
+export function corrimientos(antes: Plantilla, despues: Plantilla): string[] {
+  const salida: string[] = [];
+  const porNodo = (p: Plantilla) => {
+    const m = new Map<string, Map<string, string>>();
+    for (const n of p.nodos) {
+      const claves = m.get(n.clave) ?? new Map<string, string>();
+      for (const x of bloquesDe(n, null)) if (!claves.has(x.clave)) claves.set(x.clave, contenidoPlantilla(x.bloque));
+      m.set(n.clave, claves);
+    }
+    return m;
+  };
+  const a = porNodo(antes);
+  const d = porNodo(despues);
+  for (const [nodo, viejos] of a) {
+    const nuevos = d.get(nodo);
+    if (!nuevos) continue;
+    const porContenido = new Map<string, string[]>();
+    for (const [clave, c] of nuevos) porContenido.set(c, [...(porContenido.get(c) ?? []), clave]);
+    for (const [clave, c] of viejos) {
+      if (nuevos.get(clave) === c || !nuevos.has(clave)) continue;
+      const seccion = clave.slice(0, clave.lastIndexOf(':'));
+      const otra = (porContenido.get(c) ?? []).find((k) => k !== clave && k.startsWith(`${seccion}:`) && viejos.get(k) !== c);
+      if (otra) salida.push(`${nodo}: el bloque ${clave} pasó a ser ${otra}; dale un \`id\` al bloque que se agregó delante.`);
+    }
   }
   return salida;
 }
@@ -343,7 +445,7 @@ export function armarEnsamble(
   const idGrupo = nuevoId('g');
   const nodos = [...(manual ? [manual] : []), ...instanciar(p, config, params, ids, sellos)].map((k) => ({ ...k, grupo: idGrupo }));
   const idVista = vistaDe(p, ids);
-  const conEnsamble = nodos.map((k) => (k.id === idVista ? conNodos(k, params, ids, config, p) : k));
+  const conEnsamble = nodos.map((k) => (k.id === idVista ? conNodos(k, params, ids, config, p, huellaDePlantilla(p)) : k));
   return {
     obra: {
       ...obra,
@@ -372,10 +474,28 @@ function vistaDe(p: Plantilla, ids: Readonly<Record<string, string>>): string {
   return ids[n.clave];
 }
 
-/** Guarda en la vista con qué se armó y los ids de los nodos que existen. */
-function conNodos(k: NodoCalculo, params: Parametros, ids: Readonly<Record<string, string>>, config: Config, p: Plantilla): NodoCalculo {
+/**
+ * Guarda en la vista con qué se armó, los ids de los nodos que existen y la
+ * versión de la plantilla. Reconfigurar no la cambia: cambiar una opción no trae
+ * lo demás que la plantilla de hoy tenga de nuevo.
+ */
+function conNodos(
+  k: NodoCalculo,
+  params: Parametros,
+  ids: Readonly<Record<string, string>>,
+  config: Config,
+  p: Plantilla,
+  huella: string | undefined,
+): NodoCalculo {
   const presentes = Object.fromEntries(p.nodos.filter((n) => cumple(n.si, config)).map((n) => [n.clave, ids[n.clave]]));
-  return { ...k, frontera: { ...k.frontera!, ensamble: { ...params, nodos: presentes } } };
+  const { tipo, grupoSap, diseno, sobrerresistencia } = params;
+  return {
+    ...k,
+    frontera: {
+      ...k.frontera!,
+      ensamble: { tipo, grupoSap, diseno, sobrerresistencia, nodos: presentes, ...(huella ? { plantilla: huella } : {}) },
+    },
+  };
 }
 
 export interface ResultadoReconfigurar {
@@ -413,7 +533,7 @@ export function reconfigurar(
     vista.grupo,
   );
   return {
-    obra: { ...resultado, calculos: resultado.calculos.map((k) => (k.id === idVista ? conNodos(k, ens, ids, configNueva, p) : k)) },
+    obra: { ...resultado, calculos: resultado.calculos.map((k) => (k.id === idVista ? conNodos(k, ens, ids, configNueva, p, ens.plantilla) : k)) },
     quitados,
   };
 }
@@ -454,10 +574,76 @@ export function actualizarPlantilla(
   );
   const configNueva = normalizada(despues, config);
   return {
-    obra: { ...resultado, calculos: resultado.calculos.map((k) => (k.id === idVista ? conNodos(k, ens, ids, configNueva, despues) : k)) },
+    obra: {
+      ...resultado,
+      calculos: resultado.calculos.map((k) => (k.id === idVista ? conNodos(k, ens, ids, configNueva, despues, huellaDePlantilla(despues)) : k)),
+    },
     quitados,
     conservados,
   };
+}
+
+/** La vista de un ensamble y su definición, o por qué no la hay. */
+function vistaDeEnsamble(obra: Obra, idVista: string) {
+  const vista = obra.calculos.find((k) => k.id === idVista);
+  const f = vista?.frontera;
+  const def = f?.vista ? VISTAS[f.vista] : undefined;
+  return f?.ensamble && def?.plantilla ? { ensamble: f.ensamble, def, plantilla: def.plantilla } : undefined;
+}
+
+/**
+ * Con qué versión de la plantilla está armada una base: la congelada con su huella,
+ * o —si es anterior a las versiones— la primera. `undefined` si su huella no está
+ * entre las congeladas (una plantilla que nunca se congeló).
+ */
+export function versionDeBase(obra: Obra, idVista: string): VersionPlantilla | undefined {
+  const v = vistaDeEnsamble(obra, idVista);
+  const versiones = v?.def.versiones ?? [];
+  if (!v) return undefined;
+  return v.ensamble.plantilla ? versiones.find((x) => x.version === v.ensamble.plantilla) : versiones[0];
+}
+
+export interface EstadoPlantilla {
+  /** La huella con que se armó, si la guarda. */
+  armada?: string;
+  /** La de la plantilla de hoy. */
+  hoy: string;
+  /** Si hay con qué actualizar: la versión de la base está congelada y no es la de hoy. */
+  actualizable: boolean;
+  /** Lo que le falta respecto de la de hoy (`desfaseDePlantilla`). */
+  desfase: string[];
+}
+
+/** Dónde está una base respecto de su plantilla, para la ficha de la vista y el invariante. */
+export function estadoDePlantilla(obra: Obra, idVista: string): EstadoPlantilla | undefined {
+  const v = vistaDeEnsamble(obra, idVista);
+  if (!v) return undefined;
+  const hoy = huellaDePlantilla(v.plantilla);
+  const base = versionDeBase(obra, idVista);
+  const desfase = desfaseDePlantilla(obra, v.plantilla, idVista);
+  return {
+    ...(v.ensamble.plantilla ? { armada: v.ensamble.plantilla } : {}),
+    hoy,
+    actualizable: !!base && (base.version !== hoy || desfase.length > 0),
+    desfase,
+  };
+}
+
+/**
+ * `actualizarPlantilla` desde la versión con que se armó la base hasta la de hoy,
+ * sin sacar nada de git: es lo que corre el botón de la ficha de la vista.
+ */
+export function actualizarBase(
+  obra: Obra,
+  idVista: string,
+  sellos: Readonly<Record<string, string>>,
+  nuevoId: (prefijo: string) => string,
+): ResultadoActualizar | { error: string } {
+  const v = vistaDeEnsamble(obra, idVista);
+  if (!v) return { error: 'La vista no tiene un ensamble que actualizar.' };
+  const base = versionDeBase(obra, idVista);
+  if (!base) return { error: `La base se armó con la plantilla ${v.ensamble.plantilla}, que no está congelada: no hay con qué comparar.` };
+  return actualizarPlantilla(obra, base.plantilla, v.plantilla, idVista, sellos, nuevoId);
 }
 
 /**
@@ -582,7 +768,9 @@ function identidad(k: NodoCalculo): string {
  * `conservado`, un bloque que está en las dos con distinto contenido toma el nuevo
  * si nadie lo editó; si se editó, se queda y se avisa. Sin él, se queda siempre.
  */
-function aplicarHoja(actual: Region[], vieja: Region[], nueva: Region[], conservado?: (id: string) => void): Region[] {
+function aplicarHoja(actual: Region[], viejaCruda: Region[], nueva: Region[], conservado?: (id: string) => void): Region[] {
+  [actual, viejaCruda] = reidentificar(actual, viejaCruda, nueva);
+  const vieja = viejaCruda;
   const enNueva = new Map(nueva.map((r) => [r.id, r]));
   const enVieja = new Map(vieja.map((r) => [r.id, r]));
   let hoja = actual
@@ -616,6 +804,67 @@ function aplicarHoja(actual: Region[], vieja: Region[], nueva: Region[], conserv
   });
   // Las posiciones siguen el orden: la hoja todavía lee (y, x).
   return hoja.map((r, i) => ({ ...r, x: 40, y: 40 + i * 48 }));
+}
+
+/**
+ * Los ids se alinean por contenido antes de comparar, en dos pasos:
+ *
+ *   - un bloque de la base cuyo id no es el de la plantilla vieja, pero cuyo
+ *     contenido sí es el de uno de ella (una base armada cuando los textos se
+ *     identificaban solo por su lugar), toma el id de ese;
+ *   - un bloque que entre la vieja y la nueva cambió de id con el mismo contenido
+ *     (uno agregado sin `id` delante lo corrió) se renombra en la base y en la
+ *     vieja al id nuevo. Sin esto, el texto editado quedaba bajo el id que en la
+ *     nueva es otro bloque, ese bloque no entraba y el texto se duplicaba.
+ */
+function reidentificar(actual: Region[], vieja: Region[], nueva: Region[]): [Region[], Region[]] {
+  const seccion = (id: string) => id.slice(0, id.lastIndexOf(':'));
+  const enVieja = new Map(vieja.map((r) => [r.id, r]));
+  // El contenido manda sobre el id: en una base armada antes, el id de un texto
+  // puede estar ocupado por el bloque que antes iba en ese lugar. Primero se fijan
+  // los que coinciden en las dos cosas; después, cada uno sin editar busca el
+  // bloque de la vieja con su contenido, en su sección.
+  const tomados = new Set<string>();
+  const fijos = new Set<string>();
+  for (const r of actual) {
+    const v = enVieja.get(r.id);
+    if (v && contenido(v) === contenido(r)) {
+      tomados.add(v.id);
+      fijos.add(r.id);
+    }
+  }
+  const alVieja = new Map<string, string>();
+  for (const r of actual) {
+    if (fijos.has(r.id)) continue;
+    const c = contenido(r);
+    const v = vieja.find((x) => !tomados.has(x.id) && seccion(x.id) === seccion(r.id) && contenido(x) === c);
+    if (!v) continue;
+    tomados.add(v.id);
+    alVieja.set(r.id, v.id);
+  }
+  if (alVieja.size) {
+    // Un bloque editado que se queda con un id que ahora es de otro sale aparte.
+    const destinos = new Set(alVieja.values());
+    actual = actual.map((r) => (alVieja.has(r.id) ? { ...r, id: alVieja.get(r.id)! } : destinos.has(r.id) ? { ...r, id: `${r.id}~` } : r));
+  }
+
+  const corrido = new Map<string, string>();
+  for (const v of vieja) {
+    const c = contenido(v);
+    const mismo = nueva.find((x) => x.id === v.id);
+    if (mismo && contenido(mismo) === c) continue;
+    const previo = (id: string) => enVieja.get(id);
+    const n = nueva.find(
+      (x) => x.id !== v.id && seccion(x.id) === seccion(v.id) && contenido(x) === c && (!previo(x.id) || contenido(previo(x.id)!) !== c),
+    );
+    if (n && ![...corrido.values()].includes(n.id)) corrido.set(v.id, n.id);
+  }
+  if (!corrido.size) return [actual, vieja];
+  const renombrar = (r: Region) => (corrido.has(r.id) ? { ...r, id: corrido.get(r.id)! } : r);
+  // Lo que ocupaba el id de destino y no se corrió a su vez sale con otro, para no chocar.
+  const destinos = new Set(corrido.values());
+  const aparte = (r: Region) => (destinos.has(r.id) && !corrido.has(r.id) ? { ...r, id: `${r.id}~` } : r);
+  return [actual.map((r) => renombrar(aparte(r))), vieja.map((r) => renombrar(aparte(r)))];
 }
 
 /** Las entradas, fórmulas, lo publicado y la configuración que cambian entre la plantilla vieja y la nueva. */
