@@ -76,7 +76,8 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
      PED_L 2000 y placa de apoyo embebida de 150 mm (anclaje 0,961: el descascaramiento nominal
      supera 1,2·n·N_sa y el perno fluye primero), placa 0,897, silla 0,986. La cabeza sigue el
      §9.5.3 de NCh2369 como criterio (CP a 55 y 70 mm, CV a 50 y 65 mm). El pedestal más largo no
-     se contrastó con la zapata, que ningún nodo verifica. Ninguna hoja revisa `nc_*`.
+     se contrastó con la zapata, que ningún nodo verifica. Ninguna hoja revisa `nc_*` (la ficha de
+     una genérica marca ≠ al atar una gobernante no concurrente; ver «Puertos con tipo»).
    - **El desarrollo de la armadura de anclaje de los pernos ya se verifica** (§17.5.2.1.1(a), en
      `anclaje-hormigon-generica`, con los largos que mide la vista: las barras siguen dentro de la
      zapata, `h_zap` y `recub_zap` son supuestos por base). Queda: el **l_dh de la edición SI** está

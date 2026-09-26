@@ -117,6 +117,7 @@ export {
 } from './ensamble';
 export { invariantesDeObra } from './invariantes';
 export { compararObras, comparacionEnTexto } from './propuesta';
+export { puertosCompatibles, gobernanteDe, concurrenteEn } from './puertos';
 export { recomendarPlaca, solicitacionesDeTipo, PLACA_ROTULADA_DE_PARTIDA } from './recomendar-placa';
 export { cumple } from '../vistas/condicion';
 export { barrasPerimetro, abscisasPernos, abscisasNervios } from '../vistas/base-columna/modelo';

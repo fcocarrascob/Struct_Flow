@@ -293,6 +293,7 @@ export default function FichaGenerica({
               valores={valores}
               formulas={frontera.formulas ?? {}}
               resueltos={resueltos}
+              scope={instancia?.scope}
               onValor={onEntrada}
               onFormula={onFormula}
             />

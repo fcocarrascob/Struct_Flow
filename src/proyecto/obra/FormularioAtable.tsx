@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { normalizarOpciones, type CampoDef, type Entradas } from '../../lib/diseno/tipos';
 import type { CampoResuelto } from './biblioteca';
 import { mensajeDeMotor } from '../../components/canvas/mensajes-motor';
+import { concurrenteEn, puertosCompatibles } from './puertos';
 
 /**
  * El formulario de una genérica dentro de una obra, donde cada campo puede ser
@@ -37,9 +38,16 @@ export default function FormularioAtable({
   valores,
   formulas,
   resueltos,
+  scope,
   onValor,
   onFormula,
 }: {
+  /**
+   * Lo que la obra deja ver en la posición del nodo: de ahí salen los nombres que
+   * se ofrecen al atar (los de dimensión compatible) y la marca ≠ de una
+   * gobernante no concurrente (`puertos.ts`).
+   */
+  scope?: Record<string, unknown>;
   campos: CampoDef[];
   /** Los valores efectivos, ya con lo que resolvió cada campo atado. */
   valores: Entradas;
@@ -50,6 +58,9 @@ export default function FormularioAtable({
   onFormula: (nombre: string, expr: string | undefined) => void;
 }) {
   const [borradores, setBorradores] = useState<Record<string, string>>({});
+  // Las sugerencias solo del campo que se escribe: una lista por campo atado serían
+  // miles de opciones en el DOM.
+  const [enfocado, setEnfocado] = useState<string | null>(null);
 
   const grupos: { nombre: string; campos: CampoDef[] }[] = [];
   for (const c of campos) {
@@ -122,11 +133,29 @@ export default function FormularioAtable({
                         spellCheck={false}
                         value={formulas[campo.nombre]}
                         onChange={(e) => onFormula(campo.nombre, e.target.value)}
+                        onFocus={() => setEnfocado(campo.nombre)}
+                        onBlur={() => setEnfocado((x) => (x === campo.nombre ? null : x))}
+                        list={scope && enfocado === campo.nombre ? `${id}-puertos` : undefined}
                         placeholder="CM_losa * A_planta"
                         className={`${CAMPO} mt-0.5 font-mono ${
                           r?.error ? 'border-error' : 'border-accent'
                         }`}
                       />
+                      {scope && enfocado === campo.nombre && (
+                        <datalist id={`${id}-puertos`}>
+                          {puertosCompatibles(scope, campo.unidad).map((p) => (
+                            <option key={p.nombre} value={p.nombre}>
+                              {`${p.texto}${p.concurrente === false ? ' · ≠ no concurrente' : ''}`}
+                            </option>
+                          ))}
+                        </datalist>
+                      )}
+                      {scope && concurrenteEn(formulas[campo.nombre].trim(), scope) === false && (
+                        <p className="mt-0.5 text-[10px] leading-snug text-aviso" title="nc = 1 en el nodo de apoyos">
+                          ≠ No concurrente: sale de una envolvente o un espectro, y su M, N y V no son de un mismo
+                          instante.
+                        </p>
+                      )}
                       <p
                         className={`mt-0.5 text-[10px] leading-snug ${
                           r?.error ? 'text-error' : 'text-muted'

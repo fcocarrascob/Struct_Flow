@@ -667,6 +667,49 @@ forma de organizar la obra»). El orden topológico sigue siendo el orden de lec
 que no evalúan solo ocupan su lugar en él. La clase que se dibuja en la tarjeta (cálculo,
 biblioteca, resumen, modelo) **se deriva** de esto y no se declara.
 
+## Puertos con tipo
+
+**2026-09-25, diseño; el primer paso está hecho.** Todo lo que un nodo publica vive en un
+espacio global de nombres, y lo que dice de sí va codificado en el sufijo: `N_v_CP_O0` es la
+compresión que acompaña al corte máximo del tipo CP en el conjunto O0, y si ese conjunto es una
+envolvente lo dice otro nombre, `nc_v_CP_O0`. Funciona mientras quien ata sabe leer el sufijo;
+el Pachón mostró sus límites: un campo atado a algo de otra dimensión solo falla al evaluar, un
+campo que la genérica estrena queda con el valor de ejemplo sin que nadie lo elija, y ninguna
+hoja sabe si la M y la N que combina son de un mismo instante.
+
+**El destino: cada publicación y cada campo atable declaran un descriptor.**
+
+| Campo del descriptor | Qué dice | De dónde sale hoy |
+|---|---|---|
+| dimensión | fuerza, momento, longitud, adimensional… | de la unidad del campo, y del valor publicado |
+| obligatorio | si un campo sin fijar ni atar es un error o un valor de ejemplo aceptado | nada: `campo-suelto` avisa de todos |
+| concurrencia | `concurrente` (una combinación) o `envolvente` (Max/Min por componente, espectro) | `nc_*` del nodo de apoyos |
+| origen | tipo de apoyo, conjunto, criterio, magnitud | el sufijo de la gobernante |
+
+El nombre global se queda **como la forma de citarlo** en una fórmula: los puertos no reemplazan
+el scope, lo describen. Lo que cambia es que atar deja de ser escribir un nombre y pasa a ser
+elegir un puerto compatible, que el lienzo puede avisar antes de evaluar («este campo pide una
+fuerza concurrente y esto es una envolvente») y que un campo obligatorio sin atar es un error
+del nodo y no un aviso.
+
+**Migración sin romper obras.** El descriptor se deriva mientras no se declare: la dimensión,
+del valor; la concurrencia, del `nc_*`; el origen, del sufijo. Declararlo es un campo opcional
+de `CampoDef` (`obligatorio`, `concurrencia`) y de `SalidaDef` —y eso está en `src/lib`, así que
+resella el motor y se hace de una vez, con las genéricas que lo usen—. Ningún nombre cambia.
+
+**Primer paso (hecho, `obra/puertos.ts`).** Sin tocar el formato: al atar un campo de una
+genérica, la ficha ofrece los nombres visibles que el motor convierte a su unidad (la misma
+`resolverExpresion` del campo atado), las gobernantes primero, y marca ≠ las no concurrentes;
+un campo atado a una gobernante con `nc = 1` lo dice debajo. Se descartó un invariante que
+avisara de M y N no concurrentes combinadas en un mismo nodo: la hoja de datos de la base lo
+hace a propósito —la gobernante no concurrente se publica con la N menor, que es lo seguro
+para la tracción—, y el aviso habría pintado de ámbar todas las bases del Pachón sin decir nada
+nuevo. Vuelve cuando una genérica declare que pide concurrencia.
+
+Queda fuera, por ahora: la separación del **tipo** (quien da los esfuerzos) de la **alternativa**
+(el sufijo de los nombres propios) de «Alternativas de un mismo apoyo», que es la otra mitad
+del espacio global.
+
 ## Lo que enseñó el Pachón
 
 El estudio completo y los 12 hallazgos para el harness están en `docs/pachon/auditoria/`.

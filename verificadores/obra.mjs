@@ -3668,6 +3668,19 @@ function CASOS_ENSAMBLE() {
       },
     },
     {
+      nombre: 'puertos: al atar se ofrecen los nombres que convierten a la unidad del campo, y una gobernante con nc = 1 no es concurrente',
+      ok: () => {
+        const ev = evaluarObra(obra(calc('EXT', ...['N_v_CP_O0 := 100 kN', 'nc_v_CP_O0 := 1', 'N_c_CP_O0 := 90 tonf', 'nc_c_CP_O0 := 0', 'L_x := 3 m', 'k_x := 2'].map(m))), genericasBase);
+        const nombres = (u) => motor.puertosCompatibles(ev.scope, u).map((p) => p.nombre).join(',');
+        if (nombres('kN') !== 'N_c_CP_O0,N_v_CP_O0') return `kN: ${nombres('kN')}`;
+        if (nombres('mm') !== 'L_x') return `mm: ${nombres('mm')}`;
+        if (nombres(undefined) !== 'k_x') return `sin unidad: ${nombres(undefined)}`;
+        if (motor.concurrenteEn('N_v_CP_O0', ev.scope) !== false || motor.concurrenteEn('N_c_CP_O0', ev.scope) !== true) return 'concurrencia mal leída';
+        if (motor.concurrenteEn('L_x', ev.scope) !== undefined) return 'un nombre cualquiera no es una gobernante';
+        return motor.gobernanteDe('M_e_CPb_LRFD')?.conjunto === 'LRFD' ? null : 'gobernanteDe';
+      },
+    },
+    {
       nombre: 'propuesta: la tabla antes/después dice qué nodo cambia, con qué dato, y qué usos suben primero',
       ok: () => {
         const r = base();
