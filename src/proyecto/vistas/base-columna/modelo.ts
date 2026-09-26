@@ -195,10 +195,11 @@ export function construirBaseColumna(d: Record<string, number>, config: Config =
   // Sin llave, la zona confinada es el lado menor, como el pedestal con h_llave = 0.
   const zpLlave = conLlave ? d.h_sl + (bMin - d.b_sl) / 2 : 0;
   const zp = Math.min(Math.max(bMin, zpLlave), d.H_PED);
-  // El primer estribo, a s1_est de la cara superior; de ahí, al paso de la zona
-  // confinada mientras no se sale de ella y al del fuste después.
+  // El primer estribo, a s1_est de la cara superior; los tres primeros, a sep_cab;
+  // de ahí, al paso de la zona confinada mientras no se sale de ella y al del fuste
+  // después.
   const niveles: number[] = [];
-  for (let z = d.s1_est; z <= d.H_PED - d.recub_inf; z += z < zp ? d.sep_zp : d.sep_est) niveles.push(r1(-z));
+  for (let z = d.s1_est; z <= d.H_PED - d.recub_inf; z += niveles.length < 3 ? d.sep_cab : z < zp ? d.sep_zp : d.sep_est) niveles.push(r1(-z));
   // Un nivel abraza las barras solo si queda entero bajo su extremo superior: el que
   // asoma por encima no rodea nada, y no cuenta para los pernos ni para la llave.
   const abraza = (z: number) => -z - d.db_est / 2 >= d.recub_sup - 1e-6;
@@ -294,6 +295,16 @@ export function construirBaseColumna(d: Record<string, number>, config: Config =
   chequeos.push(
     chequeo('v_s1_barras', 'Primer estribo entero bajo el extremo superior de las barras, que tiene que abrazar', d.s1_est - d.db_est / 2, '>=', d.recub_sup, 'mm',
       ['estribo_1', 'barra_1']),
+  );
+
+  // NCh2369:2025 §9.5.3, adoptado como criterio en cualquier obra: el espaciamiento
+  // libre de los tres primeros estribos no pasa de 50 mm, y se lee también desde la
+  // cara superior hasta el primero.
+  const cabeza = niveles.slice(0, 3).map((z) => -z);
+  const libreCab = Math.max(d.s1_est - d.db_est / 2, ...cabeza.slice(1).map((z, i) => z - cabeza[i] - d.db_est));
+  chequeos.push(
+    chequeo('v_libre_cab', 'Espaciamiento libre de la cara al primer estribo y entre los tres primeros (NCh2369:2025 §9.5.3, como criterio)',
+      r1(libreCab), '<=', 50, 'mm', ['estribo_1', 'estribo_2']),
   );
 
   chequeos.push(
@@ -493,6 +504,12 @@ export function construirBaseColumna(d: Record<string, number>, config: Config =
     valor: r1(zp),
     unidad: 'mm',
     criterio: conLlave ? 'zona confinada: min(max(lado menor, llave + 45°), altura), como el pedestal' : 'zona confinada sin llave: min(lado menor, altura), como el pedestal',
+  });
+  derivados.push({
+    nombre: 'sep_libre_cab',
+    valor: r1(libreCab),
+    unidad: 'mm',
+    criterio: 'mayor espaciamiento libre de la cara superior al primer estribo y entre los tres primeros (NCh2369:2025 §9.5.3)',
   });
   // Estribos a no más de 125 mm de la cara superior: son los que confinan los pernos
   // (ACI 318-25 §10.7.6.1.5), y tienen que rodear las barras.

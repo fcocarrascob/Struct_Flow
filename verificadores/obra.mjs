@@ -3130,6 +3130,7 @@ const CASOS_VISTA = [
     ['v_gol_barra', { y_t: 800 }],
     ['v_hef_ped', { h_ef: 2000 }],
     ['v_s1_barras', { recub_sup: 60 }],
+    ['v_libre_cab', { sep_cab: 90 }],
     ['v_sep_barras', { n_barras: 80 }],
     ['v_ramas', { n_ramas: 14 }],
     ['v_perno_nervio', { a_tuerca: 160 }],
@@ -3379,17 +3380,16 @@ function CASOS_ENSAMBLE() {
         const e = errores(ev);
         if (e.length) return `${e.length} región(es) con error: ${e[0]}`;
         if (ev.scope.n_cont_ped_CP !== 21) return `n_cont_ped_CP = ${ev.scope.n_cont_ped_CP}`;
-        for (const v of ['v_t_llave_CP', 'v_dom_m_CP', 'v_dom_e_CP', 'v_d26c_CP'])
+        for (const v of ['v_geo_base_CP', 'v_t_llave_CP', 'v_dom_m_CP', 'v_dom_e_CP', 'v_d26c_CP'])
           if (ev.scope[v] !== true) return `${v} = ${ev.scope[v]}`;
         if (ev.scope.L_pb !== undefined) return 'quedó un nombre sin sufijo';
-        // El primer estribo φ25 a 50 mm asoma sobre las barras, que terminan a 40 mm de
-        // la cara: no las abraza, y es lo único que la geometría del Pachón no cumple.
-        // El aviso de los niveles de cabeza no vota, pero el nodo de la vista lo dice.
-        if (ev.scope.v_geo_base_CP !== false || ev.scope.n_est_cab_ped_CP !== 1) return `v_geo_base_CP = ${ev.scope.v_geo_base_CP}, n_est_cab = ${ev.scope.n_est_cab_ped_CP}`;
+        // El primer estribo φ25 a 55 mm y los tres primeros a 70: abrazan las barras (a
+        // 40 mm), dos caen en los 125 mm de arriba y el libre mayor es 45 mm (§9.5.3).
+        if (ev.scope.n_est_cab_ped_CP !== 2 || ev.scope.sep_libre_cab_ped_CP?.toNumber('mm') !== 45) return `n_est_cab = ${ev.scope.n_est_cab_ped_CP}, libre = ${ev.scope.sep_libre_cab_ped_CP}`;
+        // El aviso de los niveles de cabeza no vota, pero el nodo de la vista sale en
+        // ámbar y lo dice.
         const nv = proyectar(o, ev, genericasBase).nodos.find((n) => n.id === idNodoDeCalculo(r.idVista));
-        if (nv?.severidad !== 'error' || !nv.motivos?.some((t) => t.startsWith('Aviso:'))) return `nodo de la vista: ${nv?.severidad} ${JSON.stringify(nv?.motivos)}`;
-        const falsos = ev.importadas.get(idNodoDeCalculo(r.idVista)).vista.modelo.chequeos.filter((c) => !c.cumple && !c.aviso).map((c) => c.id);
-        if (falsos.join() !== 'v_s1_barras') return `la vista falla en ${falsos.join(', ')}`;
+        if (nv?.severidad !== 'aviso' || !nv.motivos?.some((t) => t.startsWith('Aviso:'))) return `nodo de la vista: ${nv?.severidad} ${JSON.stringify(nv?.motivos)}`;
         return u(ev) ?? sinCiclo(ev);
       },
     },

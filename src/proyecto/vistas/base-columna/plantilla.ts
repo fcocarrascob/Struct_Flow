@@ -270,7 +270,7 @@ const DATOS = [
     f('n_ramas_ped := 6', MOM),
     f('sep_est_ped := 150 mm', MOM),
     f('sep_zp_ped := 75 mm', MOM),
-    f('s1_est_ped := 50 mm', MOM),
+    f('s1_est_ped := 55 mm', MOM),
     t(
       'Los casos de sobrerresistencia reemplazan a los de diseño de tracción porque los dominan: más momento con menos ' +
         'compresión, también con el corte por la altura del pedestal. El de momento máximo cubre además el de corte máximo. ' +
@@ -327,6 +327,14 @@ const DATOS = [
         columnas: [{}, TONF, TONF_M],
       },
     },
+  ]),
+  sec('cabeza', [
+    t(
+      'Supuesto: los tres primeros estribos del pedestal van a sep_cab_ped entre ejes, y ninguno a más de 50 mm libres de la ' +
+        'cara superior ni del anterior (NCh2369:2025 §9.5.3, adoptado como criterio). La vista geométrica lo comprueba.',
+    ),
+    f('sep_cab_ped := 70 mm', MOM),
+    f('sep_cab_ped := 65 mm', ROT),
   ]),
   sec(
     'llave-rot',
@@ -624,7 +632,7 @@ export const PLANTILLA_BASE_COLUMNA: Plantilla = {
         procedencia: 'biblioteca',
         id: 'pedestal-generico',
         entradas: {
-          fy: 420, fyt: 420, lam: 1, sep_libre_top: 50, malla_sup: 1, frac_E_V: 1, Muy_1: 0, Muy_2: 0,
+          fy: 420, fyt: 420, lam: 1, malla_sup: 1, frac_E_V: 1, Muy_1: 0, Muy_2: 0,
           Muy_3: 0, Muy_4: 0, Mux_5: 0, Pu_6: 0, Mux_6: 0, n_pasos_pm: 120, sis_nch2369: 0, sis_aci18: 1, sdc_def: 1,
           cat_III_IV: 0, T_esp: 0, V_esp: 0,
         },
@@ -636,7 +644,7 @@ export const PLANTILLA_BASE_COLUMNA: Plantilla = {
           As_req_llave_X: 'As_llx', As_req_llave_Y: 'As_lly', h_llave: 'h_sl_ll', b_llave: 'b_sl_ll', N_trac_max: 'T_ext_dg',
           Pu_5: 'N_t3_cl', Muy_5: 'Muy_ext_cl', Muy_6: 'Muy_int_cl', sep_est_zp: 'sep_zp_ped', n_ramas: 'n_ramas_ped',
           n_niv_sin_ramas: 'n_niv_sin_ramas_ll', ramas_cab_x: 'ramas_cab_x_ped', ramas_cab_y: 'ramas_cab_y_ped',
-          s1_est: 's1_est_ped', n_est_cab: 'n_est_cab_ped',
+          s1_est: 's1_est_ped', n_est_cab: 'n_est_cab_ped', sep_libre_top: 'sep_libre_cab_ped',
         },
         publica: { u_max: 'u_ped' },
         capas: [
@@ -675,10 +683,10 @@ export const PLANTILLA_BASE_COLUMNA: Plantilla = {
           PED_Y: 'PED_L_pb', H_PED: 'H_ped_pb', n_barras: 'n_barras_ped', db_long: 'db_long_ped', recub: 'recub_ped',
           db_est: 'db_est_ped', n_ramas: 'n_ramas_ped', sep_est: 'sep_est_ped', sep_zp: 'sep_zp_ped', ALA_EXT: 'ALA_EXT_sl',
           NER_H: 'NER_H_sl', NER_L: 'NER_L_sl', NER_T: 'NER_T_sl', CH_B: 'CH_B_sl', CH_L: 'CH_L_sl', CH_T: 'CH_T_sl',
-          n_niv_sin_ramas: 'n_niv_sin_ramas_ll', amarre_cab: 'amarre_cab_ll', s1_est: 's1_est_ped',
+          n_niv_sin_ramas: 'n_niv_sin_ramas_ll', amarre_cab: 'amarre_cab_ll', s1_est: 's1_est_ped', sep_cab: 'sep_cab_ped',
         },
         publica: {
-          n_cont: 'n_cont_ped', n_est_cab: 'n_est_cab_ped', ramas_cab_x: 'ramas_cab_x_ped', ramas_cab_y: 'ramas_cab_y_ped',
+          sep_libre_cab: 'sep_libre_cab_ped', n_cont: 'n_cont_ped', n_est_cab: 'n_est_cab_ped', ramas_cab_x: 'ramas_cab_x_ped', ramas_cab_y: 'ramas_cab_y_ped',
           n_est_ll: 'n_est_ll', v_global: 'v_geo_base',
         },
       },

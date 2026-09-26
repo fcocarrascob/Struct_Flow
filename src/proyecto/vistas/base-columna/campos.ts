@@ -198,6 +198,13 @@ export const CAMPOS_BASE_COLUMNA: Campo[] = [
     supuesto: 'primer estribo a 50 mm de la cara superior del pedestal',
   },
   {
+    nombre: 'sep_cab',
+    unidad: 'mm',
+    descripcion: 'Separación entre ejes de los tres primeros estribos',
+    porDefecto: 70,
+    supuesto: 'los tres primeros estribos a 70 mm entre ejes',
+  },
+  {
     nombre: 'd_agg',
     unidad: 'mm',
     descripcion: 'Tamaño máximo del árido',
