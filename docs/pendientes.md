@@ -94,9 +94,10 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
      primer nivel que las tiene) y la vista vota dos choques: `v_estribo_perno` (una rama o el
      rombo no puede atravesar un perno; se pueden tocar, decisión del 2026-09-25) y
      `v_rama_golilla`. El reparto elige las barras de cara que no atraviesan pernos y sube (o
-     baja) el nivel que caería en las placas de apoyo embebidas. **El rombo sale torcido con un
-     número par de barras por cara**: no hay barra central y toma una de las dos del medio (se ve
-     en la planta de COL_VIENTO).
+     baja) el nivel que caería en las placas de apoyo embebidas. Con un número par de barras por
+     cara el rombo sale torcido, y se deja así a propósito: el dibujo delata la configuración sin
+     necesidad de nota. COL_VIENTO pasó a 20 φ22 (5 y 7 por cara): rombo centrado y la cabeza sin
+     aviso de amarre.
    Menores: doble verificación llave/pedestal de la misma armadura (iguales en X, distintas en Y; el
    pedestal cuenta sus niveles desde `s1_est` y no sabe de `recub_sup`); `fy` de las barras
    declarado tres veces; φ25/φ36 fuera del rango investigado (R17.5.2.1: No. 16 en tracción, No. 19
