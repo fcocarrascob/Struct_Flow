@@ -90,6 +90,13 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
      y +20 % (CV).
    - Sin verificar en ningún nodo: zapata, desarrollo en la zapata (§18.13.2), soldadura
      columna–placa, 100/30 ortogonal.
+   - **La planta dibuja el armado transversal** (perimetral, rombo de cabeza y las ramas del
+     primer nivel que las tiene) y la vista vota dos choques: `v_estribo_perno` (una rama o el
+     rombo no puede atravesar un perno; se pueden tocar, decisión del 2026-09-25) y
+     `v_rama_golilla`. El reparto elige las barras de cara que no atraviesan pernos y sube (o
+     baja) el nivel que caería en las placas de apoyo embebidas. **El rombo sale torcido con un
+     número par de barras por cara**: no hay barra central y toma una de las dos del medio (se ve
+     en la planta de COL_VIENTO).
    Menores: doble verificación llave/pedestal de la misma armadura (iguales en X, distintas en Y; el
    pedestal cuenta sus niveles desde `s1_est` y no sabe de `recub_sup`); `fy` de las barras
    declarado tres veces; φ25/φ36 fuera del rango investigado (R17.5.2.1: No. 16 en tracción, No. 19

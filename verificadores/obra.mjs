@@ -2988,7 +2988,9 @@ const DATOS_BASE = datosPorDefecto(VISTA_BASE.campos);
 const fallanEn = (m) => m.chequeos.filter((c) => !c.cumple && !c.aviso).map((c) => c.id).sort().join(',');
 const SILLA_DEL_PACHON = 'v_chapa_nervio,v_luz_nervio,v_nervio_ala,v_nervio_placa';
 /** Una silla que cierra: dos nervios por perno a la luz declarada, sobre un ala y una chapa que los cubren. */
-const SILLA_QUE_CIERRA = { disp_nerv: 2, luz_nerv: 150, NER_T: 16, ALA_EXT: 1150, CH_B: 1150, B_bp: 1300, x_ext: 400, a_tuerca: 90 };
+// Con los pernos en su x_ext por defecto (480): a 400 caen sobre las barras de cara en
+// ±166,5 y las ramas interiores no tienen dónde ir sin atravesarlos.
+const SILLA_QUE_CIERRA = { disp_nerv: 2, luz_nerv: 150, NER_T: 16, ALA_EXT: 1150, CH_B: 1150, B_bp: 1300, a_tuerca: 90 };
 
 const CASOS_VISTA = [
   {
@@ -3134,7 +3136,7 @@ const CASOS_VISTA = [
   },
   // Cada verificación, rota sola a partir de una base que cierra.
   ...[
-    ['v_gol_gol', { b_ap: 180, y_t: 700 }],
+    ['v_gol_gol', { b_ap: 220, y_t: 700 }],
     ['v_gol_barra', { y_t: 800 }],
     ['v_hef_ped', { h_ef: 2000 }],
     ['v_s1_barras', { recub_sup: 60 }],
@@ -3147,7 +3149,9 @@ const CASOS_VISTA = [
     ['v_nervio_ala', { ALA_EXT: 900 }],
     ['v_nervio_placa', { B_bp: 950 }],
     ['v_chapa_nervio', { CH_B: 950 }],
-    ['v_llave_perno', { y_t: 600 }],
+    ['v_llave_perno', { y_t: 600, amarre_cab: 0 }],
+    // A 650 mm, el perno en x = 240 queda sobre una rama del rombo de cabeza.
+    ['v_estribo_perno', { y_t: 650 }],
     ['v_llave_ped', { b_sl: 1380, amarre_cab: 0 }],
     ['v_llave_ramas', { n_niv_sin_ramas: 0 }],
   ].map(([id, cambio]) => ({
@@ -3234,8 +3238,9 @@ const CASOS_VISTA = [
     nombre: 'vista base-columna sin llave: sin sus piezas ni sus choques, y la zona confinada es el lado menor',
     ok: () => {
       const cfg = { silla: 'nervios', llave: 'no' };
-      // Con los pernos a 600 mm la llave los toca; sin llave, nada choca.
-      const cambio = { ...SILLA_QUE_CIERRA, y_t: 600 };
+      // Con los pernos a 600 mm la llave los toca; sin llave, nada choca. Sin rombo:
+      // a 600 mm también lo atravesarían.
+      const cambio = { ...SILLA_QUE_CIERRA, y_t: 600, amarre_cab: 0 };
       if (fallanEn(VISTA_BASE.construir({ ...DATOS_BASE, ...cambio })) !== 'v_llave_perno') return 'con llave, el caso no es el que se creía';
       const m = VISTA_BASE.construir({ ...DATOS_BASE, ...cambio }, cfg);
       if (m.piezas.some((p) => p.rol === 'llave')) return 'quedaron piezas de la llave';

@@ -135,8 +135,15 @@ export function svgVistas(modelo: ModeloGeometrico, ancho = 680): SvgVistas {
   // no la de referencia: con el nervio fuera de la placa, lo que está mal es el
   // nervio, y pintar la placa entera taparía todo lo demás.
   const rojos = new Set(fallidas.map((c) => c.piezas[0]).filter(Boolean));
-  // En planta basta el primer nivel de estribos: los demás caen encima.
-  const enPlanta = piezas.filter((p) => p.rol !== 'estribo' || /^(estribo_1|rama_[xy]_1_\d+)$/.test(p.id));
+  // En planta, un nivel de cada cosa: los demás caen encima. El perimetral, el rombo
+  // de cabeza y las ramas interiores del primer nivel que las tiene, que con llave no
+  // es el primero: son las que pueden chocar con los pernos y con la llave.
+  const nivelRamas = Math.min(...piezas.filter((p) => /^rama_[xy]_\d+_\d+$/.test(p.id)).map((p) => Number(p.id.split('_')[2])));
+  const conRombo = piezas.some((p) => p.id === 'rombo_1');
+  const enPlanta = piezas.filter(
+    (p) => p.rol !== 'estribo' || p.id === 'estribo_1' || p.id === 'rombo_1' || new RegExp(`^rama_[xy]_${nivelRamas}_\\d+$`).test(p.id),
+  );
+  const queEstribos = ['perimetral', ...(conRombo ? ['rombo de cabeza'] : []), ...(Number.isFinite(nivelRamas) ? [`ramas interiores desde el nivel ${nivelRamas}`] : [])];
 
   const ped = piezas.find((p) => p.rol === 'pedestal');
   if (!ped || ped.tipo !== 'caja') return { svg: '', ancho: 0, alto: 0 };
@@ -160,6 +167,9 @@ export function svgVistas(modelo: ModeloGeometrico, ancho = 680): SvgVistas {
 
   const partes: string[] = [];
   partes.push(`<text x="${margen}" y="18" font-size="10" font-weight="bold" fill="#111827">Planta</text>`);
+  if (piezas.some((p) => p.rol === 'estribo')) {
+    partes.push(`<text x="${margen + 44}" y="18" font-size="8" fill="#6b7280">estribos: ${queEstribos.join(', ')}</text>`);
+  }
   for (const p of enPlanta) partes.push(trazo(p, 'planta', rojos, planta));
   partes.push(cotaH(planta, ped.x0, ped.x1, planta.oy + altoPlanta + 10, `${rot(ped.x1 - ped.x0)} mm`));
 

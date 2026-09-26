@@ -195,11 +195,24 @@ export function construirBaseColumna(d: Record<string, number>, config: Config =
   // Sin llave, la zona confinada es el lado menor, como el pedestal con h_llave = 0.
   const zpLlave = conLlave ? d.h_sl + (bMin - d.b_sl) / 2 : 0;
   const zp = Math.min(Math.max(bMin, zpLlave), d.H_PED);
+  // Hueco para que pase el hormigón: se lee como el §25.2.1 de ACI 318-25 para
+  // barras, 25 mm y 4/3 del árido (⁉️ lectura: la placa embebida no es una barra).
+  const hueco = Math.max(25, (4 / 3) * d.d_agg);
+  const re = d.db_est / 2;
   // El primer estribo, a s1_est de la cara superior; los tres primeros, a sep_cab;
   // de ahí, al paso de la zona confinada mientras no se sale de ella y al del fuste
-  // después.
+  // después. Un nivel que caería a la altura de las placas de apoyo embebidas —o a
+  // menos del hueco— sube hasta quedar sobre ellas, porque sus ramas las cruzarían; si
+  // arriba no cabe, a menos de un hueco del nivel anterior, baja hasta quedar debajo.
+  const golSup = d.h_ef - hueco - re;
+  const golInf = d.h_ef + d.t_ap + hueco + re;
   const niveles: number[] = [];
-  for (let z = d.s1_est; z <= d.H_PED - d.recub_inf; z += niveles.length < 3 ? d.sep_cab : z < zp ? d.sep_zp : d.sep_est) niveles.push(r1(-z));
+  for (let z = d.s1_est; z <= d.H_PED - d.recub_inf; ) {
+    const anterior = niveles.length ? -niveles[niveles.length - 1] : -Infinity;
+    const zz = z > golSup && z < golInf ? (golSup - anterior >= hueco + 2 * re ? golSup : golInf) : z;
+    niveles.push(r1(-zz));
+    z = zz + (niveles.length < 3 ? d.sep_cab : zz < zp ? d.sep_zp : d.sep_est);
+  }
   // Un nivel abraza las barras solo si queda entero bajo su extremo superior: el que
   // asoma por encima no rodea nada, y no cuenta para los pernos ni para la llave.
   const abraza = (z: number) => -z - d.db_est / 2 >= d.recub_sup - 1e-6;
@@ -218,9 +231,15 @@ export function construirBaseColumna(d: Record<string, number>, config: Config =
   const tol = 0.5;
   const enCaraY = posBarras.filter(([x, y]) => Math.abs(Math.abs(y) - ay) < tol && Math.abs(Math.abs(x) - ax) > tol && y > 0).map(([x]) => x);
   const enCaraX = posBarras.filter(([x, y]) => Math.abs(Math.abs(x) - ax) < tol && Math.abs(Math.abs(y) - ay) > tol && x > 0).map(([, y]) => y);
-  const ramasX = elegir(enCaraY, ax); // ramas paralelas a Y, en estas abscisas
-  const ramasY = elegir(enCaraX, ay); // ramas paralelas a X, en estas ordenadas
-  const re = d.db_est / 2;
+  // Una rama cruza el pedestal entero, así que pasa por el lado de todos los pernos:
+  // solo sirven las barras que no la hacen atravesar el fuste de ninguno. Se cruzan
+  // como la rama con una barra longitudinal, y se pueden tocar: el hueco del §25.2.1
+  // es para barras paralelas (decisión con el usuario, 2026-09-25).
+  const lejosDePernos = (c: number, eje: 0 | 1) => pernos.every((p) => Math.abs(c - (eje === 0 ? p.x : p.y)) - re - p.r >= -1e-6);
+  const admisiblesX = enCaraY.filter((x) => lejosDePernos(x, 0));
+  const admisiblesY = enCaraX.filter((y) => lejosDePernos(y, 1));
+  const ramasX = elegir(admisiblesX, ax); // ramas paralelas a Y, en estas abscisas
+  const ramasY = elegir(admisiblesY, ay); // ramas paralelas a X, en estas ordenadas
   // Con llave, los primeros niveles pueden ir sin ramas interiores —solo el
   // perimetral—, para que la llave no las cruce.
   const sinRamas = conLlave ? Math.max(0, Math.round(d.n_niv_sin_ramas ?? 0)) : 0;
@@ -263,9 +282,6 @@ export function construirBaseColumna(d: Record<string, number>, config: Config =
   }
 
   // ── Verificaciones ───────────────────────────────────────────────────────
-  // Hueco para que pase el hormigón: se lee como el §25.2.1 de ACI 318-25 para
-  // barras, 25 mm y 4/3 del árido (⁉️ lectura: la placa embebida no es una barra).
-  const hueco = Math.max(25, (4 / 3) * d.d_agg);
   const sPerno = xs.length > 1 ? xs[1] - xs[0] : Infinity;
 
   chequeos.push(
@@ -325,9 +341,11 @@ export function construirBaseColumna(d: Record<string, number>, config: Config =
     chequeo('v_sep_barras', 'Separación libre entre barras longitudinales (ACI 318-25 §25.2.3)', minBB, '>=', Math.max(40, 1.5 * d.db_long, (4 / 3) * d.d_agg), 'mm', parBB),
   );
 
-  // Cada rama interior de estribo abraza una barra: hacen falta barras en la cara.
+  // Cada rama interior de estribo abraza una barra: hacen falta barras en la cara, y
+  // que la rama no pase junto a un perno.
   chequeos.push(
-    chequeo('v_ramas', 'Barras disponibles para las ramas interiores de estribo, en la cara con menos', Math.min(enCaraY.length, enCaraX.length), '>=', nInt, '', ['estribo_1']),
+    chequeo('v_ramas', 'Barras disponibles para las ramas interiores de estribo, lejos de los pernos, en la cara con menos',
+      Math.min(admisiblesX.length, admisiblesY.length), '>=', nInt, '', ['estribo_1']),
   );
 
   let luzReal = 0;
@@ -422,6 +440,45 @@ export function construirBaseColumna(d: Record<string, number>, config: Config =
       }
       chequeos.push(chequeo('v_rombo_llave', 'Hueco libre en planta entre las ramas del rombo y la llave', minRL, '>=', hueco, 'mm', ['rombo_1', 'llave_x']));
     }
+  }
+  // Los pernos atraviesan todos los niveles de estribo: en planta, ninguna rama
+  // interior ni el rombo pueden pasar a menos del hueco del fuste. Se recorre en el
+  // orden de los niveles, así que la pieza que se nombra es la del primero, la que
+  // se dibuja en planta.
+  const dSeg = (x: number, y: number, a: [number, number], b: [number, number]) => {
+    const [dx, dy] = [b[0] - a[0], b[1] - a[1]];
+    const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / (dx * dx + dy * dy || 1)));
+    return Math.hypot(x - a[0] - t * dx, y - a[1] - t * dy);
+  };
+  const rombos = piezas.filter((p): p is Lazo => p.tipo === 'lazo' && p.id.startsWith('rombo_'));
+  let minEP = Infinity;
+  let parEP: string[] = [];
+  for (const p of pernos) {
+    for (const r of ramas) {
+      const dd = distPuntoRect(p.x, p.y, r.x0, r.x1, r.y0, r.y1) - p.r;
+      if (dd < minEP) [minEP, parEP] = [dd, [r.id, p.id]];
+    }
+    for (const l of rombos) {
+      const dd = Math.min(...l.puntos.map((a, i) => dSeg(p.x, p.y, a, l.puntos[(i + 1) % l.puntos.length]))) - l.r - p.r;
+      if (dd < minEP) [minEP, parEP] = [dd, [l.id, p.id]];
+    }
+  }
+  if (Number.isFinite(minEP)) {
+    chequeos.push(chequeo('v_estribo_perno', 'Hueco libre en planta entre una rama interior de estribo, o el rombo, y el perno más cercano: se cruzan y no pueden atravesarse', r1(minEP), '>=', 0, 'mm', parEP));
+  }
+  // Una rama a la altura de una placa de apoyo embebida no puede cruzarla: el hueco
+  // que cuenta es el mayor entre el de planta y el de altura.
+  let minRG = Infinity;
+  let parRG: string[] = [];
+  for (const g of golillas)
+    for (const r of ramas) {
+      const enPlanta = Math.hypot(Math.max(g.x0 - r.x1, 0, r.x0 - g.x1), Math.max(g.y0 - r.y1, 0, r.y0 - g.y1));
+      const enAltura = Math.max(g.z0 - r.z1, 0, r.z0 - g.z1);
+      const dd = Math.max(enPlanta, enAltura);
+      if (dd < minRG) [minRG, parRG] = [dd, [g.id, r.id]];
+    }
+  if (Number.isFinite(minRG)) {
+    chequeos.push(chequeo('v_rama_golilla', 'Hueco libre entre una rama interior de estribo y la placa de apoyo embebida, en planta o en altura', r1(minRG), '>=', hueco, 'mm', parRG));
   }
   if (conRombo) {
     // ACI 318-25 §25.7.2.3(a): el ángulo interior del amarre en cada barra que apoya.
