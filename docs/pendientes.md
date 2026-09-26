@@ -98,6 +98,13 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
      cara el rombo sale torcido, y se deja así a propósito: el dibujo delata la configuración sin
      necesidad de nota. COL_VIENTO pasó a 20 φ22 (5 y 7 por cara): rombo centrado y la cabeza sin
      aviso de amarre.
+   - **Invariantes de cadena** (`obra/invariantes.ts`, `npm run verify:obras`): campo de una
+     genérica o vista sin fijar ni atar (aviso), atadura que no resuelve (error) y base atrás de
+     su plantilla (aviso). La obra `base-de-columna` los tiene: placa, anclaje y pedestal calculan
+     campos estrenados después de armarla con el valor de ejemplo. Queda por hacer: los ids de los
+     textos de plantilla son su posición en la sección, y un bloque nuevo en medio corre los
+     siguientes (el desfase los reconoce por contenido; `actualizarPlantilla` todavía no los
+     re-identifica).
    Menores: doble verificación llave/pedestal de la misma armadura (iguales en X, distintas en Y; el
    pedestal cuenta sus niveles desde `s1_est` y no sabe de `recub_sup`); `fy` de las barras
    declarado tres veces; φ25/φ36 fuera del rango investigado (R17.5.2.1: No. 16 en tracción, No. 19

@@ -21,6 +21,7 @@ npm run verify:motor     # casos de regresión del motor: hojas mínimas con su 
 npm run huella:motor -- [--salida <base.json>] [--comparar <base.json>]  # qué regiones del corpus cambia un arreglo
 npm run verify:biblioteca          # el contrato de genérica y los casos de public/biblioteca/
 npm run verify:obra                # el grafo de cálculo de una obra, su carpeta y el servidor de obras
+npm run verify:obras [-- <id>]     # los invariantes de cadena sobre las obras que hay en disco (solo lee)
 npm run obras                      # el servidor de obras suelto (npm run dev ya lo monta)
 npm run puente-sap                 # el puente con SAP2000 (Python + comtypes, 127.0.0.1:8789, /sap-api)
 npm run indice:planillas           # regenera los dos índices (lo corren dev y build)

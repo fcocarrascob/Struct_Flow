@@ -461,6 +461,47 @@ export function actualizarPlantilla(
 }
 
 /**
+ * Lo que la plantilla de hoy trae y la base armada no tiene, o al revés: nodos,
+ * campos de la frontera (fijados o atados, da igual cuál), lo que publica y bloques
+ * de hoja. Es la señal de que la base quedó atrás de su plantilla y hay que
+ * actualizarla. No compara valores ni fórmulas: esos los edita el ingeniero.
+ */
+export function desfaseDePlantilla(obra: Obra, p: Plantilla, idVista: string): string[] {
+  const vista = obra.calculos.find((k) => k.id === idVista);
+  const ens = vista?.frontera?.ensamble;
+  if (!vista?.frontera || !ens) return [];
+  const esperados = instanciar(p, normalizada(p, vista.frontera.config ?? {}), ens, { ...ens.nodos }, {});
+  const salida: string[] = [];
+  const lista = (xs: string[]) => xs.slice(0, 4).join(', ') + (xs.length > 4 ? ` y ${xs.length - 4} más` : '');
+  for (const e of esperados) {
+    const actual = obra.calculos.find((k) => k.id === e.id);
+    if (!actual) {
+      salida.push(`falta el nodo «${e.nombre}»`);
+      continue;
+    }
+    if (e.frontera && actual.frontera) {
+      const campos = (f: typeof e.frontera) => new Set([...Object.keys(f.entradas ?? {}), ...Object.keys(f.formulas ?? {})]);
+      const quiere = campos(e.frontera);
+      const tiene = campos(actual.frontera);
+      const faltan = [...quiere].filter((c) => !tiene.has(c));
+      const sobran = [...tiene].filter((c) => !quiere.has(c));
+      const sinPublicar = Object.keys(e.frontera.publica ?? {}).filter((s) => !(s in (actual.frontera!.publica ?? {})));
+      if (faltan.length) salida.push(`${actual.nombre}: le faltan los campos ${lista(faltan)}`);
+      if (sobran.length) salida.push(`${actual.nombre}: sobran los campos ${lista(sobran)}`);
+      if (sinPublicar.length) salida.push(`${actual.nombre}: no publica ${lista(sinPublicar)}`);
+    }
+    // Un texto se identifica por su lugar en la sección: si la plantilla metió un
+    // bloque antes, el mismo texto de una base armada antes tiene otro id. Con el
+    // contenido igual está, aunque se llame distinto.
+    const ids = new Set(actual.hoja.map((r) => r.id));
+    const contenidos = new Set(actual.hoja.map(contenido));
+    const bloques = e.hoja.filter((r) => !ids.has(r.id) && !contenidos.has(contenido(r))).map((r) => r.id.slice(e.id.length + 1));
+    if (bloques.length) salida.push(`${actual.nombre}: le faltan los bloques ${lista(bloques)}`);
+  }
+  return salida;
+}
+
+/**
  * Lo que cambia entre dos instancias de la plantilla, aplicado sobre la obra:
  * nodos que aparecen o desaparecen, bloques y ataduras. Lo que el ingeniero editó
  * fuera de eso se conserva.
@@ -545,7 +586,17 @@ function aplicarHoja(actual: Region[], vieja: Region[], nueva: Region[], conserv
   const enNueva = new Map(nueva.map((r) => [r.id, r]));
   const enVieja = new Map(vieja.map((r) => [r.id, r]));
   let hoja = actual
-    .filter((r) => !(enVieja.has(r.id) && !enNueva.has(r.id)))
+    .filter((r) => {
+      const v = enVieja.get(r.id);
+      if (!v || enNueva.has(r.id)) return true;
+      // Sale de la plantilla. Al cambiar de plantilla, uno que el ingeniero editó se
+      // queda y se avisa: borrarlo perdería su trabajo sin decirlo.
+      if (conservado && contenido(r) !== contenido(v)) {
+        conservado(r.id);
+        return true;
+      }
+      return false;
+    })
     .map((r) => {
       const v = enVieja.get(r.id);
       const n = enNueva.get(r.id);

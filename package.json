@@ -19,6 +19,7 @@
     "verify:motor": "node scripts/verify-motor.mjs",
     "huella:motor": "node scripts/huella-motor.mjs",
     "verify:obra": "node verificadores/obra.mjs",
+    "verify:obras": "node verificadores/obras.mjs",
     "obras": "node servidor/obras.mjs",
     "puente-sap": "python puente-sap/puente.py"
   },

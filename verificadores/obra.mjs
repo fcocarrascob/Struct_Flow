@@ -35,6 +35,8 @@ const motor = await compilarEntrada('src/proyecto/obra/engine.ts');
 const {
   evaluarObra,
   proyectar,
+  invariantesDeObra,
+  desfaseDePlantilla,
   colocar,
   colocarPorGrupo,
   problemaDeGrafo,
@@ -634,6 +636,18 @@ const CASOS = [
     ok: (ev, proy) => {
       const n = proy.nodos.find((x) => x.id === K('P'));
       return n?.severidad === 'error' && n.motivos.some((t) => t.includes('t_bp')) ? null : `P: ${n?.severidad} ${JSON.stringify(n?.motivos)}`;
+    },
+  },
+  {
+    nombre: 'invariante: un campo de la genérica que la obra no fija ni ata se avisa, porque toma el valor de ejemplo',
+    // Es lo que pasa cuando la genérica estrena un campo después de armada la obra.
+    obra: obra(conPlanilla('P', importada(PLACA, { entradas: Object.fromEntries(Object.entries(PLACA.porDefecto).filter(([k]) => k !== 't_bp')) }))),
+    ok: (ev, proy) => {
+      const n = proy.nodos.find((x) => x.id === K('P'));
+      if (n?.severidad !== 'aviso' || !n.motivos.some((t) => t.startsWith('Sin fijar ni atar: t_bp'))) return `P: ${n?.severidad} ${JSON.stringify(n?.motivos)}`;
+      // Con todo fijado, nada.
+      const limpio = obra(conPlanilla('Q', importada(PLACA)));
+      return invariantesDeObra(limpio, evaluarObra(limpio, genericas), genericas).length ? 'avisó con todo fijado' : null;
     },
   },
   {
@@ -3486,7 +3500,11 @@ function CASOS_ENSAMBLE() {
         const hoja = (bloques) => bloques.map((src) => ({ kind: 'math', src }));
         const antes = {
           nodos: [
-            { clave: 'datos', nombre: 'Datos $G', hoja: [{ clave: 'a', bloques: hoja(['a_pb := 1 m', 'b_pb := 2 m', 'c_pb := 3 m']) }] },
+            {
+              clave: 'datos',
+              nombre: 'Datos $G',
+              hoja: [{ clave: 'a', bloques: [...hoja(['a_pb := 1 m', 'b_pb := 2 m', 'c_pb := 3 m']), { kind: 'text', src: 'nota A' }, { kind: 'text', src: 'nota B' }] }],
+            },
             { clave: 'placa', nombre: 'Placa $G', frontera: { procedencia: 'biblioteca', id: PLACA.id, entradas: { hay_llave: 0 }, formulas: { L_bp: 'a_pb' }, publica: { u_max: 'u_pb' } } },
             { clave: 'vista', nombre: 'Vista $G', frontera: { procedencia: 'vista', id: 'base-columna', entradas: {}, formulas: {}, publica: {} } },
           ],
@@ -3503,19 +3521,57 @@ function CASOS_ENSAMBLE() {
         const P = { ...PARAMS, tipo: 'CV', grupoSap: 'COL_VIENTO' };
         const r = armarEnsamble(obra(), antes, {}, P, { [PLACA.id]: 'viejo' }, { nombre: 'b', color: '#db2777' }, nuevoId);
         if (r.error) return r.error;
-        // El ingeniero editó c_pb; b_pb no.
+        // El ingeniero editó c_pb y la nota A; b_pb y la nota B no. La plantilla nueva
+        // quita las dos notas: la editada se queda, la otra se va.
         const datos = nodo(r.obra, 'Datos COL_VIENTO');
-        const o = { ...r.obra, calculos: r.obra.calculos.map((k) => (k.id === datos.id ? { ...k, hoja: k.hoja.map((x) => (x.src.startsWith('c_pb') ? { ...x, src: 'c_pb_CV := 5 m' } : x)) } : k)) };
+        const editar = (x) => (x.src.startsWith('c_pb') ? { ...x, src: 'c_pb_CV := 5 m' } : x.src === 'nota A' ? { ...x, src: 'nota A editada' } : x);
+        const o = { ...r.obra, calculos: r.obra.calculos.map((k) => (k.id === datos.id ? { ...k, hoja: k.hoja.map(editar) } : k)) };
         const a = motor.actualizarPlantilla(o, antes, despues, r.idVista, { [PLACA.id]: 'nuevo' }, nuevoId);
         if (a.error) return a.error;
         const src = nodo(a.obra, 'Datos COL_VIENTO').hoja.map((x) => x.src).join(' ; ');
-        if (src !== 'a_pb_CV := 1 m ; b_pb_CV := 20 m ; c_pb_CV := 5 m ; d_pb_CV := 4 m') return `datos: ${src}`;
-        if (a.conservados.length !== 1 || !a.conservados[0].includes(':a:')) return `conservados: ${a.conservados.join(', ')}`;
+        if (src !== 'a_pb_CV := 1 m ; b_pb_CV := 20 m ; c_pb_CV := 5 m ; d_pb_CV := 4 m ; nota A editada') return `datos: ${src}`;
+        if (a.conservados.length !== 2 || !a.conservados.every((c) => c.includes(':a:'))) return `conservados: ${a.conservados.join(', ')}`;
         const placa = nodo(a.obra, 'Placa COL_VIENTO').frontera;
         if (placa.formulas.L_bp !== 'b_pb_CV' || placa.sha256 !== 'nuevo') return `placa: ${placa.formulas.L_bp} ${placa.sha256}`;
         // Lo que la plantilla nueva publica, también: si no, quien lo ata queda con el valor de ejemplo.
         if (placa.publica.T_grupo !== 'T_pb_CV') return `publica: ${JSON.stringify(placa.publica)}`;
         return a.obra.calculos.length === r.obra.calculos.length ? null : 'cambió el número de nodos';
+      },
+    },
+    {
+      nombre: 'invariante: una base atrás de su plantilla lo dice en la vista, y lo que dejó sin fijar en su nodo',
+      ok: () => {
+        const r = base();
+        if (r.error) return r.error;
+        const o = sanearObra(r.obra);
+        const recien = desfaseDePlantilla(o, PLANTILLA, r.idVista);
+        if (recien.length) return `recién armada ya tiene desfase: ${recien.join(' | ')}`;
+        const inv0 = invariantesDeObra(o, evaluarObra(o, genericasBase), genericasBase);
+        if (inv0.length) return `recién armada ya tiene invariantes: ${inv0.map((x) => `${x.nodo}: ${x.motivo}`).join(' | ')}`;
+        // Como quedó el Pachón antes de 2026-09-25: la vista sin publicar lo nuevo, la
+        // hoja de datos sin la sección del desarrollo y el anclaje sin su atadura.
+        const ens = o.calculos.find((k) => k.id === r.idVista).frontera.ensamble.nodos;
+        const atras = {
+          ...o,
+          calculos: o.calculos.map((k) => {
+            if (k.id === r.idVista) {
+              const { sep_libre_cab: _, ...publica } = k.frontera.publica;
+              return { ...k, frontera: { ...k.frontera, publica } };
+            }
+            if (k.id === ens.datos) return { ...k, hoja: k.hoja.filter((b) => !b.id.includes(':desarrollo:')) };
+            if (k.id === ens.anclaje) {
+              const { l_sup_arm: _, ...formulas } = k.frontera.formulas;
+              return { ...k, frontera: { ...k.frontera, formulas } };
+            }
+            return k;
+          }),
+        };
+        const d = desfaseDePlantilla(atras, PLANTILLA, r.idVista).join(' | ');
+        for (const t of ['no publica sep_libre_cab', 'le faltan los bloques desarrollo', 'le faltan los campos l_sup_arm']) if (!d.includes(t)) return `desfase sin «${t}»: ${d}`;
+        const inv = invariantesDeObra(atras, evaluarObra(atras, genericasBase), genericasBase);
+        const tipos = inv.map((x) => `${x.tipo}@${x.nodo}`).sort().join(', ');
+        if (!tipos.includes('plantilla-atras@Base de columna COL_PPALES — geometría') || !tipos.includes('campo-suelto@Anclaje al hormigón COL_PPALES')) return `invariantes: ${tipos}`;
+        return null;
       },
     },
     {

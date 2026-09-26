@@ -23,7 +23,8 @@
 
 import { erroresDeResultado, parseMathRegion, simbolosDeFormula } from '../../lib/worksheet';
 import { peor, type AristaGrafo, type NodoGrafo, type Severidad } from '../grafo';
-import { camposResueltos, quedoAtras, type Genericas } from './biblioteca';
+import { quedoAtras, type Genericas } from './biblioteca';
+import { invariantesDeObra, type Invariante } from './invariantes';
 import { mensajeDeMotor } from '../../components/canvas/mensajes-motor';
 import { problemaDeGrafo, type EvaluacionObra } from './evaluacion';
 import { ID_NODO_APOYOS, ID_NODO_BASAL, ID_NODO_COMBINACIONES, ID_NODO_MODAL, ID_NODO_SAP, idNodoDeCalculo } from './ids';
@@ -145,7 +146,7 @@ function aristasDeJustificaciones(obra: Obra, ev: EvaluacionObra): AristaGrafo[]
 }
 
 /** El nodo de un cálculo suelto: una hoja libre o un cálculo con frontera. */
-function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra, obra: Obra): NodoDeObra {
+function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra, obra: Obra, invariantes: readonly Invariante[]): NodoDeObra {
   const id = idNodoDeCalculo(k.id);
   const f = k.frontera;
   const define = ev.define.get(id) ?? [];
@@ -233,15 +234,11 @@ function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra,
     severidad = 'error';
   }
 
-  // Un campo atado que no resuelve deja a la planilla con su último valor —el de
-  // ejemplo, si nunca resolvió—: el número sale, pero no es el de la obra.
-  if (modulo) {
-    for (const [campo, r] of Object.entries(camposResueltos(modulo, f, instancia.scope))) {
-      if (!r.error) continue;
-      const m = mensajeDeMotor(r.error).trim();
-      motivos.push(`Campo atado ${campo} = ${f.formulas?.[campo]}: ${m}${/[.!?]$/.test(m) ? '' : '.'} Calcula con el valor guardado.`);
-      severidad = 'error';
-    }
+  // Los invariantes de cadena: campos sin fijar, ataduras rotas y una base atrás de
+  // su plantilla (`invariantes.ts`).
+  for (const inv of invariantes.filter((x) => x.idNodo === id)) {
+    motivos.push(inv.motivo);
+    severidad = peor(severidad, inv.severidad);
   }
 
   if (modulo && quedoAtras(modulo, f)) {
@@ -443,7 +440,8 @@ export function proyectar(obra: Obra, ev: EvaluacionObra, genericas: Genericas =
   const nodos: NodoDeObra[] = [];
   const aristas: AristaGrafo[] = [];
 
-  for (const k of obra.calculos) nodos.push(nodoDeCalculo(k, genericas, ev, obra));
+  const invariantes = invariantesDeObra(obra, ev, genericas);
+  for (const k of obra.calculos) nodos.push(nodoDeCalculo(k, genericas, ev, obra, invariantes));
 
   // El modelo de SAP2000: con qué modelo se conectó y cuánto de lo que tiene
   // —cargas, factores, espectro— respalda la obra. No publica nada; RECIBE las flechas de los nodos que
