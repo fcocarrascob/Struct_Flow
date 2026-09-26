@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { normalizarOpciones, type CampoDef, type Entradas } from '../../lib/diseno/tipos';
 import type { CampoResuelto } from './biblioteca';
+import { mensajeDeMotor } from '../../components/canvas/mensajes-motor';
 
 /**
  * El formulario de una genérica dentro de una obra, donde cada campo puede ser
@@ -131,7 +132,7 @@ export default function FormularioAtable({
                           r?.error ? 'text-error' : 'text-muted'
                         }`}
                       >
-                        {r?.error ??
+                        {(r?.error && mensajeDeMotor(r.error)) ??
                           `= ${String(r?.valor ?? valores[campo.nombre] ?? '—').replace('.', ',')}${
                             campo.unidad ? ` ${campo.unidad}` : ''
                           }`}

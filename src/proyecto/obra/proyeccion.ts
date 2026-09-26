@@ -238,7 +238,8 @@ function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra,
   if (modulo) {
     for (const [campo, r] of Object.entries(camposResueltos(modulo, f, instancia.scope))) {
       if (!r.error) continue;
-      motivos.push(`Campo atado ${campo} = ${f.formulas?.[campo]}: ${mensajeDeMotor(r.error)} Calcula con el valor guardado.`);
+      const m = mensajeDeMotor(r.error).trim();
+      motivos.push(`Campo atado ${campo} = ${f.formulas?.[campo]}: ${m}${/[.!?]$/.test(m) ? '' : '.'} Calcula con el valor guardado.`);
       severidad = 'error';
     }
   }
