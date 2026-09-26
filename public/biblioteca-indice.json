@@ -55,16 +55,16 @@
       "clase": "generica",
       "disciplina": "acero",
       "ruta": "/biblioteca/acero/llave-corte-generica.json",
-      "regiones": 149,
+      "regiones": 154,
       "normas": [
         "US/AISC-DG1-3ed",
         "US/ACI318-25-SI",
         "US/AISC360-22"
       ],
-      "entradas": 32,
-      "salidas": 27,
+      "entradas": 34,
+      "salidas": 28,
       "promovible": true,
-      "sha256": "7ddd0a4a3b1e97f346980e38b4b0a0727563570a9b7389fbb061d401ad851d8d",
+      "sha256": "73b843957f96ca5e07a2e575bea93c29e0bc70aebcf7126d6e97a914876ee673",
       "resumen": "Chapa soldada bajo la placa base que transfiere el corte al hormigón: regla de espesor de la DG1, embebido mínimo de los pernos, aplastamiento, breakout de corte, acero de la chapa, soldadura y flexión local de la placa. Entrega exc y tbp_req a placa-base-generica y recibe Yb, n_trac y N_sa."
     },
     {
@@ -142,14 +142,14 @@
       "clase": "generica",
       "disciplina": "hormigon",
       "ruta": "/biblioteca/hormigon/anclaje-hormigon-generica.json",
-      "regiones": 137,
+      "regiones": 146,
       "normas": [
         "US/ACI318-25-SI"
       ],
-      "entradas": 31,
-      "salidas": 20,
+      "entradas": 33,
+      "salidas": 21,
       "promovible": true,
-      "sha256": "ea3ca93c63c06de5e5d3db7bbccabd473bd4742aff5fc266c84e99f6cf5e7bd1",
+      "sha256": "c2377894b9cfc8b97e0c2658538ac04ca090e600f45a897ad4fec9200915eba7",
       "resumen": "El Cap. 17 del ACI 318-25 en tracción para pernos colados, con los dos factores nuevos de la edición 25 (psi_a y psi_cm,N) y el diseño sísmico del §17.10 (opción (d), factor 0,75 sobre los modos del hormigón). Recibe Nua_g de placa-base-generica y decide si hace falta armadura de anclaje."
     },
     {
