@@ -629,6 +629,14 @@ const CASOS = [
     ok: esperaArista('G', 'P', 't_placa'),
   },
   {
+    nombre: 'un campo atado a un nombre que nadie define pinta el nodo en rojo, aunque la planilla siga con su valor',
+    obra: obra(conPlanilla('P', importada(PLACA, { formulas: { t_bp: 't_que_no_existe' } }))),
+    ok: (ev, proy) => {
+      const n = proy.nodos.find((x) => x.id === K('P'));
+      return n?.severidad === 'error' && n.motivos.some((t) => t.includes('t_bp')) ? null : `P: ${n?.severidad} ${JSON.stringify(n?.motivos)}`;
+    },
+  },
+  {
     nombre: 'la cadena completa: planilla → hoja → planilla',
     // La forma de la familia BASE DE COLUMNA: lo que una entrega, la siguiente
     // lo recibe. Con una hoja libre en medio, que es donde se mayoran las cosas.
@@ -3482,7 +3490,7 @@ function CASOS_ENSAMBLE() {
         const despues = {
           nodos: [
             { ...antes.nodos[0], hoja: [{ clave: 'a', bloques: hoja(['a_pb := 1 m', 'b_pb := 20 m', 'c_pb := 30 m']) }, { clave: 'n', bloques: hoja(['d_pb := 4 m']) }] },
-            { ...antes.nodos[1], frontera: { ...antes.nodos[1].frontera, formulas: { L_bp: 'b_pb' } } },
+            { ...antes.nodos[1], frontera: { ...antes.nodos[1].frontera, formulas: { L_bp: 'b_pb' }, publica: { u_max: 'u_pb', T_grupo: 'T_pb' } } },
             antes.nodos[2],
           ],
         };
@@ -3500,6 +3508,8 @@ function CASOS_ENSAMBLE() {
         if (a.conservados.length !== 1 || !a.conservados[0].includes(':a:')) return `conservados: ${a.conservados.join(', ')}`;
         const placa = nodo(a.obra, 'Placa COL_VIENTO').frontera;
         if (placa.formulas.L_bp !== 'b_pb_CV' || placa.sha256 !== 'nuevo') return `placa: ${placa.formulas.L_bp} ${placa.sha256}`;
+        // Lo que la plantilla nueva publica, también: si no, quien lo ata queda con el valor de ejemplo.
+        if (placa.publica.T_grupo !== 'T_pb_CV') return `publica: ${JSON.stringify(placa.publica)}`;
         return a.obra.calculos.length === r.obra.calculos.length ? null : 'cambió el número de nodos';
       },
     },

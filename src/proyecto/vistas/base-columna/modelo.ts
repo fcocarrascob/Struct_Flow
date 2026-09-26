@@ -495,6 +495,37 @@ export function construirBaseColumna(d: Record<string, number>, config: Config =
       ? 'barras longitudinales a menos de 0,5·h_ef de algún perno, de cualquiera de las dos filas, que traccionan juntas con la placa rotulada; medido en planta entre ejes'
       : 'barras longitudinales a menos de 0,5·h_ef de algún perno de la fila traccionada, medido en planta entre ejes',
   });
+  // El largo de cada barra contable a los dos lados de la superficie de falla del
+  // cono, para su desarrollo (ACI 318-25 §17.5.2.1.1(a)). El cono sube a 35° desde la
+  // cabeza del perno, así que a r del perno en planta la superficie está a
+  // h_ef − r/1,5 de la cara. Arriba, la barra llega a recub_sup de la cara; abajo sigue
+  // dentro de la zapata hasta recub_zap de su fondo. Manda la barra con menos largo.
+  // Sin barras contables, los dos largos valen cero: no hay armadura que desarrollar.
+  const cruce = cont.map((b) => d.h_ef - Math.min(...filaT.map((p) => Math.hypot(b.x - p.x, b.y - p.y))) / 1.5);
+  derivados.push({
+    nombre: 'l_sup_anc',
+    valor: cruce.length ? r1(Math.min(...cruce) - d.recub_sup) : 0,
+    unidad: 'mm',
+    criterio: 'menor largo de una barra contable sobre la superficie de falla del cono (35°), hasta su extremo superior',
+  });
+  derivados.push({
+    nombre: 'l_inf_anc',
+    valor: cruce.length ? r1(d.H_PED + d.h_zap - d.recub_zap - Math.max(...cruce)) : 0,
+    unidad: 'mm',
+    criterio: 'menor largo de una barra contable bajo la superficie de falla del cono, siguiendo dentro de la zapata hasta su recubrimiento',
+  });
+  let pasoMin = Infinity;
+  for (let i = 0; i < barras.length; i++) {
+    const a = barras[i];
+    const b = barras[(i + 1) % barras.length];
+    pasoMin = Math.min(pasoMin, Math.hypot(a.x - b.x, a.y - b.y));
+  }
+  derivados.push({
+    nombre: 'c_b_long',
+    valor: r1(Math.min(d.recub, pasoMin / 2)),
+    unidad: 'mm',
+    criterio: 'c_b de las barras longitudinales: el menor entre el recubrimiento al eje y la mitad de la separación entre ejes (ACI 318-25 §25.4.2.4)',
+  });
   if (conSilla) {
     derivados.push({ nombre: 'luz_real', valor: r1(luzReal), unidad: 'mm', criterio: 'luz libre mayor entre los nervios que flanquean un perno' });
     derivados.push({ nombre: 'x_nerv_real', valor: r1(xn.length ? Math.max(...xn.map(Math.abs)) : 0), unidad: 'mm', criterio: 'posición del eje del nervio extremo' });

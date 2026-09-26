@@ -23,7 +23,7 @@
 
 import { erroresDeResultado, parseMathRegion, simbolosDeFormula } from '../../lib/worksheet';
 import { peor, type AristaGrafo, type NodoGrafo, type Severidad } from '../grafo';
-import { quedoAtras, type Genericas } from './biblioteca';
+import { camposResueltos, quedoAtras, type Genericas } from './biblioteca';
 import { mensajeDeMotor } from '../../components/canvas/mensajes-motor';
 import { problemaDeGrafo, type EvaluacionObra } from './evaluacion';
 import { ID_NODO_APOYOS, ID_NODO_BASAL, ID_NODO_COMBINACIONES, ID_NODO_MODAL, ID_NODO_SAP, idNodoDeCalculo } from './ids';
@@ -231,6 +231,16 @@ function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra,
   if (enGrafo) {
     motivos.push(enGrafo);
     severidad = 'error';
+  }
+
+  // Un campo atado que no resuelve deja a la planilla con su último valor —el de
+  // ejemplo, si nunca resolvió—: el número sale, pero no es el de la obra.
+  if (modulo) {
+    for (const [campo, r] of Object.entries(camposResueltos(modulo, f, instancia.scope))) {
+      if (!r.error) continue;
+      motivos.push(`Campo atado ${campo} = ${f.formulas?.[campo]}: ${mensajeDeMotor(r.error)} Calcula con el valor guardado.`);
+      severidad = 'error';
+    }
   }
 
   if (modulo && quedoAtras(modulo, f)) {

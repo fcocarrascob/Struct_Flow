@@ -567,7 +567,7 @@ function aplicarHoja(actual: Region[], vieja: Region[], nueva: Region[], conserv
   return hoja.map((r, i) => ({ ...r, x: 40, y: 40 + i * 48 }));
 }
 
-/** Las entradas, fórmulas y configuración que cambian entre la plantilla vieja y la nueva. */
+/** Las entradas, fórmulas, lo publicado y la configuración que cambian entre la plantilla vieja y la nueva. */
 function fronteraAplicada(actual: NodoCalculo, viejo: NodoCalculo, nuevo: NodoCalculo): Partial<NodoCalculo> {
   const f = actual.frontera;
   if (!f || !viejo.frontera || !nuevo.frontera) return {};
@@ -585,6 +585,7 @@ function fronteraAplicada(actual: NodoCalculo, viejo: NodoCalculo, nuevo: NodoCa
       ...f,
       entradas: delta(f.entradas, viejo.frontera.entradas, nuevo.frontera.entradas),
       formulas: delta(f.formulas, viejo.frontera.formulas, nuevo.frontera.formulas),
+      publica: delta(f.publica, viejo.frontera.publica, nuevo.frontera.publica),
       ...(nuevo.frontera.config ? { config: nuevo.frontera.config } : {}),
     },
   };

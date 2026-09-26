@@ -336,6 +336,18 @@ const DATOS = [
     f('sep_cab_ped := 70 mm', MOM),
     f('sep_cab_ped := 65 mm', ROT),
   ]),
+  sec('desarrollo', [
+    t(
+      'Supuesto: las barras del pedestal siguen dentro de la zapata y llegan a su fondo con gancho estándar; arriba terminan ' +
+        'rectas. Su desarrollo a los dos lados de la superficie de falla del cono de los pernos lo verifica la hoja del anclaje, ' +
+        'con los largos que mide la vista geométrica (ACI 318-25 §17.5.2.1.1(a)).',
+    ),
+    f('gancho_sup_ped := 0'),
+    f('gancho_inf_ped := 1'),
+    t('Supuesto: espesor de la zapata y recubrimiento de su fondo.'),
+    f('h_zap_ped := 800 mm'),
+    f('recub_zap_ped := 75 mm'),
+  ]),
   sec(
     'llave-rot',
     [
@@ -561,12 +573,14 @@ export const PLANTILLA_BASE_COLUMNA: Plantilla = {
         id: 'anclaje-hormigon-generica',
         entradas: {
           e_N: 0, lambda_a: 1, fisurado: 1, usa_arm: 1, fy_arm: 420, omega: 1.2, phi_sa: 0.75, phi_c: 0.75, phi_arm: 0.9,
-          psi_a: 0.95, psi_cm: 1, k_c: 10, sismo: 1, ductil: 1, n_filas: 1, s_f: 0,
+          psi_a: 0.95, psi_cm: 1, k_c: 10, sismo: 1, ductil: 1, n_filas: 1, s_f: 0, psi_r_arm: 1,
         },
         formulas: {
           Nua_g: 'T_pb', n_trac: 'n_pno', h_ef: 'h_ef_pno', s_1: 's_pno', c_a1: 'c_a1_pno', c_a2: 'c_a2_pno', d_a: 'd_pno',
           n_hilos: '25.4 mm/paso_rosca', A_brg: 'A_brg_pno', fpc: 'fc_ped', futa: 'futa_pno', fya: 'fya_pno',
           n_bordes: 'n_bordes_pno', c_a_max: 'c_a_max_pno', n_arm: 'n_cont_ped', d_arm: 'db_long_ped', l_est: 'l_est_pno',
+          l_sup_arm: 'l_sup_anc_ped', l_inf_arm: 'l_inf_anc_ped', c_b_arm: 'c_b_long_ped', gancho_sup: 'gancho_sup_ped',
+          gancho_inf: 'gancho_inf_ped',
         },
         publica: { u_max: 'u_anc', N_sa: 'N_sa_pb', As_req: 'As_req_anc' },
         // Con la placa de momento, T_pb es la tracción de la fila más cargada. Con la
@@ -684,8 +698,10 @@ export const PLANTILLA_BASE_COLUMNA: Plantilla = {
           db_est: 'db_est_ped', n_ramas: 'n_ramas_ped', sep_est: 'sep_est_ped', sep_zp: 'sep_zp_ped', ALA_EXT: 'ALA_EXT_sl',
           NER_H: 'NER_H_sl', NER_L: 'NER_L_sl', NER_T: 'NER_T_sl', CH_B: 'CH_B_sl', CH_L: 'CH_L_sl', CH_T: 'CH_T_sl',
           n_niv_sin_ramas: 'n_niv_sin_ramas_ll', amarre_cab: 'amarre_cab_ll', s1_est: 's1_est_ped', sep_cab: 'sep_cab_ped',
+          h_zap: 'h_zap_ped', recub_zap: 'recub_zap_ped',
         },
         publica: {
+          l_sup_anc: 'l_sup_anc_ped', l_inf_anc: 'l_inf_anc_ped', c_b_long: 'c_b_long_ped',
           sep_libre_cab: 'sep_libre_cab_ped', n_cont: 'n_cont_ped', n_est_cab: 'n_est_cab_ped', ramas_cab_x: 'ramas_cab_x_ped', ramas_cab_y: 'ramas_cab_y_ped',
           n_est_ll: 'n_est_ll', v_global: 'v_geo_base',
         },

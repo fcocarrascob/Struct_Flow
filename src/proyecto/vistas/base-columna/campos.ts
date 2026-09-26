@@ -225,4 +225,18 @@ export const CAMPOS_BASE_COLUMNA: Campo[] = [
     porDefecto: 40,
     supuesto: 'extremo superior de las barras a 40 mm de la cara superior del pedestal',
   },
+  {
+    nombre: 'h_zap',
+    unidad: 'mm',
+    descripcion: 'Espesor de la zapata, dentro del que siguen las barras del pedestal',
+    porDefecto: 800,
+    supuesto: 'zapata de 800 mm de espesor',
+  },
+  {
+    nombre: 'recub_zap',
+    unidad: 'mm',
+    descripcion: 'Del fondo de la zapata al extremo inferior de las barras del pedestal',
+    porDefecto: 75,
+    supuesto: 'recubrimiento de 75 mm contra el terreno',
+  },
 ];
