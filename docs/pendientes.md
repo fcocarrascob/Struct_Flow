@@ -71,13 +71,11 @@ atada a `modelo_prueba.sdb`. La revisión del motor está en «Motor», más aba
    `v_s1_barras` vota), el rombo por el cos² de las dos ramas que corta el plano de falla, las
    gobernantes no concurrentes de `m` y `v` con la N menor, y la hoja libre con un `v_*` en falso
    en rojo. Queda:
-   - **El Pachón no cumple con los arreglos**: anclaje CP 1,11 (ductilidad por el descascaramiento
-     hacia el borde de 208 mm), llave CP 1,51 (arranque), pedestal CP 1,04 (armadura de la llave) y
-     la vista CP (el primer estribo φ25 a 50 mm asoma sobre las barras, que terminan a 40 mm). El
-     armado es decisión de quien diseña.
-   - **Las gobernantes del Pachón se leyeron con el criterio viejo**: `m` y `v` no concurrentes
-     llevan la N mayor hasta que se vuelvan a leer los conjuntos desde SAP2000. Ninguna hoja revisa
-     `nc_*`.
+   - **El Pachón no cumple con los arreglos** (conjuntos releídos con la N menor): anclaje CP 1,11
+     (ductilidad por el descascaramiento hacia el borde de 208 mm), llave CP 1,51 (arranque),
+     pedestal CP 1,04 (armadura de la llave) y la vista CP (el primer estribo φ25 a 50 mm asoma
+     sobre las barras, que terminan a 40 mm); la placa CP sube a 0,893. El armado es decisión de
+     quien diseña. Ninguna hoja revisa `nc_*`.
    - **Nadie verifica el desarrollo** de la armadura de anclaje (§17.5.2.1.1(a)) ni de las ramas de
      la llave (§17.5.2.1.2(a)): CV φ25 rectas no se desarrollan arriba (≈ 450 contra ≈ 700 mm, piden
      gancho); CP depende de la penetración en la zapata, que no se modela.
