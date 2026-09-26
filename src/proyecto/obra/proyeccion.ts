@@ -181,8 +181,8 @@ function nodoDeCalculo(k: NodoCalculo, genericas: Genericas, ev: EvaluacionObra,
       severidad = 'error';
     }
     // Una verificación en falso vota como en una genérica: la que define la hoja
-    // y, en un resumen, también la que cita.
-    const falsos = [...define, ...(clase === 'resumen' ? usa : [])].filter((n) => n.startsWith('v_') && ev.scope[n] === false);
+    // y también la que cita, como el resumen de una base.
+    const falsos = [...define, ...usa].filter((n) => n.startsWith('v_') && ev.scope[n] === false);
     if (falsos.length) {
       motivos.push(`No cumple: ${falsos.join(', ')}.`);
       severidad = 'error';

@@ -900,18 +900,21 @@ const CASOS = [
     },
   },
   {
-    nombre: 'una hoja libre con una verificación en falso sale en rojo, y el resumen que la cita también',
+    nombre: 'una hoja libre con una verificación en falso sale en rojo, y la que la cita también',
     obra: obra(
       calc('A', m('a := 1'), m('v_a := a > 2 =')),
       calc('B', m('v_b := a < 2 =')),
       calc('R', m('v_a =')),
       calc('S', m('v_b =')),
+      // Cita y además define: no es un resumen, y también vota.
+      calc('T', m('t := 2'), m('v_a =')),
     ),
     ok: (ev, proy) => {
       const n = (id) => proy.nodos.find((x) => x.id === K(id));
       if (n('A').severidad !== 'error' || !n('A').motivos.some((x) => x.includes('v_a'))) return `A: ${n('A').severidad} ${n('A').motivos}`;
       if (n('B').severidad !== 'ok') return `B: ${n('B').severidad} ${n('B').motivos}`;
       if (n('R').clase !== 'resumen' || n('R').severidad !== 'error') return `R: ${n('R').clase} ${n('R').severidad}`;
+      if (n('T').clase !== 'calculo' || n('T').severidad !== 'error') return `T: ${n('T').clase} ${n('T').severidad}`;
       return n('S').severidad === 'ok' ? null : `S: ${n('S').severidad}`;
     },
   },
