@@ -421,6 +421,30 @@ opciones, no bases aparte)— y «personalizar». Marca la sugerida con las gobe
 e_crit de la rotulada de partida, y abre el armado con esa configuración: cada componente se sigue
 eligiendo ahí y en la ficha de la vista. Decide el ingeniero.
 
+**Alternativas de un mismo apoyo** (2026-09-25; decidido, sin hacer: después de la revisión del
+flujo de cálculo de las bases, que cambia los veredictos que la comparación mostraría). Evaluar
+dos o más configuraciones contra los MISMOS esfuerzos, a la vista en el lienzo, sin tocar los
+parámetros de un diseño para probar otro: con y sin silla, con y sin rombo, otro pedestal.
+
+- **El tipo y la alternativa se separan.** Hoy el sufijo de los nombres es el alias del tipo
+  (`_CP`), y por eso una segunda base del mismo tipo se rechaza. El tipo dice de dónde salen los
+  esfuerzos (`N_c_CP_LRFD`, que se publican una vez y cualquier cadena lee); la alternativa lleva
+  su propio sufijo (`_CP` la primera, `_CPb`… o uno que elija el usuario). El ensamble ya guarda
+  tipo y conjuntos: le falta el sufijo propio.
+- **En el panel de apoyos, por tipo:** la lista de sus bases con su tipología y su u máx,
+  «crear alternativa…» con el menú de tipologías, y «duplicar», que copia una base con sus datos
+  editados para cambiar una sola cosa. Duplicar es probablemente el uso más frecuente.
+- **Una sola adoptada.** Una marca en la base que va a la memoria y al informe; las demás se
+  evalúan y se ven, pero no se imprimen ni votan en el resumen de la obra. Dos placas para un
+  mismo apoyo en el informe no dirían cuál se construye.
+- **Comparación lado a lado** en el mismo panel: los u_* por componente (placa, anclaje, llave,
+  silla, pedestal, geometría) y la cantidad de acero de cada alternativa.
+
+Riesgos: el costo de evaluación (unos 9 nodos por base, y el P-M del pedestal es el caro: medir
+antes de dejarlo sin límite), el ruido en el autocompletado (los nombres de las no adoptadas no
+se ofrecen a las hojas libres) y la copia «De otra obra…», que ya deja el ensamble apuntando a
+ids viejos.
+
 ## La hoja va hacia el flujo lineal
 
 **2026-09-09.** Se descartó el modelo de SMath —posición libre en un plano, bloque impreso en
